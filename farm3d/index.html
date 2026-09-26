@@ -222,6 +222,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .wxrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .backup textarea{width:100%;min-height:110px;font:12px/1.35 ui-monospace,Menlo,monospace;padding:8px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text;word-break:break-all}
 .wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.tray.away{opacity:0;pointer-events:none;transition:opacity .12s}
 .ghost{position:fixed;z-index:25;width:56px;height:56px;object-fit:contain;pointer-events:none;transform:translate(-50%,-125%);filter:drop-shadow(0 5px 6px rgba(0,0,0,.35))}
 .movebar{text-align:center}
 .movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 160px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
@@ -1382,7 +1383,7 @@ function placeCamera(dt = 1) {
 }
 const ptr = new Map(); let last = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); if (e.isPrimary) ptr.clear(); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
-  if (ptr.size === 1) farmDown(e); else { farmDrag = null; if (moving) moving.id = null; } }); // a second finger always means camera, never farming
+  if (ptr.size === 1) farmDown(e); else { farmDrag = null; seedTray.classList.remove("away"); if (moving) moving.id = null; } }); // a second finger always means camera, never farming
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
   if (farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
@@ -1763,7 +1764,7 @@ Object.assign(GV, {
 // ---------- trays: seeds, a growing field, an animal or pet, a decoration ----------
 let armed = null, trayFor = null;
 const seedTray = document.getElementById("seedTray"), infoTray = document.getElementById("infoTray");
-function closeTrays() { seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
+function closeTrays() { seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
 function renderSeeds() {
   if (seedTray.hidden) return;
   document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera" : "Tap a seed, or drag one onto the fields";
@@ -1774,8 +1775,14 @@ function renderSeeds() {
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
 let pendingPlot = -1;
 function openSeeds(i) {
-  G.close(); infoTray.hidden = true; seedTray.hidden = false; trayFor = {type:"seeds"};
+  G.close(); infoTray.hidden = true; seedTray.classList.remove("away"); seedTray.hidden = false; trayFor = {type:"seeds"};
   armed = null; pendingPlot = i; renderSeeds();
+}
+// while a finger is dragging to plant, the tray steps out of the way so you can see the fields under it.
+// Let go after planting and it closes (like Hay Day); let go without planting anything and it comes back.
+function endPlantDrag() {
+  const away = seedTray.classList.contains("away"); seedTray.classList.remove("away");
+  if (away && farmDrag && farmDrag.n > 0) closeTrays();
 }
 function pickSeed(id) {
   armed = id; G.sfx("tick");
@@ -1793,11 +1800,12 @@ addEventListener("pointermove", (e) => {
   if (!s.on) {
     if (Math.hypot(e.clientX - s.x, e.clientY - s.y) < 12) return;
     s.on = true; armed = s.crop; pendingPlot = -1; farmDrag = {id:e.pointerId, mode:"plant", n:0}; ghost.src = ART + s.crop + ".webp"; ghost.hidden = false; G.sfx("pickup"); renderSeeds();
+    seedTray.classList.add("away");
   }
   ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
   paintAlong(e.clientX, e.clientY);
 });
-const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; farmDrag = null; };
+const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; endPlantDrag(); farmDrag = null; };
 addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", endSeedDrag);
 seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
 function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; armed = null; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; }
@@ -1903,6 +1911,7 @@ function farmMove(e) {
   if (moving && moving.id === e.pointerId) { moving.moved = true; moveTo(e.clientX, e.clientY); return true; }
   if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
   if (!farmDrag || farmDrag.id !== e.pointerId) return false;
+  if (farmDrag.mode === "plant" && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) seedTray.classList.add("away");
   paintAlong(e.clientX, e.clientY);
   return true;
 }
@@ -1910,6 +1919,7 @@ function farmUp(e) {
   clearTimeout(pressTimer); pressTimer = 0;
   if (moving && moving.id === e.pointerId) { if (!moving.moved && e.type === "pointerup") moveTo(e.clientX, e.clientY); dropMove(); }
   if (!farmDrag || farmDrag.id !== e.pointerId) return;
+  if (farmDrag.mode === "plant") endPlantDrag();
   farmDrag = null;
 }
 

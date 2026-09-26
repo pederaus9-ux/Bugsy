@@ -92,7 +92,7 @@ Keep the realistic picture animals (billboards). In order:
 ## Fixes from playing on the phone
 - [x] Start-up safety net, old 2D saves without horses, versioned `game.js` import (PRs #4 to #6)
 - [x] Seeds: tapping a field only opens the seed tray, and the seed you pick is the one planted (it used to plant the last crop straight away)
-- [x] Planting by dragging: drag a seed out of the tray onto the fields, or, once a seed is picked, slide one finger from anywhere across the fields (two fingers move the camera). The seed tray is two rows with no sideways scrolling, so the phone never mistakes a seed drag for a scroll
+- [x] Planting by dragging: drag a seed out of the tray onto the fields, or, once a seed is picked, slide one finger from anywhere across the fields (two fingers move the camera). The seed tray is two rows with no sideways scrolling, so the phone never mistakes a seed drag for a scroll. While a finger drags to plant, the tray fades away so the fields under it show; it closes after planting, or comes back if nothing was planted
 - [x] Moving decorations: a Move mode (the Move button, holding a decoration, or right after placing one) with ✔ Done and Put away. One finger drags it, a blocked spot springs back to the last free one, and a phone cancelling the touch no longer loses the move
 
 ## Decisions
