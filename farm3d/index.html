@@ -55,6 +55,17 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   color:#fff;font-family:var(--fun);font-size:13px;display:grid;place-items:center;padding:0 5px}
 .side{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;flex-direction:column;gap:8px}
 .side button{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:21px}
+/* walk and edit modes */
+.modebar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:9;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);
+  background:rgba(70,35,10,.88);color:#fff;border:3px solid #fff;border-radius:99px;padding:5px 5px 5px 16px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.modebar small{opacity:.8;font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.modebar button{background:#fff;color:var(--wood-dk);border-radius:99px;padding:8px 14px;font-weight:900;font-size:14px;flex:none}
+#editBar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
+.stick{position:fixed;left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:116px;height:116px;border-radius:50%;z-index:8;touch-action:none;
+  background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,.3));border:3px solid rgba(255,255,255,.75);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:3px solid #fff;box-shadow:0 3px 0 var(--wood-dk)}
+body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,body.editing .chips,body.editing .dock,body.editing #hint{display:none!important}
 
 /* chips under the level star: weather and events */
 .chips{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 74px);z-index:5;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
@@ -276,6 +287,8 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   <button class="chip ev" id="evChip" data-act="open" data-p="event" hidden></button>
 </div>
 <div class="side">
+  <button id="walkBtn" aria-label="Walk around your farm">🚶</button>
+  <button id="editBtn" aria-label="Move trees and buildings">🏗️</button>
   <button data-act="open" data-p="settings" aria-label="Settings">⚙️</button>
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
 </div>
@@ -291,6 +304,9 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
+<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button data-mode="walk">✕ Exit</button></div>
+<div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
+<div class="stick" id="stick" hidden><i></i></div>
 <div class="tray movebar" id="moveBar" hidden><h3><span id="moveTitle">Move</span></h3><div class="tray-sub">Drag it with one finger to where you want it</div>
   <div class="row"><button class="btn plain sm" data-m="store">Put away</button><button class="btn sm" data-m="done">✔ Done</button></div></div>
 <img class="ghost" id="ghost" hidden alt="">
@@ -304,7 +320,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=7"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=8"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -681,14 +697,30 @@ bootStep("growing the grass");
 // ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
 const windU = {uTime:{value:0}, uWind:{value:.3}};
 // where every grass tuft and wildflower grows, so they can be cleared from under new fields and buildings
-const GRASS = {grass:null, gpos:[], flowers:null, fpos:[]};
-function clearGrass(x, z, r) {
+const GRASS = {grass:null, gpos:[], flowers:null, fpos:[]}, CLEARS = new Map();
+function clearGrass(x, z, r, key) {
+  if (key) CLEARS.set(key, [x, z, r]);
+  if (GRASS.grass && !GRASS.g0) { GRASS.g0 = GRASS.grass.instanceMatrix.array.slice(); if (GRASS.flowers) GRASS.f0 = GRASS.flowers.instanceMatrix.array.slice(); }
   const m4 = new THREE.Matrix4().makeScale(0, 0, 0);
   for (const [mesh, pos] of [[GRASS.grass, GRASS.gpos], [GRASS.flowers, GRASS.fpos]]) {
     if (!mesh) continue; let n = 0;
     for (let k = 0; k < pos.length; k += 2) if (Math.abs(pos[k] - x) < r && Math.abs(pos[k + 1] - z) < r) { m4.setPosition(pos[k], 0, pos[k + 1]); mesh.setMatrixAt(k / 2, m4); n++; }
     if (n) mesh.instanceMatrix.needsUpdate = true;
   }
+}
+// move a cleared patch: grow the grass back on the old spot (keeping other clearings), then clear the new one
+function moveClear(key, x, z, r) {
+  const old = CLEARS.get(key); CLEARS.set(key, [x, z, r]);
+  if (old && GRASS.g0) {
+    const [ox, oz, or] = old;
+    for (const [mesh, pos, orig] of [[GRASS.grass, GRASS.gpos, GRASS.g0], [GRASS.flowers, GRASS.fpos, GRASS.f0]]) {
+      if (!mesh || !orig) continue;
+      for (let k = 0; k < pos.length; k += 2) if (Math.abs(pos[k] - ox) < or && Math.abs(pos[k + 1] - oz) < or) mesh.instanceMatrix.array.set(orig.subarray(k * 8, k * 8 + 16), k * 8);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    for (const [k2, [cx, cz, cr]] of CLEARS) if (k2 !== key && Math.abs(cx - ox) < cr + or && Math.abs(cz - oz) < cr + or) clearGrass(cx, cz, cr);
+  }
+  clearGrass(x, z, r);
 }
 {
   // one clump = 8 thin curved blades fanning out from a tuft, each a little different in height, lean and shade.
@@ -809,8 +841,8 @@ const keepCanopy = (t) => (o) => o === t.userData.canopy;
 bootStep("placing the barn and trees");
 // ---------------- place things ----------------
 const barn = mergeStatic(makeBarn()); scene.add(barn); contact(0, 0, 11, 14);
-const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); contact(-9, 4, 3, 3);
-const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); contact(10, -7, 3.5, 3.5);
+const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = "t:tree";
+const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
 const groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
   t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
@@ -1325,6 +1357,7 @@ function setPreset(name) {
   // sky reflections for glossy paint, glass and wet surfaces
   skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
   bloom.strength = P.bloom || .18;
+  walkLook();
 }
 
 bootStep("setting up the camera effects");
@@ -1373,7 +1406,9 @@ const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.M
 // (fast at first, settling softly), the same at any frame rate: 1 - e^(-speed * dt)
 const view = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
 function placeCamera(dt = 1) {
-  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
+  if (walk) return placeWalkCamera();
+  if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
   const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
   view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
   const v = view;
@@ -1382,12 +1417,16 @@ function placeCamera(dt = 1) {
   sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
+let walk = null, editMode = null; const keys = new Set(), joy = {x:0, y:0}; // first-person walk and the layout editor (set up further down)
 renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); if (e.isPrimary) ptr.clear(); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
-  if (ptr.size === 1) farmDown(e); else { farmDrag = null; seedTray.classList.remove("away"); if (moving) moving.id = null; } }); // a second finger always means camera, never farming
+  if (ptr.size === 1) { if (editMode) editDown(e); else farmDown(e); }
+  else { farmDrag = null; seedTray.classList.remove("away"); if (moving) moving.id = null; if (editMode && editMode.drag) editCancel(); } }); // a second finger always means camera, never farming
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
-  if (farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
+  if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
+  if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -1.35, 1.35); } return; } // look around
+  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -18, 28); return; } // slide the map
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
     const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
@@ -1401,7 +1440,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
     last = {c, d};
   }
 });
-const endP = (e) => { ptr.delete(e.pointerId); last = null; farmUp(e); };
+const endP = (e) => { ptr.delete(e.pointerId); last = null; editUp(e); farmUp(e); };
 // squash and stretch: a tapped thing squashes down and bulges out, then springs back in 250 ms.
 // The pivot is the object's base, so it squashes onto the ground; volume stays about the same (x and z grow as y shrinks).
 const squishing = new Map();
@@ -1422,6 +1461,7 @@ let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
+  if (editMode) return; // the layout editor only drags things
   if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
   if (onTap(e)) return;
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
@@ -1432,7 +1472,7 @@ renderer.domElement.addEventListener("pointerup", (e) => {
 });
 renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.addEventListener("pointercancel", endP);
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
-renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
+renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
 addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
 
@@ -1501,7 +1541,7 @@ function makePlot(i) {
   const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
   g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
   const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2)};
-  clearGrass(p.x, p.y, 1.3);
+  clearGrass(p.x, p.y, 1.3, "plot:" + i);
   return P;
 }
 // a "new field for sale" marker on the next free spot
@@ -1592,13 +1632,14 @@ function makeLot(bid) { // a roped-off gravel lot with a sign, before the buildi
   return g;
 }
 const buildings = {};
-for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push([x, z, 1.9, 1.7]); clearGrass(x, z, 1.8); contact(x, z, 5, 4.4); }
+const BLD_BLK = {}, BLD_DECAL = {}, HOME_SPOT = JSON.parse(JSON.stringify(BUILD_SPOT));
+for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push(BLD_BLK[bid] = [x, z, 1.9, 1.7]); clearGrass(x, z, 1.8, "b:" + bid); BLD_DECAL[bid] = contact(x, z, 5, 4.4); }
 function syncBuildings() {
   for (const bid of Object.keys(G.BUILDINGS)) {
     const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];
     if (B.owned !== owned || !B.g) {
       if (B.g) scene.remove(B.g);
-      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; scene.add(B.g); B.owned = owned;
+      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;
       if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
     }
     if (!owned) { const b = G.BUILDINGS[bid]; B.g.userData.sign.userData.set([b.e + " " + b.n, GS().level >= b.lvl ? b.cost + " 🪙" : "🔒 Level " + b.lvl]); }
@@ -1643,7 +1684,7 @@ function makeGift() {
   return mergeStatic(g);
 }
 const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; scene.add(gift);
-BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4);
+BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4, "board");
 function makeStall() {
   const g = new THREE.Group(), wood = M.fence;
   g.add(box(2.6, .1, 1.1, wood, 0, .9, 0), box(2.6, .8, .08, wood, 0, .45, .5));
@@ -1659,7 +1700,7 @@ function makeStall() {
   return mergeStatic(g);
 }
 const stall = makeStall(); stall.position.set(3.7, 0, 22.6); stall.rotation.y = -.3; stall.userData.hit = {type:"stand"}; scene.add(stall); contact(3.7, 22.6, 3.4, 2);
-BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4);
+BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4, "stand");
 function syncStand() {
   const list = GS().stand.list;
   stall.userData.goods.forEach((s, k) => { const L = list[k]; s.visible = !!L; if (L) s.material = emoteMat(L.sellAt <= nowMs() ? "💰" : G.ITEMS[L.id].e); });
@@ -1706,7 +1747,7 @@ function makeDecor(d) {
 }
 function syncDecor() {
   for (const o of decorObjs) scene.remove(o); decorObjs.length = 0;
-  GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
+  GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; o.userData.edit = "d:" + j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
   if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, .3, moving.z); } else endMove(false); } // the farm changed mid-move
 }
 // is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
@@ -1718,6 +1759,245 @@ function spotFree(x, z, size, skip = -1) {
   if (Math.abs(x) < 2.3 + r && z > 5.5 && z < 24) return false; // the path
   return !GS().decor.placed.some((d, j) => j !== skip && Math.hypot(d.x - x, d.z - z) < r + ((G.DECOR[d.id].size || 1) === 2 ? 1.2 : .6));
 }
+
+// ================= walk around in first person, and rearrange the farm =================
+// Walk: the camera drops to eye height (1.8 m). A thumbstick (or WASD / arrow keys) walks, dragging the screen looks around.
+// You bump into buildings, fences, bushes and decorations but can walk across the fields. Taps still harvest, plant and pet.
+const EYE = 1.8, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));
+const walkBar = document.getElementById("walkBar"), editBar = document.getElementById("editBar"), stick = document.getElementById("stick"), knob = stick.querySelector("i");
+function setWalk(on) {
+  if (!!walk === on) return;
+  if (on) {
+    if (editMode) setEdit(false);
+    closeTrays(); G.close(); if (moving) endMove(true);
+    // start under where the camera was looking; if that's inside a building or a pen, start on the path facing the barn
+    const want = new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
+    const onPath = p.distanceTo(want) > 1.5 || PEN_LIST.some(pen => inPen(pen, p.x, p.y, -.4));
+    walk = {pos:onPath ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0};
+    document.body.classList.add("walking"); walkBar.hidden = stick.hidden = false;
+    ultra(true);
+  } else {
+    const w = walk; walk = null;
+    cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
+    Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
+    joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
+    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = true;
+    ultra(false);
+  }
+  G.sfx("pop");
+}
+function updateWalk(dt) {
+  const w = walk; let ix = joy.x, iy = joy.y;
+  if (keys.has("KeyW") || keys.has("ArrowUp")) iy += 1;
+  if (keys.has("KeyS") || keys.has("ArrowDown")) iy -= 1;
+  if (keys.has("KeyA")) ix -= 1;
+  if (keys.has("KeyD")) ix += 1;
+  if (keys.has("ArrowLeft") || keys.has("KeyQ")) w.yaw += dt * 1.8;
+  if (keys.has("ArrowRight") || keys.has("KeyE")) w.yaw -= dt * 1.8;
+  const n = Math.hypot(ix, iy); if (n > 1) { ix /= n; iy /= n; }
+  const sp = keys.has("ShiftLeft") || keys.has("ShiftRight") ? 6 : 3.4, s = Math.sin(w.yaw), c = Math.cos(w.yaw), k = Math.min(1, dt * 10);
+  w.vel.x += ((-s * iy + c * ix) * sp - w.vel.x) * k; w.vel.y += ((-c * iy - s * ix) * sp - w.vel.y) * k; // ease into and out of a walk
+  const ox = w.pos.x, oz = w.pos.y;
+  w.pos.x += w.vel.x * dt; w.pos.y += w.vel.y * dt; collideWalker(w.pos);
+  const moved = Math.hypot(w.pos.x - ox, w.pos.y - oz); w.walked += moved;
+  w.bob += (Math.sin(w.walked * 4.4) * .045 * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // a gentle step bob
+}
+// push a walker (a circle on the ground) out of buildings, bushes, fences and decorations, and keep it on the farm
+function collideWalker(p, r = WALK_R) {
+  for (let it = 0; it < 3; it++) {
+    for (const b of BLOCKS) {
+      if (FIELD_BLOCKS.has(b)) continue;
+      const [bx, bz, hw, hd] = b, dx = p.x - THREE.MathUtils.clamp(p.x, bx - hw, bx + hw), dz = p.y - THREE.MathUtils.clamp(p.y, bz - hd, bz + hd), d = Math.hypot(dx, dz);
+      if (d >= r) continue;
+      if (d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); continue; }
+      const ox = hw + r - Math.abs(p.x - bx), oz = hd + r - Math.abs(p.y - bz); // inside the box: out the nearest side
+      if (ox < oz) p.x += (p.x >= bx ? 1 : -1) * ox; else p.y += (p.y >= bz ? 1 : -1) * oz;
+    }
+    for (const [ax, az, bx, bz] of fenceSegs) {
+      const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((p.x - ax) * ex + (p.y - az) * ez) / (ex * ex + ez * ez || 1), 0, 1);
+      const dx = p.x - (ax + ex * u), dz = p.y - (az + ez * u), d = Math.hypot(dx, dz);
+      if (d < r && d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); }
+    }
+    for (const q of GS().decor.placed) {
+      const rr = ((G.DECOR[q.id] || {}).size === 2 ? .9 : .3) + r, dx = p.x - q.x, dz = p.y - q.z, d = Math.hypot(dx, dz);
+      if (d < rr && d > 1e-5) { p.x += dx / d * (rr - d); p.y += dz / d * (rr - d); }
+    }
+  }
+  const dx = p.x - HOME.x, dz = p.y - HOME.y, d = Math.hypot(dx, dz); if (d > 40) { p.x = HOME.x + dx / d * 40; p.y = HOME.y + dz / d * 40; }
+  return p;
+}
+function placeWalkCamera() {
+  const w = walk, y = groundY(w.pos.x, w.pos.y) + EYE + w.bob, cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
+  camera.position.set(w.pos.x, y, w.pos.y);
+  camera.lookAt(w.pos.x + fx * cp, y + Math.sin(w.pitch), w.pos.y + fz * cp);
+  sun.target.position.set(w.pos.x + fx * 9, 0, w.pos.y + fz * 9); // a tight shadow box around you, reaching ahead where you look
+  sun.position.copy(sun.target.position).addScaledVector(sunDir, 60);
+}
+// Ultra graphics while walking: full screen resolution, sharp shadows close by, crisp textures at glancing angles,
+// real distance haze instead of the miniature tilt-shift, and deeper surface detail on wood, stone and ground
+const ULTRA = {aniso:false, groundNormal:null};
+function ultra(on) {
+  if (on) {
+    QUALITY.auto = false; QUALITY.steps = []; QUALITY.fps30 = false; QUALITY.pr = window.devicePixelRatio || 1;
+    setShadow(2048); bloom.enabled = true; tiltH.enabled = tiltV.enabled = false;
+    Object.assign(sun.shadow.camera, {left:-14, right:14, top:14, bottom:-14}); sun.shadow.camera.updateProjectionMatrix();
+    if (!ULTRA.aniso) { maxAnisotropy(); ULTRA.aniso = true; }
+    boostNormals(true); walkLook();
+    camera.fov = innerWidth < innerHeight ? 72 : 60; camera.near = .05;
+    applySize();
+  } else {
+    Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24}); sun.shadow.camera.updateProjectionMatrix();
+    boostNormals(false); walkLook();
+    camera.fov = innerWidth < innerHeight ? 50 : 38; camera.near = .1;
+    setQuality(G.PREFS.quality || "auto"); // also resizes the screen buffers
+  }
+}
+function walkLook() { if (scene.fog && P) scene.fog.density = walk ? Math.max(P.fog * 2.2, .007) : P.fog; }
+function maxAnisotropy() {
+  const a = renderer.capabilities.getMaxAnisotropy();
+  scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k of ["map", "normalMap", "roughnessMap", "emissiveMap", "alphaMap"]) {
+    const t = m[k]; if (t && t.isTexture && t.anisotropy < a && t.image && t.image.width) { t.anisotropy = a; t.needsUpdate = true; } } });
+}
+function boostNormals(on) {
+  scene.traverse(o => { for (const m of [].concat(o.material || [])) if (m.normalMap && m.normalScale && m !== ground.material) {
+    if (!m.userData.ns0) m.userData.ns0 = m.normalScale.clone();
+    m.normalScale.copy(m.userData.ns0).multiplyScalar(on ? 2.6 : 1); } });
+  // the grass ground has no bump map of its own: the first time, make one from the grass photo
+  if (on && !ULTRA.groundNormal && groundTex.image && groundTex.image.width) {
+    const n = 512, [c, x] = canvas(n); x.drawImage(groundTex.image, 0, 0, n, n);
+    const d = x.getImageData(0, 0, n, n); for (let i = 0; i < d.data.length; i += 4) d.data[i] = d.data[i] * .3 + d.data[i + 1] * .59 + d.data[i + 2] * .11;
+    x.putImageData(d, 0, 0); ULTRA.groundNormal = tex(normalFrom(c, 3), 0, [40, 40]);
+  }
+  const gm = ground.material;
+  if (ULTRA.groundNormal && !!gm.normalMap !== on) { gm.normalMap = on ? ULTRA.groundNormal : null; gm.normalScale.set(1.8, 1.8); gm.needsUpdate = true; }
+}
+// the thumbstick
+let joyId = null;
+function moveJoy(e) {
+  const r = stick.getBoundingClientRect(), R = r.width / 2 - 10; let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; }
+  const m = Math.hypot(dx, dy) / R < .12 ? 0 : 1; joy.x = dx / R * m; joy.y = -dy / R * m; knob.style.transform = `translate(${dx}px,${dy}px)`;
+}
+stick.addEventListener("pointerdown", (e) => { joyId = e.pointerId; stick.setPointerCapture(e.pointerId); moveJoy(e); e.preventDefault(); });
+stick.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) moveJoy(e); });
+const endJoy = (e) => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ""; };
+stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
+addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("input,textarea")) return;
+  if (e.code === "Escape") { setWalk(false); setEdit(false); }
+  if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); }
+});
+addEventListener("keyup", (e) => keys.delete(e.code));
+addEventListener("blur", () => keys.clear());
+
+// Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
+// to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
+const grid = new THREE.GridHelper(56, 56, 0xffffff, 0xffffff); grid.position.set(1, .05, 7); grid.visible = false;
+Object.assign(grid.material, {transparent:true, opacity:.3, depthWrite:false}); scene.add(grid);
+const editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));
+editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);
+const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
+const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
+function setEdit(on) {
+  if (!!editMode === on) return;
+  if (on) {
+    if (walk) setWalk(false);
+    closeTrays(); G.close(); if (moving) endMove(true);
+    const yaw = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2; // north up, turning the short way round
+    editMode = {yaw, drag:null, tilt:tiltH.enabled, saved:{yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, ty:cam.target.y}};
+    cam.dist = Math.max(cam.dist, 34); cam.target.y = 0;
+    grid.visible = true; tiltH.enabled = tiltV.enabled = false;
+    document.body.classList.add("editing"); editBar.hidden = false;
+  } else {
+    const E = editMode; if (E.drag) editCancel(); editMode = null;
+    Object.assign(cam, {yaw:E.saved.yaw, pitch:E.saved.pitch, dist:E.saved.dist}); cam.target.y = E.saved.ty;
+    grid.visible = editShade.visible = false; tiltH.enabled = tiltV.enabled = E.tilt;
+    document.body.classList.remove("editing"); editBar.hidden = true;
+  }
+  G.sfx("pop");
+}
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
+function groundAt(x, y) { return rayAt(x, y).ray.intersectPlane(groundPlane, new THREE.Vector3()); }
+function editHit(x, y) {
+  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), tree, tree2, ...decorObjs];
+  const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h) return null;
+  let o = h.object; while (o && !o.userData.edit) o = o.parent;
+  return o ? {key:o.userData.edit, obj:o} : null;
+}
+function footprint(key) {
+  const [t, id] = key.split(":");
+  if (t === "b") return {hw:1.9, hd:1.7};
+  if (t === "t") return {hw:1.1, hd:1.1};
+  const d = GS().decor.placed[+id], r = d && G.DECOR[d.id].size === 2 ? 1.2 : .6; return {hw:r, hd:r};
+}
+const segDist = (x, z, ax, az, bx, bz) => { const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez || 1), 0, 1); return Math.hypot(x - ax - ex * u, z - az - ez * u); };
+function editValid(key, x, z) {
+  const [t, id] = key.split(":");
+  if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
+  const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
+  if (Math.hypot(x - HOME.x, z - HOME.y) > 23) return false;                                   // stay on the farm
+  if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
+  for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
+  if (t === "b") {
+    for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;
+    for (const k of Object.keys(TREES)) if (Math.hypot(TREES[k].position.x - x, TREES[k].position.z - z) < hw + 1.4) return false; // not under a tree
+  } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence
+  if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;
+  if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;
+  return true;
+}
+function moveBlock(b, x, z) { // keep the pets' route planner in step with the block
+  const o = OBST.find(o => o.c === 1 && o.s === 0 && o.x === b[0] && o.z === b[1] && o.hw === b[2] && o.hd === b[3]); if (o) { o.x = x; o.z = z; }
+  b[0] = x; b[1] = z;
+}
+function commitEdit(key, x, z, save = true) {
+  const [t, id] = key.split(":"), L = GS().layout || (GS().layout = {b:{}, t:{}});
+  if (t === "b") {
+    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; BLD_DECAL[id].position.set(x, .02, z); moveClear("b:" + id, x, z, 1.8);
+    const B = buildings[id]; if (B && B.g) B.g.position.set(x, 0, z);
+    if (save) (L.b || (L.b = {}))[id] = [x, z];
+  } else if (t === "t") {
+    moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);
+    if (save) (L.t || (L.t = {}))[id] = [x, z];
+  } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }
+  if (save) G.save();
+}
+// put buildings and trees where the saved farm has them (or back home when it doesn't say)
+function applyLayout() {
+  const L = GS().layout || {};
+  for (const bid of Object.keys(BLD_BLK)) { const [x, z] = (L.b || {})[bid] || HOME_SPOT[bid]; if (x !== BLD_BLK[bid][0] || z !== BLD_BLK[bid][1]) commitEdit("b:" + bid, x, z, false); }
+  for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit("t:" + k, x, z, false); }
+}
+function showShade(d) {
+  const f = footprint(d.key); editShade.scale.set(f.hw * 2, f.hd * 2, 1); editShade.position.set(d.x, .07, d.z);
+  editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;
+}
+function editDown(e) {
+  const h = editHit(e.clientX, e.clientY); if (!h) return false;
+  const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
+  editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
+  p.y = .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
+  return true;
+}
+function editMove(e) {
+  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
+  const g = groundAt(e.clientX, e.clientY); if (!g) return true;
+  const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
+  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, .25, z); showShade(d); G.sfx("tick"); }
+  return true;
+}
+function editUp(e) {
+  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
+  editMode.drag = null; editShade.visible = false;
+  if (d.moved && d.ok) { d.obj.position.y = 0; commitEdit(d.key, d.x, d.z); squish(d.obj, .6); G.sfx("place"); }
+  else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
+}
+function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
+document.getElementById("walkBtn").addEventListener("click", () => setWalk(true));
+document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
+walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setWalk(false); });
+editBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setEdit(false); });
 
 // ---------- the view that game.js talks to ----------
 function keyPos(key) {
@@ -1741,7 +2021,7 @@ function fxAt(key, text) {
 }
 function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v.z); cam.dist = Math.min(cam.dist, 30); } }
 Object.assign(GV, {
-  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving, moveDecor:(j) => startMove(j),
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
   refresh(what) {
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
@@ -1749,7 +2029,7 @@ Object.assign(GV, {
     if (what === "decor" || what === "all") syncDecor();
     if (what === "stand" || what === "all") syncStand();
     if (what === "style" || what === "all") applyStyle();
-    if (what === "all") { syncPenSigns(); syncBuildings(); }
+    if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout(); }
   },
   freeDecorSpot(size) {
     const c = cam.target;
@@ -2083,7 +2363,8 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs};
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
@@ -2099,6 +2380,7 @@ function frame() {
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
   // the animals live their lives
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
+  if (walk) updateWalk(dt);
   placeCamera(dt); updateSquish(performance.now());
   for (const a of animals) a.update(dt, t);
   updateGame(t, dt);
@@ -2140,6 +2422,7 @@ function watchFrames() {
   requestAnimationFrame(watch);
 }
 function setQuality(q) {
+  if (walk) return; // Walk mode runs at full quality; the chosen setting comes back when you stop walking
   QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
   QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
   setShadow(q === "battery" ? 1024 : 2048);
