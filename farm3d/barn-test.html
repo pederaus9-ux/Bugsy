@@ -911,11 +911,12 @@ class Beast {
     } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
     else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; } // breathing, settling out of the last lean
     if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
-    // turning round: the picture narrows and widens again as it swings to the new side, instead of flipping instantly
-    this.face += THREE.MathUtils.clamp(this.facing - this.face, -dt * 7, dt * 7);
-    const side = this.face < 0 ? -1 : 1, w = this.shadowCard.scale.x;
+    // turning round: a flat picture can't rotate without showing its thin edge, so it flips at the top of a tiny hop instead
+    if (this.facing !== this.face) { this.face = this.facing; this.turnHop = 1; }
+    if (this.turnHop > 0) { this.turnHop = Math.max(0, this.turnHop - dt * 4); y += Math.sin((1 - this.turnHop) * Math.PI) * h * .06; }
+    const side = this.face, w = this.shadowCard.scale.x;
     card.position.y = y; card.rotation.z = tilt * side; card.scale.y = w !== 1 ? h * sy : card.scale.y;
-    if (w !== 1) card.scale.x = w * side * Math.max(.08, Math.abs(this.face));
+    if (w !== 1) card.scale.x = w * side;
   }
   flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
     this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
