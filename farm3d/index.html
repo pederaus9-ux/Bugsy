@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#6EC3E6">
 <title>Sunny Acres 3D</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../farm/icon-192.png">
+<link rel="apple-touch-icon" href="../farm/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root{
   --parch:#FCEBC0; --parch2:#F4D79A; --wood:#9A5B2A; --wood-dk:#6E3D18; --ink:#5A3413;
@@ -723,23 +727,61 @@ function clearGrass(x, z, r) {
 
 // soft dark "contact shadow" right under each object, so nothing looks like it floats
 const contactTex = radial("rgba(0,0,0,.55)");
-function contact(x, z, w, d, parent = scene) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({map:contactTex, transparent:true, depthWrite:false, color:0x000000, opacity:1}));
+const contactMat = new THREE.MeshBasicMaterial({map:contactTex, transparent:true, depthWrite:false, color:0x000000, opacity:1});
+const decals = new THREE.Group(); scene.add(decals); // soft shadows on the ground under things, merged into one piece once the farm is built
+function contact(x, z, w, d, parent = decals) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), contactMat);
   m.rotation.x = -Math.PI / 2; m.position.set(x, .02, z); parent.add(m); return m;
 }
+// Many small still pieces that share a material draw much faster as one piece (one draw call instead of dozens), so merge them.
+// It happens inside `root`, so the thing still moves, squashes and can be tapped as a whole. `keep` marks parts that must stay
+// separate: swaying canopies, and things that hide and show on their own.
+function mergeStatic(root, keep = () => false) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert(), buckets = new Map(), rel = new THREE.Matrix4();
+  const walk = (o) => {
+    if (o !== root && keep(o)) return;
+    if (o.isMesh && !o.isInstancedMesh && !Array.isArray(o.material) && o.visible) {
+      const k = o.material.uuid + "|" + o.castShadow + o.receiveShadow; if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(o);
+    }
+    for (const c of [...o.children]) walk(c);
+  };
+  walk(root);
+  for (const list of buckets.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map(m => { const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(rel.multiplyMatrices(inv, m.matrixWorld)); if (!g.attributes.normal) g.computeVertexNormals(); return g; });
+    const names = ["position", "normal", "uv", "color"].filter(n => geos.every(g => g.attributes[n]));
+    if (list[0].material.map && !names.includes("uv")) { geos.forEach(g => g.dispose()); continue; }
+    const merged = new THREE.BufferGeometry();
+    for (const n of names) {
+      const size = geos[0].attributes[n].itemSize, arr = new Float32Array(geos.reduce((a, g) => a + g.attributes[n].count, 0) * size); let off = 0;
+      for (const g of geos) { const a = g.attributes[n]; for (let i = 0; i < a.count; i++) for (let c = 0; c < size; c++) arr[off++] = a.getComponent(i, c); }
+      merged.setAttribute(n, new THREE.BufferAttribute(arr, size));
+    }
+    merged.computeBoundingSphere();
+    const m0 = list[0], mesh = new THREE.Mesh(merged, m0.material);
+    mesh.castShadow = m0.castShadow; mesh.receiveShadow = m0.receiveShadow; if (m0.customDepthMaterial) mesh.customDepthMaterial = m0.customDepthMaterial;
+    for (const m of list) m.parent.remove(m);
+    geos.forEach(g => g.dispose());
+    root.add(mesh);
+  }
+  return root;
+}
+const keepCanopy = (t) => (o) => o === t.userData.canopy;
 
 // ---------------- place things ----------------
-const barn = makeBarn(); scene.add(barn); contact(0, 0, 11, 14);
-const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); contact(-9, 4, 3, 3);
-const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); contact(10, -7, 3.5, 3.5);
+const barn = mergeStatic(makeBarn()); scene.add(barn); contact(0, 0, 11, 14);
+const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); contact(-9, 4, 3, 3);
+const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); contact(10, -7, 3.5, 3.5);
 const groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
-  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); hills.push(t); } }
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
 // woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
-const far = []; { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
+const far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
   for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;
     const t = kinds[i % 4].clone(); t.position.set(x, groundY(x, z) - .2, z); t.rotation.y = R() * 7; t.scale.setScalar(1.1 + R() * .7);
-    t.traverse(o => { o.castShadow = false; }); scene.add(t); far.push(t); } }
+    t.traverse(o => { o.castShadow = false; }); woods.add(t); far.push(t); }
+  mergeStatic(woods); } // 70 distant trees drawn as two pieces: all their bark, and all their leaves
 // fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard
 const FENCE_RUNS = [
   [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
@@ -751,7 +793,7 @@ const fenceSegs = [], fences = [];
 for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   const [ax, az] = run[i - 1], [bx, bz] = run[i], len = Math.hypot(bx - ax, bz - az);
   const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
-  scene.add(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
+  scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
 // water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
 function makeWaterPan(r) {
@@ -870,10 +912,10 @@ function makeLampPost() {
   g.userData = {glass, light};
   return g;
 }
-const silo = makeSilo(); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
-for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = makeBale(); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
+const silo = mergeStatic(makeSilo()); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
+for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = mergeStatic(makeBale()); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
 contact(-6.4, -2.9, 3, 3.6);
-const trough = makeTrough(); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
+const trough = mergeStatic(makeTrough()); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
 const henWater = makeWaterPan(.38); henWater.position.set(-9.6, 0, -2.4); scene.add(henWater); contact(-9.6, -2.4, 1.1, 1.1);
 const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
 for (const [x, z, s, sd] of [[-3.0, 9.3, .5, 1], [3.0, 16.9, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
@@ -938,6 +980,7 @@ BLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet 
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
 const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
   ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
+const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
 const insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
@@ -980,7 +1023,7 @@ function emoteMat(e) {
     x.fillStyle = "rgba(255,255,255,.92)"; x.beginPath(); x.arc(64, 58, 50, 0, 7); x.fill(); x.beginPath(); x.moveTo(52, 100); x.lineTo(64, 124); x.lineTo(76, 100); x.fill();
     x.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 62);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-    emoteMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false});
+    emoteMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}); emoteMats[e].color.setScalar(PRESET.night ? .55 : 1);
   }
   return emoteMats[e];
 }
@@ -1231,7 +1274,8 @@ function setPreset(name) {
   scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp; grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
   WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
   rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
-  M.glass.emissiveIntensity = P.night ? 2.2 : 0; lamp.intensity = P.night ? 16 : 0;
+  M.glass.emissiveIntensity = P.night ? 2.2 : 0;
+  for (const m of Object.values(emoteMats)) m.color.setScalar(P.night ? .55 : 1); // bubbles don't glow like lamps after dark lamp.intensity = P.night ? 16 : 0;
   lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
   M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
   for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
@@ -1349,6 +1393,7 @@ renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.d
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
 addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
 
+mergeStatic(decals); // every soft ground shadow of the scenery, as one piece
 // ---------------- the game on the farm: fields, buildings, order board, shop stall, decorations ----------------
 // Rules and menus live in game.js (the same as the 2D game); this part draws them in 3D and handles taps.
 const GS = () => G.S;
@@ -1410,7 +1455,7 @@ function makePlot(i) {
   g.add(box(2.2, .12, 2.2, M.tilled, 0, .04, 0, .5));
   for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }
   const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
-  g.userData.hit = {type:"plot", i}; scene.add(g);
+  g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
   const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2)};
   clearGrass(p.x, p.y, 1.3);
   return P;
@@ -1420,7 +1465,7 @@ const plotSale = makeSign(["🟫 New field", ""], 1.4, .7); scene.add(plotSale);
 function syncPlots() {
   const n = GS().plots.length;
   while (plots.length < n) plots.push(makePlot(plots.length));
-  while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); scene.remove(P.decal); }
+  while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }
   plots.forEach((_, i) => buildPlants(i));
   if (n < G.MAX_PLOTS) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
   else plotSale.visible = false;
@@ -1491,13 +1536,14 @@ function makeWorkshop(bid) {
   sg.material.emissiveMap = sg.material.map; sg.position.set(0, .35 + H + .45, D / 2 + .08); g.add(sg);
   if (st.chimney) { const ch = box(.45, 1.3, .45, M.stone, W / 4, .35 + H + R * .7, -D / 4, .5); g.add(ch); g.userData.chimney = new THREE.Vector3(W / 4, .35 + H + R * .7 + .7, -D / 4); }
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-  return g;
+  return mergeStatic(g);
 }
 function makeLot(bid) { // a roped-off gravel lot with a sign, before the building is bought
   const g = new THREE.Group(), b = G.BUILDINGS[bid];
   g.add(box(3.4, .05, 3, std({map:tex(dirt(33), 1, [2, 2]), color:0x9a8e80, roughness:1}), 0, .02, 0, .5));
   for (const [x, z] of [[-1.7, -1.5], [1.7, -1.5], [1.7, 1.5], [-1.7, 1.5]]) g.add(box(.09, .7, .09, M.fence, x, .35, z));
   for (const [x, z, w, d] of [[0, -1.5, 3.4, .03], [0, 1.5, 3.4, .03], [-1.7, 0, .03, 3], [1.7, 0, .03, 3]]) g.add(box(w, .03, d, std({color:0xd8c8a0}), x, .6, z));
+  mergeStatic(g);
   const s = makeSign(["", ""], 1.6, .8); s.position.set(0, 0, 1.1); g.add(s); g.userData.sign = s;
   return g;
 }
@@ -1540,7 +1586,7 @@ function makeBoard() {
   head.material.emissiveMap = head.material.map; head.position.set(0, 2.6, .05); g.add(head);
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   g.userData.papers = papers;
-  return g;
+  return mergeStatic(g, (o) => papers.includes(o));
 }
 const board = makeBoard(); board.position.set(3.3, 0, 11.4); board.rotation.y = -.35; board.userData.hit = {type:"board"}; scene.add(board); contact(3.3, 11.4, 3.2, 1.6);
 const boardBub = bubble("🚚"); boardBub.position.set(0, 3.4, 0); board.add(boardBub);
@@ -1550,7 +1596,7 @@ function makeGift() {
   const bow = new THREE.Mesh(new THREE.TorusGeometry(.12, .04, 8, 16), gold); bow.position.set(-.1, .66, 0); bow.rotation.y = .6; g.add(bow);
   const bow2 = bow.clone(); bow2.position.x = .1; bow2.rotation.y = -.6; g.add(bow2);
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
-  return g;
+  return mergeStatic(g);
 }
 const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; scene.add(gift);
 BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4);
@@ -1566,7 +1612,7 @@ function makeStall() {
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   const goods = []; for (let k = 0; k < 8; k++) { const s = bubble("🌾"); s.material = emoteMat("🌾"); s.scale.setScalar(.42); s.position.set(-1 + (k % 4) * .66, 1.2, -.1 + Math.floor(k / 4) * .38); g.add(s); goods.push(s); }
   g.userData.goods = goods;
-  return g;
+  return mergeStatic(g);
 }
 const stall = makeStall(); stall.position.set(3.7, 0, 22.6); stall.rotation.y = -.3; stall.userData.hit = {type:"stand"}; scene.add(stall); contact(3.7, 22.6, 3.4, 2);
 BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4);
@@ -1603,8 +1649,8 @@ function makePine(seed) {
 }
 function makeDecor(d) {
   const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group();
-  if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); }
-  else if (D.tree === "pine") g.add(makePine(50 + (d.x * 7 | 0)));
+  if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); mergeStatic(t, keepCanopy(t)); }
+  else if (D.tree === "pine") g.add(mergeStatic(makePine(50 + (d.x * 7 | 0))));
   else {
     const h = size === 2 ? 2.3 : 1.15, m = new THREE.MeshStandardMaterial({map:emojiTexture(D.e), alphaTest:.35, side:THREE.DoubleSide, roughness:.8, emissive:0xffffff, emissiveMap:emojiTexture(D.e), emissiveIntensity:D.glow ? .35 : .15});
     const card = new THREE.Mesh(new THREE.PlaneGeometry(h, h), m); card.position.y = h * .45; card.castShadow = true; g.add(card); g.userData.card = card;
@@ -1913,6 +1959,7 @@ if (qs.has("demo")) {
   S.stand.list = [{id:"egg", qty:2, price:24, sellAt:Date.now() + 60000}, {id:"bread", qty:1, price:14, sellAt:Date.now() - 1}, null, null];
 }
 GV.refresh("all");
+for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});
 if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
@@ -1985,6 +2032,7 @@ function setQuality(q) {
 }
 setQuality(G.PREFS.quality || "auto");
 frame();
+if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});
 if (qs.has("debug")) { window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.steps.length, renderer.domElement.width];
   window.__qstep = () => { QUALITY.steps.shift()(); applySize(); }; }
 window.__ready = true;

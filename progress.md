@@ -4,13 +4,13 @@ Last updated: 2026-09-26
 
 ## Where things live
 - **Live 2D game:** `farm/` (published at `https://pederaus9-ux.github.io/Bugsy/farm/`)
-- **New 3D game (in progress):** `farm3d/`
+- **3D game (launch-ready):** `farm3d/index.html` (the 3D world, taps, looks) and `farm3d/game.js` (the rules and menus, carried over from the 2D game). Will be at `https://pederaus9-ux.github.io/Bugsy/farm3d/` once merged.
 - **3D engine:** `farm3d/lib/` (three.js r186, minified, MIT license, no internet needed)
 - **Art:** `farm/art/` (animals and crops, backgrounds removed). Approved environment assets will go in `assets/`.
 - **Canva helper design:** "Farm game asset export" (DAHWTGE7Wk0) in the Canva account: one full-size page per asset, exported at 1264 px.
 
 ## Test links
-- **3D barn test (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). Turn 360°, switch weather and time of day, paint the barn, tap animals.
+- **3D game (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). The whole game. Weather lookups, the location button and backup *files* don't work on this test link (the page is locked down); backup *codes* do.
 
 ## Done
 ### 2D game (live)
@@ -25,7 +25,7 @@ Last updated: 2026-09-26
 
 ### 3D game
 - [x] three.js bundled into the project
-- [x] **Barn lighting test** (`farm3d/barn-test.html`):
+- [x] **Barn lighting test** (was `farm3d/barn-test.html`, now `farm3d/index.html`):
   - a real 3D barn (planks, shingles, stone base, trim, doors, windows, cupola), a tree made of leaf cards, fences, and the animal renders
   - full 360° orbit, pinch zoom and pan
   - sun with real-time shadows, sky light, ACES tone mapping, bloom, haze, sky reflections
@@ -67,16 +67,27 @@ Last updated: 2026-09-26
   - 📦 Barn button: storage used out of 50, and what's inside. Saved on the phone.
   - Tested with real taps and drags: every step follows the 2D rules.
 
+- [x] **The whole game in 3D** (launch list items 2 to 7):
+  - `game.js` holds the 2D game's data, rules and menus: crops, animals and their products, pets and gifts, the six production buildings and 14 recipes, truck orders, roadside shop, barn and upgrades, the Shop, 30 fields, decorations, special and holiday events with prizes, real weather, sounds and music, backup and restore. Same numbers as the 2D game.
+  - The save has the same shape as the 2D save. A 2D backup code restores straight into 3D, and on the real site (same address) the 3D game offers to **bring the 2D farm over** on first visit. The 2D Settings has a "Play Sunny Acres 3D" button.
+  - In the world: fields in a grid west of the path; six buildings east of the path (roped-off lots with price or level signs until bought; chimney smoke while working; a bubble when goods are ready); an order board with a daily gift box; a striped Farm Shop stall showing what's for sale; pen signs; decorations (real 3D oak and pine; pictures for the rest) that you place where you're looking and press-and-hold to move.
+  - Animals are bought as in 2D (chicken coop at level 2, and so on). Bought animals and pets walk in with a name from the save and a personality from their name. Tap one for its card: feed, pet, brush, ride, rename, buy another; tap when ready to collect (a bubble shows 🥚 🥛 🧶 or 🎁).
+  - New: a 6-step **tutorial** with a pointer, a **Settings** menu (sound, music, graphics Auto/Best/Balanced/Battery saver, weather and fixed looks, barn colours saved with the farm, backup, restart tutorial, new farm), in-game confirm and rename dialogs, a loading screen, holiday props, bubbles that dim at night.
+  - Faster: still pieces are merged, from 1,225 drawn objects to 300; the 70 distant trees are two pieces.
+  - Installable (home-screen app) and quick to reopen offline (`farm3d/manifest.webmanifest`, `farm3d/sw.js`).
+  - Land expansion is not in 3D: the 3D farm is already large, and fields and decorations have room.
+  - Tested with real taps in a test browser: new farm with the tutorial; planting and harvesting by dragging; orders; feed mill; level-up; buying the coop; feeding a chicken and collecting the egg; stall; buying, placing and moving decorations; settings; backup code and restore; bringing over a 2D farm (level, coins, barn, fields, animals, pet, buildings, decorations); pet gift; pen test (0 escapes).
+
 ## Launch list (agreed with Gemini)
 Keep the realistic picture animals (billboards). In order:
 1. [x] Planting and harvesting
-2. [ ] Animal products: feeding, eggs, milk, wool (the animals already live in their pens)
-3. [ ] Production buildings (feed mill, bakery…), orders, the roadside shop and the Shop; levels and unlocks
-4. [ ] Buying more fields, barn upgrades, land expansion, decorations
-5. [ ] Real weather, seasons and holidays, special events with decoration prizes
-6. [ ] Sounds and music
-7. [ ] **Tutorial** (first-time guide) and **Settings menu** (sound, music, graphics quality, backup and restore)
-8. [ ] Go live: the 3D game on its own GitHub Pages page; the 2D game stays up until the 3D one replaces it
+2. [x] Animal products: feeding, eggs, milk, wool
+3. [x] Production buildings, orders, the roadside shop and the Shop; levels and unlocks
+4. [x] Buying more fields, barn upgrades, decorations (land expansion not needed in 3D)
+5. [x] Real weather, seasons and holidays, special events with decoration prizes
+6. [x] Sounds and music
+7. [x] Tutorial and Settings menu
+8. [ ] Go live: merge into main so GitHub Pages serves `farm3d/`; the 2D game stays up (waiting on the user's OK for the pull request)
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
@@ -86,13 +97,11 @@ Keep the realistic picture animals (billboards). In order:
 - **Animals stay as the approved renders for now.** They turn to face the camera, and a separate hidden shape faces the sun so their shadows look right. A real-3D animal pipeline is a later option.
 - **Full-resolution Canva images:** 1264×1264 originals are available through an export design (the user allowed `canva.com` on the network).
 
-## Next (older plan, see the launch list above)
-1. Get the user's feedback on the 3D barn look (lighting, weather, 360°, paint).
-2. Building styles and sizes (the shapes and sizes from the user's barn mockup).
-3. Remaining pieces from the building list: farmhouse, shed, market stall, windmill, water tank, sign board, truck, tractor.
-4. Move the whole game (fields, orders, shop, events…) into the 3D world.
-5. Animal customization: breeds, colors, sizes, accessories.
+## Next big update (after launch)
+1. First-person walk mode (planned with the user and Gemini).
+2. Real 3D animals, if the user picks a model pack.
+3. More buildings from the list: farmhouse, windmill, water tank, truck, tractor; building styles and sizes.
+4. Animal customization: breeds, colors, sizes, accessories.
 
 ## Waiting on the user
-- Approve the 3D barn look (the painted barn picture is now only the design reference).
-- Open a pull request to put the animals and pets update live?
+- OK to open the pull request that puts the 3D game (and the unmerged 2D updates) live.
