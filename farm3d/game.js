@@ -151,6 +151,7 @@ function fresh() {
     orders:[], lastDaily:"",
     stats:{orders:0, harvests:0, made:0, earned:0},
     style:{}, tut:0,
+    layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)
   };
 }
 // fill in anything a save from an older version (or from the 2D game) is missing
@@ -171,6 +172,7 @@ function upgrade(saved) {
   s.decor = s.decor || {inv:{}, placed:[]}; s.decor.inv = s.decor.inv || {};
   s.decor.placed = (s.decor.placed || []).filter(d => DECOR[d.id]);
   s.style = s.style || {};
+  s.layout = s.layout && typeof s.layout === "object" ? s.layout : {}; s.layout.b = s.layout.b || {}; s.layout.t = s.layout.t || {};
   return s;
 }
 export function load() {

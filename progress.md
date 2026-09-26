@@ -103,6 +103,16 @@ Keep the realistic picture animals (billboards). In order:
 - **Animals stay as the approved renders for now.** They turn to face the camera, and a separate hidden shape faces the sun so their shadows look right. A real-3D animal pipeline is a later option.
 - **Full-resolution Canva images:** 1264×1264 originals are available through an export design (the user allowed `canva.com` on the network).
 
+## "Minecraft meets Hay Day" update (planned with Gemini)
+### Phase 1: spatial sandbox and first-person graphics (done)
+- [x] Walk mode (🚶 button): eye height 1.8 m, thumbstick on phones and WASD / arrow keys (Shift to run, Q/E to turn), drag to look. You bump into buildings, fences, bushes and decorations and can walk over the fields; taps still harvest, plant and pet. ✕ Exit brings the farm view back over where you walked to.
+- [x] Ultra graphics while walking: full screen resolution (no automatic quality drop), 2048 shadows in a tight box around you, maximum texture sharpening, distance haze instead of tilt-shift, and 2.6x surface detail on wood, stone and roofs plus a new bump map on the grass ground. Your normal graphics setting comes back when you stop walking.
+- [x] Edit mode (🏗️ button): straight-down camera over a 1 m grid; drag buildings (bought or not), the two big trees and decorations. They snap to the grid; green means it fits, red means something's in the way. Positions are saved with the farm in the browser.
+### Phase 2: tactile physics (next, waiting for the green light)
+- [ ] Swipe harvesting (Fruit Ninja style)
+- [ ] Machine items that drop out and bounce on the ground
+- [ ] Bait and herding for the animals
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.
