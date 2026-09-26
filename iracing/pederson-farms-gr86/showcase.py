@@ -77,12 +77,22 @@ def framed(img, title, W):
     return panel
 
 
-def build():
-    tpl = mp.load_template()
-    paint = Image.open(os.path.join(OUT, "preview_flat.png"))
-    lab = islands(tpl["wire"])
-    left, right, top = views(paint, lab)
+def default_tiles():
+    ded = Image.new("RGBA", (620, 300), (0, 0, 0, 0))
+    a1 = mp.fit(mp.text_block("Amber Pederson", mp.font(mp.F_SCRIPT, 150), mp.GOLD_STOPS, stroke=2, skew=0), 560, 120)
+    a2 = mp.fit(mp.text_block("& Oaklynn", mp.font(mp.F_SCRIPT, 150), mp.GOLD_STOPS, stroke=2, skew=0), 420, 120)
+    mp.paste_center(ded, a1, 310, 80)
+    mp.paste_center(ded, a2, 330, 215)
+    return [
+        ("DEDICATION", ded),
+        ("THREE CATS", mp.cats_panel(260)),
+        ("IN MEMORY OF TATE", mp.tate_badge(420)),
+        ("TEAM LOGO", mp.team_logo(520)),
+    ]
 
+
+def compose(left, right, top, subtitle="TOYOTA GR86  //   ", tiles=None):
+    """Lay the three views out as the poster; returns an RGB image."""
     W = 2400
     M = 70
     col = W - M * 2
@@ -99,7 +109,7 @@ def build():
     title = mp.text_block("PEDERSON FARMS RACING", mp.font(mp.F_BLOCK, 300), mp.SILVER_STOPS,
                           stroke=10, glow=(255, 200, 70))
     title = mp.fit(title, W * .72, 260)
-    sub_a = mp.text_block("TOYOTA GR86  //   ", mp.font(mp.F_COND, 70),
+    sub_a = mp.text_block(subtitle, mp.font(mp.F_COND, 70),
                           [(0, (235, 235, 235)), (1, (200, 200, 200))], stroke=0, skew=0, tracking=18)
     sub_b = mp.text_block("NEON HARVEST GLOW EDITION", mp.font(mp.F_COND, 70), mp.LIME_STOPS,
                           stroke=0, skew=0, tracking=18)
@@ -109,17 +119,7 @@ def build():
     sub = mp.fit(sub, W * .6, 60)
 
     # tribute strip
-    ded = Image.new("RGBA", (620, 300), (0, 0, 0, 0))
-    a1 = mp.fit(mp.text_block("Amber Pederson", mp.font(mp.F_SCRIPT, 150), mp.GOLD_STOPS, stroke=2, skew=0), 560, 120)
-    a2 = mp.fit(mp.text_block("& Oaklynn", mp.font(mp.F_SCRIPT, 150), mp.GOLD_STOPS, stroke=2, skew=0), 420, 120)
-    mp.paste_center(ded, a1, 310, 80)
-    mp.paste_center(ded, a2, 330, 215)
-    tiles = [
-        ("DEDICATION", ded),
-        ("THREE CATS", mp.cats_panel(260)),
-        ("IN MEMORY OF TATE", mp.tate_badge(420)),
-        ("TEAM LOGO", mp.team_logo(520)),
-    ]
+    tiles = tiles or default_tiles()
     tile_w = (col - M * 3) // 4
     tile_h = 380
     strip = []
@@ -164,9 +164,16 @@ def build():
         poster.alpha_composite(t, (M + i * (tile_w + M), y))
     y += tile_h + M
     mp.paste_center(poster, tag, W / 2, y + tag.height / 2)
+    return poster.convert("RGB")
 
+
+def build():
+    tpl = mp.load_template()
+    paint = Image.open(os.path.join(OUT, "preview_flat.png"))
+    left, right, top = views(paint, islands(tpl["wire"]))
     path = os.path.join(OUT, "showcase.png")
-    poster.convert("RGB").save(path, optimize=True)
+    poster = compose(left, right, top)
+    poster.save(path, optimize=True)
     print("Wrote", path, poster.size)
 
 
