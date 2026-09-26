@@ -1,0 +1,2041 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#6EC3E6">
+<title>Sunny Acres 3D</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../farm/icon-192.png">
+<link rel="apple-touch-icon" href="../farm/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --parch:#FCEBC0; --parch2:#F4D79A; --wood:#9A5B2A; --wood-dk:#6E3D18; --ink:#5A3413;
+  --green:#6CC04A; --green-dk:#3E8E24; --gold:#FFC83D; --gold-dk:#C4850C; --blue:#48B4F0; --blue-dk:#1F7FC0;
+  --red:#E8513C; --red-dk:#A8321F;
+  --fun:"Lilita One","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#9cc3e6;font-family:var(--body);color:var(--ink);
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+[hidden]{display:none!important}
+canvas{display:block;width:100vw;height:100vh;touch-action:none}
+.out{color:#fff;text-shadow:0 2px 0 var(--wood-dk),2px 0 0 var(--wood-dk),-2px 0 0 var(--wood-dk),0 -2px 0 var(--wood-dk),1.5px 1.5px 0 var(--wood-dk),-1.5px 1.5px 0 var(--wood-dk),1.5px -1.5px 0 var(--wood-dk),-1.5px -1.5px 0 var(--wood-dk)}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+@keyframes bump{40%{transform:scale(1.25)}}
+.bump{animation:bump .35s ease-out}
+
+/* HUD */
+.hud{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;pointer-events:none}
+.hud > *{pointer-events:auto}
+.lvlbox{display:flex;align-items:center}
+.star{width:56px;height:56px;position:relative;z-index:1;flex:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.25))}
+.star svg{position:absolute;inset:0}
+.star b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fun);font-weight:400;font-size:21px;padding-top:4px}
+.xpbar{margin-left:-16px;width:118px;height:24px;background:rgba(70,35,10,.6);border:3px solid #fff;border-radius:0 13px 13px 0;position:relative;overflow:hidden}
+.xpbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#9BE36E,#4FAE2E);transition:width .4s}
+.xpbar span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fun);font-size:13px;padding-left:10px}
+.money{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.cnt{display:flex;align-items:center;height:32px;min-width:112px;background:rgba(70,35,10,.6);border:3px solid #fff;border-radius:17px;padding-right:12px}
+.cnt .ic{font-size:28px;margin-left:-14px;margin-right:6px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3));line-height:1}
+.cnt b{font-family:var(--fun);font-weight:400;font-size:19px;margin-left:auto}
+
+/* dock and side buttons */
+.dock{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;gap:10px}
+.dock button{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:4px solid #fff;
+  box-shadow:0 4px 0 var(--wood-dk),0 7px 12px rgba(0,0,0,.3);font-size:30px;position:relative;line-height:1}
+.dock button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--wood-dk)}
+.dock .l{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-family:var(--fun);font-size:14px;white-space:nowrap}
+.badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:var(--red);border:2px solid #fff;
+  color:#fff;font-family:var(--fun);font-size:13px;display:grid;place-items:center;padding:0 5px}
+.side{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;flex-direction:column;gap:8px}
+.side button{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:21px}
+
+/* chips under the level star: weather and events */
+.chips{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 74px);z-index:5;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.chip{display:flex;align-items:center;gap:6px;background:rgba(70,35,10,.6);border:2px solid #fff;border-radius:14px;padding:3px 10px 3px 6px;
+  font-family:var(--fun);font-size:14px;color:#fff;max-width:220px;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.chip .e{font-size:20px;line-height:1}
+.chip small{font-family:var(--body);font-weight:800;font-size:11px;opacity:.9}
+.chip.ev{background:linear-gradient(#FFB443,#E9831B);text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.chip .mini{display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.35);margin-top:2px;overflow:hidden}
+.chip .mini i{display:block;height:100%;background:#fff}
+
+/* trays: seed picker, field card, animal card and little bubbles, docked above the dock */
+.tray{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 128px);max-width:520px;margin:0 auto;z-index:8;
+  background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:8px 10px 10px;box-shadow:0 7px 16px rgba(0,0,0,.35);animation:pop .14s ease-out}
+.tray h3{margin:0 0 6px;font:400 18px var(--fun);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tray h3 small{font:800 12px var(--body);opacity:.7}
+.tray .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2);flex:none}
+.tray-sub{font-size:13px;font-weight:800;opacity:.8}
+.tray .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.seeds{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}
+.seed{flex:none;width:76px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.seed img{width:40px;height:40px;object-fit:contain}
+.seed b{font-size:12px;font-weight:800} .seed small{font-size:11px;font-weight:800;opacity:.75}
+.seed.on{border-color:var(--gold-dk);background:#FFF6DC}
+.seed.locked{opacity:.45;filter:grayscale(1)}
+.acard{display:flex;align-items:center;gap:10px}
+.acard img{width:66px;height:66px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));flex:none}
+.acard .who{flex:1;min-width:0}
+.acard b.nm{font:400 20px var(--fun)}
+.acard .rn{font-size:14px;margin-left:4px;opacity:.7}
+.hearts{font-size:15px;letter-spacing:1px;line-height:1.2}
+.fx{position:fixed;z-index:6;pointer-events:none;font:400 22px var(--fun);transform:translate(-50%,-50%);animation:rise 1.1s ease-out forwards;white-space:nowrap}
+@keyframes rise{to{transform:translate(-50%,-160%);opacity:0}}
+.hint{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 136px);left:0;right:0;transition:opacity .6s;pointer-events:none;text-align:center;color:#fff;font-weight:800;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6);padding:0 90px}
+
+/* tutorial */
+.tut{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 118px);max-width:430px;margin:0 auto;z-index:7;background:#fff;border:4px solid var(--gold-dk);
+  border-radius:18px;padding:10px 12px;box-shadow:0 8px 20px rgba(0,0,0,.3);display:flex;gap:10px;align-items:flex-start;animation:pop .2s ease-out}
+.tut .face{font-size:34px;line-height:1}
+.tut p{margin:0;font-weight:800;font-size:15px;flex:1}
+.tut small{display:block;font-weight:800;opacity:.55;font-size:11px;margin-top:4px}
+.tut button{font-weight:800;font-size:12px;color:var(--wood);text-decoration:underline;flex:none}
+.pointer{position:fixed;z-index:7;font-size:40px;pointer-events:none;transform:translate(-50%,-100%);filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));animation:bob .8s ease-in-out infinite alternate}
+@keyframes bob{to{margin-top:-14px}}
+
+/* panels */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(40,20,0,.5);display:flex;align-items:center;justify-content:center;
+  padding:30px 14px calc(14px + env(safe-area-inset-bottom,0px))}
+.panel{width:100%;max-width:580px;max-height:100%;display:flex;flex-direction:column;background:var(--parch);border:6px solid var(--wood);
+  border-radius:26px;box-shadow:inset 0 0 0 4px var(--parch2),0 12px 30px rgba(0,0,0,.45);position:relative;animation:pop .18s ease-out}
+.ribbon{align-self:center;margin-top:-24px;background:linear-gradient(#F0664F,#C9381F);font-family:var(--fun);font-size:22px;padding:6px 26px;
+  border-radius:14px;border:3px solid #fff;box-shadow:0 4px 0 #8A2415;white-space:nowrap;max-width:calc(100% - 70px);overflow:hidden;text-overflow:ellipsis}
+.ribbon.out{text-shadow:0 2px 0 #8A2415,2px 0 0 #8A2415,-2px 0 0 #8A2415,0 -2px 0 #8A2415}
+.xbtn{position:absolute;top:-18px;right:-14px;width:44px;height:44px;border-radius:50%;background:linear-gradient(#F0664F,#C9381F);border:3px solid #fff;
+  box-shadow:0 3px 0 #8A2415;font-family:var(--fun);font-size:22px;color:#fff}
+.pbody{overflow:auto;padding:14px 14px 16px;-webkit-user-select:none}
+.pbody h4{font-family:var(--fun);font-weight:400;font-size:19px;margin:14px 0 8px}
+.pbody h4:first-child{margin-top:4px}
+.muted{opacity:.72}
+.center{text-align:center}
+.btn{font-family:var(--fun);font-weight:400;font-size:16px;color:#fff;background:linear-gradient(#8BDA60,#58AE36);border-radius:13px;padding:8px 15px;
+  box-shadow:0 4px 0 var(--green-dk);text-shadow:0 1px 0 rgba(0,0,0,.35);display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  white-space:nowrap;transition:transform .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--green-dk)}
+.btn.gold{background:linear-gradient(#FFDD70,#F4B527);box-shadow:0 4px 0 var(--gold-dk);color:var(--wood-dk);text-shadow:none}
+.btn.blue{background:linear-gradient(#72CBF7,#34A0E0);box-shadow:0 4px 0 var(--blue-dk)}
+.btn.plain{background:#fff;color:var(--wood-dk);box-shadow:0 3px 0 var(--parch2);text-shadow:none}
+.btn.red{background:linear-gradient(#F0664F,#C9381F);box-shadow:0 4px 0 #8A2415}
+.btn:disabled{filter:grayscale(.8);opacity:.55;cursor:not-allowed;transform:none}
+.btn.sm{font-size:14px;padding:6px 11px;border-radius:11px}
+.btn.wide{width:100%}
+.slot{background:var(--parch2);border-radius:16px;box-shadow:inset 0 3px 0 rgba(110,61,24,.12)}
+.queue{display:flex;gap:8px;justify-content:center}
+.qslot{width:74px;height:74px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.qslot .e{font-size:32px;line-height:1.1}
+.qslot.done{background:#DFF3C9;outline:3px solid var(--green)}
+.qslot.wait .e{opacity:.45}
+.qslot.empty{border:3px dashed rgba(110,61,24,.3);background:none;box-shadow:none;opacity:.6}
+.qbtns{display:flex;gap:8px;justify-content:center;margin:12px 0 2px;flex-wrap:wrap}
+.recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.rcard{padding:8px 10px;display:flex;align-items:center;gap:10px}
+.rcard .mid{flex:1;min-width:0}
+.rcard > .e{font-size:36px;line-height:1;flex:none}
+.rcard b{font-family:var(--fun);font-weight:400;font-size:17px;display:block;line-height:1.1}
+.rcard small{font-weight:800;opacity:.7}
+.need{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px;font-weight:800}
+.need .short{color:var(--red-dk)}
+.rcard.locked{opacity:.55}
+.orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:14px 10px;padding-top:6px}
+.note{background:#FFFEF7;border-radius:8px;padding:16px 10px 10px;box-shadow:0 4px 0 rgba(110,61,24,.18);position:relative;display:flex;flex-direction:column;gap:8px}
+.note::before{content:"📌";position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:20px}
+.note.can{outline:3px solid var(--green)}
+.note .items{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px}
+.oi{display:flex;flex-direction:column;align-items:center;font-weight:800;font-size:13px}
+.oi .e{font-size:30px;line-height:1.1}
+.oi.short{color:var(--red-dk)}
+.oi.ok::after{content:"✔";color:var(--green-dk);font-size:12px}
+.reward{display:flex;justify-content:center;gap:8px;font-family:var(--fun);font-size:15px;flex-wrap:wrap}
+.note .foot{display:flex;gap:6px}
+.note .foot .btn:first-child{flex:1}
+.note.waiting{justify-content:center;align-items:center;text-align:center;min-height:170px;font-weight:800;background:rgba(255,254,247,.55)}
+.note.waiting .e{font-size:40px}
+.cap{height:18px;border-radius:10px;background:rgba(110,61,24,.2);overflow:hidden;margin:4px 0 10px}
+.cap i{display:block;height:100%;background:linear-gradient(#9BE36E,#4FAE2E)}
+.cap.full i{background:linear-gradient(#F48B79,#D8412A)}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px}
+.islot{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.islot .e{font-size:32px;line-height:1}
+.islot .q{position:absolute;bottom:4px;right:6px;font-family:var(--fun);font-size:15px}
+.islot.sel{outline:3px solid var(--wood);background:#FFF6DC}
+.sellbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px;margin-top:12px}
+.sellbar .e{font-size:34px}
+.sellbar .grow{flex:1;min-width:120px}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.scard{padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.scard .e{font-size:40px;line-height:1.1}
+.scard b{font-family:var(--fun);font-weight:400;font-size:17px}
+.scard small{font-weight:800;opacity:.72;font-size:12px}
+.scard .btn{margin-top:auto}
+.scard.locked{opacity:.55}
+.scard img,.dcard img{width:52px;height:52px;object-fit:contain}
+.promise{background:#E4F4FF;border:3px solid var(--blue);border-radius:16px;padding:12px 14px;margin-top:14px;font-weight:800}
+.promise b{font-family:var(--fun);font-weight:400;font-size:18px;color:var(--blue-dk)}
+.promise ul{margin:6px 0 0;padding-left:20px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--fun);font-weight:400;font-size:24px}
+.big{font-size:70px;text-align:center;line-height:1.1}
+.howto{margin:8px 0;padding-left:22px;font-weight:700}
+.howto li{margin:4px 0}
+.stand{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.sslot{min-height:128px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;position:relative;font-weight:800;font-size:13px;width:100%}
+.sslot .e{font-size:38px;line-height:1.1}
+.sslot b{font-family:var(--fun);font-weight:400;font-size:17px}
+.sslot small{opacity:.7;font-size:12px}
+.sslot.empty{border:3px dashed rgba(110,61,24,.3);background:none;box-shadow:none;color:var(--wood)}
+.sslot.sold{background:#DFF3C9;outline:3px solid var(--green);animation:pop .3s}
+.sslot .rm{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--red-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2)}
+.picker{padding:12px;margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper b{font-family:var(--fun);font-weight:400;font-size:20px;min-width:70px;text-align:center}
+.stepper .btn{width:40px;padding:6px 0;font-size:20px}
+.toggles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.sw.on{outline:3px solid var(--gold-dk);outline-offset:1px}
+.evbar{height:18px;border-radius:10px;background:rgba(110,61,24,.2);overflow:hidden;margin:10px 0 4px;position:relative}
+.evbar i{display:block;height:100%;background:linear-gradient(#FFD865,#F4A527)}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tier{padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:12px;position:relative}
+.tier .e{font-size:36px;line-height:1.1}
+.tier b{font-family:var(--fun);font-weight:400;font-size:15px}
+.tier.won{background:#DFF3C9;outline:3px solid var(--green)}
+.tier.won::after{content:"✔";position:absolute;top:4px;right:8px;color:var(--green-dk);font-size:16px}
+.decor{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.dcard{padding:8px 6px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;font-weight:800;font-size:12px}
+.dcard .e{font-size:36px;line-height:1.1}
+.dcard.locked .e{filter:grayscale(1) brightness(.7);opacity:.5}
+.tag{display:inline-block;border-radius:8px;padding:0 6px;font-size:10px;font-weight:800;color:#fff}
+.tag.r1{background:#58AE36}.tag.r2{background:#34A0E0}.tag.r3{background:#9B59D0}.tag.hol{background:#E9831B}
+.wxnow{display:flex;align-items:center;gap:14px;padding:12px}
+.wxnow .e{font-size:54px;line-height:1}
+.wxnow b{font-family:var(--fun);font-weight:400;font-size:22px;display:block}
+.wxrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.backup textarea{width:100%;min-height:110px;font:12px/1.35 ui-monospace,Menlo,monospace;padding:8px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text;word-break:break-all}
+.wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 160px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
+  background:rgba(70,35,10,.85);border:2px solid #fff;color:#fff;border-radius:99px;padding:7px 16px;font-weight:800;font-size:14px;white-space:nowrap}
+.toasts{position:fixed;left:0;right:0;bottom:calc(320px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
+.toast{background:rgba(70,35,10,.88);color:#fff;padding:9px 16px;border-radius:99px;font-weight:800;font-size:14px;border:2px solid #fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);animation:pop .2s ease-out;max-width:100%;text-align:center}
+.loading{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:linear-gradient(#8ec9ee,#cfe9c0);transition:opacity .6s;font:400 26px var(--fun);color:#fff}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+</head>
+<body>
+<div class="loading out" id="loading">🌻 Sunny Acres</div>
+<div class="hud">
+  <div class="lvlbox" title="Level">
+    <div class="star">
+      <svg viewBox="0 0 56 56"><path d="M28 3l7.3 15.2 16.7 2.2-12.2 11.6 3 16.6L28 40.7 13.2 48.6l3-16.6L4 20.4l16.7-2.2z" fill="#FFD23F" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/></svg>
+      <b class="out" id="lvl">1</b>
+    </div>
+    <div class="xpbar"><i id="xpBar" style="width:0"></i><span class="out" id="xpTxt">0/15</span></div>
+  </div>
+  <div class="money">
+    <div class="cnt" title="Coins"><span class="ic">🪙</span><b class="out" id="coins">0</b></div>
+    <div class="cnt" title="Gems, earned only by playing"><span class="ic">💎</span><b class="out" id="gems">0</b></div>
+  </div>
+</div>
+<div class="chips">
+  <button class="chip" id="wxChip" data-act="open" data-p="weather"><span class="e">🌤️</span><span>Weather</span></button>
+  <button class="chip ev" id="evChip" data-act="open" data-p="event" hidden></button>
+</div>
+<div class="side">
+  <button data-act="open" data-p="settings" aria-label="Settings">⚙️</button>
+  <button id="soundBtn" aria-label="Sound on or off">🔊</button>
+</div>
+<div class="dock">
+  <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
+  <button data-act="open" data-p="barn" aria-label="Barn">📦<span class="l out">Barn</span></button>
+  <button data-act="open" data-p="decor" aria-label="Decorations">🌷<span class="l out">Decor</span></button>
+  <button data-act="open" data-p="shop" aria-label="Shop">🛒<span class="l out">Shop</span></button>
+</div>
+<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small>tap or drag across empty fields</small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
+<div class="tray" id="infoTray" hidden></div>
+<div class="tut" id="tut" hidden><span class="face">🧑‍🌾</span><div style="flex:1"><p id="tutText"></p><small id="tutStep"></small></div><button data-act="tutSkip">Skip</button></div>
+<div class="pointer" id="pointer" hidden>👇</div>
+<div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
+<div class="movehint" id="moveHint" hidden>Let go to place it</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div id="panelRoot"></div>
+<input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
+<script type="module">
+import * as THREE from "./lib/three.module.min.js";
+import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
+import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
+import * as G from "./game.js";
+const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
+
+const qs = new URLSearchParams(location.search);
+// animal pictures live next to the 2D game in the repo, or beside the page when published on its own
+const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/";
+
+// ---------------- renderer ----------------
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 50 : 38, innerWidth / innerHeight, 0.1, 600);
+
+// ---------------- shared "weather" uniforms every material listens to ----------------
+// Snow settles on upward-facing surfaces; rain darkens things and makes them glossy.
+const WX = {uSnow:{value:0}, uWet:{value:0}};
+function weatherShader(sh) {
+  sh.uniforms.uSnow = WX.uSnow; sh.uniforms.uWet = WX.uWet;
+  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWN; varying vec3 vWP;")
+    .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
+      #ifdef USE_INSTANCING
+        vWN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+      #else
+        vWN = normalize(mat3(modelMatrix) * objectNormal);
+      #endif`)
+    .replace("#include <worldpos_vertex>", `#include <worldpos_vertex>
+      #ifdef USE_INSTANCING
+        vWP = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+      #else
+        vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      #endif`);
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
+    varying vec3 vWN; varying vec3 vWP; uniform float uSnow; uniform float uWet;
+    float hsh(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+    float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+      return mix(mix(hsh(i), hsh(i+vec2(1,0)), f.x), mix(hsh(i+vec2(0,1)), hsh(i+vec2(1,1)), f.x), f.y); }`)
+    .replace("#include <map_fragment>", `#include <map_fragment>
+    float snowAmt = uSnow * smoothstep(0.3, 0.6, vWN.y + (vnoise(vWP.xz * 6.0) - 0.5) * 0.12 + (vnoise(vWP.xz * .8) - 0.5) * 0.08);
+    diffuseColor.rgb *= mix(1.0, 0.62, uWet * (1.0 - snowAmt));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.96, 1.0), snowAmt);`)
+    .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    roughnessFactor = mix(roughnessFactor, 0.18, uWet * 0.85 * (1.0 - snowAmt));
+    roughnessFactor = mix(roughnessFactor, 0.7, snowAmt);`);
+}
+function weatherize(mat) { mat.onBeforeCompile = weatherShader; return mat; }
+
+// Leaves and grass: light shines through them when the sun is behind (like real foliage),
+// and their normals point outward from the plant instead of flipping per card, so a tree reads as one soft volume.
+const LIT = {uSunDir:{value:new THREE.Vector3(0, 1, 0)}, uSunCol:{value:new THREE.Color()}};
+function foliageShader(sh, trans = 1) {
+  weatherShader(sh);
+  Object.assign(sh.uniforms, LIT, {uTrans:{value:trans}});
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTrans;")
+    .replace("#include <normal_fragment_begin>", "float faceDirection = gl_FrontFacing ? 1.0 : -1.0;\nvec3 normal = normalize(vNormal);\nvec3 nonPerturbedNormal = normal;")
+    .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
+      vec3 Vw = normalize(vWP - cameraPosition);
+      float back = pow(max(dot(Vw, normalize(uSunDir)), 0.0), 4.0);
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * uSunCol * (back * 0.9 + 0.1) * uTrans;`);
+}
+function foliage(mat, trans = 1, extra) { mat.onBeforeCompile = (sh) => { foliageShader(sh, trans); if (extra) extra(sh); }; return mat; }
+let texturesReady = false; THREE.DefaultLoadingManager.onLoad = () => { texturesReady = true; };
+const TL = new THREE.TextureLoader();
+function photo(path, rep, color = true) {
+  const t = TL.load(path); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(...rep);
+  if (color) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const TEX = document.querySelector('meta[name="tex-path"]')?.content || "tex/";
+const leafTex = photo(TEX + "leaves.webp"), barkTex = photo(TEX + "bark.jpg", [1, 3]);
+
+// ---------------- procedural textures (drawn once, tiled) ----------------
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function canvas(n) { const c = document.createElement("canvas"); c.width = c.height = n; return [c, c.getContext("2d")]; }
+function tex(c, color, rep = [1, 1]) {
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  if (color) t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// turns a grayscale height canvas into a normal map
+function normalFrom(hc, strength = 2) {
+  const n = hc.width, src = hc.getContext("2d").getImageData(0, 0, n, n).data;
+  const [c, x] = canvas(n), out = x.createImageData(n, n), H = (i, j) => src[(((j + n) % n) * n + ((i + n) % n)) * 4] / 255;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const dx = (H(i + 1, j) - H(i - 1, j)) * strength, dy = (H(i, j + 1) - H(i, j - 1)) * strength;
+    const l = Math.hypot(dx, dy, 1), k = (j * n + i) * 4;
+    out.data[k] = (-dx / l * .5 + .5) * 255; out.data[k + 1] = (dy / l * .5 + .5) * 255; out.data[k + 2] = (1 / l * .5 + .5) * 255; out.data[k + 3] = 255;
+  }
+  x.putImageData(out, 0, 0);
+  return c;
+}
+function planks(base, seed, worn = .5) { // vertical painted barn boards
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), w = 64;
+  hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let p = 0; p < n / w; p++) {
+    const l = (R() - .5) * 18;
+    x.fillStyle = `hsl(${base[0]},${base[1]}%,${base[2] + l * .35}%)`; x.fillRect(p * w, 0, w, n);
+    for (let g = 0; g < 26; g++) { // wood grain
+      const gx = p * w + R() * w; x.strokeStyle = `rgba(0,0,0,${.03 + R() * .06})`; x.lineWidth = .6 + R() * 1.4;
+      x.beginPath(); x.moveTo(gx, 0); for (let y = 0; y <= n; y += 32) x.lineTo(gx + Math.sin(y * .02 + g) * 2.5, y); x.stroke();
+      hx.strokeStyle = `rgba(0,0,0,${.05 + R() * .08})`; hx.lineWidth = x.lineWidth; hx.beginPath(); hx.moveTo(gx, 0); hx.lineTo(gx, n); hx.stroke();
+    }
+    if (R() < .45) { const ky = R() * n, kx = p * w + 10 + R() * (w - 20); x.fillStyle = "rgba(40,20,5,.35)"; x.beginPath(); x.ellipse(kx, ky, 4, 7, 0, 0, 7); x.fill(); }
+    x.fillStyle = "rgba(20,10,5,.75)"; x.fillRect(p * w, 0, 3, n); hx.fillStyle = "#1a1a1a"; hx.fillRect(p * w, 0, 3, n);
+    x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(p * w + 3, 0, 2, n);
+  }
+  for (let i = 0; i < 900 * worn; i++) { x.fillStyle = `rgba(${R() < .5 ? "235,225,205" : "60,40,25"},${R() * .18})`; x.fillRect(R() * n, R() * n, 1 + R() * 4, 1 + R() * 10); }
+  return [c, normalFrom(h, 3)];
+}
+function shingles(seed, base = [30, 12, 28]) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), rh = 32, tw = 44;
+  for (let r = 0; r < n / rh; r++) for (let t = -1; t < n / tw + 1; t++) {
+    const ox = t * tw + (r % 2) * tw / 2 + (R() - .5) * 4, y = r * rh, v = R();
+    x.fillStyle = `hsl(${base[0] - 5 + v * 12},${base[1] - 4 + v * 8}%,${base[2] - 6 + v * 14}%)`; x.fillRect(ox, y, tw - 2, rh);
+    const g = hx.createLinearGradient(0, y, 0, y + rh); g.addColorStop(0, "#303030"); g.addColorStop(1, "#d0d0d0");
+    hx.fillStyle = g; hx.fillRect(ox, y, tw - 2, rh);
+    x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(ox, y + rh - 3, tw - 2, 3);
+    for (let s = 0; s < 30; s++) { x.fillStyle = `rgba(${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},.06)`; x.fillRect(ox + R() * tw, y + R() * rh, 2, 2); }
+  }
+  return [c, normalFrom(h, 4)];
+}
+function stones(seed) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#6f675c"; x.fillRect(0, 0, n, n); hx.fillStyle = "#202020"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 190; i++) {
+    const cx = R() * n, cy = R() * n, rx = 18 + R() * 26, ry = 12 + R() * 16, l = 48 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox - rx * .3, cy + oy - ry * .4, 2, cx + ox, cy + oy, rx);
+      g.addColorStop(0, `hsl(35,${8 + R() * 10}%,${l + 10}%)`); g.addColorStop(1, `hsl(30,8%,${l - 12}%)`);
+      x.fillStyle = g; x.beginPath(); x.ellipse(cx + ox, cy + oy, rx, ry, R(), 0, 7); x.fill();
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 1, cx + ox, cy + oy, rx); hg.addColorStop(0, "#fff"); hg.addColorStop(1, "#555");
+      hx.fillStyle = hg; hx.beginPath(); hx.ellipse(cx + ox, cy + oy, rx, ry, 0, 0, 7); hx.fill();
+    }
+  }
+  return [c, normalFrom(h, 3)];
+}
+function grass(seed) {
+  const n = 1024, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#5d8c32"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 60; i++) { // soft color patches
+    const cx = R() * n, cy = R() * n, r = 60 + R() * 160, hue = 75 + R() * 25;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${hue},${40 + R() * 20}%,${30 + R() * 14}%,.35)`); g.addColorStop(1, "hsla(90,40%,35%,0)");
+      x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+    }
+  }
+  x.lineCap = "round";
+  for (let i = 0; i < 26000; i++) { // blades
+    const px = R() * n, py = R() * n, len = 4 + R() * 9, a = -Math.PI / 2 + (R() - .5) * .9;
+    x.strokeStyle = `hsl(${70 + R() * 35},${35 + R() * 35}%,${22 + R() * 30}%)`; x.lineWidth = .8 + R() * 1.1;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len); x.stroke();
+  }
+  return c;
+}
+function dirt(seed) {
+  const n = 512, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#b59568"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++) { x.fillStyle = `hsla(${28 + R() * 12},${18 + R() * 18}%,${38 + R() * 32}%,${.3 + R() * .5})`; x.beginPath(); x.arc(R() * n, R() * n, .5 + R() * 2.2, 0, 7); x.fill(); }
+  return c;
+}
+function leafCard(seed) { // a clump of leaves with transparent gaps, used on many small cards per tree
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  for (let i = 0; i < 70; i++) {
+    const a = R() * 7, r = R() * 100, cx = 128 + Math.cos(a) * r, cy = 128 + Math.sin(a) * r, s = 10 + R() * 12;
+    x.save(); x.translate(cx, cy); x.rotate(R() * 7);
+    x.fillStyle = `hsl(${85 + R() * 30},${45 + R() * 25}%,${25 + R() * 25}%)`;
+    x.beginPath(); x.ellipse(0, 0, s * .45, s, 0, 0, 7); x.fill();
+    x.strokeStyle = "rgba(0,0,0,.25)"; x.lineWidth = 1; x.beginPath(); x.moveTo(0, -s); x.lineTo(0, s); x.stroke();
+    x.restore();
+  }
+  return c;
+}
+function radial(inner = "rgba(0,0,0,1)") {
+  const [c, x] = canvas(128), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, inner); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+// ---------------- materials ----------------
+const std = (o) => weatherize(new THREE.MeshStandardMaterial(o));
+const [redC, redN] = planks([4, 62, 36], 11), [trimC, trimN] = planks([40, 25, 88], 5, .25), [fenceC, fenceN] = planks([30, 25, 42], 17, .8);
+const [shC, shN] = shingles(3), [stC, stN] = stones(9);
+const M = {
+  red: std({map:tex(redC, 1), normalMap:tex(redN), roughness:.82}),
+  trim: std({color:0xf2eadc, roughness:.6}),
+  roof: std({map:tex(shC, 1), normalMap:tex(shN), roughness:.9}),
+  stone: std({map:tex(stC, 1), normalMap:tex(stN), roughness:.95}),
+  fence: std({map:tex(fenceC, 1), normalMap:tex(fenceN), roughness:.9}),
+  glass: std({color:0x223344, roughness:.08, metalness:.3, emissive:0xffb050, emissiveIntensity:0}),
+  metal: std({color:0x8a8f96, roughness:.35, metalness:.8}),
+  bark: std({color:0x5b4029, roughness:.95}),
+};
+// every box face gets texture coordinates in meters, so textures keep the same scale on any size
+function boxUV(g, scale = .25) {
+  const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i));
+    const u = ax > .5 ? p.getZ(i) : p.getX(i), v = ay > .5 ? p.getZ(i) : p.getY(i);
+    uv.setXY(i, u * scale, v * scale);
+  }
+  return g;
+}
+function box(w, h, d, mat, x = 0, y = 0, z = 0, scale = .25) {
+  const m = new THREE.Mesh(boxUV(new THREE.BoxGeometry(w, h, d), scale), mat);
+  m.position.set(x, y, z); m.castShadow = m.receiveShadow = true;
+  return m;
+}
+// a thin box stretched between two points in the XY plane (trim, braces, roof panels)
+function beam(p, q, thick, depth, mat, z = 0, scale = .25) {
+  const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy);
+  const m = box(L, thick, depth, mat, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2, z, scale);
+  m.rotation.z = Math.atan2(dy, dx);
+  return m;
+}
+
+// ---------------- the barn ----------------
+function makeBarn() {
+  const g = new THREE.Group(), W = 8, D = 11, HW = 4.2, base = .7;
+  const prof = [[-W / 2, 0], [W / 2, 0], [W / 2, HW], [2.75, 6.4], [0, 7.5], [-2.75, 6.4], [-W / 2, HW]];
+  const shape = new THREE.Shape(prof.map(([x, y]) => new THREE.Vector2(x, y)));
+  const gable = new THREE.ShapeGeometry(shape); // front/back walls with planks
+  const uv = gable.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .25, uv.getY(i) * .25);
+  for (const s of [1, -1]) { const m = new THREE.Mesh(gable, M.red); m.position.z = s * D / 2; if (s < 0) m.rotation.y = Math.PI; m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const s of [1, -1]) g.add(box(.12, HW, D, M.red, s * (W / 2 - .06), HW / 2, 0));
+  // stone foundation
+  g.add(box(W + .3, base, D + .3, M.stone, 0, base / 2 - .05, 0, .5));
+  // roof panels: steep lower slope and gentle upper slope on each side, with overhang
+  const up = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy); return [dy / L * .09, -dx / L * .09]; };
+  for (const [p, q] of [[[W / 2 + .35, HW - .45], [2.75, 6.4]], [[2.75, 6.4], [0, 7.5]]]) {
+    const o = up(p, q); // outward offset, worked out on the right side and mirrored
+    for (const s of [1, -1]) g.add(beam([(p[0] + o[0]) * s, p[1] + o[1]], [(q[0] + o[0]) * s, q[1] + o[1]], .16, D + .9, M.roof, 0, .3));
+  }
+  g.add(box(.3, .22, D + .95, M.roof, 0, 7.6, 0)); // ridge cap
+  // white trim: corners, rake edges on both gables, eaves
+  for (const sx of [1, -1]) for (const sz of [1, -1]) g.add(box(.26, HW, .26, M.trim, sx * W / 2, HW / 2 + .02, sz * D / 2));
+  for (const sz of [1, -1]) {
+    const z = sz * (D / 2 + .08);
+    for (let i = 2; i < prof.length; i++) { const a = prof[i], b = prof[(i + 1) % prof.length]; if (b[1] === 0) continue; g.add(beam(a, b, .22, .12, M.trim, z)); }
+    g.add(beam([-W / 2, HW], [W / 2, HW], .18, .1, M.trim, z));
+  }
+  // big front doors with X braces and a hayloft door
+  const z = D / 2 + .09;
+  const doorFrame = (x0, x1, y0, y1) => { g.add(beam([x0, y0], [x0, y1], .2, .1, M.trim, z)); g.add(beam([x1, y0], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y1], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y0], [x1, y0], .2, .1, M.trim, z)); };
+  doorFrame(-1.9, 1.9, base, 3.8); g.add(beam([0, base], [0, 3.8], .14, .1, M.trim, z));
+  for (const [a, b] of [[-1.9, 0], [0, 1.9]]) { g.add(beam([a, base], [b, 3.8], .16, .1, M.trim, z)); g.add(beam([a, 3.8], [b, base], .16, .1, M.trim, z)); }
+  doorFrame(-.8, .8, 4.7, 6.1); g.add(beam([-.8, 4.7], [.8, 6.1], .12, .1, M.trim, z)); g.add(beam([-.8, 6.1], [.8, 4.7], .12, .1, M.trim, z));
+  // side windows (they glow at night)
+  for (const s of [1, -1]) for (const wz of [-2.6, 2.6]) {
+    const wx = s * (W / 2 + .07);
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), M.glass); glass.position.set(wx, 2.5, wz); glass.rotation.y = s * Math.PI / 2; g.add(glass);
+    for (const [dy, dz, hgt, dep] of [[.62, 0, .14, 1.4], [-.62, 0, .14, 1.4], [0, .62, 1.3, .14], [0, -.62, 1.3, .14], [0, 0, 1.1, .06], [0, 0, .06, 1.1]]) g.add(box(.1, hgt, dep, M.trim, wx, 2.5 + dy, wz + dz));
+  }
+  // weather vane on a cupola
+  g.add(box(1.1, .9, 1.1, M.red, 0, 7.9, 0)); g.add(box(1.4, .15, 1.4, M.roof, 0, 8.4, 0));
+  const vane = box(.05, .9, .05, M.metal, 0, 8.9, 0); g.add(vane); g.add(box(.7, .05, .12, M.metal, 0, 9.2, 0));
+  return g;
+}
+
+// ---------------- tree with real leaf cards ----------------
+// builds one mesh of many leaf cards around a set of cluster centers
+function canopyGeometry(R, centers, cardsPer, spread, size, center, radius) {
+  const pos = [], nor = [], uv = [], col = [], idx = [], q = new THREE.Quaternion(), e = new THREE.Euler();
+  const C = [[-.5, -.5, 0, 0], [.5, -.5, 1, 0], [.5, .5, 1, 1], [-.5, .5, 0, 1]];
+  let v = 0;
+  for (const c of centers) for (let i = 0; i < cardsPer; i++) {
+    const p = new THREE.Vector3(c.x + (R() - .5) * spread, c.y + (R() - .5) * spread * .8, c.z + (R() - .5) * spread);
+    e.set(R() * 7, R() * 7, R() * 7); q.setFromEuler(e);
+    const sz = size * (.75 + R() * .5), out = p.clone().sub(center).normalize(), d = Math.min(1, p.distanceTo(center) / radius);
+    const ao = .42 + .58 * d * d, tint = .85 + R() * .3; // darker deep inside the crown
+    const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q).multiplyScalar(.25).add(out).normalize();
+    for (const [cx, cy, u, w] of C) {
+      const vt = new THREE.Vector3(cx * sz, cy * sz, 0).applyQuaternion(q).add(p);
+      pos.push(vt.x, vt.y, vt.z); nor.push(n.x, n.y, n.z); uv.push(u, w); col.push(ao * tint * .95, ao * tint, ao * tint * .9);
+    }
+    idx.push(v, v + 1, v + 2, v, v + 2, v + 3); v += 4;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
+  return g;
+}
+const leafMat = foliage(new THREE.MeshStandardMaterial({map:leafTex, alphaTest:.42, side:THREE.DoubleSide, vertexColors:true, roughness:.72}));
+const leafDepth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.42});
+M.bark = std({map:barkTex, roughness:.95, color:0xb8b0a4});
+function limb(from, dir, len, r0, r1, parent) {
+  const geo = new THREE.CylinderGeometry(r1, r0, len, 8, 1); geo.translate(0, len / 2, 0);
+  const m = new THREE.Mesh(geo, M.bark); m.position.copy(from);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+  m.castShadow = m.receiveShadow = true; parent.add(m);
+  return from.clone().addScaledVector(dir.clone().normalize(), len);
+}
+function makeTree(seed) {
+  const g = new THREE.Group(), R = rng(seed), H = 3.3 + R() * .6;
+  const top = limb(new THREE.Vector3(0, -.2, 0), new THREE.Vector3((R() - .5) * .15, 1, (R() - .5) * .15), H, .34, .2, g);
+  const tips = [top.clone().add(new THREE.Vector3(0, 1.1, 0))];
+  const nb = 5 + Math.floor(R() * 3);
+  for (let i = 0; i < nb; i++) { // main branches spreading up and out
+    const a = i / nb * Math.PI * 2 + R() * .6, rise = .55 + R() * .6, y = H * (.55 + R() * .4);
+    const tip = limb(new THREE.Vector3(0, y, 0), new THREE.Vector3(Math.cos(a), rise, Math.sin(a)), 1.5 + R() * 1.1, .15, .05, g);
+    tips.push(tip); if (R() < .6) tips.push(tip.clone().lerp(new THREE.Vector3(0, y, 0), .45).add(new THREE.Vector3(0, .5, 0)));
+  }
+  const center = new THREE.Vector3(0, H + .6, 0);
+  const canopy = new THREE.Mesh(canopyGeometry(R, tips, 24, 1.9, 1.55, center, 3.2), leafMat);
+  canopy.customDepthMaterial = leafDepth; canopy.castShadow = canopy.receiveShadow = true;
+  const sway = new THREE.Group(); sway.position.copy(center); canopy.position.sub(center); sway.add(canopy); g.add(sway);
+  g.userData.canopy = sway;
+  return g;
+}
+
+// ---------------- fence ----------------
+function makeFence(len, posts) {
+  const g = new THREE.Group();
+  for (let i = 0; i <= posts; i++) { const x = -len / 2 + i * len / posts; g.add(box(.18, 1.25, .18, M.fence, x, .62, 0)); g.add(box(.24, .06, .24, M.fence, x, 1.27, 0)); }
+  for (const y of [.45, .95]) g.add(box(len + .2, .14, .07, M.fence, 0, y, .1));
+  return g;
+}
+
+// ---------------- animals: the approved renders, standing in the world ----------------
+// They turn to face the camera; a separate invisible card faces the sun so their shadow keeps its shape.
+function makeAnimal(src, h, x, z) {
+  const t = new THREE.TextureLoader().load(src, (tx) => {
+    const a = tx.image.width / tx.image.height; card.scale.set(h * a, h, 1); shadowCard.scale.set(h * a, h, 1);
+  });
+  t.colorSpace = THREE.SRGBColorSpace;
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, .5, 0);
+  const card = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:t, alphaTest:.4, roughness:.85, side:THREE.DoubleSide, emissive:0xffffff, emissiveMap:t, emissiveIntensity:.5}));
+  card.receiveShadow = true; g.add(card);
+  const shadowCard = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({colorWrite:false, depthWrite:false}));
+  shadowCard.castShadow = true; shadowCard.customDepthMaterial = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:t, alphaTest:.4});
+  g.add(shadowCard);
+  card.rotation.order = "YXZ";
+  return {g, card, shadowCard, h};
+}
+
+// ---------------- ground ----------------
+const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
+const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
+{ const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
+  p.setY(i, d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20)); }
+  groundGeo.computeVertexNormals();
+  // big soft patches of lighter, yellower and darker grass so the field never looks tiled
+  const col = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i);
+    const n = Math.sin(x * .11 + Math.sin(z * .07) * 2) * .5 + Math.sin(z * .13 - x * .05) * .35 + Math.sin((x + z) * .31) * .15;
+    col.set([.9 + n * .14, .92 + n * .1, .82 + n * .06], i * 3); }
+  groundGeo.setAttribute("color", new THREE.BufferAttribute(col, 3)); }
+const groundTex = photo(TEX + "grass.jpg", [40, 40]);
+const ground = new THREE.Mesh(groundGeo, std({map:groundTex, roughness:.95, vertexColors:true, color:0xd4dcc4}));
+ground.receiveShadow = true; scene.add(ground);
+// dirt path to the barn doors, with soft edges
+{ const dt = tex(dirt(4), 1, [1.5, 6]);
+  const [ac, ax] = canvas(256), R = rng(8); // soft ragged edges along the sides and the far end
+  const g = ax.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, "#000"); g.addColorStop(.22, "#fff"); g.addColorStop(.78, "#fff"); g.addColorStop(1, "#000");
+  ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? "rgba(0,0,0,.35)" : "rgba(255,255,255,.3)"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }
+  const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, "rgba(0,0,0,1)"); fadeEnd.addColorStop(.25, "rgba(0,0,0,0)"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
+  pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
+
+// ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
+const windU = {uTime:{value:0}, uWind:{value:.3}};
+// where every grass tuft and wildflower grows, so they can be cleared from under new fields and buildings
+const GRASS = {grass:null, gpos:[], flowers:null, fpos:[]};
+function clearGrass(x, z, r) {
+  const m4 = new THREE.Matrix4().makeScale(0, 0, 0);
+  for (const [mesh, pos] of [[GRASS.grass, GRASS.gpos], [GRASS.flowers, GRASS.fpos]]) {
+    if (!mesh) continue; let n = 0;
+    for (let k = 0; k < pos.length; k += 2) if (Math.abs(pos[k] - x) < r && Math.abs(pos[k + 1] - z) < r) { m4.setPosition(pos[k], 0, pos[k + 1]); mesh.setMatrixAt(k / 2, m4); n++; }
+    if (n) mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+{
+  // one clump = 8 thin curved blades fanning out from a tuft, each a little different in height, lean and shade.
+  // 22,000 clumps give ~176,000 blades that grow in natural tufts, with far fewer instances to set up and cull.
+  const BLADES = 8, CR = rng(11), pos = [], hgt = [], col = [], idx = [];
+  const b0 = [[-.018,0,0], [.018,0,0], [-.015,.11,.012], [.015,.11,.012], [-.009,.21,.035], [.009,.21,.035], [0,.31,.07]];
+  for (let b = 0; b < BLADES; b++) {
+    const ang = b / BLADES * Math.PI * 2 + CR() * .8, rad = b === 0 ? 0 : .04 + Math.sqrt(CR()) * .13, ox = Math.cos(ang) * rad, oz = Math.sin(ang) * rad;
+    const hs = .65 + CR() * .6, lean = .5 + CR() * .9, yaw = ang + (CR() - .5) * 1.2, cy = Math.cos(yaw), sy = Math.sin(yaw), tint = .82 + CR() * .3, base = pos.length / 3;
+    for (const [x, y, z] of b0) { const lz = z * lean + y * rad * 1.4; pos.push(ox + x * cy + lz * sy, y * hs, oz - x * sy + lz * cy); hgt.push(y / .31); col.push(tint, tint * (.97 + CR() * .06), tint * (.9 + CR() * .12)); }
+    for (const t of [0,1,2, 1,3,2, 2,3,4, 3,5,4, 4,5,6]) idx.push(base + t);
+  }
+  const blade = new THREE.BufferGeometry();
+  blade.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  blade.setAttribute("bladeH", new THREE.Float32BufferAttribute(hgt, 1));
+  blade.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  blade.setIndex(idx); blade.computeVertexNormals();
+  const n = 22000, R = rng(5);
+  const mat = foliage(new THREE.MeshStandardMaterial({color:0xffffff, roughness:.7, side:THREE.DoubleSide, vertexColors:true}), .8, (sh) => {
+    Object.assign(sh.uniforms, windU);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; attribute float bladeH; varying float vH;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(objectNormal * .35 + vec3(0., 1., 0.));")
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vH = bladeH;
+        vec4 wp = instanceMatrix * vec4(0., 0., 0., 1.);
+        float gust = sin(uTime * .6 + wp.x * .05 + wp.z * .03) * .5 + .5;
+        float bend = (sin(uTime * 1.7 + wp.x * .35 + wp.z * .22) * .6 + sin(uTime * 3.1 + wp.x * .9) * .25) * (0.2 + uWind * (.6 + gust));
+        transformed.x += bend * position.y * position.y * 2.4; transformed.z += bend * position.y * position.y * .9;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;")
+      .replace("#include <color_fragment>", `#include <color_fragment>
+        diffuseColor.rgb *= mix(.32, 1.15, smoothstep(0., 1., vH));                         // shaded roots, bright tips
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.1, .62), vH * vH * .45); // tips dry to gold`);
+  });
+  const grassMesh = new THREE.InstancedMesh(blade, mat, n);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
+  let k = 0;
+  for (let i = 0; k < n && i < n * 3; i++) {
+    const r = Math.sqrt(R()) * 44, a = R() * Math.PI * 2, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
+    if (Math.abs(x) < 4.4 && Math.abs(z) < 5.9) continue;           // not inside the barn
+    if (KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
+    if (Math.abs(x) < 3 && z > 5.5 && z < 22) continue;              // not on the dirt path
+    e.set((R() - .5) * .35, R() * 7, (R() - .5) * .35); q.setFromEuler(e);
+    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
+    grassMesh.setMatrixAt(k, m4); GRASS.gpos.push(x, z);
+    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12); grassMesh.setColorAt(k, c); k++;
+  }
+  grassMesh.count = k; grassMesh.receiveShadow = true; scene.add(grassMesh); GRASS.grass = grassMesh;
+  // a sprinkle of wildflowers: daisies, buttercups and clover
+  const [fc, fx] = canvas(128);
+  const petals = (cx, cy, col, center, n, r, pr) => { fx.fillStyle = col; for (let i = 0; i < n; i++) { const a = i / n * 7; fx.beginPath(); fx.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, pr, pr * .5, a, 0, 7); fx.fill(); } fx.fillStyle = center; fx.beginPath(); fx.arc(cx, cy, r * .6, 0, 7); fx.fill(); };
+  petals(32, 32, "#fbfbf6", "#f2c12e", 12, 13, 11); petals(96, 32, "#f7d23a", "#e0a61a", 5, 11, 12); petals(32, 96, "#c98ad8", "#a45cc0", 10, 9, 9); petals(96, 96, "#ffffff", "#f5d24a", 8, 10, 10);
+  const flTex = new THREE.CanvasTexture(fc); flTex.colorSpace = THREE.SRGBColorSpace;
+  const fg = new THREE.PlaneGeometry(.16, .16); fg.rotateX(-Math.PI / 2 + .35); fg.translate(0, .2, 0);
+  const fm = foliage(new THREE.MeshStandardMaterial({map:flTex, alphaTest:.5, side:THREE.DoubleSide, roughness:.6}), .5);
+  const nf = 3500, flowers = new THREE.InstancedMesh(fg, fm, nf); let f = 0;
+  const uvOff = new Float32Array(nf * 2);
+  for (let i = 0; f < nf && i < nf * 4; i++) {
+    const r = Math.sqrt(R()) * 38, a = R() * 7, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
+    if ((Math.abs(x) < 4.6 && Math.abs(z) < 6.1) || (Math.abs(x) < 3 && z > 5.5) || KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
+    if (Math.sin(x * .3) * Math.cos(z * .25) < .2) continue; // flowers grow in patches
+    m4.compose(new THREE.Vector3(x, 0, z), q.setFromEuler(e.set(0, R() * 7, 0)), new THREE.Vector3(1, 1, 1).multiplyScalar(.8 + R() * .5));
+    flowers.setMatrixAt(f, m4); GRASS.fpos.push(x, z); uvOff[f * 2] = R() < .5 ? 0 : .5; uvOff[f * 2 + 1] = R() < .5 ? 0 : .5; f++;
+  }
+  flowers.count = f; GRASS.flowers = flowers;
+  fg.setAttribute("uvOff", new THREE.InstancedBufferAttribute(uvOff, 2));
+  const fmPrev = fm.onBeforeCompile;
+  fm.onBeforeCompile = (sh) => { fmPrev(sh); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 uvOff;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvMapUv = vMapUv * .5 + uvOff;"); };
+  flowers.receiveShadow = true; scene.add(flowers);
+}
+
+// soft dark "contact shadow" right under each object, so nothing looks like it floats
+const contactTex = radial("rgba(0,0,0,.55)");
+const contactMat = new THREE.MeshBasicMaterial({map:contactTex, transparent:true, depthWrite:false, color:0x000000, opacity:1});
+const decals = new THREE.Group(); scene.add(decals); // soft shadows on the ground under things, merged into one piece once the farm is built
+function contact(x, z, w, d, parent = decals) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), contactMat);
+  m.rotation.x = -Math.PI / 2; m.position.set(x, .02, z); parent.add(m); return m;
+}
+// Many small still pieces that share a material draw much faster as one piece (one draw call instead of dozens), so merge them.
+// It happens inside `root`, so the thing still moves, squashes and can be tapped as a whole. `keep` marks parts that must stay
+// separate: swaying canopies, and things that hide and show on their own.
+function mergeStatic(root, keep = () => false) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert(), buckets = new Map(), rel = new THREE.Matrix4();
+  const walk = (o) => {
+    if (o !== root && keep(o)) return;
+    if (o.isMesh && !o.isInstancedMesh && !Array.isArray(o.material) && o.visible) {
+      const k = o.material.uuid + "|" + o.castShadow + o.receiveShadow; if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(o);
+    }
+    for (const c of [...o.children]) walk(c);
+  };
+  walk(root);
+  for (const list of buckets.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map(m => { const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(rel.multiplyMatrices(inv, m.matrixWorld)); if (!g.attributes.normal) g.computeVertexNormals(); return g; });
+    const names = ["position", "normal", "uv", "color"].filter(n => geos.every(g => g.attributes[n]));
+    if (list[0].material.map && !names.includes("uv")) { geos.forEach(g => g.dispose()); continue; }
+    const merged = new THREE.BufferGeometry();
+    for (const n of names) {
+      const size = geos[0].attributes[n].itemSize, arr = new Float32Array(geos.reduce((a, g) => a + g.attributes[n].count, 0) * size); let off = 0;
+      for (const g of geos) { const a = g.attributes[n]; for (let i = 0; i < a.count; i++) for (let c = 0; c < size; c++) arr[off++] = a.getComponent(i, c); }
+      merged.setAttribute(n, new THREE.BufferAttribute(arr, size));
+    }
+    merged.computeBoundingSphere();
+    const m0 = list[0], mesh = new THREE.Mesh(merged, m0.material);
+    mesh.castShadow = m0.castShadow; mesh.receiveShadow = m0.receiveShadow; if (m0.customDepthMaterial) mesh.customDepthMaterial = m0.customDepthMaterial;
+    for (const m of list) m.parent.remove(m);
+    geos.forEach(g => g.dispose());
+    root.add(mesh);
+  }
+  return root;
+}
+const keepCanopy = (t) => (o) => o === t.userData.canopy;
+
+// ---------------- place things ----------------
+const barn = mergeStatic(makeBarn()); scene.add(barn); contact(0, 0, 11, 14);
+const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); contact(-9, 4, 3, 3);
+const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); contact(10, -7, 3.5, 3.5);
+const groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };
+const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+// woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
+const far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
+  for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    const t = kinds[i % 4].clone(); t.position.set(x, groundY(x, z) - .2, z); t.rotation.y = R() * 7; t.scale.setScalar(1.1 + R() * .7);
+    t.traverse(o => { o.castShadow = false; }); woods.add(t); far.push(t); }
+  mergeStatic(woods); } // 70 distant trees drawn as two pieces: all their bark, and all their leaves
+// fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard
+const FENCE_RUNS = [
+  [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
+  [[10.81, 10.48], [12.6, -1.2], [12.8, -8.4], [4.5, -8.4], [4.5, -5.95]],        // paddock: east, north and back to the barn
+  [[4.5, 5.95], [4.5, 8.87]],                                                   // paddock: from the barn's front corner to the path fence
+  [[-4.6, -4.8], [-12, -4.8], [-12, 5], [-4.6, 5]],                               // chicken yard beside the barn's west wall
+];
+const fenceSegs = [], fences = [];
+for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
+  const [ax, az] = run[i - 1], [bx, bz] = run[i], len = Math.hypot(bx - ax, bz - az);
+  const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
+  scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
+}
+// water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
+function makeWaterPan(r) {
+  const g = new THREE.Group(), rim = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, .14, 24, 1, true), M.metal || M.fence);
+  rim.position.y = .07; rim.castShadow = true; g.add(rim);
+  const w = new THREE.Mesh(new THREE.CircleGeometry(r * .96, 24), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .11; g.add(w);
+  return g;
+}
+
+// ---------------- more farm pieces ----------------
+function ribbedMetal(seed) { // corrugated galvanized steel
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  for (let i = 0; i < n; i++) { const w = Math.sin(i / n * Math.PI * 2 * 24) * .5 + .5;
+    x.fillStyle = `hsl(210,5%,${56 + w * 18}%)`; x.fillRect(i, 0, 1, n); hx.fillStyle = `rgb(${w * 255},${w * 255},${w * 255})`; hx.fillRect(i, 0, 1, n); }
+  for (let i = 0; i < 70; i++) { const px = R() * n; x.fillStyle = `rgba(120,80,50,${R() * .12})`; x.fillRect(px, R() * n, 2 + R() * 5, 20 + R() * 120); } // rust streaks
+  for (const y of [n * .25, n * .5, n * .75]) { x.fillStyle = "rgba(0,0,0,.25)"; x.fillRect(0, y, n, 3); hx.fillStyle = "#000"; hx.fillRect(0, y, n, 3); }
+  return [c, normalFrom(h, 3)];
+}
+function straw(seed, rings) { // hay: long strands on the side, a spiral on the ends
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#c9a45a"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 2600; i++) {
+    x.strokeStyle = `hsl(${38 + R() * 12},${45 + R() * 25}%,${45 + R() * 30}%)`; x.lineWidth = .6 + R();
+    x.beginPath();
+    if (rings) { const a = R() * 7, r = R() * 128; x.arc(128, 128, r, a, a + .4 + R() * .6); }
+    else { const px = R() * n, py = R() * n; x.moveTo(px, py); x.lineTo(px + (R() - .5) * 6, py + 14 + R() * 20); }
+    x.stroke();
+  }
+  return c;
+}
+function rockSurface(seed) { // weathered granite: mottled grays, specks and cracks
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#77736b"; x.fillRect(0, 0, n, n); hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 120; i++) { const cx = R() * n, cy = R() * n, r = 20 + R() * 70, l = 36 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) { const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${30 + R() * 20},${6 + R() * 8}%,${l}%,.5)`); g.addColorStop(1, "hsla(30,5%,45%,0)"); x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r); hg.addColorStop(0, `rgba(${R() < .5 ? "255,255,255" : "0,0,0"},.25)`); hg.addColorStop(1, "rgba(128,128,128,0)"); hx.fillStyle = hg; hx.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2); } }
+  for (let i = 0; i < 5000; i++) { x.fillStyle = `rgba(${R() < .5 ? "230,225,215" : "30,28,25"},${R() * .35})`; x.fillRect(R() * n, R() * n, 1 + R() * 2, 1 + R() * 2); }
+  x.lineWidth = 1.2; hx.lineWidth = 2;
+  for (let i = 0; i < 18; i++) { let px = R() * n, py = R() * n; x.strokeStyle = "rgba(20,18,15,.45)"; hx.strokeStyle = "#000"; x.beginPath(); hx.beginPath(); x.moveTo(px, py); hx.moveTo(px, py);
+    for (let k = 0; k < 8; k++) { px += (R() - .5) * 40; py += (R() - .3) * 30; x.lineTo(px, py); hx.lineTo(px, py); } x.stroke(); hx.stroke(); }
+  // a little moss on top
+  for (let i = 0; i < 40; i++) { x.fillStyle = `hsla(${80 + R() * 20},35%,${28 + R() * 12}%,.35)`; x.beginPath(); x.arc(R() * n, R() * n * .4, 6 + R() * 18, 0, 7); x.fill(); }
+  return [c, normalFrom(h, 5)];
+}
+const [rkC, rkN] = rockSurface(14); M.rock = std({map:tex(rkC, 1), normalMap:tex(rkN), roughness:.92});
+const [metC, metN] = ribbedMetal(2);
+M.silo = std({map:tex(metC, 1, [1, 1]), normalMap:tex(metN, 0, [1, 1]), metalness:.75, roughness:.38});
+M.hay = std({map:tex(straw(3), 1, [2, 1]), roughness:.95}); M.hayEnd = std({map:tex(straw(4, true), 1), roughness:.95});
+M.water = new THREE.MeshStandardMaterial({color:0x1e4a5c, roughness:.04, metalness:.1, transparent:true, opacity:.9});
+M.soil = std({map:tex(dirt(12), 1, [3, 3]), roughness:1, color:0x8a6a4a});
+
+function makeSilo() {
+  const g = new THREE.Group(), r = 1.55, h = 8.5;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 40, 1, true), M.silo); body.position.y = h / 2;
+  body.geometry.attributes.uv.array.forEach((v, i, a) => { if (i % 2 === 0) a[i] = v * 3; }); // three wraps of the ribs
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(r * 1.02, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.silo); dome.position.y = h;
+  for (const m of [body, dome]) { m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const y of [.02, h * .33, h * .66, h]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r + .03, .05, 6, 48), M.metal); ring.rotation.x = Math.PI / 2; ring.position.y = y; ring.castShadow = true; g.add(ring); }
+  g.add(box(.08, h + .8, .08, M.metal, -.25, (h + .8) / 2, r + .12), box(.08, h + .8, .08, M.metal, .25, (h + .8) / 2, r + .12)); // ladder
+  for (let y = .4; y < h + .6; y += .45) g.add(box(.5, .05, .05, M.metal, 0, y, r + .12));
+  g.add(box(.5, .35, .5, M.metal, 0, h + r * .95, 0)); // cap
+  return g;
+}
+function makeBale() {
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(.72, .72, 1.25, 28), [M.hay, M.hayEnd, M.hayEnd]);
+  g.rotation.z = Math.PI / 2; g.castShadow = g.receiveShadow = true; return g;
+}
+function makeTrough() {
+  const g = new THREE.Group();
+  g.add(box(2.2, .12, .9, M.fence, 0, .38, 0), box(2.2, .5, .1, M.fence, 0, .65, .42), box(2.2, .5, .1, M.fence, 0, .65, -.42), box(.1, .5, .9, M.fence, 1.05, .65, 0), box(.1, .5, .9, M.fence, -1.05, .65, 0));
+  for (const x of [-.9, .9]) g.add(box(.12, .4, .7, M.fence, x, .2, 0));
+  const w = new THREE.Mesh(new THREE.PlaneGeometry(2, .74), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .82; w.receiveShadow = true; g.add(w);
+  return g;
+}
+function makeRock(seed, s) {
+  const geo = new THREE.IcosahedronGeometry(1, 3), p = geo.attributes.position, R = rng(seed);
+  const bumps = [...Array(6)].map(() => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, R() * .35]);
+  for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)); let k = 1;
+    for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.dot(new THREE.Vector3(bx, by, bz).normalize()));
+    v.multiplyScalar(k); v.y = v.y * .6; if (v.y < -.15) v.y = -.15; p.setXYZ(i, v.x, v.y, v.z); }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, M.rock); m.scale.setScalar(s); m.castShadow = m.receiveShadow = true; return m;
+}
+function makeBush(seed, s = 1) {
+  const g = new THREE.Group(), R = rng(seed), centers = [];
+  for (let i = 0; i < 5; i++) centers.push(new THREE.Vector3((R() - .5) * 1.1, .45 + R() * .45, (R() - .5) * 1.1));
+  const m = new THREE.Mesh(canopyGeometry(R, centers, 12, .8, .8, new THREE.Vector3(0, .5, 0), 1.1), leafMat);
+  m.customDepthMaterial = leafDepth; m.castShadow = m.receiveShadow = true; g.add(m);
+  g.scale.setScalar(s); g.userData.canopy = g; return g;
+}
+// crop plants: thin blades (wheat, corn, sugarcane) or broad leaves (everything else), swaying in the wind; each field
+// gets its own material so its colour can ripen from green to its harvest colour
+const CROP_SHAPES = {blade:[[-.03,0,0, .03,0,0, -.02,.4,0, .02,.4,0, 0,.75,.05], .75], leaf:[[-.07,0,0, .07,0,0, -.1,.22,.03, .1,.22,.03, 0,.45,.1], .45]};
+const cropGeo = {};
+for (const [k, [v]] of Object.entries(CROP_SHAPES)) { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setIndex([0,1,2, 1,3,2, 2,3,4]); g.computeVertexNormals(); cropGeo[k] = g; }
+function cropMaterial() {
+  const mat = new THREE.MeshStandardMaterial({color:0x7fa04a, roughness:.75, side:THREE.DoubleSide});
+  mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, windU);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; varying float vH;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(objectNormal * .5 + vec3(0., 1., 0.));") // soft, grass-like light
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vH = clamp(position.y / .6, 0., 1.);
+        vec4 wp = instanceMatrix * vec4(0.,0.,0.,1.); float b = sin(uTime * 1.5 + wp.x * .6 + wp.z * .3) * (.12 + uWind * .3);
+        transformed.x += b * position.y * position.y;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;")
+      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= mix(.42, 1.12, smoothstep(0., 1., vH)); // shaded at the soil, bright at the tips"); };
+  return mat;
+}
+function makeLampPost() {
+  const g = new THREE.Group();
+  g.add(box(.14, 3, .14, M.metal, 0, 1.5, 0), box(.5, .08, .08, M.metal, .22, 2.95, 0));
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(.32, .42, .32), std({color:0xfff2d0, roughness:.2, emissive:0xffb050, emissiveIntensity:0, transparent:true, opacity:.85}));
+  glass.position.set(.42, 2.7, 0); g.add(glass); g.add(box(.42, .08, .42, M.metal, .42, 2.95, 0));
+  const light = new THREE.PointLight(0xffb45a, 0, 12, 2); light.position.set(.42, 2.6, 0); g.add(light);
+  g.userData = {glass, light};
+  return g;
+}
+const silo = mergeStatic(makeSilo()); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
+for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = mergeStatic(makeBale()); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
+contact(-6.4, -2.9, 3, 3.6);
+const trough = mergeStatic(makeTrough()); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
+const henWater = makeWaterPan(.38); henWater.position.set(-9.6, 0, -2.4); scene.add(henWater); contact(-9.6, -2.4, 1.1, 1.1);
+const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
+for (const [x, z, s, sd] of [[-3.0, 9.3, .5, 1], [3.0, 16.9, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
+const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
+// bushes and rocks are solid: animals walk round them and decorations don't go on them
+const BLOCKS_EXTRA = [];
+for (const [x, z, r] of [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9], [-3.0, 9.3, .5], [3.0, 16.9, .7], [-12.4, -6.5, 1.1], [-11.2, -5.8, .5], [12.5, 11, .8]]) BLOCKS_EXTRA.push([x, z, r * .8, r * .8]);
+const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
+for (const o of [barn, tree, tree2, silo, trough, lampPost, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
+
+// ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
+const PERSONALITY = {
+  Lazy:{energy:.25, social:.5, curious:.3, brave:.6, hunger:.5, blurb:"Loves a long nap in the sun"},
+  Curious:{energy:.7, social:.5, curious:1, brave:.7, hunger:.5, blurb:"Comes over to see anything new"},
+  Shy:{energy:.5, social:.35, curious:.15, brave:.05, hunger:.5, blurb:"Startles easily and keeps its distance"},
+  Playful:{energy:1, social:.8, curious:.7, brave:.8, hunger:.6, blurb:"Always zooming around"},
+  Grumpy:{energy:.4, social:.05, curious:.2, brave:1, hunger:.5, blurb:"Prefers to be left alone"},
+  Friendly:{energy:.6, social:1, curious:.6, brave:.7, hunger:.5, blurb:"Sticks close to its friends"},
+  Greedy:{energy:.5, social:.5, curious:.4, brave:.6, hunger:1, blurb:"Never far from the trough"},
+};
+const SPECIES = {
+  cow:{n:"Cow", h:1.7, walk:.8, run:2.6, eat:"graze", step:3, r:.9},
+  horse:{n:"Horse", h:2.3, walk:1.2, run:5, eat:"graze", step:3.2, r:1},
+  sheep:{n:"Sheep", h:1.2, walk:.75, run:2.6, eat:"graze", step:4.5, r:.6},
+  chicken:{n:"Chicken", h:.72, walk:.8, run:2.4, eat:"peck", step:9, r:.3},
+  dog:{n:"Dog", h:1.15, walk:1.5, run:4.6, eat:"sniff", step:5, r:.5},
+  cat:{n:"Cat", h:.85, walk:.9, run:3.6, eat:"sniff", step:5, r:.4},
+};
+// an animal's personality comes from its name, so Bessie is always Bessie
+const persOf = (name) => { const K = Object.keys(PERSONALITY); let h = 7; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return K[h % K.length]; };
+// where each kind lives: cows, horses and sheep share the paddock, hens have their yard, the dog and cat go anywhere outside the pens.
+// Pens are convex outlines, counter-clockwise, matching the fence runs (the paddock's west side is the barn wall).
+const PENS = {
+  paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:["cow", "horse", "sheep"],
+    bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:"the paddock"},
+  yard:{poly:[[-12, -4.8], [-4.9, -4.8], [-4.9, 5], [-12, 5]], kinds:["chicken"],
+    bed:[-8.6, 1.2, 1.8], shelter:{x:[-5.7, -5.3], z:[-1, 4.4]}, water:[-9.6, -2.4, .8, .8], name:"the chicken yard"},
+};
+const PEN_LIST = Object.values(PENS);
+const penOf = (kind) => PEN_LIST.find(p => p.kinds.includes(kind)) || null;
+// signed distance from each edge (positive = inside); a point is inside when every edge is at least `margin` away
+function edgeDepths(poly, x, z) {
+  return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
+    return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });
+}
+const inPen = (pen, x, z, margin = 0) => edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
+// pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)
+function intoPen(pen, v, margin) {
+  for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }
+  return v;
+}
+function outOfPens(v, margin) {
+  for (const pen of PEN_LIST) { const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
+    const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }
+  return v;
+}
+
+// where the animals may not walk: [x, z, halfWidth, halfDepth]
+const BLOCKS = [...BLOCKS_EXTRA, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+const HOME = new THREE.Vector2(1, 3), ROAM = 19;
+BLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet bowl
+// plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
+const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
+  ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
+const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
+const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
+const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
+const insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
+function hitsBlock(a, b, pad, skip) {
+  for (const k of OBST.keys()) { if (skip && skip.has(k)) continue; const o = OBST[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
+    let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;
+    const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
+    if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }
+  return -1;
+}
+// shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
+function route(from, to, pad, pen) {
+  const skipA = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], from, pad))), skipB = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], to, pad)));
+  const both = new Set([...skipA, ...skipB]);
+  if (hitsBlock(from, to, pad, both) < 0) return [to];
+  const nodes = [from, to];
+  for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
+    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2 && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+  const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
+  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;
+  for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
+    for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
+  if (prev[1] < 0) return [to]; // no clear way: just try
+  const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
+}
+const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
+// a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
+const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
+  for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (!blocked(x, z) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
+  if (pen) return new THREE.Vector2(pen.bed[0], pen.bed[1]);
+  return new THREE.Vector2(HOME.x, HOME.y + 8);
+}
+// little mood bubbles that float over an animal's head
+const emoteMats = {};
+function emoteMat(e) {
+  if (!emoteMats[e]) {
+    const [c, x] = canvas(128);
+    x.fillStyle = "rgba(255,255,255,.92)"; x.beginPath(); x.arc(64, 58, 50, 0, 7); x.fill(); x.beginPath(); x.moveTo(52, 100); x.lineTo(64, 124); x.lineTo(76, 100); x.fill();
+    x.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 62);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    emoteMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}); emoteMats[e].color.setScalar(PRESET.night ? .55 : 1);
+  }
+  return emoteMats[e];
+}
+const rnd = rng(4242);
+class Beast {
+  constructor(kind, name, pers, x, z, ref) {
+    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".webp", S.h, x, z);
+    Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
+      vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
+      need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
+    this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0; this.ref = ref;
+    // a steady bubble for "I have something for you" (eggs ready, a gift…), separate from passing moods
+    this.status = new THREE.Sprite(emoteMat("🥚")); this.status.scale.setScalar(.7); this.status.position.y = S.h + .5; this.status.visible = false; this.g.add(this.status);
+    contact(0, 0, S.h * 1.1, S.h * .45, this.g);
+    this.bubble = new THREE.Sprite(emoteMat("❤️")); this.bubble.scale.setScalar(.55); this.bubble.position.y = S.h + .35; this.bubble.visible = false; this.g.add(this.bubble);
+    scene.add(this.g);
+  }
+  get pos() { return new THREE.Vector2(this.g.position.x, this.g.position.z); }
+  emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
+  // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
+  fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
+  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)); this.path = route(this.pos, to, this.S.r + .7, this.pen); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
+  stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
+  // decide what to do next, from needs, personality, weather and time of day
+  think() {
+    const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
+    const pen = this.pen, lerp = THREE.MathUtils.lerp;
+    // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
+    if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));
+      return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
+    // shelter: tucked against the barn wall on their side, or under the door's overhang
+    if (weather === "wet" && rnd() > P.brave * .5) { const s = pen ? pen.shelter : {x:[-1.6, 1.6], z:[6.3, 6.8]};
+      return this.go(lerp(s.x[0], s.x[1], rnd()), lerp(s.z[0], s.z[1], rnd()), true, "Running for shelter", "shelter"); }
+    const opts = [
+      ["wander", .35 + P.energy * .4], ["eat", .3 + N.hunger * 1.2 * P.hunger], ["drink", N.hunger * .8 * P.hunger * (this.kind === "cat" ? .3 : 1)],
+      ["rest", N.tired * 1.3 * (1.25 - P.energy)], ["social", N.lonely * P.social * 1.4], ["play", P.energy * P.energy * .6 * (this.kind === "dog" ? 2 : 1)],
+      ["curious", tapPoint && clockT - tapPoint.t < 25 ? P.curious * 1.5 : 0], ["idle", .2],
+    ];
+    let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
+    for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    switch (pick) {
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "drink": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;
+        return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
+      case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
+      case "social": {
+        const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];
+        if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social"); }
+        break;
+      }
+      case "play":
+        if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? "Running along the fence after " + hen.name + "!" : "Chasing " + hen.name + "!", "chase"); } }
+        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+      case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
+    }
+    this.stay("Taking in the view", 2 + rnd() * 4);
+  }
+  // what happens on arrival
+  arrive() {
+    const d = this.doing, N = this.need; this.doing = null;
+    if (d === "eat") { N.hunger = Math.max(0, N.hunger - .5); return this.stay(this.S.eat === "graze" ? "Grazing" : this.S.eat === "peck" ? "Pecking at seeds" : "Sniffing the grass", 6 + rnd() * 8, "eating"); }
+    if (d === "drink") { N.hunger = 0; this.emote("💧"); return this.stay(this.pen === PENS.paddock ? "Drinking at the trough" : "Having a drink", 5, "eating"); }
+    if (d === "rest") { N.tired = 0; return this.stay("Napping", 10 + rnd() * 15 * (1.3 - this.P.energy), "resting"); }
+    if (d === "sleep") { return this.stay("Fast asleep", 9999, "sleeping"); }
+    if (d === "shelter") { return this.stay("Keeping dry by the barn", 9999, "idle"); }
+    if (d === "social") { N.lonely = 0; if (this.friend) { this.emote(this.P.social > .8 ? "❤️" : "🎵"); this.friend.need.lonely *= .5; } return this.stay("Hanging out with " + (this.friend ? this.friend.name : "friends"), 4 + rnd() * 5); }
+    if (d === "look") { this.emote("❔"); return this.stay("Curious about something", 3); }
+    if (d === "chase") { return this.stay("Proud of himself", 2); }
+    this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
+  }
+  update(dt, t) {
+    const N = this.need, P = this.P;
+    N.hunger = Math.min(1, N.hunger + dt * .012 * (.5 + P.hunger)); N.tired = Math.min(1, N.tired + dt * .01 * (1.5 - P.energy)); N.lonely = Math.min(1, N.lonely + dt * .01 * (.3 + P.social));
+    if (this.emoteT > 0) { this.emoteT -= dt; this.bubble.visible = this.emoteT > 0; this.bubble.material.opacity = Math.min(1, this.emoteT * 2); this.bubble.position.y = this.S.h + .35 + Math.sin(t * 3) * .04; }
+    // the weather changed: sleep, shelter and wake-ups happen straight away
+    const mode = PRESET.night ? "night" : PRESET.rain || PRESET.snowing ? "wet" : "fair";
+    if (mode !== this.mode) { this.mode = mode; this.until = 0; this.target = null; this.act = "idle"; if (mode === "fair") this.emote("☀️", 1.5); }
+    if (this.act === "sleeping" && Math.floor(t) % 4 === 0 && this.emoteT <= 0) this.emote("💤", 2);
+    // chickens scatter when the dog runs at them
+    if (this.kind === "chicken" && this.act !== "fleeing") { const dog = animals.find(b => b.kind === "dog"); if (dog && dog.doing === "chase" && dog.pos.distanceTo(this.pos) < 2.6) this.flee(dog.pos, "Running from Buddy!"); }
+    if (this.act === "fleeing" && t > this.until) { this.act = "idle"; this.until = 0; }
+    if (this.doing === "chase" && this.chasing && this.target) { this.path = null; this.target.copy(this.fit(this.chasing.pos)); }
+    if (!this.target && (this.act === "idle" || this.act === "eating" || this.act === "resting") && t > this.until) this.think();
+    if (this.act === "sleeping" && !PRESET.night) this.act = "idle";
+    // walk toward the target, steering around buildings, fences and other animals
+    let moving = false;
+    if (this.target) {
+      const pos = this.pos, to = this.target.clone().sub(pos), dist = to.length();
+      if (dist < .6 && this.path && this.path.length) this.target = this.path.shift();
+      else if (dist < .35 || (this.doing === "chase" && dist < 1)) { this.target = null; this.arrive(); }
+      else {
+        const spd = (this.running ? this.S.run : this.S.walk) * (.8 + P.energy * .4) * (this.act === "fleeing" ? 1.3 : 1);
+        const want = to.normalize().multiplyScalar(spd);
+        for (const [bx, bz, hw, hd] of BLOCKS) { const cx = THREE.MathUtils.clamp(pos.x, bx - hw, bx + hw), cz = THREE.MathUtils.clamp(pos.y, bz - hd, bz + hd), dx = pos.x - cx, dz = pos.y - cz, d = Math.hypot(dx, dz);
+          if (d < this.S.r + .6 && d > 1e-4) want.add(new THREE.Vector2(dx / d, dz / d).multiplyScalar((this.S.r + .6 - d) * 6));
+          else if (d <= 1e-4) want.add(new THREE.Vector2(pos.x - bx, pos.y - bz).normalize().multiplyScalar(4)); }
+        for (const [ax, az, bx, bz] of fenceSegs) { const ab = new THREE.Vector2(bx - ax, bz - az), k = THREE.MathUtils.clamp(new THREE.Vector2(pos.x - ax, pos.y - az).dot(ab) / ab.lengthSq(), 0, 1);
+          const c = new THREE.Vector2(ax + ab.x * k, az + ab.y * k), off = pos.clone().sub(c), d = off.length(); if (d < this.S.r + .35 && d > 1e-4) want.add(off.multiplyScalar((this.S.r + .35 - d) * 8 / d)); }
+        for (const b of animals) if (b !== this) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
+        this.vel.lerp(want, Math.min(1, dt * 4));
+        this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
+        // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
+        const held = this.fit(this.pos, .05); this.g.position.x = held.x; this.g.position.z = held.y;
+        this.phase += this.vel.length() * dt * this.S.step;
+        // give up on a target it can't reach
+        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;
+          if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
+      }
+    } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
+    // face the way it walks (the pictures face left), and animate the pose
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), v3 = new THREE.Vector3(this.vel.x, 0, this.vel.y);
+    if (v3.lengthSq() > .02) { const d = v3.dot(right); if (Math.abs(d) > .05) this.facing = d > 0 ? -1 : 1; }
+    const h = this.S.h, card = this.card, aspect = card.scale.x ? Math.abs(card.scale.x) : h;
+    card.rotation.y = Math.atan2(camera.position.x - this.g.position.x, camera.position.z - this.g.position.z);
+    this.shadowCard.rotation.y = Math.atan2(sunDir.x, sunDir.z);
+    let y = 0, tilt = 0, sy = 1;
+    // lean into the direction of travel: further at speed, a little extra while speeding up, and sitting back while braking
+    const spd = moving ? this.vel.length() : 0, k = Math.min(1, spd / this.S.run), acc = (spd - this.lastSpd) / Math.max(dt, 1e-3); this.lastSpd = spd;
+    const leanTo = moving ? k * .09 + THREE.MathUtils.clamp(acc * .015, -.06, .06) : 0;
+    this.lean += (leanTo - this.lean) * Math.min(1, dt * 6);
+    if (moving) {
+      // stride bob: two footfalls per stride; the body rides highest mid-stride and dips, with a slight squash, as each foot lands
+      const s = Math.abs(Math.sin(this.phase));
+      y = s * h * (.015 + .045 * k); sy = 1 - (1 - s) * (.01 + .03 * k); tilt = this.lean;
+    } else if (this.act === "eating") {
+      if (this.S.eat === "peck") { const p = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * p; y = -.03 * p; }
+      else { tilt = .07 + Math.sin(t * 1.3 + this.phase) * .02; y = -h * .02; }
+    } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
+    else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; } // breathing, settling out of the last lean
+    if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
+    // turning round: a flat picture can't rotate without showing its thin edge, so it flips at the top of a tiny hop instead
+    if (this.facing !== this.face) { this.face = this.facing; this.turnHop = 1; }
+    if (this.turnHop > 0) { this.turnHop = Math.max(0, this.turnHop - dt * 4); y += Math.sin((1 - this.turnHop) * Math.PI) * h * .06; }
+    const side = this.face, w = this.shadowCard.scale.x;
+    card.position.y = y; card.rotation.z = tilt * side; card.scale.y = w !== 1 ? h * sy : card.scale.y;
+    if (w !== 1) card.scale.x = w * side;
+  }
+  flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
+    this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
+  pet() {
+    this.need.lonely = 0; this.hop = 1;
+    if (this.pers === "Shy" && rnd() < .6) { this.flee(new THREE.Vector2(camera.position.x, camera.position.z), "Too shy for that!"); return "startled"; }
+    if (this.pers === "Grumpy" && rnd() < .5) { this.emote("💢"); return "grumpy"; }
+    this.emote("❤️"); return "happy";
+  }
+  mood() { const N = this.need; return N.tired > .75 ? "Sleepy" : N.hunger > .75 ? "Hungry" : N.lonely > .75 ? "Lonely" : N.hunger + N.tired + N.lonely < .9 ? "Happy" : "Content"; }
+}
+let clockT = 0, tapPoint = null, PRESET = {};
+let animals = [];
+// the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
+const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
+function syncHerd() {
+  const want = [];
+  for (const kind of Object.keys(G.ANIMALS)) if (G.S.pens[kind].owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
+  G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
+  const keys = new Set(want.map(refKey));
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); a.gone = true; }
+  animals = animals.filter(a => !a.gone);
+  const have = new Set(animals.map(a => refKey(a.ref)));
+  for (const r of want) {
+    if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }
+    const pen = penOf(r.kind), p = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
+    animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
+  }
+}
+
+// ---------------- sky, sun and fill light ----------------
+const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()},
+  uTime:{value:0}, uCover:{value:.45}, cloudCol:{value:new THREE.Color(1, 1, 1)}, cloudShade:{value:new THREE.Color(.6, .65, .75)}, uNight:{value:0}};
+const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:false, fog:false, uniforms:skyU,
+  vertexShader:"varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+  fragmentShader:`uniform vec3 top, hor, sunCol, sunDir, cloudCol, cloudShade; uniform float uTime, uCover, uNight; varying vec3 vD;
+    float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f); return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
+    float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 6; i++) { v += a * n2(p); p = p * 2.03 + vec2(1.7, 9.2); a *= .5; } return v; }
+    void main(){
+      vec3 d = normalize(vD); float h = max(d.y, 0.);
+      vec3 c = mix(hor, top, pow(h, .5));
+      if (d.y < 0.) c = hor * .92;
+      vec3 sd = normalize(sunDir); float s = max(dot(d, sd), 0.);
+      c += sunCol * (pow(s, 1800.) * 10. * (1. - uNight * .6) + pow(s, 20.) * .22 + pow(s, 3.) * .06);
+      float cov = 0.;
+      if (d.y > .005) {                    // clouds painted on a high layer
+        vec2 uv = d.xz / (d.y + .12) * .55 + vec2(uTime * .0035, uTime * .0012);
+        float n = fbm(uv * 1.4);
+        cov = smoothstep(1. - uCover, 1. - uCover + .22, n) * smoothstep(.005, .16, d.y);
+        float lit = clamp((n - fbm(uv * 1.4 + sd.xz * .06)) * 5. + .55, 0., 1.);   // brighter on the sun side
+        vec3 cc = mix(cloudShade, cloudCol, lit) + sunCol * pow(s, 6.) * .5 * lit;
+        c = mix(c, cc, cov * .96);
+      }
+      if (uNight > 0.) {                   // stars and a faint moon glow
+        vec3 q = floor(d * 420.); float st = step(.9986, fract(sin(dot(q, vec3(12.9898, 78.233, 37.719))) * 43758.5453));
+        c += vec3(.9, .95, 1.) * st * uNight * (1. - cov) * smoothstep(.05, .3, d.y);
+      }
+      gl_FragColor = vec4(c, 1.);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+}));
+scene.add(sky);
+const pmrem = new THREE.PMREMGenerator(renderer); let envRT = null;
+const skyOnly = new THREE.Scene(); skyOnly.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), sky.material));
+const sun = new THREE.DirectionalLight(0xffffff, 3);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sun.shadow.radius = 3;
+Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24, near:1, far:120});
+scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x5b4a30, .8); scene.add(hemi);
+const lamp = new THREE.PointLight(0xffb45a, 0, 14, 2); lamp.position.set(0, 3.2, 6.4); scene.add(lamp);
+scene.fog = new THREE.FogExp2(0xcfe3f2, .012);
+
+// ---------------- weather particles ----------------
+function particles(n, color, size) {
+  const g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - .5) * 70; p[i * 3 + 1] = Math.random() * 30; p[i * 3 + 2] = (Math.random() - .5) * 70; }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, transparent:true, opacity:.8, depthWrite:false}));
+  m.visible = false; scene.add(m); return m;
+}
+const rain = (() => { // falling streaks
+  const n = 2500, g = new THREE.BufferGeometry(), p = new Float32Array(n * 6);
+  for (let i = 0; i < n; i++) { const x = (Math.random() - .5) * 70, y = Math.random() * 30, z = (Math.random() - .5) * 70; p.set([x, y, z, x - .08, y - .7, z], i * 6); }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xc8d6e6, transparent:true, opacity:.45}));
+  m.visible = false; scene.add(m); return m;
+})();
+const snow = particles(3000, 0xffffff, .12);
+
+// ---------------- lighting & weather presets ----------------
+const PRESETS = {
+  morning:{cover:.52, cloud:0xfff1e4, shade:0x98a3bd, sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:3.0, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
+  noon:{cover:.5, cloud:0xffffff, shade:0x9eabc2, sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
+  golden:{cover:.56, cloud:0xffc592, shade:0x7a6a8c, sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
+  rain:{cover:.98, cloud:0x9aa3ad, shade:0x59616c, sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
+  snow:{cover:.92, cloud:0xe8edf2, shade:0xa7b1be, sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
+  night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.45, hemiSky:0x223355, hemiGnd:0x0c0f14, hemiI:.35, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.1, night:1, bloom:.8},
+};
+let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
+function setPreset(name) {
+  P = PRESETS[name]; PRESET = P; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
+  const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+  sunDir.copy(dir); sun.color.set(P.sunCol); sun.intensity = P.sunI;
+  hemi.color.set(P.hemiSky); hemi.groundColor.set(P.hemiGnd); hemi.intensity = P.hemiI;
+  skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
+  skyU.uCover.value = P.cover; skyU.cloudCol.value.set(P.cloud); skyU.cloudShade.value.set(P.shade); skyU.uNight.value = P.night ? 1 : 0;
+  LIT.uSunDir.value.copy(dir); LIT.uSunCol.value.set(P.sunCol).multiplyScalar(P.sunI * (P.night ? .15 : .32));
+  scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp; grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
+  WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
+  rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
+  M.glass.emissiveIntensity = P.night ? 2.2 : 0;
+  for (const m of Object.values(emoteMats)) m.color.setScalar(P.night ? .55 : 1); // bubbles don't glow like lamps after dark lamp.intensity = P.night ? 16 : 0;
+  lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
+  M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
+  for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
+  windU.uWind.value = wind;
+  // sky reflections for glossy paint, glass and wet surfaces
+  skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
+  bloom.strength = P.bloom || .18;
+}
+
+// ---------------- post-processing: bloom + tone mapping ----------------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), .2, .5, .88);
+composer.addPass(bloom);
+// tilt-shift: a sharp band across the middle of the screen, softening toward the top, bottom and corners,
+// like a macro lens on a miniature diorama. Two cheap separable blur passes in linear light (before tone mapping).
+const tiltShader = (dir) => ({
+  uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.Vector2(...dir)}, uRes:{value:renderer.getDrawingBufferSize(new THREE.Vector2())}, uFocus:{value:.5}, uBand:{value:.18}, uAmount:{value:4. * renderer.getPixelRatio()}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader:`uniform sampler2D tDiffuse; uniform vec2 uDir, uRes; uniform float uFocus, uBand, uAmount; varying vec2 vUv;
+    void main(){
+      float dy = max(0., abs(vUv.y - uFocus) - uBand) / (.5 - uBand);            // 0 in the focus band, 1 at the top and bottom edge
+      float dx = smoothstep(.3, .5, abs(vUv.x - .5)) * .45;                       // a touch of softness toward the left and right edges
+      float r = clamp(dy * dy + dx * (.4 + dy), 0., 1.) * uAmount;
+      if (r < .05) { gl_FragColor = texture2D(tDiffuse, vUv); return; }        // in focus: no blur work at all
+      vec2 st = uDir / uRes * r / 6.;                                              // 13 evenly spaced gaussian taps across +-r pixels
+      vec4 c = vec4(0.); float wsum = 0.;
+      for (int i = -6; i <= 6; i++) { float w = exp(-float(i * i) / 18.); c += texture2D(tDiffuse, vUv + st * float(i)) * w; wsum += w; }
+      gl_FragColor = c / wsum;
+    }`});
+const tiltH = new ShaderPass(tiltShader([1, 0])), tiltV = new ShaderPass(tiltShader([0, 1]));
+composer.addPass(tiltH); composer.addPass(tiltV);
+composer.addPass(new OutputPass());
+// colour grade after ACES: a gentle S-curve for richer contrast, a little extra saturation and a soft vignette
+const grade = new ShaderPass({
+  uniforms:{tDiffuse:{value:null}, uContrast:{value:1.08}, uSat:{value:1.03}, uVig:{value:.22}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader:`uniform sampler2D tDiffuse; uniform float uContrast, uSat, uVig; varying vec2 vUv;
+    void main(){
+      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      vec3 s = c * c * (3. - 2. * c);                                              // smoothstep S-curve in display space
+      c = mix(c, s, (uContrast - 1.) * 2.);
+      float l = dot(c, vec3(.2126, .7152, .0722)); c = max(vec3(0.), mix(vec3(l), c, uSat));
+      vec2 d = vUv - .5; c *= 1. - uVig * smoothstep(.25, .8, dot(d, d) * 2.2);
+      gl_FragColor = vec4(c, 1.);
+    }`});
+composer.addPass(grade);
+
+// ---------------- camera: full 360° orbit, pinch zoom, two-finger pan ----------------
+const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.MathUtils.degToRad(+(qs.get("pitch") || 32)), dist:+(qs.get("dist") || 40), target:new THREE.Vector3(1.5, 2.5, 2)};
+// "cam" is where your fingers want the camera; "view" glides after it with an ease-out
+// (fast at first, settling softly), the same at any frame rate: 1 - e^(-speed * dt)
+const view = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+function placeCamera(dt = 1) {
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
+  const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
+  view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
+  const v = view;
+  camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);
+  camera.lookAt(v.target);
+  sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
+}
+const ptr = new Map(); let last = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
+  if (ptr.size === 1) farmDown(e); else farmDrag = null; }); // a second finger always means camera, never farming
+renderer.domElement.addEventListener("pointermove", (e) => {
+  if (!ptr.has(e.pointerId)) return;
+  if (farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
+  const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
+  else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
+    const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
+    const d = pts.length === 2 ? Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]) : null;
+    if (last) {
+      if (d && last.d) cam.dist *= last.d / d;
+      const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
+      cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
+      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, -18, 28);
+    }
+    last = {c, d};
+  }
+});
+const endP = (e) => { ptr.delete(e.pointerId); last = null; farmUp(e); };
+// squash and stretch: a tapped thing squashes down and bulges out, then springs back in 250 ms.
+// The pivot is the object's base, so it squashes onto the ground; volume stays about the same (x and z grow as y shrinks).
+const squishing = new Map();
+function squish(o, strength = 1) {
+  const cur = squishing.get(o); squishing.set(o, {t0:performance.now(), base:cur ? cur.base : o.scale.clone(), amt:.22 * strength});
+}
+function updateSquish(now) {
+  for (const [o, s] of squishing) {
+    const k = (now - s.t0) / 250;
+    if (k >= 1) { o.scale.copy(s.base); squishing.delete(o); continue; }
+    const a = s.amt * Math.cos(k * Math.PI * 2.5) * (1 - k) * (1 - k);        // squash, overshoot into a stretch, settle
+    const y = 1 - a, xz = 1 / Math.sqrt(y);
+    o.scale.set(s.base.x * xz, s.base.y * y, s.base.z * xz);
+  }
+}
+// a quick tap (not a drag): use whatever was tapped; a tap on bare grass makes curious animals come and look
+let downAt = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
+renderer.domElement.addEventListener("pointerup", (e) => {
+  if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
+  if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
+  if (onTap(e)) return;
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
+  const thing = ray.intersectObjects(scene.children.filter(o => o.userData.squishy), true)[0];
+  if (thing) { let o = thing.object; while (o.parent && !o.userData.squishy) o = o.parent; squish(o, o === silo ? .5 : 1); return; }
+  const g = ray.intersectObject(ground)[0];
+  if (g) { tapPoint = {v:new THREE.Vector2(g.point.x, g.point.z), t:clockT}; for (const a of animals) if (a.P.curious > .6 && a.act !== "sleeping" && rnd() < a.P.curious) { a.target = null; a.until = 0; a.think(); } }
+});
+renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.addEventListener("pointercancel", endP);
+renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
+renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
+document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
+addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
+
+mergeStatic(decals); // every soft ground shadow of the scenery, as one piece
+// ---------------- the game on the farm: fields, buildings, order board, shop stall, decorations ----------------
+// Rules and menus live in game.js (the same as the 2D game); this part draws them in 3D and handles taps.
+const GS = () => G.S;
+const nowMs = () => Date.now();
+// how each crop grows in 3D
+const CROP_LOOK = {
+  wheat:{shape:"blade", h:.8, n:170, green:0x86a64c, ripe:0xd9b262},
+  corn:{shape:"blade", h:1.9, n:70, green:0x5f9a3a, ripe:0x93a84c, fruit:5, fy:.95, fs:.42},
+  carrot:{shape:"leaf", h:.42, n:170, green:0x4f9a38, ripe:0x5ba340, fruit:6, fy:.12, fs:.34},
+  soybean:{shape:"leaf", h:.55, n:180, green:0x5a9a3c, ripe:0x8aa54a, fruit:6, fy:.34, fs:.3},
+  sugarcane:{shape:"blade", h:2.1, n:60, green:0x6ea04a, ripe:0xa2b65c},
+  tomato:{shape:"leaf", h:.75, n:190, green:0x4c8e36, ripe:0x4f9238, fruit:8, fy:.45, fs:.24},
+  strawberry:{shape:"leaf", h:.3, n:220, green:0x4a9236, ripe:0x4f9a3a, fruit:9, fy:.16, fs:.2},
+  pumpkin:{shape:"leaf", h:.32, n:150, green:0x4f9036, ripe:0x6a9a3c, fruit:3, fy:.24, fs:.62},
+};
+
+// little painted signs on a post: a line of big text and a smaller second line
+function signTexture(lines, w = 512, h = 256) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d");
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#c89560"); g.addColorStop(1, "#a8743f"); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.strokeStyle = "rgba(60,30,10,.35)"; x.lineWidth = 3; for (let y = h / 3; y < h; y += h / 3) { x.beginPath(); x.moveTo(0, y); x.lineTo(w, y); x.stroke(); }
+  x.strokeStyle = "#6e3d18"; x.lineWidth = 14; x.strokeRect(7, 7, w - 14, h - 14);
+  x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#fff"; x.strokeStyle = "#5a3413"; x.lineJoin = "round";
+  const font = (px) => `${px}px "Lilita One","Arial Rounded MT Bold","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  lines.forEach((t, i) => { const px = i ? h * .2 : h * .28; x.font = font(px); x.lineWidth = px * .18; const y = lines.length === 1 ? h / 2 : h * (i ? .72 : .36); x.strokeText(t, w / 2, y); x.fillText(t, w / 2, y); });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function makeSign(lines, bw = 1.5, post = 1.1) {
+  const g = new THREE.Group(), mat = new THREE.MeshStandardMaterial({map:signTexture(lines), roughness:.8, emissive:0xffffff, emissiveIntensity:.12});
+  mat.emissiveMap = mat.map;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(bw, bw / 2, .08), [M.fence, M.fence, M.fence, M.fence, mat, M.fence]);
+  board.position.y = post + bw / 4; board.castShadow = true; g.add(board);
+  g.add(box(.12, post + .05, .12, M.fence, 0, (post + .05) / 2, -.07));
+  g.userData.set = (l) => { const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); mat.needsUpdate = true; old.dispose(); };
+  return g;
+}
+// a floating picture over something (ready goods, a gift): an emoji on a little white bubble
+const bubbleMats = {};
+const bubble = (e) => { const s = new THREE.Sprite(emoteMat(e)); s.scale.setScalar(.9); s.visible = false; s.renderOrder = 5; return s; };
+
+// ---------- fields: 30 spots west of the path; you start with 6 and buy more in order ----------
+const FIELD_C = new THREE.Vector2(-10, 12), FIELD_ROT = .12;
+const FIELD_SLOTS = (() => {
+  const all = [];
+  for (let row = 0; row < 6; row++) for (let col = -2; col <= 2; col++) all.push({col, row, d:Math.hypot(col, (row - .5) * 1.15) + (Math.abs(col) === 2 ? .15 : 0)});
+  all.sort((a, b) => a.d - b.d || a.row - b.row || a.col - b.col);
+  return all.map(({col, row}) => { const lx = col * 2.5, lz = (row - .5) * 2.5;
+    return new THREE.Vector2(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), FIELD_C.y - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); });
+})();
+BLOCKS.push([-10, 17.5, 6.6, 8]); // the whole field area: pets walk around it, decorations don't go on it
+M.tilled = std({map:tex(dirt(21), 1, [2, 2]), roughness:.97, color:0x6e5440});
+const furrowGeo = new THREE.CylinderGeometry(.19, .19, 2.0, 10, 1, false, 0, Math.PI); furrowGeo.rotateZ(Math.PI / 2); furrowGeo.scale(1, .55, 1); // lies along x, domed side up
+const fruitMats = {};
+const fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + ".webp"), alphaTest:.3}));
+const plots = [];
+function makePlot(i) {
+  const g = new THREE.Group(), p = FIELD_SLOTS[i];
+  g.position.set(p.x, 0, p.y); g.rotation.y = FIELD_ROT;
+  g.add(box(2.2, .12, 2.2, M.tilled, 0, .04, 0, .5));
+  for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }
+  const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
+  g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
+  const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2)};
+  clearGrass(p.x, p.y, 1.3);
+  return P;
+}
+// a "new field for sale" marker on the next free spot
+const plotSale = makeSign(["🟫 New field", ""], 1.4, .7); scene.add(plotSale); plotSale.userData.hit = {type:"plotSale"};
+function syncPlots() {
+  const n = GS().plots.length;
+  while (plots.length < n) plots.push(makePlot(plots.length));
+  while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }
+  plots.forEach((_, i) => buildPlants(i));
+  if (n < G.MAX_PLOTS) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
+  else plotSale.visible = false;
+}
+const plotCostTxt = () => (40 + (GS().plots.length - 6) * 35) + " 🪙";
+function buildPlants(i) {
+  const P = plots[i], crop = GS().plots[i].crop;
+  if (P.crop === crop && (P.mesh || !crop)) return;
+  if (P.mesh) { P.plants.remove(P.mesh); P.mesh.dispose(); P.mesh = null; }
+  for (const s of P.fruit) P.plants.remove(s); P.fruit = []; P.crop = crop;
+  if (!crop) return;
+  const L = CROP_LOOK[crop], [, gh] = CROP_SHAPES[L.shape], R = rng(31 + i * 7 + crop.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+  const mesh = new THREE.InstancedMesh(cropGeo[L.shape], P.mat, L.n);
+  for (let k = 0; k < L.n; k++) {
+    const z = [-.7, 0, .7][k % 3] + (R() - .5) * .16, x = (R() - .5) * 1.8, s = (.75 + R() * .45) * L.h / gh;
+    q.setFromEuler(new THREE.Euler((R() - .5) * .35, R() * 7, (R() - .5) * .35)); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s * (L.shape === "leaf" ? .8 : 1), s, s)); mesh.setMatrixAt(k, m4);
+    c.setScalar(.82 + R() * .3); mesh.setColorAt(k, c);
+  }
+  mesh.castShadow = true; mesh.receiveShadow = true; P.plants.add(mesh); P.mesh = mesh;
+  for (let k = 0; k < (L.fruit || 0); k++) {
+    const s = new THREE.Sprite(fruitMat(crop)); s.userData.base = new THREE.Vector3((k % 3 - 1) * .6 + (R() - .5) * .3, L.fy, [-.7, 0, .7][Math.floor(k / 3) % 3] + (R() - .5) * .2);
+    s.position.copy(s.userData.base); s.visible = false; P.plants.add(s); P.fruit.push(s);
+  }
+}
+const grown = (i) => { const p = GS().plots[i]; return p.crop ? THREE.MathUtils.clamp(1 - (p.end - nowMs()) / (G.CROPS[p.crop].time * 1000), 0, 1) : 0; };
+const ready = (i) => { const p = GS().plots[i]; return !!p && !!p.crop && p.end <= nowMs(); };
+const green = new THREE.Color(), ripe = new THREE.Color();
+function updatePlots(t) {
+  plots.forEach((P, i) => {
+    if (P.crop !== GS().plots[i].crop) buildPlants(i);
+    if (!P.crop) return;
+    const L = CROP_LOOK[P.crop], g = grown(i), r = THREE.MathUtils.smoothstep(g, .55, 1);
+    P.plants.scale.set(.55 + .45 * g, .12 + .88 * g, .55 + .45 * g);
+    P.mat.color.copy(green.set(L.green)).lerp(ripe.set(L.ripe), r);
+    P.fruit.forEach((s, k) => { const f = THREE.MathUtils.smoothstep(g, .65, 1); s.visible = f > .01;
+      const a = s.material.map.image ? s.material.map.image.width / s.material.map.image.height : 1, sz = L.fs * (.35 + .65 * f);
+      s.scale.set(sz * a / (.55 + .45 * g), sz / (.12 + .88 * g), 1); // undo the plants' growth scale so the produce keeps its shape
+      s.position.y = s.userData.base.y + (g >= 1 ? Math.sin(t * 3 + k) * .02 : 0); });
+  });
+}
+
+// ---------- production buildings: east of the path, doors facing the camera ----------
+const BUILD_SPOT = {feedmill:[5.8, 14.2], bakery:[10, 14.2], sugarmill:[14.2, 14.2], dairy:[5.8, 19.4], kitchen:[10, 19.4], loom:[14.2, 19.4]};
+const BSTYLE = { // walls and roof colours (hue, saturation, lightness), like the 2D buildings
+  feedmill:{wall:[38, 55, 66], roof:[105, 38, 36], chimney:false}, bakery:{wall:[34, 70, 80], roof:[20, 66, 48], chimney:true},
+  sugarmill:{wall:[48, 25, 86], roof:[265, 34, 50], chimney:false}, dairy:{wall:[210, 12, 92], roof:[205, 58, 46], chimney:false},
+  kitchen:{wall:[28, 62, 74], roof:[5, 60, 42], chimney:true}, loom:{wall:[275, 30, 78], roof:[330, 55, 58], chimney:false},
+};
+function gable(w, h, mat) { // the triangle under the roof at each end
+  const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.lineTo(-w / 2, 0);
+  const geo = new THREE.ExtrudeGeometry(s, {depth:.12, bevelEnabled:false}); boxUV(geo, .25); const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; return m;
+}
+function makeWorkshop(bid) {
+  const st = BSTYLE[bid], b = G.BUILDINGS[bid], g = new THREE.Group(), W = 3.4, D = 2.9, H = 2.3, R = 1.25;
+  const [wc, wn] = planks(st.wall, 20 + bid.length), wall = std({map:tex(wc, 1), normalMap:tex(wn), roughness:.85});
+  const [rc, rn] = shingles(9 + bid.length, st.roof), roof = std({map:tex(rc, 1), normalMap:tex(rn), roughness:.9});
+  g.add(box(W + .2, .35, D + .2, M.stone, 0, .17, 0, .5));
+  const body = box(W, H, D, wall, 0, .35 + H / 2, 0); g.add(body);
+  for (const z of [D / 2 - .06, -D / 2 - .06]) { const gb = gable(W, R, wall); gb.position.set(0, .35 + H, z); g.add(gb); }
+  const slope = Math.hypot(W / 2 + .3, R), ang = Math.atan2(R, W / 2 + .3);
+  for (const s of [-1, 1]) { const r = box(slope, .1, D + .5, roof, s * (W / 4 + .075), .35 + H + R / 2 + .02, 0, 1); r.rotation.z = -s * ang; g.add(r); }
+  g.add(box(.16, .16, D + .55, M.trim, 0, .35 + H + R + .05, 0));
+  for (const x of [-W / 2, W / 2]) for (const z of [-D / 2, D / 2]) g.add(box(.14, H, .14, M.trim, x, .35 + H / 2, z));
+  // door, window and a sign with what the building makes
+  g.add(box(1.1, 1.75, .08, M.door || M.fence, 0, .35 + .88, D / 2 + .03), box(1.3, .12, .12, M.trim, 0, .35 + 1.8, D / 2 + .05));
+  for (const x of [-1.15, 1.15]) { const w = box(.7, .6, .06, M.glass, x, .35 + 1.4, D / 2 + .03); g.add(w); g.add(box(.82, .08, .1, M.trim, x, .35 + 1.72, D / 2 + .05), box(.82, .08, .1, M.trim, x, .35 + 1.08, D / 2 + .05)); }
+  const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.5, .75), new THREE.MeshStandardMaterial({map:signTexture([b.e + " " + b.n]), roughness:.8, emissive:0xffffff, emissiveIntensity:.1}));
+  sg.material.emissiveMap = sg.material.map; sg.position.set(0, .35 + H + .45, D / 2 + .08); g.add(sg);
+  if (st.chimney) { const ch = box(.45, 1.3, .45, M.stone, W / 4, .35 + H + R * .7, -D / 4, .5); g.add(ch); g.userData.chimney = new THREE.Vector3(W / 4, .35 + H + R * .7 + .7, -D / 4); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return mergeStatic(g);
+}
+function makeLot(bid) { // a roped-off gravel lot with a sign, before the building is bought
+  const g = new THREE.Group(), b = G.BUILDINGS[bid];
+  g.add(box(3.4, .05, 3, std({map:tex(dirt(33), 1, [2, 2]), color:0x9a8e80, roughness:1}), 0, .02, 0, .5));
+  for (const [x, z] of [[-1.7, -1.5], [1.7, -1.5], [1.7, 1.5], [-1.7, 1.5]]) g.add(box(.09, .7, .09, M.fence, x, .35, z));
+  for (const [x, z, w, d] of [[0, -1.5, 3.4, .03], [0, 1.5, 3.4, .03], [-1.7, 0, .03, 3], [1.7, 0, .03, 3]]) g.add(box(w, .03, d, std({color:0xd8c8a0}), x, .6, z));
+  mergeStatic(g);
+  const s = makeSign(["", ""], 1.6, .8); s.position.set(0, 0, 1.1); g.add(s); g.userData.sign = s;
+  return g;
+}
+const buildings = {};
+for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push([x, z, 1.9, 1.7]); clearGrass(x, z, 1.8); contact(x, z, 5, 4.4); }
+function syncBuildings() {
+  for (const bid of Object.keys(G.BUILDINGS)) {
+    const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];
+    if (B.owned !== owned || !B.g) {
+      if (B.g) scene.remove(B.g);
+      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; scene.add(B.g); B.owned = owned;
+      if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
+    }
+    if (!owned) { const b = G.BUILDINGS[bid]; B.g.userData.sign.userData.set([b.e + " " + b.n, GS().level >= b.lvl ? b.cost + " 🪙" : "🔒 Level " + b.lvl]); }
+  }
+}
+// chimney smoke while a building is busy, and a bubble with the goods when something is ready
+const smokeMat = new THREE.SpriteMaterial({map:radial("rgba(235,235,235,.9)"), transparent:true, depthWrite:false, opacity:.5});
+const puffs = [];
+function updateBuildings(t, dt) {
+  for (const bid of Object.keys(buildings)) {
+    const B = buildings[bid]; if (!B.owned) continue;
+    const jobs = GS().buildings[bid].jobs, done = jobs.find(j => j.end <= nowMs()), busy = jobs.some(j => j.end > nowMs());
+    if (done) { B.bub.material = emoteMat(G.ITEMS[done.r].e); B.bub.visible = true; B.bub.position.y = 4.6 + Math.sin(t * 3) * .08; } else B.bub.visible = false;
+    if (busy && B.g.userData.chimney && Math.random() < dt * 2.5) { const s = new THREE.Sprite(smokeMat.clone()); s.position.copy(B.g.userData.chimney).add(B.g.position); s.userData.t = 0; s.scale.setScalar(.3); scene.add(s); puffs.push(s); }
+  }
+  for (let k = puffs.length - 1; k >= 0; k--) { const s = puffs[k]; s.userData.t += dt; s.position.y += dt * .7; s.position.x += dt * .25 * (1 + wind); s.scale.setScalar(.3 + s.userData.t * .55); s.material.opacity = .45 * (1 - s.userData.t / 2.4);
+    if (s.userData.t > 2.4) { scene.remove(s); s.material.dispose(); puffs.splice(k, 1); } }
+}
+
+// ---------- order board, daily gift, roadside stall ----------
+function makeBoard() {
+  const g = new THREE.Group();
+  for (const x of [-1.1, 1.1]) g.add(box(.16, 2.3, .16, M.fence, x, 1.15, 0));
+  g.add(box(2.5, 1.4, .1, std({map:tex(planks([30, 38, 46], 5)[0], 1), roughness:.85}), 0, 1.45, 0));
+  g.add(box(2.8, .1, .5, M.roof, 0, 2.35, 0));
+  const papers = [];
+  for (let k = 0; k < 6; k++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.52, .44), std({color:0xfffbee, roughness:.9})); p.position.set(-.8 + (k % 3) * .8, 1.75 - Math.floor(k / 3) * .6, .06); p.rotation.z = (k % 2 ? .06 : -.05); g.add(p); papers.push(p); }
+  const head = new THREE.Mesh(new THREE.PlaneGeometry(1.5, .5), new THREE.MeshStandardMaterial({map:signTexture(["📋 Orders"], 512, 170), roughness:.8, emissive:0xffffff, emissiveIntensity:.12}));
+  head.material.emissiveMap = head.material.map; head.position.set(0, 2.6, .05); g.add(head);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  g.userData.papers = papers;
+  return mergeStatic(g, (o) => papers.includes(o));
+}
+const board = makeBoard(); board.position.set(3.3, 0, 11.4); board.rotation.y = -.35; board.userData.hit = {type:"board"}; scene.add(board); contact(3.3, 11.4, 3.2, 1.6);
+const boardBub = bubble("🚚"); boardBub.position.set(0, 3.4, 0); board.add(boardBub);
+function makeGift() {
+  const g = new THREE.Group(), red = std({color:0xd8342c, roughness:.5}), gold = std({color:0xf5c542, roughness:.35, metalness:.3});
+  g.add(box(.6, .5, .6, red, 0, .25, 0), box(.66, .12, .66, red, 0, .53, 0), box(.1, .52, .62, gold, 0, .27, 0), box(.62, .52, .1, gold, 0, .27, 0));
+  const bow = new THREE.Mesh(new THREE.TorusGeometry(.12, .04, 8, 16), gold); bow.position.set(-.1, .66, 0); bow.rotation.y = .6; g.add(bow);
+  const bow2 = bow.clone(); bow2.position.x = .1; bow2.rotation.y = -.6; g.add(bow2);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return mergeStatic(g);
+}
+const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; scene.add(gift);
+BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4);
+function makeStall() {
+  const g = new THREE.Group(), wood = M.fence;
+  g.add(box(2.6, .1, 1.1, wood, 0, .9, 0), box(2.6, .8, .08, wood, 0, .45, .5));
+  for (const x of [-1.25, 1.25]) for (const z of [-.5, .5]) g.add(box(.1, 2.2, .1, wood, x, 1.1, z));
+  const [c] = canvas(256), x = c.getContext("2d"); for (let k = 0; k < 8; k++) { x.fillStyle = k % 2 ? "#fff6e6" : "#d8453a"; x.fillRect(k * 32, 0, 32, 256); }
+  const awn = new THREE.Mesh(new THREE.BoxGeometry(2.9, .06, 1.5), std({map:new THREE.CanvasTexture(c), roughness:.8})); awn.material.map.colorSpace = THREE.SRGBColorSpace;
+  awn.position.set(0, 2.2, .1); awn.rotation.x = .22; g.add(awn);
+  const head = new THREE.Mesh(new THREE.PlaneGeometry(1.6, .45), new THREE.MeshStandardMaterial({map:signTexture(["🏪 Farm Shop"], 512, 150), roughness:.8, emissive:0xffffff, emissiveIntensity:.12}));
+  head.material.emissiveMap = head.material.map; head.position.set(0, 2.55, .75); g.add(head);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  const goods = []; for (let k = 0; k < 8; k++) { const s = bubble("🌾"); s.material = emoteMat("🌾"); s.scale.setScalar(.42); s.position.set(-1 + (k % 4) * .66, 1.2, -.1 + Math.floor(k / 4) * .38); g.add(s); goods.push(s); }
+  g.userData.goods = goods;
+  return mergeStatic(g);
+}
+const stall = makeStall(); stall.position.set(3.7, 0, 22.6); stall.rotation.y = -.3; stall.userData.hit = {type:"stand"}; scene.add(stall); contact(3.7, 22.6, 3.4, 2);
+BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4);
+function syncStand() {
+  const list = GS().stand.list;
+  stall.userData.goods.forEach((s, k) => { const L = list[k]; s.visible = !!L; if (L) s.material = emoteMat(L.sellAt <= nowMs() ? "💰" : G.ITEMS[L.id].e); });
+}
+
+// ---------- pen signs: "Chicken coop · 100 🪙" until the pen is bought ----------
+const yardSign = makeSign(["", ""], 1.6, .8); yardSign.position.set(-8.4, 0, 5.8); yardSign.userData.hit = {type:"penSign", area:"yard"}; scene.add(yardSign);
+const paddockSign = makeSign(["", ""], 1.6, .8); paddockSign.position.set(7.2, 0, 11.2); paddockSign.rotation.y = -.25; paddockSign.userData.hit = {type:"penSign", area:"paddock"}; scene.add(paddockSign);
+const nextPen = (area) => (area === "yard" ? ["chicken"] : ["cow", "horse", "sheep"]).filter(k => !GS().pens[k].owned).sort((a, b) => G.ANIMALS[a].lvl - G.ANIMALS[b].lvl)[0];
+function syncPenSigns() {
+  for (const [sg, area] of [[yardSign, "yard"], [paddockSign, "paddock"]]) {
+    const k = nextPen(area); sg.visible = !!k; if (!k) continue;
+    const a = G.ANIMALS[k]; sg.userData.set([a.e + " " + a.pen, GS().level >= a.lvl ? a.penCost + " 🪙" : "🔒 Level " + a.lvl]);
+  }
+}
+
+// ---------- decorations: real trees, and standing pictures for everything else ----------
+const decorObjs = [];
+const emojiTex = {};
+function emojiTexture(e) {
+  if (emojiTex[e]) return emojiTex[e];
+  const [c, x] = canvas(256); x.font = '210px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 128, 140);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return (emojiTex[e] = t);
+}
+function makePine(seed) {
+  const g = new THREE.Group(), R = rng(seed), leaf = std({color:0x2f5a34, roughness:.85});
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(.12, .18, 1.2, 8), M.bark || M.fence)); g.children[0].position.y = .6;
+  for (let k = 0; k < 4; k++) { const cone = new THREE.Mesh(new THREE.ConeGeometry(1.25 - k * .25, 1.3, 9), leaf); cone.position.y = 1.2 + k * .62; cone.rotation.y = R() * 7; g.add(cone); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return g;
+}
+function makeDecor(d) {
+  const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group();
+  if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); mergeStatic(t, keepCanopy(t)); }
+  else if (D.tree === "pine") g.add(mergeStatic(makePine(50 + (d.x * 7 | 0))));
+  else {
+    const h = size === 2 ? 2.3 : 1.15, m = new THREE.MeshStandardMaterial({map:emojiTexture(D.e), alphaTest:.35, side:THREE.DoubleSide, roughness:.8, emissive:0xffffff, emissiveMap:emojiTexture(D.e), emissiveIntensity:D.glow ? .35 : .15});
+    const card = new THREE.Mesh(new THREE.PlaneGeometry(h, h), m); card.position.y = h * .45; card.castShadow = true; g.add(card); g.userData.card = card;
+  }
+  contact(0, 0, size * 1.3, size * 1.3, g);
+  g.position.set(d.x, 0, d.z); g.userData.hit = {type:"decor"};
+  return g;
+}
+function syncDecor() {
+  for (const o of decorObjs) scene.remove(o); decorObjs.length = 0;
+  GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
+}
+// is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
+function spotFree(x, z, size, skip = -1) {
+  const r = size === 2 ? 1.2 : .6;
+  if (Math.hypot(x - HOME.x, z - HOME.y) > 24) return false;
+  if (BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + r && Math.abs(z - bz) < hd + r)) return false;
+  if (PEN_LIST.some(p => inPen(p, x, z, -r - .3))) return false;
+  if (Math.abs(x) < 2.3 + r && z > 5.5 && z < 24) return false; // the path
+  return !GS().decor.placed.some((d, j) => j !== skip && Math.hypot(d.x - x, d.z - z) < r + ((G.DECOR[d.id].size || 1) === 2 ? 1.2 : .6));
+}
+
+// ---------- the view that game.js talks to ----------
+function keyPos(key) {
+  const [type, a, b] = key.split(":");
+  if (type === "plot") { const P = plots[+a]; return P && P.g.position.clone().setY(.8); }
+  if (type === "animal") { const an = animals.find(x => x.ref.type === "pen" && x.ref.kind === a && x.ref.i === +b); return an && an.g.position.clone().setY(an.S.h + .3); }
+  if (type === "pet") { const an = animals.find(x => x.ref.type === "pet" && x.ref.j === +a); return an && an.g.position.clone().setY(an.S.h + .3); }
+  if (type === "building") return new THREE.Vector3(BUILD_SPOT[a][0], 3.2, BUILD_SPOT[a][1]);
+  if (type === "board") return board.position.clone().setY(2.8);
+  if (type === "gift") return gift.position.clone().setY(1);
+  if (type === "stand") return stall.position.clone().setY(2);
+  if (type === "decor") { const d = GS().decor.placed[+a]; return d && new THREE.Vector3(d.x, 1.2, d.z); }
+  if (type === "pen") { const pen = penOf(a); return pen && new THREE.Vector3(pen.bed[0], 1, pen.bed[1]); }
+  return null;
+}
+function toScreen(v) { const p = v.clone().project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
+function fxAt(key, text) {
+  const v = keyPos(key), s = v && toScreen(v); if (!s) return;
+  const d = document.createElement("div"); d.className = "fx out"; d.textContent = text; d.style.left = s.x + "px"; d.style.top = s.y + "px";
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150);
+}
+function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v.z); cam.dist = Math.min(cam.dist, 30); } }
+Object.assign(GV, {
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag,
+  refresh(what) {
+    if (what === "plots" || what === "all") syncPlots();
+    if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
+    if (what === "buildings" || what === "all") syncBuildings();
+    if (what === "decor" || what === "all") syncDecor();
+    if (what === "stand" || what === "all") syncStand();
+    if (what === "style" || what === "all") applyStyle();
+    if (what === "all") { syncPenSigns(); syncBuildings(); }
+  },
+  freeDecorSpot(size) {
+    const c = cam.target;
+    for (let r = 0; r < 26; r += .8) for (let a = 0; a < 6.283; a += r ? .9 / r + .1 : 7) { const x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r; if (spotFree(x, z, size)) return {x:+x.toFixed(2), z:+z.toFixed(2)}; }
+    return null;
+  },
+  screenPos(key) { const v = keyPos(key); return v && toScreen(v); },
+  applyWeather() { if (!qs.has("preset")) setPreset(G.lookNow()); },
+  setQuality,
+});
+
+// ---------- trays: seeds, a growing field, an animal or pet, a decoration ----------
+let armed = null, trayFor = null;
+const seedTray = document.getElementById("seedTray"), infoTray = document.getElementById("infoTray");
+function closeTrays() { seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
+function renderSeeds() {
+  if (seedTray.hidden) return;
+  document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
+    ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
+    : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>${G.have(id) ? "×" + G.have(id) : c.seed + " 🪙"} · ${G.fmt(c.time * 1000)}</small></button>`).join("");
+}
+function openSeeds(i) {
+  G.close(); infoTray.hidden = true; seedTray.hidden = false; trayFor = {type:"seeds"};
+  armed = G.ITEMS[GS().lastCrop] && G.ITEMS[GS().lastCrop].lvl <= GS().level ? GS().lastCrop : "wheat"; renderSeeds();
+  if (i >= 0) plantAt(i);
+}
+document.getElementById("seedList").addEventListener("click", (e) => { const b = e.target.closest("[data-crop]"); if (b) { armed = b.dataset.crop; G.sfx("tick"); renderSeeds(); } });
+seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
+function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; armed = null; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; }
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
+const cdBtn = (act, label, at, cd, data) => { const l = G.cdLeft(at || 0, cd); return `<button class="btn plain sm" data-w="${act}" ${data} ${l ? "disabled" : ""}>${label}${l ? " · " + G.fmt(l).split(" ")[0] : ""}</button>`; };
+const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
+function trayHtml() {
+  const f = trayFor; if (!f) return "";
+  const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
+  if (f.type === "plot") {
+    const p = GS().plots[f.i], it = G.ITEMS[p.crop], left = p.end - nowMs();
+    return `<h3><span>${it.e} ${it.n}</span>${x}</h3><div class="tray-sub">Ready in ${G.fmt(left)}</div>
+      <div class="row"><button class="btn blue sm" data-w="speedPlot" data-i="${f.i}">Finish now · ${G.gemCost(left)} 💎</button></div>`;
+  }
+  if (f.type === "plotSale") return `<h3><span>🟫 New field</span>${x}</h3><div class="tray-sub">More fields, bigger harvests (${GS().plots.length}/${G.MAX_PLOTS})</div>
+      <div class="row"><button class="btn gold" data-act="plot+">Buy · ${plotCostTxt()}</button></div>`;
+  if (f.type === "animal") {
+    const an = f.an, k = an.kind, i = an.ref.i, a = G.ANIMALS[k], pen = GS().pens[k], m = G.meta(k, i), end = pen.list[i], t = nowMs();
+    const status = end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
+    const hungry = pen.list.filter(e => e === 0).length, d = `data-k="${k}" data-i="${i}"`;
+    return `<div class="acard"><img src="${ART + k}.webp" alt=""><div class="who"><b class="nm">${esc(m.name)}</b><button class="rn" data-w="rename" aria-label="Rename">✏️</button>
+      <div class="hearts">${G.hearts(m)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div><div class="tray-sub">${status}</div></div>${x}</div>
+      <div class="row">${end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
+      ${cdBtn("petA", "🤚 Pet", m.petAt, PET_CD, d)}${cdBtn("brushA", "✨ Brush", m.brushAt, BRUSH_CD, d)}${k === "horse" ? cdBtn("rideA", "🏇 Ride", m.playAt, PLAY_CD, d) : ""}
+      ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">+ ${a.e} ${a.cost} 🪙</button>` : ""}</div>
+      <div class="tray-sub center" style="margin-top:6px">${G.loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
+  }
+  if (f.type === "pet") {
+    const an = f.an, j = an.ref.j, p = GS().pets[j], P = G.PETS[p.kind], next = GIFT_CD - (nowMs() - p.giftAt), d = `data-i="${j}"`;
+    return `<div class="acard"><img src="${ART + p.kind}.webp" alt=""><div class="who"><b class="nm">${esc(p.name)}</b><button class="rn" data-w="renamePet" aria-label="Rename">✏️</button>
+      <div class="hearts">${G.hearts(p)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div>
+      <div class="tray-sub">${G.loveOf(p) < 40 ? "Wants some love before bringing gifts" : next > 0 ? "Next gift in about " + G.fmt(next).split(" ")[0] : "Has a gift for you!"}</div></div>${x}</div>
+      <div class="row">${cdBtn("petP", "🤚 Pet", p.petAt, PET_CD, d)}${cdBtn("playP", P.toy + " Play", p.playAt, PLAY_CD, d)}${cdBtn("treatP", "🍖 Treat · 10🪙", p.treatAt, TREAT_CD, d)}<button class="btn plain sm" data-w="call">📣 Call over</button></div>
+      <div class="tray-sub center" style="margin-top:6px">Happy pets bring you coins, gems and sometimes a decoration</div>`;
+  }
+  if (f.type === "decor") { const d = GS().decor.placed[f.j]; if (!d) return ""; const D = G.DECOR[d.id];
+    return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Press and hold it to move it</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button></div>`; }
+  return "";
+}
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { infoTray.innerHTML = h; infoTray.dataset.h = h; } } }
+function openInfo(forWhat) { trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
+infoTray.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-w]"); if (!b) return;
+  const d = b.dataset, f = trayFor, i = +d.i;
+  switch (d.w) {
+    case "close": closeTrays(); return;
+    case "speedPlot": G.speedPlot(i); return;
+    case "feed": if (!G.feedOne(d.k, i)) G.toast("You need " + G.ITEMS[G.ANIMALS[d.k].feed].n.toLowerCase() + ". " + (G.ANIMALS[d.k].feed === "carrot" ? "Grow some in your fields." : "Make it at the Feed Mill.")); else { f.an.emote("😋"); G.commit(); } break;
+    case "feedAll": G.feedAll(d.k); break;
+    case "petA": case "brushA": case "rideA": { const act = {petA:"pet", brushA:"brush", rideA:"play"}[d.w];
+      if (G.interact(G.meta(d.k, i), d.k, act, "animal:" + d.k + ":" + i)) { f.an.pet(); if (act === "play") f.an.go(...freePoint(rnd, f.an.g.position.x, f.an.g.position.z, 8, f.an.pen).toArray(), true, "Galloping for joy", "play"); } break; }
+    case "petP": case "playP": case "treatP": { const act = {petP:"pet", playP:"play", treatP:"treat"}[d.w];
+      if (G.interact(GS().pets[i], GS().pets[i].kind, act, "pet:" + i)) { f.an.pet(); if (act === "play") f.an.emote(G.PETS[GS().pets[i].kind].toy, 3); } break; }
+    case "rename": { const k = f.an.kind, j = f.an.ref.i; G.askName(G.ANIMALS[k].n.toLowerCase(), G.meta(k, j).name, (v) => { G.meta(k, j).name = v; syncHerd(); }); return; }
+    case "renamePet": { const j = f.an.ref.j; G.askName(G.PETS[GS().pets[j].kind].n.toLowerCase(), GS().pets[j].name, (v) => { GS().pets[j].name = v; syncHerd(); }); return; }
+    case "call": { const a = f.an; if (a.act === "sleeping") G.toast(a.name + " is fast asleep."); else { a.emote("❗", 1.2); a.go(cam.target.x + (rnd() - .5) * 2, cam.target.z + 2, true, "Coming over to you", "look"); } break; }
+    case "store": closeTrays(); G.storeDecor(i); return;
+  }
+  refreshInfo();
+});
+
+// ---------- touching the farm ----------
+let farmDrag = null, paintUsed = false, pressTimer = 0;
+function hitAt(x, y) {
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const an = ray.intersectObjects(animals.map(a => a.card))[0];
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, ...decorObjs, barn].filter(o => o.visible);
+  const hit = ray.intersectObjects(targets, true)[0];
+  if (an && (!hit || an.distance < hit.distance + .5)) return {type:"animal", an:animals.find(a => a.card === an.object)};
+  if (!hit) return null;
+  let o = hit.object; while (o && !o.userData.hit && o !== barn) o = o.parent;
+  if (o === barn) return {type:"barn"};
+  return o ? Object.assign({obj:o}, o.userData.hit) : null;
+}
+const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
+function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
+function harvestAt(i) { const r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
+function farmDown(e) {
+  paintUsed = false; const h = hitAt(e.clientX, e.clientY); if (!h) return false;
+  if (h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; harvestAt(h.i); paintUsed = true; return true; }
+  if (h.type === "plot" && !GS().plots[h.i].crop && armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; plantAt(h.i); paintUsed = true; return true; }
+  if (h.type === "decor") { // press and hold to pick it up and move it
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => { farmDrag = {id:e.pointerId, mode:"move", j:h.j, obj:h.obj, from:h.obj.position.clone()}; paintUsed = true; closeTrays(); G.sfx("pickup");
+      h.obj.position.y = .3; document.getElementById("moveHint").hidden = false; }, 450);
+  }
+  return false;
+}
+function farmMove(e) {
+  if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
+  if (!farmDrag || farmDrag.id !== e.pointerId) return false;
+  if (farmDrag.mode === "move") {
+    const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
+    const g = ray.intersectObject(ground)[0]; if (g) { farmDrag.obj.position.set(g.point.x, .3, g.point.z); const ok = spotFree(g.point.x, g.point.z, G.DECOR[GS().decor.placed[farmDrag.j].id].size || 1, farmDrag.j);
+      document.getElementById("moveHint").textContent = ok ? "Let go to place it" : "Can't go here"; farmDrag.ok = ok; }
+    return true;
+  }
+  // check a few points along the finger's path so fast swipes don't skip fields
+  const lastP = farmDrag.last || [e.clientX, e.clientY];
+  for (let k = 1; k <= 3; k++) { const i = plotAt(lastP[0] + (e.clientX - lastP[0]) * k / 3, lastP[1] + (e.clientY - lastP[1]) * k / 3);
+    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); } }
+  farmDrag.last = [e.clientX, e.clientY];
+  return true;
+}
+function farmUp(e) {
+  clearTimeout(pressTimer); pressTimer = 0;
+  if (!farmDrag || farmDrag.id !== e.pointerId) return;
+  if (farmDrag.mode === "move") {
+    const d = GS().decor.placed[farmDrag.j], o = farmDrag.obj;
+    if (farmDrag.ok) { d.x = +o.position.x.toFixed(2); d.z = +o.position.z.toFixed(2); G.sfx("place"); G.save(); } else { G.toast("That spot is taken"); }
+    document.getElementById("moveHint").hidden = true; syncDecor();
+  }
+  farmDrag = null;
+}
+function onTap(e) {
+  const h = hitAt(e.clientX, e.clientY);
+  if (!h) { closeTrays(); return false; }
+  switch (h.type) {
+    case "animal": {
+      const an = h.an; squish(an.g, 1.3);
+      if (an.ref.type === "pen") {
+        const end = GS().pens[an.kind].list[an.ref.i];
+        if (end && end <= nowMs()) { G.collectAll(an.kind); an.emote("✨", 1.5); closeTrays(); return true; }
+        G.sfx(an.kind); openInfo({type:"animal", an});
+      } else { if (G.petGift(an.ref.j)) { an.emote("🎁", 2); return true; } G.sfx(an.kind); openInfo({type:"pet", an}); }
+      return true;
+    }
+    case "plot": {
+      const p = GS().plots[h.i]; squish(h.obj, .3);
+      if (!p.crop) openSeeds(h.i); else if (!ready(h.i)) openInfo({type:"plot", i:h.i});
+      return true;
+    }
+    case "plotSale": squish(h.obj, .6); openInfo({type:"plotSale"}); return true;
+    case "building": squish(h.obj, .45); if (!G.collectJobs(h.bid)) G.openPanel("building", h.bid); return true;
+    case "lot": squish(h.obj, .45); G.openPanel("lot", h.bid); return true;
+    case "board": squish(h.obj, .6); G.sfx("truck"); G.openPanel("orders"); return true;
+    case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
+    case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
+    case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
+    case "decor": squish(h.obj, 1); openInfo({type:"decor", j:h.j}); return true;
+    case "barn": squish(barn, .5); G.openPanel("barn"); return true;
+  }
+  return false;
+}
+
+// ---------- barn colours (saved with the farm) ----------
+const PAINT = {
+  Walls:[["Barn red", [4, 62, 36]], ["Sky blue", [208, 42, 42]], ["Sage", [100, 18, 40]], ["Buttercream", [42, 55, 70]], ["Charcoal", [220, 6, 22]], ["Lavender", [268, 26, 52]], ["Natural wood", [30, 45, 40]], ["White", [40, 12, 86]]],
+  Trim:[["White", 0xf2eadc], ["Black", 0x2a2a2a], ["Wood", 0x9a6a40], ["Cream", 0xe8d7b0], ["Red", 0x9c2a22]],
+  Roof:[["Charcoal", [30, 8, 26]], ["Brown", [25, 30, 30]], ["Forest green", [130, 25, 26]], ["Barn red", [4, 45, 30]], ["Slate blue", [212, 22, 32]]],
+};
+const hsl = (h) => `hsl(${h[0]},${h[1]}%,${h[2]}%)`;
+GV.paintOptions = Object.fromEntries(Object.entries(PAINT).map(([k, list]) => [k, list.map(([n, v]) => [n, typeof v === "number" ? "#" + v.toString(16).padStart(6, "0") : hsl(v)])]));
+const applied = {};
+function applyStyle() {
+  for (const part of Object.keys(PAINT)) {
+    const i = GS().style[part] || 0; if (applied[part] === i) continue; applied[part] = i;
+    const [, v] = PAINT[part][i];
+    if (part === "Walls") { const [c, n] = planks(v, 11); M.red.map.dispose(); M.red.map = tex(c, 1); M.red.normalMap = tex(n); M.red.needsUpdate = true; }
+    if (part === "Trim") M.trim.color.set(v);
+    if (part === "Roof") { const [c, n] = shingles(3, v); M.roof.map.dispose(); M.roof.map = tex(c, 1); M.roof.normalMap = tex(n); M.roof.needsUpdate = true; }
+  }
+}
+
+// ---------- holiday touches: a few themed pieces around the farm ----------
+const HOLIDAY_PROPS = {halloween:"🎃", thanksgiving:"🦃", christmas:"🎄", newyear:"🎉", valentine:"💝", easter:"🥚", stpatrick:"☘️"};
+const holidayObjs = [];
+function syncHoliday() {
+  for (const o of holidayObjs) scene.remove(o); holidayObjs.length = 0;
+  const e = HOLIDAY_PROPS[G.THEME.holiday]; if (!e) return;
+  for (const [x, z] of [[-2.9, 6.6], [2.9, 13.6], [-2.8, 17.8], [2.8, 20.2], [-5.6, 8.6]]) {
+    const m = new THREE.MeshStandardMaterial({map:emojiTexture(e), alphaTest:.35, side:THREE.DoubleSide, emissive:0xffffff, emissiveMap:emojiTexture(e), emissiveIntensity:.3});
+    const c = new THREE.Mesh(new THREE.PlaneGeometry(.8, .8), m); c.position.set(x, .38, z); c.userData.bill = true; scene.add(c); holidayObjs.push(c);
+  }
+}
+
+// ---------- tutorial pointer ----------
+const pointer = document.getElementById("pointer");
+function updatePointer() {
+  const t = G.tutTarget(); let s = null;
+  if (t && !G.panel && document.getElementById("tut").hidden === false) {
+    if (t === "plot:ready") { const i = GS().plots.findIndex((p, k) => ready(k)); if (i >= 0) s = GV.screenPos("plot:" + i); }
+    else if (t.startsWith("btn:")) { const b = document.querySelector(`.dock [data-p="${t.slice(4)}"]`); if (b) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }
+    else if (t === "plot:0") { const i = GS().plots.findIndex(p => !p.crop); s = GV.screenPos("plot:" + Math.max(0, i)); }
+    else s = GV.screenPos(t);
+  }
+  pointer.hidden = !s; if (s) { pointer.style.left = s.x + "px"; pointer.style.top = s.y - 10 + "px"; }
+}
+
+// ---------- every frame: crops grow, bubbles show what's ready ----------
+function updateGame(t, dt) {
+  updatePlots(t); updateBuildings(t, dt);
+  const T = nowMs();
+  for (const a of animals) {
+    let e = null;
+    if (a.ref.type === "pen") { const end = GS().pens[a.kind].list[a.ref.i]; if (end && end <= T) e = G.ANIMALS[a.kind].out ? G.ITEMS[G.ANIMALS[a.kind].out].e : "🪙"; }
+    else { const p = GS().pets[a.ref.j]; if (p && G.giftReady(p)) e = "🎁"; }
+    a.status.visible = !!e && a.act !== "sleeping"; if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
+    if (e) a.status.position.y = a.S.h + .5 + Math.sin(t * 3 + a.phase) * .06;
+  }
+  const n = G.readyOrders(); boardBub.visible = n > 0; boardBub.position.y = 3.4 + Math.sin(t * 2.5) * .08;
+  board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
+  gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
+  for (const o of holidayObjs) o.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
+  for (const o of decorObjs) if (o.userData.card) o.userData.card.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
+  updatePointer();
+}
+setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { GV.applyWeather(); syncHoliday(); }, 60000);
+
+// ---------------- start the game ----------------
+G.ART_PATH.p = ART;
+if (qs.has("shot") && !qs.has("loud")) G.opts.quiet = true;
+const started = G.start();
+if (qs.has("shot") && !qs.has("loud")) { G.close(); for (const id of ["hint", "tut", "pointer"]) document.getElementById(id).hidden = true; }
+// test pictures: ?demo fills a farm in the middle of a game (not for real players: it only lives in this browser)
+if (qs.has("demo")) {
+  const S = G.S; Object.assign(S, {level:9, coins:2400, gems:30, tut:99});
+  for (const k of ["chicken", "cow", "sheep", "horse"]) { S.pens[k].owned = true; S.pens[k].list = Array.from({length:{chicken:5, cow:2, sheep:2, horse:2}[k]}, (_, i) => i % 2 ? Date.now() - 1 : 0); }
+  if (!S.pets.length) S.pets.push({kind:"dog", name:"Buddy", love:80, loveAt:Date.now(), petAt:0, playAt:0, treatAt:0, giftAt:0}, {kind:"cat", name:"Whiskers", love:60, loveAt:Date.now(), petAt:0, playAt:0, treatAt:0, giftAt:Date.now()});
+  for (const b of ["bakery", "dairy", "kitchen"]) S.buildings[b].owned = true;
+  S.buildings.feedmill.jobs = [{r:"chicken_feed", end:Date.now() - 1, dur:30000}]; S.buildings.bakery.jobs = [{r:"bread", end:Date.now() + 50000, dur:60000}];
+  while (S.plots.length < 9) S.plots.push({crop:null, end:0});
+  [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4], ["carrot", .9], ["wheat", .5], [null]].forEach(([c, g], i) => {
+    S.plots[i].crop = c; S.plots[i].end = c ? Date.now() + (1 - g) * G.CROPS[c].time * 1000 : 0; });
+  S.decor.placed = [{id:"fountain", x:-3.6, z:2.4}, {id:"tulips", x:-5.4, z:9.2}, {id:"pine", x:17, z:4}, {id:"bench", x:-3.4, z:14.5}];
+  S.stand.list = [{id:"egg", qty:2, price:24, sellAt:Date.now() + 60000}, {id:"bread", qty:1, price:14, sellAt:Date.now() - 1}, null, null];
+}
+GV.refresh("all");
+for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});
+if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
+  G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
+updatePlots(0);
+setPreset(qs.get("preset") || G.lookNow());
+syncHoliday();
+if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
+Object.defineProperty(window, "__herd", {get:() => animals});
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings};
+// snapshots skip ahead a little so the animals have spread out and are busy
+if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
+  if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
+{ // hide the loading screen once the textures are in
+  const L = document.getElementById("loading"); const hide = () => { L.style.opacity = 0; setTimeout(() => L.remove(), 700); };
+  if (texturesReady) hide(); else { THREE.DefaultLoadingManager.onLoad = () => { texturesReady = true; hide(); }; setTimeout(hide, 6000); } }
+
+// ---------------- animation ----------------
+const clock = new THREE.Timer(); let shotFrames = 0;
+function frame() {
+  if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
+  clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
+  // the animals live their lives
+  const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
+  placeCamera(dt); updateSquish(performance.now());
+  for (const a of animals) a.update(dt, t);
+  updateGame(t, dt);
+  // trees sway with the wind
+  for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
+  for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
+  if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
+  if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
+  composer.render();
+  if (qs.has("shot") && texturesReady && ++shotFrames >= 3) { window.__done = true; return; } // snapshot mode: draw a few frames, then hold still
+  requestAnimationFrame(frame);
+}
+// keep every buffer at the same pixel ratio: the renderer, the post-processing chain and the tilt-shift blur
+function applySize() {
+  renderer.setPixelRatio(QUALITY.pr); composer.setPixelRatio(QUALITY.pr);
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  for (const t of [tiltH, tiltV]) { renderer.getDrawingBufferSize(t.uniforms.uRes.value); t.uniforms.uAmount.value = 4 * QUALITY.pr; }
+}
+addEventListener("resize", applySize);
+// graphics quality, from Settings: Auto watches the real frame time and, only if the phone can't hold ~45 fps, steps down one notch
+// at a time (sharpness first, then shadow detail) and never steps back up, so it can't flicker. Best, Balanced and Battery saver are fixed.
+const DPR = Math.min(devicePixelRatio, 2);
+const autoSteps = () => [() => QUALITY.pr = Math.min(QUALITY.pr, 1.6), () => QUALITY.pr = Math.min(QUALITY.pr, 1.3),
+  () => setShadow(1024), () => QUALITY.pr = Math.min(QUALITY.pr, 1)];
+const QUALITY = {pr:DPR, steps:autoSteps(), auto:true, fps30:false};
+function setShadow(n) { if (sun.shadow.mapSize.x !== n) { sun.shadow.mapSize.set(n, n); sun.shadow.map?.dispose(); sun.shadow.map = null; } }
+let watching = false;
+function watchFrames() {
+  if (watching || qs.has("shot")) return; watching = true;
+  let last = performance.now(), sum = 0, n = 0, since = last + 4000; // ignore the first seconds while shaders compile and textures load
+  const watch = (now) => {
+    const ft = now - last; last = now;
+    if (now > since && ft < 250 && !document.hidden) { sum += ft; n++; }
+    if (n >= 90) { if (sum / n > 22 && QUALITY.steps.length) { QUALITY.steps.shift()(); applySize(); since = now + 1500; } sum = 0; n = 0; }
+    if (QUALITY.auto && QUALITY.steps.length) requestAnimationFrame(watch); else watching = false;
+  };
+  requestAnimationFrame(watch);
+}
+function setQuality(q) {
+  QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
+  QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
+  setShadow(q === "battery" ? 1024 : 2048);
+  bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery";
+  QUALITY.steps = QUALITY.auto ? autoSteps() : [];
+  applySize();
+  if (QUALITY.auto) watchFrames();
+}
+setQuality(G.PREFS.quality || "auto");
+frame();
+if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});
+if (qs.has("debug")) { window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.steps.length, renderer.domElement.width];
+  window.__qstep = () => { QUALITY.steps.shift()(); applySize(); }; }
+window.__ready = true;
+</script>
+</body>
+</html>

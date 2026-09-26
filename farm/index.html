@@ -215,7 +215,15 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .wxnow .e{font-size:54px;line-height:1}
 .wxnow b{font-family:var(--fun);font-weight:400;font-size:22px;display:block}
 .wxrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.backup textarea{width:100%;min-height:110px;font:12px/1.35 ui-monospace,Menlo,monospace;padding:8px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text;word-break:break-all}
 .wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+
+/* animal & pet cards */
+.acard{display:flex;align-items:center;gap:10px;min-width:230px}
+.acard img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
+.acard .rn{font-size:14px;margin-left:4px;opacity:.7}
+.hearts{font-size:15px;letter-spacing:1px;line-height:1.2}
+.scard img,.dcard img{width:52px;height:52px;object-fit:contain}
 
 /* toast */
 .toasts{position:fixed;left:0;right:0;bottom:calc(110px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
@@ -246,6 +254,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 </div>
 
 <div class="zoom">
+  <button data-act="open" data-p="farm" aria-label="Farm settings and backup">⚙️</button>
   <button data-act="sound" id="soundBtn" aria-label="Sound on or off">🔊</button>
   <button data-act="zoomIn" aria-label="Zoom in">+</button>
   <button data-act="zoomOut" aria-label="Zoom out">−</button>
@@ -261,6 +270,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div id="panelRoot"></div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
+<input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
 
 <script>
 "use strict";
@@ -316,7 +326,24 @@ const ANIMALS = {
   chicken:{n:"Chicken",e:"🐔",size:26,feed:"chicken_feed",out:"egg",time:90,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:6},
   cow:{n:"Cow",e:"🐄",size:36,feed:"cow_feed",out:"milk",time:180,xp:3,lvl:4,pen:"Cow pasture",penE:"🐄",penCost:300,cost:120,max:5},
   sheep:{n:"Sheep",e:"🐑",size:32,feed:"sheep_feed",out:"wool",time:300,xp:4,lvl:7,pen:"Sheep meadow",penE:"🐑",penCost:500,cost:200,max:5},
+  // horses don't make goods: feed them a carrot and they give pony rides to visitors for coins
+  horse:{n:"Horse",e:"🐴",size:46,feed:"carrot",out:null,coins:45,time:150,xp:4,lvl:5,pen:"Horse paddock",penE:"🐴",penCost:600,cost:350,max:4},
 };
+
+const ART_OF = {chicken:"chicken", cow:"cow", sheep:"sheep", horse:"horse", dog:"dog", cat:"cat"};
+const outE = (a) => a.out ? ITEMS[a.out].e : "🪙";
+const outName = (a) => a.out ? ITEMS[a.out].n.toLowerCase() : "coins from pony rides";
+const NAMES = {
+  chicken:["Clucky", "Nugget", "Henrietta", "Pip", "Goldie", "Peep", "Ginger"], cow:["Bessie", "Clover", "Buttercup", "Mabel", "Daisy", "Moo-Moo"],
+  sheep:["Woolly", "Fluffy", "Cotton", "Dolly", "Snowball"], horse:["Spirit", "Maple", "Thunder", "Honey", "Star", "Biscuit"],
+  dog:["Buddy", "Max", "Bella", "Rusty", "Sunny"], cat:["Whiskers", "Mittens", "Ginger", "Luna", "Tiger"],
+};
+// Pets roam the farm. Make them happy and they bring you little gifts.
+const PETS = {
+  dog:{n:"Dog", e:"🐕", size:30, cost:300, lvl:2, verb:"dug up", toy:"🎾"},
+  cat:{n:"Cat", e:"🐈", size:24, cost:300, lvl:3, verb:"found", toy:"🧶"},
+};
+const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
 
 const BUILDINGS = {
   feedmill:{n:"Feed Mill",e:"🏭",lvl:1,cost:0,recipes:["chicken_feed","cow_feed","sheep_feed"]},
@@ -371,6 +398,8 @@ const EVENTS = {
   orders:{n:"Truck Rush", e:"🚚", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16]},
   eggs:{n:"Egg Hunt", e:"🥚", task:"Collect eggs from your chickens", metric:"egg", goals:[5, 12, 24], need:() => S.pens.chicken.owned},
   milk:{n:"Milk Moo-thon", e:"🥛", task:"Collect milk from your cows", metric:"milk", goals:[4, 10, 20], need:() => S.pens.cow.owned},
+  rides:{n:"Pony Parade", e:"🐴", task:"Give pony rides with your horses", metric:"rides", goals:[3, 8, 16], need:() => S.pens.horse.owned},
+  love:{n:"Animal Lovers", e:"💖", task:"Pet, brush and play with your animals", metric:"love", goals:[5, 15, 30], need:() => S.pets.length || Object.values(S.pens).some(p => p.owned)},
   wool:{n:"Woolly Week", e:"🧶", task:"Collect wool from your sheep", metric:"wool", goals:[3, 8, 16], need:() => S.pens.sheep.owned},
   bake:{n:"Bake-off", e:"🍞", task:"Make goods in your buildings", metric:"make", goals:[4, 10, 20], need:() => S.buildings.bakery.owned},
   feed:{n:"Feed Frenzy", e:"🟡", task:"Make animal feed", metric:"feed", goals:[9, 24, 48], need:() => S.pens.chicken.owned},
@@ -411,7 +440,7 @@ const LAYOUT = {
     feedmill:{gx:14, gy:3, w:3, h:3}, bakery:{gx:18, gy:3, w:3, h:3}, sugarmill:{gx:22, gy:3, w:3, h:3},
     dairy:{gx:14, gy:8, w:3, h:3}, kitchen:{gx:18, gy:8, w:3, h:3}, loom:{gx:22, gy:8, w:3, h:3},
   },
-  pens:{chicken:{gx:13, gy:13, w:4, h:4}, cow:{gx:18, gy:13, w:4, h:4}, sheep:{gx:23, gy:13, w:4, h:4}},
+  pens:{chicken:{gx:13, gy:13, w:4, h:4}, cow:{gx:18, gy:13, w:4, h:4}, sheep:{gx:23, gy:13, w:4, h:4}, horse:{gx:7, gy:13, w:4, h:4}},
 };
 // wall / roof colors for each building
 const STYLE = {
@@ -424,7 +453,7 @@ const STYLE = {
   kitchen:{wl:"#F4CDA5", wr:"#DDB287", rf:"#C33A2C", rb:"#D95B4C", door:"#8A5530", chimney:true, sign:"🍳"},
   loom:{wl:"#DDCBEB", wr:"#C2ACD5", rf:"#E06AA2", rb:"#EB8DBB", door:"#7E5A98", sign:"🧵"},
 };
-const PEN_GROUND = {chicken:"#E6D08A", cow:"#A4D65C", sheep:"#B5DE72"};
+const PEN_GROUND = {chicken:"#E6D08A", cow:"#A4D65C", sheep:"#B5DE72", horse:"#CDB07A"};
 
 // ---------- helpers ----------
 const $ = (s) => document.querySelector(s);
@@ -455,7 +484,8 @@ function fresh() {
     pos:{}, stand:{slots:4, list:[null, null, null, null]},
     land:{w:29, h:20, ex:0}, decor:{inv:{}, placed:[]}, event:null, nextEventAt:0, holidayDone:{},
     lastCrop:"wheat",
-    pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}},
+    pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}, horse:{owned:false,list:[]}},
+    pets:[],
     buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === "feedmill", jobs:[]}])),
     orders:[], lastDaily:"",
     stats:{orders:0, harvests:0, made:0, earned:0},
@@ -476,7 +506,8 @@ function load() {
   } catch (e) {}
   S = fresh();
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+let restoring = false; // stops the page from re-saving the old farm while a backup is being loaded
+function save() { if (restoring) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 
 // ---------- where things are (everything except the road, pond and order board can be moved) ----------
 let move = null; // the thing being dragged around right now, if any
@@ -539,6 +570,7 @@ function unlocksAt(lvl) {
   const out = [];
   for (const id of Object.keys(CROPS)) if (ITEMS[id].lvl === lvl) out.push(ITEMS[id].e + " " + ITEMS[id].n + " seeds");
   for (const a of Object.values(ANIMALS)) if (a.lvl === lvl) out.push(a.penE + " " + a.pen);
+  for (const P of Object.values(PETS)) if (P.lvl === lvl) out.push(P.e + " A pet " + P.n.toLowerCase() + " in the Shop");
   for (const b of Object.values(BUILDINGS)) if (b.lvl === lvl && b.cost) out.push(b.e + " " + b.n);
   for (const id of Object.keys(RECIPES)) if (ITEMS[id].lvl === lvl) out.push(ITEMS[id].e + " " + ITEMS[id].n + " recipe");
   return out;
@@ -592,9 +624,78 @@ function feedAll(kind) {
 function collectAnimal(kind, i) {
   const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];
   if (!end || end > now()) return false;
+  const happy = loveOf(meta(kind, i)) >= 70, an = animWorld(kind, i);
+  if (!a.out) { // horse: pony-ride money
+    const c = Math.round(a.coins * (happy ? 1.25 : 1));
+    S.coins += c; S.stats.earned += c; gainXP(a.xp); pen.list[i] = 0; eventProgress("rides", 1);
+    fxAt(an.x, an.y, "+" + c, "🪙"); sfx("coin"); sfx(kind);
+    return true;
+  }
+  const n = happy && Math.random() < .25 && space() >= 2 ? 2 : 1; // happy animals sometimes make double
   if (space() < 1) { barnFull(); return false; }
-  add(a.out, 1); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, 1);
-  const an = animWorld(kind, i); fxAt(an.x, an.y, "+1", ITEMS[a.out].e); sfx(kind);
+  add(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);
+  fxAt(an.x, an.y, n > 1 ? "×2!" : "+1", ITEMS[a.out].e); sfx(kind);
+  return true;
+}
+
+// ---------- names, happiness and petting ----------
+function meta(kind, i) {
+  const pen = S.pens[kind];
+  pen.meta = pen.meta || [];
+  if (!pen.meta[i]) pen.meta[i] = {name:pick(NAMES[kind]), love:50, loveAt:now(), petAt:0, brushAt:0, playAt:0};
+  return pen.meta[i];
+}
+const loveOf = (m) => clamp(m.love - (now() - m.loveAt) / 8.64e6, 0, 100); // fades by about 10 a day
+function addLove(m, n) { m.love = clamp(loveOf(m) + n, 0, 100); m.loveAt = now(); }
+const hearts = (m) => { const n = Math.round(loveOf(m) / 20); return "❤️".repeat(n) + "🤍".repeat(5 - n); };
+const cdLeft = (at, cd) => Math.max(0, at + cd - now());
+// act: pet | brush | play | treat. Returns true if something happened.
+function interact(m, sound, act, gx, gy) {
+  const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], key = act + "At";
+  if (cdLeft(m[key] || 0, CD)) return false;
+  if (act === "treat") { if (S.coins < 10) { toast("Need 10 🪙"); sfx("error"); return false; } S.coins -= 10; }
+  m[key] = t;
+  addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
+  gainXP(act === "pet" ? 1 : 2);
+  eventProgress("love", 1);
+  fxAt(gx, gy, "+", "💖"); sfx(sound);
+  commit();
+  return true;
+}
+function renameThing(m, what) {
+  const n = prompt("Name your " + what + ":", m.name);
+  if (n && n.trim()) { m.name = n.trim().slice(0, 16); commit(); }
+}
+
+// ---------- pets ----------
+function buyPet(kind) {
+  const P = PETS[kind];
+  if (S.level < P.lvl || S.pets.some(p => p.kind === kind)) return false;
+  if (S.coins < P.cost) { toast("Need " + P.cost + " 🪙"); sfx("error"); return false; }
+  S.coins -= P.cost;
+  const name = pick(NAMES[kind]);
+  S.pets.push({kind, name, love:60, loveAt:now(), petAt:0, playAt:0, treatAt:0, giftAt:now()});
+  toast("Say hi to " + name + "! " + P.e); sfx(kind); commit();
+  return true;
+}
+const giftReady = (p) => loveOf(p) >= 40 && now() - p.giftAt > GIFT_CD;
+function petGift(j) {
+  const p = S.pets[j], P = PETS[p.kind];
+  if (!giftReady(p)) return false;
+  p.giftAt = now();
+  const r = Math.random(), pos = petPos(j);
+  if (r < .06) {
+    const id = pick(Object.keys(DECOR).filter(k => DECOR[k].rare === 1));
+    S.decor.inv[id] = (S.decor.inv[id] || 0) + 1;
+    toast(p.name + " " + P.verb + " a " + DECOR[id].n + "! It's in your 🌷 Decor box.");
+    fxAt(pos.x, pos.y, "+1", DECOR[id].e);
+  } else if (r < .22) {
+    S.gems++; toast(p.name + " " + P.verb + " a 💎 gem!"); fxAt(pos.x, pos.y, "+1", "💎");
+  } else {
+    const c = 20 + S.level * 6; S.coins += c; S.stats.earned += c;
+    toast(p.name + " " + P.verb + " " + c + " 🪙!"); fxAt(pos.x, pos.y, "+" + c, "🪙");
+  }
+  sfx("coin"); sfx(p.kind); commit();
   return true;
 }
 function collectAll(kind) {
@@ -730,6 +831,13 @@ function buyPen(kind) {
   const a = ANIMALS[kind];
   if (S.level < a.lvl || S.pens[kind].owned) return false;
   if (S.coins < a.penCost) { toast("Need " + a.penCost + " 🪙"); return false; }
+  // if the default spot is taken (say by decorations), find free ground nearby
+  const key = "p:" + kind, bx = boxOf(key);
+  if (!canPlace(key, bx)) {
+    const spot = freeSpot(bx.w, bx.h, bx.gx, bx.gy);
+    if (!spot) { toast("No room for a " + a.pen.toLowerCase() + ". Expand your land or move things."); sfx("error"); return false; }
+    S.pos[key] = spot;
+  }
   S.coins -= a.penCost; S.pens[kind].owned = true; S.pens[kind].list.push(0); sfx("build"); sfx(kind);
   toast(a.pen + " built, with your first " + a.n.toLowerCase() + "!"); fillOrders(); commit();
   return true;
@@ -796,6 +904,16 @@ function buyStandSlot() {
   const c = standSlotCost();
   if (S.coins < c) { toast("Need " + c + " 🪙"); sfx("error"); return; }
   S.coins -= c; S.stand.slots++; S.stand.list.push(null); sfx("build"); commit();
+}
+
+function freeSpot(w, h, cx, cy) {
+  const boxes = allBoxes();
+  for (let r = 0; r < 40; r++) for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+    if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+    const b = {gx:Math.round(cx) + dx, gy:Math.round(cy) + dy, w, h};
+    if (canPlace("new", b, boxes)) return {gx:b.gx, gy:b.gy};
+  }
+  return null;
 }
 
 // ---------- bigger land ----------
@@ -1021,6 +1139,68 @@ function label(txt, x, y, size = 14, fill = "#fff", stroke = "#6E3D18") {
   ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size / 3.5); ctx.strokeStyle = stroke; ctx.strokeText(txt, x, y);
   ctx.fillStyle = fill; ctx.fillText(txt, x, y);
 }
+// Painted art for animals and crops (made with Canva). Falls back to emoji until loaded.
+const ART = {};
+for (const k of ["cow", "chicken", "sheep", "horse", "dog", "cat", "wheat", "corn", "carrot", "soybean", "sugarcane", "tomato", "strawberry", "pumpkin"]) {
+  const im = new Image(); im.src = "art/" + k + ".png"; ART[k] = im;
+}
+// draws art standing on (x, y), h pixels tall; returns false if the picture isn't ready
+function drawArt(k, x, y, h, flip) {
+  const im = ART[k];
+  if (!im || !im.complete || !im.naturalWidth) return false;
+  const w = h * im.naturalWidth / im.naturalHeight;
+  if (flip) { ctx.save(); ctx.translate(x, y); ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore(); }
+  else ctx.drawImage(im, x - w / 2, y - h, w, h);
+  return true;
+}
+const artImg = (k, fallback) => ART[k] ? `<img src="art/${k}.png" alt="">` : `<span class="e">${fallback}</span>`;
+
+// soft, blurry-edged shadow on the ground
+function shadow(x, y, rx, ry, a = .22) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, rx);
+  g.addColorStop(0, `rgba(25,40,5,${a})`); g.addColorStop(.6, `rgba(25,40,5,${a * .6})`); g.addColorStop(1, "rgba(25,40,5,0)");
+  ctx.save(); ctx.translate(x, y); ctx.scale(1, ry / rx); ctx.translate(-x, -y);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rx, 0, 7); ctx.fill(); ctx.restore();
+}
+function vgrad(y0, y1, c0, c1, c2) {
+  const g = ctx.createLinearGradient(0, y0, 0, y1);
+  g.addColorStop(0, c0); if (c2) { g.addColorStop(.5, c1); g.addColorStop(1, c2); } else g.addColorStop(1, c1);
+  return g;
+}
+// lighten (amt > 0) or darken (amt < 0) a #rrggbb color
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16), f = (c) => Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt);
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+// Small images drawn once at high resolution and reused every frame (trees, clouds, grass texture).
+const spriteCache = new Map();
+function sprite(key, w, h, paint) {
+  let c = spriteCache.get(key);
+  if (!c) {
+    c = document.createElement("canvas"); c.width = w * 3; c.height = h * 3;
+    const x = c.getContext("2d"); x.scale(3, 3); paint(x);
+    spriteCache.set(key, c);
+  }
+  return c;
+}
+function ball(x, cx, cy, r, base, light, dark) {
+  const g = x.createRadialGradient(cx - r * .35, cy - r * .45, r * .1, cx, cy, r);
+  g.addColorStop(0, light); g.addColorStop(.55, base); g.addColorStop(1, dark);
+  x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+}
+let grassPat = null;
+function grassPattern() {
+  if (!grassPat) {
+    const c = document.createElement("canvas"); c.width = c.height = 128;
+    const x = c.getContext("2d"); let sd = 7; const R = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 420; i++) { x.fillStyle = R() < .5 ? "rgba(255,255,200,.10)" : "rgba(20,70,0,.07)"; x.fillRect(R() * 128, R() * 128, 1 + R() * 2.5, 1 + R() * 2); }
+    x.lineWidth = 1; x.lineCap = "round";
+    for (let i = 0; i < 70; i++) { const px = R() * 128, py = R() * 128; x.strokeStyle = R() < .5 ? "rgba(0,60,0,.16)" : "rgba(255,255,200,.14)"; x.beginPath(); x.moveTo(px, py); x.lineTo(px + R() * 3 - 1.5, py - 3 - R() * 3); x.stroke(); }
+    grassPat = ctx.createPattern(c, "repeat");
+  }
+  return grassPat;
+}
+
 // Emoji are pre-rendered once into little images; drawing text every frame is slow.
 const emojiCache = new Map();
 function emo(e, size) {
@@ -1090,6 +1270,11 @@ function updateAnimals(dt) {
     pen.list.forEach((end, i) => {
       const a = animFor(k, i);
       a.walk = 0;
+      if (a.gallop > T) { // out for a ride: run laps of the paddock
+        const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = 2.6 * dt;
+        if (d < sp) { const n = a.rand(); a.tx = n.x; a.ty = n.y; } else { a.x += dx / d * sp; a.y += dy / d * sp; a.walk = 1; a.flip = (dx - dy) > 0; }
+        return;
+      }
       if (!(end > t)) return; // hungry or ready animals stand still
       if (a.rest > 0) { a.rest -= dt; return; }
       const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = 0.45 * dt;
@@ -1098,6 +1283,38 @@ function updateAnimals(dt) {
       a.flip = (dx - dy) > 0; // moving right on screen
     });
   }
+}
+
+// --- pets wander around near the farmhouse ---
+const petAnim = [];
+function petPos(j) {
+  if (!petAnim[j]) { const h = boxOf("house"); petAnim[j] = {x:h.gx + h.w + .8 + j, y:h.gy + h.h + 1.5, tx:0, ty:0, rest:1, flip:false, walk:0, zoom:0}; }
+  return petAnim[j];
+}
+function updatePets(dt) {
+  const h = boxOf("house"), cx = h.gx + h.w / 2, cy = h.gy + h.h / 2;
+  S.pets.forEach((p, j) => {
+    const a = petPos(j);
+    a.walk = 0;
+    const fast = a.zoom > T;
+    if (!fast && a.rest > 0) { a.rest -= dt; return; }
+    const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = (fast ? 2.4 : p.kind === "cat" ? .5 : .7) * dt;
+    if (d < sp || !a.tx) {
+      a.tx = clamp(cx + (Math.random() - .5) * 11, .6, S.land.w - .6); a.ty = clamp(cy + (Math.random() - .3) * 11, ROAD_H + .6, S.land.h - .6);
+      a.rest = fast ? 0 : 1.5 + Math.random() * 4;
+      return;
+    }
+    a.x += dx / d * sp; a.y += dy / d * sp; a.walk = 1; a.flip = (dx - dy) > 0;
+  });
+}
+function drawPet(j) {
+  const p = S.pets[j], P = PETS[p.kind], a = petPos(j), [x, y] = iso(a.x, a.y);
+  const hop = a.walk ? Math.abs(Math.sin(T / (a.zoom > T ? 70 : 120) + j)) * 3 : 0;
+  shadow(x + 2, y, P.size * .55, P.size * .18, .3);
+  if (!drawArt(ART_OF[p.kind], x, y + 1 - hop, P.size * 1.15, a.flip)) drawEmoji(P.e, x, y - P.size * .45 - hop, P.size, a.flip);
+  if (giftReady(p)) { const by = y - P.size - 16 + bob(1.3, 3, j); circle(x, by, 12, "rgba(255,255,255,.92)"); drawEmoji("🎁", x, by, 15); }
+  else if (a.zoom > T) drawEmoji(P.toy, x + (a.flip ? 14 : -14), y - 6, 12);
+  nextHits.push({type:"pet", j, rect:[x - 20, y - P.size - 30, x + 20, y + 6]});
 }
 
 // --- people and a dog strolling along the road ---
@@ -1124,10 +1341,10 @@ function inPoly(x, y, pts) {
 }
 function hitAt(sx, sy) {
   const [x, y] = toWorld(sx, sy);
-  for (let j = hits.length - 1; j >= 0; j--) {
-    const h = hits[j];
-    if (h.rect ? (x >= h.rect[0] && x <= h.rect[2] && y >= h.rect[1] && y <= h.rect[3]) : inPoly(x, y, h.poly)) return h;
-  }
+  const inside = (h) => h.rect ? (x >= h.rect[0] && x <= h.rect[2] && y >= h.rect[1] && y <= h.rect[3]) : inPoly(x, y, h.poly);
+  // animals and pets are small and move around, so they win over the building behind them
+  for (let j = hits.length - 1; j >= 0; j--) if ((hits[j].type === "pet" || hits[j].type === "animal") && inside(hits[j])) return hits[j];
+  for (let j = hits.length - 1; j >= 0; j--) if (inside(hits[j])) return hits[j];
   return null;
 }
 
@@ -1136,41 +1353,68 @@ let T = 0; // animation clock (ms)
 const bob = (speed = 1, amt = 3, phase = 0) => Math.sin(T / 260 * speed + phase) * amt;
 
 const GRASS = {
-  spring:["#94CF48", "#8DC843", "#76B236", "#79B434", "#679F2D"], summer:["#8DC63F", "#87C03B", "#6FA82F", "#6FA82F", "#5E962A"],
-  fall:["#A9C24A", "#A1BA44", "#8E9E3A", "#8FA33A", "#7C8F31"], snow:["#E4EEEA", "#D8E5E1", "#BCD0CA", "#CFDDD9", "#B5C7C2"],
+  spring:["#8FD447", "#88CD42", "#6FB134", "#71B533", "#5F9E2B"], summer:["#86CC3C", "#80C538", "#65A82C", "#68AE2E", "#579A28"],
+  fall:["#9CC444", "#95BD40", "#7FA036", "#82A636", "#6F922E"], snow:["#E4EEEA", "#D8E5E1", "#BCD0CA", "#CFDDD9", "#B5C7C2"],
 };
 function drawGround() {
   const LW = S.land.w, LH = S.land.h, [A, B, C, D] = corners(0, 0, LW, LH);
-  const G = GRASS[THEME.snowy ? "snow" : THEME.season] || GRASS.summer;
+  const G = GRASS[THEME.snowy ? "snow" : THEME.season] || GRASS.summer, cd = 42;
   drawExpansions();
-  // island cliff edges
-  fillPoly([D, C, up(C, -34), up(D, -34)], "#9A6A40");
-  fillPoly([C, B, up(B, -34), up(C, -34)], "#7A5030");
-  fillPoly([D, C, up(C, -8), up(D, -8)], G[3]);
-  fillPoly([C, B, up(B, -8), up(C, -8)], G[4]);
+  // the island's shadow in the water, and foam where waves meet the cliff
+  fillPoly([D, C, B, [B[0] + 26, B[1] + 20], [C[0] + 10, C[1] + cd + 26], [D[0] - 16, D[1] + cd + 6]], "rgba(10,70,110,.22)");
+  ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.beginPath();
+  const foam = (p, q, n, ph) => { for (let i = 0; i <= n; i++) { const [x, y] = lerp(p, q, i / n), w = Math.sin(T / 520 + i * 1.7 + ph) * 2.5; i ? ctx.lineTo(x, y + cd + 3 + w) : ctx.moveTo(x, y + cd + 3 + w); } };
+  foam(D, C, LW * 2, 0); foam(C, B, LH * 2, 2);
+  ctx.stroke();
+  // rocky cliffs
+  fillPoly([D, C, up(C, -cd), up(D, -cd)], vgrad(D[1], C[1] + cd, "#B07C4C", "#6B4527"));
+  fillPoly([C, B, up(B, -cd), up(C, -cd)], vgrad(B[1], C[1] + cd, "#8F6139", "#553719"));
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.strokeStyle = "rgba(40,20,5,.22)";
+  for (const k of [.4, .7]) { ctx.moveTo(...up(D, -cd * k)); ctx.lineTo(...up(C, -cd * k)); ctx.lineTo(...up(B, -cd * k)); }
+  ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle = "rgba(255,230,190,.12)";
+  for (const k of [.37, .67]) { ctx.moveTo(...up(D, -cd * k)); ctx.lineTo(...up(C, -cd * k)); ctx.lineTo(...up(B, -cd * k)); }
+  ctx.stroke();
+  // grass hanging over the cliff edge
+  const lip = (p, q, n, col) => {
+    ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q);
+    for (let i = n; i >= 0; i--) { const [x, y] = lerp(p, q, i / n); ctx.lineTo(x, y + 7 + (i % 2) * 4); }
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  };
+  lip(D, C, LW * 2, G[3]); lip(C, B, LH * 2, G[4]);
+  // grass: base color, tiles, texture and a touch of sunlight from the top-left
   fillPoly([A, B, C, D], G[0]);
-  // checkerboard shading, drawn as one path so it's quick
   ctx.beginPath();
   for (let gx = 0; gx < LW; gx++) for (let gy = ROAD_H; gy < LH; gy++) if ((gx + gy) & 1) {
     const [a, b, c, d] = corners(gx, gy, 1, 1);
     ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath();
   }
   ctx.fillStyle = G[1]; ctx.fill();
+  path([A, B, C, D]); ctx.fillStyle = grassPattern(); ctx.fill();
+  const sun = ctx.createLinearGradient(A[0], A[1], C[0], C[1]);
+  sun.addColorStop(0, "rgba(255,255,215,.12)"); sun.addColorStop(1, "rgba(255,255,215,0)");
+  path([A, B, C, D]); ctx.fillStyle = sun; ctx.fill();
   // grass tufts
   ctx.strokeStyle = G[2]; ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.beginPath();
-  for (const t of SCENE.tufts) { if (t.gy < ROAD_H) continue; const [x, y] = iso(t.gx, t.gy); ctx.moveTo(x - 3, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + 3, y - 5); }
+  for (const t of SCENE.tufts) { if (t.gy < ROAD_H) continue; const [x, y] = iso(t.gx, t.gy); ctx.moveTo(x - 3, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + 3, y - 5); ctx.moveTo(x, y); ctx.lineTo(x + .5, y - 6); }
   ctx.stroke();
-  // dirt road with the truck on it
-  fillPoly(corners(0, 0, LW, ROAD_H), THEME.snowy ? "#E6DCC8" : "#DDBE80");
-  fillPoly(corners(0, 0.8, LW, 0.4), THEME.snowy ? "#EFE8DA" : "#E8CE96");
-  ctx.fillStyle = "#C4A266";
+  // dirt road with wheel ruts, and grass fringe along its edge
+  const snowRoad = THEME.snowy;
+  fillPoly(corners(0, 0, LW, ROAD_H), snowRoad ? "#E6DCC8" : "#D9B97A");
+  const line = (gy, col, w) => { const p = iso(0, gy), q = iso(LW, gy); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q); ctx.stroke(); };
+  line(1, snowRoad ? "rgba(255,255,255,.5)" : "rgba(255,240,200,.45)", 12);
+  line(.5, "rgba(120,80,35,.22)", 6); line(1.5, "rgba(120,80,35,.22)", 6);
+  ctx.fillStyle = "#B8955A";
   for (const p of SCENE.pebbles) { const [x, y] = iso(p.gx, p.gy); ctx.beginPath(); ctx.ellipse(x, y, 2.5, 1.4, 0, 0, 7); ctx.fill(); }
-  ctx.strokeStyle = "#B99355"; ctx.lineWidth = 3; ctx.beginPath();
-  const r1 = iso(0, ROAD_H), r2 = iso(LW, ROAD_H); ctx.moveTo(r1[0], r1[1]); ctx.lineTo(r2[0], r2[1]); ctx.stroke();
+  line(ROAD_H, "rgba(120,85,40,.35)", 3);
+  ctx.strokeStyle = G[2]; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let k = 0; k < LW * 3; k++) { const [x, y] = iso(k / 3 + .1, ROAD_H + .05); ctx.moveTo(x - 2, y); ctx.lineTo(x - 3, y - 4); ctx.moveTo(x + 1, y); ctx.lineTo(x + 2, y - 5); }
+  ctx.stroke();
   // flowers (none under the snow)
   if (!THEME.snowy) for (const f of SCENE.flowers) {
     const [x, y] = iso(f.gx, f.gy);
-    circle(x - 3, y, 2.2, f.c); circle(x + 3, y - 1, 2.2, f.c); circle(x, y + 2, 2.2, f.c); circle(x, y, 1.2, "#F5B82E");
+    ctx.strokeStyle = "#4E9A2E"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + 3); ctx.lineTo(x, y); ctx.stroke();
+    circle(x - 3, y, 2.3, f.c); circle(x + 3, y - 1, 2.3, f.c); circle(x, y + 2, 2.3, f.c); circle(x, y - 2, 2.3, f.c); circle(x, y, 1.3, "#F5B82E");
   }
   drawPond();
 }
@@ -1198,30 +1442,51 @@ function drawPond() {
     ctx.quadraticCurveTo(a[0], a[1], ...m(a, b)); ctx.quadraticCurveTo(b[0], b[1], ...m(b, c));
     ctx.quadraticCurveTo(c[0], c[1], ...m(c, d)); ctx.quadraticCurveTo(d[0], d[1], ...s); ctx.closePath();
   };
-  blob(); ctx.strokeStyle = "#E9D9A6"; ctx.lineWidth = 12; ctx.stroke();
-  ctx.fillStyle = "#4FA9DA"; ctx.fill();
+  const [cx, cy] = m(a, c);
+  blob(); ctx.strokeStyle = "#E6D29B"; ctx.lineWidth = 15; ctx.stroke();
+  ctx.strokeStyle = "#C9B071"; ctx.lineWidth = 4; ctx.stroke();
+  const deep = ctx.createRadialGradient(cx + 6, cy + 4, 4, cx, cy, 120);
+  deep.addColorStop(0, "#2A7FBB"); deep.addColorStop(.6, "#4AA6DA"); deep.addColorStop(1, "#7BD2F2");
+  ctx.fillStyle = deep; ctx.fill();
   ctx.save(); blob(); ctx.clip();
-  ellipse(...m(a, c), 60, 22, "#5DB8E6");
-  ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 2;
-  for (let k = 0; k < 3; k++) { const [x, y] = lerp(a, c, .3 + k * .2); ctx.beginPath(); ctx.moveTo(x - 14 + bob(.5, 4, k), y); ctx.lineTo(x + 6 + bob(.5, 4, k), y); ctx.stroke(); }
+  ellipse(cx - 30, cy - 12, 48, 12, "rgba(255,255,255,.22)"); // sky reflection
+  ctx.strokeStyle = "rgba(255,255,255,.65)"; ctx.lineWidth = 2; ctx.lineCap = "round";
+  for (let k = 0; k < 4; k++) { const [x, y] = lerp(a, c, .25 + k * .17); const o = bob(.5, 5, k); ctx.beginPath(); ctx.moveTo(x - 14 + o, y); ctx.quadraticCurveTo(x - 4 + o, y - 2, x + 6 + o, y); ctx.stroke(); }
   ctx.restore();
-  ellipse(...lerp(d, b, .3), 9, 4.5, "#5BAE3A"); ellipse(...lerp(a, c, .72), 7, 3.5, "#5BAE3A");
+  // lily pads with a flower
+  for (const [p, r, fl] of [[lerp(d, b, .3), 9, true], [lerp(a, c, .72), 7, false], [lerp(d, b, .62), 6, false]]) {
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], r, r * .5, 0, .35, Math.PI * 2 - .1); ctx.lineTo(p[0], p[1]); ctx.closePath();
+    ctx.fillStyle = "#4DA63A"; ctx.fill(); ctx.strokeStyle = "#3A842B"; ctx.lineWidth = 1; ctx.stroke();
+    if (fl) { circle(p[0] - 2, p[1] - 2, 3, "#FF9CC4"); circle(p[0] - 2, p[1] - 2, 1.3, "#FFE36B"); }
+  }
+  // cattails at the far corner
+  const reed = lerp(b, c, .35);
+  for (let k = 0; k < 4; k++) {
+    const x = reed[0] - 6 + k * 5, y = reed[1] + (k % 2) * 3, h = 18 + (k % 3) * 5, sw = Math.sin(T / 900 + k) * 1.5;
+    ctx.strokeStyle = "#4E8F2E"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + sw, y - h); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x + sw, y - h + 5, 2, 5, 0, 0, 7); ctx.fillStyle = "#7A4B25"; ctx.fill();
+  }
   // two ducks paddling around
-  const cx = m(a, c);
   for (let k = 0; k < 2; k++) {
-    const ang = T / 4000 + k * Math.PI;
-    drawEmoji("🦆", cx[0] + Math.cos(ang) * 38, cx[1] + Math.sin(ang) * 14 - 8, 20, Math.sin(ang) < 0);
+    const ang = T / 4000 + k * Math.PI, dx = cx + Math.cos(ang) * 38, dy = cy + Math.sin(ang) * 14;
+    ellipse(dx, dy + 1, 10, 3, "rgba(255,255,255,.35)");
+    drawEmoji("🦆", dx, dy - 8, 20, Math.sin(ang) < 0);
   }
 }
 
 function drawField(i) {
   const p = S.plots[i], {gx, gy} = plotPos(i), ins = .06;
   const [a, b, c, d] = corners(gx + ins, gy + ins, 1 - 2 * ins, 1 - 2 * ins);
-  fillPoly([d, c, b, up(b, -5), up(c, -5), up(d, -5)], "#5C3A20");
-  fillPoly([a, b, c, d], p.crop ? "#7E5230" : "#A0703F");
-  ctx.strokeStyle = "rgba(60,35,15,.35)"; ctx.lineWidth = 2; ctx.beginPath();
-  for (const k of [.25, .5, .75]) { const s = lerp(a, d, k), e = lerp(b, c, k); ctx.moveTo(s[0], s[1]); ctx.lineTo(e[0], e[1]); }
+  fillPoly([d, c, b, up(b, -6), up(c, -6), up(d, -6)], vgrad(b[1], c[1] + 6, "#6A4325", "#4A2D16"));
+  fillPoly([a, b, c, d], vgrad(a[1], c[1], p.crop ? "#8C5B33" : "#B17E4A", p.crop ? "#6B4222" : "#8E5E34"));
+  // ploughed rows: a shadow line with a light ridge beside it
+  ctx.lineCap = "round"; ctx.lineWidth = 2.4; ctx.strokeStyle = "rgba(55,30,12,.38)"; ctx.beginPath();
+  for (const k of [.2, .4, .6, .8]) { const s = lerp(a, d, k), e = lerp(b, c, k); ctx.moveTo(s[0] + 2, s[1]); ctx.lineTo(e[0] - 2, e[1]); }
   ctx.stroke();
+  ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(255,225,180,.28)"; ctx.beginPath();
+  for (const k of [.2, .4, .6, .8]) { const s = lerp(a, d, k - .06), e = lerp(b, c, k - .06); ctx.moveTo(s[0] + 2, s[1]); ctx.lineTo(e[0] - 2, e[1]); }
+  ctx.stroke();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(255,230,190,.4)"; ctx.beginPath(); ctx.moveTo(...d); ctx.lineTo(...a); ctx.lineTo(...b); ctx.stroke();
   nextHits.push({type:"field", i, poly:[a, b, c, d], mv:"f:" + i});
 }
 
@@ -1242,7 +1507,7 @@ function drawCrops(i) {
     }
     const g = ready ? 1 : (prog - .15) / .85;
     const top = drawPlant(LOOK[p.crop], x, y, g, ready, k);
-    if (ready) drawEmoji(ITEMS[p.crop].e, x, top + bob(1.3, 1.5, k * 2), p.crop === "pumpkin" ? 20 : 16);
+    if (ready) { const h = p.crop === "pumpkin" ? 20 : p.crop === "tomato" || p.crop === "strawberry" ? 14 : 19, yy = top + 9 + bob(1.3, 1.5, k * 2); if (!drawArt(p.crop, x, yy, h)) drawEmoji(ITEMS[p.crop].e, x, top + bob(1.3, 1.5, k * 2), 16); }
   });
 }
 
@@ -1335,63 +1600,118 @@ function drawSign(x, y, text, icon, color = "#C98B4A") {
 function drawHouse(box, st) {
   const ins = .28, x0 = box.gx + ins, y0 = box.gy + ins, x1 = box.gx + box.w - ins, y1 = box.gy + box.h - ins;
   const A = iso(x0, y0), B = iso(x1, y0), C = iso(x1, y1), D = iso(x0, y1);
-  const Hh = 18 * box.w - 10, R = 12 * box.w;
-  const ol = "rgba(70,35,10,.45)", win = THEME.night ? "#FFE08A" : "#BFE6FA";
-  fillPoly([iso(x0 - .1, y0 + .1), iso(x1 + .15, y0 + .1), iso(x1 + .15, y1 + .3), iso(x0 - .1, y1 + .3)], "rgba(0,0,0,.14)");
-  // walls
-  fillPoly([D, C, up(C, Hh), up(D, Hh)], st.wl, ol);
-  const R1 = up(lerp(up(C, Hh), up(B, Hh), .5), R), R0 = up(lerp(up(D, Hh), up(A, Hh), .5), R);
-  fillPoly([C, B, up(B, Hh), R1, up(C, Hh)], st.wr, ol);
-  // door and windows on the front wall
-  const door = (k0, k1, hk, col) => { const p = lerp(D, C, k0), q = lerp(D, C, k1); const pts = [p, q, up(q, Hh * hk), up(p, Hh * hk)]; fillPoly(pts, col, ol); return pts; };
+  const Hh = 18 * box.w - 10, R = 12 * box.w, U = (p, h = Hh) => up(p, h);
+  const ol = "rgba(60,30,10,.5)";
+  // soft shadow cast down and to the right
+  const sh = (p) => [p[0] + 18, p[1] + 8];
+  fillPoly([D, C, B, sh(B), sh(C), sh(D)], "rgba(25,45,5,.16)");
+  shadow((D[0] + B[0]) / 2 + 6, C[1] - 6, (B[0] - D[0]) * .62, 16, .18);
+  // walls, lit from the top-left
+  fillPoly([D, C, U(C), U(D)], vgrad(U(D)[1], C[1], shade(st.wl, .12), shade(st.wl, -.08)), ol);
+  const R1 = up(lerp(U(C), U(B), .5), R), R0 = up(lerp(U(D), U(A), .5), R);
+  fillPoly([C, B, U(B), R1, U(C)], vgrad(R1[1], C[1], shade(st.wr, .02), shade(st.wr, -.2)), ol);
+  ctx.lineWidth = 1; ctx.beginPath();
+  if (st.barn) { // vertical boards
+    ctx.strokeStyle = "rgba(0,0,0,.13)";
+    for (let k = 1; k < 12; k++) { const p = lerp(D, C, k / 12); ctx.moveTo(...p); ctx.lineTo(...U(p)); }
+    for (let k = 1; k < 9; k++) { const p = lerp(C, B, k / 9), top = k / 9 < .5 ? lerp(U(C), R1, k / 9 * 2) : lerp(R1, U(B), (k / 9 - .5) * 2); ctx.moveTo(...p); ctx.lineTo(...top); }
+  } else { // siding boards
+    ctx.strokeStyle = "rgba(90,55,20,.1)";
+    for (let k = 1; k < 6; k++) { const h = Hh * k / 6; ctx.moveTo(...up(D, h)); ctx.lineTo(...up(C, h)); ctx.lineTo(...up(B, h)); }
+  }
+  ctx.stroke();
+  fillPoly([D, C, up(C, 5), up(D, 5)], "rgba(40,20,5,.2)");
+  fillPoly([C, B, up(B, 5), up(C, 5)], "rgba(40,20,5,.26)");
+  ctx.strokeStyle = st.barn ? "#fff" : "rgba(255,255,255,.6)"; ctx.lineWidth = st.barn ? 3.5 : 2.5; ctx.beginPath();
+  ctx.moveTo(...C); ctx.lineTo(...U(C));
+  if (st.barn) { ctx.moveTo(...D); ctx.lineTo(...U(D)); ctx.moveTo(...B); ctx.lineTo(...U(B)); }
+  ctx.stroke();
+  // doors and windows
+  const quad = (f0, f1, k0, k1, h0, h1) => { const p = lerp(f0, f1, k0), q = lerp(f0, f1, k1); return [up(p, h0), up(q, h0), up(q, h1), up(p, h1)]; };
+  const windowAt = (f0, f1, k0, k1, h0, h1, flowers) => {
+    fillPoly(quad(f0, f1, k0, k1, h0, h1), "#FFFDF4", ol);
+    const dk = (k1 - k0) * .14, dh = (h1 - h0) * .14, inner = quad(f0, f1, k0 + dk, k1 - dk, h0 + dh, h1 - dh);
+    fillPoly(inner, THEME.night ? "#FFE08A" : vgrad(inner[3][1], inner[0][1], "#E4F6FF", "#78BEE6"));
+    ctx.strokeStyle = "#FFFDF4"; ctx.lineWidth = 1.6; ctx.beginPath();
+    ctx.moveTo(...lerp(inner[3], inner[2], .5)); ctx.lineTo(...lerp(inner[0], inner[1], .5));
+    ctx.moveTo(...lerp(inner[0], inner[3], .5)); ctx.lineTo(...lerp(inner[1], inner[2], .5)); ctx.stroke();
+    if (!THEME.night) { ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(...lerp(inner[0], inner[3], .75)); ctx.lineTo(...lerp(inner[0], inner[2], .35)); ctx.stroke(); }
+    else glows.push([...lerp(inner[0], inner[2], .5), 18]);
+    if (flowers) {
+      const bx = quad(f0, f1, k0 - .02, k1 + .02, h0 - 5, h0);
+      fillPoly(bx, "#8A5530", ol, 1);
+      for (let k = 0; k < 5; k++) { const [fx, fy] = lerp(bx[3], bx[2], (k + .5) / 5); circle(fx, fy - 1.5, 2.2, ["#FF6B8B", "#FFD34E", "#fff", "#FF9C3E", "#C77DFF"][k]); }
+    }
+  };
   if (st.barn) {
-    const pts = door(.3, .7, .72, st.door);
+    const pts = quad(D, C, .3, .7, 0, Hh * .72);
+    fillPoly(pts, vgrad(pts[3][1], pts[0][1], shade(st.door, .1), shade(st.door, -.15)), ol);
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; path(pts); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(...pts[0]); ctx.lineTo(...pts[2]); ctx.moveTo(...pts[1]); ctx.lineTo(...pts[3]); ctx.stroke();
+    const loft = quad(C, B, .38, .62, Hh * .62, Hh * .95); // hay loft door in the gable
+    fillPoly(loft, shade(st.door, -.1), ol); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; path(loft); ctx.stroke();
   } else {
-    door(.42, .58, .55, st.door);
-    for (const k of [.18, .72]) {
-      const p = up(lerp(D, C, k), Hh * .42), q = up(lerp(D, C, k + .1), Hh * .42);
-      fillPoly([p, q, up(q, Hh * .3), up(p, Hh * .3)], win, "#fff", 2);
-      if (THEME.night) glows.push([...up(lerp(p, q, .5), Hh * .15), 18]);
-    }
+    const dr = quad(D, C, .42, .58, 0, Hh * .56);
+    fillPoly(dr, vgrad(dr[3][1], dr[0][1], shade(st.door, .12), shade(st.door, -.12)), ol);
+    ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 2; path(dr); ctx.stroke();
+    ctx.strokeStyle = "rgba(0,0,0,.18)"; ctx.lineWidth = 1; path(quad(D, C, .45, .55, Hh * .08, Hh * .26)); ctx.stroke(); path(quad(D, C, .45, .55, Hh * .31, Hh * .5)); ctx.stroke();
+    const kn = up(lerp(D, C, .555), Hh * .28); circle(kn[0], kn[1], 1.6, "#F5C84B");
+    fillPoly(quad(D, C, .4, .6, -2, 1.5), "#B9A58A"); // doorstep
+    windowAt(D, C, .12, .3, Hh * .36, Hh * .76, !!st.chimney && st.sign === "🏡");
+    windowAt(D, C, .7, .88, Hh * .36, Hh * .76, !!st.chimney && st.sign === "🏡");
   }
-  const wp = up(lerp(C, B, .35), Hh * .4), wq = up(lerp(C, B, .6), Hh * .4);
-  fillPoly([wp, wq, up(wq, Hh * .32), up(wp, Hh * .32)], win, "#fff", 2);
-  if (THEME.night) glows.push([...up(lerp(wp, wq, .5), Hh * .16), 18]);
-  // roof
-  const e = 5;
-  fillPoly([up(A, Hh), up(B, Hh), R1, R0], st.rb, ol);
-  fillPoly([up([D[0] - e, D[1] + 2], Hh), up([C[0], C[1] + e], Hh), up(R1, -1), up(R0, -1)], st.rf, ol, 2);
-  ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 2; ctx.beginPath();
-  for (const k of [.33, .66]) { const s = lerp(up(D, Hh), R0, k), t = lerp(up(C, Hh), R1, k); ctx.moveTo(...s); ctx.lineTo(...t); }
+  windowAt(C, B, .3, .6, Hh * .36, Hh * .76);
+  // shadow under the roof's edge
+  fillPoly([U(D), U(C), up(C, Hh - 8), up(D, Hh - 8)], "rgba(40,20,5,.2)");
+  // roof: back slope, then the front slope with shingles
+  const e = 6, eL = up([D[0] - e, D[1] + 3], Hh), eR = up([C[0] + 2, C[1] + e], Hh);
+  fillPoly([U(A), U(B), R1, R0], vgrad(R0[1], U(B)[1], shade(st.rb, .15), shade(st.rb, -.05)), ol);
+  fillPoly([eL, eR, up(eR, -4), up(eL, -4)], shade(st.rf, -.4));
+  fillPoly([eL, eR, R1, R0], vgrad(R0[1], eL[1], shade(st.rf, .16), shade(st.rf, -.14)), ol, 2);
+  ctx.strokeStyle = "rgba(0,0,0,.15)"; ctx.lineWidth = 1.1; ctx.beginPath();
+  const rows = 5;
+  for (let r = 1; r <= rows; r++) {
+    const k = r / rows, s0 = lerp(eL, R0, k), s1 = lerp(eR, R1, k), p0 = lerp(eL, R0, k - 1 / rows), p1 = lerp(eR, R1, k - 1 / rows);
+    if (r < rows) { ctx.moveTo(...s0); ctx.lineTo(...s1); }
+    for (let t = 1; t < 10; t++) { const kk = (t - (r % 2) * .5) / 10, q = lerp(p0, p1, kk); ctx.moveTo(...q); ctx.lineTo(...lerp(q, lerp(s0, s1, kk), .85)); }
+  }
   ctx.stroke();
+  ctx.lineCap = "round"; ctx.strokeStyle = shade(st.rf, -.35); ctx.lineWidth = 4.5;
+  ctx.beginPath(); ctx.moveTo(...R0); ctx.lineTo(...R1); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(R0[0], R0[1] - 1.5); ctx.lineTo(R1[0], R1[1] - 1.5); ctx.stroke();
+  ctx.strokeStyle = shade(st.rf, -.4); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(...eR); ctx.lineTo(...R1); ctx.lineTo(...U(B)); ctx.stroke();
   if (THEME.snowy) { // snow on the roof
-    fillPoly([lerp(up(A, Hh), R0, .45), lerp(up(B, Hh), R1, .45), R1, R0], "#F4FAFF");
-    fillPoly([R0, R1, lerp(up(C, Hh), R1, .55), lerp(up(D, Hh), R0, .55)], "#F4FAFF", "rgba(150,180,200,.5)", 1);
+    fillPoly([lerp(U(A), R0, .45), lerp(U(B), R1, .45), R1, R0], "#F4FAFF");
+    fillPoly([R0, R1, lerp(eR, R1, .55), lerp(eL, R0, .55)], "#F4FAFF", "rgba(150,180,200,.5)", 1);
   }
   if (THEME.holiday === "christmas" || THEME.holiday === "newyear" || THEME.holiday === "halloween") { // string lights along the roof edge
-    const cols = THEME.holiday === "halloween" ? ["#FF8A1F", "#9B59D0"] : ["#FF4B4B", "#FFD23F", "#4BD66B", "#4BB4FF"];
-    const a = up([D[0] - e, D[1] + 2], Hh), b = up([C[0], C[1] + e], Hh), n = 10;
+    const cols = THEME.holiday === "halloween" ? ["#FF8A1F", "#9B59D0"] : ["#FF4B4B", "#FFD23F", "#4BD66B", "#4BB4FF"], n = 10;
     for (let k = 0; k <= n; k++) {
-      const [lx, ly] = lerp(a, b, k / n), on = Math.floor(T / 500 + k) % 3 !== 0;
+      const [lx, ly] = lerp(eL, eR, k / n), on = Math.floor(T / 500 + k) % 3 !== 0;
       circle(lx, ly + 2, 2.4, on ? cols[k % cols.length] : "#555");
       if (on && THEME.night) glows.push([lx, ly + 2, 7]);
     }
   }
   if (st.chimney) {
-    const base = lerp(lerp(R0, R1, .25), lerp(up(D, Hh), up(C, Hh), .25), .4);
-    fillPoly([[base[0] - 6, base[1] + 4], [base[0] + 6, base[1] + 4], [base[0] + 6, base[1] - 16], [base[0] - 6, base[1] - 16]], "#B5533C", ol);
-    fillPoly([[base[0] - 8, base[1] - 16], [base[0] + 8, base[1] - 16], [base[0] + 8, base[1] - 20], [base[0] - 8, base[1] - 20]], "#8E3E2B");
+    const base = lerp(lerp(R0, R1, .25), lerp(eL, eR, .25), .4);
+    fillPoly([[base[0] - 6, base[1] + 4], [base[0] + 6, base[1] + 4], [base[0] + 6, base[1] - 16], [base[0] - 6, base[1] - 16]], vgrad(base[1] - 16, base[1] + 4, "#C8674E", "#8E3E2B"), ol);
+    ctx.strokeStyle = "rgba(255,220,200,.35)"; ctx.lineWidth = 1; ctx.beginPath();
+    for (const yy of [-12, -7, -2]) { ctx.moveTo(base[0] - 6, base[1] + yy); ctx.lineTo(base[0] + 6, base[1] + yy); }
+    ctx.stroke();
+    fillPoly([[base[0] - 8, base[1] - 16], [base[0] + 8, base[1] - 16], [base[0] + 8, base[1] - 20], [base[0] - 8, base[1] - 20]], "#7A3322");
     if (st.smoke) for (let k = 0; k < 3; k++) {
       const ph = ((T / 1400) + k / 3) % 1;
-      circle(base[0] + Math.sin(ph * 6 + k) * 4, base[1] - 24 - ph * 30, 4 + ph * 6, `rgba(235,235,235,${.7 * (1 - ph)})`);
+      circle(base[0] + Math.sin(ph * 6 + k) * 4, base[1] - 24 - ph * 30, 4 + ph * 6, `rgba(240,240,240,${.7 * (1 - ph)})`);
     }
   }
   // round sign on the gable
   const g = [(C[0] + B[0] + R1[0] * 2) / 4, (C[1] + B[1] - Hh * 2 + R1[1] * 2) / 4 + 2];
-  circle(g[0], g[1], 12, "#fff"); ctx.strokeStyle = "#8A5530"; ctx.lineWidth = 2; ctx.stroke();
-  drawEmoji(st.sign, g[0], g[1], 15);
+  if (!st.barn) {
+    circle(g[0], g[1] + 1.5, 12.5, "rgba(0,0,0,.18)");
+    circle(g[0], g[1], 12, "#FFFDF4"); ctx.strokeStyle = "#8A5530"; ctx.lineWidth = 2; ctx.stroke();
+    drawEmoji(st.sign, g[0], g[1], 15);
+  }
   const top = Math.min(R0[1], R1[1]);
   return {rect:[D[0] - 4, top - 30, B[0] + 4, C[1] + 6], cx:(D[0] + B[0]) / 2, top};
 }
@@ -1427,13 +1747,16 @@ function drawBuilding(bid) {
 
 function drawFence(p, q) {
   const n = Math.max(2, Math.round(Math.hypot(q[0] - p[0], q[1] - p[1]) / 16));
-  ctx.strokeStyle = "#B57A42"; ctx.lineWidth = 2.5; ctx.beginPath();
-  for (const h of [5, 11]) { ctx.moveTo(p[0], p[1] - h); ctx.lineTo(q[0], q[1] - h); }
-  ctx.stroke();
   for (let k = 0; k <= n; k++) {
     const [x, y] = lerp(p, q, k / n);
-    ctx.fillStyle = "#8B5A2B"; ctx.fillRect(x - 2, y - 15, 4, 16);
-    ctx.fillStyle = "#C28A52"; ctx.fillRect(x - 2, y - 16, 4, 2);
+    ctx.fillStyle = "#A06A38"; ctx.fillRect(x - 2.5, y - 15, 2.5, 16);
+    ctx.fillStyle = "#77491F"; ctx.fillRect(x, y - 15, 2.5, 16);
+    ctx.fillStyle = "#D9A56E"; ctx.beginPath(); ctx.moveTo(x - 2.5, y - 15); ctx.lineTo(x, y - 17.5); ctx.lineTo(x + 2.5, y - 15); ctx.fill();
+  }
+  ctx.lineCap = "round";
+  for (const h of [5, 11]) {
+    ctx.strokeStyle = "#B57A42"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p[0], p[1] - h); ctx.lineTo(q[0], q[1] - h); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,225,170,.5)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p[0], p[1] - h - 1); ctx.lineTo(q[0], q[1] - h - 1); ctx.stroke();
   }
 }
 
@@ -1444,7 +1767,7 @@ function drawPen(k) {
     fillPoly([A, B, C, D], "rgba(170,120,60,.25)");
     path([A, B, C, D]); ctx.setLineDash([6, 5]); ctx.strokeStyle = "rgba(90,52,19,.5)"; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
     const [x, y] = iso(P.gx + P.w / 2, P.gy + P.h / 2);
-    drawEmoji(a.e, x - 36, y + 8, 28);
+    if (!drawArt(ART_OF[k], x - 36, y + 20, 30)) drawEmoji(a.e, x - 36, y + 8, 28);
     if (S.level >= a.lvl) drawSign(x, y + 16, a.penCost + "", "🪙", "#6DB23E");
     else drawSign(x, y + 16, "Lv " + a.lvl, "🔒");
     nextHits.push({type:"penLot", k, poly:[A, B, C, D]});
@@ -1460,48 +1783,73 @@ function drawPen(k) {
   const order = pen.list.map((end, i) => i).sort((i, j) => { const p = animFor(k, i), q = animFor(k, j); return p.x + p.y - q.x - q.y; });
   for (const i of order) {
     const end = pen.list[i], w = animWorld(k, i), an = w.a, [x, y] = iso(w.x, w.y);
-    ellipse(x, y, a.size * .45, a.size * .17, "rgba(0,0,0,.18)");
-    const hop = an.walk ? Math.abs(Math.sin(T / 110 + i)) * 3 : 0;
-    drawEmoji(a.e, x, y - a.size * .42 - hop, a.size, an.flip);
+    shadow(x + 2, y, a.size * .5, a.size * .18, .3);
+    const hop = an.walk ? Math.abs(Math.sin(T / (an.gallop > T ? 70 : 110) + i)) * (an.gallop > T ? 5 : 3) : 0;
+    if (!drawArt(ART_OF[k], x, y + 2 - hop, a.size * 1.15, an.flip)) drawEmoji(a.e, x, y - a.size * .42 - hop, a.size, an.flip);
+    if (loveOf(meta(k, i)) >= 70 && !(end === 0 || end <= t)) drawEmoji("💖", x - 12, y - a.size - 6 + bob(1, 2, i), 10);
     if (end === 0) {
       circle(x + 8, y - a.size - 2, 2.5, "#fff"); circle(x + 12, y - a.size - 8, 3.5, "#fff");
       circle(x + 18, y - a.size - 20, 11, "#fff"); drawEmoji(ITEMS[a.feed].e, x + 18, y - a.size - 20, 12);
     } else if (end <= t) {
       const by = y - a.size - 14 + bob(1.4, 3, i);
-      circle(x, by, 13, "rgba(255,255,255,.9)"); drawEmoji(ITEMS[a.out].e, x, by, 18);
+      circle(x, by, 13, "rgba(255,255,255,.9)"); drawEmoji(outE(a), x, by, 18);
     }
     nextHits.push({type:"animal", k, i, rect:[x - 18, y - a.size - 28, x + 18, y + 6], mv:"p:" + k});
   }
   drawFence(D, C); drawFence(C, B);
   drawSign(...iso(P.gx + P.w - .2, P.gy + P.h + .1), pen.list.length + "/" + a.max, a.e);
+  if (k === "horse") { // a little stable shelter in the back corner
+    const sb = {gx:P.gx + P.w - 1.4, gy:P.gy + .2, w:1.2, h:1.2};
+    drawHouse(sb, {wl:"#B5763D", wr:"#96602F", rf:"#7A4A2A", rb:"#94603A", door:"#5E3A1C", barn:true, sign:"🐴"});
+  }
 }
 
-const FALL_LEAVES = [["#E07B24", "#F29A3E"], ["#D9531E", "#EE7440"], ["#E8B524", "#F5CD4E"], ["#C7862B", "#DDA146"]];
-function drawTree(tr) {
-  const [x, y] = iso(tr.gx, tr.gy), s = tr.s;
-  ellipse(x + 4, y, 17 * s, 7 * s, "rgba(0,0,0,.16)");
-  ctx.fillStyle = "#7B4F2A"; ctx.fillRect(x - 3 * s, y - 16 * s, 6 * s, 16 * s);
-  if (tr.pine) {
-    for (let k = 0; k < 3; k++) {
-      const w = (19 - k * 4) * s, yy = y - (14 + k * 11) * s;
-      fillPoly([[x - w, yy], [x + w, yy], [x, yy - 20 * s]], k % 2 ? "#3C8431" : "#347A2B");
-      if (THEME.snowy) fillPoly([[x - w * .45, yy - 11 * s], [x + w * .45, yy - 11 * s], [x, yy - 20 * s]], "#F4FAFF");
+const LEAVES = {
+  summer:[["#4E9E35", "#94D766", "#2B6A20"], ["#5AAA3C", "#A2DE70", "#33752A"]],
+  spring:[["#62B843", "#A9E27B", "#3A7C2A"], ["#EFA3C6", "#FFE3F0", "#C1709A"]],
+  fall:[["#E07B24", "#FFC062", "#9A4A12"], ["#D9531E", "#FF9A60", "#8E2E0E"], ["#E8B524", "#FFE27A", "#A07410"], ["#C7862B", "#F2BB64", "#80521A"]],
+};
+function treeSprite(tr) {
+  const snowy = THEME.snowy;
+  if (tr.pine) return sprite("pine|" + snowy, 60, 92, (x) => {
+    x.fillStyle = "#6B4424"; x.fillRect(27, 74, 6, 14);
+    for (let k = 0; k < 4; k++) {
+      const w = 25 - k * 5, yb = 80 - k * 14, yt = yb - 26;
+      const g = x.createLinearGradient(30 - w, 0, 30 + w, 0);
+      g.addColorStop(0, "#5BA844"); g.addColorStop(.45, "#347A2B"); g.addColorStop(1, "#1F5019");
+      x.fillStyle = g; x.beginPath(); x.moveTo(30, yt);
+      for (let j = 0; j <= 6; j++) x.lineTo(30 + w - j * (2 * w / 6), yb + (j % 2 ? 3 : 0));
+      x.closePath(); x.fill();
+      if (snowy) { x.fillStyle = "#F4FAFF"; x.beginPath(); x.moveTo(30, yt); x.lineTo(30 + w * .55, yt + 14); x.lineTo(30 + w * .2, yt + 11); x.lineTo(30, yt + 14); x.lineTo(30 - w * .25, yt + 11); x.lineTo(30 - w * .55, yt + 14); x.closePath(); x.fill(); }
     }
-    return;
-  }
-  if (THEME.season === "winter") { // bare branches with snow
-    ctx.strokeStyle = "#7B4F2A"; ctx.lineCap = "round"; ctx.lineWidth = 2.5 * s; ctx.beginPath();
-    ctx.moveTo(x, y - 14 * s); ctx.lineTo(x, y - 40 * s);
-    for (const [a, b, c, d] of [[0, -22, -12, -34], [0, -26, 12, -38], [0, -32, -8, -44], [0, -34, 7, -46]]) { ctx.moveTo(x + a * s, y + b * s); ctx.lineTo(x + c * s, y + d * s); }
-    ctx.stroke();
-    if (THEME.snowy) for (const [a, b] of [[-12, -35], [12, -39], [-8, -45], [7, -47], [0, -41]]) ellipse(x + a * s, y + b * s, 4 * s, 2 * s, "#F4FAFF");
-    return;
-  }
-  let dark = "#3F8A2B", light = "#57A83A", hi = "#86CF58";
-  if (THEME.season === "fall") { const f = FALL_LEAVES[Math.floor((tr.h || 0) * 4)]; dark = f[0]; light = f[1]; hi = "#FFE08A"; }
-  else if (THEME.season === "spring" && (tr.h || 0) < .3) { light = "#F7B6D2"; hi = "#FFE3F0"; } // a few blossom trees
-  circle(x, y - 30 * s, 17 * s, dark); circle(x - 10 * s, y - 23 * s, 12 * s, dark); circle(x + 10 * s, y - 24 * s, 12 * s, dark);
-  circle(x - 4 * s, y - 34 * s, 11 * s, light); circle(x + 6 * s, y - 27 * s, 8 * s, light); circle(x - 7 * s, y - 38 * s, 4 * s, hi);
+  });
+  if (THEME.season === "winter") return sprite("bare|" + snowy, 60, 92, (x) => {
+    x.strokeStyle = "#7B4F2A"; x.lineCap = "round";
+    x.lineWidth = 5; x.beginPath(); x.moveTo(30, 88); x.lineTo(30, 40); x.stroke();
+    x.lineWidth = 2.5; x.beginPath();
+    for (const [a, b, c, d] of [[30, 64, 16, 46], [30, 58, 45, 40], [30, 48, 20, 30], [30, 44, 40, 26], [16, 46, 10, 38], [45, 40, 52, 32], [30, 40, 30, 22]]) { x.moveTo(a, b); x.lineTo(c, d); }
+    x.stroke();
+    if (snowy) { x.fillStyle = "#F4FAFF"; for (const [a, b] of [[16, 45], [44, 39], [20, 29], [40, 25], [30, 22], [10, 37]]) { x.beginPath(); x.ellipse(a, b, 4, 2, 0, 0, 7); x.fill(); } }
+  });
+  const set = LEAVES[THEME.season] || LEAVES.summer, idx = Math.floor((tr.h || 0) * set.length * .999);
+  const pal = THEME.season === "spring" && (tr.h || 0) > .3 ? set[0] : set[idx];
+  return sprite("oak|" + THEME.season + "|" + pal[0], 60, 92, (x) => {
+    const t = x.createLinearGradient(25, 0, 35, 0); t.addColorStop(0, "#9A6838"); t.addColorStop(1, "#5A3718");
+    x.fillStyle = t; x.beginPath(); x.moveTo(25, 88); x.lineTo(35, 88); x.lineTo(33, 52); x.lineTo(27, 52); x.closePath(); x.fill();
+    x.fillStyle = "#5A3718"; x.beginPath(); x.ellipse(30, 88, 7, 2, 0, 0, 7); x.fill();
+    const [base, light, dark] = pal;
+    for (const [cx, cy, r] of [[30, 42, 20], [15, 52, 13], [45, 52, 13], [21, 34, 15], [40, 36, 15], [30, 56, 13], [30, 24, 13]]) ball(x, cx, cy, r, base, light, dark);
+    let sd = 3; const R = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 26; i++) { x.fillStyle = R() < .6 ? light : dark; x.globalAlpha = .55; x.beginPath(); x.arc(12 + R() * 36, 16 + R() * 44, .8 + R() * 1.6, 0, 7); x.fill(); }
+    x.globalAlpha = 1;
+    if (pal === LEAVES.spring[1]) for (let i = 0; i < 14; i++) { x.fillStyle = "#fff"; x.beginPath(); x.arc(12 + R() * 36, 16 + R() * 40, 1.3, 0, 7); x.fill(); }
+  });
+}
+function drawTree(tr) {
+  const [x, y] = iso(tr.gx, tr.gy), s = tr.s * .8;
+  shadow(x + 10 * s, y + 1, 30 * s, 11 * s, .28);
+  const spr = treeSprite(tr);
+  ctx.drawImage(spr, x - 30 * s, y - 88 * s, 60 * s, 92 * s);
 }
 
 function drawDecor(j) {
@@ -1513,7 +1861,7 @@ function drawDecor(j) {
     return;
   }
   const size = sz === 2 ? 70 : 34;
-  ellipse(x, y, size * .42, size * .15, "rgba(0,0,0,.18)");
+  shadow(x + 3, y, size * .5, size * .17, .3);
   drawEmoji(D.e, x, y - size * .4, size);
   if (D.glow) glows.push([x, y - size * .45, sz === 2 ? 40 : 22]);
   nextHits.push({type:"decor", j, rect:[x - size / 2, y - size * .9, x + size / 2, y + 6], mv:"d:" + j});
@@ -1579,7 +1927,7 @@ function drawBoard() {
 
 function drawTruck() {
   const L = LAYOUT.truck, [x, y] = iso(L.gx + .5, L.gy + .5);
-  ellipse(x, y + 2, 30, 8, "rgba(0,0,0,.15)");
+  shadow(x + 4, y + 2, 36, 10, .3);
   drawEmoji("🚚", x, y - 20, 58, true);
   nextHits.push({type:"orders", rect:[x - 36, y - 50, x + 36, y + 8]});
 }
@@ -1587,7 +1935,7 @@ function drawTruck() {
 function drawGift() {
   if (S.lastDaily === today()) return;
   const g = giftPos(), [x, y] = iso(g.gx, g.gy), by = y - 16 + bob(1.2, 4);
-  ellipse(x, y, 14, 5, "rgba(0,0,0,.15)");
+  shadow(x + 2, y, 17, 6, .3);
   drawEmoji("🎁", x, by, 30);
   for (let k = 0; k < 3; k++) { const ph = (T / 900 + k / 3) % 1; drawEmoji("✨", x + Math.cos(k * 2.1) * 20, by - 10 - ph * 12, 10 + (1 - ph) * 4); }
   nextHits.push({type:"gift", rect:[x - 22, y - 44, x + 22, y + 6]});
@@ -1639,6 +1987,10 @@ let flashAt = -1e9, nextFlash = 0;
 const BURSTS = [];
 function drawSkyFx() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // warm sunlight and a soft vignette around the edges
+  const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .42, W / 2, H / 2, Math.hypot(W, H) * .62);
+  vg.addColorStop(0, "rgba(10,30,50,0)"); vg.addColorStop(1, "rgba(10,30,50,.13)");
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
   const w = weatherNow(), kind = w ? w.kind : null, t = T;
   if (kind && kind !== "clear") { // drifting cloud shadows
     ctx.fillStyle = `rgba(30,40,60,${kind === "partly" ? .07 : .1})`;
@@ -1700,7 +2052,7 @@ function drawWalker(w) {
   const {gx, gy} = walkerPos(w);
   if (gx < 0 || gx > S.land.w) return;
   const [x, y] = iso(gx, gy);
-  ellipse(x, y, 8, 3, "rgba(0,0,0,.15)");
+  shadow(x + 2, y, 10, 3.5, .28);
   drawEmoji(w.e, x, y - 12 - Math.abs(Math.sin(T / 160 + w.off)) * 2, 24, w.dir > 0);
 }
 
@@ -1720,11 +2072,12 @@ function drawFx() {
 
 function draw() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#6EC3E6"; ctx.fillRect(0, 0, W, H);
-  // gentle water ripples around the island
-  ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 2;
-  for (let k = 0; k < 14; k++) {
-    const x = ((k * 173 + T / 60) % (W + 80)) - 40, y = (k * 97) % H;
+  ctx.fillStyle = vgrad(0, H, "#8ED8F2", "#5FB6E2", "#3F97CC"); ctx.fillRect(0, 0, W, H);
+  // gentle waves and sparkles on the sea
+  ctx.lineCap = "round";
+  for (let k = 0; k < 22; k++) {
+    const x = ((k * 173 + T / 60) % (W + 80)) - 40, y = (k * 97 + (k % 3) * 31) % H, a = .25 + .2 * Math.sin(T / 700 + k);
+    ctx.strokeStyle = `rgba(255,255,255,${a})`; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 8, y - 4, x + 16, y); ctx.stroke();
   }
   ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, dpr * (W / 2 - cam.x * zoom), dpr * (H / 2 - cam.y * zoom));
@@ -1755,6 +2108,7 @@ function draw() {
   for (const w of WALKERS) { const p = walkerPos(w); objs.push({d:p.gx + p.gy, f:() => drawWalker(w)}); }
   S.decor.placed.forEach((_, j) => { const b = boxOf("d:" + j); objs.push({d:b.gx + b.w + b.gy + b.h, f:() => drawDecor(j)}); });
   holidayObjects(objs, boxes);
+  S.pets.forEach((_, j) => { const a = petPos(j); objs.push({d:a.x + a.y, f:() => drawPet(j)}); });
   const covered = (tr) => boxes.some(([, b]) => tr.gx >= b.gx - .2 && tr.gx < b.gx + b.w + .2 && tr.gy >= b.gy - .2 && tr.gy < b.gy + b.h + .2);
   for (const tr of SCENE.trees) if (!covered(tr)) objs.push({d:tr.gx + tr.gy, f:() => drawTree(tr)});
   objs.sort((a, b) => a.d - b.d).forEach(o => o.f());
@@ -1780,7 +2134,7 @@ function frame(tn) {
     const dx = move.sx < m ? -sp : move.sx > W - m ? sp : 0, dy = move.sy < m + 60 ? -sp : move.sy > H - m ? sp : 0;
     if (dx || dy) { cam.x += dx; cam.y += dy; clampCam(); dragMoveTo(move.sx, move.sy); }
   }
-  updateAnimals(dt);
+  updateAnimals(dt); updatePets(dt);
   draw();
   requestAnimationFrame(frame);
 }
@@ -1912,18 +2266,19 @@ function onTap(sx, sy) {
     }
     case "penLot": {
       const a = ANIMALS[h.k];
-      openTray(`<div class="tray-title">${a.e} ${a.pen}</div><div class="tray-sub">Raise ${a.n.toLowerCase()}s for ${ITEMS[a.out].e} ${ITEMS[a.out].n.toLowerCase()}</div>
+      openTray(`<div class="tray-title">${a.e} ${a.pen}</div><div class="tray-sub">Raise ${a.n.toLowerCase()}s for ${outE(a)} ${outName(a)}</div>
         <div class="row">${S.level >= a.lvl ? `<button class="btn gold" data-act="pen" data-k="${h.k}">Build · ${a.penCost} 🪙</button>` : `<span class="tray-sub">🔒 Unlocks at level ${a.lvl}</span>`}</div>`, sx, sy);
       break;
     }
     case "animal": {
       const end = S.pens[h.k].list[h.i];
       if (end && end <= t) { collectAll(h.k); break; }
-      sfx(h.k);
-      if (end === 0) { penTray(h.k, sx, sy); break; }
-      tapAnimal(h.k, h.i);
+      sfx(h.k); animalTray(h.k, h.i, sx, sy);
       break;
     }
+    case "pet":
+      if (!petGift(h.j)) { sfx(S.pets[h.j].kind); petTray(h.j, sx, sy); }
+      break;
     case "pen":
       if (!collectAll(h.k)) penTray(h.k, sx, sy);
       break;
@@ -1970,13 +2325,47 @@ function growTray(i, sx, sy) {
     const tb = $("#trayBody"); if (tb) tb.innerHTML = body();
   }});
 }
+// The card that opens when you tap an animal: its name, how happy it is, and things to do with it.
+function animalTray(k, i, sx, sy) {
+  const a = ANIMALS[k], pen = S.pens[k], m = meta(k, i), w = () => animWorld(k, i);
+  const sig = () => [pen.list[i] === 0, pen.list[i] <= now(), Math.round(loveOf(m) / 20), cdLeft(m.petAt, PET_CD) > 0, cdLeft(m.brushAt, BRUSH_CD) > 0, cdLeft(m.playAt, PLAY_CD) > 0, m.name].join();
+  const btn = (act, label, at, cd) => { const l = cdLeft(at || 0, cd); return `<button class="btn plain sm" data-act="${act}" data-k="${k}" data-i="${i}" ${l ? "disabled" : ""}>${label}${l ? " · " + fmt(l).split(" ")[0] : ""}</button>`; };
+  const body = () => {
+    const end = pen.list[i], t = now();
+    const status = end === 0 ? `Hungry: wants ${ITEMS[a.feed].e} ${ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + outE(a) : "Giving pony rides 🪙") + " · " + timer(end);
+    return `<div class="acard">${artImg(ART_OF[k], a.e)}<div><div class="tray-title" style="text-align:left">${m.name}<button class="rn" data-act="rename" data-k="${k}" data-i="${i}" aria-label="Rename">✏️</button></div>
+      <div class="hearts">${hearts(m)}</div><div class="tray-sub" style="text-align:left">${status}</div></div></div>
+      <div class="row">${end === 0 ? `<button class="btn sm" data-act="feedOne" data-k="${k}" data-i="${i}">Feed ${ITEMS[a.feed].e} (${have(a.feed)})</button>` : ""}
+      ${btn("petA", "🤚 Pet", m.petAt, PET_CD)}${btn("brushA", "✨ Brush", m.brushAt, BRUSH_CD)}${k === "horse" ? btn("rideA", "🏇 Ride", m.playAt, PLAY_CD) : ""}</div>
+      <div class="tray-hint">${loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
+  };
+  let last = sig();
+  openTray(`<div id="trayBody">${body()}</div>`, sx, sy, {k, i, redraw:() => { const tb = $("#trayBody"); if (tb) { tb.innerHTML = body(); last = sig(); } },
+    update:() => { if (sig() !== last) tray.redraw(); }});
+}
+function petTray(j, sx, sy) {
+  const p = S.pets[j], P = PETS[p.kind];
+  const sig = () => [Math.round(loveOf(p) / 20), cdLeft(p.petAt, PET_CD) > 0, cdLeft(p.playAt, PLAY_CD) > 0, cdLeft(p.treatAt, TREAT_CD) > 0, p.name, giftReady(p)].join();
+  const btn = (act, label, at, cd) => { const l = cdLeft(at || 0, cd); return `<button class="btn plain sm" data-act="${act}" data-i="${j}" ${l ? "disabled" : ""}>${label}${l ? " · " + fmt(l).split(" ")[0] : ""}</button>`; };
+  const body = () => {
+    const next = GIFT_CD - (now() - p.giftAt);
+    return `<div class="acard">${artImg(ART_OF[p.kind], P.e)}<div><div class="tray-title" style="text-align:left">${p.name}<button class="rn" data-act="renamePet" data-i="${j}" aria-label="Rename">✏️</button></div>
+      <div class="hearts">${hearts(p)}</div><div class="tray-sub" style="text-align:left">${loveOf(p) < 40 ? "Wants some love before bringing gifts" : next > 0 ? "Next gift in about " + fmt(next).split(" ")[0] : "Has a gift for you!"}</div></div></div>
+      <div class="row">${btn("petP", "🤚 Pet", p.petAt, PET_CD)}${btn("playP", P.toy + " Play", p.playAt, PLAY_CD)}${btn("treatP", "🍖 Treat · 10🪙", p.treatAt, TREAT_CD)}</div>
+      <div class="tray-hint">Happy pets bring you coins, gems and sometimes a decoration</div>`;
+  };
+  let last = sig();
+  openTray(`<div id="trayBody">${body()}</div>`, sx, sy, {j, redraw:() => { const tb = $("#trayBody"); if (tb) { tb.innerHTML = body(); last = sig(); } },
+    update:() => { if (sig() !== last) tray.redraw(); }});
+}
+
 function penTray(k, sx, sy) {
   const a = ANIMALS[k], pen = S.pens[k];
   const hungry = pen.list.filter(e => e === 0).length;
   openTray(`<div class="tray-title">${a.e} ${a.pen}</div>
     ${hungry ? `<div class="tools"><div class="tool" data-tool="feed" data-k="${k}"><span class="e">${ITEMS[a.feed].e}</span><span class="n">${have(a.feed)}</span></div></div>
       <div class="tray-hint">${have(a.feed) ? "Drag feed onto hungry animals, or tap to feed all" : "Make " + ITEMS[a.feed].n.toLowerCase() + " at the Feed Mill"}</div>`
-      : `<div class="tray-sub">Everyone is busy making ${ITEMS[a.out].e}</div>`}
+      : `<div class="tray-sub">${a.out ? "Everyone is busy making " + outE(a) : "Everyone is out giving pony rides"}</div>`}
     ${pen.list.length < a.max ? `<div class="row"><button class="btn gold sm" data-act="animal" data-k="${k}">Buy ${a.e} · ${a.cost} 🪙</button></div>` : ""}`, sx, sy);
 }
 
@@ -2242,10 +2631,17 @@ function panelShop() {
   h += `<h4>Animals</h4><div class="shop">`;
   for (const [k, a] of Object.entries(ANIMALS)) {
     const pen = S.pens[k];
-    if (pen.owned) h += `<div class="scard slot"><span class="e">${a.e}</span><b>${a.n}</b><small>${pen.list.length}/${a.max} · makes ${ITEMS[a.out].e}</small>
+    if (pen.owned) h += `<div class="scard slot">${artImg(ART_OF[k], a.e)}<b>${a.n}</b><small>${pen.list.length}/${a.max} · ${a.out ? "makes " + outE(a) : "earns 🪙 from rides"}</small>
       ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">${a.cost} 🪙</button>` : `<small>Pen is full</small>`}</div>`;
-    else if (S.level >= a.lvl) h += `<div class="scard slot"><span class="e">${a.e}</span><b>${a.pen}</b><small>Comes with 1 ${a.n.toLowerCase()}</small><button class="btn gold sm" data-act="pen" data-k="${k}">${a.penCost} 🪙</button></div>`;
+    else if (S.level >= a.lvl) h += `<div class="scard slot">${artImg(ART_OF[k], a.e)}<b>${a.pen}</b><small>Comes with 1 ${a.n.toLowerCase()}</small><button class="btn gold sm" data-act="pen" data-k="${k}">${a.penCost} 🪙</button></div>`;
     else h += `<div class="scard slot locked"><span class="e">🔒</span><b>${a.pen}</b><small>Level ${a.lvl}</small></div>`;
+  }
+  h += `</div><h4>Pets</h4><div class="shop">`;
+  for (const [k, P] of Object.entries(PETS)) {
+    const owned = S.pets.find(p => p.kind === k);
+    h += owned ? `<div class="scard slot">${artImg(ART_OF[k], P.e)}<b>${owned.name}</b><small>Your ${P.n.toLowerCase()} · tap them on the farm</small></div>`
+      : S.level >= P.lvl ? `<div class="scard slot">${artImg(ART_OF[k], P.e)}<b>${P.n}</b><small>Roams your farm and brings gifts</small><button class="btn gold sm" data-act="buyPet" data-k="${k}">${P.cost} 🪙</button></div>`
+      : `<div class="scard slot locked"><span class="e">🔒</span><b>${P.n}</b><small>Level ${P.lvl}</small></div>`;
   }
   h += `</div><h4>Buildings</h4><div class="shop">`;
   for (const [k, b] of Object.entries(BUILDINGS)) {
@@ -2268,7 +2664,7 @@ const promise = () => `<div class="promise"><b>💎 No real money. Ever.</b><div
   <ul><li>+2 💎 every level up</li><li>+1 💎 from the daily gift 🎁</li><li>+1 💎 every 10th order, and some orders pay 💎</li></ul></div>`;
 
 function panelFarm() {
-  return {title:"Your Farm", body:`<div class="stats">
+  return {title:"Your Farm", body:`<a class="btn gold wide" href="../farm3d/" style="text-decoration:none;margin-bottom:12px">🌻 Play Sunny Acres 3D (bring this farm along)</a><div class="stats">
       <div class="stat slot"><b>${S.stats.harvests}</b>fields harvested</div>
       <div class="stat slot"><b>${S.stats.orders}</b>orders delivered</div>
       <div class="stat slot"><b>${S.stats.made}</b>goods made</div>
@@ -2276,8 +2672,24 @@ function panelFarm() {
     <h4>Sound</h4><div class="toggles">
       <button class="btn ${snd.on ? "" : "plain"} sm" data-act="sound">${snd.on ? "🔊 Sounds on" : "🔇 Sounds off"}</button>
       <button class="btn ${snd.music ? "" : "plain"} sm" data-act="music">${snd.music ? "🎵 Music on" : "🎵 Music off"}</button></div>
+    <h4>Backup</h4>
+    <p style="font-weight:800;margin:0 0 6px">${S.lastBackup ? "Last backup: " + new Date(S.lastBackup).toLocaleDateString() : "⚠️ No backup yet."}
+      <span class="muted">A backup keeps your farm safe if you get a new phone or clear your browser.</span></p>
+    <div class="toggles"><button class="btn sm" data-act="backupFile">💾 Save backup file</button><button class="btn sm" data-act="backupCode">📋 Backup code</button></div>
+    <div class="toggles"><button class="btn plain sm" data-act="restoreFile">📂 Restore from file</button><button class="btn plain sm" data-act="restorePaste">📝 Restore from code</button></div>
     <h4>How to play</h4>${howTo()}${promise()}
     <p class="center" style="margin:18px 0 0"><button class="btn plain sm" data-act="reset">Start a new farm…</button></p>`};
+}
+
+function panelBackup({mode, code}) {
+  if (mode === "show") return {title:"Backup code", body:`<div class="backup">
+    <p style="font-weight:800;margin:0 0 8px">Copy this code and keep it somewhere safe, like a note or a message to yourself. To get your farm back, paste it into <b>Restore from code</b>.</p>
+    <textarea id="codeBox" readonly>${code}</textarea>
+    <p class="center" style="margin:10px 0 0"><button class="btn" data-act="copyCode">📋 Copy code</button></p></div>`};
+  return {title:"Restore farm", body:`<div class="backup">
+    <p style="font-weight:800;margin:0 0 8px">Paste a backup code below. This replaces the farm on this phone.</p>
+    <textarea id="codeBox" placeholder="Paste your backup code here"></textarea>
+    <p class="center" style="margin:10px 0 0"><button class="btn gold" data-act="restoreCode">Restore</button></p></div>`};
 }
 const howTo = () => `<ul class="howto">
   <li>Tap an empty field, then <b>drag a seed</b> across the fields.</li>
@@ -2286,6 +2698,7 @@ const howTo = () => `<ul class="howto">
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the road, at your own price.</li>
   <li><b>Press and hold</b> a building, pen, field or decoration to move it.</li>
+  <li>Tap an animal to name it, pet it and brush it. Happy animals make more. Get a 🐕 dog or 🐈 cat in the Shop: they bring gifts!</li>
   <li>Win decorations in 🎪 special events, and grow your land from the 🛒 Shop.</li>
   <li>Tap the weather button to match your real weather.</li>
   <li>Drag the map to look around. Pinch or use +/− to zoom.</li></ul>`;
@@ -2310,7 +2723,7 @@ function panelSig() {
   return "";
 }
 function renderPanel() {
-  const v = {event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, orders:panelOrders, barn:panelBarn, shop:panelShop, farm:panelFarm, level:panelLevel, welcome:panelWelcome}[panel.type](panel.arg);
+  const v = {backup:panelBackup, event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, orders:panelOrders, barn:panelBarn, shop:panelShop, farm:panelFarm, level:panelLevel, welcome:panelWelcome}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
   $("#panelRoot").innerHTML = `<div class="scrim" data-act="closePanel"><div class="panel" role="dialog" aria-modal="true" aria-label="${v.title}">
     <div class="ribbon out">${v.title}</div><button class="xbtn" data-act="closePanel" aria-label="Close">✕</button>
@@ -2345,6 +2758,26 @@ document.addEventListener("click", (e) => {
   const d = el.dataset, i = +d.i;
   switch (d.act) {
     case "closePanel": closePanel(); break;
+    case "backupFile": backupFile(); break;
+    case "feedOne": if (feedOne(d.k, i)) { commit(); tray && tray.redraw && tray.redraw(); } else toast("You need " + ITEMS[ANIMALS[d.k].feed].n.toLowerCase() + ". " + (ANIMALS[d.k].feed === "carrot" ? "Grow some in your fields." : "Make it at the Feed Mill.")); break;
+    case "petA": case "brushA": case "rideA": {
+      const m = meta(d.k, i), w = animWorld(d.k, i), act = {petA:"pet", brushA:"brush", rideA:"play"}[d.act];
+      if (interact(m, d.k, act, w.x, w.y) && act === "play") { w.a.gallop = T + 5000; w.a.rest = 0; }
+      tray && tray.redraw && tray.redraw(); break;
+    }
+    case "petP": case "playP": case "treatP": {
+      const p = S.pets[i], a = petPos(i), act = {petP:"pet", playP:"play", treatP:"treat"}[d.act];
+      if (interact(p, p.kind, act, a.x, a.y) && act === "play") { a.zoom = T + 5000; a.rest = 0; a.tx = 0; }
+      tray && tray.redraw && tray.redraw(); break;
+    }
+    case "rename": renameThing(meta(d.k, i), ANIMALS[d.k].n.toLowerCase()); tray && tray.redraw && tray.redraw(); break;
+    case "renamePet": renameThing(S.pets[i], PETS[S.pets[i].kind].n.toLowerCase()); tray && tray.redraw && tray.redraw(); break;
+    case "buyPet": if (buyPet(d.k)) { closePanel(); const h = boxOf("house"); focusOn(h.gx + h.w, h.gy + h.h); } break;
+    case "backupCode": showBackupCode(); break;
+    case "copyCode": copyCode(); break;
+    case "restoreFile": $("#restoreInput").click(); break;
+    case "restorePaste": openPanel("backup", {mode:"restore"}); break;
+    case "restoreCode": restoreFrom(($("#codeBox") || {}).value || ""); break;
     case "placeDecor": closePanel(); placeDecor(d.id); break;
     case "buyDecor": buyDecor(d.id); break;
     case "storeDecor": closeTray(); storeDecor(i); break;
@@ -2477,6 +2910,9 @@ const SOUNDS = {
   chicken:() => { tone(1150, .07, {type:"square", vol:.035, to:720, lp:2500}); tone(1250, .09, {type:"square", vol:.035, to:650, lp:2500, at:.11}); },
   cow:() => tone(165, .75, {type:"sawtooth", vol:.09, to:118, lp:700, attack:.12}),
   sheep:() => tone(330, .55, {type:"sawtooth", vol:.06, to:290, lp:1500, attack:.05, vib:9}),
+  horse:() => { tone(620, .7, {type:"sawtooth", vol:.05, to:300, lp:2200, attack:.03, vib:14}); noise(.3, {vol:.06, freq:600, at:.6}); },
+  dog:() => { tone(520, .09, {type:"square", vol:.05, to:330, lp:1600}); tone(560, .1, {type:"square", vol:.05, to:340, lp:1600, at:.16}); },
+  cat:() => tone(700, .45, {type:"triangle", vol:.08, to:950, attack:.08, vib:5}),
 };
 function sfx(name) { if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
 
@@ -2502,6 +2938,79 @@ function musicTick() {
 setInterval(musicTick, 120);
 document.addEventListener("pointerdown", () => { if (snd.on) audio(); }, true); // browsers only allow sound after a touch
 
+/* ============================================================
+   BACKUP & RESTORE
+   A backup is a small file (or a code you can paste into a note) holding the whole farm.
+   ============================================================ */
+const backupData = () => ({game:"sunny-acres", v:1, at:Date.now(), farm:S, weather:WX});
+const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function toCode(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if (window.CompressionStream) {
+    const z = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    return "SA2:" + b64(new Uint8Array(await new Response(z).arrayBuffer()));
+  }
+  return "SA1:" + b64(bytes);
+}
+async function fromCode(text) {
+  const code = text.trim();
+  if (code.startsWith("{")) return JSON.parse(code);
+  const clean = code.replace(/\s+/g, ""), tag = clean.slice(0, 4);
+  let bytes = unb64(clean.slice(4));
+  if (tag === "SA2:") bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+  else if (tag !== "SA1:") throw new Error("not a backup");
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function markBackedUp() { S.lastBackup = Date.now(); save(); if (panel && panel.type === "farm") renderPanel(); }
+async function backupFile() {
+  const name = "sunny-acres-backup-" + today() + ".json";
+  const blob = new Blob([JSON.stringify(backupData())], {type:"application/json"});
+  try { // phones: open the share sheet so it can go to Files, Drive, email…
+    const file = new File([blob], name, {type:"application/json"});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title:"Sunny Acres backup"});
+      markBackedUp(); toast("💾 Backup saved"); return;
+    }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  markBackedUp(); toast("💾 Backup file downloaded");
+}
+async function showBackupCode() {
+  const code = await toCode(backupData());
+  openPanel("backup", {mode:"show", code});
+}
+function copyCode() {
+  const box = $("#codeBox");
+  if (!box) return;
+  box.select();
+  const done = () => { markBackedUp(); toast("📋 Code copied! Paste it somewhere safe."); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(box.value).then(done, () => { document.execCommand("copy"); done(); });
+  else { document.execCommand("copy"); done(); }
+}
+async function restoreFrom(text) {
+  let data;
+  try { data = await fromCode(text); } catch (e) { data = null; }
+  const farm = data && (data.farm || data);
+  if (!farm || !Array.isArray(farm.plots) || typeof farm.level !== "number") { toast("That doesn't look like a Sunny Acres backup."); sfx("error"); return; }
+  const when = data.at ? " from " + new Date(data.at).toLocaleDateString() : "";
+  if (!confirm("Restore the level " + farm.level + " farm" + when + "? The farm on this phone will be replaced.")) return;
+  restoring = true;
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(farm));
+    if (data.weather) localStorage.setItem(WX_KEY, JSON.stringify(data.weather));
+  } catch (e) { restoring = false; toast("Couldn't restore. Is the phone's storage full?"); return; }
+  location.reload();
+}
+$("#restoreInput").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (f) restoreFrom(await f.text());
+});
+
 // ---------- start ----------
 load();
 refreshTheme(); buildScene();
@@ -2517,6 +3026,11 @@ setInterval(tick, 1000);
 if (!WX.cur || Date.now() - WX.cur.t > 10 * 60e3) fetchWeather();
 setInterval(fetchWeather, 15 * 60e3);
 if (!isNew) setTimeout(eventTick, 1500);
+// a gentle, once-a-day reminder to back up
+if (!isNew && S.level >= 3 && (!S.lastBackup || now() - S.lastBackup > 7 * 864e5) && S.lastNag !== today()) {
+  S.lastNag = today(); save();
+  setTimeout(() => toast("💾 Tip: back up your farm. Tap ⚙️ → Backup."), 5000);
+}
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
