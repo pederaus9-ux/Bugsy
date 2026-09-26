@@ -65,6 +65,12 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,.3));border:3px solid rgba(255,255,255,.75);box-shadow:0 4px 16px rgba(0,0,0,.25)}
 .stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:3px solid #fff;box-shadow:0 3px 0 var(--wood-dk)}
+.fx.combo{font-size:34px;color:#FFE27A;z-index:7}
+#swipe{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.throwbtn{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:8;width:64px;height:64px;border-radius:50%;font-size:28px;
+  background:radial-gradient(circle at 35% 30%,#E8FFD0,#8CD35A);border:4px solid #fff;box-shadow:0 4px 0 var(--green-dk)}
+.throwbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--green-dk)}
+.throwbtn .l{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);font-family:var(--fun);font-size:14px;color:#fff}
 body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,body.editing .chips,body.editing .dock,body.editing #hint{display:none!important}
 
 /* chips under the level star: weather and events */
@@ -307,6 +313,8 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 <div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button data-mode="walk">✕ Exit</button></div>
 <div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
 <div class="stick" id="stick" hidden><i></i></div>
+<button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
+<canvas id="swipe"></canvas>
 <div class="tray movebar" id="moveBar" hidden><h3><span id="moveTitle">Move</span></h3><div class="tray-sub">Drag it with one finger to where you want it</div>
   <div class="row"><button class="btn plain sm" data-m="store">Put away</button><button class="btn sm" data-m="done">✔ Done</button></div></div>
 <img class="ghost" id="ghost" hidden alt="">
@@ -320,7 +328,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=8"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=9"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1165,6 +1173,10 @@ class Beast {
     if (d === "shelter") { return this.stay("Keeping dry by the barn", 9999, "idle"); }
     if (d === "social") { N.lonely = 0; if (this.friend) { this.emote(this.P.social > .8 ? "❤️" : "🎵"); this.friend.need.lonely *= .5; } return this.stay("Hanging out with " + (this.friend ? this.friend.name : "friends"), 4 + rnd() * 5); }
     if (d === "look") { this.emote("❔"); return this.stay("Curious about something", 3); }
+    if (d === "bait") { const b = this.bait; this.bait = null;
+      if (b && baits.includes(b) && this.pos.distanceTo(b.v) < 1.8) { b.bites++; N.hunger = Math.max(0, N.hunger - .6); this.emote("😋"); return this.stay("Munching the snack", 5 + rnd() * 4, "eating"); }
+      this.emote("🥺"); return this.stay("Begging at the fence", 4); }
+    if (d === "follow") return this.stay("Right behind you", .6);
     if (d === "chase") { return this.stay("Proud of himself", 2); }
     this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
   }
@@ -1176,6 +1188,7 @@ class Beast {
     const mode = PRESET.night ? "night" : PRESET.rain || PRESET.snowing ? "wet" : "fair";
     if (mode !== this.mode) { this.mode = mode; this.until = 0; this.target = null; this.act = "idle"; if (mode === "fair") this.emote("☀️", 1.5); }
     if (this.act === "sleeping" && Math.floor(t) % 4 === 0 && this.emoteT <= 0) this.emote("💤", 2);
+    sensePlayer(this, t);
     // chickens scatter when the dog runs at them
     if (this.kind === "chicken" && this.act !== "fleeing") { const dog = animals.find(b => b.kind === "dog"); if (dog && dog.doing === "chase" && dog.pos.distanceTo(this.pos) < 2.6) this.flee(dog.pos, "Running from Buddy!"); }
     if (this.act === "fleeing" && t > this.until) { this.act = "idle"; this.until = 0; }
@@ -1764,7 +1777,7 @@ function spotFree(x, z, size, skip = -1) {
 // Walk: the camera drops to eye height (1.8 m). A thumbstick (or WASD / arrow keys) walks, dragging the screen looks around.
 // You bump into buildings, fences, bushes and decorations but can walk across the fields. Taps still harvest, plant and pet.
 const EYE = 1.8, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));
-const walkBar = document.getElementById("walkBar"), editBar = document.getElementById("editBar"), stick = document.getElementById("stick"), knob = stick.querySelector("i");
+const throwBtn = document.getElementById("throwBtn"), walkBar = document.getElementById("walkBar"), editBar = document.getElementById("editBar"), stick = document.getElementById("stick"), knob = stick.querySelector("i");
 function setWalk(on) {
   if (!!walk === on) return;
   if (on) {
@@ -1774,14 +1787,14 @@ function setWalk(on) {
     const want = new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
     const onPath = p.distanceTo(want) > 1.5 || PEN_LIST.some(pen => inPen(pen, p.x, p.y, -.4));
     walk = {pos:onPath ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0};
-    document.body.classList.add("walking"); walkBar.hidden = stick.hidden = false;
+    document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
     ultra(true);
   } else {
     const w = walk; walk = null;
     cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
     Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
     joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
-    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = true;
+    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = true;
     ultra(false);
   }
   G.sfx("pop");
@@ -1885,7 +1898,7 @@ stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercanc
 addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("input,textarea")) return;
   if (e.code === "Escape") { setWalk(false); setEdit(false); }
-  if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); }
+  if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); if ((e.code === "Space" || e.code === "KeyF") && !e.repeat) throwBait(); }
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());
@@ -1995,9 +2008,187 @@ function editUp(e) {
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
 document.getElementById("walkBtn").addEventListener("click", () => setWalk(true));
+throwBtn.addEventListener("click", throwBait);
 document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
 walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setWalk(false); });
 editBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setEdit(false); });
+
+// ================= tactile physics: slicing, bouncing drops, bait and herding =================
+// Everything you collect now exists for a moment as a real object: sliced crops split in two and fly apart,
+// goods pop out of a building's door and bounce, eggs and milk tumble off the animals. After they settle they
+// zip into the Barn button (coins into the coin counter). While walking they wait on the ground until you come close.
+const drops = [], GRAV = 18, artTex = {}, emojiMats = {};
+function emojiMat(e) { // a plain emoji picture (no speech bubble), for things lying on the ground
+  if (!emojiMats[e]) { const [c, x] = canvas(128); x.font = '100px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 70);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; emojiMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}); }
+  return emojiMats[e];
+}
+let lastBounce = 0, shake = 0;
+function artTexture(id) { return artTex[id] || (artTex[id] = (() => { const t = new THREE.TextureLoader().load(ART + id + ".webp"); t.colorSpace = THREE.SRGBColorSpace; return t; })()); }
+function itemMat(id) { // crops use their painted picture, everything else its emoji
+  if (G.CROPS[id]) return new THREE.SpriteMaterial({map:artTexture(id), transparent:true, depthWrite:false});
+  return emojiMat(G.ITEMS[id] ? G.ITEMS[id].e : id).clone();
+}
+function halfMat(id, side) { // one half of a sliced crop picture
+  const t = artTexture(id).clone(); t.repeat.set(.5, 1); t.offset.set(side < 0 ? 0 : .5, 0); t.needsUpdate = true;
+  return new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false});
+}
+function spawnDrop(pos, mat, vel, o = {}) {
+  const s = new THREE.Sprite(mat); const w = o.size || .55; s.scale.set(w * (o.half ? .5 : 1), w, 1); s.position.copy(pos); s.visible = !o.delay; scene.add(s);
+  drops.push({s, v:vel.clone(), spin:(rnd() - .5) * (o.spin ?? 9), t:0, rest:0, w, half:o.half, kind:o.kind || "item", to:o.to || "barn", life:o.life || 0, delay:o.delay || 0, onLand:o.onLand});
+}
+function pocketPoint(to) { // just in front of the camera, on the line through the Barn button (or the coin counter)
+  const el = document.querySelector(to === "coin" ? ".money .cnt" : '.dock [data-p="barn"]');
+  const r = el && el.offsetParent ? el.getBoundingClientRect() : {x:innerWidth / 2, y:innerHeight, width:0, height:0};
+  return rayAt(r.x + r.width / 2, r.y + r.height / 2).ray.at(walk ? 1.6 : 3, new THREE.Vector3());
+}
+function updateDrops(dt) {
+  for (let k = drops.length - 1; k >= 0; k--) {
+    const d = drops[k], s = d.s;
+    if (d.delay > 0) { d.delay -= dt; if (d.delay <= 0) { s.visible = true; G.sfx("pop"); } continue; }
+    d.t += dt;
+    if (d.state === "pocket") { // fly into the Barn button, speeding up and shrinking
+      const to = pocketPoint(d.to), dir = to.sub(s.position), L = dir.length(); d.speed = Math.min(40, (d.speed || 3) + dt * 60);
+      if (L < .15 || d.t > 6) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); if (rnd() < .5) G.sfx("tick"); continue; }
+      s.position.addScaledVector(dir.normalize(), Math.min(L, d.speed * dt));
+      const k2 = THREE.MathUtils.clamp(L / 5, .22, 1); s.scale.set(d.w * k2 * (d.half ? .5 : 1), d.w * k2, 1); continue;
+    }
+    d.v.y -= GRAV * dt; s.position.addScaledVector(d.v, dt); s.material.rotation += d.spin * dt;
+    // bounce off buildings and the barn
+    for (const b of BLOCKS) { const [bx, bz, hw, hd] = b; if (FIELD_BLOCKS.has(b) || hw < .5 || s.position.y > 3.2) continue;
+      const dx = s.position.x - bx, dz = s.position.z - bz; if (Math.abs(dx) < hw && Math.abs(dz) < hd) {
+        if (hw - Math.abs(dx) < hd - Math.abs(dz)) { s.position.x = bx + Math.sign(dx) * hw; d.v.x = -d.v.x * .5; } else { s.position.z = bz + Math.sign(dz) * hd; d.v.z = -d.v.z * .5; } } }
+    const floor = groundY(s.position.x, s.position.z) + d.w * .42;
+    if (s.position.y <= floor) {
+      s.position.y = floor;
+      if (d.onLand) { d.onLand(d); d.onLand = null; if (d.gone) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); continue; } }
+      if (d.v.y < -2) { // bounce, losing energy, and spin less
+        d.v.y *= -.42; d.v.x *= .72; d.v.z *= .72; d.spin *= .55;
+        if (-d.v.y > 1.5 && performance.now() - lastBounce > 70) { lastBounce = performance.now(); G.sfx("bounce"); }
+      } else { d.v.y = 0; const f = Math.max(0, 1 - dt * 5); d.v.x *= f; d.v.z *= f; d.spin *= f; s.material.rotation *= Math.max(0, 1 - dt * 4); }
+    }
+    const still = s.position.y <= floor + .01 && Math.hypot(d.v.x, d.v.z) < .35; d.rest = still ? d.rest + dt : 0;
+    if (d.kind === "bit") { // leaves and juice: fade away
+      s.material.opacity = Math.max(0, 1 - d.t / d.life); if (d.t > d.life) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); } continue; }
+    if (d.kind === "bait") continue; // feed in the air is on its way to the ground, not to your pocket
+    if (walk) { const near = Math.hypot(s.position.x - walk.pos.x, s.position.z - walk.pos.y) < 2.4; if ((near && d.t > .5) || d.t > 12) d.state = "pocket"; }
+    else if (d.rest > .6 || d.t > 3.5) d.state = "pocket";
+    if (d.state === "pocket") d.t = 0;
+  }
+}
+// a burst of little bits (leaves, juice) that fall and fade
+const bitTex = {};
+function bits(pos, color, n, up = 3.5) {
+  const mat = bitTex[color] || (bitTex[color] = new THREE.SpriteMaterial({map:radial(color), transparent:true, depthWrite:false}));
+  for (let i = 0; i < n; i++) { const a = rnd() * Math.PI * 2, sp = 1 + rnd() * 2.2;
+    spawnDrop(pos, mat.clone(), new THREE.Vector3(Math.cos(a) * sp, up * (.6 + rnd() * .6), Math.sin(a) * sp), {kind:"bit", size:.12 + rnd() * .12, life:.7 + rnd() * .5, spin:0}); }
+}
+const JUICE = {wheat:"rgba(240,200,90,.95)", corn:"rgba(250,215,60,.95)", carrot:"rgba(255,140,40,.95)", soybean:"rgba(150,190,80,.95)", sugarcane:"rgba(170,220,120,.95)",
+  tomato:"rgba(230,50,40,.95)", strawberry:"rgba(235,40,70,.95)", pumpkin:"rgba(250,140,30,.95)"};
+
+// ---------- Fruit Ninja harvesting: a glowing blade trail, and every ripe crop it crosses is sliced in two ----------
+const swipeCv = document.getElementById("swipe"), swipeCx = swipeCv.getContext("2d"), trail = [];
+let swipeDir = new THREE.Vector2(1, 0), trailDirty = false;
+function sizeSwipe() { const r = Math.min(devicePixelRatio || 1, 2); swipeCv.width = innerWidth * r; swipeCv.height = innerHeight * r; swipeCx.setTransform(r, 0, 0, r, 0, 0); }
+sizeSwipe(); addEventListener("resize", sizeSwipe);
+function trailPoint(x, y) {
+  const p = trail[trail.length - 1];
+  if (p) { const dx = x - p.x, dy = y - p.y, l = Math.hypot(dx, dy); if (l < 3) return; swipeDir.set(dx / l, dy / l); }
+  trail.push({x, y, t:performance.now()}); trailDirty = true;
+}
+function drawTrail() {
+  if (!trailDirty) return;
+  const now = performance.now(); while (trail.length && now - trail[0].t > 180) trail.shift();
+  swipeCx.clearRect(0, 0, innerWidth, innerHeight);
+  if (trail.length < 2) { trailDirty = trail.length > 0; return; }
+  // a tapered blade: thin at the tail, wide and bright at the tip, with a soft glow
+  for (const [w, col, blur] of [[16, "rgba(255,236,160,.35)", 18], [7, "rgba(255,255,255,.95)", 6]]) {
+    swipeCx.shadowColor = "rgba(255,220,120,.9)"; swipeCx.shadowBlur = blur; swipeCx.strokeStyle = col; swipeCx.lineCap = "round";
+    for (let i = 1; i < trail.length; i++) { const k = i / (trail.length - 1), age = 1 - (now - trail[i].t) / 180;
+      swipeCx.lineWidth = Math.max(.5, w * k * age); swipeCx.beginPath(); swipeCx.moveTo(trail[i - 1].x, trail[i - 1].y); swipeCx.lineTo(trail[i].x, trail[i].y); swipeCx.stroke(); }
+  }
+  swipeCx.shadowBlur = 0;
+}
+function combo(n, x, y) { // three or more in one swipe
+  const d = document.createElement("div"); d.className = "fx out combo"; d.textContent = "×" + n + " combo!"; d.style.left = x + "px"; d.style.top = (y - 50) + "px";
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150); G.sfx("magic");
+}
+// split the crop: two halves fly apart across the cut, spinning, then bounce and head for the barn
+function sliceFx(i, crop) {
+  const c = plots[i].g.position, right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).setY(0).normalize();
+  const fwd = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).setY(0); if (fwd.lengthSq() < 1e-4) fwd.set(0, 0, -1); fwd.normalize();
+  const cut = right.clone().multiplyScalar(swipeDir.x).addScaledVector(fwd, swipeDir.y).normalize(), across = new THREE.Vector3(-cut.z, 0, cut.x);
+  const at = new THREE.Vector3(c.x, .8, c.z);
+  for (const side of [-1, 1]) spawnDrop(at, G.CROPS[crop] ? halfMat(crop, side) : itemMat(crop),
+    across.clone().multiplyScalar(side * (2 + rnd())).addScaledVector(cut, 1.2).setY(5.5 + rnd() * 1.5), {size:walk ? .6 : 1, half:!!G.CROPS[crop], spin:side * 10});
+  bits(at, JUICE[crop] || "rgba(240,200,90,.95)", 7, 4); bits(at, "rgba(90,170,60,.95)", 5, 3);
+  shake = Math.max(shake, .05); G.sfx("slice");
+}
+// goods pop out of a building's door one after another
+function machineDrop(bid, items) {
+  const B = buildings[bid]; if (!B || !B.g) return;
+  const door = B.g.position.clone().add(new THREE.Vector3(0, 1, 1.7));
+  items.slice(0, 6).forEach((id, n) => spawnDrop(door, itemMat(id), new THREE.Vector3((rnd() - .5) * 2.4, 5 + rnd() * 1.5, 2.2 + rnd() * 1.4), {delay:n * .14, size:walk ? .5 : .8}));
+}
+function animalDrop(a, id) {
+  const from = a.g.position.clone().setY(a.S.h * .7);
+  spawnDrop(from, id ? itemMat(id) : emojiMat("🪙").clone(), new THREE.Vector3((rnd() - .5) * 1.6, 4.5 + rnd(), (rnd() - .5) * 1.6), {size:.5, to:id ? "barn" : "coin", delay:rnd() * .15});
+}
+
+// ---------- bait and herding ----------
+// Throw a handful of feed (walk mode button, or press and hold on the grass): hungry and greedy animals race over to eat it.
+// Penned animals can't get out, so they crowd the fence nearest the snack and beg. While you walk around,
+// timid animals move out of your way (so you can herd them into a corner), curious ones come to have a look,
+// and the dog trots along behind you.
+const baits = [];
+let baitAt = 0;
+const baitMat = emojiMat("🌾");
+function throwBait() {
+  if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;
+  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = groundY(walk.pos.x, walk.pos.y) + EYE - .35;
+  const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);
+  spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
+  G.sfx("throw");
+}
+function dropBaitAt(x, z) { // from the farm view: it falls from above
+  spawnDrop(new THREE.Vector3(x, 5, z), baitMat.clone(), new THREE.Vector3(0, -2, 0), {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
+  G.sfx("throw");
+}
+function layBait(x, z) {
+  const pile = new THREE.Sprite(baitMat.clone()); pile.scale.setScalar(.5); pile.position.set(x, groundY(x, z) + .2, z); scene.add(pile);
+  const b = {x, z, v:new THREE.Vector2(x, z), until:clockT + 18, pile, bites:0};
+  baits.push(b); bits(pile.position, "rgba(235,205,120,.95)", 6, 2.5);
+  for (const a of animals) {
+    if (a.act === "sleeping") continue;
+    const d = a.pos.distanceTo(b.v); if (d > 18) continue;
+    const keen = .25 + a.P.hunger * .5 + a.need.hunger * .5; if (rnd() > keen) continue;
+    const reach = a.pen ? inPen(a.pen, x, z, -.2) : !PEN_LIST.some(p => inPen(p, x, z)), ang = rnd() * Math.PI * 2, r = .6 + rnd() * .5;
+    a.bait = b; a.until = 0; a.path = null; a.emote(a.P.hunger > .8 ? "🤩" : "😋", 1.4);
+    a.go(x + Math.cos(ang) * r, z + Math.sin(ang) * r, a.P.hunger > .8 || d > 7, reach ? "Racing to the snack" : "Wants that snack!", "bait");
+  }
+}
+function updateBaits() {
+  for (let k = baits.length - 1; k >= 0; k--) { const b = baits[k];
+    if (clockT > b.until || b.bites > 10) { scene.remove(b.pile); b.pile.material.dispose(); baits.splice(k, 1); continue; }
+    b.pile.scale.setScalar(.5 * Math.max(.35, 1 - b.bites / 12)); }
+}
+// what an animal does about you while you walk around (checked a few times a second)
+function sensePlayer(a, t) {
+  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0)) return; a.senseAt = t + .25;
+  const pp = walk.pos, d = a.pos.distanceTo(pp), P = a.P;
+  if (a.kind === "dog") { // follows you around, a couple of steps behind
+    if (d > 3.4 && d < 30 && !(a.doing === "follow" && a.target)) { const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw);
+      a.go(pp.x - fx * 1.8 + (rnd() - .5), pp.y - fz * 1.8 + (rnd() - .5), d > 7, "Following you", "follow"); }
+    return;
+  }
+  if (a.kind === "cat") return; // cats do what cats want
+  if (a.doing === "bait" && d > 1.3) return; // busy with the snack
+  const nerve = 2.1 + (1 - P.brave) * 2.8; // how close you can get
+  if (d < nerve && a.act !== "fleeing" && !(P.curious >= .9 && d > 1.4)) { a.flee(pp, P.brave < .3 ? "Scared of you!" : "Moving out of your way"); return; }
+  if (P.curious >= .7 && d < 9 && d > nerve + .6 && !a.target && t > (a.lookedAt || 0)) {
+    a.lookedAt = t + 9; const q = a.pos.lerp(pp, 1 - (nerve + .4) / d); a.emote("👀", 1.6); a.go(q.x, q.y, false, "Coming to see you", "look");
+  }
+}
 
 // ---------- the view that game.js talks to ----------
 function keyPos(key) {
@@ -2163,15 +2354,21 @@ function hitAt(x, y) {
 }
 const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
-function harvestAt(i) { const r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
+function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
   const h = hitAt(e.clientX, e.clientY);
-  if (h && h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; harvestAt(h.i); paintUsed = true; return true; }
+  if (h && h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; trail.length = 0; trailPoint(e.clientX, e.clientY); harvestAt(h.i); paintUsed = true; return true; }
   // with a seed picked, one finger plants: it can start anywhere, and every empty field it slides over gets that seed (two fingers still move the camera)
   if (armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (h && h.type === "plot" && !GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
-  if (!h) return false;
+  // Fruit Ninja: when something is ripe, a swipe that starts on any field slices every ripe crop it crosses
+  if (h && h.type === "plot" && GS().plots.some((q, i) => q.crop && ready(i))) { farmDrag = {id:e.pointerId, mode:"harvest", n:0}; trail.length = 0; trailPoint(e.clientX, e.clientY); return true; }
+  if (!h) { // press and hold on the grass: drop some feed there
+    const g = groundAt(e.clientX, e.clientY); clearTimeout(pressTimer);
+    if (g) pressTimer = setTimeout(() => { pressTimer = 0; if (ptr.size === 1 && !walk) { dropBaitAt(g.x, g.z); paintUsed = true; } }, 500);
+    return false;
+  }
   if (h.type === "decor") { // press and hold also starts moving it
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => { pressTimer = 0; startMove(h.j); if (moving && ptr.has(e.pointerId)) { moving.id = e.pointerId; moving.moved = true; paintUsed = true; } }, 450);
@@ -2192,6 +2389,7 @@ function farmMove(e) {
   if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
   if (!farmDrag || farmDrag.id !== e.pointerId) return false;
   if (farmDrag.mode === "plant" && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) seedTray.classList.add("away");
+  if (farmDrag.mode === "harvest") trailPoint(e.clientX, e.clientY);
   paintAlong(e.clientX, e.clientY);
   return true;
 }
@@ -2200,6 +2398,7 @@ function farmUp(e) {
   if (moving && moving.id === e.pointerId) { if (!moving.moved && e.type === "pointerup") moveTo(e.clientX, e.clientY); dropMove(); }
   if (!farmDrag || farmDrag.id !== e.pointerId) return;
   if (farmDrag.mode === "plant") endPlantDrag();
+  if (farmDrag.mode === "harvest" && farmDrag.n >= 3) combo(farmDrag.n, e.clientX, e.clientY);
   farmDrag = null;
 }
 
@@ -2245,9 +2444,12 @@ function onTap(e) {
       const an = h.an; squish(an.g, 1.3);
       if (an.ref.type === "pen") {
         const end = GS().pens[an.kind].list[an.ref.i];
-        if (end && end <= nowMs()) { G.collectAll(an.kind); an.emote("✨", 1.5); closeTrays(); return true; }
+        if (end && end <= nowMs()) { // everyone ready drops what they made
+          const k = an.kind, before = GS().pens[k].list.slice(); G.collectAll(k); an.emote("✨", 1.5); closeTrays();
+          for (const a of animals) if (a.ref.type === "pen" && a.kind === k && before[a.ref.i] !== GS().pens[k].list[a.ref.i]) animalDrop(a, G.ANIMALS[k].out);
+          return true; }
         G.sfx(an.kind); openInfo({type:"animal", an});
-      } else { if (G.petGift(an.ref.j)) { an.emote("🎁", 2); return true; } G.sfx(an.kind); openInfo({type:"pet", an}); }
+      } else { if (G.petGift(an.ref.j)) { an.emote("🎁", 2); spawnDrop(an.g.position.clone().setY(1), emojiMat("🎁").clone(), new THREE.Vector3(0, 5, 0), {size:.6, to:"coin"}); return true; } G.sfx(an.kind); openInfo({type:"pet", an}); }
       return true;
     }
     case "plot": {
@@ -2256,7 +2458,8 @@ function onTap(e) {
       return true;
     }
     case "plotSale": squish(h.obj, .6); openInfo({type:"plotSale"}); return true;
-    case "building": squish(h.obj, .45); if (!G.collectJobs(h.bid)) G.openPanel("building", h.bid); return true;
+    case "building": { squish(h.obj, .45); const jobs = GS().buildings[h.bid].jobs.slice(), n = G.collectJobs(h.bid);
+      if (n) machineDrop(h.bid, jobs.slice(0, n).flatMap(j => Array(Math.min(3, (G.RECIPES[j.r] || {}).out || 1)).fill(j.r))); else G.openPanel("building", h.bid); return true; }
     case "lot": squish(h.obj, .45); G.openPanel("lot", h.bid); return true;
     case "board": squish(h.obj, .6); G.sfx("truck"); G.openPanel("orders"); return true;
     case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
@@ -2364,7 +2567,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
@@ -2382,6 +2585,8 @@ function frame() {
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
   if (walk) updateWalk(dt);
   placeCamera(dt); updateSquish(performance.now());
+  updateDrops(dt); updateBaits(); drawTrail();
+  if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   for (const a of animals) a.update(dt, t);
   updateGame(t, dt);
   // trees sway with the wind

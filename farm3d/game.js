@@ -1242,6 +1242,9 @@ const SOUNDS = {
   horse:() => { tone(620, .7, {type:"sawtooth", vol:.05, to:300, lp:2200, attack:.03, vib:14}); noise(.3, {vol:.06, freq:600, at:.6}); },
   dog:() => { tone(520, .09, {type:"square", vol:.05, to:330, lp:1600}); tone(560, .1, {type:"square", vol:.05, to:340, lp:1600, at:.16}); },
   cat:() => tone(700, .45, {type:"triangle", vol:.08, to:950, attack:.08, vib:5}),
+  slice:() => { noise(.12, {vol:.16, freq:3200, q:.5}); tone(1400, .09, {type:"triangle", vol:.05, to:420}); },
+  bounce:() => tone(210, .07, {vol:.07, to:130}),
+  throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:"triangle", vol:.06, to:520}); },
 };
 export function sfx(name) { if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
 // A soft, wandering tune in C major pentatonic over a I–V–vi–IV bass line.

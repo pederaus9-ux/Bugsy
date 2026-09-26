@@ -108,10 +108,11 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Walk mode (🚶 button): eye height 1.8 m, thumbstick on phones and WASD / arrow keys (Shift to run, Q/E to turn), drag to look. You bump into buildings, fences, bushes and decorations and can walk over the fields; taps still harvest, plant and pet. ✕ Exit brings the farm view back over where you walked to.
 - [x] Ultra graphics while walking: full screen resolution (no automatic quality drop), 2048 shadows in a tight box around you, maximum texture sharpening, distance haze instead of tilt-shift, and 2.6x surface detail on wood, stone and roofs plus a new bump map on the grass ground. Your normal graphics setting comes back when you stop walking.
 - [x] Edit mode (🏗️ button): straight-down camera over a 1 m grid; drag buildings (bought or not), the two big trees and decorations. They snap to the grid; green means it fits, red means something's in the way. Positions are saved with the farm in the browser.
-### Phase 2: tactile physics (next, waiting for the green light)
-- [ ] Swipe harvesting (Fruit Ninja style)
-- [ ] Machine items that drop out and bounce on the ground
-- [ ] Bait and herding for the animals
+### Phase 2: tactile physics (done)
+- [x] Swipe harvesting (Fruit Ninja style): when something is ripe, a swipe that starts on any field draws a glowing blade trail; every ripe crop it crosses splits into two halves that fly apart across the cut with juice and leaf bits, bounce, and zip into the Barn button. Three or more in one swipe shows a combo.
+- [x] Physical drops: goods pop out of a building's door one by one and bounce; eggs, milk and wool tumble off the animals (horse ride coins fly to the coin counter); pet gifts pop up too. They settle, then fly into the Barn button. While walking they wait on the ground until you come close (Minecraft-style pickup).
+- [x] Bait: the 🌾 Bait button in Walk mode throws feed in an arc (Space or F on a computer); in the farm view, press and hold on the grass. Hungry and greedy animals race to it and munch; penned animals crowd the nearest fence and beg.
+- [x] Herding: while you walk, timid animals move out of your way (so you can herd them into a corner), curious ones come over for a look, and the dog follows you.
 
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
