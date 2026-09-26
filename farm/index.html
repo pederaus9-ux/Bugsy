@@ -218,6 +218,13 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .backup textarea{width:100%;min-height:110px;font:12px/1.35 ui-monospace,Menlo,monospace;padding:8px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text;word-break:break-all}
 .wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
 
+/* animal & pet cards */
+.acard{display:flex;align-items:center;gap:10px;min-width:230px}
+.acard img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
+.acard .rn{font-size:14px;margin-left:4px;opacity:.7}
+.hearts{font-size:15px;letter-spacing:1px;line-height:1.2}
+.scard img,.dcard img{width:52px;height:52px;object-fit:contain}
+
 /* toast */
 .toasts{position:fixed;left:0;right:0;bottom:calc(110px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
 .toast{background:rgba(70,35,10,.88);color:#fff;padding:9px 16px;border-radius:99px;font-weight:800;font-size:14px;border:2px solid #fff;
@@ -319,7 +326,24 @@ const ANIMALS = {
   chicken:{n:"Chicken",e:"🐔",size:26,feed:"chicken_feed",out:"egg",time:90,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:6},
   cow:{n:"Cow",e:"🐄",size:36,feed:"cow_feed",out:"milk",time:180,xp:3,lvl:4,pen:"Cow pasture",penE:"🐄",penCost:300,cost:120,max:5},
   sheep:{n:"Sheep",e:"🐑",size:32,feed:"sheep_feed",out:"wool",time:300,xp:4,lvl:7,pen:"Sheep meadow",penE:"🐑",penCost:500,cost:200,max:5},
+  // horses don't make goods: feed them a carrot and they give pony rides to visitors for coins
+  horse:{n:"Horse",e:"🐴",size:46,feed:"carrot",out:null,coins:45,time:150,xp:4,lvl:5,pen:"Horse paddock",penE:"🐴",penCost:600,cost:350,max:4},
 };
+
+const ART_OF = {chicken:"chicken", cow:"cow", sheep:"sheep", horse:"horse", dog:"dog", cat:"cat"};
+const outE = (a) => a.out ? ITEMS[a.out].e : "🪙";
+const outName = (a) => a.out ? ITEMS[a.out].n.toLowerCase() : "coins from pony rides";
+const NAMES = {
+  chicken:["Clucky", "Nugget", "Henrietta", "Pip", "Goldie", "Peep", "Ginger"], cow:["Bessie", "Clover", "Buttercup", "Mabel", "Daisy", "Moo-Moo"],
+  sheep:["Woolly", "Fluffy", "Cotton", "Dolly", "Snowball"], horse:["Spirit", "Maple", "Thunder", "Honey", "Star", "Biscuit"],
+  dog:["Buddy", "Max", "Bella", "Rusty", "Sunny"], cat:["Whiskers", "Mittens", "Ginger", "Luna", "Tiger"],
+};
+// Pets roam the farm. Make them happy and they bring you little gifts.
+const PETS = {
+  dog:{n:"Dog", e:"🐕", size:30, cost:300, lvl:2, verb:"dug up", toy:"🎾"},
+  cat:{n:"Cat", e:"🐈", size:24, cost:300, lvl:3, verb:"found", toy:"🧶"},
+};
+const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
 
 const BUILDINGS = {
   feedmill:{n:"Feed Mill",e:"🏭",lvl:1,cost:0,recipes:["chicken_feed","cow_feed","sheep_feed"]},
@@ -374,6 +398,8 @@ const EVENTS = {
   orders:{n:"Truck Rush", e:"🚚", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16]},
   eggs:{n:"Egg Hunt", e:"🥚", task:"Collect eggs from your chickens", metric:"egg", goals:[5, 12, 24], need:() => S.pens.chicken.owned},
   milk:{n:"Milk Moo-thon", e:"🥛", task:"Collect milk from your cows", metric:"milk", goals:[4, 10, 20], need:() => S.pens.cow.owned},
+  rides:{n:"Pony Parade", e:"🐴", task:"Give pony rides with your horses", metric:"rides", goals:[3, 8, 16], need:() => S.pens.horse.owned},
+  love:{n:"Animal Lovers", e:"💖", task:"Pet, brush and play with your animals", metric:"love", goals:[5, 15, 30], need:() => S.pets.length || Object.values(S.pens).some(p => p.owned)},
   wool:{n:"Woolly Week", e:"🧶", task:"Collect wool from your sheep", metric:"wool", goals:[3, 8, 16], need:() => S.pens.sheep.owned},
   bake:{n:"Bake-off", e:"🍞", task:"Make goods in your buildings", metric:"make", goals:[4, 10, 20], need:() => S.buildings.bakery.owned},
   feed:{n:"Feed Frenzy", e:"🟡", task:"Make animal feed", metric:"feed", goals:[9, 24, 48], need:() => S.pens.chicken.owned},
@@ -414,7 +440,7 @@ const LAYOUT = {
     feedmill:{gx:14, gy:3, w:3, h:3}, bakery:{gx:18, gy:3, w:3, h:3}, sugarmill:{gx:22, gy:3, w:3, h:3},
     dairy:{gx:14, gy:8, w:3, h:3}, kitchen:{gx:18, gy:8, w:3, h:3}, loom:{gx:22, gy:8, w:3, h:3},
   },
-  pens:{chicken:{gx:13, gy:13, w:4, h:4}, cow:{gx:18, gy:13, w:4, h:4}, sheep:{gx:23, gy:13, w:4, h:4}},
+  pens:{chicken:{gx:13, gy:13, w:4, h:4}, cow:{gx:18, gy:13, w:4, h:4}, sheep:{gx:23, gy:13, w:4, h:4}, horse:{gx:7, gy:13, w:4, h:4}},
 };
 // wall / roof colors for each building
 const STYLE = {
@@ -427,7 +453,7 @@ const STYLE = {
   kitchen:{wl:"#F4CDA5", wr:"#DDB287", rf:"#C33A2C", rb:"#D95B4C", door:"#8A5530", chimney:true, sign:"🍳"},
   loom:{wl:"#DDCBEB", wr:"#C2ACD5", rf:"#E06AA2", rb:"#EB8DBB", door:"#7E5A98", sign:"🧵"},
 };
-const PEN_GROUND = {chicken:"#E6D08A", cow:"#A4D65C", sheep:"#B5DE72"};
+const PEN_GROUND = {chicken:"#E6D08A", cow:"#A4D65C", sheep:"#B5DE72", horse:"#CDB07A"};
 
 // ---------- helpers ----------
 const $ = (s) => document.querySelector(s);
@@ -458,7 +484,8 @@ function fresh() {
     pos:{}, stand:{slots:4, list:[null, null, null, null]},
     land:{w:29, h:20, ex:0}, decor:{inv:{}, placed:[]}, event:null, nextEventAt:0, holidayDone:{},
     lastCrop:"wheat",
-    pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}},
+    pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}, horse:{owned:false,list:[]}},
+    pets:[],
     buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === "feedmill", jobs:[]}])),
     orders:[], lastDaily:"",
     stats:{orders:0, harvests:0, made:0, earned:0},
@@ -543,6 +570,7 @@ function unlocksAt(lvl) {
   const out = [];
   for (const id of Object.keys(CROPS)) if (ITEMS[id].lvl === lvl) out.push(ITEMS[id].e + " " + ITEMS[id].n + " seeds");
   for (const a of Object.values(ANIMALS)) if (a.lvl === lvl) out.push(a.penE + " " + a.pen);
+  for (const P of Object.values(PETS)) if (P.lvl === lvl) out.push(P.e + " A pet " + P.n.toLowerCase() + " in the Shop");
   for (const b of Object.values(BUILDINGS)) if (b.lvl === lvl && b.cost) out.push(b.e + " " + b.n);
   for (const id of Object.keys(RECIPES)) if (ITEMS[id].lvl === lvl) out.push(ITEMS[id].e + " " + ITEMS[id].n + " recipe");
   return out;
@@ -596,9 +624,78 @@ function feedAll(kind) {
 function collectAnimal(kind, i) {
   const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];
   if (!end || end > now()) return false;
+  const happy = loveOf(meta(kind, i)) >= 70, an = animWorld(kind, i);
+  if (!a.out) { // horse: pony-ride money
+    const c = Math.round(a.coins * (happy ? 1.25 : 1));
+    S.coins += c; S.stats.earned += c; gainXP(a.xp); pen.list[i] = 0; eventProgress("rides", 1);
+    fxAt(an.x, an.y, "+" + c, "🪙"); sfx("coin"); sfx(kind);
+    return true;
+  }
+  const n = happy && Math.random() < .25 && space() >= 2 ? 2 : 1; // happy animals sometimes make double
   if (space() < 1) { barnFull(); return false; }
-  add(a.out, 1); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, 1);
-  const an = animWorld(kind, i); fxAt(an.x, an.y, "+1", ITEMS[a.out].e); sfx(kind);
+  add(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);
+  fxAt(an.x, an.y, n > 1 ? "×2!" : "+1", ITEMS[a.out].e); sfx(kind);
+  return true;
+}
+
+// ---------- names, happiness and petting ----------
+function meta(kind, i) {
+  const pen = S.pens[kind];
+  pen.meta = pen.meta || [];
+  if (!pen.meta[i]) pen.meta[i] = {name:pick(NAMES[kind]), love:50, loveAt:now(), petAt:0, brushAt:0, playAt:0};
+  return pen.meta[i];
+}
+const loveOf = (m) => clamp(m.love - (now() - m.loveAt) / 8.64e6, 0, 100); // fades by about 10 a day
+function addLove(m, n) { m.love = clamp(loveOf(m) + n, 0, 100); m.loveAt = now(); }
+const hearts = (m) => { const n = Math.round(loveOf(m) / 20); return "❤️".repeat(n) + "🤍".repeat(5 - n); };
+const cdLeft = (at, cd) => Math.max(0, at + cd - now());
+// act: pet | brush | play | treat. Returns true if something happened.
+function interact(m, sound, act, gx, gy) {
+  const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], key = act + "At";
+  if (cdLeft(m[key] || 0, CD)) return false;
+  if (act === "treat") { if (S.coins < 10) { toast("Need 10 🪙"); sfx("error"); return false; } S.coins -= 10; }
+  m[key] = t;
+  addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
+  gainXP(act === "pet" ? 1 : 2);
+  eventProgress("love", 1);
+  fxAt(gx, gy, "+", "💖"); sfx(sound);
+  commit();
+  return true;
+}
+function renameThing(m, what) {
+  const n = prompt("Name your " + what + ":", m.name);
+  if (n && n.trim()) { m.name = n.trim().slice(0, 16); commit(); }
+}
+
+// ---------- pets ----------
+function buyPet(kind) {
+  const P = PETS[kind];
+  if (S.level < P.lvl || S.pets.some(p => p.kind === kind)) return false;
+  if (S.coins < P.cost) { toast("Need " + P.cost + " 🪙"); sfx("error"); return false; }
+  S.coins -= P.cost;
+  const name = pick(NAMES[kind]);
+  S.pets.push({kind, name, love:60, loveAt:now(), petAt:0, playAt:0, treatAt:0, giftAt:now()});
+  toast("Say hi to " + name + "! " + P.e); sfx(kind); commit();
+  return true;
+}
+const giftReady = (p) => loveOf(p) >= 40 && now() - p.giftAt > GIFT_CD;
+function petGift(j) {
+  const p = S.pets[j], P = PETS[p.kind];
+  if (!giftReady(p)) return false;
+  p.giftAt = now();
+  const r = Math.random(), pos = petPos(j);
+  if (r < .06) {
+    const id = pick(Object.keys(DECOR).filter(k => DECOR[k].rare === 1));
+    S.decor.inv[id] = (S.decor.inv[id] || 0) + 1;
+    toast(p.name + " " + P.verb + " a " + DECOR[id].n + "! It's in your 🌷 Decor box.");
+    fxAt(pos.x, pos.y, "+1", DECOR[id].e);
+  } else if (r < .22) {
+    S.gems++; toast(p.name + " " + P.verb + " a 💎 gem!"); fxAt(pos.x, pos.y, "+1", "💎");
+  } else {
+    const c = 20 + S.level * 6; S.coins += c; S.stats.earned += c;
+    toast(p.name + " " + P.verb + " " + c + " 🪙!"); fxAt(pos.x, pos.y, "+" + c, "🪙");
+  }
+  sfx("coin"); sfx(p.kind); commit();
   return true;
 }
 function collectAll(kind) {
@@ -734,6 +831,13 @@ function buyPen(kind) {
   const a = ANIMALS[kind];
   if (S.level < a.lvl || S.pens[kind].owned) return false;
   if (S.coins < a.penCost) { toast("Need " + a.penCost + " 🪙"); return false; }
+  // if the default spot is taken (say by decorations), find free ground nearby
+  const key = "p:" + kind, bx = boxOf(key);
+  if (!canPlace(key, bx)) {
+    const spot = freeSpot(bx.w, bx.h, bx.gx, bx.gy);
+    if (!spot) { toast("No room for a " + a.pen.toLowerCase() + ". Expand your land or move things."); sfx("error"); return false; }
+    S.pos[key] = spot;
+  }
   S.coins -= a.penCost; S.pens[kind].owned = true; S.pens[kind].list.push(0); sfx("build"); sfx(kind);
   toast(a.pen + " built, with your first " + a.n.toLowerCase() + "!"); fillOrders(); commit();
   return true;
@@ -800,6 +904,16 @@ function buyStandSlot() {
   const c = standSlotCost();
   if (S.coins < c) { toast("Need " + c + " 🪙"); sfx("error"); return; }
   S.coins -= c; S.stand.slots++; S.stand.list.push(null); sfx("build"); commit();
+}
+
+function freeSpot(w, h, cx, cy) {
+  const boxes = allBoxes();
+  for (let r = 0; r < 40; r++) for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+    if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+    const b = {gx:Math.round(cx) + dx, gy:Math.round(cy) + dy, w, h};
+    if (canPlace("new", b, boxes)) return {gx:b.gx, gy:b.gy};
+  }
+  return null;
 }
 
 // ---------- bigger land ----------
@@ -1025,6 +1139,22 @@ function label(txt, x, y, size = 14, fill = "#fff", stroke = "#6E3D18") {
   ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size / 3.5); ctx.strokeStyle = stroke; ctx.strokeText(txt, x, y);
   ctx.fillStyle = fill; ctx.fillText(txt, x, y);
 }
+// Painted art for animals and crops (made with Canva). Falls back to emoji until loaded.
+const ART = {};
+for (const k of ["cow", "chicken", "sheep", "horse", "dog", "cat", "wheat", "corn", "carrot", "soybean", "sugarcane", "tomato", "strawberry", "pumpkin"]) {
+  const im = new Image(); im.src = "art/" + k + ".png"; ART[k] = im;
+}
+// draws art standing on (x, y), h pixels tall; returns false if the picture isn't ready
+function drawArt(k, x, y, h, flip) {
+  const im = ART[k];
+  if (!im || !im.complete || !im.naturalWidth) return false;
+  const w = h * im.naturalWidth / im.naturalHeight;
+  if (flip) { ctx.save(); ctx.translate(x, y); ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore(); }
+  else ctx.drawImage(im, x - w / 2, y - h, w, h);
+  return true;
+}
+const artImg = (k, fallback) => ART[k] ? `<img src="art/${k}.png" alt="">` : `<span class="e">${fallback}</span>`;
+
 // soft, blurry-edged shadow on the ground
 function shadow(x, y, rx, ry, a = .22) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, rx);
@@ -1140,6 +1270,11 @@ function updateAnimals(dt) {
     pen.list.forEach((end, i) => {
       const a = animFor(k, i);
       a.walk = 0;
+      if (a.gallop > T) { // out for a ride: run laps of the paddock
+        const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = 2.6 * dt;
+        if (d < sp) { const n = a.rand(); a.tx = n.x; a.ty = n.y; } else { a.x += dx / d * sp; a.y += dy / d * sp; a.walk = 1; a.flip = (dx - dy) > 0; }
+        return;
+      }
       if (!(end > t)) return; // hungry or ready animals stand still
       if (a.rest > 0) { a.rest -= dt; return; }
       const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = 0.45 * dt;
@@ -1148,6 +1283,38 @@ function updateAnimals(dt) {
       a.flip = (dx - dy) > 0; // moving right on screen
     });
   }
+}
+
+// --- pets wander around near the farmhouse ---
+const petAnim = [];
+function petPos(j) {
+  if (!petAnim[j]) { const h = boxOf("house"); petAnim[j] = {x:h.gx + h.w + .8 + j, y:h.gy + h.h + 1.5, tx:0, ty:0, rest:1, flip:false, walk:0, zoom:0}; }
+  return petAnim[j];
+}
+function updatePets(dt) {
+  const h = boxOf("house"), cx = h.gx + h.w / 2, cy = h.gy + h.h / 2;
+  S.pets.forEach((p, j) => {
+    const a = petPos(j);
+    a.walk = 0;
+    const fast = a.zoom > T;
+    if (!fast && a.rest > 0) { a.rest -= dt; return; }
+    const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy), sp = (fast ? 2.4 : p.kind === "cat" ? .5 : .7) * dt;
+    if (d < sp || !a.tx) {
+      a.tx = clamp(cx + (Math.random() - .5) * 11, .6, S.land.w - .6); a.ty = clamp(cy + (Math.random() - .3) * 11, ROAD_H + .6, S.land.h - .6);
+      a.rest = fast ? 0 : 1.5 + Math.random() * 4;
+      return;
+    }
+    a.x += dx / d * sp; a.y += dy / d * sp; a.walk = 1; a.flip = (dx - dy) > 0;
+  });
+}
+function drawPet(j) {
+  const p = S.pets[j], P = PETS[p.kind], a = petPos(j), [x, y] = iso(a.x, a.y);
+  const hop = a.walk ? Math.abs(Math.sin(T / (a.zoom > T ? 70 : 120) + j)) * 3 : 0;
+  shadow(x + 2, y, P.size * .55, P.size * .18, .3);
+  if (!drawArt(ART_OF[p.kind], x, y + 1 - hop, P.size * 1.15, a.flip)) drawEmoji(P.e, x, y - P.size * .45 - hop, P.size, a.flip);
+  if (giftReady(p)) { const by = y - P.size - 16 + bob(1.3, 3, j); circle(x, by, 12, "rgba(255,255,255,.92)"); drawEmoji("🎁", x, by, 15); }
+  else if (a.zoom > T) drawEmoji(P.toy, x + (a.flip ? 14 : -14), y - 6, 12);
+  nextHits.push({type:"pet", j, rect:[x - 20, y - P.size - 30, x + 20, y + 6]});
 }
 
 // --- people and a dog strolling along the road ---
@@ -1174,10 +1341,10 @@ function inPoly(x, y, pts) {
 }
 function hitAt(sx, sy) {
   const [x, y] = toWorld(sx, sy);
-  for (let j = hits.length - 1; j >= 0; j--) {
-    const h = hits[j];
-    if (h.rect ? (x >= h.rect[0] && x <= h.rect[2] && y >= h.rect[1] && y <= h.rect[3]) : inPoly(x, y, h.poly)) return h;
-  }
+  const inside = (h) => h.rect ? (x >= h.rect[0] && x <= h.rect[2] && y >= h.rect[1] && y <= h.rect[3]) : inPoly(x, y, h.poly);
+  // animals and pets are small and move around, so they win over the building behind them
+  for (let j = hits.length - 1; j >= 0; j--) if ((hits[j].type === "pet" || hits[j].type === "animal") && inside(hits[j])) return hits[j];
+  for (let j = hits.length - 1; j >= 0; j--) if (inside(hits[j])) return hits[j];
   return null;
 }
 
@@ -1340,7 +1507,7 @@ function drawCrops(i) {
     }
     const g = ready ? 1 : (prog - .15) / .85;
     const top = drawPlant(LOOK[p.crop], x, y, g, ready, k);
-    if (ready) drawEmoji(ITEMS[p.crop].e, x, top + bob(1.3, 1.5, k * 2), p.crop === "pumpkin" ? 20 : 16);
+    if (ready) { const h = p.crop === "pumpkin" ? 20 : p.crop === "tomato" || p.crop === "strawberry" ? 14 : 19, yy = top + 9 + bob(1.3, 1.5, k * 2); if (!drawArt(p.crop, x, yy, h)) drawEmoji(ITEMS[p.crop].e, x, top + bob(1.3, 1.5, k * 2), 16); }
   });
 }
 
@@ -1600,7 +1767,7 @@ function drawPen(k) {
     fillPoly([A, B, C, D], "rgba(170,120,60,.25)");
     path([A, B, C, D]); ctx.setLineDash([6, 5]); ctx.strokeStyle = "rgba(90,52,19,.5)"; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
     const [x, y] = iso(P.gx + P.w / 2, P.gy + P.h / 2);
-    drawEmoji(a.e, x - 36, y + 8, 28);
+    if (!drawArt(ART_OF[k], x - 36, y + 20, 30)) drawEmoji(a.e, x - 36, y + 8, 28);
     if (S.level >= a.lvl) drawSign(x, y + 16, a.penCost + "", "🪙", "#6DB23E");
     else drawSign(x, y + 16, "Lv " + a.lvl, "🔒");
     nextHits.push({type:"penLot", k, poly:[A, B, C, D]});
@@ -1617,19 +1784,24 @@ function drawPen(k) {
   for (const i of order) {
     const end = pen.list[i], w = animWorld(k, i), an = w.a, [x, y] = iso(w.x, w.y);
     shadow(x + 2, y, a.size * .5, a.size * .18, .3);
-    const hop = an.walk ? Math.abs(Math.sin(T / 110 + i)) * 3 : 0;
-    drawEmoji(a.e, x, y - a.size * .42 - hop, a.size, an.flip);
+    const hop = an.walk ? Math.abs(Math.sin(T / (an.gallop > T ? 70 : 110) + i)) * (an.gallop > T ? 5 : 3) : 0;
+    if (!drawArt(ART_OF[k], x, y + 2 - hop, a.size * 1.15, an.flip)) drawEmoji(a.e, x, y - a.size * .42 - hop, a.size, an.flip);
+    if (loveOf(meta(k, i)) >= 70 && !(end === 0 || end <= t)) drawEmoji("💖", x - 12, y - a.size - 6 + bob(1, 2, i), 10);
     if (end === 0) {
       circle(x + 8, y - a.size - 2, 2.5, "#fff"); circle(x + 12, y - a.size - 8, 3.5, "#fff");
       circle(x + 18, y - a.size - 20, 11, "#fff"); drawEmoji(ITEMS[a.feed].e, x + 18, y - a.size - 20, 12);
     } else if (end <= t) {
       const by = y - a.size - 14 + bob(1.4, 3, i);
-      circle(x, by, 13, "rgba(255,255,255,.9)"); drawEmoji(ITEMS[a.out].e, x, by, 18);
+      circle(x, by, 13, "rgba(255,255,255,.9)"); drawEmoji(outE(a), x, by, 18);
     }
     nextHits.push({type:"animal", k, i, rect:[x - 18, y - a.size - 28, x + 18, y + 6], mv:"p:" + k});
   }
   drawFence(D, C); drawFence(C, B);
   drawSign(...iso(P.gx + P.w - .2, P.gy + P.h + .1), pen.list.length + "/" + a.max, a.e);
+  if (k === "horse") { // a little stable shelter in the back corner
+    const sb = {gx:P.gx + P.w - 1.4, gy:P.gy + .2, w:1.2, h:1.2};
+    drawHouse(sb, {wl:"#B5763D", wr:"#96602F", rf:"#7A4A2A", rb:"#94603A", door:"#5E3A1C", barn:true, sign:"🐴"});
+  }
 }
 
 const LEAVES = {
@@ -1936,6 +2108,7 @@ function draw() {
   for (const w of WALKERS) { const p = walkerPos(w); objs.push({d:p.gx + p.gy, f:() => drawWalker(w)}); }
   S.decor.placed.forEach((_, j) => { const b = boxOf("d:" + j); objs.push({d:b.gx + b.w + b.gy + b.h, f:() => drawDecor(j)}); });
   holidayObjects(objs, boxes);
+  S.pets.forEach((_, j) => { const a = petPos(j); objs.push({d:a.x + a.y, f:() => drawPet(j)}); });
   const covered = (tr) => boxes.some(([, b]) => tr.gx >= b.gx - .2 && tr.gx < b.gx + b.w + .2 && tr.gy >= b.gy - .2 && tr.gy < b.gy + b.h + .2);
   for (const tr of SCENE.trees) if (!covered(tr)) objs.push({d:tr.gx + tr.gy, f:() => drawTree(tr)});
   objs.sort((a, b) => a.d - b.d).forEach(o => o.f());
@@ -1961,7 +2134,7 @@ function frame(tn) {
     const dx = move.sx < m ? -sp : move.sx > W - m ? sp : 0, dy = move.sy < m + 60 ? -sp : move.sy > H - m ? sp : 0;
     if (dx || dy) { cam.x += dx; cam.y += dy; clampCam(); dragMoveTo(move.sx, move.sy); }
   }
-  updateAnimals(dt);
+  updateAnimals(dt); updatePets(dt);
   draw();
   requestAnimationFrame(frame);
 }
@@ -2093,18 +2266,19 @@ function onTap(sx, sy) {
     }
     case "penLot": {
       const a = ANIMALS[h.k];
-      openTray(`<div class="tray-title">${a.e} ${a.pen}</div><div class="tray-sub">Raise ${a.n.toLowerCase()}s for ${ITEMS[a.out].e} ${ITEMS[a.out].n.toLowerCase()}</div>
+      openTray(`<div class="tray-title">${a.e} ${a.pen}</div><div class="tray-sub">Raise ${a.n.toLowerCase()}s for ${outE(a)} ${outName(a)}</div>
         <div class="row">${S.level >= a.lvl ? `<button class="btn gold" data-act="pen" data-k="${h.k}">Build · ${a.penCost} 🪙</button>` : `<span class="tray-sub">🔒 Unlocks at level ${a.lvl}</span>`}</div>`, sx, sy);
       break;
     }
     case "animal": {
       const end = S.pens[h.k].list[h.i];
       if (end && end <= t) { collectAll(h.k); break; }
-      sfx(h.k);
-      if (end === 0) { penTray(h.k, sx, sy); break; }
-      tapAnimal(h.k, h.i);
+      sfx(h.k); animalTray(h.k, h.i, sx, sy);
       break;
     }
+    case "pet":
+      if (!petGift(h.j)) { sfx(S.pets[h.j].kind); petTray(h.j, sx, sy); }
+      break;
     case "pen":
       if (!collectAll(h.k)) penTray(h.k, sx, sy);
       break;
@@ -2151,13 +2325,47 @@ function growTray(i, sx, sy) {
     const tb = $("#trayBody"); if (tb) tb.innerHTML = body();
   }});
 }
+// The card that opens when you tap an animal: its name, how happy it is, and things to do with it.
+function animalTray(k, i, sx, sy) {
+  const a = ANIMALS[k], pen = S.pens[k], m = meta(k, i), w = () => animWorld(k, i);
+  const sig = () => [pen.list[i] === 0, pen.list[i] <= now(), Math.round(loveOf(m) / 20), cdLeft(m.petAt, PET_CD) > 0, cdLeft(m.brushAt, BRUSH_CD) > 0, cdLeft(m.playAt, PLAY_CD) > 0, m.name].join();
+  const btn = (act, label, at, cd) => { const l = cdLeft(at || 0, cd); return `<button class="btn plain sm" data-act="${act}" data-k="${k}" data-i="${i}" ${l ? "disabled" : ""}>${label}${l ? " · " + fmt(l).split(" ")[0] : ""}</button>`; };
+  const body = () => {
+    const end = pen.list[i], t = now();
+    const status = end === 0 ? `Hungry: wants ${ITEMS[a.feed].e} ${ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + outE(a) : "Giving pony rides 🪙") + " · " + timer(end);
+    return `<div class="acard">${artImg(ART_OF[k], a.e)}<div><div class="tray-title" style="text-align:left">${m.name}<button class="rn" data-act="rename" data-k="${k}" data-i="${i}" aria-label="Rename">✏️</button></div>
+      <div class="hearts">${hearts(m)}</div><div class="tray-sub" style="text-align:left">${status}</div></div></div>
+      <div class="row">${end === 0 ? `<button class="btn sm" data-act="feedOne" data-k="${k}" data-i="${i}">Feed ${ITEMS[a.feed].e} (${have(a.feed)})</button>` : ""}
+      ${btn("petA", "🤚 Pet", m.petAt, PET_CD)}${btn("brushA", "✨ Brush", m.brushAt, BRUSH_CD)}${k === "horse" ? btn("rideA", "🏇 Ride", m.playAt, PLAY_CD) : ""}</div>
+      <div class="tray-hint">${loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
+  };
+  let last = sig();
+  openTray(`<div id="trayBody">${body()}</div>`, sx, sy, {k, i, redraw:() => { const tb = $("#trayBody"); if (tb) { tb.innerHTML = body(); last = sig(); } },
+    update:() => { if (sig() !== last) tray.redraw(); }});
+}
+function petTray(j, sx, sy) {
+  const p = S.pets[j], P = PETS[p.kind];
+  const sig = () => [Math.round(loveOf(p) / 20), cdLeft(p.petAt, PET_CD) > 0, cdLeft(p.playAt, PLAY_CD) > 0, cdLeft(p.treatAt, TREAT_CD) > 0, p.name, giftReady(p)].join();
+  const btn = (act, label, at, cd) => { const l = cdLeft(at || 0, cd); return `<button class="btn plain sm" data-act="${act}" data-i="${j}" ${l ? "disabled" : ""}>${label}${l ? " · " + fmt(l).split(" ")[0] : ""}</button>`; };
+  const body = () => {
+    const next = GIFT_CD - (now() - p.giftAt);
+    return `<div class="acard">${artImg(ART_OF[p.kind], P.e)}<div><div class="tray-title" style="text-align:left">${p.name}<button class="rn" data-act="renamePet" data-i="${j}" aria-label="Rename">✏️</button></div>
+      <div class="hearts">${hearts(p)}</div><div class="tray-sub" style="text-align:left">${loveOf(p) < 40 ? "Wants some love before bringing gifts" : next > 0 ? "Next gift in about " + fmt(next).split(" ")[0] : "Has a gift for you!"}</div></div></div>
+      <div class="row">${btn("petP", "🤚 Pet", p.petAt, PET_CD)}${btn("playP", P.toy + " Play", p.playAt, PLAY_CD)}${btn("treatP", "🍖 Treat · 10🪙", p.treatAt, TREAT_CD)}</div>
+      <div class="tray-hint">Happy pets bring you coins, gems and sometimes a decoration</div>`;
+  };
+  let last = sig();
+  openTray(`<div id="trayBody">${body()}</div>`, sx, sy, {j, redraw:() => { const tb = $("#trayBody"); if (tb) { tb.innerHTML = body(); last = sig(); } },
+    update:() => { if (sig() !== last) tray.redraw(); }});
+}
+
 function penTray(k, sx, sy) {
   const a = ANIMALS[k], pen = S.pens[k];
   const hungry = pen.list.filter(e => e === 0).length;
   openTray(`<div class="tray-title">${a.e} ${a.pen}</div>
     ${hungry ? `<div class="tools"><div class="tool" data-tool="feed" data-k="${k}"><span class="e">${ITEMS[a.feed].e}</span><span class="n">${have(a.feed)}</span></div></div>
       <div class="tray-hint">${have(a.feed) ? "Drag feed onto hungry animals, or tap to feed all" : "Make " + ITEMS[a.feed].n.toLowerCase() + " at the Feed Mill"}</div>`
-      : `<div class="tray-sub">Everyone is busy making ${ITEMS[a.out].e}</div>`}
+      : `<div class="tray-sub">${a.out ? "Everyone is busy making " + outE(a) : "Everyone is out giving pony rides"}</div>`}
     ${pen.list.length < a.max ? `<div class="row"><button class="btn gold sm" data-act="animal" data-k="${k}">Buy ${a.e} · ${a.cost} 🪙</button></div>` : ""}`, sx, sy);
 }
 
@@ -2423,10 +2631,17 @@ function panelShop() {
   h += `<h4>Animals</h4><div class="shop">`;
   for (const [k, a] of Object.entries(ANIMALS)) {
     const pen = S.pens[k];
-    if (pen.owned) h += `<div class="scard slot"><span class="e">${a.e}</span><b>${a.n}</b><small>${pen.list.length}/${a.max} · makes ${ITEMS[a.out].e}</small>
+    if (pen.owned) h += `<div class="scard slot">${artImg(ART_OF[k], a.e)}<b>${a.n}</b><small>${pen.list.length}/${a.max} · ${a.out ? "makes " + outE(a) : "earns 🪙 from rides"}</small>
       ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">${a.cost} 🪙</button>` : `<small>Pen is full</small>`}</div>`;
-    else if (S.level >= a.lvl) h += `<div class="scard slot"><span class="e">${a.e}</span><b>${a.pen}</b><small>Comes with 1 ${a.n.toLowerCase()}</small><button class="btn gold sm" data-act="pen" data-k="${k}">${a.penCost} 🪙</button></div>`;
+    else if (S.level >= a.lvl) h += `<div class="scard slot">${artImg(ART_OF[k], a.e)}<b>${a.pen}</b><small>Comes with 1 ${a.n.toLowerCase()}</small><button class="btn gold sm" data-act="pen" data-k="${k}">${a.penCost} 🪙</button></div>`;
     else h += `<div class="scard slot locked"><span class="e">🔒</span><b>${a.pen}</b><small>Level ${a.lvl}</small></div>`;
+  }
+  h += `</div><h4>Pets</h4><div class="shop">`;
+  for (const [k, P] of Object.entries(PETS)) {
+    const owned = S.pets.find(p => p.kind === k);
+    h += owned ? `<div class="scard slot">${artImg(ART_OF[k], P.e)}<b>${owned.name}</b><small>Your ${P.n.toLowerCase()} · tap them on the farm</small></div>`
+      : S.level >= P.lvl ? `<div class="scard slot">${artImg(ART_OF[k], P.e)}<b>${P.n}</b><small>Roams your farm and brings gifts</small><button class="btn gold sm" data-act="buyPet" data-k="${k}">${P.cost} 🪙</button></div>`
+      : `<div class="scard slot locked"><span class="e">🔒</span><b>${P.n}</b><small>Level ${P.lvl}</small></div>`;
   }
   h += `</div><h4>Buildings</h4><div class="shop">`;
   for (const [k, b] of Object.entries(BUILDINGS)) {
@@ -2483,6 +2698,7 @@ const howTo = () => `<ul class="howto">
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the road, at your own price.</li>
   <li><b>Press and hold</b> a building, pen, field or decoration to move it.</li>
+  <li>Tap an animal to name it, pet it and brush it. Happy animals make more. Get a 🐕 dog or 🐈 cat in the Shop: they bring gifts!</li>
   <li>Win decorations in 🎪 special events, and grow your land from the 🛒 Shop.</li>
   <li>Tap the weather button to match your real weather.</li>
   <li>Drag the map to look around. Pinch or use +/− to zoom.</li></ul>`;
@@ -2543,6 +2759,20 @@ document.addEventListener("click", (e) => {
   switch (d.act) {
     case "closePanel": closePanel(); break;
     case "backupFile": backupFile(); break;
+    case "feedOne": if (feedOne(d.k, i)) { commit(); tray && tray.redraw && tray.redraw(); } else toast("You need " + ITEMS[ANIMALS[d.k].feed].n.toLowerCase() + ". " + (ANIMALS[d.k].feed === "carrot" ? "Grow some in your fields." : "Make it at the Feed Mill.")); break;
+    case "petA": case "brushA": case "rideA": {
+      const m = meta(d.k, i), w = animWorld(d.k, i), act = {petA:"pet", brushA:"brush", rideA:"play"}[d.act];
+      if (interact(m, d.k, act, w.x, w.y) && act === "play") { w.a.gallop = T + 5000; w.a.rest = 0; }
+      tray && tray.redraw && tray.redraw(); break;
+    }
+    case "petP": case "playP": case "treatP": {
+      const p = S.pets[i], a = petPos(i), act = {petP:"pet", playP:"play", treatP:"treat"}[d.act];
+      if (interact(p, p.kind, act, a.x, a.y) && act === "play") { a.zoom = T + 5000; a.rest = 0; a.tx = 0; }
+      tray && tray.redraw && tray.redraw(); break;
+    }
+    case "rename": renameThing(meta(d.k, i), ANIMALS[d.k].n.toLowerCase()); tray && tray.redraw && tray.redraw(); break;
+    case "renamePet": renameThing(S.pets[i], PETS[S.pets[i].kind].n.toLowerCase()); tray && tray.redraw && tray.redraw(); break;
+    case "buyPet": if (buyPet(d.k)) { closePanel(); const h = boxOf("house"); focusOn(h.gx + h.w, h.gy + h.h); } break;
     case "backupCode": showBackupCode(); break;
     case "copyCode": copyCode(); break;
     case "restoreFile": $("#restoreInput").click(); break;
@@ -2680,6 +2910,9 @@ const SOUNDS = {
   chicken:() => { tone(1150, .07, {type:"square", vol:.035, to:720, lp:2500}); tone(1250, .09, {type:"square", vol:.035, to:650, lp:2500, at:.11}); },
   cow:() => tone(165, .75, {type:"sawtooth", vol:.09, to:118, lp:700, attack:.12}),
   sheep:() => tone(330, .55, {type:"sawtooth", vol:.06, to:290, lp:1500, attack:.05, vib:9}),
+  horse:() => { tone(620, .7, {type:"sawtooth", vol:.05, to:300, lp:2200, attack:.03, vib:14}); noise(.3, {vol:.06, freq:600, at:.6}); },
+  dog:() => { tone(520, .09, {type:"square", vol:.05, to:330, lp:1600}); tone(560, .1, {type:"square", vol:.05, to:340, lp:1600, at:.16}); },
+  cat:() => tone(700, .45, {type:"triangle", vol:.08, to:950, attack:.08, vib:5}),
 };
 function sfx(name) { if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
 

@@ -68,11 +68,12 @@ Open that link in Chrome on your phone and use **Add to Home screen** to get it 
 - **Decor 🌷:** buy flowers, trees, benches, lanterns and fountains, or place prizes from events. Tap one to put it away; press and hold to move it.
 - **Bigger land:** buy more land east or south from the Shop, or tap the "Expand" signs past the edge of the island.
 - **Seasons & holidays:** the farm changes with the seasons and dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day, each with its own holiday event and prizes.
+- **Animals & pets:** tap any animal to see its name (tap ✏️ to rename), its happiness hearts, and to pet, brush or feed it. Happy animals (4+ hearts) sometimes make double. **Horses** (level 5) eat carrots and give pony rides for coins; tap 🏇 Ride to take one for a gallop. Buy a **dog** or **cat** in the Shop: they roam the farm, love being petted, played with and given treats, and bring you gifts (coins, gems, sometimes a decoration).
 - **Backup ⚙️:** tap the ⚙️ button (bottom left) → **Save backup file** or **Backup code**. To move a farm to a new phone, use **Restore from file** or **Restore from code** there. The game reminds you once a week if you haven't backed up.
 - **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
 - **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
 - **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
 
-All the art is original and drawn in code (plus your phone's own emoji). No Hay Day artwork or names are used.
+The buildings and scenery are drawn in code. The animal and crop pictures in `farm/art/` were made with Canva's AI image generator for this game. No Hay Day artwork or names are used.
 
 Crops keep growing while the game is closed. Progress is saved in that browser on that device.
