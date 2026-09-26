@@ -311,6 +311,7 @@ function makeAnimal(src, h, x, z) {
 
 // ---------------- ground ----------------
 const grassTex = tex(grass(21), 1, [34, 34]);
+const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
 const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
 { const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
   p.setY(i, d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20)); }
@@ -358,6 +359,7 @@ const windU = {uTime:{value:0}, uWind:{value:.3}};
   for (let i = 0; k < n && i < n * 3; i++) {
     const r = Math.sqrt(R()) * 34, a = R() * Math.PI * 2, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
     if (Math.abs(x) < 4.4 && Math.abs(z) < 5.9) continue;           // not inside the barn
+    if (KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
     if (Math.abs(x) < 3 && z > 5.5 && z < 22) continue;              // not on the dirt path
     e.set((R() - .5) * .35, R() * 7, (R() - .5) * .35); q.setFromEuler(e);
     const fade = Math.min(1, (34 - r) / 9), s = (.6 + R() * .8) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
@@ -387,6 +389,135 @@ const fence2 = makeFence(10, 5); fence2.position.set(10.6, 0, 3.8); fence2.rotat
 scene.add(makeAnimal(ART + "cow.png", 1.7, 5, 5)); contact(5, 5, 2.2, 1);
 scene.add(makeAnimal(ART + "horse.png", 2.3, 7.8, 2.5)); contact(7.8, 2.5, 2.2, 1);
 scene.add(makeAnimal(ART + "chicken.png", .75, 3.2, 7)); contact(3.2, 7, .8, .5);
+
+// ---------------- more farm pieces ----------------
+function ribbedMetal(seed) { // corrugated galvanized steel
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  for (let i = 0; i < n; i++) { const w = Math.sin(i / n * Math.PI * 2 * 24) * .5 + .5;
+    x.fillStyle = `hsl(210,5%,${56 + w * 18}%)`; x.fillRect(i, 0, 1, n); hx.fillStyle = `rgb(${w * 255},${w * 255},${w * 255})`; hx.fillRect(i, 0, 1, n); }
+  for (let i = 0; i < 70; i++) { const px = R() * n; x.fillStyle = `rgba(120,80,50,${R() * .12})`; x.fillRect(px, R() * n, 2 + R() * 5, 20 + R() * 120); } // rust streaks
+  for (const y of [n * .25, n * .5, n * .75]) { x.fillStyle = "rgba(0,0,0,.25)"; x.fillRect(0, y, n, 3); hx.fillStyle = "#000"; hx.fillRect(0, y, n, 3); }
+  return [c, normalFrom(h, 3)];
+}
+function straw(seed, rings) { // hay: long strands on the side, a spiral on the ends
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#c9a45a"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 2600; i++) {
+    x.strokeStyle = `hsl(${38 + R() * 12},${45 + R() * 25}%,${45 + R() * 30}%)`; x.lineWidth = .6 + R();
+    x.beginPath();
+    if (rings) { const a = R() * 7, r = R() * 128; x.arc(128, 128, r, a, a + .4 + R() * .6); }
+    else { const px = R() * n, py = R() * n; x.moveTo(px, py); x.lineTo(px + (R() - .5) * 6, py + 14 + R() * 20); }
+    x.stroke();
+  }
+  return c;
+}
+function rockSurface(seed) { // weathered granite: mottled grays, specks and cracks
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#77736b"; x.fillRect(0, 0, n, n); hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 120; i++) { const cx = R() * n, cy = R() * n, r = 20 + R() * 70, l = 36 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) { const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${30 + R() * 20},${6 + R() * 8}%,${l}%,.5)`); g.addColorStop(1, "hsla(30,5%,45%,0)"); x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r); hg.addColorStop(0, `rgba(${R() < .5 ? "255,255,255" : "0,0,0"},.25)`); hg.addColorStop(1, "rgba(128,128,128,0)"); hx.fillStyle = hg; hx.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2); } }
+  for (let i = 0; i < 5000; i++) { x.fillStyle = `rgba(${R() < .5 ? "230,225,215" : "30,28,25"},${R() * .35})`; x.fillRect(R() * n, R() * n, 1 + R() * 2, 1 + R() * 2); }
+  x.lineWidth = 1.2; hx.lineWidth = 2;
+  for (let i = 0; i < 18; i++) { let px = R() * n, py = R() * n; x.strokeStyle = "rgba(20,18,15,.45)"; hx.strokeStyle = "#000"; x.beginPath(); hx.beginPath(); x.moveTo(px, py); hx.moveTo(px, py);
+    for (let k = 0; k < 8; k++) { px += (R() - .5) * 40; py += (R() - .3) * 30; x.lineTo(px, py); hx.lineTo(px, py); } x.stroke(); hx.stroke(); }
+  // a little moss on top
+  for (let i = 0; i < 40; i++) { x.fillStyle = `hsla(${80 + R() * 20},35%,${28 + R() * 12}%,.35)`; x.beginPath(); x.arc(R() * n, R() * n * .4, 6 + R() * 18, 0, 7); x.fill(); }
+  return [c, normalFrom(h, 5)];
+}
+const [rkC, rkN] = rockSurface(14); M.rock = std({map:tex(rkC, 1), normalMap:tex(rkN), roughness:.92});
+const [metC, metN] = ribbedMetal(2);
+M.silo = std({map:tex(metC, 1, [1, 1]), normalMap:tex(metN, 0, [1, 1]), metalness:.75, roughness:.38});
+M.hay = std({map:tex(straw(3), 1, [2, 1]), roughness:.95}); M.hayEnd = std({map:tex(straw(4, true), 1), roughness:.95});
+M.water = new THREE.MeshStandardMaterial({color:0x1e4a5c, roughness:.04, metalness:.1, transparent:true, opacity:.9});
+M.soil = std({map:tex(dirt(12), 1, [3, 3]), roughness:1, color:0x8a6a4a});
+
+function makeSilo() {
+  const g = new THREE.Group(), r = 1.55, h = 8.5;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 40, 1, true), M.silo); body.position.y = h / 2;
+  body.geometry.attributes.uv.array.forEach((v, i, a) => { if (i % 2 === 0) a[i] = v * 3; }); // three wraps of the ribs
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(r * 1.02, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.silo); dome.position.y = h;
+  for (const m of [body, dome]) { m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const y of [.02, h * .33, h * .66, h]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r + .03, .05, 6, 48), M.metal); ring.rotation.x = Math.PI / 2; ring.position.y = y; ring.castShadow = true; g.add(ring); }
+  g.add(box(.08, h + .8, .08, M.metal, -.25, (h + .8) / 2, r + .12), box(.08, h + .8, .08, M.metal, .25, (h + .8) / 2, r + .12)); // ladder
+  for (let y = .4; y < h + .6; y += .45) g.add(box(.5, .05, .05, M.metal, 0, y, r + .12));
+  g.add(box(.5, .35, .5, M.metal, 0, h + r * .95, 0)); // cap
+  return g;
+}
+function makeBale() {
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(.72, .72, 1.25, 28), [M.hay, M.hayEnd, M.hayEnd]);
+  g.rotation.z = Math.PI / 2; g.castShadow = g.receiveShadow = true; return g;
+}
+function makeTrough() {
+  const g = new THREE.Group();
+  g.add(box(2.2, .12, .9, M.fence, 0, .38, 0), box(2.2, .5, .1, M.fence, 0, .65, .42), box(2.2, .5, .1, M.fence, 0, .65, -.42), box(.1, .5, .9, M.fence, 1.05, .65, 0), box(.1, .5, .9, M.fence, -1.05, .65, 0));
+  for (const x of [-.9, .9]) g.add(box(.12, .4, .7, M.fence, x, .2, 0));
+  const w = new THREE.Mesh(new THREE.PlaneGeometry(2, .74), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .82; w.receiveShadow = true; g.add(w);
+  return g;
+}
+function makeRock(seed, s) {
+  const geo = new THREE.IcosahedronGeometry(1, 3), p = geo.attributes.position, R = rng(seed);
+  const bumps = [...Array(6)].map(() => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, R() * .35]);
+  for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)); let k = 1;
+    for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.dot(new THREE.Vector3(bx, by, bz).normalize()));
+    v.multiplyScalar(k); v.y = v.y * .6; if (v.y < -.15) v.y = -.15; p.setXYZ(i, v.x, v.y, v.z); }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, M.rock); m.scale.setScalar(s); m.castShadow = m.receiveShadow = true; return m;
+}
+function makeBush(seed, s = 1) {
+  const g = new THREE.Group(), R = rng(seed), leafTex = tex(leafCard(seed), 1);
+  const mat = std({map:leafTex, alphaTest:.5, side:THREE.DoubleSide, roughness:.8, color:0xd8f0c0});
+  const depth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.5});
+  const card = new THREE.PlaneGeometry(1, 1);
+  for (let i = 0; i < 55; i++) {
+    const m = new THREE.Mesh(card, mat); m.customDepthMaterial = depth;
+    const a = R() * 7, r = Math.sqrt(R()) * .9;
+    m.position.set(Math.cos(a) * r * 1.2, .35 + R() * .8 * (1 - r * .5), Math.sin(a) * r * 1.2); m.rotation.set(R() * 7, R() * 7, R() * 7);
+    m.castShadow = m.receiveShadow = true; g.add(m);
+  }
+  g.scale.setScalar(s); g.userData.canopy = g; return g;
+}
+function makeCropField(w, d) { // ploughed rows with ripening wheat
+  const g = new THREE.Group();
+  const bed = box(w, .16, d, M.soil, 0, .06, 0, .5); g.add(bed);
+  for (let z = -d / 2 + .35; z < d / 2; z += .7) g.add(box(w - .2, .1, .22, M.soil, 0, .17, z, .5)); // raised rows
+  const blade = new THREE.BufferGeometry();
+  blade.setAttribute("position", new THREE.Float32BufferAttribute([-.03,0,0, .03,0,0, -.02,.4,0, .02,.4,0, 0,.75,.05], 3));
+  blade.setIndex([0,1,2, 1,3,2, 2,3,4]); blade.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({color:0xffffff, roughness:.8, side:THREE.DoubleSide});
+  mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, windU);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind;")
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vec4 wp = instanceMatrix * vec4(0.,0.,0.,1.); float b = sin(uTime * 1.5 + wp.x * .6 + wp.z * .3) * (.12 + uWind * .3);
+        transformed.x += b * position.y * position.y;`); };
+  const R = rng(77), n = Math.round(w * d * 90), im = new THREE.InstancedMesh(blade, mat, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+  for (let i = 0; i < n; i++) {
+    const row = Math.floor(R() * Math.floor(d / .7)), z = -d / 2 + .35 + row * .7 + (R() - .5) * .16, x = (R() - .5) * (w - .4);
+    q.setFromEuler(new THREE.Euler((R() - .5) * .3, R() * 7, (R() - .5) * .3)); const s = .7 + R() * .5;
+    m4.compose(new THREE.Vector3(x, .2, z), q, new THREE.Vector3(s, s, s)); im.setMatrixAt(i, m4);
+    c.setHSL(.11 + R() * .04, .55 + R() * .2, .45 + R() * .15); im.setColorAt(i, c);
+  }
+  im.castShadow = true; im.receiveShadow = true; g.add(im);
+  return g;
+}
+function makeLampPost() {
+  const g = new THREE.Group();
+  g.add(box(.14, 3, .14, M.metal, 0, 1.5, 0), box(.5, .08, .08, M.metal, .22, 2.95, 0));
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(.32, .42, .32), std({color:0xfff2d0, roughness:.2, emissive:0xffb050, emissiveIntensity:0, transparent:true, opacity:.85}));
+  glass.position.set(.42, 2.7, 0); g.add(glass); g.add(box(.42, .08, .42, M.metal, .42, 2.95, 0));
+  const light = new THREE.PointLight(0xffb45a, 0, 12, 2); light.position.set(.42, 2.6, 0); g.add(light);
+  g.userData = {glass, light};
+  return g;
+}
+const silo = makeSilo(); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
+for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = makeBale(); b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
+contact(-6.4, -2.9, 3, 3.6);
+const trough = makeTrough(); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
+for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12, -6, 1.1, 3], [-11.2, -5.2, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
+const bushes = [[-4.9, 6.2, 1], [4.9, 6.4, .8], [-5, -6, 1.1], [-13, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
+const field = makeCropField(7, 5.2); field.position.set(-10, 0, 12); field.rotation.y = .12; scene.add(field);
+const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
 
 // ---------------- sky, sun and fill light ----------------
 const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()}};
@@ -449,6 +580,8 @@ function setPreset(name) {
   WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
   rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
   M.glass.emissiveIntensity = P.night ? 2.2 : 0; lamp.intensity = P.night ? 16 : 0;
+  lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
+  M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
   for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
   windU.uWind.value = wind;
   // sky reflections for glossy paint, glass and wet surfaces
@@ -543,6 +676,7 @@ function frame() {
     a.card.position.y = Math.abs(Math.sin(t * 1.6 + a.t0)) * .02; // gentle breathing bob
   }
   // trees sway with the wind
+  for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
   for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
   if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
   if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
