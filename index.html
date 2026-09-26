@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101512">
+<title>Bugsy Brain</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ground:#EEF1EC; --surface:#FFFFFF; --raised:#F6F8F5; --line:#D6DDD6;
+  --ink:#1B2420; --muted:#5B6B63; --accent:#2F6B4F; --accent-ink:#FFFFFF; --accent-soft:#DCEBE2;
+  --harvest:#B8741A; --harvest-soft:#F6E7CF; --danger:#B3261E; --bot:#F2F5F1; --me:#2F6B4F; --me-ink:#FFFFFF;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --ground:#101512; --surface:#171E1A; --raised:#1D2621; --line:#2A352F;
+    --ink:#E6ECE8; --muted:#95A69C; --accent:#6FC79A; --accent-ink:#0D1A13; --accent-soft:#1F3A2C;
+    --harvest:#F0A94A; --harvest-soft:#3A2A14; --danger:#FF8A80; --bot:#1D2621; --me:#2F6B4F; --me-ink:#F2FFF7;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{height:100%;display:flex;flex-direction:column;max-width:860px;margin:0 auto;padding-inline:16px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 10px}
+.id{display:flex;align-items:center;gap:12px;min-width:0}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:20px;flex:none;position:relative}
+.avatar::after{content:"";position:absolute;right:-1px;bottom:-1px;width:13px;height:13px;border-radius:50%;background:var(--harvest);border:2px solid var(--ground)}
+.name{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:3px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:var(--harvest-soft);color:var(--harvest);font-family:var(--mono);font-size:12px;font-weight:500}
+.chip.web{background:var(--accent-soft);color:var(--accent)}
+.chip.pulse{animation:pulse 1.2s ease-in-out 3}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.panel{flex:1;min-height:0;display:flex;flex-direction:column}
+.panel.scroll{display:block;overflow-y:auto;padding-bottom:28px}
+.banner{margin-bottom:10px;padding:10px 14px;border-radius:var(--r);background:var(--harvest-soft);color:var(--ink);font-size:14px}
+
+/* setup */
+.setup{max-width:560px;margin:8px auto 24px;display:flex;flex-direction:column;gap:14px}
+.setup h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.1;margin:8px 0 0;text-wrap:balance}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+
+/* chat */
+.msgs{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-block:8px 12px}
+.msg{max-width:84%;display:flex;flex-direction:column;gap:4px}
+.msg .bubble{padding:10px 14px;border-radius:18px;overflow-wrap:anywhere}
+.msg.bot{align-self:flex-start}
+.msg.bot .bubble{background:var(--bot);border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg.me .bubble{background:var(--me);color:var(--me-ink);border-bottom-right-radius:6px}
+.msg img.shot{max-width:220px;max-height:260px;border-radius:12px;border:1px solid var(--line);object-fit:cover}
+.bubble p{margin:0}.bubble p+p,.bubble ul{margin-top:8px}.bubble ul{margin-bottom:0;padding-left:20px}
+.bubble code{font-family:var(--mono);font-size:.88em;background:var(--raised);padding:1px 5px;border-radius:5px}
+.bubble a,.list a,.sources a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.bubble.thinking{color:var(--muted);font-style:italic}
+.sources{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13px;color:var(--muted);padding-left:4px}
+.gsearch{max-width:100%;overflow-x:auto}
+.rate{display:flex;gap:2px;align-self:flex-start}
+.rate button{border:0;background:transparent;color:var(--muted);border-radius:8px;min-width:32px;min-height:32px;display:grid;place-items:center}
+.rate button:hover{background:var(--raised)}
+.rate button[aria-pressed="true"]{color:var(--accent)}
+.rate button.down[aria-pressed="true"]{color:var(--danger)}
+.note{align-self:center;max-width:92%;text-align:center;font-size:13px;color:var(--muted)}
+.note.learned{background:var(--harvest-soft);color:var(--ink);padding:6px 12px;border-radius:999px}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:10px}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;text-align:left}
+.pill:hover{border-color:var(--accent)}
+.attach{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding-bottom:8px}
+.attach img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.composer{display:flex;gap:6px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:6px}
+.composer:focus-within{border-color:var(--accent)}
+.composer textarea{flex:1;border:0;background:transparent;resize:none;max-height:160px;padding:8px 4px;outline:none;line-height:1.4}
+.iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;flex:none}
+.iconbtn:hover{background:var(--raised);color:var(--ink)}
+.send{width:42px;height:42px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.send:disabled{opacity:.45;cursor:default}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:13px;color:var(--muted);padding-block:8px 12px}
+.meta label{display:flex;align-items:center;gap:6px}
+.link{border:0;background:transparent;color:var(--accent);font-weight:700;padding:4px 0}
+.meta select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 6px;max-width:190px}
+
+/* brain + study */
+h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;margin:26px 0 4px;text-wrap:balance}
+.hint{color:var(--muted);font-size:14px;margin:0 0 12px;max-width:62ch}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:6px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat .n{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.stat.lead .n{color:var(--harvest)}
+.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.list li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list li .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.list .empty{color:var(--muted);font-size:14px}
+.x{border:0;background:transparent;color:var(--muted);border-radius:8px;min-width:32px;min-height:32px;display:grid;place-items:center;flex:none}
+.x:hover{color:var(--danger);background:var(--raised)}
+.x.refresh:hover{color:var(--accent)}
+.note-actions{display:flex;flex-direction:column;gap:2px;flex:none}
+.log .v{font-family:var(--mono);font-size:12px;color:var(--harvest);flex:none;padding-top:3px;min-width:34px}
+.log .d{display:block;font-size:12px;color:var(--muted)}
+.notehead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.notehead strong{font-family:var(--display);font-weight:700}
+.src{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 7px}
+.srclink{font-size:13px;display:inline-block;margin-top:4px}
+.working{font-size:13px;color:var(--muted);font-style:italic}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field span{font-size:13px;color:var(--muted);font-weight:700}
+.field input,.field textarea,.search{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.field textarea{resize:vertical;min-height:84px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:0;border-radius:999px;padding:10px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);min-height:44px}
+.btn.ghost{background:var(--raised);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn:disabled{opacity:.5;cursor:default}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.status{font-size:14px;color:var(--muted);min-height:1.4em}
+.status.ok{color:var(--accent)}
+.status.err{color:var(--danger)}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.search{margin-bottom:10px}
+@media (max-width:520px){
+  .tabs{width:100%}.tabs button{flex:1;padding-inline:8px}
+  .msg{max-width:92%}
+}
+@media (prefers-reduced-motion:reduce){.chip.pulse{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="id">
+      <div class="avatar" id="avatar" aria-hidden="true">B</div>
+      <div style="min-width:0">
+        <div class="name" id="botName">Bugsy Jr.</div>
+        <div class="sub"><span class="chip" id="verChip">Brain v1</span><span id="saveState"></span><span class="chip web" id="webState" hidden>Web on</span></div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections" id="tabs">
+      <button role="tab" id="t-chat" aria-selected="true" data-tab="chat">Chat</button>
+      <button role="tab" id="t-brain" aria-selected="false" data-tab="brain">Brain</button>
+      <button role="tab" id="t-study" aria-selected="false" data-tab="study">Study</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main>
+    <!-- FIRST-RUN SETUP -->
+    <section class="panel scroll" id="p-setup" hidden>
+      <div class="setup">
+        <h1>Hook up Bugsy's brain</h1>
+        <p class="hint" style="margin:0">Bugsy thinks with Google Gemini, using your own free API key. The key stays in this browser on this device. It's never put in the website's code or sent anywhere except Google.</p>
+        <ol class="steps">
+          <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in.</li>
+          <li>Tap <strong>Create API key</strong> and copy it.</li>
+          <li>Paste it below and tap Connect.</li>
+        </ol>
+        <form class="card" id="keyForm">
+          <label class="field"><span>Gemini API key</span><input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key"></label>
+          <div class="row"><button class="btn" id="keyBtn" type="submit">Connect</button></div>
+          <div class="status" id="keyStatus"></div>
+        </form>
+        <p class="hint" style="margin:0">Moving from another device? Connect first, then use Import backup in the Brain tab to bring your buddy's memory over.</p>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="panel" id="p-chat" role="tabpanel" aria-labelledby="t-chat" hidden>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="suggest" id="suggest"></div>
+      <div class="attach" id="attachRow" hidden><img id="attachImg" alt="Screenshot to send"><span>Screenshot attached</span><button type="button" class="link" id="attachClear">Remove</button></div>
+      <form class="composer" id="composer">
+        <button class="iconbtn" type="button" id="attachBtn" aria-label="Send a screenshot or photo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
+        </button>
+        <input type="file" id="attachFile" accept="image/*" hidden>
+        <textarea id="box" rows="1" placeholder="Text your buddy..." aria-label="Message"></textarea>
+        <button class="send" id="sendBtn" type="submit" aria-label="Send"></button>
+      </form>
+      <div class="meta">
+        <label><input type="checkbox" id="smart"> Think harder (slower)</label>
+        <button type="button" class="link" id="trainChat">Train now</button>
+        <button type="button" class="link" id="newChat">New chat</button>
+        <label>Past chats <select id="pastChats" aria-label="Past chats"></select></label>
+      </div>
+    </section>
+
+    <!-- BRAIN -->
+    <section class="panel scroll" id="p-brain" role="tabpanel" aria-labelledby="t-brain" hidden>
+      <div class="stats" id="stats"></div>
+
+      <h2>How it trains itself</h2>
+      <p class="hint">Every few messages (or when you tap Train now), it reviews the chat and your thumbs up and down, then rewrites its own rules, saves what it learned about you, and files new knowledge. Each upgrade bumps the brain version.</p>
+      <div class="row"><button class="btn" id="trainBrain">Train now</button><span class="status" id="trainStatus"></span></div>
+
+      <h2>What it knows about you</h2>
+      <p class="hint">Facts it picked up from your chats. Delete anything that's wrong.</p>
+      <ul class="list" id="profileList"></ul>
+
+      <h2>Rules it wrote for itself</h2>
+      <p class="hint">Its playbook. It rewrites these as it learns what you like.</p>
+      <ul class="list" id="playbookList"></ul>
+
+      <h2>Upgrade log</h2>
+      <ul class="list log" id="logList"></ul>
+
+      <h2>Knowledge</h2>
+      <p class="hint">Notes from things you taught it and topics it studied. It pulls the relevant ones into each chat. Tap the arrow on a note to re-check it against the web.</p>
+      <input class="search" id="noteSearch" type="search" placeholder="Search what it knows" aria-label="Search knowledge">
+      <ul class="list" id="noteList"></ul>
+
+      <h2>Personality</h2>
+      <div class="card">
+        <div class="two">
+          <label class="field"><span>Buddy's name</span><input id="setName" maxlength="40"></label>
+          <label class="field"><span>Your name</span><input id="setUser" maxlength="40"></label>
+        </div>
+        <label class="field"><span>Vibe</span><textarea id="setVibe" rows="3"></textarea></label>
+        <label class="check"><input type="checkbox" id="setAuto"> Train itself automatically every 4 messages</label>
+        <label class="check"><input type="checkbox" id="setWeb"> Let it search Google when it needs current info</label>
+        <div class="row"><button class="btn" id="saveSettings">Save</button><span class="status" id="settingsStatus"></span></div>
+      </div>
+
+      <h2>Backup and other devices</h2>
+      <p class="hint">Bugsy's brain lives in this browser. Download a backup to keep it safe, or import it on your PC or another phone to bring the same buddy along.</p>
+      <div class="row">
+        <button class="btn ghost" id="exportBrain">Download backup</button>
+        <button class="btn ghost" id="importBrainBtn">Import backup</button>
+        <input type="file" id="importBrain" accept=".json,application/json" hidden>
+      </div>
+      <div class="status" id="backupStatus"></div>
+
+      <h2>AI settings</h2>
+      <div class="card">
+        <div class="two">
+          <label class="field"><span>Everyday model</span><input id="setModel" spellcheck="false"></label>
+          <label class="field"><span>"Think harder" model</span><input id="setSmartModel" spellcheck="false"></label>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="saveModels">Save models</button>
+          <button class="btn ghost" id="changeKey">Change API key</button>
+        </div>
+        <div class="status" id="modelStatus"></div>
+      </div>
+
+      <h2>Start over</h2>
+      <div class="row" id="resetRow"><button class="btn danger" id="resetBtn">Reset brain</button></div>
+      <div class="row" id="resetConfirm" hidden>
+        <span>This erases everything it learned, its rules, knowledge and chats on this device.</span>
+        <button class="btn danger" id="resetYes">Erase it all</button>
+        <button class="btn ghost" id="resetNo">Cancel</button>
+      </div>
+    </section>
+
+    <!-- STUDY -->
+    <section class="panel scroll" id="p-study" role="tabpanel" aria-labelledby="t-study" hidden>
+      <h2>Study a topic</h2>
+      <p class="hint" id="studyHint">It searches Google for the topic, reads what it finds, and saves notes to its brain with links to the sources.</p>
+      <form class="card" id="studyForm">
+        <label class="field"><span>Topic</span><input id="studyTopic" placeholder="e.g. Rocket League rotations, dairy cow nutrition, growing a TikTok"></label>
+        <div class="row"><button class="btn" id="studyBtn" type="submit">Study it</button><button class="btn ghost" type="button" id="suggestTopics">Suggest topics</button></div>
+        <div class="row" id="curiosity"></div>
+        <div class="status" id="studyStatus"></div>
+      </form>
+
+      <h2>Teach it</h2>
+      <p class="hint">Paste notes, an article, stats, anything. Or give it a link, a text file, or a screenshot. It pulls out the facts and adds them to its knowledge.</p>
+      <div class="card">
+        <label class="field"><span>Paste text</span><textarea id="teachText" rows="5" placeholder="Paste something for it to learn"></textarea></label>
+        <label class="field"><span>Or paste a link</span><input id="teachUrl" type="url" inputmode="url" placeholder="https://..."></label>
+        <label class="field"><span>Or pick a file or screenshot</span><input type="file" id="teachFile" accept=".txt,.md,.csv,.json,text/plain,image/*"></label>
+        <div class="row"><button class="btn" id="teachBtn">Learn this</button></div>
+        <div class="status" id="teachStatus"></div>
+      </div>
+
+      <h2>Training data</h2>
+      <p class="hint">Saves your chats (minus replies you gave a thumbs down) in the JSONL format used to fine-tune AI models, in case you ever want to retrain a model's weights on a service that offers it.</p>
+      <div class="row"><button class="btn ghost" id="exportTrain">Download training data</button><span class="status" id="exportStatus"></span></div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+
+  // ================================================================ storage (this browser only)
+  const K = { key: "bugsy.key", brain: "bugsy.brain", notes: "bugsy.notes", chats: "bugsy.chats", models: "bugsy.models" };
+  function load(k, fallback) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+  function store(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch (e) { setSaved("Storage full: delete old notes or chats"); return false; }
+  }
+  function getKey() { try { return localStorage.getItem(K.key) || ""; } catch (e) { return ""; } }
+  function setKey(v) { try { if (v) localStorage.setItem(K.key, v); else localStorage.removeItem(K.key); } catch (e) {} }
+
+  const MAX_PROFILE = 60, MAX_RULES = 20, MAX_NOTES = 500, MAX_CHATS = 30, MAX_MSGS = 150, TRAIN_EVERY = 4;
+  const DEFAULT_MODELS = { everyday: "gemini-flash-latest", smart: "gemini-pro-latest" };
+
+  function defaultBrain(user) {
+    return {
+      v: 1, name: "Bugsy Jr.", user: user,
+      vibe: "Laid-back best friend energy. Texts like a friend: casual, quick, a little sarcastic, never robotic. "
+        + "Roasts in good fun and hypes up wins. Knows " + user + " works long days on a dairy farm and streams as RealBugsyTV.",
+      autoTrain: true, web: true,
+      profile: [],
+      playbook: [
+        "Keep replies short and casual unless " + user + " asks for detail.",
+        "Answer the actual question first, then joke around.",
+        "Now and then ask a quick question to learn more about " + user + "."
+      ],
+      log: [], curiosity: [], stats: { msgs: 0, trains: 0 }, sinceTrain: 0, currentChat: null
+    };
+  }
+  function newChat() { return { id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: "New chat", messages: [], at: Date.now() }; }
+
+  let brain = Object.assign(defaultBrain("Austin"), load(K.brain, {}));
+  brain.stats = Object.assign({ msgs: 0, trains: 0 }, brain.stats || {});
+  let notes = load(K.notes, []);
+  let chats = load(K.chats, {});          // id -> chat
+  let models = Object.assign({}, DEFAULT_MODELS, load(K.models, {}));
+  let chat = (brain.currentChat && chats[brain.currentChat]) || newChat();
+  let busy = false, training = false, ctl = null, attached = null;
+
+  const timers = {}, pending = {};
+  function later(key, fn, ms) {
+    clearTimeout(timers[key]);
+    pending[key] = fn;
+    timers[key] = setTimeout(() => { delete pending[key]; fn(); }, ms);
+  }
+  // Save anything still waiting when the app is closed or switched away from.
+  function flushSaves() { Object.keys(pending).forEach((k) => { clearTimeout(timers[k]); const fn = pending[k]; delete pending[k]; try { fn(); } catch (e) {} }); }
+  window.addEventListener("pagehide", flushSaves);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushSaves(); });
+  function setSaved(t) { $("saveState").textContent = t; }
+  function saveBrain() { later("b", () => { if (store(K.brain, brain)) setSaved("Memory saved"); }, 300); }
+  function saveNotes() { later("n", () => store(K.notes, notes), 300); }
+  function saveChats() {
+    later("c", () => {
+      chat.messages = chat.messages.slice(-MAX_MSGS);
+      if (chat.messages.length) chats[chat.id] = chat;
+      const ids = Object.keys(chats).sort((a, b) => chats[a].at - chats[b].at);
+      while (ids.length > MAX_CHATS) delete chats[ids.shift()];
+      store(K.chats, chats);
+    }, 400);
+  }
+  function addNote(n) {
+    n.id = "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    notes.unshift(n);
+    if (notes.length > MAX_NOTES) notes.length = MAX_NOTES;
+    saveNotes();
+  }
+
+  // ================================================================ Gemini
+  const API = "https://generativelanguage.googleapis.com/v1beta/models/";
+  class GeminiError extends Error { constructor(kind, msg) { super(msg); this.kind = kind; } }
+
+  function buildBody({ contents, system, json, search, urls, temperature }) {
+    const body = { contents };
+    if (system) body.systemInstruction = { parts: [{ text: system }] };
+    const gen = {};
+    if (json) gen.responseMimeType = "application/json";
+    if (typeof temperature === "number") gen.temperature = temperature;
+    if (Object.keys(gen).length) body.generationConfig = gen;
+    const tools = [];
+    if (search) tools.push({ google_search: {} });
+    if (urls) tools.push({ url_context: {} });
+    if (tools.length) body.tools = tools;
+    return body;
+  }
+
+  async function geminiFetch(model, method, body, signal) {
+    const key = getKey();
+    if (!key) throw new GeminiError("nokey", "No API key yet.");
+    let res;
+    try {
+      res = await fetch(API + encodeURIComponent(model) + ":" + method, {
+        method: "POST", signal,
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(body)
+      });
+    } catch (e) {
+      if (e && e.name === "AbortError") throw new GeminiError("cancelled", "Stopped.");
+      throw new GeminiError("network", "Couldn't reach Google. Check your connection.");
+    }
+    if (!res.ok) {
+      let msg = "";
+      try { const j = await res.json(); msg = (j.error && j.error.message) || ""; } catch (e) {}
+      const low = msg.toLowerCase();
+      if (res.status === 400 && low.includes("api key")) throw new GeminiError("badkey", "Google says that API key isn't valid.");
+      if (res.status === 403) throw new GeminiError("badkey", "That API key isn't allowed to use Gemini. " + msg.slice(0, 140));
+      if (res.status === 404) throw new GeminiError("model", "Model \"" + model + "\" wasn't found. Change it in Brain > AI settings.");
+      if (res.status === 429) throw new GeminiError("quota", "You've hit Gemini's free limit for now. Try again in a bit.");
+      if (res.status >= 500) throw new GeminiError("busy", "Gemini is overloaded right now. Try again in a minute.");
+      if (res.status === 400 && (low.includes("tool") || low.includes("search") || low.includes("url_context"))) throw new GeminiError("tool", msg);
+      throw new GeminiError("other", msg || ("Gemini error " + res.status));
+    }
+    return res;
+  }
+
+  function readCandidate(j, acc) {
+    const c = j && j.candidates && j.candidates[0];
+    if (!c) {
+      if (j && j.promptFeedback && j.promptFeedback.blockReason) acc.blocked = true;
+      return;
+    }
+    const parts = (c.content && c.content.parts) || [];
+    for (const p of parts) if (typeof p.text === "string" && !p.thought) acc.text += p.text;
+    if (c.finishReason === "SAFETY" || c.finishReason === "PROHIBITED_CONTENT") acc.blocked = true;
+    const gm = c.groundingMetadata;
+    if (gm) {
+      (gm.groundingChunks || []).forEach((g) => {
+        if (g.web && g.web.uri && !acc.sources.some((s) => s.uri === g.web.uri)) acc.sources.push({ uri: g.web.uri, title: g.web.title || g.web.uri });
+      });
+      if (gm.searchEntryPoint && gm.searchEntryPoint.renderedContent) acc.searchHtml = gm.searchEntryPoint.renderedContent;
+    }
+  }
+
+  // One call. Streams text to onText when given.
+  async function gemini(opts) {
+    const model = opts.model || models.everyday;
+    const body = buildBody(opts);
+    const acc = { text: "", sources: [], searchHtml: "", blocked: false };
+    if (opts.onText) {
+      const res = await geminiFetch(model, "streamGenerateContent?alt=sse", body, opts.signal);
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      try {
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let i;
+          while ((i = buf.indexOf("\n")) >= 0) {
+            const line = buf.slice(0, i).trim();
+            buf = buf.slice(i + 1);
+            if (!line.startsWith("data:")) continue;
+            try { readCandidate(JSON.parse(line.slice(5)), acc); } catch (e) { continue; }
+            if (acc.text) opts.onText(acc.text);
+          }
+        }
+      } catch (e) {
+        if (e && e.name === "AbortError") { const err = new GeminiError("cancelled", "Stopped."); err.partial = acc.text; throw err; }
+        throw new GeminiError("network", "The connection dropped.");
+      }
+    } else {
+      const res = await geminiFetch(model, "generateContent", body, opts.signal);
+      readCandidate(await res.json(), acc);
+    }
+    if (!acc.text.trim()) {
+      throw new GeminiError(acc.blocked ? "blocked" : "empty", acc.blocked ? "Gemini wouldn't answer that one. Try saying it differently." : "Gemini came back empty. Try again.");
+    }
+    return acc;
+  }
+
+  function parseJSON(text) {
+    let t = String(text).trim();
+    const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence) t = fence[1].trim();
+    try { return JSON.parse(t); } catch (e) {}
+    const a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {} }
+    const c = t.indexOf("["), d = t.lastIndexOf("]");
+    if (c >= 0 && d > c) { try { return JSON.parse(t.slice(c, d + 1)); } catch (e) {} }
+    throw new GeminiError("json", "The answer came back garbled. Try again.");
+  }
+  // JSON call. With search/urls on, Gemini can't use JSON mode, so we parse its text.
+  async function geminiJSON(prompt, opts = {}) {
+    const parts = [{ text: prompt }];
+    if (opts.image) parts.push({ inline_data: { mime_type: opts.image.type, data: opts.image.data } });
+    const useTools = !!(opts.search || opts.urls);
+    try {
+      const r = await gemini({ contents: [{ role: "user", parts }], json: !useTools, search: opts.search, urls: opts.urls, model: opts.model, temperature: 0.4 });
+      return { data: parseJSON(r.text), sources: r.sources };
+    } catch (e) {
+      if (e.kind === "tool" && useTools) {
+        const r = await gemini({ contents: [{ role: "user", parts }], json: true, model: opts.model, temperature: 0.4 });
+        return { data: parseJSON(r.text), sources: [], toolFailed: true };
+      }
+      throw e;
+    }
+  }
+  function errText(e) { return (e && e.message) || "Something went wrong. Try again."; }
+
+  // ================================================================ rendering helpers
+  function esc(s) { return String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
+  function inline(s) {
+    return esc(s)
+      .replace(/\[([^\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+      .replace(/(^|\s)(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>')
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*\w])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  }
+  function md(text) {
+    return String(text).trim().split(/\n{2,}/).map((b) => {
+      const lines = b.split("\n");
+      if (lines.every((l) => /^\s*([-*•]|\d+\.)\s+/.test(l))) return "<ul>" + lines.map((l) => "<li>" + inline(l.replace(/^\s*([-*•]|\d+\.)\s+/, "")) + "</li>").join("") + "</ul>";
+      return "<p>" + lines.map(inline).join("<br>") + "</p>";
+    }).join("");
+  }
+  const ICON = {
+    up: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H4V10zM7 10l4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg>',
+    down: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h3v11zM17 14l-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg>',
+    x: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>',
+    send: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    stop: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>'
+  };
+  function host(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return "link"; } }
+  function bulletList(a) { return a.length ? a.map((x) => "- " + x).join("\n") : "- (nothing yet)"; }
+  function strList(a, max, maxLen) { return (Array.isArray(a) ? a : []).map((x) => String(x == null ? "" : x).trim()).filter((x) => x && x.length <= maxLen).slice(0, max); }
+  function setStatus(id, t, kind) { const el = $(id); el.textContent = t; el.className = "status" + (kind ? " " + kind : ""); }
+
+  // ================================================================ screens
+  function showTab(tab) {
+    const hasKey = !!getKey();
+    $("p-setup").hidden = hasKey;
+    $("tabs").hidden = !hasKey;
+    ["chat", "brain", "study"].forEach((t) => { $("p-" + t).hidden = !hasKey || t !== tab; });
+    document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    if (tab === "brain") renderBrain();
+    if (tab === "chat") { const m = $("msgs"); m.scrollTop = m.scrollHeight; }
+  }
+
+  function renderAll() { renderHeader(); renderChat(); renderBrain(); renderStudy(); }
+
+  function renderHeader() {
+    $("botName").textContent = brain.name || "Buddy";
+    $("avatar").textContent = (brain.name || "B").trim().charAt(0).toUpperCase() || "B";
+    $("verChip").textContent = "Brain v" + brain.v;
+    $("webState").hidden = !(brain.web && getKey());
+    $("box").placeholder = "Text " + (brain.name || "your buddy") + "...";
+    $("sendBtn").innerHTML = busy ? ICON.stop : ICON.send;
+    $("sendBtn").setAttribute("aria-label", busy ? "Stop" : "Send");
+  }
+
+  function renderChat() {
+    const box = $("msgs");
+    box.innerHTML = "";
+    if (!chat.messages.length) {
+      box.appendChild(botBubble({ text: "Yo " + (brain.user || "") + ". I'm " + (brain.name || "your buddy")
+        + ", and I get smarter the more we talk. Tell me stuff, correct me when I'm wrong, send me screenshots, and tap the thumbs on my replies so I know what lands." }, null));
+    }
+    chat.messages.forEach((m, i) => {
+      if (m.role === "note") { const n = document.createElement("div"); n.className = "note" + (m.learned ? " learned" : ""); n.textContent = m.text; box.appendChild(n); }
+      else if (m.role === "user") box.appendChild(userBubble(m));
+      else box.appendChild(botBubble(m, i));
+    });
+    box.scrollTop = box.scrollHeight;
+
+    const sug = $("suggest"); sug.innerHTML = ""; sug.hidden = chat.messages.length > 0;
+    ["Here's something about me you should know", "Roast my day on the farm", "What's new in gaming this week?", "What have you learned about me?"].forEach((t) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "pill"; b.textContent = t;
+      b.onclick = () => { $("box").value = t; $("box").focus(); autosize(); };
+      sug.appendChild(b);
+    });
+
+    const sel = $("pastChats"); sel.innerHTML = "";
+    const list = Object.values(chats).sort((a, b) => b.at - a.at);
+    if (!list.some((c) => c.id === chat.id)) list.unshift(chat);
+    list.forEach((c) => { const o = document.createElement("option"); o.value = c.id; o.textContent = c.title || "Chat"; o.selected = c.id === chat.id; sel.appendChild(o); });
+    sel.disabled = list.length < 2;
+  }
+
+  function userBubble(m) {
+    const w = document.createElement("div"); w.className = "msg me";
+    if (m.thumb) { const im = document.createElement("img"); im.className = "shot"; im.src = m.thumb; im.alt = "Screenshot you sent"; w.appendChild(im); }
+    if (m.text) { const b = document.createElement("div"); b.className = "bubble"; b.textContent = m.text; w.appendChild(b); }
+    return w;
+  }
+  function botBubble(m, index) {
+    const w = document.createElement("div"); w.className = "msg bot";
+    const b = document.createElement("div"); b.className = "bubble"; b.innerHTML = md(m.text); w.appendChild(b);
+    if (m.sources && m.sources.length) w.appendChild(sourcesEl(m.sources));
+    if (m.searchHtml) w.appendChild(searchChips(m.searchHtml));
+    if (index !== null && index !== undefined) {
+      const r = document.createElement("div"); r.className = "rate";
+      const up = document.createElement("button"); up.type = "button"; up.innerHTML = ICON.up; up.setAttribute("aria-label", "Good reply");
+      const dn = document.createElement("button"); dn.type = "button"; dn.className = "down"; dn.innerHTML = ICON.down; dn.setAttribute("aria-label", "Bad reply");
+      up.setAttribute("aria-pressed", String(m.rating === 1)); dn.setAttribute("aria-pressed", String(m.rating === -1));
+      up.onclick = () => rate(index, 1); dn.onclick = () => rate(index, -1);
+      r.append(up, dn); w.appendChild(r);
+    }
+    return w;
+  }
+  function sourcesEl(sources) {
+    const s = document.createElement("div"); s.className = "sources";
+    s.appendChild(document.createTextNode("Sources:"));
+    sources.slice(0, 5).forEach((src) => {
+      const a = document.createElement("a"); a.href = src.uri; a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.textContent = src.title && !/^https?:/.test(src.title) ? src.title : host(src.uri);
+      s.appendChild(a);
+    });
+    return s;
+  }
+  // Google asks apps that use Search grounding to show its search suggestions.
+  function searchChips(html) {
+    const d = document.createElement("div"); d.className = "gsearch";
+    try { d.attachShadow({ mode: "open" }).innerHTML = html; } catch (e) {}
+    return d;
+  }
+  function rate(i, val) { const m = chat.messages[i]; if (!m) return; m.rating = m.rating === val ? 0 : val; saveChats(); renderChat(); }
+
+  function renderBrain() {
+    const stats = [["Brain version", "v" + brain.v, true], ["Things about you", brain.profile.length], ["Self-written rules", brain.playbook.length], ["Knowledge notes", notes.length], ["Times trained", brain.stats.trains], ["Messages", brain.stats.msgs]];
+    $("stats").innerHTML = stats.map(([l, n, lead]) => '<div class="stat' + (lead ? " lead" : "") + '"><div class="n">' + esc(n) + '</div><div class="l">' + esc(l) + "</div></div>").join("");
+    fillList($("profileList"), brain.profile, "Nothing yet. Chat for a bit and it'll start picking things up.", (i) => { brain.profile.splice(i, 1); saveBrain(); renderBrain(); });
+    fillList($("playbookList"), brain.playbook, "No rules yet.", (i) => { brain.playbook.splice(i, 1); saveBrain(); renderBrain(); });
+
+    const log = $("logList"); log.innerHTML = "";
+    if (!brain.log.length) log.innerHTML = '<li class="empty">No upgrades yet. It trains after a few messages.</li>';
+    brain.log.forEach((e) => {
+      const li = document.createElement("li");
+      const v = document.createElement("span"); v.className = "v"; v.textContent = "v" + e.v;
+      const t = document.createElement("span"); t.className = "t"; t.textContent = e.summary || "Updated its brain";
+      const d = document.createElement("span"); d.className = "d"; d.textContent = new Date(e.at).toLocaleString();
+      t.appendChild(d); li.append(v, t); log.appendChild(li);
+    });
+
+    const q = $("noteSearch").value.trim().toLowerCase();
+    const shown = (q ? notes.filter((n) => (n.topic + " " + n.text + " " + (n.tags || []).join(" ")).toLowerCase().includes(q)) : notes).slice(0, 120);
+    const nl = $("noteList"); nl.innerHTML = "";
+    if (!shown.length) nl.innerHTML = '<li class="empty">' + (q ? "Nothing matches that." : "No knowledge yet. Teach it something or have it study a topic.") + "</li>";
+    shown.forEach((n) => {
+      const li = document.createElement("li");
+      const t = document.createElement("div"); t.className = "t";
+      const h = document.createElement("div"); h.className = "notehead";
+      const s = document.createElement("strong"); s.textContent = n.topic;
+      const src = document.createElement("span"); src.className = "src"; src.textContent = { study: "studied", taught: "you taught", chat: "from chat" }[n.source] || n.source;
+      h.append(s, src);
+      const p = document.createElement("div"); p.textContent = n.text;
+      t.append(h, p);
+      if (n.url && /^https?:\/\//.test(n.url)) {
+        const a = document.createElement("a"); a.className = "srclink"; a.href = n.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.textContent = "Source: " + host(n.url); t.appendChild(a);
+      }
+      const acts = document.createElement("div"); acts.className = "note-actions";
+      if (brain.web) {
+        const rf = document.createElement("button"); rf.className = "x refresh"; rf.innerHTML = ICON.refresh;
+        rf.setAttribute("aria-label", "Refresh this note from the web"); rf.title = "Refresh from the web";
+        rf.onclick = () => refreshNote(n, rf); acts.appendChild(rf);
+      }
+      const x = document.createElement("button"); x.className = "x"; x.innerHTML = ICON.x; x.setAttribute("aria-label", "Delete note");
+      x.onclick = () => { notes = notes.filter((o) => o.id !== n.id); saveNotes(); renderBrain(); };
+      acts.appendChild(x);
+      li.append(t, acts); nl.appendChild(li);
+    });
+
+    $("setName").value = brain.name; $("setUser").value = brain.user; $("setVibe").value = brain.vibe;
+    $("setAuto").checked = !!brain.autoTrain; $("setWeb").checked = !!brain.web;
+    $("setModel").value = models.everyday; $("setSmartModel").value = models.smart;
+  }
+  function fillList(ul, items, emptyText, onDelete) {
+    ul.innerHTML = "";
+    if (!items.length) { ul.innerHTML = '<li class="empty">' + esc(emptyText) + "</li>"; return; }
+    items.forEach((it, i) => {
+      const li = document.createElement("li");
+      const t = document.createElement("span"); t.className = "t"; t.textContent = it;
+      const x = document.createElement("button"); x.className = "x"; x.innerHTML = ICON.x; x.setAttribute("aria-label", "Delete");
+      x.onclick = () => onDelete(i);
+      li.append(t, x); ul.appendChild(li);
+    });
+  }
+  function renderStudy() {
+    const c = $("curiosity"); c.innerHTML = "";
+    if (brain.curiosity.length) {
+      const l = document.createElement("span"); l.className = "hint"; l.style.margin = "0"; l.textContent = "It wants to learn:";
+      c.appendChild(l);
+      brain.curiosity.forEach((t) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "pill"; b.textContent = t;
+        b.onclick = () => { $("studyTopic").value = t; study(t); };
+        c.appendChild(b);
+      });
+    }
+    $("studyHint").textContent = brain.web
+      ? "It searches Google for the topic, reads what it finds, and saves notes to its brain with links to the sources."
+      : "It studies the topic from what it already knows and saves notes. Turn on Google search in the Brain tab for fresh info.";
+  }
+
+  // ================================================================ knowledge retrieval
+  const STOP = new Set("the and for you your with that this have what how are was but not can just like about from they them his her its our out get got all any who why when where which will would could should does did has had been were into over than then there their here some more very really also".split(" "));
+  function words(s) { return (String(s).toLowerCase().match(/[a-z0-9']{3,}/g) || []).filter((w) => !STOP.has(w)); }
+  function relevantNotes(query, k) {
+    const q = new Set(words(query));
+    if (!q.size) return [];
+    return notes.map((n) => {
+      let score = 0;
+      words(n.topic).forEach((w) => { if (q.has(w)) score += 2; });
+      (n.tags || []).forEach((t) => words(t).forEach((w) => { if (q.has(w)) score += 2; }));
+      words(n.text).forEach((w) => { if (q.has(w)) score += 1; });
+      return { n, score };
+    }).filter((x) => x.score > 1).sort((a, b) => b.score - a.score).slice(0, k).map((x) => x.n);
+  }
+
+  // ================================================================ chat
+  function systemPrompt(recentText) {
+    const rel = relevantNotes(recentText, 6);
+    const user = brain.user || "your friend";
+    return "You are " + (brain.name || "Buddy") + ", " + user + "'s personal AI buddy in a texting app. You are a self-learning bot: "
+      + "you keep a memory and a playbook you wrote for yourself, update them after conversations, and study topics to grow your knowledge.\n\n"
+      + "Today's date: " + new Date().toDateString() + ".\n\n"
+      + "Your vibe: " + brain.vibe + "\n\n"
+      + "Your playbook (rules you taught yourself from past chats; follow them):\n" + bulletList(brain.playbook) + "\n\n"
+      + "What you know about " + user + ":\n" + bulletList(brain.profile) + "\n\n"
+      + (rel.length ? "Knowledge notes that may help (from your studies and what " + user + " taught you):\n" + rel.map((n) => "[" + n.topic + "] " + n.text).join("\n") + "\n\n" : "")
+      + "How to reply: text like a friend. Short by default, longer only when asked or when explaining something. No headers. "
+      + (brain.web ? "You can search Google. Search when a question needs current or specific facts (news, scores, patch notes, prices, dates, stats), not for casual chat. " : "You can't search the web right now. ")
+      + "If " + user + " sends a screenshot, react to what's in it like a friend would, and help if they need it. "
+      + "If " + user + " teaches or corrects you, own it; it gets saved the next time you train. If asked what you've learned, use the lists above.";
+  }
+
+  function buildContents(imagePart) {
+    const convo = chat.messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-20);
+    while (convo.length && convo[0].role !== "user") convo.shift();
+    const contents = convo.map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: (m.text || "") + (m.thumb && m.role === "user" ? (m.text ? "\n" : "") + "[sent a screenshot]" : "") || "..." }]
+    }));
+    if (imagePart && contents.length) contents[contents.length - 1].parts.push(imagePart);
+    return { contents, recent: convo.slice(-6).map((m) => m.text).join(" ") };
+  }
+
+  async function send(text) {
+    text = text.trim();
+    if ((!text && !attached) || busy) return;
+    const img = attached;
+    if (!chat.messages.some((m) => m.role === "user")) chat.title = (text || "Screenshot").slice(0, 40);
+    chat.messages.push({ role: "user", text, thumb: img ? img.thumb : null, at: Date.now() });
+    chat.at = Date.now();
+    brain.currentChat = chat.id;
+    clearAttach();
+    $("box").value = ""; autosize();
+    renderChat();
+
+    const box = $("msgs");
+    const pending = document.createElement("div"); pending.className = "msg bot";
+    const bubble = document.createElement("div"); bubble.className = "bubble thinking";
+    bubble.textContent = brain.web ? "Thinking (may search Google)..." : "Thinking...";
+    pending.appendChild(bubble); box.appendChild(pending); box.scrollTop = box.scrollHeight;
+
+    busy = true; renderHeader();
+    ctl = new AbortController();
+    const { contents, recent } = buildContents(img ? { inline_data: { mime_type: img.type, data: img.data } } : null);
+    const model = $("smart").checked ? models.smart : models.everyday;
+    const run = (search) => gemini({
+      contents, system: systemPrompt(recent), search, model, signal: ctl.signal, temperature: 0.9,
+      onText: (t) => { bubble.classList.remove("thinking"); bubble.innerHTML = md(t); box.scrollTop = box.scrollHeight; }
+    });
+    let ok = false;
+    try {
+      let r;
+      try { r = await run(brain.web); }
+      catch (e) { if (e.kind === "tool" && brain.web) r = await run(false); else throw e; }
+      chat.messages.push({ role: "assistant", text: r.text, sources: r.sources, searchHtml: r.searchHtml, rating: 0, at: Date.now() });
+      ok = true;
+    } catch (e) {
+      if (e.kind === "cancelled") { if (e.partial) chat.messages.push({ role: "assistant", text: e.partial, rating: 0, at: Date.now() }); }
+      else chat.messages.push({ role: "note", text: errText(e), at: Date.now() });
+      if (e.kind === "badkey") showBanner("Your API key isn't working. Go to Brain > AI settings > Change API key.");
+    }
+    busy = false;
+    brain.stats.msgs++;
+    if (ok) brain.sinceTrain = (brain.sinceTrain || 0) + 1;
+    saveChats(); saveBrain(); renderHeader(); renderChat();
+    if (ok && brain.autoTrain && brain.sinceTrain >= TRAIN_EVERY) train(true);
+  }
+
+  // Screenshots: shrink before sending so it's fast and cheap.
+  function readImage(file, maxSide) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const im = new Image();
+      im.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(im.width, im.height));
+        const w = Math.round(im.width * scale), h = Math.round(im.height * scale);
+        const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+        cv.getContext("2d").drawImage(im, 0, 0, w, h);
+        const full = cv.toDataURL("image/jpeg", 0.82);
+        const ts = Math.min(1, 240 / Math.max(w, h));
+        const tc = document.createElement("canvas"); tc.width = Math.round(w * ts); tc.height = Math.round(h * ts);
+        tc.getContext("2d").drawImage(cv, 0, 0, tc.width, tc.height);
+        URL.revokeObjectURL(url);
+        resolve({ type: "image/jpeg", data: full.split(",")[1], thumb: tc.toDataURL("image/jpeg", 0.7) });
+      };
+      im.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Couldn't open that image.")); };
+      im.src = url;
+    });
+  }
+  function clearAttach() { attached = null; $("attachRow").hidden = true; $("attachFile").value = ""; }
+
+  // ================================================================ self-training
+  function transcriptFor(msgs) {
+    return msgs.map((m) => {
+      const who = m.role === "user" ? "USER" : "BOT";
+      const tag = m.rating === 1 ? " [USER LIKED THIS]" : m.rating === -1 ? " [USER DISLIKED THIS]" : "";
+      return who + ": " + (m.text || "[screenshot]").slice(0, 1500) + tag;
+    }).join("\n");
+  }
+
+  async function train(auto) {
+    if (training) return;
+    const recent = chat.messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-24);
+    if (!recent.some((m) => m.role === "user")) { setStatus("trainStatus", "Chat a little first so it has something to learn from."); return; }
+    training = true;
+    const user = brain.user || "the user";
+    setStatus("trainStatus", "Training...");
+    chat.messages.push({ role: "note", text: "Training on this chat...", at: Date.now() });
+    const idx = chat.messages.length - 1;
+    renderChat();
+    const prompt =
+      "You are the self-training system for a personal chat bot named " + brain.name + " that chats with " + user + ". "
+      + "Review the recent conversation and the user's ratings, then update the bot's brain so it gets better at being a great buddy for " + user + ".\n\n"
+      + "BOT VIBE: " + brain.vibe + "\n\n"
+      + "CURRENT PROFILE (facts about " + user + "), numbered:\n" + (brain.profile.map((p, i) => (i + 1) + ". " + p).join("\n") || "(empty)") + "\n\n"
+      + "CURRENT PLAYBOOK (rules the bot follows), numbered:\n" + (brain.playbook.map((p, i) => (i + 1) + ". " + p).join("\n") || "(empty)") + "\n\n"
+      + "KNOWLEDGE TOPICS ALREADY SAVED: " + (notes.slice(0, 80).map((n) => n.topic).join("; ") || "(none)") + "\n\n"
+      + "RECENT CONVERSATION:\n" + transcriptFor(recent) + "\n\n"
+      + "Reply with ONLY a JSON object with exactly these keys:\n"
+      + '{"profile_add": ["new lasting facts about ' + user + ', one short sentence each"], '
+      + '"profile_remove": [numbers of profile facts that are now wrong or outdated], '
+      + '"playbook": ["the FULL updated list of rules, max ' + MAX_RULES + ', short imperative sentences"], '
+      + '"knowledge_add": [{"topic": "short title", "text": "2-5 sentences", "tags": ["tag"]}], '
+      + '"curiosity": ["up to 3 topics worth studying next to be more useful to ' + user + '"], '
+      + '"summary": "one casual first-person sentence about what you learned this time"}\n\n'
+      + "Guidelines: Only save facts that will still matter later (likes, dislikes, goals, people and pets they mention, running jokes, how they want the bot to act). "
+      + "Don't repeat facts already in the profile. NEVER save passwords, API keys, bank or card details, addresses, or health details. "
+      + "Rewrite the playbook based on what got liked or disliked and any direct feedback: keep rules that work, sharpen vague ones, drop ones that backfired. "
+      + "knowledge_add is only for real information the user taught or corrected (not chit-chat); use [] if none. Arrays can be empty.";
+    try {
+      const { data } = await geminiJSON(prompt, {});
+      const res = applyTraining(data || {});
+      chat.messages[idx] = { role: "note", learned: true, text: "Brain upgraded to v" + brain.v + ": " + res, at: Date.now() };
+      setStatus("trainStatus", "Upgraded to v" + brain.v + ".", "ok");
+      const chip = $("verChip"); chip.classList.remove("pulse"); void chip.offsetWidth; chip.classList.add("pulse");
+    } catch (e) {
+      chat.messages[idx] = { role: "note", text: "Training didn't finish. " + errText(e), at: Date.now() };
+      setStatus("trainStatus", errText(e), "err");
+    }
+    training = false;
+    saveChats(); saveBrain(); renderAll();
+  }
+
+  function applyTraining(r) {
+    const rm = new Set((Array.isArray(r.profile_remove) ? r.profile_remove : []).map((n) => Number(n) - 1).filter(Number.isInteger));
+    brain.profile = brain.profile.filter((_, i) => !rm.has(i));
+    let added = 0;
+    strList(r.profile_add, 10, 240).forEach((f) => { if (!brain.profile.some((p) => p.toLowerCase() === f.toLowerCase())) { brain.profile.push(f); added++; } });
+    if (brain.profile.length > MAX_PROFILE) brain.profile = brain.profile.slice(-MAX_PROFILE);
+    const pb = strList(r.playbook, MAX_RULES, 240);
+    if (pb.length) brain.playbook = pb;
+    let learned = 0;
+    (Array.isArray(r.knowledge_add) ? r.knowledge_add : []).slice(0, 6).forEach((k) => {
+      if (!k || !k.topic || !k.text) return;
+      addNote({ topic: String(k.topic).slice(0, 80), text: String(k.text).slice(0, 1200), tags: strList(k.tags, 6, 40), source: "chat", url: "", at: Date.now() });
+      learned++;
+    });
+    const cur = strList(r.curiosity, 3, 80);
+    if (cur.length) brain.curiosity = cur;
+    brain.v += 1; brain.stats.trains += 1; brain.sinceTrain = 0;
+    const summary = String(r.summary || "").trim().slice(0, 240) || "Tuned up my rules.";
+    brain.log.unshift({ v: brain.v, at: Date.now(), summary }); brain.log = brain.log.slice(0, 30);
+    const bits = [];
+    if (added) bits.push(added + " new thing" + (added > 1 ? "s" : "") + " about you");
+    if (learned) bits.push(learned + " new note" + (learned > 1 ? "s" : ""));
+    return summary + (bits.length ? " (" + bits.join(", ") + ")" : "");
+  }
+  function bumpLog(summary) { brain.v += 1; brain.log.unshift({ v: brain.v, at: Date.now(), summary }); brain.log = brain.log.slice(0, 30); }
+
+  // ================================================================ study, teach, refresh
+  function pickUrl(k, sources) {
+    const s = String(k.source || "");
+    if (/^https?:\/\//.test(s)) return s.slice(0, 600);
+    const n = Number(k.source_number);
+    if (Number.isInteger(n) && sources[n - 1]) return sources[n - 1].uri;
+    return "";
+  }
+
+  async function study(topic) {
+    topic = String(topic || "").trim();
+    if (!topic) return;
+    $("studyBtn").disabled = true;
+    setStatus("studyStatus", (brain.web ? "Searching Google and studying " : "Studying ") + topic + "... this can take a minute.");
+    const user = brain.user || "the user";
+    const prompt =
+      "You are building a knowledge base for " + brain.name + ", a personal chat buddy for " + user + ". Today is " + new Date().toDateString() + ". "
+      + (brain.web ? "Search the web for up-to-date information and study" : "Study") + " the topic \"" + topic.slice(0, 200) + "\", then write notes the buddy can use in future conversations with " + user + ".\n\n"
+      + "What's known about " + user + ":\n" + bulletList(brain.profile.slice(-20)) + "\n\n"
+      + "Topics already saved (don't repeat them): " + (notes.slice(0, 60).map((n) => n.topic).join("; ") || "(none)") + "\n\n"
+      + 'Reply with ONLY JSON, no other text: {"notes": [{"topic": "short title", "text": "3-6 sentences of specific, accurate information", "tags": ["tag"], "source": "URL the info came from, or empty"}], '
+      + '"curiosity": ["2-3 related topics worth studying next"]}\n'
+      + "Write 5 to 8 notes, practical and specific, angled toward what " + user + " would care about. Be accurate and include dates when they matter.";
+    try {
+      const { data, sources, toolFailed } = await geminiJSON(prompt, { search: brain.web, model: models.everyday });
+      const list = (data && Array.isArray(data.notes) ? data.notes : []).slice(0, 10).filter((k) => k && k.topic && k.text);
+      list.forEach((k, i) => addNote({ topic: String(k.topic).slice(0, 80), text: String(k.text).slice(0, 1500), tags: strList(k.tags, 6, 40), source: "study",
+        url: pickUrl(k, sources) || (sources[i] ? sources[i].uri : ""), at: Date.now() }));
+      const cur = strList(data && data.curiosity, 3, 80);
+      brain.curiosity = cur.length ? cur : brain.curiosity.filter((t) => t !== topic);
+      if (list.length) bumpLog("Studied " + topic + (sources.length ? " on the web" : "") + " and saved " + list.length + " notes.");
+      saveBrain(); renderAll();
+      setStatus("studyStatus", list.length ? "Learned " + list.length + " notes about " + topic + ". They're in the Brain tab." + (toolFailed ? " (Google search wasn't available, so it used what it knows.)" : "") : "It didn't come back with anything useful. Try a more specific topic.", list.length ? "ok" : "err");
+      if (list.length) $("studyTopic").value = "";
+    } catch (e) { setStatus("studyStatus", errText(e), "err"); }
+    $("studyBtn").disabled = false;
+  }
+
+  async function suggestTopics() {
+    setStatus("studyStatus", "Thinking of topics...");
+    try {
+      const { data } = await geminiJSON(
+        "Suggest 5 topics a personal chat buddy should study to be more useful and fun for " + (brain.user || "its user") + ". What's known about them:\n"
+        + bulletList(brain.profile.slice(-25)) + "\nVibe notes: " + brain.vibe.slice(0, 400) + "\nAlready studied: " + (notes.slice(0, 40).map((n) => n.topic).join("; ") || "(none)")
+        + '\nReply with ONLY JSON: {"topics": ["5 short topic strings"]}', {});
+      const cur = strList(data && (data.topics || data), 5, 80);
+      if (cur.length) brain.curiosity = cur;
+      saveBrain(); renderStudy();
+      setStatus("studyStatus", cur.length ? "Tap one to have it study that." : "No ideas came back. Try again.", cur.length ? "" : "err");
+    } catch (e) { setStatus("studyStatus", errText(e), "err"); }
+  }
+
+  async function teach() {
+    const file = $("teachFile").files[0];
+    let text = $("teachText").value.trim();
+    const link = $("teachUrl").value.trim();
+    let image = null;
+    if (link && !/^https?:\/\//i.test(link)) { setStatus("teachStatus", "That link needs to start with http:// or https://", "err"); return; }
+    if (file) {
+      if (/^image\//.test(file.type)) {
+        try { image = await readImage(file, 1600); } catch (e) { setStatus("teachStatus", e.message, "err"); return; }
+      } else {
+        try { text = (text ? text + "\n\n" : "") + (await file.text()); } catch (e) { setStatus("teachStatus", "Couldn't read that file.", "err"); return; }
+      }
+    }
+    if (!text && !image && !link) { setStatus("teachStatus", "Paste something, add a link, or pick a file first.", "err"); return; }
+    text = text.slice(0, 30000);
+    $("teachBtn").disabled = true;
+    setStatus("teachStatus", link ? "Reading the page..." : "Reading it...");
+    const user = brain.user || "the user";
+    const prompt =
+      "Extract useful knowledge for " + brain.name + ", a personal chat buddy for " + user + ", from "
+      + [link ? "the web page at " + link : "", image ? "the attached image" : "", text ? "the text below" : ""].filter(Boolean).join(" and ") + ". "
+      + "Only include facts that are actually stated. "
+      + 'Reply with ONLY JSON, no other text: {"notes": [{"topic": "short title", "text": "2-5 sentences", "tags": ["tag"]}], "profile_add": ["facts about ' + user + ' themselves, if the material states any"]}. '
+      + "Up to 10 notes. Skip passwords, API keys, account numbers, addresses and health details."
+      + (text ? "\n\nMATERIAL:\n" + text : "");
+    try {
+      const { data, toolFailed } = await geminiJSON(prompt, { urls: !!link, image });
+      if (link && toolFailed) throw new GeminiError("tool", "This model can't open links. Paste the article text instead.");
+      const list = (data && Array.isArray(data.notes) ? data.notes : []).slice(0, 10).filter((k) => k && k.topic && k.text);
+      list.forEach((k) => addNote({ topic: String(k.topic).slice(0, 80), text: String(k.text).slice(0, 1500), tags: strList(k.tags, 6, 40), source: "taught", url: link || "", at: Date.now() }));
+      let added = 0;
+      strList(data && data.profile_add, 6, 240).forEach((f) => { if (!brain.profile.some((p) => p.toLowerCase() === f.toLowerCase())) { brain.profile.push(f); added++; } });
+      if (list.length || added) {
+        bumpLog("You taught me " + list.length + " new note" + (list.length === 1 ? "" : "s") + (added ? " and " + added + " thing" + (added === 1 ? "" : "s") + " about you" : "") + ".");
+        $("teachText").value = ""; $("teachFile").value = ""; $("teachUrl").value = "";
+      }
+      saveBrain(); renderAll();
+      setStatus("teachStatus", list.length || added ? "Got it. Saved " + list.length + " notes." : "It didn't find facts in that.", list.length || added ? "ok" : "err");
+    } catch (e) { setStatus("teachStatus", errText(e), "err"); }
+    $("teachBtn").disabled = false;
+  }
+
+  async function refreshNote(n, btn) {
+    btn.disabled = true;
+    const st = document.createElement("div"); st.className = "working"; st.textContent = "Checking Google...";
+    btn.closest("li").querySelector(".t").appendChild(st);
+    try {
+      const { data, sources } = await geminiJSON(
+        "Search the web and update this saved knowledge note so it's accurate and current as of " + new Date().toDateString() + ". Keep it 2-6 sentences.\n\n"
+        + "NOTE TOPIC: " + n.topic + "\nNOTE: " + n.text
+        + '\n\nReply with ONLY JSON, no other text: {"text": "the updated note", "changed": true or false, "source": "URL of the main source, or empty"}', { search: true });
+      const text = String((data && data.text) || "").trim().slice(0, 1500);
+      if (!text) throw new GeminiError("json", "The answer came back garbled. Try again.");
+      n.text = text; n.url = pickUrl(data, sources) || (sources[0] ? sources[0].uri : n.url || ""); n.at = Date.now();
+      saveNotes(); renderBrain();
+      setSaved(data.changed ? "Note updated from the web" : "Note was already up to date");
+    } catch (e) { st.textContent = errText(e); btn.disabled = false; }
+  }
+
+  // ================================================================ backup + export
+  function downloadFile(name, content, type) {
+    const blob = new Blob([content], { type });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  function exportBrain() {
+    const data = { app: "bugsy-brain", version: 1, exportedAt: new Date().toISOString(), brain, notes, chats };
+    downloadFile("bugsy-brain-backup-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify(data), "application/json");
+    setStatus("backupStatus", "Backup downloaded. It has everything except your API key.", "ok");
+  }
+  async function importBrain(file) {
+    try {
+      const d = JSON.parse(await file.text());
+      if (!d || d.app !== "bugsy-brain" || !d.brain) throw new Error("bad");
+      brain = Object.assign(defaultBrain(d.brain.user || "Austin"), d.brain);
+      brain.stats = Object.assign({ msgs: 0, trains: 0 }, brain.stats || {});
+      notes = Array.isArray(d.notes) ? d.notes : [];
+      chats = d.chats && typeof d.chats === "object" ? d.chats : {};
+      chat = (brain.currentChat && chats[brain.currentChat]) || newChat();
+      store(K.brain, brain); store(K.notes, notes); store(K.chats, chats);
+      renderAll();
+      setStatus("backupStatus", "Imported. " + brain.name + " is at brain v" + brain.v + ".", "ok");
+    } catch (e) { setStatus("backupStatus", "That file isn't a Bugsy backup.", "err"); }
+    $("importBrain").value = "";
+  }
+  function exportTraining() {
+    const system = "You are " + brain.name + ", " + (brain.user || "the user") + "'s personal AI buddy. Vibe: " + brain.vibe + " Rules: " + brain.playbook.join(" ");
+    const all = Object.values(chats); if (!chats[chat.id] && chat.messages.length) all.push(chat);
+    const lines = [];
+    all.forEach((c) => {
+      const msgs = (c.messages || []).filter((m) => (m.role === "user" || m.role === "assistant") && m.text);
+      msgs.forEach((m, i) => {
+        if (m.role !== "assistant" || m.rating === -1 || i === 0) return;
+        const ctx = msgs.slice(Math.max(0, i - 6), i + 1).filter((x) => x.rating !== -1);
+        while (ctx.length && ctx[0].role !== "user") ctx.shift();
+        if (ctx.length < 2) return;
+        lines.push(JSON.stringify({ messages: [{ role: "system", content: system }].concat(ctx.map((x) => ({ role: x.role, content: x.text }))) }));
+      });
+    });
+    if (!lines.length) { setStatus("exportStatus", "No chats to export yet.", "err"); return; }
+    downloadFile("bugsy-training-data.jsonl", lines.join("\n") + "\n", "application/jsonl");
+    setStatus("exportStatus", lines.length + " examples saved.", "ok");
+  }
+
+  function resetBrain() {
+    const name = brain.name, user = brain.user;
+    brain = defaultBrain(user || "Austin"); brain.name = name || brain.name;
+    notes = []; chats = {}; chat = newChat();
+    store(K.brain, brain); store(K.notes, notes); store(K.chats, chats);
+    $("resetConfirm").hidden = true; $("resetRow").hidden = false;
+    renderAll(); setSaved("Brain reset");
+  }
+
+  function showBanner(t) { const b = $("banner"); b.textContent = t; b.hidden = !t; }
+
+  // ================================================================ setup
+  async function connectKey(e) {
+    e.preventDefault();
+    const k = $("keyInput").value.trim();
+    if (!k) { setStatus("keyStatus", "Paste your key first.", "err"); return; }
+    $("keyBtn").disabled = true;
+    setStatus("keyStatus", "Checking the key...");
+    const old = getKey();
+    setKey(k);
+    try {
+      await gemini({ contents: [{ role: "user", parts: [{ text: "Reply with just the word: ready" }] }], model: models.everyday });
+      $("keyInput").value = "";
+      setStatus("keyStatus", "Connected!", "ok");
+      showBanner("");
+      renderAll(); showTab("chat");
+    } catch (err) {
+      if (err.kind === "badkey") setKey(old);
+      setStatus("keyStatus", errText(err), "err");
+      if (err.kind !== "badkey" && err.kind !== "network") { renderAll(); showTab("chat"); }
+    }
+    $("keyBtn").disabled = false;
+  }
+
+  // ================================================================ wiring
+  function autosize() { const b = $("box"); b.style.height = "auto"; b.style.height = Math.min(160, b.scrollHeight) + "px"; }
+  document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  $("keyForm").addEventListener("submit", connectKey);
+  $("composer").addEventListener("submit", (e) => { e.preventDefault(); if (busy) { if (ctl) ctl.abort(); return; } send($("box").value); });
+  $("box").addEventListener("input", autosize);
+  $("box").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && window.matchMedia("(pointer: fine)").matches) { e.preventDefault(); $("composer").requestSubmit(); }
+  });
+  $("attachBtn").onclick = () => $("attachFile").click();
+  $("attachFile").onchange = async () => {
+    const f = $("attachFile").files[0]; if (!f) return;
+    try { attached = await readImage(f, 1600); $("attachImg").src = attached.thumb; $("attachRow").hidden = false; $("box").focus(); }
+    catch (e) { showBanner(e.message); }
+  };
+  $("attachClear").onclick = clearAttach;
+  document.addEventListener("paste", async (e) => {
+    if ($("p-chat").hidden) return;
+    const item = [...(e.clipboardData ? e.clipboardData.items : [])].find((i) => i.type.startsWith("image/"));
+    if (!item) return;
+    e.preventDefault();
+    try { attached = await readImage(item.getAsFile(), 1600); $("attachImg").src = attached.thumb; $("attachRow").hidden = false; } catch (err) {}
+  });
+  $("trainChat").onclick = () => train(false);
+  $("trainBrain").onclick = () => train(false);
+  $("newChat").onclick = () => { if (busy) return; if (chat.messages.length) { chats[chat.id] = chat; } chat = newChat(); brain.currentChat = null; saveChats(); saveBrain(); renderChat(); $("box").focus(); };
+  $("pastChats").onchange = (e) => { if (busy) return; const c = chats[e.target.value]; if (c) { if (chat.messages.length) chats[chat.id] = chat; chat = c; brain.currentChat = c.id; saveBrain(); renderChat(); } };
+  $("noteSearch").addEventListener("input", renderBrain);
+  $("saveSettings").onclick = () => {
+    brain.name = $("setName").value.trim() || "Buddy";
+    brain.user = $("setUser").value.trim() || "friend";
+    brain.vibe = $("setVibe").value.trim() || defaultBrain(brain.user).vibe;
+    brain.autoTrain = $("setAuto").checked; brain.web = $("setWeb").checked;
+    saveBrain(); renderAll(); setStatus("settingsStatus", "Saved", "ok");
+  };
+  $("saveModels").onclick = () => {
+    models.everyday = $("setModel").value.trim() || DEFAULT_MODELS.everyday;
+    models.smart = $("setSmartModel").value.trim() || DEFAULT_MODELS.smart;
+    store(K.models, models); setStatus("modelStatus", "Saved", "ok");
+  };
+  $("changeKey").onclick = () => { setKey(""); showTab("chat"); $("keyInput").focus(); };
+  $("exportBrain").onclick = exportBrain;
+  $("importBrainBtn").onclick = () => $("importBrain").click();
+  $("importBrain").onchange = () => { const f = $("importBrain").files[0]; if (f) importBrain(f); };
+  $("exportTrain").onclick = exportTraining;
+  $("studyForm").addEventListener("submit", (e) => { e.preventDefault(); study($("studyTopic").value); });
+  $("suggestTopics").onclick = suggestTopics;
+  $("teachBtn").onclick = teach;
+  $("resetBtn").onclick = () => { $("resetRow").hidden = true; $("resetConfirm").hidden = false; };
+  $("resetNo").onclick = () => { $("resetConfirm").hidden = true; $("resetRow").hidden = false; };
+  $("resetYes").onclick = resetBrain;
+
+  // offline app shell so it opens like an app from the home screen
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+
+  setSaved(Object.keys(load(K.brain, {})).length ? "Memory loaded" : "Fresh brain");
+  renderAll();
+  showTab("chat");
+})();
+</script>
+</body>
+</html>
