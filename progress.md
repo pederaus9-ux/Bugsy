@@ -58,6 +58,25 @@ Last updated: 2026-09-26
   - Checked: emoji bubbles were already cached, so there was no leak; the grass never cast shadows.
   - Added: the renderer and post-processing now always share the same pixel ratio; automatic quality steps down (sharpness 1.6, 1.3, shadows 1024, sharpness 1) only if the phone can't hold ~45 fps.
   - Turns: animals flip inside a tiny hop instead of narrowing (the narrowing showed their flat edge).
+- [x] **Launch stage 1: planting and harvesting in 3D** (Gemini approved the code with zero blockers):
+  - The decorative wheat field is replaced by 6 real fields of tilled soil with rounded furrows.
+  - Same crops, level unlocks, seed prices, grow times and XP as the 2D game. Planting uses a crop from the barn first, then coins; a harvest gives 2; rain speeds growth 10%.
+  - Tap an empty field → seed tray (crops, how many you have or the seed price, grow time; locked ones show their level). Tap or drag across empty fields to plant; tap or drag across ripe fields to harvest. The camera stays still while a finger plants or harvests; two fingers always move the camera.
+  - Tap a growing field for time left and "Finish now" (1 gem per 5 minutes left, as in 2D).
+  - Crops grow visibly: plants rise and fill out, ripen from green to their harvest colour (wheat turns gold), and produce (corn cobs, tomatoes, strawberries, pumpkins…) appears as they ripen. "+2 🌾" floats up on harvest.
+  - 📦 Barn button: storage used out of 50, and what's inside. Saved on the phone.
+  - Tested with real taps and drags: every step follows the 2D rules.
+
+## Launch list (agreed with Gemini)
+Keep the realistic picture animals (billboards). In order:
+1. [x] Planting and harvesting
+2. [ ] Animal products: feeding, eggs, milk, wool (the animals already live in their pens)
+3. [ ] Production buildings (feed mill, bakery…), orders, the roadside shop and the Shop; levels and unlocks
+4. [ ] Buying more fields, barn upgrades, land expansion, decorations
+5. [ ] Real weather, seasons and holidays, special events with decoration prizes
+6. [ ] Sounds and music
+7. [ ] **Tutorial** (first-time guide) and **Settings menu** (sound, music, graphics quality, backup and restore)
+8. [ ] Go live: the 3D game on its own GitHub Pages page; the 2D game stays up until the 3D one replaces it
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
@@ -67,7 +86,7 @@ Last updated: 2026-09-26
 - **Animals stay as the approved renders for now.** They turn to face the camera, and a separate hidden shape faces the sun so their shadows look right. A real-3D animal pipeline is a later option.
 - **Full-resolution Canva images:** 1264×1264 originals are available through an export design (the user allowed `canva.com` on the network).
 
-## Next
+## Next (older plan, see the launch list above)
 1. Get the user's feedback on the 3D barn look (lighting, weather, 360°, paint).
 2. Building styles and sizes (the shapes and sizes from the user's barn mockup).
 3. Remaining pieces from the building list: farmhouse, shed, market stall, windmill, water tank, sign board, truck, tractor.

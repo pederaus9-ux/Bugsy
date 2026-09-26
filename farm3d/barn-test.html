@@ -46,6 +46,26 @@
   .cnt b{font-family:var(--fun);font-weight:400;font-size:19px;margin-left:auto}
   @keyframes bump{40%{transform:scale(1.25)}}
   .bump{animation:bump .35s ease-out}
+  /* farming: seed tray, field card, barn, floating rewards */
+  .tray{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);max-width:560px;margin:0 auto;z-index:6;
+    background:rgba(250,244,228,.97);border:3px solid #8a5a2b;border-radius:18px;padding:8px 10px 10px;color:#3d2a14;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .tray h3{margin:0 0 6px;font:400 17px var(--fun);display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .tray h3 small{font:700 12px system-ui,sans-serif;opacity:.7}
+  .tray .x{border:0;border-radius:10px;background:#d9c9a6;color:#3d2a14;font-weight:800;padding:4px 10px}
+  .seeds{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .seed{flex:none;width:74px;border:2px solid #e2cfa4;border-radius:14px;background:#fff8e6;padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#3d2a14}
+  .seed img{width:40px;height:40px;object-fit:contain}
+  .seed b{font-size:12px} .seed small{font-size:11px;font-weight:700;opacity:.75}
+  .seed.on{border-color:#e98a1b;background:#ffe3b0;box-shadow:0 0 0 2px #e98a1b inset}
+  .seed.locked{opacity:.45;filter:grayscale(1)}
+  .items{display:flex;flex-wrap:wrap;gap:6px}
+  .items span{background:#fff8e6;border:2px solid #e2cfa4;border-radius:12px;padding:3px 8px;font-weight:800;font-size:14px}
+  .cap{height:8px;border-radius:5px;background:#e8dcc0;overflow:hidden;margin:4px 0 8px}.cap i{display:block;height:100%;background:#6cbf4a}.cap.full i{background:#e8513c}
+  .fin{border:0;border-radius:12px;padding:8px 12px;font-weight:800;background:#48b4f0;color:#fff}
+  .dock3{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);z-index:5}
+  .dock3 button{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:4px solid #fff;font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+  .fx{position:fixed;z-index:6;pointer-events:none;font:400 22px var(--fun);transform:translate(-50%,-50%);animation:rise 1.1s ease-out forwards}
+  @keyframes rise{to{transform:translate(-50%,-160%);opacity:0}}
   .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 84px);transform:translateX(-50%);z-index:6;font-family:var(--fun);font-size:20px;white-space:nowrap;pointer-events:none;transition:opacity .4s}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap">
@@ -65,6 +85,10 @@
   </div>
 </div>
 <div class="toast out" id="toast" hidden></div>
+<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small>tap or drag across empty fields</small></span><button class="x" id="seedClose" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
+<div class="tray" id="plotCard" hidden><h3><span id="plotTitle"></span><button class="x" id="plotClose" aria-label="Close">✕</button></h3><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span id="plotLeft" style="font-weight:700"></span><button class="fin" id="plotFinish"></button></div></div>
+<div class="tray" id="barnPanel" hidden><h3><span>📦 Barn <small id="barnUsed"></small></span><button class="x" id="barnClose" aria-label="Close">✕</button></h3><div class="cap" id="barnCap"><i></i></div><div class="items" id="barnItems"></div></div>
+<div class="dock3"><button id="barnBtn" aria-label="Barn storage">📦</button></div>
 <div class="hint" id="hint">Drag to turn all the way around · pinch or scroll to zoom · two fingers to move</div>
 <div class="bar" id="bar"></div>
 <div class="acard" id="animalCard" hidden>
@@ -639,28 +663,23 @@ function makeBush(seed, s = 1) {
   m.customDepthMaterial = leafDepth; m.castShadow = m.receiveShadow = true; g.add(m);
   g.scale.setScalar(s); g.userData.canopy = g; return g;
 }
-function makeCropField(w, d) { // ploughed rows with ripening wheat
-  const g = new THREE.Group();
-  const bed = box(w, .16, d, M.soil, 0, .06, 0, .5); g.add(bed);
-  for (let z = -d / 2 + .35; z < d / 2; z += .7) g.add(box(w - .2, .1, .22, M.soil, 0, .17, z, .5)); // raised rows
-  const blade = new THREE.BufferGeometry();
-  blade.setAttribute("position", new THREE.Float32BufferAttribute([-.03,0,0, .03,0,0, -.02,.4,0, .02,.4,0, 0,.75,.05], 3));
-  blade.setIndex([0,1,2, 1,3,2, 2,3,4]); blade.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({color:0xffffff, roughness:.8, side:THREE.DoubleSide});
+// crop plants: thin blades (wheat, corn, sugarcane) or broad leaves (everything else), swaying in the wind; each field
+// gets its own material so its colour can ripen from green to its harvest colour
+const CROP_SHAPES = {blade:[[-.03,0,0, .03,0,0, -.02,.4,0, .02,.4,0, 0,.75,.05], .75], leaf:[[-.07,0,0, .07,0,0, -.1,.22,.03, .1,.22,.03, 0,.45,.1], .45]};
+const cropGeo = {};
+for (const [k, [v]] of Object.entries(CROP_SHAPES)) { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setIndex([0,1,2, 1,3,2, 2,3,4]); g.computeVertexNormals(); cropGeo[k] = g; }
+function cropMaterial() {
+  const mat = new THREE.MeshStandardMaterial({color:0x7fa04a, roughness:.75, side:THREE.DoubleSide});
   mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, windU);
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind;")
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; varying float vH;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(objectNormal * .5 + vec3(0., 1., 0.));") // soft, grass-like light
       .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vH = clamp(position.y / .6, 0., 1.);
         vec4 wp = instanceMatrix * vec4(0.,0.,0.,1.); float b = sin(uTime * 1.5 + wp.x * .6 + wp.z * .3) * (.12 + uWind * .3);
-        transformed.x += b * position.y * position.y;`); };
-  const R = rng(77), n = Math.round(w * d * 90), im = new THREE.InstancedMesh(blade, mat, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
-  for (let i = 0; i < n; i++) {
-    const row = Math.floor(R() * Math.floor(d / .7)), z = -d / 2 + .35 + row * .7 + (R() - .5) * .16, x = (R() - .5) * (w - .4);
-    q.setFromEuler(new THREE.Euler((R() - .5) * .3, R() * 7, (R() - .5) * .3)); const s = .7 + R() * .5;
-    m4.compose(new THREE.Vector3(x, .2, z), q, new THREE.Vector3(s, s, s)); im.setMatrixAt(i, m4);
-    c.setHSL(.11 + R() * .04, .55 + R() * .2, .45 + R() * .15); im.setColorAt(i, c);
-  }
-  im.castShadow = true; im.receiveShadow = true; g.add(im);
-  return g;
+        transformed.x += b * position.y * position.y;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;")
+      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= mix(.42, 1.12, smoothstep(0., 1., vH)); // shaded at the soil, bright at the tips"); };
+  return mat;
 }
 function makeLampPost() {
   const g = new THREE.Group();
@@ -679,9 +698,8 @@ const henWater = makeWaterPan(.38); henWater.position.set(-9.6, 0, -2.4); scene.
 const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
 for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
 const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
-const field = makeCropField(7, 5.2); field.position.set(-10, 0, 12); field.rotation.y = .12; scene.add(field);
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
-for (const o of [barn, tree, tree2, silo, trough, lampPost, field, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
+for (const o of [barn, tree, tree2, silo, trough, lampPost, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
 
 // ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
 const PERSONALITY = {
@@ -1079,9 +1097,11 @@ function placeCamera(dt = 1) {
   sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
-renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null; });
+renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
+  if (ptr.size === 1) farmDown(e); else farmDrag = null; }); // a second finger always means camera, never farming
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
+  if (farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
@@ -1095,7 +1115,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
     last = {c, d};
   }
 });
-const endP = (e) => { ptr.delete(e.pointerId); last = null; };
+const endP = (e) => { ptr.delete(e.pointerId); last = null; farmUp(e); };
 // squash and stretch: a tapped thing squashes down and bulges out, then springs back in 250 ms.
 // The pivot is the object's base, so it squashes onto the ground; volume stays about the same (x and z grow as y shrinks).
 const squishing = new Map();
@@ -1115,10 +1135,13 @@ function updateSquish(now) {
 let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
+  if (paintUsed) { paintUsed = false; return; } // that press already planted or harvested
   if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
   const ray = new THREE.Raycaster(), m = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(m, camera);
   const hit = ray.intersectObjects(animals.map(a => a.card))[0];
-  if (hit) { const i = animals.findIndex(a => a.card === hit.object); squish(animals[i].g, 1.3); showAnimal(i); return; }
+  if (hit) { const i = animals.findIndex(a => a.card === hit.object); squish(animals[i].g, 1.3); openPanel("animalCard"); showAnimal(i); return; }
+  if (farmTap(plotAt(e.clientX, e.clientY))) return;
+  closePanels();
   const thing = ray.intersectObjects(scene.children.filter(o => o.userData.squishy), true)[0];
   if (thing) { let o = thing.object; while (o.parent && !o.userData.squishy) o = o.parent; squish(o, o === barn || o === silo ? .5 : 1); animalCard.hidden = true; return; }
   const g = ray.intersectObject(ground)[0];
@@ -1143,7 +1166,7 @@ function showAnimal(i) {
 // ---------------- economy: the same coins, gems and levels as the 2D game (no real money, gems only from playing) ----------------
 const ECON_KEY = "sunnyAcres3d";
 const xpNeed = (lvl) => Math.round(15 * Math.pow(lvl, 1.6));
-const S = {coins:60, gems:5, xp:0, level:1};
+const S = {coins:60, gems:5, xp:0, level:1, barn:{wheat:3, corn:2}, barnCap:50, plots:Array.from({length:6}, () => ({crop:null, end:0})), lastCrop:"wheat"};
 try { Object.assign(S, JSON.parse(localStorage.getItem(ECON_KEY) || "{}")); } catch (e) {}
 const saveEcon = () => { try { localStorage.setItem(ECON_KEY, JSON.stringify(S)); } catch (e) {} };
 const $id = (id) => document.getElementById(id);
@@ -1164,6 +1187,170 @@ function earn({xp = 0, coins = 0, gems = 0}) {
 }
 renderHud();
 addEventListener("pointerdown", () => { const h = $id("hint"); if (h) h.style.opacity = 0; }, {once:true});
+
+// ---------------- fields: plant, grow and harvest (the same crops, prices, grow times and XP as the 2D game) ----------------
+// time in seconds; seed = coin price when the barn has none of that crop to replant; look = how the plants grow in 3D
+const CROPS = {
+  wheat:{n:"Wheat", e:"🌾", lvl:1, time:20, xp:1, seed:1, look:{shape:"blade", h:.8, n:170, green:0x86a64c, ripe:0xd9b262}},
+  corn:{n:"Corn", e:"🌽", lvl:1, time:45, xp:1, seed:2, look:{shape:"blade", h:1.9, n:70, green:0x5f9a3a, ripe:0x93a84c, fruit:5, fy:.95, fs:.42}},
+  carrot:{n:"Carrot", e:"🥕", lvl:2, time:90, xp:2, seed:3, look:{shape:"leaf", h:.42, n:170, green:0x4f9a38, ripe:0x5ba340, fruit:6, fy:.12, fs:.34}},
+  soybean:{n:"Soybean", e:"🫘", lvl:3, time:120, xp:2, seed:4, look:{shape:"leaf", h:.55, n:180, green:0x5a9a3c, ripe:0x8aa54a, fruit:6, fy:.34, fs:.3}},
+  sugarcane:{n:"Sugarcane", e:"🎋", lvl:4, time:180, xp:3, seed:5, look:{shape:"blade", h:2.1, n:60, green:0x6ea04a, ripe:0xa2b65c}},
+  tomato:{n:"Tomato", e:"🍅", lvl:5, time:240, xp:3, seed:6, look:{shape:"leaf", h:.75, n:190, green:0x4c8e36, ripe:0x4f9238, fruit:8, fy:.45, fs:.24}},
+  strawberry:{n:"Strawberry", e:"🍓", lvl:6, time:360, xp:4, seed:8, look:{shape:"leaf", h:.3, n:220, green:0x4a9236, ripe:0x4f9a3a, fruit:9, fy:.16, fs:.2}},
+  pumpkin:{n:"Pumpkin", e:"🎃", lvl:8, time:600, xp:6, seed:12, look:{shape:"leaf", h:.32, n:150, green:0x4f9036, ripe:0x6a9a3c, fruit:3, fy:.24, fs:.62}},
+};
+const nowMs = () => Date.now();
+const have = (id) => S.barn[id] || 0;
+const barnUsed = () => Object.values(S.barn).reduce((a, b) => a + b, 0);
+const barnSpace = () => S.barnCap - barnUsed();
+function addItem(id, n) { S.barn[id] = have(id) + n; }
+function takeItem(id, n) { S.barn[id] = have(id) - n; if (S.barn[id] <= 0) delete S.barn[id]; }
+const gemCost = (ms) => Math.max(1, Math.ceil(ms / 300000)); // 1 gem per 5 minutes left, as in the 2D game
+const fmtTime = (ms) => { const s = Math.ceil(ms / 1000); return s >= 60 ? Math.floor(s / 60) + "m " + String(s % 60).padStart(2, "0") + "s" : s + "s"; };
+
+// six fields where the old wheat field was: 3 x 2 beds of tilled soil with raised rows
+const fruitMats = {};
+const fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + ".webp"), alphaTest:.3, color:0xffffff}));
+const FIELD_C = new THREE.Vector3(-10, 0, 12), FIELD_ROT = .12;
+// freshly turned, slightly damp earth: darker and coarser than the path, with soft rounded furrows
+M.tilled = std({map:tex(dirt(21), 1, [2, 2]), roughness:.97, color:0x6e5440});
+const furrowGeo = new THREE.CylinderGeometry(.19, .19, 2.0, 10, 1, false, 0, Math.PI); furrowGeo.rotateZ(Math.PI / 2); furrowGeo.scale(1, .55, 1); // lies along x, domed side up
+const plots = S.plots.map((_, i) => {
+  const g = new THREE.Group(), lx = (i % 3 - 1) * 2.5, lz = (Math.floor(i / 3) - .5) * 2.5;
+  g.position.set(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), 0, FIELD_C.z - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); g.rotation.y = FIELD_ROT;
+  g.add(box(2.2, .12, 2.2, M.tilled, 0, .04, 0, .5));
+  for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); } // rounded, mounded rows
+  contact(g.position.x, g.position.z, 3.2, 3.2);
+  const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
+  g.userData.plot = i; scene.add(g);
+  return {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null};
+});
+// (re)build the plants in a field for its crop: instanced leaves in three rows plus a few produce sprites that appear as it ripens
+function buildPlants(i) {
+  const P = plots[i], crop = S.plots[i].crop;
+  if (P.mesh) { P.plants.remove(P.mesh); P.mesh.dispose(); P.mesh = null; }
+  for (const s of P.fruit) P.plants.remove(s); P.fruit = []; P.crop = crop;
+  if (!crop) return;
+  const L = CROPS[crop].look, [, gh] = CROP_SHAPES[L.shape], R = rng(31 + i * 7 + crop.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+  const mesh = new THREE.InstancedMesh(cropGeo[L.shape], P.mat, L.n);
+  for (let k = 0; k < L.n; k++) {
+    const z = [-.7, 0, .7][k % 3] + (R() - .5) * .16, x = (R() - .5) * 1.8, s = (.75 + R() * .45) * L.h / gh;
+    q.setFromEuler(new THREE.Euler((R() - .5) * .35, R() * 7, (R() - .5) * .35)); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s * (L.shape === "leaf" ? .8 : 1), s, s)); mesh.setMatrixAt(k, m4);
+    c.setScalar(.82 + R() * .3); mesh.setColorAt(k, c);
+  }
+  mesh.castShadow = true; mesh.receiveShadow = true; P.plants.add(mesh); P.mesh = mesh;
+  for (let k = 0; k < (L.fruit || 0); k++) {
+    const s = new THREE.Sprite(fruitMat(crop)); s.userData.base = new THREE.Vector3((k % 3 - 1) * .6 + (R() - .5) * .3, L.fy, [-.7, 0, .7][Math.floor(k / 3) % 3] + (R() - .5) * .2);
+    s.position.copy(s.userData.base); s.visible = false; P.plants.add(s); P.fruit.push(s);
+  }
+}
+const grown = (i) => { const p = S.plots[i]; return p.crop ? THREE.MathUtils.clamp(1 - (p.end - nowMs()) / (CROPS[p.crop].time * 1000), 0, 1) : 0; };
+const ready = (i) => { const p = S.plots[i]; return !!p.crop && p.end <= nowMs(); };
+const green = new THREE.Color(), ripe = new THREE.Color();
+function updatePlots(t) {
+  plots.forEach((P, i) => {
+    if (P.crop !== S.plots[i].crop) buildPlants(i);
+    if (!P.crop) return;
+    const L = CROPS[P.crop].look, g = grown(i), r = THREE.MathUtils.smoothstep(g, .55, 1);
+    P.plants.scale.set(.55 + .45 * g, .12 + .88 * g, .55 + .45 * g);
+    P.mat.color.copy(green.set(L.green)).lerp(ripe.set(L.ripe), r);
+    P.fruit.forEach((s, k) => { const f = THREE.MathUtils.smoothstep(g, .65, 1); s.visible = f > .01;
+      const a = s.material.map.image ? s.material.map.image.width / s.material.map.image.height : 1, sz = L.fs * (.35 + .65 * f);
+      s.scale.set(sz * a / (.55 + .45 * g), sz / (.12 + .88 * g), 1); // undo the plants' growth scale so the produce keeps its shape
+      s.position.y = s.userData.base.y + (g >= 1 ? Math.sin(t * 3 + k) * .02 : 0); });
+  });
+}
+
+// planting and harvesting
+function plantPlot(i, crop, quiet) {
+  const p = S.plots[i], c = CROPS[crop];
+  if (!p || p.crop || c.lvl > S.level) return false;
+  if (have(crop) > 0) takeItem(crop, 1);
+  else if (S.coins >= c.seed) S.coins -= c.seed;
+  else { if (!quiet) toast("Not enough coins for " + c.n + " seeds"); return false; }
+  p.crop = crop; p.end = nowMs() + c.time * 1000 * (PRESET.rain ? .9 : 1); S.lastCrop = crop; // rain waters the fields
+  buildPlants(i); squish(plots[i].g, .35); renderHud(["coins"]); saveEcon(); renderSeeds();
+  return true;
+}
+function harvestPlot(i, quiet) {
+  if (!ready(i)) return false;
+  if (barnSpace() < 2) { if (!quiet) toast("📦 The barn is full"); return false; }
+  const crop = S.plots[i].crop; addItem(crop, 2); S.plots[i].crop = null; S.plots[i].end = 0;
+  fxAt(plots[i].g.position, "+2 " + CROPS[crop].e); squish(plots[i].g, .35); buildPlants(i); earn({xp:CROPS[crop].xp});
+  renderSeeds(); if (!$id("barnPanel").hidden) renderBarn();
+  return true;
+}
+// floating "+2 🌾" over a spot in the world
+function fxAt(pos, text) {
+  const v = pos.clone().setY(1.2).project(camera); if (v.z > 1) return;
+  const d = document.createElement("div"); d.className = "fx out"; d.textContent = text;
+  d.style.left = (v.x + 1) / 2 * innerWidth + "px"; d.style.top = (1 - v.y) / 2 * innerHeight + "px";
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150);
+}
+
+// panels: seed tray, field card, barn
+let armed = null, cardPlot = -1;
+const panels = ["seedTray", "plotCard", "barnPanel", "animalCard"];
+function openPanel(id) { for (const p of panels) $id(p).hidden = p !== id; if (id !== "seedTray") armed = null; if (id !== "plotCard") cardPlot = -1; }
+function closePanels() { openPanel(null); }
+function renderSeeds() {
+  if ($id("seedTray").hidden) return;
+  $id("seedList").innerHTML = Object.entries(CROPS).map(([id, c]) => c.lvl > S.level
+    ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${c.n}</b><small>🔒 Lv ${c.lvl}</small></button>`
+    : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${c.n}</b><small>${have(id) ? "×" + have(id) : c.seed + " 🪙"} · ${fmtTime(c.time * 1000)}</small></button>`).join("");
+}
+function openSeeds(i) {
+  openPanel("seedTray"); armed = CROPS[S.lastCrop] && CROPS[S.lastCrop].lvl <= S.level ? S.lastCrop : "wheat"; renderSeeds();
+  if (i >= 0) plantPlot(i, armed);
+}
+$id("seedList").addEventListener("click", (e) => { const b = e.target.closest("[data-crop]"); if (b) { armed = b.dataset.crop; renderSeeds(); } });
+function showPlot(i) {
+  openPanel("plotCard"); cardPlot = i;
+  const p = S.plots[i], c = CROPS[p.crop], left = Math.max(0, p.end - nowMs());
+  $id("plotTitle").textContent = c.e + " " + c.n + " is growing";
+  $id("plotLeft").textContent = "Ready in " + fmtTime(left);
+  $id("plotFinish").textContent = "Finish now · " + gemCost(left) + " 💎";
+}
+$id("plotFinish").onclick = () => { const i = cardPlot; if (i < 0 || !S.plots[i].crop) return; const cost = gemCost(Math.max(0, S.plots[i].end - nowMs()));
+  if (S.gems < cost) { toast("Not enough gems"); return; } S.gems -= cost; S.plots[i].end = nowMs(); renderHud(["gems"]); saveEcon(); closePanels(); };
+function renderBarn() {
+  const used = barnUsed();
+  $id("barnUsed").textContent = used + " / " + S.barnCap;
+  $id("barnCap").classList.toggle("full", used >= S.barnCap); $id("barnCap").firstChild.style.width = Math.min(100, used / S.barnCap * 100) + "%";
+  const list = Object.entries(S.barn).filter(([, n]) => n > 0);
+  $id("barnItems").innerHTML = list.length ? list.map(([id, n]) => `<span>${(CROPS[id] || {}).e || "📦"} ${(CROPS[id] || {}).n || id} ×${n}</span>`).join("") : "<small>Empty. Harvest some fields!</small>";
+}
+$id("barnBtn").onclick = () => { if (!$id("barnPanel").hidden) return closePanels(); openPanel("barnPanel"); renderBarn(); };
+for (const [b, fn] of [["seedClose", closePanels], ["plotClose", closePanels], ["barnClose", closePanels]]) $id(b).onclick = fn;
+
+// touch: a finger that starts on a ripe field harvests every ripe field it slides over; with a seed picked, one that starts
+// on an empty field plants every empty field it slides over. Either way the camera stays put for that finger.
+let farmDrag = null, paintUsed = false;
+function plotAt(x, y) {
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const hit = ray.intersectObjects(plots.map(P => P.g), true)[0]; if (!hit) return -1;
+  let o = hit.object; while (o && o.userData.plot === undefined) o = o.parent; return o ? o.userData.plot : -1;
+}
+function farmDown(e) {
+  paintUsed = false; const i = plotAt(e.clientX, e.clientY); if (i < 0) return false;
+  if (ready(i)) { farmDrag = {id:e.pointerId, mode:"harvest"}; harvestPlot(i); paintUsed = true; return true; }
+  if (!S.plots[i].crop && armed && !$id("seedTray").hidden) { farmDrag = {id:e.pointerId, mode:"plant"}; plantPlot(i, armed); paintUsed = true; return true; }
+  return false;
+}
+function farmMove(e) {
+  if (!farmDrag || farmDrag.id !== e.pointerId) return false;
+  const i = plotAt(e.clientX, e.clientY);
+  if (i >= 0) { if (farmDrag.mode === "harvest") harvestPlot(i, true); else if (!S.plots[i].crop) plantPlot(i, armed, true); }
+  return true;
+}
+function farmTap(i) {
+  if (i < 0) return false;
+  if (!S.plots[i].crop) openSeeds(i); else if (!ready(i)) showPlot(i);
+  return true;
+}
+const farmUp = (e) => { if (farmDrag && farmDrag.id === e.pointerId) farmDrag = null; };
+buildPlantsAll(); function buildPlantsAll() { plots.forEach((_, i) => buildPlants(i)); }
 
 document.getElementById("acPet").onclick = () => { const a = animals[+animalCard.dataset.i], r = a.pet();
   // a cuddle is worth XP once every 45 s per animal, and a happy animal sometimes finds you a coin
@@ -1211,7 +1398,12 @@ for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], 
 if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); document.getElementById("paint").remove(); }
 // snapshots skip ahead a little so the animals have spread out and are busy
 setPreset(qs.get("preset") || "golden");
-window.__herd = animals; if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }};
+window.__herd = animals; if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, S, plots, plotAt, ready};
+// test pictures: look at a chosen spot (tx, tz), and optionally fill the fields with crops at different stages (not saved)
+if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
+if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
+  S.plots[i].crop = c; S.plots[i].end = nowMs() + (1 - g) * CROPS[c].time * 1000; buildPlants(i); });
+if (qs.has("farmdemo")) updatePlots(0);
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); } if (qs.get("card")) showAnimal(+qs.get("card")); }
 
 // ---------------- animation ----------------
@@ -1222,7 +1414,10 @@ function frame() {
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
   placeCamera(dt); updateSquish(performance.now());
   for (const a of animals) a.update(dt, t);
-  if (animalCard.dataset.i !== undefined && !animalCard.hidden && Math.floor(t * 2) !== frame.lastCard) { frame.lastCard = Math.floor(t * 2); showAnimal(+animalCard.dataset.i); }
+  updatePlots(t);
+  if (Math.floor(t * 2) !== frame.lastCard) { frame.lastCard = Math.floor(t * 2); // open cards refresh twice a second
+    if (animalCard.dataset.i !== undefined && !animalCard.hidden) showAnimal(+animalCard.dataset.i);
+    if (cardPlot >= 0) { if (S.plots[cardPlot].crop && !ready(cardPlot)) showPlot(cardPlot); else closePanels(); } }
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
   for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
