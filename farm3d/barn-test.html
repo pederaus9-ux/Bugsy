@@ -48,7 +48,7 @@ import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 
 const qs = new URLSearchParams(location.search);
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
-const ART = document.querySelector('meta[name="art-path"]')?.content || "../farm/art/";
+const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/";
 
 // ---------------- renderer ----------------
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
@@ -709,7 +709,7 @@ function emoteMat(e) {
 const rnd = rng(4242);
 class Beast {
   constructor(kind, name, pers, x, z) {
-    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".png", S.h, x, z);
+    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".webp", S.h, x, z);
     Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
       vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
       need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
@@ -1033,7 +1033,7 @@ renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.d
 const animalCard = document.getElementById("animalCard");
 function showAnimal(i) {
   const a = animals[i]; animalCard.dataset.i = i; animalCard.hidden = false;
-  document.getElementById("acImg").src = ART + a.kind + ".png";
+  document.getElementById("acImg").src = ART + a.kind + ".webp";
   document.getElementById("acName").textContent = a.name;
   document.getElementById("acKind").textContent = a.S.n + " · " + a.pers + " · feeling " + a.mood().toLowerCase();
   document.getElementById("acPers").textContent = a.P.blurb + ".";

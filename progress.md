@@ -7,7 +7,7 @@ Last updated: 2026-09-26
 - **New 3D game (in progress):** `farm3d/`
 - **3D engine:** `farm3d/lib/` (three.js r186, minified, MIT license, no internet needed)
 - **Art:** `farm/art/` (animals and crops, backgrounds removed). Approved environment assets will go in `assets/`.
-- **Canva helper design:** "Farm game asset export" in the Canva account, used to export assets at full resolution (waiting for approval to save to it).
+- **Canva helper design:** "Farm game asset export" (DAHWTGE7Wk0) in the Canva account: one full-size page per asset, exported at 1264 px.
 
 ## Test links
 - **3D barn test (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). Turn 360°, switch weather and time of day, paint the barn, tap animals.
@@ -45,6 +45,7 @@ Last updated: 2026-09-26
   - tap an animal for its card (name, personality, mood, what it's doing) with **Pet** and **Call over**; tap the grass and the curious ones come to look
 - [x] **Diorama look** (suggested by Gemini): grass is now 22,000 clumps of 8 blades each (tufts that still bend in the wind); tilt-shift blur that keeps the middle sharp and softens the top, bottom and corners; a colour grade after ACES tone mapping (gentle contrast curve, a touch more colour, soft vignette), tuned per weather
 - [x] **Game feel**: tapped things (animals, barn, silo, trees, bushes, bales, rocks, trough, fences, lamp, field) squash down and bulge out, then spring back in 250 ms; the camera glides after your fingers with an ease-out instead of snapping
+- [x] **Full-resolution Canva art**: the helper design "Farm game asset export" is saved with 9 full-size pages (1264 px). The 3D game now uses its own sharper copies: animals in `farm3d/art/` (512 px WebP, about 3x sharper), and leaves, bark and grass in `farm3d/tex/` at 1024 px (bark and grass made seamless). The 2D game keeps its small, fast art.
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
@@ -61,6 +62,5 @@ Last updated: 2026-09-26
 5. Animal customization: breeds, colors, sizes, accessories.
 
 ## Waiting on the user
-- OK to save and export from the Canva helper design?
 - Approve the 3D barn look (the painted barn picture is now only the design reference).
 - Open a pull request to put the animals and pets update live?
