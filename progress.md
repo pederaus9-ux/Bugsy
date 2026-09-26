@@ -54,11 +54,16 @@ Last updated: 2026-09-26
   - Every target, route and step is held to the animal's pen. A 12,000-step test in noon, rain, night and golden hour had zero escapes.
   - Each pen has its own bed spot at night and its own shelter in the rain; the dog runs along the fence when it chases the hens.
   - Walking: a footfall bob with a slight squash, a lean into the direction of travel (more at speed, extra when speeding up, sitting back when braking), and smooth turn-arounds instead of an instant flip. The old side-to-side rock is gone.
+- [x] **Polish from Gemini's review**:
+  - Checked: emoji bubbles were already cached, so there was no leak; the grass never cast shadows.
+  - Added: the renderer and post-processing now always share the same pixel ratio; automatic quality steps down (sharpness 1.6, 1.3, shadows 1024, sharpness 1) only if the phone can't hold ~45 fps.
+  - Turns: animals flip inside a tiny hop instead of narrowing (the narrowing showed their flat edge).
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
 - **Buildings and props are real 3D models, not pictures.** The user wants full 360° rotation and everything reacting to sun and weather. Painted pictures can't do that, because their lighting is fixed and they only have one angle. Real 3D models with realistic textures can, and they also make paint colors and swappable parts easy.
 - **Canva's role changes.** It will make textures (wood, shingles, stone, grass), style references and icons, instead of full building pictures.
+- **Real 3D animals: researched, not started.** Gemini suggested KayKit, but KayKit has no farm animals; the free CC0 farm packs (Quaternius) are low-poly cartoon style and would clash with the realistic scene. Realistic rigged animals mostly need buying (e.g. the Sketchfab Store) and a download by the user. Waiting on the user's choice.
 - **Animals stay as the approved renders for now.** They turn to face the camera, and a separate hidden shape faces the sun so their shadows look right. A real-3D animal pipeline is a later option.
 - **Full-resolution Canva images:** 1264×1264 originals are available through an export design (the user allowed `canva.com` on the network).
 
