@@ -35,6 +35,8 @@ Last updated: 2026-09-26
   - published as a phone test link (see above)
 - [x] **More farm pieces, all real 3D:** grain silo (ribbed metal, ladder, dome), round hay bales, water trough (freezes in snow), rocks (granite with moss), bushes, a ploughed wheat field that sways, and a lamp post that lights up at night
 
+- [x] **Realistic trees, grass and sky** (after the user's feedback): photo leaf clusters, bark and meadow textures made in Canva (`farm3d/tex/`); branching trees with one soft canopy that glows when backlit; 170k thin grass blades with dark roots, sunlit tips and wildflowers; drifting clouds that change with the weather, and stars at night
+
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
 - **Buildings and props are real 3D models, not pictures.** The user wants full 360° rotation and everything reacting to sun and weather. Painted pictures can't do that, because their lighting is fixed and they only have one angle. Real 3D models with realistic textures can, and they also make paint colors and swappable parts easy.
