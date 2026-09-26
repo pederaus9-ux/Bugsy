@@ -47,6 +47,13 @@ Last updated: 2026-09-26
 - [x] **Game feel**: tapped things (animals, barn, silo, trees, bushes, bales, rocks, trough, fences, lamp, field) squash down and bulge out, then spring back in 250 ms; the camera glides after your fingers with an ease-out instead of snapping
 - [x] **Full-resolution Canva art**: the helper design "Farm game asset export" is saved with 9 full-size pages (1264 px). The 3D game now uses its own sharper copies: animals in `farm3d/art/` (512 px WebP, about 3x sharper), and leaves, bark and grass in `farm3d/tex/` at 1024 px (bark and grass made seamless). The 2D game keeps its small, fast art.
 - [x] **Economy HUD in 3D** (Gemini's suggestion): the 2D game's level star, XP bar, coins and gems, same look and same rules (start 60 coins and 5 gems, XP curve 15·level^1.6, level-up gives +2 gems and +20×level coins). Saved on the phone. Petting an animal gives +2 XP (once per 45 s per animal) and sometimes a coin. The hint moved to the bottom and fades on first touch; the paint panel sits under the money.
+- [x] **Pens and a better walk**:
+  - Cows, horses and sheep live in a closed paddock: the barn's east wall plus fences, with the trough, silo and an oak inside.
+  - Chickens live in a fenced yard on the barn's west side, with the hay bales, the oak and their own water pan.
+  - Buddy and Whiskers roam everywhere outside the pens, with a water bowl by the barn door.
+  - Every target, route and step is held to the animal's pen. A 12,000-step test in noon, rain, night and golden hour had zero escapes.
+  - Each pen has its own bed spot at night and its own shelter in the rain; the dog runs along the fence when it chases the hens.
+  - Walking: a footfall bob with a slight squash, a lean into the direction of travel (more at speed, extra when speeding up, sitting back when braking), and smooth turn-arounds instead of an instant flip. The old side-to-side rock is gone.
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.

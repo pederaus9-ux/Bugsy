@@ -536,8 +536,26 @@ const far = []; { const R = rng(91), kinds = [makeTree(201), makeTree(202), make
   for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;
     const t = kinds[i % 4].clone(); t.position.set(x, groundY(x, z) - .2, z); t.rotation.y = R() * 7; t.scale.setScalar(1.1 + R() * .7);
     t.traverse(o => { o.castShadow = false; }); scene.add(t); far.push(t); } }
-const fence = makeFence(12, 6); fence.position.set(5, 0, 9); fence.rotation.y = -.25; scene.add(fence);
-const fence2 = makeFence(10, 5); fence2.position.set(10.6, 0, 3.8); fence2.rotation.y = Math.PI / 2 - .25; scene.add(fence2);
+// fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard
+const FENCE_RUNS = [
+  [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
+  [[10.81, 10.48], [12.6, -1.2], [12.8, -8.4], [4.5, -8.4], [4.5, -5.95]],        // paddock: east, north and back to the barn
+  [[4.5, 5.95], [4.5, 8.87]],                                                   // paddock: from the barn's front corner to the path fence
+  [[-4.6, -4.8], [-12, -4.8], [-12, 5], [-4.6, 5]],                               // chicken yard beside the barn's west wall
+];
+const fenceSegs = [], fences = [];
+for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
+  const [ax, az] = run[i - 1], [bx, bz] = run[i], len = Math.hypot(bx - ax, bz - az);
+  const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
+  scene.add(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
+}
+// water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
+function makeWaterPan(r) {
+  const g = new THREE.Group(), rim = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, .14, 24, 1, true), M.metal || M.fence);
+  rim.position.y = .07; rim.castShadow = true; g.add(rim);
+  const w = new THREE.Mesh(new THREE.CircleGeometry(r * .96, 24), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .11; g.add(w);
+  return g;
+}
 
 // ---------------- more farm pieces ----------------
 function ribbedMetal(seed) { // corrugated galvanized steel
@@ -657,11 +675,13 @@ const silo = makeSilo(); silo.position.set(6.2, 0, -3.5); scene.add(silo); conta
 for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = makeBale(); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
 contact(-6.4, -2.9, 3, 3.6);
 const trough = makeTrough(); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
-for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12, -6, 1.1, 3], [-11.2, -5.2, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
-const bushes = [[-4.9, 6.2, 1], [4.9, 6.4, .8], [-5, -6, 1.1], [-13, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
+const henWater = makeWaterPan(.38); henWater.position.set(-9.6, 0, -2.4); scene.add(henWater); contact(-9.6, -2.4, 1.1, 1.1);
+const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
+for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
+const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
 const field = makeCropField(7, 5.2); field.position.set(-10, 0, 12); field.rotation.y = .12; scene.add(field);
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
-for (const o of [barn, tree, tree2, silo, trough, lampPost, fence, fence2, field, ...bushes]) o.userData.squishy = true;
+for (const o of [barn, tree, tree2, silo, trough, lampPost, field, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
 
 // ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
 const PERSONALITY = {
@@ -681,20 +701,41 @@ const SPECIES = {
   dog:{n:"Dog", h:1.15, walk:1.5, run:4.6, eat:"sniff", step:5, r:.5},
   cat:{n:"Cat", h:.85, walk:.9, run:3.6, eat:"sniff", step:5, r:.4},
 };
-const HERD = [["cow", "Bessie", "Friendly", 4, 7], ["cow", "Clover", "Lazy", 7, 9], ["horse", "Spirit", "Playful", 10, 1], ["horse", "Maple", "Curious", 12, 6],
-  ["sheep", "Woolly", "Shy", -3, -9], ["sheep", "Cotton", "Friendly", -1, -10],
-  ["chicken", "Pip", "Curious", 3, 9], ["chicken", "Goldie", "Greedy", 2, 10], ["chicken", "Nugget", "Playful", 4, 11], ["chicken", "Henrietta", "Grumpy", -2, 10], ["chicken", "Peep", "Shy", 1, 12],
-  ["dog", "Buddy", "Playful", 2, 14], ["cat", "Whiskers", "Lazy", -5, -1]];
+const HERD = [["cow", "Bessie", "Friendly", 6.5, 5.5], ["cow", "Clover", "Lazy", 8, 2.5], ["horse", "Spirit", "Playful", 10, 0], ["horse", "Maple", "Curious", 10.5, 6.5],
+  ["sheep", "Woolly", "Shy", 7.5, -6.5], ["sheep", "Cotton", "Friendly", 9.5, -5.5],
+  ["chicken", "Pip", "Curious", -7, 2], ["chicken", "Goldie", "Greedy", -8.2, 3.6], ["chicken", "Nugget", "Playful", -9.4, 1], ["chicken", "Henrietta", "Grumpy", -10.4, -1.2], ["chicken", "Peep", "Shy", -8.6, -3.9],
+  ["dog", "Buddy", "Playful", 2, 14], ["cat", "Whiskers", "Lazy", -2, 11]];
+// where each kind lives: cows, horses and sheep share the paddock, hens have their yard, the dog and cat go anywhere outside the pens.
+// Pens are convex outlines, counter-clockwise, matching the fence runs (the paddock's west side is the barn wall).
+const PENS = {
+  paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:["cow", "horse", "sheep"],
+    bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:"the paddock"},
+  yard:{poly:[[-12, -4.8], [-4.9, -4.8], [-4.9, 5], [-12, 5]], kinds:["chicken"],
+    bed:[-8.6, 1.2, 1.8], shelter:{x:[-5.7, -5.3], z:[-1, 4.4]}, water:[-9.6, -2.4, .8, .8], name:"the chicken yard"},
+};
+const PEN_LIST = Object.values(PENS);
+const penOf = (kind) => PEN_LIST.find(p => p.kinds.includes(kind)) || null;
+// signed distance from each edge (positive = inside); a point is inside when every edge is at least `margin` away
+function edgeDepths(poly, x, z) {
+  return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
+    return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });
+}
+const inPen = (pen, x, z, margin = 0) => edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
+// pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)
+function intoPen(pen, v, margin) {
+  for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }
+  return v;
+}
+function outOfPens(v, margin) {
+  for (const pen of PEN_LIST) { const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
+    const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }
+  return v;
+}
 
 // where the animals may not walk: [x, z, halfWidth, halfDepth]
 const BLOCKS = [[0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
-const fenceSegs = [];
-scene.updateMatrixWorld(true);
-for (const [f, len] of [[fence, 12], [fence2, 10]]) {
-  const a = new THREE.Vector3(-len / 2, 0, .1).applyMatrix4(f.matrixWorld), b = new THREE.Vector3(len / 2, 0, .1).applyMatrix4(f.matrixWorld);
-  fenceSegs.push([a.x, a.z, b.x, b.z]);
-}
+BLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet bowl
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
 const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
   ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
@@ -709,13 +750,13 @@ function hitsBlock(a, b, pad, skip) {
   return -1;
 }
 // shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
-function route(from, to, pad) {
+function route(from, to, pad, pen) {
   const skipA = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], from, pad))), skipB = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], to, pad)));
   const both = new Set([...skipA, ...skipB]);
   if (hitsBlock(from, to, pad, both) < 0) return [to];
   const nodes = [from, to];
   for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
-    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2) nodes.push(c); }
+    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2 && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
   const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
   const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
@@ -725,8 +766,11 @@ function route(from, to, pad) {
   const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
 }
 const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
-function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM) {
-  for (let i = 0; i < 40; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (!blocked(x, z)) return new THREE.Vector2(x, z); }
+// a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
+const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
+  for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (!blocked(x, z) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
+  if (pen) return new THREE.Vector2(pen.bed[0], pen.bed[1]);
   return new THREE.Vector2(HOME.x, HOME.y + 8);
 }
 // little mood bubbles that float over an animal's head
@@ -748,19 +792,27 @@ class Beast {
     Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
       vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
       need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
+    this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0;
     contact(0, 0, S.h * 1.1, S.h * .45, this.g);
     this.bubble = new THREE.Sprite(emoteMat("❤️")); this.bubble.scale.setScalar(.55); this.bubble.position.y = S.h + .35; this.bubble.visible = false; this.g.add(this.bubble);
     scene.add(this.g);
   }
   get pos() { return new THREE.Vector2(this.g.position.x, this.g.position.z); }
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
-  go(x, z, running, label, doing) { this.path = route(this.pos, new THREE.Vector2(x, z), this.S.r + .7); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
+  // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
+  fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
+  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)); this.path = route(this.pos, to, this.S.r + .7, this.pen); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
     const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
-    if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = freePoint(rnd, 0, 8.5, 3.5)); return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
-    if (weather === "wet" && rnd() > P.brave * .5) { const side = rnd() < .5 ? -1 : 1; return this.go(side * (5.05 + rnd() * .5), -4.5 + rnd() * 9, true, "Running for shelter", "shelter"); }
+    const pen = this.pen, lerp = THREE.MathUtils.lerp;
+    // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
+    if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));
+      return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
+    // shelter: tucked against the barn wall on their side, or under the door's overhang
+    if (weather === "wet" && rnd() > P.brave * .5) { const s = pen ? pen.shelter : {x:[-1.6, 1.6], z:[6.3, 6.8]};
+      return this.go(lerp(s.x[0], s.x[1], rnd()), lerp(s.z[0], s.z[1], rnd()), true, "Running for shelter", "shelter"); }
     const opts = [
       ["wander", .35 + P.energy * .4], ["eat", .3 + N.hunger * 1.2 * P.hunger], ["drink", N.hunger * .8 * P.hunger * (this.kind === "cat" ? .3 : 1)],
       ["rest", N.tired * 1.3 * (1.25 - P.energy)], ["social", N.lonely * P.social * 1.4], ["play", P.energy * P.energy * .6 * (this.kind === "dog" ? 2 : 1)],
@@ -769,18 +821,19 @@ class Beast {
     let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
     for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
     switch (pick) {
-      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7); return this.go(p.x, p.y, false, "Going for a stroll"); }
-      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
-      case "drink": { const a = rnd() * 7; return this.go(8 + Math.cos(a) * 1.7, 6.2 + Math.sin(a) * 1.2, false, "Going for a drink", "drink"); }
-      case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "drink": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;
+        return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
+      case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
       case "social": {
         const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];
         if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social"); }
         break;
       }
       case "play":
-        if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, "Chasing " + hen.name + "!", "chase"); } }
-        { const p = freePoint(rnd); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+        if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? "Running along the fence after " + hen.name + "!" : "Chasing " + hen.name + "!", "chase"); } }
+        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
       case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
     }
     this.stay("Taking in the view", 2 + rnd() * 4);
@@ -789,7 +842,7 @@ class Beast {
   arrive() {
     const d = this.doing, N = this.need; this.doing = null;
     if (d === "eat") { N.hunger = Math.max(0, N.hunger - .5); return this.stay(this.S.eat === "graze" ? "Grazing" : this.S.eat === "peck" ? "Pecking at seeds" : "Sniffing the grass", 6 + rnd() * 8, "eating"); }
-    if (d === "drink") { N.hunger = 0; this.emote("💧"); return this.stay("Drinking at the trough", 5, "eating"); }
+    if (d === "drink") { N.hunger = 0; this.emote("💧"); return this.stay(this.pen === PENS.paddock ? "Drinking at the trough" : "Having a drink", 5, "eating"); }
     if (d === "rest") { N.tired = 0; return this.stay("Napping", 10 + rnd() * 15 * (1.3 - this.P.energy), "resting"); }
     if (d === "sleep") { return this.stay("Fast asleep", 9999, "sleeping"); }
     if (d === "shelter") { return this.stay("Keeping dry by the barn", 9999, "idle"); }
@@ -809,7 +862,7 @@ class Beast {
     // chickens scatter when the dog runs at them
     if (this.kind === "chicken" && this.act !== "fleeing") { const dog = animals.find(b => b.kind === "dog"); if (dog && dog.doing === "chase" && dog.pos.distanceTo(this.pos) < 2.6) this.flee(dog.pos, "Running from Buddy!"); }
     if (this.act === "fleeing" && t > this.until) { this.act = "idle"; this.until = 0; }
-    if (this.doing === "chase" && this.chasing && this.target) { this.path = null; this.target.copy(this.chasing.pos); }
+    if (this.doing === "chase" && this.chasing && this.target) { this.path = null; this.target.copy(this.fit(this.chasing.pos)); }
     if (!this.target && (this.act === "idle" || this.act === "eating" || this.act === "resting") && t > this.until) this.think();
     if (this.act === "sleeping" && !PRESET.night) this.act = "idle";
     // walk toward the target, steering around buildings, fences and other animals
@@ -829,6 +882,8 @@ class Beast {
         for (const b of animals) if (b !== this) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
         this.vel.lerp(want, Math.min(1, dt * 4));
         this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
+        // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
+        const held = this.fit(this.pos, .05); this.g.position.x = held.x; this.g.position.z = held.y;
         this.phase += this.vel.length() * dt * this.S.step;
         // give up on a target it can't reach
         this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;
@@ -842,15 +897,25 @@ class Beast {
     card.rotation.y = Math.atan2(camera.position.x - this.g.position.x, camera.position.z - this.g.position.z);
     this.shadowCard.rotation.y = Math.atan2(sunDir.x, sunDir.z);
     let y = 0, tilt = 0, sy = 1;
-    if (moving) { const a = Math.abs(Math.sin(this.phase)); y = a * h * (this.running ? .06 : .025); tilt = Math.sin(this.phase) * (this.running ? .06 : .03); }
-    else if (this.act === "eating") {
-      if (this.S.eat === "peck") { const k = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * k; y = -.03 * k; }
+    // lean into the direction of travel: further at speed, a little extra while speeding up, and sitting back while braking
+    const spd = moving ? this.vel.length() : 0, k = Math.min(1, spd / this.S.run), acc = (spd - this.lastSpd) / Math.max(dt, 1e-3); this.lastSpd = spd;
+    const leanTo = moving ? k * .09 + THREE.MathUtils.clamp(acc * .015, -.06, .06) : 0;
+    this.lean += (leanTo - this.lean) * Math.min(1, dt * 6);
+    if (moving) {
+      // stride bob: two footfalls per stride; the body rides highest mid-stride and dips, with a slight squash, as each foot lands
+      const s = Math.abs(Math.sin(this.phase));
+      y = s * h * (.015 + .045 * k); sy = 1 - (1 - s) * (.01 + .03 * k); tilt = this.lean;
+    } else if (this.act === "eating") {
+      if (this.S.eat === "peck") { const p = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * p; y = -.03 * p; }
       else { tilt = .07 + Math.sin(t * 1.3 + this.phase) * .02; y = -h * .02; }
     } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
-    else sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; // breathing
+    else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; } // breathing, settling out of the last lean
     if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
-    card.position.y = y; card.rotation.z = tilt * this.facing; card.scale.y = Math.abs(card.scale.y) ? h * sy : card.scale.y;
-    card.scale.x = Math.abs(card.scale.x) * this.facing;
+    // turning round: the picture narrows and widens again as it swings to the new side, instead of flipping instantly
+    this.face += THREE.MathUtils.clamp(this.facing - this.face, -dt * 7, dt * 7);
+    const side = this.face < 0 ? -1 : 1, w = this.shadowCard.scale.x;
+    card.position.y = y; card.rotation.z = tilt * side; card.scale.y = w !== 1 ? h * sy : card.scale.y;
+    if (w !== 1) card.scale.x = w * side * Math.max(.08, Math.abs(this.face));
   }
   flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
     this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
@@ -1145,7 +1210,7 @@ for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], 
 if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); document.getElementById("paint").remove(); }
 // snapshots skip ahead a little so the animals have spread out and are busy
 setPreset(qs.get("preset") || "golden");
-window.__herd = animals; if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera};
+window.__herd = animals; if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }};
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); } if (qs.get("card")) showAnimal(+qs.get("card")); }
 
 // ---------------- animation ----------------
