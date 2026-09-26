@@ -55,11 +55,15 @@ Open that link in Chrome on your phone and use **Add to Home screen** to get it 
 
 ## How to play
 
-- **Fields:** tap an empty field to plant, then tap it again when it's ripe. Every harvest gives 2.
-- **Orders 🚚:** fill truck orders for coins and XP. They pay better than selling in the barn.
-- **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Feed them with feed from the Feed Mill.
-- **Make 🏭:** Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen and Loom turn crops into goods worth more.
-- **Barn:** holds a limited number of items. Sell extras or upgrade it with coins.
-- **Gems 💎:** earned from leveling up (+2), the daily gift (+1), every 10th order, and some orders. Use them to finish things right away.
+- **Look around:** drag the farm to move, pinch (or use + / −) to zoom.
+- **Plant:** tap an empty field, then drag a seed across your fields. Every harvest gives 2.
+- **Harvest:** tap a ripe field and swipe the sickle over the crops.
+- **Orders 🚚:** tap the truck or the order board. Orders pay better than selling in the barn.
+- **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Tap a pen and drag feed onto hungry animals. Tap to collect what they make.
+- **Buildings:** tap the Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen or Loom to make goods. Empty lots show what unlocks next.
+- **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
+- **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
+
+All the art is original and drawn in code (plus your phone's own emoji). No Hay Day artwork or names are used.
 
 Crops keep growing while the game is closed. Progress is saved in that browser on that device.
