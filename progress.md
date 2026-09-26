@@ -46,6 +46,7 @@ Last updated: 2026-09-26
 - [x] **Diorama look** (suggested by Gemini): grass is now 22,000 clumps of 8 blades each (tufts that still bend in the wind); tilt-shift blur that keeps the middle sharp and softens the top, bottom and corners; a colour grade after ACES tone mapping (gentle contrast curve, a touch more colour, soft vignette), tuned per weather
 - [x] **Game feel**: tapped things (animals, barn, silo, trees, bushes, bales, rocks, trough, fences, lamp, field) squash down and bulge out, then spring back in 250 ms; the camera glides after your fingers with an ease-out instead of snapping
 - [x] **Full-resolution Canva art**: the helper design "Farm game asset export" is saved with 9 full-size pages (1264 px). The 3D game now uses its own sharper copies: animals in `farm3d/art/` (512 px WebP, about 3x sharper), and leaves, bark and grass in `farm3d/tex/` at 1024 px (bark and grass made seamless). The 2D game keeps its small, fast art.
+- [x] **Economy HUD in 3D** (Gemini's suggestion): the 2D game's level star, XP bar, coins and gems, same look and same rules (start 60 coins and 5 gems, XP curve 15·level^1.6, level-up gives +2 gems and +20×level coins). Saved on the phone. Petting an animal gives +2 XP (once per 45 s per animal) and sometimes a coin. The hint moved to the bottom and fades on first touch; the paint panel sits under the money.
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
