@@ -41,3 +41,32 @@ That's Bugsy's website. It works in any browser.
 ## Updating it later
 
 When Claude sends you a new `index.html`, open your `bugsy` repo on GitHub, click **Add file > Upload files**, drop the new file in, and **Commit changes**. Your site updates in a minute, and your buddy's memory stays put.
+
+---
+
+# Sunny Acres (farm game)
+
+A cozy Hay Day–style farm game in the `farm/` folder. **No real money, ever.** There is no store. Coins and 💎 gems are only earned by playing.
+
+Once the repo is on GitHub Pages, the game is at:
+`https://YOUR-GITHUB-NAME.github.io/bugsy/farm/`
+
+Open that link in Chrome on your phone and use **Add to Home screen** to get it as its own app.
+
+## How to play
+
+- **Look around:** drag the farm to move, pinch (or use + / −) to zoom.
+- **Plant:** tap an empty field, then drag a seed across your fields. Crops go from seeds to sprouts to full plants. Every harvest gives 2.
+- **Harvest:** tap a ripe field and swipe the sickle over the crops.
+- **Orders 🚚:** tap the truck or the order board. Orders pay better than selling in the barn.
+- **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Tap a pen and drag feed onto hungry animals. Tap to collect what they make.
+- **Buildings:** tap the Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen or Loom to make goods. Empty lots show what unlocks next.
+- **Roadside shop:** the striped stall by the road. Put items out at your own price. People walking by buy them over time, and cheaper items sell faster.
+- **Move things:** press and hold a building, pen, field or the stall, then drag it. Green means it fits; red means something's in the way.
+- **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
+- **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
+- **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
+
+All the art is original and drawn in code (plus your phone's own emoji). No Hay Day artwork or names are used.
+
+Crops keep growing while the game is closed. Progress is saved in that browser on that device.
