@@ -56,11 +56,14 @@ Open that link in Chrome on your phone and use **Add to Home screen** to get it 
 ## How to play
 
 - **Look around:** drag the farm to move, pinch (or use + / −) to zoom.
-- **Plant:** tap an empty field, then drag a seed across your fields. Every harvest gives 2.
+- **Plant:** tap an empty field, then drag a seed across your fields. Crops go from seeds to sprouts to full plants. Every harvest gives 2.
 - **Harvest:** tap a ripe field and swipe the sickle over the crops.
 - **Orders 🚚:** tap the truck or the order board. Orders pay better than selling in the barn.
 - **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Tap a pen and drag feed onto hungry animals. Tap to collect what they make.
 - **Buildings:** tap the Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen or Loom to make goods. Empty lots show what unlocks next.
+- **Roadside shop:** the striped stall by the road. Put items out at your own price. People walking by buy them over time, and cheaper items sell faster.
+- **Move things:** press and hold a building, pen, field or the stall, then drag it. Green means it fits; red means something's in the way.
+- **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
 - **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
 - **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
 
