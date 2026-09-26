@@ -41,3 +41,25 @@ That's Bugsy's website. It works in any browser.
 ## Updating it later
 
 When Claude sends you a new `index.html`, open your `bugsy` repo on GitHub, click **Add file > Upload files**, drop the new file in, and **Commit changes**. Your site updates in a minute, and your buddy's memory stays put.
+
+---
+
+# Sunny Acres (farm game)
+
+A cozy Hay Day–style farm game in the `farm/` folder. **No real money, ever.** There is no store. Coins and 💎 gems are only earned by playing.
+
+Once the repo is on GitHub Pages, the game is at:
+`https://YOUR-GITHUB-NAME.github.io/bugsy/farm/`
+
+Open that link in Chrome on your phone and use **Add to Home screen** to get it as its own app.
+
+## How to play
+
+- **Fields:** tap an empty field to plant, then tap it again when it's ripe. Every harvest gives 2.
+- **Orders 🚚:** fill truck orders for coins and XP. They pay better than selling in the barn.
+- **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Feed them with feed from the Feed Mill.
+- **Make 🏭:** Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen and Loom turn crops into goods worth more.
+- **Barn:** holds a limited number of items. Sell extras or upgrade it with coins.
+- **Gems 💎:** earned from leveling up (+2), the daily gift (+1), every 10th order, and some orders. Use them to finish things right away.
+
+Crops keep growing while the game is closed. Progress is saved in that browser on that device.
