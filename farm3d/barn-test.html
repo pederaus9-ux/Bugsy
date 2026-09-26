@@ -624,7 +624,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
       if (d.y > .005) {                    // clouds painted on a high layer
         vec2 uv = d.xz / (d.y + .12) * .55 + vec2(uTime * .0035, uTime * .0012);
         float n = fbm(uv * 1.4);
-        cov = smoothstep(1. - uCover, 1. - uCover + .32, n) * smoothstep(.005, .16, d.y);
+        cov = smoothstep(1. - uCover, 1. - uCover + .22, n) * smoothstep(.005, .16, d.y);
         float lit = clamp((n - fbm(uv * 1.4 + sd.xz * .06)) * 5. + .55, 0., 1.);   // brighter on the sun side
         vec3 cc = mix(cloudShade, cloudCol, lit) + sunCol * pow(s, 6.) * .5 * lit;
         c = mix(c, cc, cov * .96);
@@ -668,9 +668,9 @@ const snow = particles(3000, 0xffffff, .12);
 
 // ---------------- lighting & weather presets ----------------
 const PRESETS = {
-  morning:{cover:.42, cloud:0xfff1e4, shade:0x98a3bd, sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:3.0, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
-  noon:{cover:.4, cloud:0xffffff, shade:0x9eabc2, sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
-  golden:{cover:.5, cloud:0xffc592, shade:0x7a6a8c, sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
+  morning:{cover:.52, cloud:0xfff1e4, shade:0x98a3bd, sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:3.0, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
+  noon:{cover:.5, cloud:0xffffff, shade:0x9eabc2, sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
+  golden:{cover:.56, cloud:0xffc592, shade:0x7a6a8c, sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
   rain:{cover:.98, cloud:0x9aa3ad, shade:0x59616c, sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
   snow:{cover:.92, cloud:0xe8edf2, shade:0xa7b1be, sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
   night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.45, hemiSky:0x223355, hemiGnd:0x0c0f14, hemiI:.35, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.1, night:1, bloom:.8},
