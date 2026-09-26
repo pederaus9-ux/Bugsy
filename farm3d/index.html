@@ -298,7 +298,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js";
+import * as G from "./game.js?v=6"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1213,7 +1213,7 @@ let animals = [];
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
 function syncHerd() {
   const want = [];
-  for (const kind of Object.keys(G.ANIMALS)) if (G.S.pens[kind].owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
+  for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
   for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); a.gone = true; }
@@ -1662,7 +1662,7 @@ function syncStand() {
 // ---------- pen signs: "Chicken coop · 100 🪙" until the pen is bought ----------
 const yardSign = makeSign(["", ""], 1.6, .8); yardSign.position.set(-8.4, 0, 5.8); yardSign.userData.hit = {type:"penSign", area:"yard"}; scene.add(yardSign);
 const paddockSign = makeSign(["", ""], 1.6, .8); paddockSign.position.set(7.2, 0, 11.2); paddockSign.rotation.y = -.25; paddockSign.userData.hit = {type:"penSign", area:"paddock"}; scene.add(paddockSign);
-const nextPen = (area) => (area === "yard" ? ["chicken"] : ["cow", "horse", "sheep"]).filter(k => !GS().pens[k].owned).sort((a, b) => G.ANIMALS[a].lvl - G.ANIMALS[b].lvl)[0];
+const nextPen = (area) => (area === "yard" ? ["chicken"] : ["cow", "horse", "sheep"]).filter(k => !(GS().pens[k] || {}).owned).sort((a, b) => G.ANIMALS[a].lvl - G.ANIMALS[b].lvl)[0];
 function syncPenSigns() {
   for (const [sg, area] of [[yardSign, "yard"], [paddockSign, "paddock"]]) {
     const k = nextPen(area); sg.visible = !!k; if (!k) continue;
