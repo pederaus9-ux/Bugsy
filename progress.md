@@ -10,7 +10,7 @@ Last updated: 2026-09-26
 - **Canva helper design:** "Farm game asset export" in the Canva account, used to export assets at full resolution (waiting for approval to save to it).
 
 ## Test links
-- **3D barn test (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). Turn 360°, switch weather and time of day, paint the barn.
+- **3D barn test (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). Turn 360°, switch weather and time of day, paint the barn, tap animals.
 
 ## Done
 ### 2D game (live)
@@ -36,6 +36,13 @@ Last updated: 2026-09-26
 - [x] **More farm pieces, all real 3D:** grain silo (ribbed metal, ladder, dome), round hay bales, water trough (freezes in snow), rocks (granite with moss), bushes, a ploughed wheat field that sways, and a lamp post that lights up at night
 
 - [x] **Realistic trees, grass and sky** (after the user's feedback): photo leaf clusters, bark and meadow textures made in Canva (`farm3d/tex/`); branching trees with one soft canopy that glows when backlit; 170k thin grass blades with dark roots, sunlit tips and wildflowers; drifting clouds that change with the weather, and stars at night
+- [x] **Animals live on their own** (`farm3d/barn-test.html`, `class Beast`):
+  - 13 named animals: cows Bessie and Clover, horses Spirit and Maple, sheep Woolly and Cotton, chickens Pip, Goldie, Nugget, Henrietta and Peep, Buddy the dog and Whiskers the cat
+  - 7 personalities (Lazy, Curious, Shy, Playful, Grumpy, Friendly, Greedy) that shape energy, friendliness, curiosity, bravery and appetite
+  - needs that grow over time (hunger, thirst, tiredness, company); animals graze or peck, drink at the trough, nap, visit friends, wander and play; Buddy chases the chickens and they scatter
+  - weather and time: they run to shelter by the barn in rain and snow, and go to bed together at night
+  - they find their way around the barn, silo, bales and fences (shortest path around corners), walk and run with a bob, and show little mood bubbles
+  - tap an animal for its card (name, personality, mood, what it's doing) with **Pet** and **Call over**; tap the grass and the curious ones come to look
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.

@@ -16,12 +16,27 @@
   .paint .sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.7);padding:0}
   .paint .sw.on{outline:3px solid #ffb443;outline-offset:1px}
   .paint summary{cursor:pointer;list-style:none}
+  [hidden]{display:none!important}
+  .acard{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);max-width:460px;margin:0 auto;display:grid;grid-template-columns:72px 1fr;gap:4px 12px;
+    background:rgba(250,244,228,.96);border:3px solid #8a5a2b;border-radius:18px;padding:10px 12px;color:#3d2a14;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .acard img{width:72px;height:72px;object-fit:contain;grid-row:span 2}
+  .acInfo b{font-size:19px;display:block}
+  .acInfo span{font-size:12px;font-weight:700;opacity:.7}
+  .acInfo p{margin:3px 0 0;font-size:13px}
+  .acBtns{grid-column:1 / -1;display:flex;gap:8px;justify-content:flex-end}
+  .acBtns button{border:0;border-radius:12px;padding:8px 12px;font-weight:800;background:#6cbf4a;color:#fff}
+  .acBtns #acClose{background:#d9c9a6;color:#3d2a14}
   .hint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;text-align:center;color:#fff;font-weight:700;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
 <div class="hint">Drag to turn all the way around · pinch or scroll to zoom · two fingers to move</div>
 <div class="bar" id="bar"></div>
+<div class="acard" id="animalCard" hidden>
+  <img id="acImg" alt="">
+  <div class="acInfo"><b id="acName"></b><span id="acKind"></span><p id="acPers"></p><p id="acDoing"></p></div>
+  <div class="acBtns"><button id="acPet">🤚 Pet</button><button id="acCall">📣 Call over</button><button id="acClose" aria-label="Close">✕</button></div>
+</div>
 <details class="paint" id="paint" open><summary>🎨 Paint the barn</summary></details>
 <script type="module">
 import * as THREE from "./lib/three.module.min.js";
@@ -354,7 +369,6 @@ function makeFence(len, posts) {
 
 // ---------------- animals: the approved renders, standing in the world ----------------
 // They turn to face the camera; a separate invisible card faces the sun so their shadow keeps its shape.
-const animals = [];
 function makeAnimal(src, h, x, z) {
   const t = new THREE.TextureLoader().load(src, (tx) => {
     const a = tx.image.width / tx.image.height; card.scale.set(h * a, h, 1); shadowCard.scale.set(h * a, h, 1);
@@ -367,8 +381,8 @@ function makeAnimal(src, h, x, z) {
   const shadowCard = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({colorWrite:false, depthWrite:false}));
   shadowCard.castShadow = true; shadowCard.customDepthMaterial = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:t, alphaTest:.4});
   g.add(shadowCard);
-  animals.push({g, card, shadowCard, t0:Math.random() * 10});
-  return g;
+  card.rotation.order = "YXZ";
+  return {g, card, shadowCard, h};
 }
 
 // ---------------- ground ----------------
@@ -477,9 +491,6 @@ const far = []; { const R = rng(91), kinds = [makeTree(201), makeTree(202), make
     t.traverse(o => { o.castShadow = false; }); scene.add(t); far.push(t); } }
 const fence = makeFence(12, 6); fence.position.set(5, 0, 9); fence.rotation.y = -.25; scene.add(fence);
 const fence2 = makeFence(10, 5); fence2.position.set(10.6, 0, 3.8); fence2.rotation.y = Math.PI / 2 - .25; scene.add(fence2);
-scene.add(makeAnimal(ART + "cow.png", 1.7, 5, 5)); contact(5, 5, 2.2, 1);
-scene.add(makeAnimal(ART + "horse.png", 2.3, 7.8, 2.5)); contact(7.8, 2.5, 2.2, 1);
-scene.add(makeAnimal(ART + "chicken.png", .75, 3.2, 7)); contact(3.2, 7, .8, .5);
 
 // ---------------- more farm pieces ----------------
 function ribbedMetal(seed) { // corrugated galvanized steel
@@ -604,6 +615,208 @@ const bushes = [[-4.9, 6.2, 1], [4.9, 6.4, .8], [-5, -6, 1.1], [-13, 3, 1.3], [2
 const field = makeCropField(7, 5.2); field.position.set(-10, 0, 12); field.rotation.y = .12; scene.add(field);
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
 
+// ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
+const PERSONALITY = {
+  Lazy:{energy:.25, social:.5, curious:.3, brave:.6, hunger:.5, blurb:"Loves a long nap in the sun"},
+  Curious:{energy:.7, social:.5, curious:1, brave:.7, hunger:.5, blurb:"Comes over to see anything new"},
+  Shy:{energy:.5, social:.35, curious:.15, brave:.05, hunger:.5, blurb:"Startles easily and keeps its distance"},
+  Playful:{energy:1, social:.8, curious:.7, brave:.8, hunger:.6, blurb:"Always zooming around"},
+  Grumpy:{energy:.4, social:.05, curious:.2, brave:1, hunger:.5, blurb:"Prefers to be left alone"},
+  Friendly:{energy:.6, social:1, curious:.6, brave:.7, hunger:.5, blurb:"Sticks close to its friends"},
+  Greedy:{energy:.5, social:.5, curious:.4, brave:.6, hunger:1, blurb:"Never far from the trough"},
+};
+const SPECIES = {
+  cow:{n:"Cow", h:1.7, walk:.8, run:2.6, eat:"graze", step:3, r:.9},
+  horse:{n:"Horse", h:2.3, walk:1.2, run:5, eat:"graze", step:3.2, r:1},
+  sheep:{n:"Sheep", h:1.2, walk:.75, run:2.6, eat:"graze", step:4.5, r:.6},
+  chicken:{n:"Chicken", h:.72, walk:.8, run:2.4, eat:"peck", step:9, r:.3},
+  dog:{n:"Dog", h:1.15, walk:1.5, run:4.6, eat:"sniff", step:5, r:.5},
+  cat:{n:"Cat", h:.85, walk:.9, run:3.6, eat:"sniff", step:5, r:.4},
+};
+const HERD = [["cow", "Bessie", "Friendly", 4, 7], ["cow", "Clover", "Lazy", 7, 9], ["horse", "Spirit", "Playful", 10, 1], ["horse", "Maple", "Curious", 12, 6],
+  ["sheep", "Woolly", "Shy", -3, -9], ["sheep", "Cotton", "Friendly", -1, -10],
+  ["chicken", "Pip", "Curious", 3, 9], ["chicken", "Goldie", "Greedy", 2, 10], ["chicken", "Nugget", "Playful", 4, 11], ["chicken", "Henrietta", "Grumpy", -2, 10], ["chicken", "Peep", "Shy", 1, 12],
+  ["dog", "Buddy", "Playful", 2, 14], ["cat", "Whiskers", "Lazy", -5, -1]];
+
+// where the animals may not walk: [x, z, halfWidth, halfDepth]
+const BLOCKS = [[0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+const HOME = new THREE.Vector2(1, 3), ROAM = 19;
+const fenceSegs = [];
+scene.updateMatrixWorld(true);
+for (const [f, len] of [[fence, 12], [fence2, 10]]) {
+  const a = new THREE.Vector3(-len / 2, 0, .1).applyMatrix4(f.matrixWorld), b = new THREE.Vector3(len / 2, 0, .1).applyMatrix4(f.matrixWorld);
+  fenceSegs.push([a.x, a.z, b.x, b.z]);
+}
+// plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
+const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
+  ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
+const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
+const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
+const insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
+function hitsBlock(a, b, pad, skip) {
+  for (const k of OBST.keys()) { if (skip && skip.has(k)) continue; const o = OBST[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
+    let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;
+    const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
+    if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }
+  return -1;
+}
+// shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
+function route(from, to, pad) {
+  const skipA = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], from, pad))), skipB = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], to, pad)));
+  const both = new Set([...skipA, ...skipB]);
+  if (hitsBlock(from, to, pad, both) < 0) return [to];
+  const nodes = [from, to];
+  for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
+    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2) nodes.push(c); }
+  const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
+  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;
+  for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
+    for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
+  if (prev[1] < 0) return [to]; // no clear way: just try
+  const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
+}
+const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM) {
+  for (let i = 0; i < 40; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (!blocked(x, z)) return new THREE.Vector2(x, z); }
+  return new THREE.Vector2(HOME.x, HOME.y + 8);
+}
+// little mood bubbles that float over an animal's head
+const emoteMats = {};
+function emoteMat(e) {
+  if (!emoteMats[e]) {
+    const [c, x] = canvas(128);
+    x.fillStyle = "rgba(255,255,255,.92)"; x.beginPath(); x.arc(64, 58, 50, 0, 7); x.fill(); x.beginPath(); x.moveTo(52, 100); x.lineTo(64, 124); x.lineTo(76, 100); x.fill();
+    x.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 62);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    emoteMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false});
+  }
+  return emoteMats[e];
+}
+const rnd = rng(4242);
+class Beast {
+  constructor(kind, name, pers, x, z) {
+    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".png", S.h, x, z);
+    Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
+      vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
+      need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
+    contact(0, 0, S.h * 1.1, S.h * .45, this.g);
+    this.bubble = new THREE.Sprite(emoteMat("❤️")); this.bubble.scale.setScalar(.55); this.bubble.position.y = S.h + .35; this.bubble.visible = false; this.g.add(this.bubble);
+    scene.add(this.g);
+  }
+  get pos() { return new THREE.Vector2(this.g.position.x, this.g.position.z); }
+  emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
+  go(x, z, running, label, doing) { this.path = route(this.pos, new THREE.Vector2(x, z), this.S.r + .7); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
+  stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
+  // decide what to do next, from needs, personality, weather and time of day
+  think() {
+    const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
+    if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = freePoint(rnd, 0, 8.5, 3.5)); return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
+    if (weather === "wet" && rnd() > P.brave * .5) { const side = rnd() < .5 ? -1 : 1; return this.go(side * (5.05 + rnd() * .5), -4.5 + rnd() * 9, true, "Running for shelter", "shelter"); }
+    const opts = [
+      ["wander", .35 + P.energy * .4], ["eat", .3 + N.hunger * 1.2 * P.hunger], ["drink", N.hunger * .8 * P.hunger * (this.kind === "cat" ? .3 : 1)],
+      ["rest", N.tired * 1.3 * (1.25 - P.energy)], ["social", N.lonely * P.social * 1.4], ["play", P.energy * P.energy * .6 * (this.kind === "dog" ? 2 : 1)],
+      ["curious", tapPoint && clockT - tapPoint.t < 25 ? P.curious * 1.5 : 0], ["idle", .2],
+    ];
+    let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
+    for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    switch (pick) {
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "drink": { const a = rnd() * 7; return this.go(8 + Math.cos(a) * 1.7, 6.2 + Math.sin(a) * 1.2, false, "Going for a drink", "drink"); }
+      case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
+      case "social": {
+        const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];
+        if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social"); }
+        break;
+      }
+      case "play":
+        if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, "Chasing " + hen.name + "!", "chase"); } }
+        { const p = freePoint(rnd); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+      case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
+    }
+    this.stay("Taking in the view", 2 + rnd() * 4);
+  }
+  // what happens on arrival
+  arrive() {
+    const d = this.doing, N = this.need; this.doing = null;
+    if (d === "eat") { N.hunger = Math.max(0, N.hunger - .5); return this.stay(this.S.eat === "graze" ? "Grazing" : this.S.eat === "peck" ? "Pecking at seeds" : "Sniffing the grass", 6 + rnd() * 8, "eating"); }
+    if (d === "drink") { N.hunger = 0; this.emote("💧"); return this.stay("Drinking at the trough", 5, "eating"); }
+    if (d === "rest") { N.tired = 0; return this.stay("Napping", 10 + rnd() * 15 * (1.3 - this.P.energy), "resting"); }
+    if (d === "sleep") { return this.stay("Fast asleep", 9999, "sleeping"); }
+    if (d === "shelter") { return this.stay("Keeping dry by the barn", 9999, "idle"); }
+    if (d === "social") { N.lonely = 0; if (this.friend) { this.emote(this.P.social > .8 ? "❤️" : "🎵"); this.friend.need.lonely *= .5; } return this.stay("Hanging out with " + (this.friend ? this.friend.name : "friends"), 4 + rnd() * 5); }
+    if (d === "look") { this.emote("❔"); return this.stay("Curious about something", 3); }
+    if (d === "chase") { return this.stay("Proud of himself", 2); }
+    this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
+  }
+  update(dt, t) {
+    const N = this.need, P = this.P;
+    N.hunger = Math.min(1, N.hunger + dt * .012 * (.5 + P.hunger)); N.tired = Math.min(1, N.tired + dt * .01 * (1.5 - P.energy)); N.lonely = Math.min(1, N.lonely + dt * .01 * (.3 + P.social));
+    if (this.emoteT > 0) { this.emoteT -= dt; this.bubble.visible = this.emoteT > 0; this.bubble.material.opacity = Math.min(1, this.emoteT * 2); this.bubble.position.y = this.S.h + .35 + Math.sin(t * 3) * .04; }
+    // the weather changed: sleep, shelter and wake-ups happen straight away
+    const mode = PRESET.night ? "night" : PRESET.rain || PRESET.snowing ? "wet" : "fair";
+    if (mode !== this.mode) { this.mode = mode; this.until = 0; this.target = null; this.act = "idle"; if (mode === "fair") this.emote("☀️", 1.5); }
+    if (this.act === "sleeping" && Math.floor(t) % 4 === 0 && this.emoteT <= 0) this.emote("💤", 2);
+    // chickens scatter when the dog runs at them
+    if (this.kind === "chicken" && this.act !== "fleeing") { const dog = animals.find(b => b.kind === "dog"); if (dog && dog.doing === "chase" && dog.pos.distanceTo(this.pos) < 2.6) this.flee(dog.pos, "Running from Buddy!"); }
+    if (this.act === "fleeing" && t > this.until) { this.act = "idle"; this.until = 0; }
+    if (this.doing === "chase" && this.chasing && this.target) { this.path = null; this.target.copy(this.chasing.pos); }
+    if (!this.target && (this.act === "idle" || this.act === "eating" || this.act === "resting") && t > this.until) this.think();
+    if (this.act === "sleeping" && !PRESET.night) this.act = "idle";
+    // walk toward the target, steering around buildings, fences and other animals
+    let moving = false;
+    if (this.target) {
+      const pos = this.pos, to = this.target.clone().sub(pos), dist = to.length();
+      if (dist < .6 && this.path && this.path.length) this.target = this.path.shift();
+      else if (dist < .35 || (this.doing === "chase" && dist < 1)) { this.target = null; this.arrive(); }
+      else {
+        const spd = (this.running ? this.S.run : this.S.walk) * (.8 + P.energy * .4) * (this.act === "fleeing" ? 1.3 : 1);
+        const want = to.normalize().multiplyScalar(spd);
+        for (const [bx, bz, hw, hd] of BLOCKS) { const cx = THREE.MathUtils.clamp(pos.x, bx - hw, bx + hw), cz = THREE.MathUtils.clamp(pos.y, bz - hd, bz + hd), dx = pos.x - cx, dz = pos.y - cz, d = Math.hypot(dx, dz);
+          if (d < this.S.r + .6 && d > 1e-4) want.add(new THREE.Vector2(dx / d, dz / d).multiplyScalar((this.S.r + .6 - d) * 6));
+          else if (d <= 1e-4) want.add(new THREE.Vector2(pos.x - bx, pos.y - bz).normalize().multiplyScalar(4)); }
+        for (const [ax, az, bx, bz] of fenceSegs) { const ab = new THREE.Vector2(bx - ax, bz - az), k = THREE.MathUtils.clamp(new THREE.Vector2(pos.x - ax, pos.y - az).dot(ab) / ab.lengthSq(), 0, 1);
+          const c = new THREE.Vector2(ax + ab.x * k, az + ab.y * k), off = pos.clone().sub(c), d = off.length(); if (d < this.S.r + .35 && d > 1e-4) want.add(off.multiplyScalar((this.S.r + .35 - d) * 8 / d)); }
+        for (const b of animals) if (b !== this) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
+        this.vel.lerp(want, Math.min(1, dt * 4));
+        this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
+        this.phase += this.vel.length() * dt * this.S.step;
+        // give up on a target it can't reach
+        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;
+          if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
+      }
+    } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
+    // face the way it walks (the pictures face left), and animate the pose
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), v3 = new THREE.Vector3(this.vel.x, 0, this.vel.y);
+    if (v3.lengthSq() > .02) { const d = v3.dot(right); if (Math.abs(d) > .05) this.facing = d > 0 ? -1 : 1; }
+    const h = this.S.h, card = this.card, aspect = card.scale.x ? Math.abs(card.scale.x) : h;
+    card.rotation.y = Math.atan2(camera.position.x - this.g.position.x, camera.position.z - this.g.position.z);
+    this.shadowCard.rotation.y = Math.atan2(sunDir.x, sunDir.z);
+    let y = 0, tilt = 0, sy = 1;
+    if (moving) { const a = Math.abs(Math.sin(this.phase)); y = a * h * (this.running ? .06 : .025); tilt = Math.sin(this.phase) * (this.running ? .06 : .03); }
+    else if (this.act === "eating") {
+      if (this.S.eat === "peck") { const k = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * k; y = -.03 * k; }
+      else { tilt = .07 + Math.sin(t * 1.3 + this.phase) * .02; y = -h * .02; }
+    } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
+    else sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; // breathing
+    if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
+    card.position.y = y; card.rotation.z = tilt * this.facing; card.scale.y = Math.abs(card.scale.y) ? h * sy : card.scale.y;
+    card.scale.x = Math.abs(card.scale.x) * this.facing;
+  }
+  flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
+    this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
+  pet() {
+    this.need.lonely = 0; this.hop = 1;
+    if (this.pers === "Shy" && rnd() < .6) { this.flee(new THREE.Vector2(camera.position.x, camera.position.z), "Too shy for that!"); return "startled"; }
+    if (this.pers === "Grumpy" && rnd() < .5) { this.emote("💢"); return "grumpy"; }
+    this.emote("❤️"); return "happy";
+  }
+  mood() { const N = this.need; return N.tired > .75 ? "Sleepy" : N.hunger > .75 ? "Hungry" : N.lonely > .75 ? "Lonely" : N.hunger + N.tired + N.lonely < .9 ? "Happy" : "Content"; }
+}
+let clockT = 0, tapPoint = null, PRESET = {};
+const animals = HERD.map(([k, n, p, x, z]) => new Beast(k, n, p, x, z));
+
 // ---------------- sky, sun and fill light ----------------
 const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()},
   uTime:{value:0}, uCover:{value:.45}, cloudCol:{value:new THREE.Color(1, 1, 1)}, cloudShade:{value:new THREE.Color(.6, .65, .75)}, uNight:{value:0}};
@@ -677,7 +890,7 @@ const PRESETS = {
 };
 let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
 function setPreset(name) {
-  P = PRESETS[name]; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
+  P = PRESETS[name]; PRESET = P; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
   const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
   sunDir.copy(dir); sun.color.set(P.sunCol); sun.intensity = P.sunI;
   hemi.color.set(P.hemiSky); hemi.groundColor.set(P.hemiGnd); hemi.intensity = P.hemiI;
@@ -731,11 +944,41 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   }
 });
 const endP = (e) => { ptr.delete(e.pointerId); last = null; };
+// a quick tap (not a drag) on an animal opens its card; a tap on the grass makes curious animals come and look
+let downAt = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
+renderer.domElement.addEventListener("pointerup", (e) => {
+  if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
+  const ray = new THREE.Raycaster(), m = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(m, camera);
+  const hit = ray.intersectObjects(animals.map(a => a.card))[0];
+  if (hit) { const i = animals.findIndex(a => a.card === hit.object); showAnimal(i); return; }
+  const g = ray.intersectObject(ground)[0];
+  if (g) { tapPoint = {v:new THREE.Vector2(g.point.x, g.point.z), t:clockT}; for (const a of animals) if (a.P.curious > .6 && a.act !== "sleeping" && rnd() < a.P.curious) { a.target = null; a.until = 0; a.think(); } }
+  animalCard.hidden = true;
+});
 renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.addEventListener("pointercancel", endP);
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 
 // ---------------- UI ----------------
+// ---------------- animal card ----------------
+const animalCard = document.getElementById("animalCard");
+function showAnimal(i) {
+  const a = animals[i]; animalCard.dataset.i = i; animalCard.hidden = false;
+  document.getElementById("acImg").src = ART + a.kind + ".png";
+  document.getElementById("acName").textContent = a.name;
+  document.getElementById("acKind").textContent = a.S.n + " · " + a.pers + " · feeling " + a.mood().toLowerCase();
+  document.getElementById("acPers").textContent = a.P.blurb + ".";
+  document.getElementById("acDoing").textContent = "Right now: " + a.label + ".";
+}
+document.getElementById("acPet").onclick = () => { const a = animals[+animalCard.dataset.i], r = a.pet();
+  document.getElementById("acDoing").textContent = r === "startled" ? a.name + " got startled and ran off!" : r === "grumpy" ? a.name + " is not in the mood." : a.name + " loved that!"; };
+document.getElementById("acCall").onclick = () => { const a = animals[+animalCard.dataset.i];
+  if (a.act === "sleeping") { document.getElementById("acDoing").textContent = a.name + " is fast asleep."; return; }
+  if (a.pers === "Grumpy" && rnd() < .5) { a.emote("💢"); document.getElementById("acDoing").textContent = a.name + " ignored you."; return; }
+  const p = new THREE.Vector2(cam.target.x + (rnd() - .5) * 2, cam.target.z + 3 + rnd() * 2); a.emote("❗", 1.2); a.go(p.x, p.y, true, "Coming over to you", "look"); };
+document.getElementById("acClose").onclick = () => { animalCard.hidden = true; };
+
 // ---------------- paint: walls, trim and roof ----------------
 // Walls are repainted by redrawing the plank texture in the new color, so grain and wear stay.
 const PAINT = {
@@ -769,20 +1012,20 @@ for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], 
   const b = document.createElement("button"); b.textContent = label; b.dataset.p = k; b.onclick = () => setPreset(k); bar.appendChild(b);
 }
 if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); document.getElementById("paint").remove(); }
+// snapshots skip ahead a little so the animals have spread out and are busy
 setPreset(qs.get("preset") || "golden");
+window.__herd = animals;
+if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); } if (qs.get("card")) showAnimal(+qs.get("card")); }
 
 // ---------------- animation ----------------
 const clock = new THREE.Timer(); let shotFrames = 0;
 function frame() {
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
   placeCamera();
-  // animals face the camera; their shadow card faces the sun
-  const sunYaw = Math.atan2(sunDir.x, sunDir.z);
-  for (const a of animals) {
-    a.card.rotation.y = Math.atan2(camera.position.x - a.g.position.x, camera.position.z - a.g.position.z);
-    a.shadowCard.rotation.y = sunYaw;
-    a.card.position.y = Math.abs(Math.sin(t * 1.6 + a.t0)) * .02; // gentle breathing bob
-  }
+  // the animals live their lives
+  const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
+  for (const a of animals) a.update(dt, t);
+  if (animalCard.dataset.i !== undefined && !animalCard.hidden && Math.floor(t * 2) !== frame.lastCard) { frame.lastCard = Math.floor(t * 2); showAnimal(+animalCard.dataset.i); }
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
   for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
