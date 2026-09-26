@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Barn Lighting Test</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#9cc3e6;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+  canvas{display:block;width:100vw;height:100vh;touch-action:none}
+  .bar{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 10px}
+  .bar button{border:2px solid #fff;border-radius:18px;padding:8px 12px;font-weight:700;font-size:14px;color:#fff;background:rgba(40,30,15,.6);backdrop-filter:blur(4px)}
+  .bar button.on{background:rgba(214,120,30,.9)}
+  .hint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;text-align:center;color:#fff;font-weight:700;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+</style>
+</head>
+<body>
+<div class="hint">Drag to turn all the way around · pinch or scroll to zoom · two fingers to move</div>
+<div class="bar" id="bar"></div>
+<script type="module">
+import * as THREE from "./lib/three.module.min.js";
+import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
+
+const qs = new URLSearchParams(location.search);
+// animal pictures live next to the 2D game in the repo, or beside the page when published on its own
+const ART = document.querySelector('meta[name="art-path"]')?.content || "../farm/art/";
+
+// ---------------- renderer ----------------
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 50 : 38, innerWidth / innerHeight, 0.1, 600);
+
+// ---------------- shared "weather" uniforms every material listens to ----------------
+// Snow settles on upward-facing surfaces; rain darkens things and makes them glossy.
+const WX = {uSnow:{value:0}, uWet:{value:0}};
+function weatherize(mat) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uSnow = WX.uSnow; sh.uniforms.uWet = WX.uWet;
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWN; varying vec3 vWP;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nvWN = normalize(mat3(modelMatrix) * objectNormal);")
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWP = (modelMatrix * vec4(transformed, 1.0)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
+      varying vec3 vWN; varying vec3 vWP; uniform float uSnow; uniform float uWet;
+      float hsh(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+      float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+        return mix(mix(hsh(i), hsh(i+vec2(1,0)), f.x), mix(hsh(i+vec2(0,1)), hsh(i+vec2(1,1)), f.x), f.y); }`)
+      .replace("#include <map_fragment>", `#include <map_fragment>
+      float snowAmt = uSnow * smoothstep(0.35, 0.75, vWN.y + (vnoise(vWP.xz * 1.7) - 0.5) * 0.5);
+      diffuseColor.rgb *= mix(1.0, 0.62, uWet * (1.0 - snowAmt));
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.96, 1.0), snowAmt);`)
+      .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+      roughnessFactor = mix(roughnessFactor, 0.18, uWet * 0.85 * (1.0 - snowAmt));
+      roughnessFactor = mix(roughnessFactor, 0.7, snowAmt);`);
+  };
+  return mat;
+}
+
+// ---------------- procedural textures (drawn once, tiled) ----------------
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function canvas(n) { const c = document.createElement("canvas"); c.width = c.height = n; return [c, c.getContext("2d")]; }
+function tex(c, color, rep = [1, 1]) {
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  if (color) t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// turns a grayscale height canvas into a normal map
+function normalFrom(hc, strength = 2) {
+  const n = hc.width, src = hc.getContext("2d").getImageData(0, 0, n, n).data;
+  const [c, x] = canvas(n), out = x.createImageData(n, n), H = (i, j) => src[(((j + n) % n) * n + ((i + n) % n)) * 4] / 255;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const dx = (H(i + 1, j) - H(i - 1, j)) * strength, dy = (H(i, j + 1) - H(i, j - 1)) * strength;
+    const l = Math.hypot(dx, dy, 1), k = (j * n + i) * 4;
+    out.data[k] = (-dx / l * .5 + .5) * 255; out.data[k + 1] = (dy / l * .5 + .5) * 255; out.data[k + 2] = (1 / l * .5 + .5) * 255; out.data[k + 3] = 255;
+  }
+  x.putImageData(out, 0, 0);
+  return c;
+}
+function planks(base, seed, worn = .5) { // vertical painted barn boards
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), w = 64;
+  hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let p = 0; p < n / w; p++) {
+    const l = (R() - .5) * 18;
+    x.fillStyle = `hsl(${base[0]},${base[1]}%,${base[2] + l * .35}%)`; x.fillRect(p * w, 0, w, n);
+    for (let g = 0; g < 26; g++) { // wood grain
+      const gx = p * w + R() * w; x.strokeStyle = `rgba(0,0,0,${.03 + R() * .06})`; x.lineWidth = .6 + R() * 1.4;
+      x.beginPath(); x.moveTo(gx, 0); for (let y = 0; y <= n; y += 32) x.lineTo(gx + Math.sin(y * .02 + g) * 2.5, y); x.stroke();
+      hx.strokeStyle = `rgba(0,0,0,${.05 + R() * .08})`; hx.lineWidth = x.lineWidth; hx.beginPath(); hx.moveTo(gx, 0); hx.lineTo(gx, n); hx.stroke();
+    }
+    if (R() < .45) { const ky = R() * n, kx = p * w + 10 + R() * (w - 20); x.fillStyle = "rgba(40,20,5,.35)"; x.beginPath(); x.ellipse(kx, ky, 4, 7, 0, 0, 7); x.fill(); }
+    x.fillStyle = "rgba(20,10,5,.75)"; x.fillRect(p * w, 0, 3, n); hx.fillStyle = "#1a1a1a"; hx.fillRect(p * w, 0, 3, n);
+    x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(p * w + 3, 0, 2, n);
+  }
+  for (let i = 0; i < 900 * worn; i++) { x.fillStyle = `rgba(${R() < .5 ? "235,225,205" : "60,40,25"},${R() * .18})`; x.fillRect(R() * n, R() * n, 1 + R() * 4, 1 + R() * 10); }
+  return [c, normalFrom(h, 3)];
+}
+function shingles(seed) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), rh = 32, tw = 44;
+  for (let r = 0; r < n / rh; r++) for (let t = -1; t < n / tw + 1; t++) {
+    const ox = t * tw + (r % 2) * tw / 2 + (R() - .5) * 4, y = r * rh, v = R();
+    x.fillStyle = `hsl(${25 + v * 12},${8 + v * 8}%,${22 + v * 14}%)`; x.fillRect(ox, y, tw - 2, rh);
+    const g = hx.createLinearGradient(0, y, 0, y + rh); g.addColorStop(0, "#303030"); g.addColorStop(1, "#d0d0d0");
+    hx.fillStyle = g; hx.fillRect(ox, y, tw - 2, rh);
+    x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(ox, y + rh - 3, tw - 2, 3);
+    for (let s = 0; s < 30; s++) { x.fillStyle = `rgba(${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},.06)`; x.fillRect(ox + R() * tw, y + R() * rh, 2, 2); }
+  }
+  return [c, normalFrom(h, 4)];
+}
+function stones(seed) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#6f675c"; x.fillRect(0, 0, n, n); hx.fillStyle = "#202020"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 190; i++) {
+    const cx = R() * n, cy = R() * n, rx = 18 + R() * 26, ry = 12 + R() * 16, l = 48 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox - rx * .3, cy + oy - ry * .4, 2, cx + ox, cy + oy, rx);
+      g.addColorStop(0, `hsl(35,${8 + R() * 10}%,${l + 10}%)`); g.addColorStop(1, `hsl(30,8%,${l - 12}%)`);
+      x.fillStyle = g; x.beginPath(); x.ellipse(cx + ox, cy + oy, rx, ry, R(), 0, 7); x.fill();
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 1, cx + ox, cy + oy, rx); hg.addColorStop(0, "#fff"); hg.addColorStop(1, "#555");
+      hx.fillStyle = hg; hx.beginPath(); hx.ellipse(cx + ox, cy + oy, rx, ry, 0, 0, 7); hx.fill();
+    }
+  }
+  return [c, normalFrom(h, 3)];
+}
+function grass(seed) {
+  const n = 1024, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#5d8c32"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 60; i++) { // soft color patches
+    const cx = R() * n, cy = R() * n, r = 60 + R() * 160, hue = 75 + R() * 25;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${hue},${40 + R() * 20}%,${30 + R() * 14}%,.35)`); g.addColorStop(1, "hsla(90,40%,35%,0)");
+      x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+    }
+  }
+  x.lineCap = "round";
+  for (let i = 0; i < 26000; i++) { // blades
+    const px = R() * n, py = R() * n, len = 4 + R() * 9, a = -Math.PI / 2 + (R() - .5) * .9;
+    x.strokeStyle = `hsl(${70 + R() * 35},${35 + R() * 35}%,${22 + R() * 30}%)`; x.lineWidth = .8 + R() * 1.1;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len); x.stroke();
+  }
+  return c;
+}
+function dirt(seed) {
+  const n = 512, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#8a6a45"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++) { x.fillStyle = `hsla(${25 + R() * 15},${25 + R() * 20}%,${25 + R() * 35}%,${.3 + R() * .5})`; x.beginPath(); x.arc(R() * n, R() * n, .5 + R() * 2.2, 0, 7); x.fill(); }
+  return c;
+}
+function leafCard(seed) { // a clump of leaves with transparent gaps, used on many small cards per tree
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  for (let i = 0; i < 70; i++) {
+    const a = R() * 7, r = R() * 100, cx = 128 + Math.cos(a) * r, cy = 128 + Math.sin(a) * r, s = 10 + R() * 12;
+    x.save(); x.translate(cx, cy); x.rotate(R() * 7);
+    x.fillStyle = `hsl(${85 + R() * 30},${45 + R() * 25}%,${25 + R() * 25}%)`;
+    x.beginPath(); x.ellipse(0, 0, s * .45, s, 0, 0, 7); x.fill();
+    x.strokeStyle = "rgba(0,0,0,.25)"; x.lineWidth = 1; x.beginPath(); x.moveTo(0, -s); x.lineTo(0, s); x.stroke();
+    x.restore();
+  }
+  return c;
+}
+function radial(inner = "rgba(0,0,0,1)") {
+  const [c, x] = canvas(128), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, inner); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+// ---------------- materials ----------------
+const std = (o) => weatherize(new THREE.MeshStandardMaterial(o));
+const [redC, redN] = planks([4, 62, 36], 11), [trimC, trimN] = planks([40, 25, 88], 5, .25), [fenceC, fenceN] = planks([30, 25, 42], 17, .8);
+const [shC, shN] = shingles(3), [stC, stN] = stones(9);
+const M = {
+  red: std({map:tex(redC, 1), normalMap:tex(redN), roughness:.82}),
+  trim: std({color:0xf2eadc, roughness:.6}),
+  roof: std({map:tex(shC, 1), normalMap:tex(shN), roughness:.9}),
+  stone: std({map:tex(stC, 1), normalMap:tex(stN), roughness:.95}),
+  fence: std({map:tex(fenceC, 1), normalMap:tex(fenceN), roughness:.9}),
+  glass: std({color:0x223344, roughness:.08, metalness:.3, emissive:0xffb050, emissiveIntensity:0}),
+  metal: std({color:0x8a8f96, roughness:.35, metalness:.8}),
+  bark: std({color:0x5b4029, roughness:.95}),
+};
+// every box face gets texture coordinates in meters, so textures keep the same scale on any size
+function boxUV(g, scale = .25) {
+  const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i));
+    const u = ax > .5 ? p.getZ(i) : p.getX(i), v = ay > .5 ? p.getZ(i) : p.getY(i);
+    uv.setXY(i, u * scale, v * scale);
+  }
+  return g;
+}
+function box(w, h, d, mat, x = 0, y = 0, z = 0, scale = .25) {
+  const m = new THREE.Mesh(boxUV(new THREE.BoxGeometry(w, h, d), scale), mat);
+  m.position.set(x, y, z); m.castShadow = m.receiveShadow = true;
+  return m;
+}
+// a thin box stretched between two points in the XY plane (trim, braces, roof panels)
+function beam(p, q, thick, depth, mat, z = 0, scale = .25) {
+  const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy);
+  const m = box(L, thick, depth, mat, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2, z, scale);
+  m.rotation.z = Math.atan2(dy, dx);
+  return m;
+}
+
+// ---------------- the barn ----------------
+function makeBarn() {
+  const g = new THREE.Group(), W = 8, D = 11, HW = 4.2, base = .7;
+  const prof = [[-W / 2, 0], [W / 2, 0], [W / 2, HW], [2.75, 6.4], [0, 7.5], [-2.75, 6.4], [-W / 2, HW]];
+  const shape = new THREE.Shape(prof.map(([x, y]) => new THREE.Vector2(x, y)));
+  const gable = new THREE.ShapeGeometry(shape); // front/back walls with planks
+  const uv = gable.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .25, uv.getY(i) * .25);
+  for (const s of [1, -1]) { const m = new THREE.Mesh(gable, M.red); m.position.z = s * D / 2; if (s < 0) m.rotation.y = Math.PI; m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const s of [1, -1]) g.add(box(.12, HW, D, M.red, s * (W / 2 - .06), HW / 2, 0));
+  // stone foundation
+  g.add(box(W + .3, base, D + .3, M.stone, 0, base / 2 - .05, 0, .5));
+  // roof panels: steep lower slope and gentle upper slope on each side, with overhang
+  const up = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy); return [dy / L * .09, -dx / L * .09]; };
+  for (const [p, q] of [[[W / 2 + .35, HW - .45], [2.75, 6.4]], [[2.75, 6.4], [0, 7.5]]]) {
+    const o = up(p, q); // outward offset, worked out on the right side and mirrored
+    for (const s of [1, -1]) g.add(beam([(p[0] + o[0]) * s, p[1] + o[1]], [(q[0] + o[0]) * s, q[1] + o[1]], .16, D + .9, M.roof, 0, .3));
+  }
+  g.add(box(.3, .22, D + .95, M.roof, 0, 7.6, 0)); // ridge cap
+  // white trim: corners, rake edges on both gables, eaves
+  for (const sx of [1, -1]) for (const sz of [1, -1]) g.add(box(.26, HW, .26, M.trim, sx * W / 2, HW / 2 + .02, sz * D / 2));
+  for (const sz of [1, -1]) {
+    const z = sz * (D / 2 + .08);
+    for (let i = 2; i < prof.length; i++) { const a = prof[i], b = prof[(i + 1) % prof.length]; if (b[1] === 0) continue; g.add(beam(a, b, .22, .12, M.trim, z)); }
+    g.add(beam([-W / 2, HW], [W / 2, HW], .18, .1, M.trim, z));
+  }
+  // big front doors with X braces and a hayloft door
+  const z = D / 2 + .09;
+  const doorFrame = (x0, x1, y0, y1) => { g.add(beam([x0, y0], [x0, y1], .2, .1, M.trim, z)); g.add(beam([x1, y0], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y1], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y0], [x1, y0], .2, .1, M.trim, z)); };
+  doorFrame(-1.9, 1.9, base, 3.8); g.add(beam([0, base], [0, 3.8], .14, .1, M.trim, z));
+  for (const [a, b] of [[-1.9, 0], [0, 1.9]]) { g.add(beam([a, base], [b, 3.8], .16, .1, M.trim, z)); g.add(beam([a, 3.8], [b, base], .16, .1, M.trim, z)); }
+  doorFrame(-.8, .8, 4.7, 6.1); g.add(beam([-.8, 4.7], [.8, 6.1], .12, .1, M.trim, z)); g.add(beam([-.8, 6.1], [.8, 4.7], .12, .1, M.trim, z));
+  // side windows (they glow at night)
+  for (const s of [1, -1]) for (const wz of [-2.6, 2.6]) {
+    const wx = s * (W / 2 + .07);
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), M.glass); glass.position.set(wx, 2.5, wz); glass.rotation.y = s * Math.PI / 2; g.add(glass);
+    for (const [dy, dz, hgt, dep] of [[.62, 0, .14, 1.4], [-.62, 0, .14, 1.4], [0, .62, 1.3, .14], [0, -.62, 1.3, .14], [0, 0, 1.1, .06], [0, 0, .06, 1.1]]) g.add(box(.1, hgt, dep, M.trim, wx, 2.5 + dy, wz + dz));
+  }
+  // weather vane on a cupola
+  g.add(box(1.1, .9, 1.1, M.red, 0, 7.9, 0)); g.add(box(1.4, .15, 1.4, M.roof, 0, 8.4, 0));
+  const vane = box(.05, .9, .05, M.metal, 0, 8.9, 0); g.add(vane); g.add(box(.7, .05, .12, M.metal, 0, 9.2, 0));
+  return g;
+}
+
+// ---------------- tree with real leaf cards ----------------
+function makeTree(seed) {
+  const g = new THREE.Group(), R = rng(seed);
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.22, .38, 3.2, 10), M.bark); trunk.position.y = 1.6; trunk.castShadow = trunk.receiveShadow = true; g.add(trunk);
+  const leafTex = tex(leafCard(seed), 1);
+  const leafMat = std({map:leafTex, alphaTest:.5, side:THREE.DoubleSide, roughness:.8, color:0xffffff});
+  const depth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.5});
+  const canopy = new THREE.Group(); canopy.position.y = 4.2; g.add(canopy);
+  const card = new THREE.PlaneGeometry(1.6, 1.6);
+  for (let i = 0; i < 150; i++) {
+    const m = new THREE.Mesh(card, leafMat); m.customDepthMaterial = depth;
+    const a = R() * 7, b = Math.acos(2 * R() - 1), r = Math.cbrt(R()) * 1.9;
+    m.position.set(Math.sin(b) * Math.cos(a) * r * 1.1, Math.cos(b) * r * .85, Math.sin(b) * Math.sin(a) * r * 1.1);
+    m.rotation.set(R() * 7, R() * 7, R() * 7); m.castShadow = true; m.receiveShadow = true;
+    canopy.add(m);
+  }
+  g.userData.canopy = canopy;
+  return g;
+}
+
+// ---------------- fence ----------------
+function makeFence(len, posts) {
+  const g = new THREE.Group();
+  for (let i = 0; i <= posts; i++) { const x = -len / 2 + i * len / posts; g.add(box(.18, 1.25, .18, M.fence, x, .62, 0)); g.add(box(.24, .06, .24, M.fence, x, 1.27, 0)); }
+  for (const y of [.45, .95]) g.add(box(len + .2, .14, .07, M.fence, 0, y, .1));
+  return g;
+}
+
+// ---------------- animals: the approved renders, standing in the world ----------------
+// They turn to face the camera; a separate invisible card faces the sun so their shadow keeps its shape.
+const animals = [];
+function makeAnimal(src, h, x, z) {
+  const t = new THREE.TextureLoader().load(src, (tx) => {
+    const a = tx.image.width / tx.image.height; card.scale.set(h * a, h, 1); shadowCard.scale.set(h * a, h, 1);
+  });
+  t.colorSpace = THREE.SRGBColorSpace;
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, .5, 0);
+  const card = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:t, alphaTest:.4, roughness:.85, side:THREE.DoubleSide, emissive:0xffffff, emissiveMap:t, emissiveIntensity:.5}));
+  card.receiveShadow = true; g.add(card);
+  const shadowCard = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({colorWrite:false, depthWrite:false}));
+  shadowCard.castShadow = true; shadowCard.customDepthMaterial = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:t, alphaTest:.4});
+  g.add(shadowCard);
+  animals.push({g, card, shadowCard, t0:Math.random() * 10});
+  return g;
+}
+
+// ---------------- ground ----------------
+const grassTex = tex(grass(21), 1, [34, 34]);
+const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
+{ const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
+  p.setY(i, d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20)); }
+  groundGeo.computeVertexNormals();
+  // big soft patches of lighter, yellower and darker grass so the field never looks tiled
+  const col = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i);
+    const n = Math.sin(x * .11 + Math.sin(z * .07) * 2) * .5 + Math.sin(z * .13 - x * .05) * .35 + Math.sin((x + z) * .31) * .15;
+    col.set([.86 + n * .16, .9 + n * .12, .8 + n * .06], i * 3); }
+  groundGeo.setAttribute("color", new THREE.BufferAttribute(col, 3)); }
+const ground = new THREE.Mesh(groundGeo, std({map:grassTex, roughness:.95, vertexColors:true}));
+ground.receiveShadow = true; scene.add(ground);
+// dirt path to the barn doors, with soft edges
+{ const dt = tex(dirt(4), 1, [1.5, 6]);
+  const [ac, ax] = canvas(256), R = rng(8); // soft ragged edges along the sides and the far end
+  const g = ax.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, "#000"); g.addColorStop(.22, "#fff"); g.addColorStop(.78, "#fff"); g.addColorStop(1, "#000");
+  ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? "rgba(0,0,0,.35)" : "rgba(255,255,255,.3)"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }
+  const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, "rgba(0,0,0,1)"); fadeEnd.addColorStop(.25, "rgba(0,0,0,0)"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xd8c2a0}));
+  pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
+
+// ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
+const windU = {uTime:{value:0}, uWind:{value:.3}};
+{
+  const blade = new THREE.BufferGeometry(); // one tapered, slightly bent blade
+  const v = [-.03,0,0, .03,0,0, -.022,.14,.008, .022,.14,.008, 0,.27,.03];
+  blade.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+  blade.setIndex([0,1,2, 1,3,2, 2,3,4]); blade.computeVertexNormals();
+  const n = 110000, R = rng(5);
+  const mat = new THREE.MeshStandardMaterial({color:0xffffff, roughness:.85, side:THREE.DoubleSide});
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, windU, {uSnow:WX.uSnow});
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind;")
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vec4 wp = instanceMatrix * vec4(0., 0., 0., 1.);
+        float bend = (sin(uTime * 1.7 + wp.x * .35 + wp.z * .22) * .6 + sin(uTime * 3.1 + wp.x * .9) * .25) * (0.25 + uWind);
+        transformed.x += bend * position.y * position.y * 2.2; transformed.z += bend * position.y * position.y * .8;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSnow;")
+      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(.93,.96,1.), uSnow * .85);");
+  };
+  const grassMesh = new THREE.InstancedMesh(blade, mat, n);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
+  let k = 0;
+  for (let i = 0; k < n && i < n * 3; i++) {
+    const r = Math.sqrt(R()) * 34, a = R() * Math.PI * 2, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
+    if (Math.abs(x) < 4.4 && Math.abs(z) < 5.9) continue;           // not inside the barn
+    if (Math.abs(x) < 3 && z > 5.5 && z < 22) continue;              // not on the dirt path
+    e.set((R() - .5) * .35, R() * 7, (R() - .5) * .35); q.setFromEuler(e);
+    const fade = Math.min(1, (34 - r) / 9), s = (.6 + R() * .8) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
+    grassMesh.setMatrixAt(k, m4);
+    c.setHSL(.23 + R() * .06, .42 + R() * .22, .24 + R() * .14); grassMesh.setColorAt(k, c); k++;
+  }
+  grassMesh.count = k; grassMesh.receiveShadow = true; scene.add(grassMesh);
+}
+
+// soft dark "contact shadow" right under each object, so nothing looks like it floats
+const contactTex = radial("rgba(0,0,0,.55)");
+function contact(x, z, w, d, parent = scene) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({map:contactTex, transparent:true, depthWrite:false, color:0x000000, opacity:1}));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, .02, z); parent.add(m); return m;
+}
+
+// ---------------- place things ----------------
+const barn = makeBarn(); scene.add(barn); contact(0, 0, 11, 14);
+const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); contact(-9, 4, 3, 3);
+const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); contact(10, -7, 3.5, 3.5);
+const hills = []; { const R = rng(31); for (let i = 0; i < 16; i++) { const a = R() * Math.PI * 2, r = 40 + R() * 45, t = makeTree(40 + i);
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); const p = ground.geometry.attributes.position; // sit on the terrain
+  let best = 0, bd = 1e9; for (let j = 0; j < p.count; j += 7) { const d = (p.getX(j) - t.position.x) ** 2 + (p.getZ(j) - t.position.z) ** 2; if (d < bd) { bd = d; best = p.getY(j); } }
+  t.position.y = best - .1; t.scale.setScalar(1 + R() * .6); scene.add(t); hills.push(t); } }
+const fence = makeFence(12, 6); fence.position.set(5, 0, 9); fence.rotation.y = -.25; scene.add(fence);
+const fence2 = makeFence(10, 5); fence2.position.set(10.6, 0, 3.8); fence2.rotation.y = Math.PI / 2 - .25; scene.add(fence2);
+scene.add(makeAnimal(ART + "cow.png", 1.7, 5, 5)); contact(5, 5, 2.2, 1);
+scene.add(makeAnimal(ART + "horse.png", 2.3, 7.8, 2.5)); contact(7.8, 2.5, 2.2, 1);
+scene.add(makeAnimal(ART + "chicken.png", .75, 3.2, 7)); contact(3.2, 7, .8, .5);
+
+// ---------------- sky, sun and fill light ----------------
+const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()}};
+const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:false, fog:false, uniforms:skyU,
+  vertexShader:"varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+  fragmentShader:`uniform vec3 top, hor, sunCol; uniform vec3 sunDir; varying vec3 vD;
+    void main(){ float h = clamp(vD.y, 0., 1.); vec3 c = mix(hor, top, pow(h, .55));
+      float s = max(dot(normalize(vD), normalize(sunDir)), 0.); c += sunCol * (pow(s, 900.) * 6. + pow(s, 12.) * .35);
+      gl_FragColor = vec4(c, 1.);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+}));
+scene.add(sky);
+const pmrem = new THREE.PMREMGenerator(renderer); let envRT = null;
+const skyOnly = new THREE.Scene(); skyOnly.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), sky.material));
+const sun = new THREE.DirectionalLight(0xffffff, 3);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sun.shadow.radius = 3;
+Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24, near:1, far:120});
+scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x5b4a30, .8); scene.add(hemi);
+const lamp = new THREE.PointLight(0xffb45a, 0, 14, 2); lamp.position.set(0, 3.2, 6.4); scene.add(lamp);
+scene.fog = new THREE.FogExp2(0xcfe3f2, .012);
+
+// ---------------- weather particles ----------------
+function particles(n, color, size) {
+  const g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - .5) * 70; p[i * 3 + 1] = Math.random() * 30; p[i * 3 + 2] = (Math.random() - .5) * 70; }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, transparent:true, opacity:.8, depthWrite:false}));
+  m.visible = false; scene.add(m); return m;
+}
+const rain = (() => { // falling streaks
+  const n = 2500, g = new THREE.BufferGeometry(), p = new Float32Array(n * 6);
+  for (let i = 0; i < n; i++) { const x = (Math.random() - .5) * 70, y = Math.random() * 30, z = (Math.random() - .5) * 70; p.set([x, y, z, x - .08, y - .7, z], i * 6); }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xc8d6e6, transparent:true, opacity:.45}));
+  m.visible = false; scene.add(m); return m;
+})();
+const snow = particles(3000, 0xffffff, .12);
+
+// ---------------- lighting & weather presets ----------------
+const PRESETS = {
+  morning:{sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:2.3, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
+  noon:{sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
+  golden:{sunEl:10, sunAz:-65, sunCol:0xffae5e, sunI:3.2, hemiSky:0xffd9b8, hemiGnd:0x6a5030, hemiI:.85, top:0x6e8fcf, hor:0xffc98a, fog:.004, exp:1.2, bloom:.35},
+  rain:{sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
+  snow:{sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
+  night:{animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.45, hemiSky:0x223355, hemiGnd:0x0c0f14, hemiI:.35, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.1, night:1, bloom:.8},
+};
+let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
+function setPreset(name) {
+  P = PRESETS[name]; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
+  const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+  sunDir.copy(dir); sun.color.set(P.sunCol); sun.intensity = P.sunI;
+  hemi.color.set(P.hemiSky); hemi.groundColor.set(P.hemiGnd); hemi.intensity = P.hemiI;
+  skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
+  scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp;
+  WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
+  rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
+  M.glass.emissiveIntensity = P.night ? 2.2 : 0; lamp.intensity = P.night ? 30 : 0;
+  for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
+  windU.uWind.value = wind;
+  // sky reflections for glossy paint, glass and wet surfaces
+  skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
+  bloom.strength = P.bloom || .18;
+  document.querySelectorAll("#bar button").forEach(b => b.classList.toggle("on", b.dataset.p === name));
+}
+
+// ---------------- post-processing: bloom + tone mapping ----------------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), .2, .5, .88);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------------- camera: full 360° orbit, pinch zoom, two-finger pan ----------------
+const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.MathUtils.degToRad(+(qs.get("pitch") || 32)), dist:+(qs.get("dist") || 40), target:new THREE.Vector3(1.5, 2.5, 2)};
+function placeCamera() {
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
+  camera.position.set(cam.target.x + Math.sin(cam.yaw) * Math.cos(cam.pitch) * cam.dist, cam.target.y + Math.sin(cam.pitch) * cam.dist, cam.target.z + Math.cos(cam.yaw) * Math.cos(cam.pitch) * cam.dist);
+  camera.lookAt(cam.target);
+  sun.target.position.copy(cam.target); sun.position.copy(cam.target).addScaledVector(sunDir, 60); // shadows follow where you look
+}
+const ptr = new Map(); let last = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null; });
+renderer.domElement.addEventListener("pointermove", (e) => {
+  if (!ptr.has(e.pointerId)) return;
+  const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
+  else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
+    const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
+    const d = pts.length === 2 ? Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]) : null;
+    if (last) {
+      if (d && last.d) cam.dist *= last.d / d;
+      const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
+      cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
+    }
+    last = {c, d};
+  }
+});
+const endP = (e) => { ptr.delete(e.pointerId); last = null; };
+renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.addEventListener("pointercancel", endP);
+renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
+renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
+
+// ---------------- UI ----------------
+const bar = document.getElementById("bar");
+for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], ["golden", "🌇 Golden hour"], ["rain", "🌧️ Rain"], ["snow", "❄️ Snow"], ["night", "🌙 Night"]]) {
+  const b = document.createElement("button"); b.textContent = label; b.dataset.p = k; b.onclick = () => setPreset(k); bar.appendChild(b);
+}
+if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); }
+setPreset(qs.get("preset") || "golden");
+
+// ---------------- animation ----------------
+const clock = new THREE.Timer();
+function frame() {
+  clock.update(); const t = clock.getElapsed(); windU.uTime.value = t;
+  placeCamera();
+  // animals face the camera; their shadow card faces the sun
+  const sunYaw = Math.atan2(sunDir.x, sunDir.z);
+  for (const a of animals) {
+    a.card.rotation.y = Math.atan2(camera.position.x - a.g.position.x, camera.position.z - a.g.position.z);
+    a.shadowCard.rotation.y = sunYaw;
+    a.card.position.y = Math.abs(Math.sin(t * 1.6 + a.t0)) * .02; // gentle breathing bob
+  }
+  // trees sway with the wind
+  for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
+  if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
+  if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
+  composer.render();
+  if (!qs.has("shot") || !window.__done) requestAnimationFrame(frame);
+}
+frame();
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
+window.__ready = true;
+</script>
+</body>
+</html>
