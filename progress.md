@@ -44,6 +44,7 @@ Last updated: 2026-09-26
   - they find their way around the barn, silo, bales and fences (shortest path around corners), walk and run with a bob, and show little mood bubbles
   - tap an animal for its card (name, personality, mood, what it's doing) with **Pet** and **Call over**; tap the grass and the curious ones come to look
 - [x] **Diorama look** (suggested by Gemini): grass is now 22,000 clumps of 8 blades each (tufts that still bend in the wind); tilt-shift blur that keeps the middle sharp and softens the top, bottom and corners; a colour grade after ACES tone mapping (gentle contrast curve, a touch more colour, soft vignette), tuned per weather
+- [x] **Game feel**: tapped things (animals, barn, silo, trees, bushes, bales, rocks, trough, fences, lamp, field) squash down and bulge out, then spring back in 250 ms; the camera glides after your fingers with an ease-out instead of snapping
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.

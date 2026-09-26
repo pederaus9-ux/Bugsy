@@ -619,13 +619,14 @@ function makeLampPost() {
   return g;
 }
 const silo = makeSilo(); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
-for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = makeBale(); b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
+for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = makeBale(); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
 contact(-6.4, -2.9, 3, 3.6);
 const trough = makeTrough(); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
-for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12, -6, 1.1, 3], [-11.2, -5.2, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
+for (const [x, z, s, sd] of [[-3.8, 10.5, .5, 1], [3.6, 13.5, .7, 2], [-12, -6, 1.1, 3], [-11.2, -5.2, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
 const bushes = [[-4.9, 6.2, 1], [4.9, 6.4, .8], [-5, -6, 1.1], [-13, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
 const field = makeCropField(7, 5.2); field.position.set(-10, 0, 12); field.rotation.y = .12; scene.add(field);
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
+for (const o of [barn, tree, tree2, silo, trough, lampPost, fence, fence2, field, ...bushes]) o.userData.squishy = true;
 
 // ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
 const PERSONALITY = {
@@ -964,11 +965,17 @@ composer.addPass(grade);
 
 // ---------------- camera: full 360° orbit, pinch zoom, two-finger pan ----------------
 const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.MathUtils.degToRad(+(qs.get("pitch") || 32)), dist:+(qs.get("dist") || 40), target:new THREE.Vector3(1.5, 2.5, 2)};
-function placeCamera() {
+// "cam" is where your fingers want the camera; "view" glides after it with an ease-out
+// (fast at first, settling softly), the same at any frame rate: 1 - e^(-speed * dt)
+const view = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+function placeCamera(dt = 1) {
   cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
-  camera.position.set(cam.target.x + Math.sin(cam.yaw) * Math.cos(cam.pitch) * cam.dist, cam.target.y + Math.sin(cam.pitch) * cam.dist, cam.target.z + Math.cos(cam.yaw) * Math.cos(cam.pitch) * cam.dist);
-  camera.lookAt(cam.target);
-  sun.target.position.copy(cam.target); sun.position.copy(cam.target).addScaledVector(sunDir, 60); // shadows follow where you look
+  const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
+  view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
+  const v = view;
+  camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);
+  camera.lookAt(v.target);
+  sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null; });
@@ -988,6 +995,21 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   }
 });
 const endP = (e) => { ptr.delete(e.pointerId); last = null; };
+// squash and stretch: a tapped thing squashes down and bulges out, then springs back in 250 ms.
+// The pivot is the object's base, so it squashes onto the ground; volume stays about the same (x and z grow as y shrinks).
+const squishing = new Map();
+function squish(o, strength = 1) {
+  const cur = squishing.get(o); squishing.set(o, {t0:performance.now(), base:cur ? cur.base : o.scale.clone(), amt:.22 * strength});
+}
+function updateSquish(now) {
+  for (const [o, s] of squishing) {
+    const k = (now - s.t0) / 250;
+    if (k >= 1) { o.scale.copy(s.base); squishing.delete(o); continue; }
+    const a = s.amt * Math.cos(k * Math.PI * 2.5) * (1 - k) * (1 - k);        // squash, overshoot into a stretch, settle
+    const y = 1 - a, xz = 1 / Math.sqrt(y);
+    o.scale.set(s.base.x * xz, s.base.y * y, s.base.z * xz);
+  }
+}
 // a quick tap (not a drag) on an animal opens its card; a tap on the grass makes curious animals come and look
 let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
@@ -995,7 +1017,9 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
   const ray = new THREE.Raycaster(), m = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(m, camera);
   const hit = ray.intersectObjects(animals.map(a => a.card))[0];
-  if (hit) { const i = animals.findIndex(a => a.card === hit.object); showAnimal(i); return; }
+  if (hit) { const i = animals.findIndex(a => a.card === hit.object); squish(animals[i].g, 1.3); showAnimal(i); return; }
+  const thing = ray.intersectObjects(scene.children.filter(o => o.userData.squishy), true)[0];
+  if (thing) { let o = thing.object; while (o.parent && !o.userData.squishy) o = o.parent; squish(o, o === barn || o === silo ? .5 : 1); animalCard.hidden = true; return; }
   const g = ray.intersectObject(ground)[0];
   if (g) { tapPoint = {v:new THREE.Vector2(g.point.x, g.point.z), t:clockT}; for (const a of animals) if (a.P.curious > .6 && a.act !== "sleeping" && rnd() < a.P.curious) { a.target = null; a.until = 0; a.think(); } }
   animalCard.hidden = true;
@@ -1058,16 +1082,16 @@ for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], 
 if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); document.getElementById("paint").remove(); }
 // snapshots skip ahead a little so the animals have spread out and are busy
 setPreset(qs.get("preset") || "golden");
-window.__herd = animals;
+window.__herd = animals; if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera};
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); } if (qs.get("card")) showAnimal(+qs.get("card")); }
 
 // ---------------- animation ----------------
 const clock = new THREE.Timer(); let shotFrames = 0;
 function frame() {
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
-  placeCamera();
   // the animals live their lives
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
+  placeCamera(dt); updateSquish(performance.now());
   for (const a of animals) a.update(dt, t);
   if (animalCard.dataset.i !== undefined && !animalCard.hidden && Math.floor(t * 2) !== frame.lastCard) { frame.lastCard = Math.floor(t * 2); showAnimal(+animalCard.dataset.i); }
   // trees sway with the wind
