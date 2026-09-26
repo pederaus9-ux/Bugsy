@@ -68,6 +68,7 @@ Open that link in Chrome on your phone and use **Add to Home screen** to get it 
 - **Decor 🌷:** buy flowers, trees, benches, lanterns and fountains, or place prizes from events. Tap one to put it away; press and hold to move it.
 - **Bigger land:** buy more land east or south from the Shop, or tap the "Expand" signs past the edge of the island.
 - **Seasons & holidays:** the farm changes with the seasons and dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day, each with its own holiday event and prizes.
+- **Backup ⚙️:** tap the ⚙️ button (bottom left) → **Save backup file** or **Backup code**. To move a farm to a new phone, use **Restore from file** or **Restore from code** there. The game reminds you once a week if you haven't backed up.
 - **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
 - **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
 - **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
