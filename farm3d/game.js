@@ -155,11 +155,20 @@ function fresh() {
 }
 // fill in anything a save from an older version (or from the 2D game) is missing
 function upgrade(saved) {
-  const base = fresh(), s = Object.assign(base, saved);
-  for (const k in base.buildings) if (!s.buildings[k]) s.buildings[k] = base.buildings[k];
-  for (const k in base.pens) if (!s.pens[k]) s.pens[k] = base.pens[k];
-  s.stats = Object.assign(fresh().stats, s.stats);
-  s.decor = s.decor || {inv:{}, placed:[]};
+  // compare against a separate fresh farm: the one being filled in can't also be the reference
+  const def = fresh(), s = Object.assign(fresh(), saved);
+  s.buildings = s.buildings || {}; s.pens = s.pens || {};
+  for (const k in def.buildings) { const b = s.buildings[k] = s.buildings[k] || def.buildings[k]; b.jobs = Array.isArray(b.jobs) ? b.jobs : []; }
+  for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }
+  s.stats = Object.assign(def.stats, s.stats);
+  s.barn = s.barn || {};
+  s.plots = (Array.isArray(s.plots) && s.plots.length ? s.plots : def.plots).map(p => Object.assign({crop:null, end:0}, p));
+  s.stand = s.stand && Array.isArray(s.stand.list) ? s.stand : def.stand;
+  while (s.stand.list.length < s.stand.slots) s.stand.list.push(null);
+  s.pets = (Array.isArray(s.pets) ? s.pets : []).filter(p => p && PETS[p.kind]);
+  s.orders = Array.isArray(s.orders) ? s.orders : [];
+  s.holidayDone = s.holidayDone || {};
+  s.decor = s.decor || {inv:{}, placed:[]}; s.decor.inv = s.decor.inv || {};
   s.decor.placed = (s.decor.placed || []).filter(d => DECOR[d.id]);
   s.style = s.style || {};
   return s;
