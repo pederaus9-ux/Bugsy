@@ -70,14 +70,14 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .tray{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 128px);max-width:520px;margin:0 auto;z-index:8;
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:8px 10px 10px;box-shadow:0 7px 16px rgba(0,0,0,.35);animation:pop .14s ease-out}
 .tray h3{margin:0 0 6px;font:400 18px var(--fun);display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tray h3 small{font:800 12px var(--body);opacity:.7}
+.tray h3 small{font:800 12px var(--body);opacity:.7;display:block}
 .tray .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2);flex:none}
 .tray-sub{font-size:13px;font-weight:800;opacity:.8}
 .tray .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
-.seeds{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none;touch-action:pan-x}
-.seed{touch-action:pan-x;flex:none;width:76px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
-.seed img{width:40px;height:40px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
-.seed b{font-size:12px;font-weight:800} .seed small{font-size:11px;font-weight:800;opacity:.75}
+.seeds{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:2px 0 2px;touch-action:none}
+.seed{touch-action:none;flex:none;width:70px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.seed img{width:36px;height:36px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.seed b{font-size:11px;font-weight:800;letter-spacing:-.2px;white-space:nowrap} .seed small{font-size:11px;font-weight:800;opacity:.75;text-align:center}
 .seed.on{border-color:var(--gold-dk);background:#FFF6DC}
 .seed.locked{opacity:.45;filter:grayscale(1)}
 .acard{display:flex;align-items:center;gap:10px}
@@ -284,7 +284,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   <button data-act="open" data-p="decor" aria-label="Decorations">🌷<span class="l out">Decor</span></button>
   <button data-act="open" data-p="shop" aria-label="Shop">🛒<span class="l out">Shop</span></button>
 </div>
-<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small>pick a seed, or drag one onto the fields</small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
+<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small id="seedHelp"></small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
 <div class="tray" id="infoTray" hidden></div>
 <div class="tut" id="tut" hidden><span class="face">🧑‍🌾</span><div style="flex:1"><p id="tutText"></p><small id="tutStep"></small></div><button data-act="tutSkip">Skip</button></div>
 <div class="pointer" id="pointer" hidden>👇</div>
@@ -1381,7 +1381,7 @@ function placeCamera(dt = 1) {
   sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
-renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); if (e.isPrimary) ptr.clear(); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
   if (ptr.size === 1) farmDown(e); else { farmDrag = null; if (moving) moving.id = null; } }); // a second finger always means camera, never farming
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
@@ -1766,6 +1766,7 @@ const seedTray = document.getElementById("seedTray"), infoTray = document.getEle
 function closeTrays() { seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
 function renderSeeds() {
   if (seedTray.hidden) return;
+  document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera" : "Tap a seed, or drag one onto the fields";
   document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
     ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
     : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>${G.have(id) ? "×" + G.have(id) : c.seed + " 🪙"} · ${G.fmt(c.time * 1000)}</small></button>`).join("");
@@ -1794,7 +1795,7 @@ addEventListener("pointermove", (e) => {
     s.on = true; armed = s.crop; pendingPlot = -1; farmDrag = {id:e.pointerId, mode:"plant", n:0}; ghost.src = ART + s.crop + ".webp"; ghost.hidden = false; G.sfx("pickup"); renderSeeds();
   }
   ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
-  paintAlong(e.clientX, e.clientY, true);
+  paintAlong(e.clientX, e.clientY);
 });
 const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; farmDrag = null; };
 addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", endSeedDrag);
@@ -1878,10 +1879,11 @@ function harvestAt(i) { const r = G.harvest(i, farmDrag && farmDrag.n > 0); if (
 function farmDown(e) {
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
-  const h = hitAt(e.clientX, e.clientY); if (!h) return false;
-  if (h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; harvestAt(h.i); paintUsed = true; return true; }
-  // with a seed picked, a finger that starts on any field plants every empty field it slides over
-  if (h.type === "plot" && armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (!GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
+  const h = hitAt(e.clientX, e.clientY);
+  if (h && h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; harvestAt(h.i); paintUsed = true; return true; }
+  // with a seed picked, one finger plants: it can start anywhere, and every empty field it slides over gets that seed (two fingers still move the camera)
+  if (armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (h && h.type === "plot" && !GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
+  if (!h) return false;
   if (h.type === "decor") { // press and hold also starts moving it
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => { pressTimer = 0; startMove(h.j); if (moving && ptr.has(e.pointerId)) { moving.id = e.pointerId; moving.moved = true; paintUsed = true; } }, 450);
@@ -1889,10 +1891,10 @@ function farmDown(e) {
   return false;
 }
 // check a few points along the finger's path so fast swipes don't skip fields
-function paintAlong(x, y, fromTray) {
+function paintAlong(x, y) {
   const lastP = farmDrag.last || [x, y];
   for (let k = 1; k <= 3; k++) { const px = lastP[0] + (x - lastP[0]) * k / 3, py = lastP[1] + (y - lastP[1]) * k / 3;
-    if (fromTray && document.elementFromPoint(px, py) !== renderer.domElement) continue; // still over the seed tray
+    if (document.elementFromPoint(px, py) !== renderer.domElement) continue; // over the seed tray or a button, not a field you can see
     const i = plotAt(px, py);
     if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); } }
   farmDrag.last = [x, y];
