@@ -74,9 +74,9 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .tray .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2);flex:none}
 .tray-sub{font-size:13px;font-weight:800;opacity:.8}
 .tray .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
-.seeds{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}
-.seed{flex:none;width:76px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
-.seed img{width:40px;height:40px;object-fit:contain}
+.seeds{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none;touch-action:pan-x}
+.seed{touch-action:pan-x;flex:none;width:76px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.seed img{width:40px;height:40px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
 .seed b{font-size:12px;font-weight:800} .seed small{font-size:11px;font-weight:800;opacity:.75}
 .seed.on{border-color:var(--gold-dk);background:#FFF6DC}
 .seed.locked{opacity:.45;filter:grayscale(1)}
@@ -222,6 +222,8 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .wxrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .backup textarea{width:100%;min-height:110px;font:12px/1.35 ui-monospace,Menlo,monospace;padding:8px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text;word-break:break-all}
 .wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.ghost{position:fixed;z-index:25;width:56px;height:56px;object-fit:contain;pointer-events:none;transform:translate(-50%,-125%);filter:drop-shadow(0 5px 6px rgba(0,0,0,.35))}
+.movebar{text-align:center}
 .movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 160px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
   background:rgba(70,35,10,.85);border:2px solid #fff;color:#fff;border-radius:99px;padding:7px 16px;font-weight:800;font-size:14px;white-space:nowrap}
 .toasts{position:fixed;left:0;right:0;bottom:calc(320px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
@@ -282,12 +284,15 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   <button data-act="open" data-p="decor" aria-label="Decorations">🌷<span class="l out">Decor</span></button>
   <button data-act="open" data-p="shop" aria-label="Shop">🛒<span class="l out">Shop</span></button>
 </div>
-<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small>tap or drag across empty fields</small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
+<div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small>pick a seed, or drag one onto the fields</small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
 <div class="tray" id="infoTray" hidden></div>
 <div class="tut" id="tut" hidden><span class="face">🧑‍🌾</span><div style="flex:1"><p id="tutText"></p><small id="tutStep"></small></div><button data-act="tutSkip">Skip</button></div>
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
+<div class="tray movebar" id="moveBar" hidden><h3><span id="moveTitle">Move</span></h3><div class="tray-sub">Drag it with one finger to where you want it</div>
+  <div class="row"><button class="btn plain sm" data-m="store">Put away</button><button class="btn sm" data-m="done">✔ Done</button></div></div>
+<img class="ghost" id="ghost" hidden alt="">
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div id="panelRoot"></div>
 <input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
@@ -298,7 +303,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=6"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=7"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1377,7 +1382,7 @@ function placeCamera(dt = 1) {
 }
 const ptr = new Map(); let last = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
-  if (ptr.size === 1) farmDown(e); else farmDrag = null; }); // a second finger always means camera, never farming
+  if (ptr.size === 1) farmDown(e); else { farmDrag = null; if (moving) moving.id = null; } }); // a second finger always means camera, never farming
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
   if (farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
@@ -1672,6 +1677,7 @@ function syncPenSigns() {
 
 // ---------- decorations: real trees, and standing pictures for everything else ----------
 const decorObjs = [];
+let moving = null; // the decoration being moved: {j, obj, x, z (last free spot), id (finger dragging it), ok}
 const emojiTex = {};
 function emojiTexture(e) {
   if (emojiTex[e]) return emojiTex[e];
@@ -1700,6 +1706,7 @@ function makeDecor(d) {
 function syncDecor() {
   for (const o of decorObjs) scene.remove(o); decorObjs.length = 0;
   GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
+  if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, .3, moving.z); } else endMove(false); } // the farm changed mid-move
 }
 // is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
 function spotFree(x, z, size, skip = -1) {
@@ -1733,7 +1740,7 @@ function fxAt(key, text) {
 }
 function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v.z); cam.dist = Math.min(cam.dist, 30); } }
 Object.assign(GV, {
-  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag,
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving, moveDecor:(j) => startMove(j),
   refresh(what) {
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
@@ -1763,12 +1770,34 @@ function renderSeeds() {
     ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
     : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>${G.have(id) ? "×" + G.have(id) : c.seed + " 🪙"} · ${G.fmt(c.time * 1000)}</small></button>`).join("");
 }
+// tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
+let pendingPlot = -1;
 function openSeeds(i) {
   G.close(); infoTray.hidden = true; seedTray.hidden = false; trayFor = {type:"seeds"};
-  armed = G.ITEMS[GS().lastCrop] && G.ITEMS[GS().lastCrop].lvl <= GS().level ? GS().lastCrop : "wheat"; renderSeeds();
-  if (i >= 0) plantAt(i);
+  armed = null; pendingPlot = i; renderSeeds();
 }
-document.getElementById("seedList").addEventListener("click", (e) => { const b = e.target.closest("[data-crop]"); if (b) { armed = b.dataset.crop; G.sfx("tick"); renderSeeds(); } });
+function pickSeed(id) {
+  armed = id; G.sfx("tick");
+  if (pendingPlot >= 0 && GS().plots[pendingPlot] && !GS().plots[pendingPlot].crop) plantAt(pendingPlot);
+  pendingPlot = -1; renderSeeds();
+}
+// or drag a seed out of the tray and across the fields, like the 2D game
+let seedDrag = null, seedDragEnd = 0;
+const ghost = document.getElementById("ghost");
+document.getElementById("seedList").addEventListener("click", (e) => { const b = e.target.closest("[data-crop]"); if (b && performance.now() - seedDragEnd > 400) pickSeed(b.dataset.crop); });
+document.getElementById("seedList").addEventListener("dragstart", (e) => e.preventDefault()); // no browser picture-dragging; we drag the seed ourselves
+document.getElementById("seedList").addEventListener("pointerdown", (e) => { const b = e.target.closest("[data-crop]"); seedDrag = b ? {id:e.pointerId, crop:b.dataset.crop, x:e.clientX, y:e.clientY, on:false} : null; });
+addEventListener("pointermove", (e) => {
+  const s = seedDrag; if (!s || s.id !== e.pointerId) return;
+  if (!s.on) {
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) < 12) return;
+    s.on = true; armed = s.crop; pendingPlot = -1; farmDrag = {id:e.pointerId, mode:"plant", n:0}; ghost.src = ART + s.crop + ".webp"; ghost.hidden = false; G.sfx("pickup"); renderSeeds();
+  }
+  ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
+  paintAlong(e.clientX, e.clientY, true);
+});
+const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; farmDrag = null; };
+addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", endSeedDrag);
 seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
 function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; armed = null; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
@@ -1804,7 +1833,7 @@ function trayHtml() {
       <div class="tray-sub center" style="margin-top:6px">Happy pets bring you coins, gems and sometimes a decoration</div>`;
   }
   if (f.type === "decor") { const d = GS().decor.placed[f.j]; if (!d) return ""; const D = G.DECOR[d.id];
-    return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Press and hold it to move it</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button></div>`; }
+    return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Tap Move, then drag it with one finger</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button><button class="btn sm" data-w="move" data-i="${f.j}">✋ Move</button></div>`; }
   return "";
 }
 function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { infoTray.innerHTML = h; infoTray.dataset.h = h; } } }
@@ -1825,6 +1854,7 @@ infoTray.addEventListener("click", (e) => {
     case "renamePet": { const j = f.an.ref.j; G.askName(G.PETS[GS().pets[j].kind].n.toLowerCase(), GS().pets[j].name, (v) => { GS().pets[j].name = v; syncHerd(); }); return; }
     case "call": { const a = f.an; if (a.act === "sleeping") G.toast(a.name + " is fast asleep."); else { a.emote("❗", 1.2); a.go(cam.target.x + (rnd() - .5) * 2, cam.target.z + 2, true, "Coming over to you", "look"); } break; }
     case "store": closeTrays(); G.storeDecor(i); return;
+    case "move": startMove(i); return;
   }
   refreshInfo();
 });
@@ -1846,42 +1876,75 @@ const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" 
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
 function harvestAt(i) { const r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
-  paintUsed = false; const h = hitAt(e.clientX, e.clientY); if (!h) return false;
+  paintUsed = false;
+  if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
+  const h = hitAt(e.clientX, e.clientY); if (!h) return false;
   if (h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; harvestAt(h.i); paintUsed = true; return true; }
-  if (h.type === "plot" && !GS().plots[h.i].crop && armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; plantAt(h.i); paintUsed = true; return true; }
-  if (h.type === "decor") { // press and hold to pick it up and move it
+  // with a seed picked, a finger that starts on any field plants every empty field it slides over
+  if (h.type === "plot" && armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (!GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
+  if (h.type === "decor") { // press and hold also starts moving it
     clearTimeout(pressTimer);
-    pressTimer = setTimeout(() => { farmDrag = {id:e.pointerId, mode:"move", j:h.j, obj:h.obj, from:h.obj.position.clone()}; paintUsed = true; closeTrays(); G.sfx("pickup");
-      h.obj.position.y = .3; document.getElementById("moveHint").hidden = false; }, 450);
+    pressTimer = setTimeout(() => { pressTimer = 0; startMove(h.j); if (moving && ptr.has(e.pointerId)) { moving.id = e.pointerId; moving.moved = true; paintUsed = true; } }, 450);
   }
   return false;
 }
+// check a few points along the finger's path so fast swipes don't skip fields
+function paintAlong(x, y, fromTray) {
+  const lastP = farmDrag.last || [x, y];
+  for (let k = 1; k <= 3; k++) { const px = lastP[0] + (x - lastP[0]) * k / 3, py = lastP[1] + (y - lastP[1]) * k / 3;
+    if (fromTray && document.elementFromPoint(px, py) !== renderer.domElement) continue; // still over the seed tray
+    const i = plotAt(px, py);
+    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); } }
+  farmDrag.last = [x, y];
+}
 function farmMove(e) {
+  if (moving && moving.id === e.pointerId) { moving.moved = true; moveTo(e.clientX, e.clientY); return true; }
   if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
   if (!farmDrag || farmDrag.id !== e.pointerId) return false;
-  if (farmDrag.mode === "move") {
-    const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
-    const g = ray.intersectObject(ground)[0]; if (g) { farmDrag.obj.position.set(g.point.x, .3, g.point.z); const ok = spotFree(g.point.x, g.point.z, G.DECOR[GS().decor.placed[farmDrag.j].id].size || 1, farmDrag.j);
-      document.getElementById("moveHint").textContent = ok ? "Let go to place it" : "Can't go here"; farmDrag.ok = ok; }
-    return true;
-  }
-  // check a few points along the finger's path so fast swipes don't skip fields
-  const lastP = farmDrag.last || [e.clientX, e.clientY];
-  for (let k = 1; k <= 3; k++) { const i = plotAt(lastP[0] + (e.clientX - lastP[0]) * k / 3, lastP[1] + (e.clientY - lastP[1]) * k / 3);
-    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); } }
-  farmDrag.last = [e.clientX, e.clientY];
+  paintAlong(e.clientX, e.clientY);
   return true;
 }
 function farmUp(e) {
   clearTimeout(pressTimer); pressTimer = 0;
+  if (moving && moving.id === e.pointerId) { if (!moving.moved && e.type === "pointerup") moveTo(e.clientX, e.clientY); dropMove(); }
   if (!farmDrag || farmDrag.id !== e.pointerId) return;
-  if (farmDrag.mode === "move") {
-    const d = GS().decor.placed[farmDrag.j], o = farmDrag.obj;
-    if (farmDrag.ok) { d.x = +o.position.x.toFixed(2); d.z = +o.position.z.toFixed(2); G.sfx("place"); G.save(); } else { G.toast("That spot is taken"); }
-    document.getElementById("moveHint").hidden = true; syncDecor();
-  }
   farmDrag = null;
 }
+
+// ---------- moving a decoration ----------
+// Move mode stays on until Done, so a phone cancelling the touch (long presses often do) never loses the move.
+// Any one-finger drag slides the decoration; two fingers still turn and zoom the camera.
+const moveBar = document.getElementById("moveBar"), moveHint = document.getElementById("moveHint");
+function startMove(j) {
+  if (moving) endMove(true);
+  const d = GS().decor.placed[j], o = decorObjs[j]; if (!d || !o) return;
+  closeTrays(); G.close(); clearTimeout(pressTimer); pressTimer = 0;
+  moving = {j, obj:o, x:d.x, z:d.z, id:null, ok:true, moved:false};
+  o.position.y = .3; squish(o, .8); G.sfx("pickup"); focusOn("decor:" + j);
+  document.getElementById("moveTitle").textContent = G.decorIcon(d.id) + " Move " + G.DECOR[d.id].n; moveBar.hidden = false;
+}
+function moveTo(x, y) {
+  const m = moving, ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const g = ray.intersectObject(ground)[0]; if (!g) return;
+  const px = g.point.x, pz = g.point.z, ok = spotFree(px, pz, G.DECOR[GS().decor.placed[m.j].id].size || 1, m.j);
+  m.obj.position.set(px, .3, pz); m.ok = ok; if (ok) { m.x = px; m.z = pz; }
+  moveHint.textContent = ok ? "Looks good here" : "Can't go here"; moveHint.hidden = false;
+}
+function dropMove() { // finger lifted: a blocked spot springs back to the last free one
+  const m = moving; m.id = null; m.moved = false; moveHint.hidden = true;
+  if (!m.ok) { m.obj.position.set(m.x, .3, m.z); m.ok = true; G.toast("That spot is taken, so it went back"); G.sfx("error"); }
+  squish(m.obj, .5);
+}
+function endMove(save) {
+  const m = moving; if (!m) return; moving = null; moveBar.hidden = true; moveHint.hidden = true;
+  const d = GS().decor.placed[m.j];
+  if (save && d) { d.x = +m.x.toFixed(2); d.z = +m.z.toFixed(2); G.sfx("place"); G.save(); }
+  syncDecor();
+}
+moveBar.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-m]"); if (!b || !moving) return;
+  if (b.dataset.m === "done") endMove(true); else { const j = moving.j; endMove(false); G.storeDecor(j); }
+});
 function onTap(e) {
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
@@ -2008,7 +2071,7 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings};
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }

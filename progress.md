@@ -87,7 +87,13 @@ Keep the realistic picture animals (billboards). In order:
 5. [x] Real weather, seasons and holidays, special events with decoration prizes
 6. [x] Sounds and music
 7. [x] Tutorial and Settings menu
-8. [ ] Go live: merge into main so GitHub Pages serves `farm3d/`; the 2D game stays up (waiting on the user's OK for the pull request)
+8. [x] Go live: merged into main; GitHub Pages serves `farm3d/` and the 2D game stays up
+
+## Fixes from playing on the phone
+- [x] Start-up safety net, old 2D saves without horses, versioned `game.js` import (PRs #4 to #6)
+- [x] Seeds: tapping a field only opens the seed tray, and the seed you pick is the one planted (it used to plant the last crop straight away)
+- [x] Planting by dragging: drag a seed out of the tray onto the fields, or, once a seed is picked, drag from any field across the others without turning the camera
+- [x] Moving decorations: a Move mode (the Move button, holding a decoration, or right after placing one) with ✔ Done and Put away. One finger drags it, a blocked spot springs back to the last free one, and a phone cancelling the touch no longer loses the move
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
@@ -104,4 +110,4 @@ Keep the realistic picture animals (billboards). In order:
 4. Animal customization: breeds, colors, sizes, accessories.
 
 ## Waiting on the user
-- OK to open the pull request that puts the 3D game (and the unmerged 2D updates) live.
+- OK to open the pull request for the phone fixes (seeds, drag planting, moving decorations).

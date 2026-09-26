@@ -8,7 +8,7 @@
 
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
-  fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; },
+  fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; }, moveDecor(j) {},
   refresh(what) {},               // "plots" | "herd" | "buildings" | "decor" | "stand" | "style" | "all"
   freeDecorSpot(size) { return null; },
   paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; },
@@ -533,8 +533,8 @@ export function placeDecor(id) {
   if (!spot) { toast("No free space here. Turn the camera to an open patch of grass and try again."); sfx("error"); return false; }
   S.decor.placed.push({id, x:spot.x, z:spot.z});
   if (!--S.decor.inv[id]) delete S.decor.inv[id];
-  sfx("place"); toast("Placed! Press and hold it to move it."); view.refresh("decor"); commit();
-  view.focus("decor:" + (S.decor.placed.length - 1));
+  sfx("place"); toast("Placed! Drag it where you like, then tap Done."); view.refresh("decor"); commit();
+  view.focus("decor:" + (S.decor.placed.length - 1)); view.moveDecor(S.decor.placed.length - 1);
   return true;
 }
 function buyDecor(id) {
@@ -1011,7 +1011,7 @@ const howTo = () => `<ul class="howto">
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the path, at your own price.</li>
   <li>Tap an animal to feed it, collect from it, pet and brush it. Happy animals make more.</li>
-  <li>Win decorations in 🎪 special events. Press and hold a decoration to move it.</li>
+  <li>Win decorations in 🎪 special events. Tap a decoration and choose Move to put it somewhere else.</li>
   <li>Drag to turn the camera all the way around, pinch to zoom, two fingers to move.</li></ul>`;
 function panelLevel({lvl, unlocked}) {
   return {title:"Level Up!", body:`<div class="big">⭐</div><p class="center" style="font-family:var(--fun);font-size:30px;margin:0">Level ${lvl}</p>
