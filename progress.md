@@ -43,6 +43,7 @@ Last updated: 2026-09-26
   - weather and time: they run to shelter by the barn in rain and snow, and go to bed together at night
   - they find their way around the barn, silo, bales and fences (shortest path around corners), walk and run with a bob, and show little mood bubbles
   - tap an animal for its card (name, personality, mood, what it's doing) with **Pet** and **Call over**; tap the grass and the curious ones come to look
+- [x] **Diorama look** (suggested by Gemini): grass is now 22,000 clumps of 8 blades each (tufts that still bend in the wind); tilt-shift blur that keeps the middle sharp and softens the top, bottom and corners; a colour grade after ACES tone mapping (gentle contrast curve, a touch more colour, soft vignette), tuned per weather
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
