@@ -233,6 +233,25 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 </head>
 <body>
 <div class="loading out" id="loading">🌻 Sunny Acres</div>
+<script>
+// A safety net that works even if the game's code can't start (a file still uploading, an old phone browser…):
+// show what went wrong instead of a loading screen that never ends, with a Reload button.
+(function () {
+  var shown = false;
+  function show(msg) {
+    var L = document.getElementById("loading"); if (!L || window.__ready || (shown && !msg)) return; shown = true;
+    L.innerHTML = '<div style="text-align:center;padding:24px;max-width:420px;font:800 16px Nunito,system-ui,sans-serif;color:#5a3413;text-shadow:none">' +
+      '<div class="out" style="font:400 30px \'Lilita One\',system-ui,sans-serif;margin-bottom:12px">🌻 Sunny Acres</div>' +
+      (msg ? 'The farm couldn\'t start. Please tap Reload. If it keeps happening, send a screenshot of this:<br><code style="display:block;margin-top:8px;font-size:12px;word-break:break-word;background:#fff8e6;border-radius:10px;padding:8px">' +
+        String(msg).replace(/</g, "&lt;") + '</code>' : 'Still loading… this is taking longer than usual.') +
+      '<br><button onclick="location.reload()" style="font:400 20px \'Lilita One\',system-ui,sans-serif;background:#6cc04a;color:#fff;border:0;border-radius:14px;padding:10px 22px;box-shadow:0 4px 0 #3e8e24">Reload</button></div>';
+  }
+  window.addEventListener("error", function (e) { show((e.message || "error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : "")); });
+  window.addEventListener("unhandledrejection", function (e) { show(e.reason && (e.reason.message || e.reason)); });
+  setTimeout(function () { show(); }, 25000);
+  window.__bootFail = show;
+})();
+</script>
 <div class="hud">
   <div class="lvlbox" title="Level">
     <div class="star">
@@ -269,7 +288,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div id="panelRoot"></div>
 <input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
-<script type="module">
+<script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
@@ -737,6 +756,9 @@ function contact(x, z, w, d, parent = decals) {
 // It happens inside `root`, so the thing still moves, squashes and can be tapped as a whole. `keep` marks parts that must stay
 // separate: swaying canopies, and things that hide and show on their own.
 function mergeStatic(root, keep = () => false) {
+  const t0 = performance.now(); try { return mergeStaticNow(root, keep); } finally { window.__mergeMs = (window.__mergeMs || 0) + performance.now() - t0; }
+}
+function mergeStaticNow(root, keep) {
   root.updateMatrixWorld(true);
   const inv = root.matrixWorld.clone().invert(), buckets = new Map(), rel = new THREE.Matrix4();
   const walk = (o) => {
