@@ -1,5 +1,5 @@
 // Keeps the game on the phone so it opens instantly and plays offline.
-const CACHE = "sunny-acres-v3";
+const CACHE = "sunny-acres-v4";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {

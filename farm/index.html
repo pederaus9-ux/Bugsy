@@ -24,6 +24,7 @@
 html,body{margin:0;height:100%;overflow:hidden;background:var(--water);font-family:var(--body);color:var(--ink);
   -webkit-user-select:none;user-select:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+[hidden]{display:none!important}
 #world{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none;display:block}
 .out{color:#fff;text-shadow:0 2px 0 var(--wood-dk),2px 0 0 var(--wood-dk),-2px 0 0 var(--wood-dk),0 -2px 0 var(--wood-dk),1.5px 1.5px 0 var(--wood-dk),-1.5px 1.5px 0 var(--wood-dk),1.5px -1.5px 0 var(--wood-dk),-1.5px -1.5px 0 var(--wood-dk)}
 @keyframes pop{from{transform:scale(.8);opacity:0}}
@@ -45,8 +46,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .cnt b{font-family:var(--fun);font-weight:400;font-size:19px;margin-left:auto}
 
 /* dock */
-.dock{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;gap:14px}
-.dock button{width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:4px solid #fff;
+.dock{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;gap:10px}
+.dock button{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF2C4,#F2BF4B);border:4px solid #fff;
   box-shadow:0 4px 0 var(--wood-dk),0 7px 12px rgba(0,0,0,.3);font-size:30px;position:relative;line-height:1}
 .dock button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--wood-dk)}
 .dock .l{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-family:var(--fun);font-size:14px;white-space:nowrap}
@@ -181,8 +182,40 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .stepper b{font-family:var(--fun);font-weight:400;font-size:20px;min-width:70px;text-align:center}
 .stepper .btn{width:40px;padding:6px 0;font-size:20px}
 .toggles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
-.movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 108px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
+.movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 160px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
   background:rgba(70,35,10,.85);border:2px solid #fff;color:#fff;border-radius:99px;padding:7px 16px;font-weight:800;font-size:14px;white-space:nowrap}
+
+/* chips under the level star: weather and events */
+.chips{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 74px);z-index:5;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.chip{display:flex;align-items:center;gap:6px;background:rgba(70,35,10,.6);border:2px solid #fff;border-radius:14px;padding:3px 10px 3px 6px;
+  font-family:var(--fun);font-size:14px;color:#fff;max-width:220px;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.chip .e{font-size:20px;line-height:1}
+.chip small{font-family:var(--body);font-weight:800;font-size:11px;opacity:.9}
+.chip.ev{background:linear-gradient(#FFB443,#E9831B);text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.chip .mini{display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.35);margin-top:2px;overflow:hidden}
+.chip .mini i{display:block;height:100%;background:#fff}
+/* events */
+.evbar{height:18px;border-radius:10px;background:rgba(110,61,24,.2);overflow:hidden;margin:10px 0 4px;position:relative}
+.evbar i{display:block;height:100%;background:linear-gradient(#FFD865,#F4A527)}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tier{padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:12px;position:relative}
+.tier .e{font-size:36px;line-height:1.1}
+.tier b{font-family:var(--fun);font-weight:400;font-size:15px}
+.tier.won{background:#DFF3C9;outline:3px solid var(--green)}
+.tier.won::after{content:"✔";position:absolute;top:4px;right:8px;color:var(--green-dk);font-size:16px}
+/* decor */
+.decor{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.dcard{padding:8px 6px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;font-weight:800;font-size:12px}
+.dcard .e{font-size:36px;line-height:1.1}
+.dcard.locked .e{filter:grayscale(1) brightness(.7);opacity:.5}
+.tag{display:inline-block;border-radius:8px;padding:0 6px;font-size:10px;font-weight:800;color:#fff}
+.tag.r1{background:#58AE36}.tag.r2{background:#34A0E0}.tag.r3{background:#9B59D0}.tag.hol{background:#E9831B}
+/* weather */
+.wxnow{display:flex;align-items:center;gap:14px;padding:12px}
+.wxnow .e{font-size:54px;line-height:1}
+.wxnow b{font-family:var(--fun);font-weight:400;font-size:22px;display:block}
+.wxrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.wxrow input{flex:1;min-width:140px;font:inherit;font-weight:800;padding:8px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
 
 /* toast */
 .toasts{position:fixed;left:0;right:0;bottom:calc(110px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
@@ -207,6 +240,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
   </div>
 </div>
 
+<div class="chips">
+  <button class="chip" id="wxChip" data-act="open" data-p="weather"><span class="e">🌤️</span><span>Weather</span></button>
+  <button class="chip ev" id="evChip" data-act="open" data-p="event" hidden></button>
+</div>
+
 <div class="zoom">
   <button data-act="sound" id="soundBtn" aria-label="Sound on or off">🔊</button>
   <button data-act="zoomIn" aria-label="Zoom in">+</button>
@@ -216,6 +254,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 <div class="dock">
   <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
   <button data-act="open" data-p="barn" aria-label="Barn">📦<span class="l out">Barn</span></button>
+  <button data-act="open" data-p="decor" aria-label="Decorations">🌷<span class="l out">Decor</span></button>
   <button data-act="open" data-p="shop" aria-label="Shop">🛒<span class="l out">Shop</span></button>
 </div>
 
@@ -306,11 +345,59 @@ const RECIPES = {
 };
 
 const MAX_PLOTS = 30, QUEUE_SLOTS = 3, STAND_MAX = 8;
+
+// Decorations. Some are bought with coins; the rest can only be won in events.
+// rare: 1-3 = event prize tier. hol = holiday prize. size 2 = takes 2×2 tiles.
+const DECOR = {
+  tulips:{n:"Tulip bed", e:"🌷", cost:30}, sunflowers:{n:"Sunflowers", e:"🌻", cost:40}, roses:{n:"Rose bush", e:"🌹", cost:50},
+  oak:{n:"Oak tree", tree:"oak", cost:60}, pine:{n:"Pine tree", tree:"pine", cost:60},
+  mailbox:{n:"Mailbox", e:"📫", cost:70}, bench:{n:"Bench", e:"🪑", cost:80}, lantern:{n:"Lantern", e:"🏮", cost:90, glow:true},
+  statue:{n:"Stone statue", e:"🗿", cost:300}, fountain:{n:"Fountain", e:"⛲", cost:450, size:2},
+  mushroom:{n:"Giant mushroom", e:"🍄", rare:1}, flamingo:{n:"Flamingo", e:"🦩", rare:1}, balloons:{n:"Balloons", e:"🎈", rare:1}, cactus:{n:"Cactus", e:"🌵", rare:1},
+  unicorn:{n:"Unicorn", e:"🦄", rare:2}, trophy:{n:"Gold trophy", e:"🏆", rare:2}, tent:{n:"Circus tent", e:"🎪", rare:2, size:2}, rainbow:{n:"Rainbow arch", e:"🌈", rare:2, size:2},
+  carousel:{n:"Carousel", e:"🎠", rare:3, size:2}, ferris:{n:"Ferris wheel", e:"🎡", rare:3, size:2}, castle:{n:"Little castle", e:"🏰", rare:3, size:2},
+  spider:{n:"Spider web", e:"🕸️", hol:"halloween"}, jack:{n:"Jack-o'-lantern", e:"🎃", hol:"halloween", glow:true}, haunted:{n:"Haunted house", e:"🏚️", hol:"halloween", size:2},
+  leaves:{n:"Leaf pile", e:"🍂", hol:"thanksgiving"}, turkey:{n:"Turkey", e:"🦃", hol:"thanksgiving"}, cornucopia:{n:"Harvest basket", e:"🧺", hol:"thanksgiving", size:2},
+  gifts:{n:"Gift pile", e:"🎁", hol:"christmas"}, snowman:{n:"Snowman", e:"⛄", hol:"christmas"}, xmastree:{n:"Christmas tree", e:"🎄", hol:"christmas", size:2, glow:true},
+  confetti:{n:"Confetti ball", e:"🎊", hol:"newyear"}, popper:{n:"Party popper", e:"🎉", hol:"newyear"}, fireworks:{n:"Firework show", e:"🎆", hol:"newyear", size:2},
+  heart:{n:"Gift heart", e:"💝", hol:"valentine"}, letter:{n:"Love letter", e:"💌", hol:"valentine"}, chapel:{n:"Wedding chapel", e:"💒", hol:"valentine", size:2},
+  chick:{n:"Little chick", e:"🐣", hol:"easter"}, bunny:{n:"Easter bunny", e:"🐰", hol:"easter"}, eggstatue:{n:"Painted egg", e:"🥚", hol:"easter", size:2},
+  clover:{n:"Shamrock", e:"☘️", hol:"stpatrick"}, lucky:{n:"Four-leaf clover", e:"🍀", hol:"stpatrick"}, tophat:{n:"Leprechaun hat", e:"🎩", hol:"stpatrick", size:2},
+};
+
+// Random events: reach the goals before time runs out to win decorations.
+const EVENTS = {
+  harvest:{n:"Harvest Festival", e:"🌾", task:"Harvest crops", metric:"harvest", goals:[20, 50, 100]},
+  orders:{n:"Truck Rush", e:"🚚", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16]},
+  eggs:{n:"Egg Hunt", e:"🥚", task:"Collect eggs from your chickens", metric:"egg", goals:[5, 12, 24], need:() => S.pens.chicken.owned},
+  milk:{n:"Milk Moo-thon", e:"🥛", task:"Collect milk from your cows", metric:"milk", goals:[4, 10, 20], need:() => S.pens.cow.owned},
+  wool:{n:"Woolly Week", e:"🧶", task:"Collect wool from your sheep", metric:"wool", goals:[3, 8, 16], need:() => S.pens.sheep.owned},
+  bake:{n:"Bake-off", e:"🍞", task:"Make goods in your buildings", metric:"make", goals:[4, 10, 20], need:() => S.buildings.bakery.owned},
+  feed:{n:"Feed Frenzy", e:"🟡", task:"Make animal feed", metric:"feed", goals:[9, 24, 48], need:() => S.pens.chicken.owned},
+  market:{n:"Market Day", e:"🏪", task:"Earn coins at your roadside shop", metric:"market", goals:[40, 120, 300]},
+};
+const HOLIDAY_EVENTS = {
+  halloween:{n:"Pumpkin Party", e:"🎃", task:"Harvest crops", metric:"harvest", goals:[20, 50, 100], prizes:["spider", "jack", "haunted"]},
+  thanksgiving:{n:"Harvest Feast", e:"🦃", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16], prizes:["leaves", "turkey", "cornucopia"]},
+  christmas:{n:"Holiday Cheer", e:"🎄", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16], prizes:["gifts", "snowman", "xmastree"]},
+  newyear:{n:"New Year Party", e:"🎆", task:"Harvest crops", metric:"harvest", goals:[20, 50, 100], prizes:["confetti", "popper", "fireworks"]},
+  valentine:{n:"Sweetheart Week", e:"💝", task:"Deliver truck orders", metric:"orders", goals:[3, 8, 16], prizes:["heart", "letter", "chapel"]},
+  easter:{n:"Easter Egg Hunt", e:"🐣", task:"Harvest crops", metric:"harvest", goals:[20, 50, 100], prizes:["chick", "bunny", "eggstatue"]},
+  stpatrick:{n:"Lucky Clover Hunt", e:"☘️", task:"Harvest crops", metric:"harvest", goals:[20, 50, 100], prizes:["clover", "lucky", "tophat"]},
+};
+const EVENT_LEN = 24 * 3600e3;
+const PRIZE_COINS = [50, 120, 250], PRIZE_GEMS = [0, 1, 2];
+
+const HOLIDAYS = {
+  valentine:{n:"Valentine's Day", e:"💝"}, stpatrick:{n:"St. Patrick's Day", e:"☘️"}, easter:{n:"Easter", e:"🐣"},
+  halloween:{n:"Halloween", e:"🎃"}, thanksgiving:{n:"Thanksgiving", e:"🦃"}, christmas:{n:"Christmas", e:"🎄"}, newyear:{n:"New Year", e:"🎆"},
+};
+const LAND_MAX = {w:45, h:36}, LAND_STEP = 4;
 // how each crop looks while it grows
 const LOOK = {wheat:"grain", corn:"stalk", carrot:"leafy", soybean:"bush", sugarcane:"cane", tomato:"bush", strawberry:"low", pumpkin:"vine"};
 
 // ---------- farm layout (isometric tiles) ----------
-const TW = 72, TH = 36, MAP_W = 29, MAP_H = 20, ROAD_H = 2;
+const TW = 72, TH = 36, ROAD_H = 2;
 const FIELD0 = {gx:6, gy:6}, FIELD_COLS = 6;
 const gridPos = (i) => ({gx:FIELD0.gx + (i % FIELD_COLS), gy:FIELD0.gy + Math.floor(i / FIELD_COLS)});
 const LAYOUT = {
@@ -366,6 +453,7 @@ function fresh() {
     barn:{wheat:3, corn:2}, barnCap:50, barnUps:0,
     plots:Array.from({length:6}, (_, i) => Object.assign({crop:null, end:0}, gridPos(i))),
     pos:{}, stand:{slots:4, list:[null, null, null, null]},
+    land:{w:29, h:20, ex:0}, decor:{inv:{}, placed:[]}, event:null, nextEventAt:0, holidayDone:{},
     lastCrop:"wheat",
     pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}},
     buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === "feedmill", jobs:[]}])),
@@ -401,6 +489,7 @@ function defaultBox(key) {
 function boxOf(key) {
   if (move && move.key === key) return move.box;
   if (key.startsWith("f:")) { const p = S.plots[+key.slice(2)]; return {gx:p.gx, gy:p.gy, w:1, h:1}; }
+  if (key.startsWith("d:")) { const d = S.decor.placed[+key.slice(2)], sz = DECOR[d.id].size || 1; return {gx:d.gx, gy:d.gy, w:sz, h:sz}; }
   const d = defaultBox(key), o = S.pos[key];
   return o ? {gx:o.gx, gy:o.gy, w:d.w, h:d.h} : d;
 }
@@ -410,17 +499,18 @@ function allBoxes() {
   for (const b of Object.keys(BUILDINGS)) out.push(["b:" + b, boxOf("b:" + b)]);
   for (const k of Object.keys(ANIMALS)) out.push(["p:" + k, boxOf("p:" + k)]);
   S.plots.forEach((_, i) => out.push(["f:" + i, boxOf("f:" + i)]));
+  S.decor.placed.forEach((_, j) => out.push(["d:" + j, boxOf("d:" + j)]));
   return out;
 }
 const overlap = (a, b) => a.gx < b.gx + b.w && b.gx < a.gx + a.w && a.gy < b.gy + b.h && b.gy < a.gy + a.h;
 function canPlace(key, b, boxes = allBoxes()) {
-  if (b.gx < 0 || b.gy < ROAD_H || b.gx + b.w > MAP_W || b.gy + b.h > MAP_H) return false;
+  if (b.gx < 0 || b.gy < ROAD_H || b.gx + b.w > S.land.w || b.gy + b.h > S.land.h) return false;
   return !boxes.some(([k, o]) => k !== key && overlap(o, b));
 }
 // first free spot for a new field: the field area first, then anywhere
 function nextPlotSpot(boxes = allBoxes()) {
   for (let i = 0; i < MAX_PLOTS; i++) { const g = gridPos(i), b = {gx:g.gx, gy:g.gy, w:1, h:1}; if (canPlace("new", b, boxes)) return b; }
-  for (let gy = ROAD_H; gy < MAP_H; gy++) for (let gx = 0; gx < MAP_W; gx++) { const b = {gx, gy, w:1, h:1}; if (canPlace("new", b, boxes)) return b; }
+  for (let gy = ROAD_H; gy < S.land.h; gy++) for (let gx = 0; gx < S.land.w; gx++) { const b = {gx, gy, w:1, h:1}; if (canPlace("new", b, boxes)) return b; }
   return null;
 }
 const giftPos = () => { const h = boxOf("house"); return {gx:h.gx + h.w + .7, gy:h.gy + h.h + .8}; };
@@ -461,7 +551,7 @@ function plant(i, crop, quiet) {
   if (have(crop) > 0) take(crop, 1);
   else if (S.coins >= c.seed) S.coins -= c.seed;
   else { if (!quiet) toast("Not enough coins for " + ITEMS[crop].n + " seeds"); return false; }
-  p.crop = crop; p.end = now() + c.time * 1000; S.lastCrop = crop;
+  p.crop = crop; p.end = now() + c.time * 1000 * (isRaining() ? .9 : 1); S.lastCrop = crop; // rain waters the fields
   sfx("plant");
   return true;
 }
@@ -471,7 +561,7 @@ function harvest(i, quiet) {
   if (space() < 2) { if (!quiet) barnFull(); return false; }
   const pos = plotPos(i);
   fxAt(pos.gx + .5, pos.gy + .5, "+2", ITEMS[p.crop].e);
-  add(p.crop, 2); gainXP(CROPS[p.crop].xp); S.stats.harvests++; sfx("harvest");
+  add(p.crop, 2); gainXP(CROPS[p.crop].xp); S.stats.harvests++; sfx("harvest"); eventProgress("harvest", 2);
   p.crop = null; p.end = 0;
   return true;
 }
@@ -503,7 +593,7 @@ function collectAnimal(kind, i) {
   const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];
   if (!end || end > now()) return false;
   if (space() < 1) { barnFull(); return false; }
-  add(a.out, 1); gainXP(a.xp); pen.list[i] = 0;
+  add(a.out, 1); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, 1);
   const an = animWorld(kind, i); fxAt(an.x, an.y, "+1", ITEMS[a.out].e); sfx(kind);
   return true;
 }
@@ -541,6 +631,7 @@ function collectJobs(bid) {
     const j = b.jobs[0], r = RECIPES[j.r];
     if (space() < r.out) { barnFull(); break; }
     add(j.r, r.out); gainXP(r.xp); S.stats.made += r.out; b.jobs.shift(); n++;
+    eventProgress(ITEMS[j.r].kind === "feed" ? "feed" : "make", r.out);
     fxAt(box.gx + box.w / 2 + n * .3, box.gy + box.h / 2, "+" + r.out, ITEMS[j.r].e);
   }
   if (n) sfx("collect");
@@ -596,6 +687,7 @@ function deliver(i) {
   toast("🚚 +" + o.coins + " 🪙" + (o.gem + bonus ? "  +" + (o.gem + bonus) + " 💎" : "") + "  +" + o.xp + " ⭐");
   fxAt(LAYOUT.truck.gx + .5, LAYOUT.truck.gy + .5, "+" + o.coins, "🪙");
   S.orders[i] = {wait:now() + 8000};
+  eventProgress("orders", 1);
   sfx("truck"); sfx("coin");
   gainXP(o.xp);
   commit();
@@ -683,7 +775,7 @@ function standList(slot, id, qty, price) {
 function standCollect(slot) {
   const L = S.stand.list[slot];
   if (!L || L.sellAt > now()) return false;
-  S.coins += L.price; S.stats.earned += L.price; S.stand.list[slot] = null;
+  S.coins += L.price; S.stats.earned += L.price; S.stand.list[slot] = null; eventProgress("market", L.price);
   const b = boxOf("stand"); fxAt(b.gx + 1, b.gy + 1, "+" + L.price, "🪙");
   return true;
 }
@@ -706,6 +798,181 @@ function buyStandSlot() {
   S.coins -= c; S.stand.slots++; S.stand.list.push(null); sfx("build"); commit();
 }
 
+// ---------- bigger land ----------
+const landCost = () => Math.round(300 * Math.pow(1.6, S.land.ex) / 10) * 10;
+const canExpand = (dir) => dir === "e" ? S.land.w + LAND_STEP <= LAND_MAX.w : S.land.h + LAND_STEP <= LAND_MAX.h;
+function expandLand(dir) {
+  if (!canExpand(dir)) return false;
+  const c = landCost();
+  if (S.coins < c) { toast("Need " + c + " 🪙"); sfx("error"); return false; }
+  S.coins -= c; S.land.ex++;
+  if (dir === "e") S.land.w += LAND_STEP; else S.land.h += LAND_STEP;
+  buildScene(); sfx("build"); toast("Your farm grew! 🌱 More room for fields and decorations.");
+  commit();
+  focusOn(dir === "e" ? S.land.w - 2 : S.land.w / 2, dir === "e" ? S.land.h / 2 : S.land.h - 2);
+  return true;
+}
+
+// ---------- decorations ----------
+function placeDecor(id) {
+  if (!S.decor.inv[id]) return false;
+  const sz = DECOR[id].size || 1, boxes = allBoxes(), [cx, cy] = screenToTile(W / 2, H / 2);
+  // look for free ground nearest the middle of the screen
+  for (let r = 0; r < 40; r++) for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+    if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+    const b = {gx:Math.round(cx) + dx, gy:Math.round(cy) + dy, w:sz, h:sz};
+    if (!canPlace("new", b, boxes)) continue;
+    S.decor.placed.push({id, gx:b.gx, gy:b.gy});
+    if (!--S.decor.inv[id]) delete S.decor.inv[id];
+    sfx("place"); toast("Placed! Press and hold it to move it."); commit();
+    return true;
+  }
+  toast("No free space. Expand your land or move things around."); sfx("error");
+  return false;
+}
+function buyDecor(id) {
+  const D = DECOR[id];
+  if (!D.cost) return;
+  if (S.coins < D.cost) { toast("Need " + D.cost + " 🪙"); sfx("error"); return; }
+  S.coins -= D.cost; S.decor.inv[id] = (S.decor.inv[id] || 0) + 1; sfx("coin");
+  closePanel(); placeDecor(id);
+}
+function storeDecor(j) {
+  const d = S.decor.placed[j];
+  if (!d) return;
+  S.decor.placed.splice(j, 1);
+  S.decor.inv[d.id] = (S.decor.inv[d.id] || 0) + 1;
+  toast(DECOR[d.id].n + " put away in your Decor box"); sfx("pickup"); commit();
+}
+
+// ---------- special events ----------
+// Level-ups and prizes can happen at the same moment, so they wait their turn.
+const popups = [];
+function popup(type, arg) {
+  if (drag || (panel && (panel.type === "level" || panel.type === "prize"))) { popups.push([type, arg]); return; }
+  openPanel(type, arg);
+}
+const evDef = (ev = S.event) => ev.type.startsWith("h:") ? HOLIDAY_EVENTS[ev.type.slice(2)] : EVENTS[ev.type];
+function eventTick() {
+  const t = now();
+  if (S.event && S.event.end <= t) { S.event = null; S.nextEventAt = t + rand(2, 8) * 3600e3; save(); }
+  // a new holiday interrupts the wait for the next random event
+  const hol = THEME.holiday, hk = hol && hol + new Date().getFullYear();
+  if (!S.event && S.level >= 2 && (t >= (S.nextEventAt || 0) || (hol && !S.holidayDone[hk]))) startEvent();
+}
+function startEvent() {
+  const hol = THEME.holiday, hk = hol && hol + new Date().getFullYear();
+  let type, def;
+  if (hol && !S.holidayDone[hk]) { type = "h:" + hol; def = HOLIDAY_EVENTS[hol]; S.holidayDone[hk] = 1; }
+  else {
+    const opts = Object.keys(EVENTS).filter(k => !EVENTS[k].need || EVENTS[k].need());
+    type = pick(opts); def = EVENTS[type];
+  }
+  const prizes = def.prizes || [1, 2, 3].map(r => pick(Object.keys(DECOR).filter(k => DECOR[k].rare === r)));
+  S.event = {type, start:now(), end:now() + EVENT_LEN, prog:0, won:0, prizes};
+  save(); sfx("level");
+  if (!panel && !drag && !move) openPanel("event", {fresh:true});
+  else toast(def.e + " A new event started: " + def.n + "!");
+}
+function eventProgress(metric, n) {
+  const ev = S.event;
+  if (!ev || ev.end <= now() || evDef(ev).metric !== metric) return;
+  ev.prog += n;
+  const goals = evDef(ev).goals;
+  while (ev.won < 3 && ev.prog >= goals[ev.won]) {
+    const tier = ev.won++, id = ev.prizes[tier];
+    S.decor.inv[id] = (S.decor.inv[id] || 0) + 1;
+    S.coins += PRIZE_COINS[tier]; S.gems += PRIZE_GEMS[tier];
+    sfx("level"); popup("prize", {id, tier});
+  }
+}
+
+/* ============================================================
+   REAL WEATHER, SEASONS AND HOLIDAYS
+   ============================================================ */
+const qs = new URLSearchParams(location.search); // ?theme=halloween&season=winter&weather=snow&night=1 to preview
+const WX_KEY = SAVE_KEY + "-weather";
+let WX = {mode:"ask", lat:null, lon:null, place:"", cur:null};
+try { Object.assign(WX, JSON.parse(localStorage.getItem(WX_KEY) || "{}")); } catch (e) {}
+function saveWX() { try { localStorage.setItem(WX_KEY, JSON.stringify(WX)); } catch (e) {} }
+function wxKind(c) {
+  if (c <= 1) return "clear"; if (c === 2) return "partly"; if (c === 3) return "cloudy";
+  if (c === 45 || c === 48) return "fog"; if (c >= 95) return "storm";
+  if ((c >= 71 && c <= 77) || c === 85 || c === 86) return "snow";
+  return c >= 51 ? "rain" : "clear";
+}
+const WX_ICON = {clear:["☀️", "🌙"], partly:["⛅", "☁️"], cloudy:["☁️", "☁️"], fog:["🌫️", "🌫️"], rain:["🌧️", "🌧️"], snow:["🌨️", "🌨️"], storm:["⛈️", "⛈️"]};
+const WX_NAME = {clear:"Clear", partly:"Partly cloudy", cloudy:"Cloudy", fog:"Foggy", rain:"Rainy", snow:"Snowing", storm:"Thunderstorm"};
+function weatherNow() {
+  const f = qs.get("weather");
+  if (f || qs.get("night")) return {kind:f || "clear", day:qs.get("night") !== "1", temp:null, preview:true};
+  return (WX.mode === "gps" || WX.mode === "city") && WX.cur ? WX.cur : null;
+}
+const isRaining = () => { const w = weatherNow(); return !!w && (w.kind === "rain" || w.kind === "storm"); };
+async function fetchWeather() {
+  if (!(WX.mode === "gps" || WX.mode === "city") || WX.lat == null) return;
+  try {
+    const f = /US|LR|MM/.test(navigator.language || "") ? "&temperature_unit=fahrenheit" : "";
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${WX.lat}&longitude=${WX.lon}&current=temperature_2m,weather_code,is_day&timezone=auto${f}`);
+    const j = await r.json(), c = j.current;
+    WX.cur = {kind:wxKind(c.weather_code), day:!!c.is_day, temp:Math.round(c.temperature_2m), unit:f ? "°F" : "°C", t:Date.now()};
+    saveWX(); refreshTheme(); renderHud();
+    if (panel && panel.type === "weather") renderPanel();
+  } catch (e) {}
+}
+function useGPS() {
+  if (!navigator.geolocation) return toast("This phone can't share its location. Type your town instead.");
+  toast("Finding your weather…");
+  navigator.geolocation.getCurrentPosition((pos) => {
+    WX.mode = "gps"; WX.lat = +pos.coords.latitude.toFixed(2); WX.lon = +pos.coords.longitude.toFixed(2); WX.place = "Your location";
+    saveWX(); fetchWeather(); if (panel) renderPanel();
+  }, () => toast("Location wasn't allowed. You can type your town instead."), {timeout:15000, maximumAge:3600000});
+}
+async function useCity(name) {
+  if (!name.trim()) return;
+  try {
+    const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name.trim())}&count=1`);
+    const g = ((await r.json()).results || [])[0];
+    if (!g) return toast("Couldn't find that town. Try a bigger town nearby.");
+    WX.mode = "city"; WX.lat = g.latitude; WX.lon = g.longitude; WX.place = g.name + (g.country ? ", " + g.country : "");
+    saveWX(); await fetchWeather(); toast("Weather set to " + WX.place); if (panel) renderPanel();
+  } catch (e) { toast("Couldn't reach the weather service. Check your internet."); }
+}
+
+function easterSunday(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return new Date(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+function holidayOn(date) {
+  const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+  const day = new Date(y, m - 1, d).getTime(), near = (t, before, after) => day >= t - before * 864e5 && day <= t + after * 864e5;
+  if ((m === 12 && d === 31) || (m === 1 && d <= 2)) return "newyear";
+  if (m === 12) return "christmas";
+  if (m === 2 && d >= 7 && d <= 14) return "valentine";
+  if (m === 3 && d >= 14 && d <= 17) return "stpatrick";
+  if (near(easterSunday(y).getTime(), 7, 1)) return "easter";
+  if (m === 10 && d >= 17) return "halloween";
+  const nov1 = new Date(y, 10, 1).getDay(), thanks = new Date(y, 10, 1 + (4 - nov1 + 7) % 7 + 21).getTime(); // 4th Thursday of November
+  if (near(thanks, 3, 1)) return "thanksgiving";
+  return null;
+}
+function seasonOf(date) {
+  const m = date.getMonth();
+  let s = m === 11 || m < 2 ? "winter" : m < 5 ? "spring" : m < 8 ? "summer" : "fall";
+  if (WX.lat != null && WX.lat < 0) s = {winter:"summer", summer:"winter", spring:"fall", fall:"spring"}[s]; // southern half of the world
+  return s;
+}
+const THEME = {season:"summer", holiday:null};
+function refreshTheme() {
+  const d = new Date();
+  THEME.season = qs.get("season") || seasonOf(d);
+  THEME.holiday = qs.has("theme") ? (qs.get("theme") || null) : holidayOn(d);
+  const w = weatherNow();
+  THEME.night = !!w && !w.day;
+  THEME.snowy = THEME.season === "winter" || (!!w && w.kind === "snow");
+}
+
 /* ============================================================
    THE FARM WORLD (canvas)
    ============================================================ */
@@ -724,8 +991,9 @@ function resize() {
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
 }
 function clampCam() {
-  cam.x = clamp(cam.x, -MAP_H * TW / 2 + 60, MAP_W * TW / 2 - 60);
-  cam.y = clamp(cam.y, 40, (MAP_W + MAP_H) * TH / 2 - 40);
+  const w = S.land.w + LAND_STEP, h = S.land.h + LAND_STEP;
+  cam.x = clamp(cam.x, -h * TW / 2 + 60, w * TW / 2 - 60);
+  cam.y = clamp(cam.y, 40, (w + h) * TH / 2 - 40);
 }
 function focusOn(gx, gy) {
   const [x, y] = iso(gx, gy);
@@ -776,23 +1044,29 @@ function drawEmoji(e, x, y, size, flip) {
   else ctx.drawImage(c, x - w / 2, y - w / 2, w, w);
 }
 
-// --- scenery, generated once with a fixed seed so the farm always looks the same ---
-function seeded(s) { return () => (s = (s * 16807) % 2147483647, (s - 1) / 2147483646); }
-const SCENE = (() => {
-  const R = seeded(7), trees = [], flowers = [], tufts = [], pebbles = [];
+// --- scenery. Each tile gets its own fixed random numbers, so the farm looks the same every time
+// and growing the land only adds new trees at the new edge.
+function hrand(x, y, k) {
+  let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(k | 0, 2246822519);
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+let SCENE = {trees:[], flowers:[], tufts:[], pebbles:[]};
+function buildScene() {
+  const trees = [], flowers = [], tufts = [], pebbles = [], LW = S.land.w, LH = S.land.h;
   const blocks = [LAYOUT.house, LAYOUT.barn, LAYOUT.stand, {gx:4, gy:3, w:3, h:5}, LAYOUT.pond,
     {gx:FIELD0.gx, gy:FIELD0.gy, w:FIELD_COLS, h:MAX_PLOTS / FIELD_COLS},
     ...Object.values(LAYOUT.buildings), ...Object.values(LAYOUT.pens)];
   const busy = (gx, gy) => gy < ROAD_H + 1 || blocks.some(r => gx >= r.gx - 1 && gx < r.gx + r.w + 1 && gy >= r.gy - 1 && gy < r.gy + r.h + 1);
-  for (let gx = 0; gx < MAP_W; gx++) for (let gy = 0; gy < MAP_H; gy++) {
-    const edge = gx === 0 || gx === MAP_W - 1 || gy === MAP_H - 1;
-    if (!busy(gx, gy) && R() < (edge ? 0.8 : 0.05)) trees.push({gx:gx + .5 + (R() - .5) * .5, gy:gy + .5 + (R() - .5) * .5, s:.85 + R() * .4, pine:R() < .3});
-    else if (!busy(gx, gy) && R() < 0.1) flowers.push({gx:gx + R(), gy:gy + R(), c:pick(["#fff", "#FFD34E", "#FF7BAC", "#B388FF", "#FF8A4C"])});
-    if (R() < 0.3) tufts.push({gx:gx + R(), gy:gy + R()});
-    if (gy < ROAD_H && R() < 0.35) pebbles.push({gx:gx + R(), gy:gy + R()});
+  for (let gx = 0; gx < LW; gx++) for (let gy = 0; gy < LH; gy++) {
+    const R = (k) => hrand(gx, gy, k), edge = gx === 0 || gx === LW - 1 || gy === LH - 1;
+    if (!busy(gx, gy) && R(1) < (edge ? 0.8 : 0.05)) trees.push({gx:gx + .5 + (R(2) - .5) * .5, gy:gy + .5 + (R(3) - .5) * .5, s:.85 + R(4) * .4, pine:R(5) < .3, h:R(6)});
+    else if (!busy(gx, gy) && R(7) < 0.1) flowers.push({gx:gx + R(8), gy:gy + R(9), c:["#fff", "#FFD34E", "#FF7BAC", "#B388FF", "#FF8A4C"][Math.floor(R(10) * 5)]});
+    if (R(11) < 0.3) tufts.push({gx:gx + R(12), gy:gy + R(13)});
+    if (gy < ROAD_H && R(14) < 0.35) pebbles.push({gx:gx + R(15), gy:gy + R(16)});
   }
-  return {trees, flowers, tufts, pebbles};
-})();
+  SCENE = {trees, flowers, tufts, pebbles};
+}
 
 // --- per-animal wandering (not saved, just for looks) ---
 const anim = {};
@@ -830,8 +1104,8 @@ function updateAnimals(dt) {
 const WALKERS = [{e:"🚶", sp:.8, off:0, lane:.6, dir:1}, {e:"🚶‍♀️", sp:.65, off:14, lane:1.45, dir:-1},
   {e:"🐕", sp:1.3, off:6, lane:.7, dir:1}, {e:"🚴", sp:2.1, off:22, lane:1.35, dir:-1}];
 function walkerPos(w) {
-  const s = ((T / 1000) * w.sp + w.off) % (MAP_W + 8);
-  return {gx:w.dir > 0 ? s - 4 : MAP_W + 4 - s, gy:w.lane};
+  const s = ((T / 1000) * w.sp + w.off) % (S.land.w + 8);
+  return {gx:w.dir > 0 ? s - 4 : S.land.w + 4 - s, gy:w.lane};
 }
 
 // --- floating "+2 🌾" rewards ---
@@ -861,38 +1135,59 @@ function hitAt(sx, sy) {
 let T = 0; // animation clock (ms)
 const bob = (speed = 1, amt = 3, phase = 0) => Math.sin(T / 260 * speed + phase) * amt;
 
+const GRASS = {
+  spring:["#94CF48", "#8DC843", "#76B236", "#79B434", "#679F2D"], summer:["#8DC63F", "#87C03B", "#6FA82F", "#6FA82F", "#5E962A"],
+  fall:["#A9C24A", "#A1BA44", "#8E9E3A", "#8FA33A", "#7C8F31"], snow:["#E4EEEA", "#D8E5E1", "#BCD0CA", "#CFDDD9", "#B5C7C2"],
+};
 function drawGround() {
-  const [A, B, C, D] = corners(0, 0, MAP_W, MAP_H);
+  const LW = S.land.w, LH = S.land.h, [A, B, C, D] = corners(0, 0, LW, LH);
+  const G = GRASS[THEME.snowy ? "snow" : THEME.season] || GRASS.summer;
+  drawExpansions();
   // island cliff edges
   fillPoly([D, C, up(C, -34), up(D, -34)], "#9A6A40");
   fillPoly([C, B, up(B, -34), up(C, -34)], "#7A5030");
-  fillPoly([D, C, up(C, -8), up(D, -8)], "#6FA82F");
-  fillPoly([C, B, up(B, -8), up(C, -8)], "#5E962A");
-  fillPoly([A, B, C, D], "#8DC63F");
+  fillPoly([D, C, up(C, -8), up(D, -8)], G[3]);
+  fillPoly([C, B, up(B, -8), up(C, -8)], G[4]);
+  fillPoly([A, B, C, D], G[0]);
   // checkerboard shading, drawn as one path so it's quick
   ctx.beginPath();
-  for (let gx = 0; gx < MAP_W; gx++) for (let gy = ROAD_H; gy < MAP_H; gy++) if ((gx + gy) & 1) {
+  for (let gx = 0; gx < LW; gx++) for (let gy = ROAD_H; gy < LH; gy++) if ((gx + gy) & 1) {
     const [a, b, c, d] = corners(gx, gy, 1, 1);
     ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath();
   }
-  ctx.fillStyle = "#87C03B"; ctx.fill();
+  ctx.fillStyle = G[1]; ctx.fill();
   // grass tufts
-  ctx.strokeStyle = "#6FA82F"; ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.beginPath();
+  ctx.strokeStyle = G[2]; ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.beginPath();
   for (const t of SCENE.tufts) { if (t.gy < ROAD_H) continue; const [x, y] = iso(t.gx, t.gy); ctx.moveTo(x - 3, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + 3, y - 5); }
   ctx.stroke();
   // dirt road with the truck on it
-  fillPoly(corners(0, 0, MAP_W, ROAD_H), "#DDBE80");
-  fillPoly(corners(0, 0.8, MAP_W, 0.4), "#E8CE96");
+  fillPoly(corners(0, 0, LW, ROAD_H), THEME.snowy ? "#E6DCC8" : "#DDBE80");
+  fillPoly(corners(0, 0.8, LW, 0.4), THEME.snowy ? "#EFE8DA" : "#E8CE96");
   ctx.fillStyle = "#C4A266";
   for (const p of SCENE.pebbles) { const [x, y] = iso(p.gx, p.gy); ctx.beginPath(); ctx.ellipse(x, y, 2.5, 1.4, 0, 0, 7); ctx.fill(); }
   ctx.strokeStyle = "#B99355"; ctx.lineWidth = 3; ctx.beginPath();
-  const r1 = iso(0, ROAD_H), r2 = iso(MAP_W, ROAD_H); ctx.moveTo(r1[0], r1[1]); ctx.lineTo(r2[0], r2[1]); ctx.stroke();
-  // flowers
-  for (const f of SCENE.flowers) {
+  const r1 = iso(0, ROAD_H), r2 = iso(LW, ROAD_H); ctx.moveTo(r1[0], r1[1]); ctx.lineTo(r2[0], r2[1]); ctx.stroke();
+  // flowers (none under the snow)
+  if (!THEME.snowy) for (const f of SCENE.flowers) {
     const [x, y] = iso(f.gx, f.gy);
     circle(x - 3, y, 2.2, f.c); circle(x + 3, y - 1, 2.2, f.c); circle(x, y + 2, 2.2, f.c); circle(x, y, 1.2, "#F5B82E");
   }
   drawPond();
+}
+
+// "For sale" land beyond the edges of the island
+function drawExpansions() {
+  const LW = S.land.w, LH = S.land.h, c = landCost();
+  const strip = (dir, pts, sx, sy) => {
+    fillPoly(pts, "rgba(141,198,63,.35)");
+    path(pts); ctx.setLineDash([8, 6]); ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth = 2.5; ctx.stroke(); ctx.setLineDash([]);
+    const [x, y] = iso(sx, sy);
+    drawSign(x, y + 10, c + "", "🪙", "#6DB23E");
+    label("Expand", x, y - 58, 13);
+    nextHits.push({type:"expand", dir, poly:pts});
+  };
+  if (canExpand("e")) strip("e", corners(LW, 0, LAND_STEP, LH), LW + LAND_STEP / 2, LH / 2);
+  if (canExpand("s")) strip("s", corners(0, LH, LW, LAND_STEP), LW / 2, LH + LAND_STEP / 2);
 }
 
 function drawPond() {
@@ -1041,7 +1336,7 @@ function drawHouse(box, st) {
   const ins = .28, x0 = box.gx + ins, y0 = box.gy + ins, x1 = box.gx + box.w - ins, y1 = box.gy + box.h - ins;
   const A = iso(x0, y0), B = iso(x1, y0), C = iso(x1, y1), D = iso(x0, y1);
   const Hh = 18 * box.w - 10, R = 12 * box.w;
-  const ol = "rgba(70,35,10,.45)";
+  const ol = "rgba(70,35,10,.45)", win = THEME.night ? "#FFE08A" : "#BFE6FA";
   fillPoly([iso(x0 - .1, y0 + .1), iso(x1 + .15, y0 + .1), iso(x1 + .15, y1 + .3), iso(x0 - .1, y1 + .3)], "rgba(0,0,0,.14)");
   // walls
   fillPoly([D, C, up(C, Hh), up(D, Hh)], st.wl, ol);
@@ -1055,10 +1350,15 @@ function drawHouse(box, st) {
     ctx.beginPath(); ctx.moveTo(...pts[0]); ctx.lineTo(...pts[2]); ctx.moveTo(...pts[1]); ctx.lineTo(...pts[3]); ctx.stroke();
   } else {
     door(.42, .58, .55, st.door);
-    for (const k of [.18, .72]) { const p = up(lerp(D, C, k), Hh * .42), q = up(lerp(D, C, k + .1), Hh * .42); fillPoly([p, q, up(q, Hh * .3), up(p, Hh * .3)], "#BFE6FA", "#fff", 2); }
+    for (const k of [.18, .72]) {
+      const p = up(lerp(D, C, k), Hh * .42), q = up(lerp(D, C, k + .1), Hh * .42);
+      fillPoly([p, q, up(q, Hh * .3), up(p, Hh * .3)], win, "#fff", 2);
+      if (THEME.night) glows.push([...up(lerp(p, q, .5), Hh * .15), 18]);
+    }
   }
   const wp = up(lerp(C, B, .35), Hh * .4), wq = up(lerp(C, B, .6), Hh * .4);
-  fillPoly([wp, wq, up(wq, Hh * .32), up(wp, Hh * .32)], "#BFE6FA", "#fff", 2);
+  fillPoly([wp, wq, up(wq, Hh * .32), up(wp, Hh * .32)], win, "#fff", 2);
+  if (THEME.night) glows.push([...up(lerp(wp, wq, .5), Hh * .16), 18]);
   // roof
   const e = 5;
   fillPoly([up(A, Hh), up(B, Hh), R1, R0], st.rb, ol);
@@ -1066,6 +1366,19 @@ function drawHouse(box, st) {
   ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 2; ctx.beginPath();
   for (const k of [.33, .66]) { const s = lerp(up(D, Hh), R0, k), t = lerp(up(C, Hh), R1, k); ctx.moveTo(...s); ctx.lineTo(...t); }
   ctx.stroke();
+  if (THEME.snowy) { // snow on the roof
+    fillPoly([lerp(up(A, Hh), R0, .45), lerp(up(B, Hh), R1, .45), R1, R0], "#F4FAFF");
+    fillPoly([R0, R1, lerp(up(C, Hh), R1, .55), lerp(up(D, Hh), R0, .55)], "#F4FAFF", "rgba(150,180,200,.5)", 1);
+  }
+  if (THEME.holiday === "christmas" || THEME.holiday === "newyear" || THEME.holiday === "halloween") { // string lights along the roof edge
+    const cols = THEME.holiday === "halloween" ? ["#FF8A1F", "#9B59D0"] : ["#FF4B4B", "#FFD23F", "#4BD66B", "#4BB4FF"];
+    const a = up([D[0] - e, D[1] + 2], Hh), b = up([C[0], C[1] + e], Hh), n = 10;
+    for (let k = 0; k <= n; k++) {
+      const [lx, ly] = lerp(a, b, k / n), on = Math.floor(T / 500 + k) % 3 !== 0;
+      circle(lx, ly + 2, 2.4, on ? cols[k % cols.length] : "#555");
+      if (on && THEME.night) glows.push([lx, ly + 2, 7]);
+    }
+  }
   if (st.chimney) {
     const base = lerp(lerp(R0, R1, .25), lerp(up(D, Hh), up(C, Hh), .25), .4);
     fillPoly([[base[0] - 6, base[1] + 4], [base[0] + 6, base[1] + 4], [base[0] + 6, base[1] - 16], [base[0] - 6, base[1] - 16]], "#B5533C", ol);
@@ -1163,6 +1476,7 @@ function drawPen(k) {
   drawSign(...iso(P.gx + P.w - .2, P.gy + P.h + .1), pen.list.length + "/" + a.max, a.e);
 }
 
+const FALL_LEAVES = [["#E07B24", "#F29A3E"], ["#D9531E", "#EE7440"], ["#E8B524", "#F5CD4E"], ["#C7862B", "#DDA146"]];
 function drawTree(tr) {
   const [x, y] = iso(tr.gx, tr.gy), s = tr.s;
   ellipse(x + 4, y, 17 * s, 7 * s, "rgba(0,0,0,.16)");
@@ -1171,11 +1485,86 @@ function drawTree(tr) {
     for (let k = 0; k < 3; k++) {
       const w = (19 - k * 4) * s, yy = y - (14 + k * 11) * s;
       fillPoly([[x - w, yy], [x + w, yy], [x, yy - 20 * s]], k % 2 ? "#3C8431" : "#347A2B");
+      if (THEME.snowy) fillPoly([[x - w * .45, yy - 11 * s], [x + w * .45, yy - 11 * s], [x, yy - 20 * s]], "#F4FAFF");
     }
     return;
   }
-  circle(x, y - 30 * s, 17 * s, "#3F8A2B"); circle(x - 10 * s, y - 23 * s, 12 * s, "#3F8A2B"); circle(x + 10 * s, y - 24 * s, 12 * s, "#3F8A2B");
-  circle(x - 4 * s, y - 34 * s, 11 * s, "#57A83A"); circle(x + 6 * s, y - 27 * s, 8 * s, "#57A83A"); circle(x - 7 * s, y - 38 * s, 4 * s, "#86CF58");
+  if (THEME.season === "winter") { // bare branches with snow
+    ctx.strokeStyle = "#7B4F2A"; ctx.lineCap = "round"; ctx.lineWidth = 2.5 * s; ctx.beginPath();
+    ctx.moveTo(x, y - 14 * s); ctx.lineTo(x, y - 40 * s);
+    for (const [a, b, c, d] of [[0, -22, -12, -34], [0, -26, 12, -38], [0, -32, -8, -44], [0, -34, 7, -46]]) { ctx.moveTo(x + a * s, y + b * s); ctx.lineTo(x + c * s, y + d * s); }
+    ctx.stroke();
+    if (THEME.snowy) for (const [a, b] of [[-12, -35], [12, -39], [-8, -45], [7, -47], [0, -41]]) ellipse(x + a * s, y + b * s, 4 * s, 2 * s, "#F4FAFF");
+    return;
+  }
+  let dark = "#3F8A2B", light = "#57A83A", hi = "#86CF58";
+  if (THEME.season === "fall") { const f = FALL_LEAVES[Math.floor((tr.h || 0) * 4)]; dark = f[0]; light = f[1]; hi = "#FFE08A"; }
+  else if (THEME.season === "spring" && (tr.h || 0) < .3) { light = "#F7B6D2"; hi = "#FFE3F0"; } // a few blossom trees
+  circle(x, y - 30 * s, 17 * s, dark); circle(x - 10 * s, y - 23 * s, 12 * s, dark); circle(x + 10 * s, y - 24 * s, 12 * s, dark);
+  circle(x - 4 * s, y - 34 * s, 11 * s, light); circle(x + 6 * s, y - 27 * s, 8 * s, light); circle(x - 7 * s, y - 38 * s, 4 * s, hi);
+}
+
+function drawDecor(j) {
+  const d = S.decor.placed[j], D = DECOR[d.id], b = boxOf("d:" + j), sz = D.size || 1;
+  const [x, y] = iso(b.gx + sz / 2, b.gy + sz / 2);
+  if (D.tree) {
+    drawTree({gx:b.gx + .5, gy:b.gy + .5, s:1.05, pine:D.tree === "pine", h:(j * .37) % 1});
+    nextHits.push({type:"decor", j, rect:[x - 22, y - 60, x + 22, y + 6], mv:"d:" + j});
+    return;
+  }
+  const size = sz === 2 ? 70 : 34;
+  ellipse(x, y, size * .42, size * .15, "rgba(0,0,0,.18)");
+  drawEmoji(D.e, x, y - size * .4, size);
+  if (D.glow) glows.push([x, y - size * .45, sz === 2 ? 40 : 22]);
+  nextHits.push({type:"decor", j, rect:[x - size / 2, y - size * .9, x + size / 2, y + 6], mv:"d:" + j});
+}
+
+// Seasonal and holiday touches placed around free spots on the farm
+function themeSpots(n, seed, boxes) {
+  const out = [], LW = S.land.w, LH = S.land.h;
+  for (let k = 0; out.length < n && k < n * 10; k++) {
+    const gx = 1 + Math.floor(hrand(k, seed, 1) * (LW - 2)), gy = ROAD_H + 1 + Math.floor(hrand(k, seed, 2) * (LH - ROAD_H - 2));
+    const b = {gx, gy, w:1, h:1};
+    if (boxes.some(([, o]) => overlap(o, b))) continue;
+    out.push({gx:gx + .2 + hrand(k, seed, 3) * .6, gy:gy + .2 + hrand(k, seed, 4) * .6, k});
+  }
+  return out;
+}
+function holidayObjects(objs, boxes) {
+  const hol = THEME.holiday;
+  if (!hol) return;
+  const put = (spots, fn) => spots.forEach(p => objs.push({d:p.gx + p.gy, f:() => fn(...iso(p.gx, p.gy), p.k)}));
+  const em = (e, size, float) => (x, y, k) => {
+    const yy = y - size * .4 - (float ? 14 + bob(.8, 5, k) : 0);
+    if (!float) ellipse(x, y, size * .38, size * .14, "rgba(0,0,0,.16)");
+    drawEmoji(e, x, yy, size);
+  };
+  if (hol === "halloween") {
+    put(themeSpots(10, 11, boxes), (x, y, k) => { em("🎃", 24)(x, y, k); if (THEME.night) glows.push([x, y - 10, 16]); });
+    put(themeSpots(3, 12, boxes), em("👻", 30, true));
+  } else if (hol === "christmas" || hol === "newyear") {
+    put(themeSpots(3, 21, boxes), (x, y, k) => { em("🎄", 46)(x, y, k); glows.push([x, y - 22, 26]); });
+    put(themeSpots(4, 22, boxes), em("⛄", 30));
+    put(themeSpots(4, 23, boxes), em("🎁", 22));
+  } else if (hol === "valentine") {
+    put(themeSpots(10, 31, boxes), em("💗", 18));
+    put(themeSpots(6, 32, boxes), em("🌹", 22));
+  } else if (hol === "easter") {
+    const cols = ["#F7A8C8", "#A8D8F7", "#FCE38A", "#B8E6A0", "#D7B8F2"];
+    put(themeSpots(14, 41, boxes), (x, y, k) => {
+      ellipse(x, y, 5, 2, "rgba(0,0,0,.15)");
+      ctx.beginPath(); ctx.ellipse(x, y - 6, 5, 7, 0, 0, 7); ctx.fillStyle = cols[k % 5]; ctx.fill();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 5, y - 6); ctx.lineTo(x + 5, y - 6); ctx.stroke();
+    });
+    put(themeSpots(3, 42, boxes), (x, y, k) => em("🐰", 28)(x, y - Math.abs(Math.sin(T / 300 + k)) * 6, k));
+  } else if (hol === "stpatrick") {
+    put(themeSpots(14, 51, boxes), em("☘️", 18));
+    const P = LAYOUT.pond, [x, y] = iso(P.gx + P.w / 2, P.gy + P.h / 2);
+    objs.push({d:P.gx + P.gy + P.w + P.h, f:() => { ctx.globalAlpha = .85; drawEmoji("🌈", x, y - 40, 110); ctx.globalAlpha = 1; }});
+  } else if (hol === "thanksgiving") {
+    put(themeSpots(8, 61, boxes), em("🍂", 22));
+    put(themeSpots(3, 62, boxes), (x, y, k) => em("🦃", 30)(x + Math.sin(T / 1500 + k) * 10, y, k));
+  }
 }
 
 function drawBoard() {
@@ -1243,9 +1632,73 @@ function drawStand() {
   nextHits.push({type:"stand", rect:[D[0] - 6, top[1] - 16, B[0] + 6, C[1] + 6], mv:"stand"});
 }
 
+// ---------- weather & seasonal effects, drawn over the farm in screen space ----------
+let glows = [];
+const FLAKES = Array.from({length:150}, () => ({x:Math.random(), y:Math.random(), s:Math.random()}));
+let flashAt = -1e9, nextFlash = 0;
+const BURSTS = [];
+function drawSkyFx() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = weatherNow(), kind = w ? w.kind : null, t = T;
+  if (kind && kind !== "clear") { // drifting cloud shadows
+    ctx.fillStyle = `rgba(30,40,60,${kind === "partly" ? .07 : .1})`;
+    for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.ellipse(((i * 331 + t / 45) % (W + 500)) - 250, (i * 197 + 80) % H, 170, 60, 0, 0, 7); ctx.fill(); }
+  }
+  if (kind === "cloudy" || kind === "rain" || kind === "storm" || kind === "snow") { ctx.fillStyle = "rgba(70,80,100,.14)"; ctx.fillRect(0, 0, W, H); }
+  if (THEME.night) {
+    ctx.fillStyle = "rgba(12,22,70,.45)"; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    for (const [gx, gy, r] of glows) {
+      const [x, y] = toScreen(gx, gy), rr = r * zoom, g = ctx.createRadialGradient(x, y, 0, x, y, rr);
+      g.addColorStop(0, "rgba(255,210,120,.75)"); g.addColorStop(1, "rgba(255,210,120,0)");
+      ctx.fillStyle = g; ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+  if (kind === "fog") {
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(235,240,245,.55)"); g.addColorStop(1, "rgba(235,240,245,.25)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  if (kind === "rain" || kind === "storm") {
+    ctx.strokeStyle = "rgba(215,228,255,.6)"; ctx.lineWidth = 1.3; ctx.beginPath();
+    const n = kind === "storm" ? 150 : 100;
+    for (let i = 0; i < n; i++) { const f = FLAKES[i], y = ((f.y * H + t * (.7 + f.s * .5)) % (H + 40)) - 20, x = ((f.x * W - t * .12) % W + W) % W; ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 14); }
+    ctx.stroke();
+  }
+  const snowing = kind === "snow" || THEME.holiday === "christmas" || (THEME.season === "winter" && !kind);
+  if (snowing) {
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    const n = kind === "snow" ? 120 : 45;
+    for (let i = 0; i < n; i++) { const f = FLAKES[i], y = (f.y * H + t * .035 * (.5 + f.s)) % (H + 10) - 5, x = f.x * W + Math.sin(t / 900 + f.s * 9) * 14; ctx.beginPath(); ctx.arc(x, y, 1.4 + f.s * 1.8, 0, 7); ctx.fill(); }
+  }
+  if (kind === "storm") {
+    if (t > nextFlash) { flashAt = t; nextFlash = t + 5000 + Math.random() * 9000; setTimeout(() => sfx("thunder"), 400 + Math.random() * 900); }
+    const a = Math.max(0, 1 - (t - flashAt) / 380) * .6;
+    if (a > 0) { ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillRect(0, 0, W, H); }
+  }
+  // seasonal and holiday bits floating by
+  const drift = (e, n, size, fn) => { for (let i = 0; i < n; i++) { const f = FLAKES[i + 60], [x, y] = fn(f, i); drawEmoji(e, x, y, size); } };
+  if (THEME.season === "fall" && !kind) drift("🍂", 7, 18, (f) => [((f.x * W + t * .03) % (W + 40)) - 20 + Math.sin(t / 700 + f.s * 6) * 20, ((f.y * H + t * .045 * (.6 + f.s)) % (H + 40)) - 20]);
+  if (THEME.season === "spring" && !kind) drift("🌸", 6, 14, (f) => [((f.x * W + t * .025) % (W + 40)) - 20, ((f.y * H + t * .03 * (.6 + f.s)) % (H + 40)) - 20]);
+  if (THEME.season === "summer" && !THEME.night && !kind) drift("🦋", 3, 20, (f, i) => [f.x * W + Math.sin(t / 2000 + i * 2) * 80, H * .35 + f.y * H * .5 + Math.sin(t / 300 + i) * 8]);
+  if (THEME.holiday === "halloween") drift("🦇", 3, 22, (f, i) => [((t * .06 + f.x * W) % (W + 80)) - 40, 150 + f.y * H * .3 + Math.sin(t / 250 + i) * 14]);
+  if (THEME.holiday === "valentine") drift("💕", 8, 18, (f) => [f.x * W + Math.sin(t / 900 + f.s * 7) * 16, H - ((f.y * H + t * .04) % (H + 40)) + 20]);
+  if (THEME.holiday === "newyear" || (THEME.holiday === "christmas" && THEME.night)) drawFireworks();
+}
+function drawFireworks() {
+  if (Math.random() < .025 && BURSTS.length < 4) BURSTS.push({x:W * (.15 + Math.random() * .7), y:H * (.15 + Math.random() * .3), t0:T, c:pick(["#FF5A5A", "#FFD23F", "#5AD1FF", "#9BFF6A", "#FF7BE0"])});
+  for (let j = BURSTS.length - 1; j >= 0; j--) {
+    const b = BURSTS[j], age = (T - b.t0) / 1200;
+    if (age > 1) { BURSTS.splice(j, 1); continue; }
+    ctx.fillStyle = b.c; ctx.globalAlpha = 1 - age;
+    for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2, r = age * 60; ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + age * age * 30, 2.2, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+}
+
 function drawWalker(w) {
   const {gx, gy} = walkerPos(w);
-  if (gx < 0 || gx > MAP_W) return;
+  if (gx < 0 || gx > S.land.w) return;
   const [x, y] = iso(gx, gy);
   ellipse(x, y, 8, 3, "rgba(0,0,0,.15)");
   drawEmoji(w.e, x, y - 12 - Math.abs(Math.sin(T / 160 + w.off)) * 2, 24, w.dir > 0);
@@ -1275,7 +1728,7 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 8, y - 4, x + 16, y); ctx.stroke();
   }
   ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, dpr * (W / 2 - cam.x * zoom), dpr * (H / 2 - cam.y * zoom));
-  nextHits = [];
+  nextHits = []; glows = [];
   const boxes = allBoxes();
   drawGround();
   S.plots.forEach((_, i) => drawField(i));
@@ -1300,6 +1753,8 @@ function draw() {
   for (const bid of Object.keys(BUILDINGS)) objs.push({d:depth(boxOf("b:" + bid)), f:() => drawBuilding(bid)});
   for (const k of Object.keys(ANIMALS)) objs.push({d:depth(boxOf("p:" + k)), f:() => drawPen(k)});
   for (const w of WALKERS) { const p = walkerPos(w); objs.push({d:p.gx + p.gy, f:() => drawWalker(w)}); }
+  S.decor.placed.forEach((_, j) => { const b = boxOf("d:" + j); objs.push({d:b.gx + b.w + b.gy + b.h, f:() => drawDecor(j)}); });
+  holidayObjects(objs, boxes);
   const covered = (tr) => boxes.some(([, b]) => tr.gx >= b.gx - .2 && tr.gx < b.gx + b.w + .2 && tr.gy >= b.gy - .2 && tr.gy < b.gy + b.h + .2);
   for (const tr of SCENE.trees) if (!covered(tr)) objs.push({d:tr.gx + tr.gy, f:() => drawTree(tr)});
   objs.sort((a, b) => a.d - b.d).forEach(o => o.f());
@@ -1309,6 +1764,7 @@ function draw() {
   }
   drawFx();
   hits = nextHits;
+  drawSkyFx();
 }
 
 let lastFrame = performance.now();
@@ -1438,6 +1894,16 @@ function onTap(sx, sy) {
     case "stand":
       if (!standCollectAll()) openPanel("stand");
       break;
+    case "decor": {
+      const D = DECOR[S.decor.placed[h.j].id];
+      openTray(`<div class="tray-title">${D.tree ? (D.tree === "pine" ? "🌲" : "🌳") : D.e} ${D.n}</div><div class="tray-sub">Press and hold to move it</div>
+        <div class="row"><button class="btn plain sm" data-act="storeDecor" data-i="${h.j}">Put away</button></div>`, sx, sy);
+      break;
+    }
+    case "expand":
+      openTray(`<div class="tray-title">🌱 Grow your farm</div><div class="tray-sub">Adds ${LAND_STEP} rows of land ${h.dir === "e" ? "to the east" : "to the south"}</div>
+        <div class="row"><button class="btn gold" data-act="expand" data-k="${h.dir}">Expand · ${landCost()} 🪙</button></div>`, sx, sy);
+      break;
     case "lot": {
       const b = BUILDINGS[h.bid];
       openTray(`<div class="tray-title">${b.e} ${b.n}</div><div class="tray-sub">Makes ${b.recipes.map(r => ITEMS[r].e).join(" ")}</div>
@@ -1515,7 +1981,7 @@ function penTray(k, sx, sy) {
 }
 
 // --- dragging a tool out of the tray ---
-let drag = null, ghost = null, pendingLevel = null;
+let drag = null, ghost = null;
 document.addEventListener("pointerdown", (e) => {
   const tl = e.target.closest(".tool");
   if (!tl || !tray) return;
@@ -1547,7 +2013,7 @@ function endDrag(e) {
     else if (d.tool === "feed") { closeTray(); feedAll(d.k); }
   } else closeTray();
   commit();
-  if (pendingLevel) { const p = pendingLevel; pendingLevel = null; showLevelUp(p.lvl, p.unlocked); }
+  if (popups.length && !panel) openPanel(...popups.shift());
 }
 window.addEventListener("pointerup", endDrag);
 window.addEventListener("pointercancel", endDrag);
@@ -1596,6 +2062,20 @@ function renderHud() {
   };
   badge('[data-p="orders"]', S.orders.filter(o => !o.wait && hasAll(o.items)).length);
   badge('[data-p="barn"]', space() <= 0 ? "!" : 0);
+  badge('[data-p="decor"]', Object.values(S.decor.inv).reduce((a, b) => a + b, 0));
+  // weather chip
+  const w = weatherNow(), wc = $("#wxChip");
+  const wHtml = w ? `<span class="e">${WX_ICON[w.kind][w.day ? 0 : 1]}</span><span>${w.temp != null ? w.temp + (w.unit || "°") : WX_NAME[w.kind]}</span>`
+    : `<span class="e">🌤️</span><span>${WX.mode === "off" ? "Weather off" : "Real weather?"}</span>`;
+  if (wc.innerHTML !== wHtml) wc.innerHTML = wHtml;
+  // event chip
+  const ev = S.event, ec = $("#evChip");
+  if (ev && ev.end > now()) {
+    const d = evDef(ev), g = d.goals[Math.min(ev.won, 2)], pct = ev.won >= 3 ? 100 : Math.min(100, ev.prog / g * 100);
+    const eh = `<span class="e">${d.e}</span><span>${d.n}<small> · ${fmt(ev.end - now()).split(" ")[0]}</small><span class="mini"><i style="width:${pct}%"></i></span></span>`;
+    if (ec.innerHTML !== eh) ec.innerHTML = eh;
+    ec.hidden = false;
+  } else ec.hidden = true;
 }
 
 const timer = (end) => `<span data-end="${end}">${fmt(end - now())}</span>`;
@@ -1604,7 +2084,10 @@ const needList = (req) => Object.entries(req).map(([id, n]) =>
 
 let panel = null, lastPanelSig = "", selItem = null;
 function openPanel(type, arg) { closeTray(); if (!panel) sfx("pop"); panel = {type, arg}; renderPanel(); }
-function closePanel() { panel = null; standUI = null; $("#panelRoot").innerHTML = ""; }
+function closePanel() {
+  panel = null; standUI = null; $("#panelRoot").innerHTML = "";
+  if (popups.length && !drag) openPanel(...popups.shift());
+}
 
 function panelBuilding(bid) {
   const b = BUILDINGS[bid], st = S.buildings[bid], t = now();
@@ -1687,6 +2170,69 @@ function panelStand() {
   return {title:"Roadside Shop", body:h + `</div>`};
 }
 
+function panelEvent(arg) {
+  const ev = S.event;
+  if (!ev || ev.end <= now()) {
+    const hol = THEME.holiday && HOLIDAYS[THEME.holiday];
+    return {title:"Events", body:`<div class="big">🎪</div>
+      <p class="center" style="font-weight:800">${S.level < 2 ? "Special events start once you reach level 2." : "No event right now. The next one starts in about " + fmt(Math.max(60000, (S.nextEventAt || 0) - now())) + "."}</p>
+      <p class="center muted" style="font-weight:800">Events are challenges that last a day. Win prizes like a 🎠 carousel, a 🦄 unicorn or a 🏰 castle for your farm!</p>
+      ${hol ? `<p class="center" style="font-weight:800">${hol.e} It's ${hol.n} on the farm!</p>` : ""}`};
+  }
+  const d = evDef(ev), g = d.goals, top = g[2];
+  let h = `${arg && arg.fresh ? `<p class="center" style="font-family:var(--fun);font-size:18px;margin:0 0 4px">A special event has started!</p>` : ""}
+    <div class="big">${d.e}</div><p class="center" style="font-family:var(--fun);font-size:24px;margin:0">${d.n}</p>
+    <p class="center" style="font-weight:800;margin:4px 0">${d.task} · ends in ${timer(ev.end)}</p>
+    <div class="evbar"><i style="width:${Math.min(100, ev.prog / top * 100)}%"></i></div>
+    <p class="center" style="font-family:var(--fun);font-size:17px;margin:0">${Math.min(ev.prog, top)} / ${top}</p><div class="tiers">`;
+  ev.prizes.forEach((id, i) => {
+    const D = DECOR[id];
+    h += `<div class="tier slot ${ev.won > i ? "won" : ""}"><span class="muted">Reach ${g[i]}</span><span class="e">${decorIcon(id)}</span><b>${D.n}</b>
+      <span>+${PRIZE_COINS[i]} 🪙${PRIZE_GEMS[i] ? " +" + PRIZE_GEMS[i] + " 💎" : ""}</span></div>`;
+  });
+  return {title:"Special Event", body:h + `</div><p class="center muted" style="font-weight:800;margin:12px 0 0">Prizes go into your 🌷 Decor box.</p>`};
+}
+const decorIcon = (id) => DECOR[id].tree ? (DECOR[id].tree === "pine" ? "🌲" : "🌳") : DECOR[id].e;
+const decorTag = (D) => D.hol ? `<span class="tag hol">${HOLIDAYS[D.hol].n}</span>` : D.rare ? `<span class="tag r${D.rare}">${["", "Event prize", "Rare prize", "Grand prize"][D.rare]}</span>` : "";
+
+function panelPrize({id, tier}) {
+  const D = DECOR[id];
+  return {title:"You won!", body:`<div class="big">${decorIcon(id)}</div><p class="center" style="font-family:var(--fun);font-size:24px;margin:0">${D.n}</p>
+    <p class="center" style="font-weight:800;font-size:17px;margin:6px 0">+${PRIZE_COINS[tier]} 🪙${PRIZE_GEMS[tier] ? " &nbsp; +" + PRIZE_GEMS[tier] + " 💎" : ""}</p>
+    <p class="center">${decorTag(D)}</p>
+    <p class="center" style="margin:14px 0 0;display:flex;gap:8px;justify-content:center"><button class="btn" data-act="placeDecor" data-id="${id}">Place it now</button><button class="btn plain" data-act="closePanel">Later</button></p>`};
+}
+
+function panelDecor() {
+  const inv = Object.entries(S.decor.inv);
+  let h = `<h4>Your decorations</h4>`;
+  h += inv.length ? `<div class="decor">` + inv.map(([id, n]) => `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${DECOR[id].n}${n > 1 ? " ×" + n : ""}
+      <button class="btn sm" data-act="placeDecor" data-id="${id}">Place</button></div>`).join("") + `</div>`
+    : `<p class="muted" style="font-weight:800;margin:0">Nothing waiting to be placed. Buy some below, or win them in events!</p>`;
+  h += `<h4>Buy decorations</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => D.cost).map(([id, D]) =>
+    `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${D.n}${D.size === 2 ? "<small class=muted>big</small>" : ""}<button class="btn gold sm" data-act="buyDecor" data-id="${id}">${D.cost} 🪙</button></div>`).join("") + `</div>`;
+  const won = new Set([...Object.keys(S.decor.inv), ...S.decor.placed.map(d => d.id)]);
+  h += `<h4>Win in events</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => !D.cost).map(([id, D]) =>
+    `<div class="dcard slot ${won.has(id) ? "" : "locked"}"><span class="e">${decorIcon(id)}</span>${D.n}${decorTag(D)}</div>`).join("") + `</div>`;
+  h += `<p class="center muted" style="font-weight:800;margin:12px 0 0">Tap a placed decoration to put it away. Press and hold to move it.</p>`;
+  return {title:"Decorations", body:h};
+}
+
+function panelWeather() {
+  const w = weatherNow(), hol = THEME.holiday && HOLIDAYS[THEME.holiday];
+  let h = "";
+  if (w) h += `<div class="wxnow slot"><span class="e">${WX_ICON[w.kind][w.day ? 0 : 1]}</span><div><b>${WX_NAME[w.kind]}${w.temp != null ? " · " + w.temp + (w.unit || "°") : ""}</b>
+    <span class="muted" style="font-weight:800">${w.preview ? "Preview" : WX.place}${w.day ? "" : " · night"}</span></div></div>`;
+  else h += `<p style="font-weight:800;margin:0">Make your farm match the real weather outside: rain, snow, fog, storms, and night time with glowing windows.</p>`;
+  if (isRaining()) h += `<p style="font-weight:800">💧 Rain is watering your fields! Crops planted now grow 10% faster.</p>`;
+  h += `<div class="wxrow"><button class="btn" data-act="wxGPS">📍 Use my location</button>${WX.mode !== "off" && WX.mode !== "ask" ? `<button class="btn plain" data-act="wxOff">Turn off</button>` : ""}</div>
+    <div class="wxrow"><input id="wxCity" placeholder="…or type your town" autocomplete="off" enterkeyhint="done"><button class="btn gold" data-act="wxCity">Set</button></div>
+    <p class="muted" style="font-weight:700;font-size:13px">Your location is only used to look up the weather (from Open-Meteo, a free weather service). It stays on your phone.</p>
+    <h4>Season</h4><p style="font-weight:800;margin:0">${{spring:"🌸 Spring", summer:"☀️ Summer", fall:"🍂 Fall", winter:"❄️ Winter"}[THEME.season]}${hol ? ` &nbsp;·&nbsp; ${hol.e} ${hol.n}` : ""}</p>
+    <p class="muted" style="font-weight:700;font-size:13px">The farm changes with the seasons and dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day.</p>`;
+  return {title:"Weather", body:h};
+}
+
 function panelShop() {
   let h = `<h4>Expand</h4><div class="shop">`;
   h += S.plots.length < MAX_PLOTS
@@ -1709,6 +2255,11 @@ function panelShop() {
       : `<div class="scard slot locked"><span class="e">🔒</span><b>${b.n}</b><small>Level ${b.lvl}</small></div>`;
   }
   if (Object.values(S.buildings).every(b => b.owned)) h += `<div class="scard slot"><span class="e">🎉</span><b>All built!</b></div>`;
+  h += `</div><h4>Land</h4><div class="shop">`;
+  for (const [dir, nm] of [["e", "Expand east"], ["s", "Expand south"]]) h += canExpand(dir)
+    ? `<div class="scard slot"><span class="e">🌱</span><b>${nm}</b><small>+${LAND_STEP} rows of land</small><button class="btn gold sm" data-act="expand" data-k="${dir}">${landCost()} 🪙</button></div>`
+    : `<div class="scard slot"><span class="e">🏞️</span><b>${nm}</b><small>Fully grown!</small></div>`;
+  h += `<div class="scard slot"><span class="e">🌷</span><b>Decorations</b><small>Flowers, trees, fountains…</small><button class="btn sm" data-act="open" data-p="decor">Look</button></div>`;
   h += `</div>` + promise();
   return {title:"Shop", body:h};
 }
@@ -1734,7 +2285,9 @@ const howTo = () => `<ul class="howto">
   <li>Tap the 🚚 truck or order board to deliver orders for coins and ⭐.</li>
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the road, at your own price.</li>
-  <li><b>Press and hold</b> a building, pen or field to move it.</li>
+  <li><b>Press and hold</b> a building, pen, field or decoration to move it.</li>
+  <li>Win decorations in 🎪 special events, and grow your land from the 🛒 Shop.</li>
+  <li>Tap the weather button to match your real weather.</li>
   <li>Drag the map to look around. Pinch or use +/− to zoom.</li></ul>`;
 
 function panelLevel({lvl, unlocked}) {
@@ -1757,7 +2310,7 @@ function panelSig() {
   return "";
 }
 function renderPanel() {
-  const v = {stand:panelStand, building:panelBuilding, orders:panelOrders, barn:panelBarn, shop:panelShop, farm:panelFarm, level:panelLevel, welcome:panelWelcome}[panel.type](panel.arg);
+  const v = {event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, orders:panelOrders, barn:panelBarn, shop:panelShop, farm:panelFarm, level:panelLevel, welcome:panelWelcome}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
   $("#panelRoot").innerHTML = `<div class="scrim" data-act="closePanel"><div class="panel" role="dialog" aria-modal="true" aria-label="${v.title}">
     <div class="ribbon out">${v.title}</div><button class="xbtn" data-act="closePanel" aria-label="Close">✕</button>
@@ -1767,8 +2320,7 @@ function renderPanel() {
 }
 function showLevelUp(lvl, unlocked) {
   sfx("level");
-  if (drag) { pendingLevel = {lvl, unlocked}; return; }
-  openPanel("level", {lvl, unlocked});
+  popup("level", {lvl, unlocked});
 }
 function tickTimers() {
   const t = now();
@@ -1779,6 +2331,7 @@ function tick() {
   let changed = false;
   S.orders.forEach((o, i) => { if (o.wait && o.wait <= t) { S.orders[i] = genOrder(); changed = true; } });
   if (changed) save();
+  refreshTheme(); eventTick();
   renderHud();
   if (panel) { if (changed || panelSig() !== lastPanelSig) renderPanel(); else tickTimers(); }
   if (tray && tray.update) tray.update();
@@ -1792,6 +2345,13 @@ document.addEventListener("click", (e) => {
   const d = el.dataset, i = +d.i;
   switch (d.act) {
     case "closePanel": closePanel(); break;
+    case "placeDecor": closePanel(); placeDecor(d.id); break;
+    case "buyDecor": buyDecor(d.id); break;
+    case "storeDecor": closeTray(); storeDecor(i); break;
+    case "expand": closeTray(); closePanel(); expandLand(d.k); break;
+    case "wxGPS": useGPS(); break;
+    case "wxCity": useCity(($("#wxCity") || {}).value || ""); break;
+    case "wxOff": WX.mode = "off"; saveWX(); refreshTheme(); renderHud(); renderPanel(); break;
     case "open": openPanel(d.p); break;
     case "zoomIn": setZoom(zoom * 1.25); break;
     case "zoomOut": setZoom(zoom / 1.25); break;
@@ -1839,7 +2399,10 @@ document.addEventListener("click", (e) => {
       break;
   }
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePanel(); closeTray(); } });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { closePanel(); closeTray(); }
+  if (e.key === "Enter" && e.target.id === "wxCity") useCity(e.target.value);
+});
 document.addEventListener("visibilitychange", () => { if (document.hidden) save(); else tick(); });
 window.addEventListener("resize", () => { resize(); closeTray(); });
 document.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -1907,6 +2470,7 @@ const SOUNDS = {
   magic:() => [784, 988, 1175, 1568].forEach((f, i) => tone(f, .18, {type:"sine", vol:.1, at:i * .05})),
   level:() => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .32, {type:"triangle", vol:.15, at:i * .09})),
   error:() => tone(170, .18, {type:"square", vol:.05, to:120}),
+  thunder:() => { noise(1.6, {vol:.35, freq:110, q:.4}); noise(.9, {vol:.2, freq:260, q:.6, at:.1}); },
   pickup:() => tone(380, .12, {to:720, vol:.12, type:"triangle"}),
   place:() => { noise(.1, {vol:.18, freq:380}); tone(300, .12, {type:"triangle", vol:.12, to:210}); },
   truck:() => { tone(440, .12, {type:"square", vol:.04, lp:1400}); tone(554, .16, {type:"square", vol:.04, lp:1400, at:.14}); },
@@ -1940,6 +2504,7 @@ document.addEventListener("pointerdown", () => { if (snd.on) audio(); }, true); 
 
 // ---------- start ----------
 load();
+refreshTheme(); buildScene();
 const isNew = !S.orders.length && S.stats.harvests === 0;
 fillOrders();
 resize();
@@ -1949,6 +2514,9 @@ renderHud(); applySound();
 if (isNew) openPanel("welcome");
 requestAnimationFrame(frame);
 setInterval(tick, 1000);
+if (!WX.cur || Date.now() - WX.cur.t > 10 * 60e3) fetchWeather();
+setInterval(fetchWeather, 15 * 60e3);
+if (!isNew) setTimeout(eventTick, 1500);
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>

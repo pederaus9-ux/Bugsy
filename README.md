@@ -63,6 +63,11 @@ Open that link in Chrome on your phone and use **Add to Home screen** to get it 
 - **Buildings:** tap the Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen or Loom to make goods. Empty lots show what unlocks next.
 - **Roadside shop:** the striped stall by the road. Put items out at your own price. People walking by buy them over time, and cheaper items sell faster.
 - **Move things:** press and hold a building, pen, field or the stall, then drag it. Green means it fits; red means something's in the way.
+- **Real weather:** tap the weather button (top left) and use your location or type your town. Rain, snow, fog, storms and night show up on the farm, and rain makes crops grow 10% faster. The weather comes from Open-Meteo, a free service, and your location stays on your phone.
+- **Special events 🎪:** from level 2, a random challenge (like Harvest Festival or Egg Hunt) runs for a day. Hit the 3 goals to win decorations you can't buy.
+- **Decor 🌷:** buy flowers, trees, benches, lanterns and fountains, or place prizes from events. Tap one to put it away; press and hold to move it.
+- **Bigger land:** buy more land east or south from the Shop, or tap the "Expand" signs past the edge of the island.
+- **Seasons & holidays:** the farm changes with the seasons and dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day, each with its own holiday event and prizes.
 - **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
 - **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
 - **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
