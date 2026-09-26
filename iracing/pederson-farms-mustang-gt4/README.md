@@ -6,6 +6,8 @@ Your concept art as a real iRacing paint, built on the official iRacing Mustang 
 
 The views are the real painted panels cut out of the template, so they match the TGA exactly. [Template layout](output/preview_wire.png)
 
+**3D preview** (a mock-up on a stand-in sports car, see `render3d/`): [render_3d.jpg](output/render_3d.jpg)
+
 ## Put it in iRacing
 
 1. Download `output/car_CUSTID.tga` and `output/car_spec_CUSTID.tga`.
