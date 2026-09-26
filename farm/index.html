@@ -495,10 +495,10 @@ function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (raw) {
-      const base = fresh(), saved = JSON.parse(raw);
-      S = Object.assign(base, saved);
-      for (const k in base.buildings) if (!S.buildings[k]) S.buildings[k] = base.buildings[k];
-      for (const k in base.pens) if (!S.pens[k]) S.pens[k] = base.pens[k];
+      const def = fresh(), saved = JSON.parse(raw); // a separate fresh farm to fill gaps from (older saves have no horse paddock, for example)
+      S = Object.assign(fresh(), saved);
+      for (const k in def.buildings) if (!S.buildings[k]) S.buildings[k] = def.buildings[k];
+      for (const k in def.pens) if (!S.pens[k]) S.pens[k] = def.pens[k];
       S.stats = Object.assign(fresh().stats, S.stats);
       S.plots.forEach((p, i) => { if (p.gx == null) Object.assign(p, gridPos(i)); }); // saves from before fields could move
       return;

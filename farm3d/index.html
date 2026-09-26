@@ -250,6 +250,9 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
   window.addEventListener("unhandledrejection", function (e) { show(e.reason && (e.reason.message || e.reason)); });
   setTimeout(function () { show(); }, 25000);
   window.__bootFail = show;
+  var last = null; try { last = localStorage.getItem("sa3d-boot"); } catch (e) {}
+  if (last && last !== "ok") { var L = document.getElementById("loading");
+    L.insertAdjacentHTML("beforeend", '<div style="position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center;font:800 13px Nunito,system-ui,sans-serif;color:#5a3413;text-shadow:none">Last time the farm stopped while ' + String(last).replace(/</g, "&lt;") + '. Trying again…</div>'); }
 })();
 </script>
 <div class="hud">
@@ -299,10 +302,13 @@ import * as G from "./game.js";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
+const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
+bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
 const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/";
 
 // ---------------- renderer ----------------
+bootStep("starting the graphics");
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -312,6 +318,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.prepend(renderer.domElement);
 
+bootStep("setting up the scene");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 50 : 38, innerWidth / innerHeight, 0.1, 600);
 
@@ -638,6 +645,7 @@ function makeAnimal(src, h, x, z) {
   return {g, card, shadowCard, h};
 }
 
+bootStep("making the ground");
 // ---------------- ground ----------------
 const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
 const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
@@ -663,6 +671,7 @@ ground.receiveShadow = true; scene.add(ground);
   const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
   pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
 
+bootStep("growing the grass");
 // ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
 const windU = {uTime:{value:0}, uWind:{value:.3}};
 // where every grass tuft and wildflower grows, so they can be cleared from under new fields and buildings
@@ -791,6 +800,7 @@ function mergeStaticNow(root, keep) {
 }
 const keepCanopy = (t) => (o) => o === t.userData.canopy;
 
+bootStep("placing the barn and trees");
 // ---------------- place things ----------------
 const barn = mergeStatic(makeBarn()); scene.add(barn); contact(0, 0, 11, 14);
 const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); contact(-9, 4, 3, 3);
@@ -798,6 +808,7 @@ const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar
 const groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
   t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+bootStep("planting the woods");
 // woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
 const far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
   for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;
@@ -825,6 +836,7 @@ function makeWaterPan(r) {
   return g;
 }
 
+bootStep("building the farm pieces");
 // ---------------- more farm pieces ----------------
 function ribbedMetal(seed) { // corrugated galvanized steel
   const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
@@ -948,6 +960,7 @@ for (const [x, z, r] of [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
 for (const o of [barn, tree, tree2, silo, trough, lampPost, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
 
+bootStep("getting the animals ready");
 // ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
 const PERSONALITY = {
   Lazy:{energy:.25, social:.5, curious:.3, brave:.6, hunger:.5, blurb:"Loves a long nap in the sun"},
@@ -1213,6 +1226,7 @@ function syncHerd() {
   }
 }
 
+bootStep("making the sky");
 // ---------------- sky, sun and fill light ----------------
 const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()},
   uTime:{value:0}, uCover:{value:.45}, cloudCol:{value:new THREE.Color(1, 1, 1)}, cloudShade:{value:new THREE.Color(.6, .65, .75)}, uNight:{value:0}};
@@ -1307,6 +1321,7 @@ function setPreset(name) {
   bloom.strength = P.bloom || .18;
 }
 
+bootStep("setting up the camera effects");
 // ---------------- post-processing: bloom + tone mapping ----------------
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
@@ -1415,6 +1430,7 @@ renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.d
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
 addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
 
+bootStep("building the fields and buildings");
 mergeStatic(decals); // every soft ground shadow of the scenery, as one piece
 // ---------------- the game on the farm: fields, buildings, order board, shop stall, decorations ----------------
 // Rules and menus live in game.js (the same as the 2D game); this part draws them in 3D and handles taps.
@@ -1962,6 +1978,7 @@ function updateGame(t, dt) {
 setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
 setInterval(() => { GV.applyWeather(); syncHoliday(); }, 60000);
 
+bootStep("loading your farm");
 // ---------------- start the game ----------------
 G.ART_PATH.p = ART;
 if (qs.has("shot") && !qs.has("loud")) G.opts.quiet = true;
@@ -1980,11 +1997,13 @@ if (qs.has("demo")) {
   S.decor.placed = [{id:"fountain", x:-3.6, z:2.4}, {id:"tulips", x:-5.4, z:9.2}, {id:"pine", x:17, z:4}, {id:"bench", x:-3.4, z:14.5}];
   S.stand.list = [{id:"egg", qty:2, price:24, sellAt:Date.now() + 60000}, {id:"bread", qty:1, price:14, sellAt:Date.now() - 1}, null, null];
 }
+bootStep("putting your farm in place");
 GV.refresh("all");
 for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});
 if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
+bootStep("setting the weather and time of day");
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
@@ -1999,6 +2018,7 @@ if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 
 
 // ---------------- animation ----------------
 const clock = new THREE.Timer(); let shotFrames = 0;
+frame.drawn = 0;
 function frame() {
   if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
@@ -2013,6 +2033,7 @@ function frame() {
   if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
   if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
   composer.render();
+  if (!frame.okAt && ++frame.drawn >= 3) { frame.okAt = true; bootStep("ok"); }
   if (qs.has("shot") && texturesReady && ++shotFrames >= 3) { window.__done = true; return; } // snapshot mode: draw a few frames, then hold still
   requestAnimationFrame(frame);
 }
@@ -2052,6 +2073,7 @@ function setQuality(q) {
   applySize();
   if (QUALITY.auto) watchFrames();
 }
+bootStep("drawing the first picture");
 setQuality(G.PREFS.quality || "auto");
 frame();
 if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});
