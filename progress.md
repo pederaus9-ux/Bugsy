@@ -33,6 +33,7 @@ Last updated: 2026-09-26
   - thousands of grass blades that sway in the wind; natural color patches in the ground; trees on the hills
   - paint panel: walls (grain kept), trim and roof colors
   - published as a phone test link (see above)
+- [x] **More farm pieces, all real 3D:** grain silo (ribbed metal, ladder, dome), round hay bales, water trough (freezes in snow), rocks (granite with moss), bushes, a ploughed wheat field that sways, and a lamp post that lights up at night
 
 ## Decisions
 - **Work stays in this cloud chat, driven from the phone** (the PC plan was dropped). Everything is saved to GitHub, and test links are published after each milestone.
@@ -44,7 +45,7 @@ Last updated: 2026-09-26
 ## Next
 1. Get the user's feedback on the 3D barn look (lighting, weather, 360°, paint).
 2. Building styles and sizes (the shapes and sizes from the user's barn mockup).
-3. More environment pieces in the same 3D style: silo, fences, trees, bushes, rocks, crop plots, hay bales, water trough, dirt paths.
+3. Remaining pieces from the building list: farmhouse, shed, market stall, windmill, water tank, sign board, truck, tractor.
 4. Move the whole game (fields, orders, shop, events…) into the 3D world.
 5. Animal customization: breeds, colors, sizes, accessories.
 
