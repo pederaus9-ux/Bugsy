@@ -10,12 +10,19 @@
   .bar{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 10px}
   .bar button{border:2px solid #fff;border-radius:18px;padding:8px 12px;font-weight:700;font-size:14px;color:#fff;background:rgba(40,30,15,.6);backdrop-filter:blur(4px)}
   .bar button.on{background:rgba(214,120,30,.9)}
+  .paint{position:fixed;right:10px;top:calc(env(safe-area-inset-top,0px) + 40px);display:flex;flex-direction:column;gap:8px;background:rgba(40,30,15,.62);backdrop-filter:blur(6px);
+    border:2px solid #fff;border-radius:16px;padding:10px;color:#fff;font-weight:700;font-size:12px;max-width:170px}
+  .paint .row{display:flex;flex-wrap:wrap;gap:6px}
+  .paint .sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.7);padding:0}
+  .paint .sw.on{outline:3px solid #ffb443;outline-offset:1px}
+  .paint summary{cursor:pointer;list-style:none}
   .hint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;text-align:center;color:#fff;font-weight:700;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
 <div class="hint">Drag to turn all the way around · pinch or scroll to zoom · two fingers to move</div>
 <div class="bar" id="bar"></div>
+<details class="paint" id="paint" open><summary>🎨 Paint the barn</summary></details>
 <script type="module">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -55,7 +62,7 @@ function weatherize(mat) {
       float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
         return mix(mix(hsh(i), hsh(i+vec2(1,0)), f.x), mix(hsh(i+vec2(0,1)), hsh(i+vec2(1,1)), f.x), f.y); }`)
       .replace("#include <map_fragment>", `#include <map_fragment>
-      float snowAmt = uSnow * smoothstep(0.35, 0.75, vWN.y + (vnoise(vWP.xz * 1.7) - 0.5) * 0.5);
+      float snowAmt = uSnow * smoothstep(0.3, 0.6, vWN.y + (vnoise(vWP.xz * 6.0) - 0.5) * 0.12 + (vnoise(vWP.xz * .8) - 0.5) * 0.08);
       diffuseColor.rgb *= mix(1.0, 0.62, uWet * (1.0 - snowAmt));
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.96, 1.0), snowAmt);`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
@@ -105,11 +112,11 @@ function planks(base, seed, worn = .5) { // vertical painted barn boards
   for (let i = 0; i < 900 * worn; i++) { x.fillStyle = `rgba(${R() < .5 ? "235,225,205" : "60,40,25"},${R() * .18})`; x.fillRect(R() * n, R() * n, 1 + R() * 4, 1 + R() * 10); }
   return [c, normalFrom(h, 3)];
 }
-function shingles(seed) {
+function shingles(seed, base = [30, 12, 28]) {
   const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), rh = 32, tw = 44;
   for (let r = 0; r < n / rh; r++) for (let t = -1; t < n / tw + 1; t++) {
     const ox = t * tw + (r % 2) * tw / 2 + (R() - .5) * 4, y = r * rh, v = R();
-    x.fillStyle = `hsl(${25 + v * 12},${8 + v * 8}%,${22 + v * 14}%)`; x.fillRect(ox, y, tw - 2, rh);
+    x.fillStyle = `hsl(${base[0] - 5 + v * 12},${base[1] - 4 + v * 8}%,${base[2] - 6 + v * 14}%)`; x.fillRect(ox, y, tw - 2, rh);
     const g = hx.createLinearGradient(0, y, 0, y + rh); g.addColorStop(0, "#303030"); g.addColorStop(1, "#d0d0d0");
     hx.fillStyle = g; hx.fillRect(ox, y, tw - 2, rh);
     x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(ox, y + rh - 3, tw - 2, 3);
@@ -153,8 +160,8 @@ function grass(seed) {
 }
 function dirt(seed) {
   const n = 512, [c, x] = canvas(n), R = rng(seed);
-  x.fillStyle = "#8a6a45"; x.fillRect(0, 0, n, n);
-  for (let i = 0; i < 9000; i++) { x.fillStyle = `hsla(${25 + R() * 15},${25 + R() * 20}%,${25 + R() * 35}%,${.3 + R() * .5})`; x.beginPath(); x.arc(R() * n, R() * n, .5 + R() * 2.2, 0, 7); x.fill(); }
+  x.fillStyle = "#b59568"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++) { x.fillStyle = `hsla(${28 + R() * 12},${18 + R() * 18}%,${38 + R() * 32}%,${.3 + R() * .5})`; x.beginPath(); x.arc(R() * n, R() * n, .5 + R() * 2.2, 0, 7); x.fill(); }
   return c;
 }
 function leafCard(seed) { // a clump of leaves with transparent gaps, used on many small cards per tree
@@ -323,7 +330,7 @@ ground.receiveShadow = true; scene.add(ground);
   ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? "rgba(0,0,0,.35)" : "rgba(255,255,255,.3)"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }
   const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, "rgba(0,0,0,1)"); fadeEnd.addColorStop(.25, "rgba(0,0,0,0)"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);
-  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xd8c2a0}));
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
   pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
 
 // ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
@@ -424,9 +431,9 @@ const snow = particles(3000, 0xffffff, .12);
 
 // ---------------- lighting & weather presets ----------------
 const PRESETS = {
-  morning:{sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:2.3, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
+  morning:{sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:3.0, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
   noon:{sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
-  golden:{sunEl:10, sunAz:-65, sunCol:0xffae5e, sunI:3.2, hemiSky:0xffd9b8, hemiGnd:0x6a5030, hemiI:.85, top:0x6e8fcf, hor:0xffc98a, fog:.004, exp:1.2, bloom:.35},
+  golden:{sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
   rain:{sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
   snow:{sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
   night:{animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.45, hemiSky:0x223355, hemiGnd:0x0c0f14, hemiI:.35, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.1, night:1, bloom:.8},
@@ -441,7 +448,7 @@ function setPreset(name) {
   scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp;
   WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
   rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
-  M.glass.emissiveIntensity = P.night ? 2.2 : 0; lamp.intensity = P.night ? 30 : 0;
+  M.glass.emissiveIntensity = P.night ? 2.2 : 0; lamp.intensity = P.night ? 16 : 0;
   for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
   windU.uWind.value = wind;
   // sky reflections for glossy paint, glass and wet surfaces
@@ -488,11 +495,39 @@ renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 
 // ---------------- UI ----------------
+// ---------------- paint: walls, trim and roof ----------------
+// Walls are repainted by redrawing the plank texture in the new color, so grain and wear stay.
+const PAINT = {
+  Walls:[["Barn red", [4, 62, 36]], ["Sky blue", [208, 42, 42]], ["Sage", [100, 18, 40]], ["Buttercream", [42, 55, 70]], ["Charcoal", [220, 6, 22]], ["Lavender", [268, 26, 52]], ["Natural wood", [30, 45, 40]], ["White", [40, 12, 86]]],
+  Trim:[["White", 0xf2eadc], ["Black", 0x2a2a2a], ["Wood", 0x9a6a40], ["Cream", 0xe8d7b0], ["Red", 0x9c2a22]],
+  Roof:[["Charcoal", [30, 8, 26]], ["Brown", [25, 30, 30]], ["Forest green", [130, 25, 26]], ["Barn red", [4, 45, 30]], ["Slate blue", [212, 22, 32]]],
+};
+const hsl = (h) => `hsl(${h[0]},${h[1]}%,${h[2]}%)`;
+function paint(part, i) {
+  const [, v] = PAINT[part][i];
+  if (part === "Walls") { const [c, n] = planks(v, 11); M.red.map.dispose(); M.red.map = tex(c, 1); M.red.normalMap = tex(n); M.red.needsUpdate = true; }
+  if (part === "Trim") M.trim.color.set(v);
+  if (part === "Roof") { const [c, n] = shingles(3, v); M.roof.map.dispose(); M.roof.map = tex(c, 1); M.roof.normalMap = tex(n); M.roof.needsUpdate = true; }
+  document.querySelectorAll(`[data-part="${part}"]`).forEach((b, j) => b.classList.toggle("on", j === i));
+}
+{ const pd = document.getElementById("paint");
+  for (const part of Object.keys(PAINT)) {
+    const lab = document.createElement("div"); lab.textContent = part; pd.appendChild(lab);
+    const row = document.createElement("div"); row.className = "row"; pd.appendChild(row);
+    PAINT[part].forEach(([name, v], i) => {
+      const b = document.createElement("button"); b.className = "sw" + (i === 0 ? " on" : ""); b.title = name; b.setAttribute("aria-label", part + ": " + name);
+      b.dataset.part = part; b.style.background = typeof v === "number" ? "#" + v.toString(16).padStart(6, "0") : hsl(v);
+      b.onclick = () => paint(part, i); row.appendChild(b);
+    });
+  }
+  if (innerWidth < 600) pd.open = false;
+  if (qs.get("walls")) paint("Walls", +qs.get("walls")); if (qs.get("trim")) paint("Trim", +qs.get("trim")); if (qs.get("roof")) paint("Roof", +qs.get("roof"));
+}
 const bar = document.getElementById("bar");
 for (const [k, label] of [["morning", "🌅 Morning"], ["noon", "☀️ Noon"], ["golden", "🌇 Golden hour"], ["rain", "🌧️ Rain"], ["snow", "❄️ Snow"], ["night", "🌙 Night"]]) {
   const b = document.createElement("button"); b.textContent = label; b.dataset.p = k; b.onclick = () => setPreset(k); bar.appendChild(b);
 }
-if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); }
+if (qs.has("shot")) { bar.remove(); document.querySelector(".hint").remove(); document.getElementById("paint").remove(); }
 setPreset(qs.get("preset") || "golden");
 
 // ---------------- animation ----------------
