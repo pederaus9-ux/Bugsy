@@ -2,7 +2,9 @@
 
 A black, neon gold and lime livery for the iRacing **Toyota GR86**, made on the official iRacing GR86 template.
 
-![preview](output/preview_wire.png)
+![showcase](output/showcase.png)
+
+The views are the real painted panels cut out of the template, so they match the TGA exactly. [Template layout](output/preview_wire.png)
 
 ## Put it in iRacing
 
@@ -22,7 +24,7 @@ Other people only see your paint if you upload it through Trading Paints.
 - **Sides:** AUSTIN PEDERSON over the door, the PEDERSON / FARMS / RACING logo, a big gold 30 on the rear door, and a wheat garland along the rocker. The front fender has the glowing barn and silo with "Amber Pederson & Oaklynn". The rear quarter has Little Man, Benny and Twila plus the "In Memory of Tate" badge.
 - **Hood:** team logo with wheat garlands and neon lines running to the headlights.
 - **Roof:** gold 30 inside a wheat wreath.
-- **Trunk:** Tate's memorial badge and PEDERSON FARMS RACING.
+- **Trunk:** Tate's memorial badge.
 - **Base:** black with a faint tractor-tread texture.
 
 The GR Cup sponsor decals from iRacing's template (Mobil 1, Continental and the others) are kept, as the series requires.
@@ -34,4 +36,4 @@ pip install pillow numpy psd-tools
 python make_paint.py --id 123456
 ```
 
-This rebuilds everything in `output/`, with your ID already in the file names. On the first run it downloads the official template from iRacing.
+Run `python showcase.py` afterwards to redraw the poster. This rebuilds everything in `output/`, with your ID already in the file names. On the first run it downloads the official template from iRacing.

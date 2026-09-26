@@ -571,10 +571,7 @@ def trunk_art(canvas):
     x0, y0, x1, y1 = TRUNK
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     badge = tate_badge(420).rotate(90, expand=True, resample=Image.BICUBIC)
-    paste_center(canvas, fit(badge, 205, 205), x0 + 100, cy)
-    txt = text_block("PEDERSON FARMS RACING", font(F_COND, 120), GOLD_STOPS, stroke=5, tracking=4)
-    txt = txt.rotate(90, expand=True, resample=Image.BICUBIC)
-    paste_center(canvas, fit(txt, 46, y1 - y0 - 40), x1 - 38, cy)
+    paste_center(canvas, fit(badge, 200, 200), 1715, cy)
 
 
 def rear_bumper_art(canvas):
