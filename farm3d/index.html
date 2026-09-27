@@ -2381,9 +2381,10 @@ function surfaceAt(x, z) {
 
 // ---------- a smooth camera swoop between any two views (classic ↔ eye level, into the barn and out) ----------
 let camTween = null;
-function startTween(dur = 1.2) { camTween = {t0:performance.now(), dur:dur * 1000, p:camera.position.clone(), q:camera.quaternion.clone(), fov:camera.fov}; }
+function startTween(dur = 1.2) { camTween = {t0:null, dur:dur * 1000, p:camera.position.clone(), q:camera.quaternion.clone(), fov:camera.fov}; }
 function applyTween() { // after the new view has placed the camera: blend from where it was
   if (!camTween) return 1;
+  if (camTween.t0 == null) camTween.t0 = performance.now(); // the clock starts on the first frame drawn (switching modes can take a moment)
   const k = Math.min(1, (performance.now() - camTween.t0) / camTween.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   const fov = camera.fov; camera.position.lerpVectors(camTween.p, camera.position.clone(), e); camera.quaternion.slerpQuaternions(camTween.q, camera.quaternion.clone(), e);
   camera.fov = camTween.fov + (fov - camTween.fov) * e; camera.updateProjectionMatrix(); camera.fov = fov;
