@@ -190,6 +190,21 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .islot .gq{position:absolute;top:3px;left:4px;font-size:11px;font-weight:900}
 .islot.got{background:#E6F5D8} .islot.got .q{color:var(--green-dk)} .islot.missing{opacity:.35;filter:grayscale(1)}
 .qlist{display:flex;flex-direction:column;gap:8px}
+.ftabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 10px}
+.frow .rank{width:30px;text-align:center;font-weight:900;font-size:18px;flex:none} .frow .who{flex:1;min-width:0;font-weight:800;display:flex;flex-direction:column}
+.frow .who small{font-weight:800;opacity:.65;font-size:12px} .frow .score{font-weight:900;flex:none} .frow .e{font-size:26px;flex:none}
+.sellform{display:flex;flex-direction:column;gap:8px;padding:10px;margin-top:8px}
+.sellform select{font:inherit;font-weight:800;padding:8px;border-radius:10px;border:2px solid var(--parch2);background:#fff;color:var(--ink)}
+.sellform .frow b{min-width:64px;text-align:center}
+.streak{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sday{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;position:relative;text-align:center}
+.sday .e{font-size:26px;line-height:1.1} .sday b{font-size:11px;font-weight:900;line-height:1.2} .sday small{font-weight:900;opacity:.6;font-size:11px}
+.sday.today{outline:3px solid var(--gold-dk);background:#FFF6DC;animation:pulse 1.4s infinite} .sday.got{opacity:.55} .sday i{position:absolute;top:2px;right:6px;color:var(--green-dk);font-style:normal;font-weight:900}
+.sday:last-child{grid-column:span 2}
+.track{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.tstep{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;text-align:center}
+.tstep .e{font-size:26px;line-height:1.1} .tstep b{font-size:11px;font-weight:900;line-height:1.2} .tstep small{font-weight:900;opacity:.6;font-size:11px}
+.tstep.won{background:#E6F5D8;outline:2px solid var(--green)}
 .qrow{display:flex;align-items:center;gap:10px;padding:10px 12px}
 .qrow .e{font-size:26px;flex:none} .qrow .grow{flex:1;min-width:0} .qrow b{display:block;font-weight:900;font-size:14px;line-height:1.25}
 .qrow .cap{margin:5px 0 2px} .qrow .done{font-size:22px;color:var(--green-dk);font-weight:900;flex:none} .qrow.got{opacity:.7}
@@ -438,7 +453,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <h3><span>👥 Friends</span><button type="button" class="x" data-f="close" aria-label="Close">✕</button></h3>
   <div id="friendsBody"></div>
 </div>
-<div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>look around · read-only</small><button data-mode="home">🏠 Home</button></div>
+<div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>tap growing crops to 💧 water them</small><button data-mode="home">🏠 Home</button></div>
 <form class="fbbox" id="fbBox" hidden>
   <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
   <p class="tray-sub">Found a bug or have an idea? Tell us!</p>
@@ -481,8 +496,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=15";
-import {initFriends} from "./friends.js?v=2"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=16";
+import {initFriends} from "./friends.js?v=3"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1636,7 +1651,16 @@ let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
-  if (editMode || visiting) return; // the layout editor only drags things; a friend's farm is read-only
+  if (editMode) return; // the layout editor only drags things
+  if (visiting) { // a friend's farm is read-only, except that you can water their growing crops for them
+    if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
+    const h = hitAt(e.clientX, e.clientY), p = h && h.type === "plot" && GS().plots[h.i];
+    if (p && p.crop && p.end > nowMs()) {
+      if (p.water) { G.toast("💧 Already watered"); return; }
+      if (friendHooks.water && friendHooks.water(h.i)) { p.water = 1; squish(plots[h.i].g, .3); fxAt("plot:" + h.i, "💧"); G.sfx("water"); syncSoil(); }
+    } else if (p) G.toast(p.crop ? "Ripe! Only " + visiting.name + " can harvest it." : "Tap a growing crop to water it for your friend");
+    return;
+  }
   if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
   if (onTap(e)) return;
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
@@ -1658,18 +1682,19 @@ const visitBar = document.getElementById("visitBar");
 function enterVisit(farm, name) {
   if (walk) setWalk(false); if (editMode) setEdit(false); if (moving) endMove(true); closeTrays();
   if (!visiting) visiting = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  visiting.name = name;
   G.visitFarm(farm);
-  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Level " + (G.S.level || 1);
+  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Lv " + (G.S.level || 1);
   document.body.classList.add("visiting"); visitBar.hidden = false;
   Object.assign(cam, {yaw:.6, pitch:.56, dist:40}); cam.target.set(1.5, 2.5, 2); G.sfx("pop");
 }
 function leaveVisit() {
   if (!visiting) return; const v = visiting; visiting = null;
-  G.leaveVisit(); document.body.classList.remove("visiting"); visitBar.hidden = true;
+  G.leaveVisit(); document.body.classList.remove("visiting"); visitBar.hidden = true; dispatchEvent(new Event("sa3d:leftvisit"));
   Object.assign(cam, {yaw:v.yaw, pitch:v.pitch, dist:v.dist}); cam.target.copy(v.target); G.sfx("pop");
 }
 visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
-initFriends(G, {enterVisit}); if (window.__saLinked) setTimeout(linkedToast, 1200);
+const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && visiting.name}) || {}; if (window.__saLinked) setTimeout(linkedToast, 1200);
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
@@ -2410,6 +2435,7 @@ function drawTrail() {
   swipeCx.shadowBlur = 0;
 }
 function combo(n, x, y) { // three or more in one swipe
+  G.noteCombo(n);
   const d = document.createElement("div"); d.className = "fx out combo"; d.textContent = "×" + n + " combo!"; d.style.left = x + "px"; d.style.top = (y - 50) + "px";
   document.body.appendChild(d); setTimeout(() => d.remove(), 1150); G.sfx("magic");
 }
