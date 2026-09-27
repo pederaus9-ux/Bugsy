@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6EC3E6">
 <title>Sunny Acres 3D</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -95,6 +95,8 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .seed{touch-action:none;flex:none;width:70px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
 .seed img{width:36px;height:36px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
 .seed b{font-size:11px;font-weight:800;letter-spacing:-.2px;white-space:nowrap} .seed small{font-size:11px;font-weight:800;opacity:.75;text-align:center}
+.seed .tag{font-size:11px;font-weight:900;border-radius:999px;padding:1px 6px;white-space:nowrap;line-height:1.35}
+.seed .tag.own{background:var(--green);color:#fff} .seed .tag.buy{background:#fff;color:var(--wood-dk);box-shadow:inset 0 0 0 1.5px var(--gold-dk)}
 .seed.on{border-color:var(--gold-dk);background:#FFF6DC}
 .seed.locked{opacity:.45;filter:grayscale(1)}
 .acard{display:flex;align-items:center;gap:10px}
@@ -114,6 +116,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .tut p{margin:0;font-weight:800;font-size:15px;flex:1}
 .tut small{display:block;font-weight:800;opacity:.55;font-size:11px;margin-top:4px}
 .tut button{font-weight:800;font-size:12px;color:var(--wood);text-decoration:underline;flex:none}
+.tut #tutNext{display:inline-block;margin-top:8px;text-decoration:none;color:#fff;font-size:14px;padding:7px 18px}
 .pointer{position:fixed;z-index:7;font-size:40px;pointer-events:none;transform:translate(-50%,-100%);filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));animation:bob .8s ease-in-out infinite alternate}
 @keyframes bob{to{margin-top:-14px}}
 
@@ -165,8 +168,10 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .note::before{content:"📌";position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:20px}
 .note.can{outline:3px solid var(--green)}
 .note .items{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px}
-.oi{display:flex;flex-direction:column;align-items:center;font-weight:800;font-size:13px}
-.oi .e{font-size:30px;line-height:1.1}
+.oi{display:flex;flex-direction:column;align-items:center;font-weight:800;font-size:13px;max-width:64px}
+.oi .e{font-size:30px;line-height:1.15;height:36px}
+.oi .n{position:relative;font-weight:900;font-size:14px;line-height:1.2;white-space:nowrap}
+.oi small{font-size:10px;font-weight:800;opacity:.7;text-align:center;line-height:1.1}
 .oi.short{color:var(--red-dk)}
 .oi.ok::after{content:"✔";color:var(--green-dk);font-size:12px}
 .reward{display:flex;justify-content:center;gap:8px;font-family:var(--fun);font-size:15px;flex-wrap:wrap}
@@ -243,10 +248,10 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .ghost{position:fixed;z-index:25;width:56px;height:56px;object-fit:contain;pointer-events:none;transform:translate(-50%,-125%);filter:drop-shadow(0 5px 6px rgba(0,0,0,.35))}
 .movebar{text-align:center}
 /* sign in / create account */
-.authgate{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;
+.authgate{position:fixed;inset:0;z-index:60;display:flex;padding:16px;overflow-y:auto;
   background:linear-gradient(rgba(142,201,238,.82),rgba(207,233,192,.9));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .authgate[hidden],.authcard [hidden]{display:none!important}
-.authcard{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;background:var(--parch);border:4px solid var(--wood);border-radius:24px;
+.authcard{width:100%;max-width:380px;margin:auto;display:flex;flex-direction:column;gap:10px;background:var(--parch);border:4px solid var(--wood);border-radius:24px;
   padding:18px 18px 16px;box-shadow:0 7px 0 var(--wood-dk),0 18px 40px rgba(60,40,10,.35);color:var(--ink);text-align:center}
 .authlogo{font-size:44px;line-height:1;margin-top:-4px}
 .authcard h2{margin:0;font:400 28px/1.1 var(--fun);color:var(--wood-dk)}
@@ -274,6 +279,10 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .authgo{width:100%;padding:13px;font-size:17px}
 .authgo:disabled{opacity:.6}
 .authlink{background:none;font-weight:800;font-size:13px;color:var(--wood-dk);text-decoration:underline;padding:4px}
+.authguest{margin-top:2px;padding:10px;border-radius:14px;border:2px dashed var(--wood);font-weight:900;font-size:14px;color:var(--wood-dk);background:rgba(255,255,255,.35)}
+.guestbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:430px;margin:0 auto;z-index:9;display:flex;align-items:center;gap:8px;
+  background:#fff;border:3px solid var(--blue-dk);border-radius:16px;padding:8px 8px 8px 12px;box-shadow:0 4px 0 rgba(31,127,192,.35);font-weight:800;font-size:13px;animation:pop .3s ease-out}
+.guestbar span{flex:1;line-height:1.25} .guestbar .btn{flex:none} .guestbar .gx{flex:none;font-size:16px;padding:4px 6px;color:var(--wood)}
 .fbbox{position:fixed;left:12px;right:12px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;z-index:35;display:flex;flex-direction:column;gap:8px;
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
 .fbbox[hidden]{display:none}
@@ -359,7 +368,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 </div>
 <div class="tray" id="seedTray" hidden><h3><span>🌱 Plant <small id="seedHelp"></small></span><button class="x" data-tray="close" aria-label="Close">✕</button></h3><div class="seeds" id="seedList"></div></div>
 <div class="tray" id="infoTray" hidden></div>
-<div class="tut" id="tut" hidden><span class="face">🧑‍🌾</span><div style="flex:1"><p id="tutText"></p><small id="tutStep"></small></div><button data-act="tutSkip">Skip</button></div>
+<div class="tut" id="tut" hidden><span class="face">🧑‍🌾</span><div style="flex:1"><p id="tutText"></p><small id="tutStep"></small> <button class="btn sm" id="tutNext" data-act="tutNext" hidden>Got it</button></div><button data-act="tutSkip">Skip</button></div>
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
@@ -389,7 +398,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="authgate" id="authGate" hidden>
   <form class="authcard" id="authForm" novalidate>
     <div class="authlogo" aria-hidden="true">🌻</div>
-    <h2 id="authTitle">Welcome back!</h2>
+    <h2 id="authTitle">Welcome!</h2>
     <p class="authsub" id="authSub">Sign in to play Sunny Acres</p>
     <p class="authnote" id="authNote" hidden></p>
     <div class="authtabs" id="authTabs"><button type="button" data-mode="signin">Sign in</button><button type="button" data-mode="register">Create account</button></div>
@@ -404,9 +413,10 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <p class="authmsg" id="authMsg" role="alert"></p>
     <button class="btn authgo" id="authGo" type="submit">Sign in</button>
     <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
+    <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=9"></script>
+<script type="module" src="auth.js?v=10"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -414,7 +424,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=12";
+import * as G from "./game.js?v=13";
 import {initFriends} from "./friends.js?v=2"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -1434,7 +1444,7 @@ const PRESETS = {
   golden:{cover:.56, cloud:0xffc592, shade:0x7a6a8c, sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
   rain:{cover:.98, cloud:0x9aa3ad, shade:0x59616c, sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
   snow:{cover:.92, cloud:0xe8edf2, shade:0xa7b1be, sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
-  night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.45, hemiSky:0x223355, hemiGnd:0x0c0f14, hemiI:.35, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.1, night:1, bloom:.8},
+  night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.8, hemiSky:0x2a3d66, hemiGnd:0x141a24, hemiI:.62, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.3, night:1, bloom:.8},
 };
 let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
 function setPreset(name) {
@@ -1442,6 +1452,7 @@ function setPreset(name) {
   const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
   sunDir.copy(dir); sun.color.set(P.sunCol); sun.intensity = P.sunI;
   hemi.color.set(P.hemiSky); hemi.groundColor.set(P.hemiGnd); hemi.intensity = P.hemiI;
+  if (M.tilled) M.tilled.emissive.set(P.night ? 0x6a4420 : 0x000000), M.tilled.emissiveIntensity = P.night ? .5 : 1; // at night the fields glow softly, as if lit by lanterns, so you can find them
   skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
   skyU.uCover.value = P.cover; skyU.cloudCol.value.set(P.cloud); skyU.cloudShade.value.set(P.shade); skyU.uNight.value = P.night ? 1 : 0;
   LIT.uSunDir.value.copy(dir); LIT.uSunCol.value.set(P.sunCol).multiplyScalar(P.sunI * (P.night ? .15 : .32));
@@ -1777,13 +1788,20 @@ function makeWorkshop(bid) {
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return mergeStatic(g);
 }
+// an invisible box that catches taps for something small or thin (it's never drawn, only hit)
+const HIT_MAT = new THREE.MeshBasicMaterial({visible:false});
+function hitProxy(w, h, d, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), HIT_MAT); m.position.set(x, y, z); return m; }
 function makeLot(bid) { // a roped-off gravel lot with a sign, before the building is bought
   const g = new THREE.Group(), b = G.BUILDINGS[bid];
   g.add(box(3.4, .05, 3, std({map:tex(dirt(33), 1, [2, 2]), color:0x9a8e80, roughness:1}), 0, .02, 0, .5));
   for (const [x, z] of [[-1.7, -1.5], [1.7, -1.5], [1.7, 1.5], [-1.7, 1.5]]) g.add(box(.09, .7, .09, M.fence, x, .35, z));
   for (const [x, z, w, d] of [[0, -1.5, 3.4, .03], [0, 1.5, 3.4, .03], [-1.7, 0, .03, 3], [1.7, 0, .03, 3]]) g.add(box(w, .03, d, std({color:0xd8c8a0}), x, .6, z));
   mergeStatic(g);
-  const s = makeSign(["", ""], 1.6, .8); s.position.set(0, 0, 1.1); g.add(s); g.userData.sign = s;
+  // taps: only the gravel and the sign count. The posts and ropes stick up in front of the building next door (the Feed Mill,
+  // seen from the usual camera) and used to steal its taps.
+  g.traverse(o => { if (o.isMesh) o.raycast = () => {}; });
+  g.add(hitProxy(3.4, .25, 3, 0, .12, 0));
+  const s = makeSign(["", ""], 2.1, 1.05); s.position.set(0, 0, 1.1); g.add(s); g.userData.sign = s;
   return g;
 }
 const buildings = {};
@@ -1797,7 +1815,10 @@ function syncBuildings() {
       B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;
       if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
     }
-    if (!owned) { const b = G.BUILDINGS[bid]; B.g.userData.sign.userData.set([b.e + " " + b.n, GS().level >= b.lvl ? b.cost + " 🪙" : "🔒 Level " + b.lvl]); }
+    if (!owned) { const b = G.BUILDINGS[bid], open = GS().level >= b.lvl; B.g.userData.sign.userData.set([b.e + " " + b.n, open ? b.cost + " 🪙" : "🔒 Level " + b.lvl]);
+      // a floating 🔨 over a lot you're allowed to build on, so it doesn't look like just an empty patch
+      if (!B.g.userData.buy) { const bb = bubble("🔨"); bb.position.set(0, 3.3, .6); bb.scale.setScalar(1.1); B.g.add(bb); B.g.userData.buy = bb; }
+      B.g.userData.buy.visible = open; }
   }
 }
 // chimney smoke while a building is busy, and a bubble with the goods when something is ready
@@ -1838,7 +1859,7 @@ function makeGift() {
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   return mergeStatic(g);
 }
-const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; scene.add(gift);
+const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; gift.add(hitProxy(1.3, 1.4, 1.3, 0, .7, 0)); scene.add(gift); // a small box: a bigger area to tap
 BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4, "board");
 function makeStall() {
   const g = new THREE.Group(), wood = M.fence;
@@ -2383,7 +2404,8 @@ function renderSeeds() {
   document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera" : "Tap a seed, or drag one onto the fields";
   document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
     ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
-    : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>${G.have(id) ? "×" + G.have(id) : c.seed + " 🪙"} · ${G.fmt(c.time * 1000)}</small></button>`).join("");
+    : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b>${G.have(id) // seeds you have show how many; the rest show what one costs
+      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>⏱ ${G.fmt(c.time * 1000)}</small></button>`).join("");
 }
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
 let pendingPlot = -1;
@@ -2487,10 +2509,20 @@ function hitAt(x, y) {
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const an = ray.intersectObjects(animals.map(a => a.card))[0];
   const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, ...decorObjs, barn].filter(o => o.visible);
-  const hit = ray.intersectObjects(targets, true)[0];
+  const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
+  let hit = hits[0];
+  // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
+  if (hit && (owner(hit).userData.hit || {}).type === "lot") { const b = hits.find(h => (owner(h).userData.hit || {}).type === "building"); if (b) hit = b; }
   if (an && (!hit || an.distance < hit.distance + .5)) return {type:"animal", an:animals.find(a => a.card === an.object)};
+  // animals are small from the usual camera: a tap close to one counts, unless something is clearly in front of it
+  if (!an) {
+    let best = null, bd = 34;
+    for (const a of animals) { if (!a.g.visible) continue; const p = a.g.position.clone().setY(a.S.h * .45), s = toScreen(p); if (!s) continue;
+      const d = Math.hypot(s.x - x, s.y - y); if (d < bd && (!hit || camera.position.distanceTo(p) < hit.distance + 1)) { bd = d; best = a; } }
+    if (best) return {type:"animal", an:best};
+  }
   if (!hit) return null;
-  let o = hit.object; while (o && !o.userData.hit && o !== barn) o = o.parent;
+  let o = owner(hit);
   if (o === barn) return {type:"barn"};
   return o ? Object.assign({obj:o}, o.userData.hit) : null;
 }
@@ -2502,11 +2534,11 @@ function farmDown(e) {
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
   const h = hitAt(e.clientX, e.clientY);
+  // Fruit Ninja: a swipe that starts on a ripe crop slices every ripe crop it crosses
   if (h && h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; trail.length = 0; trailPoint(e.clientX, e.clientY); harvestAt(h.i); paintUsed = true; return true; }
   // with a seed picked, one finger plants: it can start anywhere, and every empty field it slides over gets that seed (two fingers still move the camera)
   if (armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (h && h.type === "plot" && !GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
-  // Fruit Ninja: when something is ripe, a swipe that starts on any field slices every ripe crop it crosses
-  if (h && h.type === "plot" && GS().plots.some((q, i) => q.crop && ready(i))) { farmDrag = {id:e.pointerId, mode:"harvest", n:0}; trail.length = 0; trailPoint(e.clientX, e.clientY); return true; }
+  // a drag that starts anywhere else (a growing or empty field included) turns the camera; only one that starts on a ripe crop harvests
   if (!h) { // press and hold on the grass: drop some feed there
     const g = groundAt(e.clientX, e.clientY); clearTimeout(pressTimer);
     if (g) pressTimer = setTimeout(() => { pressTimer = 0; if (ptr.size === 1 && !walk) { dropBaitAt(g.x, g.z); paintUsed = true; } }, 500);
@@ -2646,14 +2678,20 @@ function syncHoliday() {
 }
 
 // ---------- tutorial pointer ----------
-const pointer = document.getElementById("pointer");
+const pointer = document.getElementById("pointer"); let tutLooked = null;
 function updatePointer() {
-  const t = G.tutTarget(); let s = null;
+  const t = G.tutTarget(); let s = null, key = null;
   if (t && !G.panel && document.getElementById("tut").hidden === false) {
-    if (t === "plot:ready") { const i = GS().plots.findIndex((p, k) => ready(k)); if (i >= 0) s = GV.screenPos("plot:" + i); }
+    if (t === "plot:ready") { const i = GS().plots.findIndex((p, k) => ready(k)); if (i >= 0) key = "plot:" + i; }
     else if (t.startsWith("btn:")) { const b = document.querySelector(`.dock [data-p="${t.slice(4)}"]`); if (b) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }
-    else if (t === "plot:0") { const i = GS().plots.findIndex(p => !p.crop); s = GV.screenPos("plot:" + Math.max(0, i)); }
-    else s = GV.screenPos(t);
+    else if (t === "plot:0") { const i = GS().plots.findIndex(p => !p.crop); key = "plot:" + Math.max(0, i); }
+    else key = t;
+    if (key) {
+      s = GV.screenPos(key);
+      // what the tutorial points at is off the screen (on a tall phone the fields start out of view): bring the camera round to it, once per step
+      const off = !s || s.x < 30 || s.x > innerWidth - 30 || s.y < 150 || s.y > innerHeight - 110;
+      if (off && tutLooked !== GS().tut + key && !walk && !editMode && !visiting) { tutLooked = GS().tut + key; focusOn(key); if (key === "board") cam.yaw = -.35; } // the board, from the front (the Feed Mill hides it from the side)
+    }
   }
   pointer.hidden = !s; if (s) { pointer.style.left = s.x + "px"; pointer.style.top = s.y - 10 + "px"; }
 }
@@ -2710,7 +2748,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }

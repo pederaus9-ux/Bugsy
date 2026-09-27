@@ -703,6 +703,7 @@ export function lookNow() {
   if (w && (w.kind === "rain" || w.kind === "storm")) return "rain";
   if (w && w.kind === "snow") return "snow";
   const night = w ? !w.day : (h < 6 || h >= 21);
+  if (night && tutActive()) return "morning"; // a brand-new farm always starts in daylight, so new players can see their fields
   if (night) return "night";
   if (h < 9.5) return "morning";
   if (h >= 17.5) return "golden";
@@ -807,7 +808,7 @@ function panelOrders() {
     if (o.wait) return `<div class="note waiting"><div><div class="e">🚚</div>New order in<br>${timer(o.wait)}</div></div>`;
     const can = hasAll(o.items);
     return `<div class="note ${can ? "can" : ""}"><div class="items">` +
-      Object.entries(o.items).map(([id, n]) => `<span class="oi ${have(id) < n ? "short" : "ok"}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span>${have(id)}/${n}</span>`).join("") +
+      Object.entries(o.items).map(([id, n]) => `<span class="oi ${have(id) < n ? "short" : "ok"}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><b class="n">${have(id)}/${n}</b><small>${ITEMS[id].n}</small></span>`).join("") +
       `</div><div class="reward"><span>🪙 ${o.coins}</span><span>⭐ ${o.xp}</span>${o.gem ? `<span>💎 ${o.gem}</span>` : ""}</div>
       <div class="foot"><button class="btn sm" data-act="deliver" data-i="${i}" ${can ? "" : "disabled"}>Deliver</button>
       <button class="btn plain sm" data-act="discard" data-i="${i}" aria-label="Remove order">🗑️</button></div></div>`;
@@ -970,7 +971,8 @@ function panelSettings() {
     `<button class="sw ${(S.style[part] || 0) === i ? "on" : ""}" style="background:${css}" data-act="paint" data-k="${part}" data-i="${i}" title="${name}" aria-label="${part}: ${name}"></button>`).join("")}</div></div>`).join("");
   const acct = window.saAuth && window.saAuth.user; // player accounts (auth.js)
   return {title:"Settings", body:`${acct ? `<h4>Account</h4><div class="toggles"><span style="font-weight:800;align-self:center">👤 ${esc(acct.email || "")}</span>
-      <button class="btn plain sm" data-act="signOut">🚪 Sign out</button></div>` : ""}<div class="stats">
+      <button class="btn plain sm" data-act="signOut">🚪 Sign out</button></div>` : window.saAuth && window.saAuth.guest ? `<h4>Account</h4><div class="toggles"><span style="font-weight:800;align-self:center">🌱 Playing as a guest: this farm is saved on this phone only</span>
+      <button class="btn sm" data-act="makeAccount">☁️ Create account</button></div>` : ""}<div class="stats">
       <div class="stat slot"><b>${S.stats.harvests}</b>fields harvested</div>
       <div class="stat slot"><b>${S.stats.orders}</b>orders delivered</div>
       <div class="stat slot"><b>${S.stats.made}</b>goods made</div>
@@ -1023,7 +1025,7 @@ function panelImport2D() {
 }
 const howTo = () => `<ul class="howto">
   <li>Tap an empty field, pick a seed, then tap or <b>drag across</b> empty fields to plant.</li>
-  <li>When crops are ripe, tap or drag across them to harvest.</li>
+  <li>When crops are ripe, tap one, or start a swipe on a ripe crop and slide across the rest, to harvest. A drag that starts anywhere else turns the camera.</li>
   <li>Tap the 📋 order board to deliver orders for coins and ⭐.</li>
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the path, at your own price.</li>
@@ -1081,17 +1083,21 @@ export function tick() {
 // each step: what to say, where to point (a thing in the world, or a button), and when it's done
 const TUT = [
   {say:"Tap a glowing field, pick 🌾 wheat, then drag across the other fields to plant them all.", at:"plot:0", done:() => S.plots.some(p => p.crop)},
-  {say:"Wheat grows in 20 seconds. When it turns golden, tap or drag across it to harvest.", at:"plot:ready", done:() => S.stats.harvests > 0},
+  {say:"Wheat grows in 20 seconds. When it turns golden, tap it, or start a swipe on it and slide across the others, to harvest.", at:"plot:ready", done:() => S.stats.harvests > 0},
+  // the steps with next:true just explain something, and wait for "Got it"
+  {say:"🪙 Coins buy seeds, animals and buildings. 💎 Gems are rarer: you get them for leveling up, from the daily 🎁 gift and from some orders, and they make things finish right away. No real money, ever.", at:null, next:true, done:(e) => e === "next"},
+  {say:() => `Everything you harvest or make goes into your 📦 Barn. It holds ${S.barnCap} things. When it's full, deliver orders or sell at the stand, or make it bigger in the 🛒 Shop.`, at:"btn:barn", next:true, done:(e) => e === "next" || e === "open:barn"},
   {say:"Trucks want things from your farm. Tap the 📋 order board.", at:"board", done:(e) => e === "open:orders"},
   {say:"Deliver an order when you have everything. Orders pay coins and ⭐. (Plant more wheat or corn if you're short.)", at:null, done:(e) => e === "deliver" || S.stats.orders > 0},
   {say:"Tap the 🏭 Feed Mill to make chicken feed from wheat and corn.", at:"building:feedmill", done:(e) => e === "open:building:feedmill" || e === "make"},
+  {say:() => "Each building turns your goods into something worth more: " + Object.values(BUILDINGS).map(b => `${b.e} ${b.n}: ${b.recipes.slice(0, 2).map(r => ITEMS[r].n.toLowerCase()).join(", ")}`).join(" · ") + ". The empty lots show when each one unlocks.", at:null, next:true, done:(e) => e === "next"},
   {say:"At level 2 you can buy a chicken coop in the 🛒 Shop. Have fun on your farm! 🌻", at:"btn:shop", done:(e) => e === "open:shop" || e === "skip"},
 ];
 export const tutActive = () => S && S.tut >= 0 && S.tut < TUT.length;
 let tutShown = -1;
 export function tutEvent(e) {
   if (!tutActive()) return;
-  if (TUT[S.tut].done(e)) { S.tut++; save(); tutShown = -1; if (S.tut < TUT.length) sfx("pop"); renderTut(); }
+  if (TUT[S.tut].done(e)) { S.tut++; save(); tutShown = -1; if (S.tut < TUT.length) sfx("pop"); else view.applyWeather(); renderTut(); }
 }
 function tutTick() { if (tutActive()) tutEvent("tick"); renderTut(); }
 export function tutTarget() { return tutActive() ? TUT[S.tut].at : null; }
@@ -1099,9 +1105,9 @@ export function renderTut() {
   const el = $("#tut");
   if (!tutActive() || panel) { el.hidden = true; return; }
   el.hidden = false;
-  if (tutShown !== S.tut) { tutShown = S.tut; $("#tutText").textContent = TUT[S.tut].say; $("#tutStep").textContent = (S.tut + 1) + " / " + TUT.length; }
+  if (tutShown !== S.tut) { const T = TUT[S.tut]; tutShown = S.tut; $("#tutText").textContent = typeof T.say === "function" ? T.say() : T.say; $("#tutStep").textContent = (S.tut + 1) + " / " + TUT.length; $("#tutNext").hidden = !T.next; }
 }
-function startTutorial() { S.tut = 0; save(); closePanel(); renderTut(); }
+function startTutorial() { S.tut = 0; save(); closePanel(); renderTut(); view.applyWeather(); }
 
 // ---------- buttons ----------
 document.addEventListener("click", (e) => {
@@ -1161,12 +1167,14 @@ document.addEventListener("click", (e) => {
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
     case "signOut": closePanel(); if (window.saAuth) window.saAuth.signOut(); break;
+    case "makeAccount": closePanel(); if (window.saAuth && window.saAuth.upgrade) window.saAuth.upgrade(); break;
     case "paint": S.style[d.k] = +d.i; save(); view.refresh("style"); renderPanel(); break;
     case "sell": sell(d.id, +d.n); break;
     case "barnUp": upgradeBarn(); break;
     case "tutorial": startTutorial(); break;
     case "startTut": startTutorial(); break;
-    case "tutSkip": S.tut = TUT.length; save(); renderTut(); break;
+    case "tutSkip": S.tut = TUT.length; save(); renderTut(); view.applyWeather(); break;
+    case "tutNext": tutEvent("next"); break;
     case "confirmYes": { const fn = confirmFn; confirmFn = null; closePanel(); if (fn) fn(); break; }
     case "nameOk": { const v = (($("#nameBox") || {}).value || "").trim().slice(0, 16), fn = renameFn; renameFn = null; closePanel(); if (v && fn) { fn(v); commit(); } break; }
     case "import2d": import2D(); break;

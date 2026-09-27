@@ -121,6 +121,18 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Cloud saves (Firestore, farms/{uid}): a farm from before accounts moves into the new account; a new phone gets the account's farm; saves are versioned so an older phone never overwrites newer progress; if two phones both changed the farm the player chooses and the other is kept as a backup; another family member's farm on the same phone is kept aside for them.
 - [x] The sign-in screen tells players their farm is safe (with its level and coins when this phone has one).
 
+## Builder brief, Phase 1: fix what's broken
+- [x] Guest mode: "Play as a guest" on the sign-in screen; the farm is saved on this phone only. A small reminder (after the tutorial) and the Settings Account row offer "Create account"; the guest farm moves into the new account.
+- [x] A drag harvests only if it starts on a ripe crop; a drag anywhere else turns the camera.
+- [x] New farms show morning light during the tutorial; at night the fields glow softly and the night is a little brighter.
+- [x] "Welcome!" for new players, "Welcome back!" for people who have played on this phone.
+- [x] Pinch zoom allowed in the page (the farm itself still zooms with two fingers).
+- [x] Seed tray: seeds you have show a green "×N", seeds you'd buy show "🛒 price".
+- [x] Taps: bigger tap area on the daily gift; taps near an animal count; the empty lots' posts and ropes no longer steal Feed Mill taps.
+- [x] Tutorial: 9 steps, now also explaining coins and gems, the barn's space and what each building makes; it turns the camera to whatever it points at.
+- [x] Order notes show each item's name under its count.
+- [x] Empty building lots: bigger signs, and a 🔨 over the lots you can already build.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.
