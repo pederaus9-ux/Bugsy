@@ -58,6 +58,12 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 /* walk and edit modes */
 .modebar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:9;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);
   background:rgba(70,35,10,.88);color:#fff;border:3px solid #fff;border-radius:99px;padding:5px 5px 5px 16px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.walkbtns{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 96px);z-index:9;display:flex;flex-direction:column;gap:8px}
+.walkbtns button{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.88);border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:20px;font-weight:900;color:var(--wood-dk);transition:transform .12s}
+.walkbtns button:active{transform:scale(.9)}
+.walkhint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:8;pointer-events:none;white-space:nowrap;
+  background:rgba(40,20,5,.6);color:#fff;font-weight:800;font-size:13px;padding:6px 14px;border-radius:99px;transition:opacity .8s}
+.walkhint.fade{opacity:0}
 .modebar small{opacity:.8;font-size:12px;overflow:hidden;text-overflow:ellipsis}
 .modebar button{background:#fff;color:var(--wood-dk);border-radius:99px;padding:8px 14px;font-weight:900;font-size:14px;flex:none}
 #editBar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 22px)}
@@ -539,7 +545,9 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
-<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>left thumb walks · right thumb looks</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
+<!-- walking: two small round buttons on the right, out of the way (switch view, leave) -->
+<div class="walkbtns" id="walkBar" hidden><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk" aria-label="Stop walking">✕</button></div>
+<div class="walkhint" id="walkHint" hidden>👈 left thumb walks · right thumb looks 👉</div>
 <div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
@@ -2209,6 +2217,8 @@ function setWalk(on, startAt, fp) {
     walk = {pos:onPath && !startAt ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath && !startAt ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0, fp:!!fp};
     farmer.rotation.y = walk.yaw; if (fp) thirdPerson = false; else { try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {} }
     pad.hidden = false; document.body.classList.toggle("fp", !!fp);
+    { const hn = document.getElementById("walkHint"); hn.classList.remove("fade"); hn.hidden = false; clearTimeout(hn.t1); clearTimeout(hn.t2);
+      hn.t1 = setTimeout(() => hn.classList.add("fade"), 3500); hn.t2 = setTimeout(() => { hn.hidden = true; }, 4400); }
     document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
     ultra(true);
   } else {
@@ -2216,7 +2226,7 @@ function setWalk(on, startAt, fp) {
     cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
     Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
     joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
-    document.body.classList.remove("walking", "fp"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; pad.hidden = true;
+    document.body.classList.remove("walking", "fp"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; pad.hidden = true; document.getElementById("walkHint").hidden = true;
     farmer.position.set(w.pos.x, 0, w.pos.y); farmer.rotation.y = w.yaw; // the farmer stays where you stopped walking
     joyF = lookF = null; joy.run = false; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = ""; G.windRush(0);
     if (inBarn) { inBarn = null; barnFade.classList.remove("on"); doorWant = 0; }
