@@ -955,7 +955,9 @@ function panelSettings() {
   const P = view.paintOptions;
   const sw = Object.keys(P).map(part => `<div class="prow" style="flex-wrap:wrap"><span>${part}</span><div class="swatches">${P[part].map(([name, css], i) =>
     `<button class="sw ${(S.style[part] || 0) === i ? "on" : ""}" style="background:${css}" data-act="paint" data-k="${part}" data-i="${i}" title="${name}" aria-label="${part}: ${name}"></button>`).join("")}</div></div>`).join("");
-  return {title:"Settings", body:`<div class="stats">
+  const acct = window.saAuth && window.saAuth.user; // player accounts (auth.js)
+  return {title:"Settings", body:`${acct ? `<h4>Account</h4><div class="toggles"><span style="font-weight:800;align-self:center">👤 ${esc(acct.email || "")}</span>
+      <button class="btn plain sm" data-act="signOut">🚪 Sign out</button></div>` : ""}<div class="stats">
       <div class="stat slot"><b>${S.stats.harvests}</b>fields harvested</div>
       <div class="stat slot"><b>${S.stats.orders}</b>orders delivered</div>
       <div class="stat slot"><b>${S.stats.made}</b>goods made</div>
@@ -1145,6 +1147,7 @@ document.addEventListener("click", (e) => {
     case "sound": snd.on = !snd.on; saveSound(); if (panel) renderPanel(); if (snd.on) { audio(); sfx("pop"); } break;
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
+    case "signOut": closePanel(); if (window.saAuth) window.saAuth.signOut(); break;
     case "paint": S.style[d.k] = +d.i; save(); view.refresh("style"); renderPanel(); break;
     case "sell": sell(d.id, +d.n); break;
     case "barnUp": upgradeBarn(); break;

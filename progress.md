@@ -114,6 +114,12 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Bait: the 🌾 Bait button in Walk mode throws feed in an arc (Space or F on a computer); in the farm view, press and hold on the grass. Hungry and greedy animals race to it and munch; penned animals crowd the nearest fence and beg.
 - [x] Herding: while you walk, timid animals move out of your way (so you can herd them into a corner), curious ones come over for a look, and the dog follows you.
 
+## Player accounts (Firebase Authentication)
+- [x] Sign in / Create account window (email and password, show-password eye, forgot-password email) that covers the game until the player is signed in. Friendly error messages. Sign out lives in Settings.
+- [x] Stays signed in on each phone; a phone that has signed in before can keep playing offline.
+- [ ] Waiting on the Firebase config: until `farm3d/auth.js` has the real values (it still says YOUR_…), accounts stay off and the game plays as before. Then turn on Email/Password under Authentication › Sign-in method.
+- [ ] Next step after that: cloud saves, so a farm follows the account to any phone.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.
