@@ -81,7 +81,12 @@ function open(user) {
   window.saAuth.user = {email:user.email, uid:user.uid};
   ls.set(REMEMBER, JSON.stringify(window.saAuth.user));
   gate.hidden = true; pass.value = pass2.value = "";
+  if (beat) { beat(); clearInterval(open.iv); open.iv = setInterval(beat, 60000); }
 }
+// "I'm playing": while the game is open on screen, a signed-in player's presence/{uid} is refreshed every minute,
+// so the players page (players.html) can count who is playing now, today and this week
+let beat = null;
+addEventListener("sa3d:uploaded", () => { if (beat) beat(); }); // and the level shown there keeps up with each cloud save
 
 // ---------- the farm and the account ----------
 // what a saved farm amounts to, for the "which farm?" choice and to tell a real farm from a brand-new one
@@ -121,7 +126,7 @@ addEventListener("sa3d:saved", () => {
   const p = progressOf(ls.get(SAVE_KEY)); if (p === lastProgress) return; lastProgress = p; ls.set(DIRTY, "1");
   if (cloud && cloud.uid) { clearTimeout(upload.t); upload.t = setTimeout(upload, 15000); }
 });
-document.addEventListener("visibilitychange", () => { if (document.hidden) upload(); }); // leaving the app: save to the cloud now
+document.addEventListener("visibilitychange", () => { if (document.hidden) upload(); else if (beat) beat(); }); // leaving the app: save to the cloud now
 
 // Decide which farm this account plays, the moment it signs in. No farm is ever thrown away:
 // - a farm from before accounts moves into the brand-new account (or, if the account already has one, the player picks)
@@ -181,6 +186,11 @@ async function start() {
         tx.set(ref, {save:raw, level:s.level, coins:s.coins, rev:cur + 1, updatedAt:Date.now()});
         return cur + 1;
       })};
+    beat = () => {
+      if (!cloud.uid || document.hidden) return;
+      const s = summary(ls.get(SAVE_KEY)) || {level:1}, joined = Date.parse(auth.currentUser.metadata.creationTime) || null;
+      F.setDoc(F.doc(db, "presence", cloud.uid), {seen:F.serverTimestamp(), level:s.level, joined}, {merge:true}).catch(() => {});
+    };
     window.saAuth.signOut = async () => { await upload(); cloud.uid = null; await A.signOut(auth); };
     // fires straight away with the saved sign-in (kept on this phone), and again on every sign-in and sign-out
     A.onAuthStateChanged(auth, async (user) => {

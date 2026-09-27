@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Sunny Acres Players</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* the owner's page: how many people are playing. Only the owner's account can read the numbers (Firestore rules). */
+:root{
+  --parch:#FCEBC0; --parch2:#F4D79A; --wood:#9A5B2A; --wood-dk:#6E3D18; --ink:#5A3413;
+  --green:#6CC04A; --green-dk:#3E8E24; --gold:#FFC83D; --gold-dk:#C4850C; --sky:#BFE6F7; --muted:#8A6440;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;background:linear-gradient(var(--sky),#E4F4D6 60%,#CDE9B0);color:var(--ink);font:600 16px/1.4 Nunito,system-ui,sans-serif;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;display:grid;gap:14px}
+h1{margin:4px 0 0;font:400 32px/1.1 "Lilita One",sans-serif;color:#fff;-webkit-text-stroke:6px var(--wood-dk);paint-order:stroke fill;text-shadow:0 3px 0 var(--wood-dk);text-align:center}
+.sub{text-align:center;color:var(--wood-dk);font-weight:800;font-size:14px;margin:0}
+.card{background:var(--parch);border:4px solid var(--wood);border-radius:18px;box-shadow:0 5px 0 var(--wood-dk);padding:14px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--parch);border:4px solid var(--wood);border-radius:16px;box-shadow:0 4px 0 var(--wood-dk);padding:10px 12px;display:grid;gap:2px}
+.tile b{font:400 40px/1 "Lilita One",sans-serif;font-variant-numeric:tabular-nums;color:var(--wood-dk)}
+.tile span{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tile.now{background:linear-gradient(#EAF8DD,#D5F0BE);border-color:var(--green-dk);box-shadow:0 4px 0 #2C6A18}
+.tile.now b{color:var(--green-dk)}
+.tile small{font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(108,192,74,.3);margin-right:6px;vertical-align:1px}
+h2{margin:0 0 8px;font:400 20px/1.1 "Lilita One",sans-serif;color:var(--wood-dk)}
+.list{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;background:#fff8e4;border-radius:12px;padding:8px 10px}
+.row .who{font-weight:800;overflow-wrap:anywhere}
+.row .lvl{font-size:13px;color:var(--muted)}
+.row .when{grid-row:span 2;font-size:14px;font-weight:800;text-align:right;color:var(--muted);white-space:nowrap}
+.row .when.on{color:var(--green-dk)}
+.note{margin:0;color:var(--muted);font-size:14px}
+form{display:grid;gap:8px}
+input{font:inherit;padding:10px 12px;border:3px solid var(--parch2);border-radius:12px;background:#fff;color:var(--ink);width:100%}
+button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999px;padding:11px 18px;background:linear-gradient(#8ad866,#58ad36);color:#fff;box-shadow:0 4px 0 var(--green-dk);cursor:pointer}
+.link{background:none;border:0;box-shadow:none;color:var(--wood);text-decoration:underline;padding:4px;font-size:14px;justify-self:center}
+.msg{margin:0;color:#A8321F;font-weight:800;font-size:14px;min-height:1em}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>🌻 Players</h1>
+  <p class="sub" id="sub">Sunny Acres</p>
+
+  <section class="card" id="signin" hidden>
+    <h2>Sign in</h2>
+    <form id="form">
+      <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+      <input id="pass" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+      <p class="msg" id="msg"></p>
+    </form>
+  </section>
+
+  <section class="card" id="denied" hidden>
+    <h2>Not allowed</h2>
+    <p class="note">This page is only for the game's owner. You're signed in as <b id="who"></b>.</p>
+  </section>
+
+  <div id="stats" hidden>
+    <div class="tiles">
+      <div class="tile now"><span><i class="dot"></i>Playing now</span><b id="nNow">0</b></div>
+      <div class="tile"><span>Played today</span><b id="nToday">0</b></div>
+      <div class="tile"><span>This week</span><b id="nWeek">0</b></div>
+      <div class="tile"><span>Total players</span><b id="nTotal">0</b><small id="nNew"></small></div>
+    </div>
+  </div>
+
+  <section class="card" id="recent" hidden>
+    <h2>Recent players</h2>
+    <div class="list" id="list"></div>
+    <p class="note" id="empty" hidden>Nobody has played since this page was added. Players show up here once they open the game.</p>
+  </section>
+
+  <button class="link" id="out" hidden>Sign out</button>
+  <p class="note" id="load" style="text-align:center">Loading…</p>
+</main>
+
+<script type="module">
+const firebaseConfig = { // the same Firebase project as the game (auth.js)
+  apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
+  authDomain: "fir-config-18b64.firebaseapp.com",
+  projectId: "fir-config-18b64",
+  storageBucket: "fir-config-18b64.firebasestorage.app",
+  messagingSenderId: "899020605923",
+  appId: "1:899020605923:web:d7e1d51888451d991eb8d6",
+};
+const SDK = "https://www.gstatic.com/firebasejs/9.23.0/";
+const NOW = 3 * 60e3, DAY = 864e5; // the game checks in every minute while it's open on screen
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
+const show = (ids) => { for (const id of ["signin", "denied", "stats", "recent", "out", "load"]) $(id).hidden = !ids.includes(id); };
+
+const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
+const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default");
+
+let rows = [], total = null, stop = null, tick = 0;
+const names = new Map(); // uid -> username (players/{uid}), looked up once
+
+function ago(t) {
+  const d = Date.now() - t;
+  if (d < NOW) return "playing now";
+  if (d < 3600e3) return Math.round(d / 60e3) + " min ago";
+  if (d < DAY) return Math.round(d / 3600e3) + " h ago";
+  const days = Math.round(d / DAY); return days === 1 ? "yesterday" : days + " days ago";
+}
+function render() {
+  const now = Date.now(), midnight = new Date().setHours(0, 0, 0, 0);
+  const count = (f) => rows.filter(f).length;
+  $("nNow").textContent = count(r => now - r.seen < NOW);
+  $("nToday").textContent = count(r => r.seen >= midnight);
+  $("nWeek").textContent = count(r => now - r.seen < 7 * DAY);
+  $("nTotal").textContent = Math.max(total ?? 0, rows.length);
+  const fresh = count(r => r.joined && now - r.joined < 7 * DAY);
+  $("nNew").textContent = fresh ? `+${fresh} new this week` : "";
+  const recent = [...rows].sort((a, b) => b.seen - a.seen).slice(0, 50);
+  $("empty").hidden = recent.length > 0;
+  $("list").innerHTML = recent.map(r => {
+    const name = names.get(r.uid), on = now - r.seen < NOW;
+    return `<div class="row"><span class="who">${name ? "👤 " + esc(name) : "👤 <i>no username yet</i>"}</span>
+      <span class="when${on ? " on" : ""}">${on ? '<i class="dot"></i>' : ""}${ago(r.seen)}</span><span class="lvl">Level ${r.level || 1}</span></div>`;
+  }).join("");
+  $("sub").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
+async function lookUpNames() {
+  const missing = rows.filter(r => !names.has(r.uid));
+  await Promise.all(missing.map(async (r) => {
+    try { const d = await F.getDoc(F.doc(db, "players", r.uid)); names.set(r.uid, d.exists() ? d.data().name : ""); } catch (e) { names.set(r.uid, ""); }
+  }));
+  if (missing.length) render();
+}
+function denied(user) { $("who").textContent = user.email; show(["denied", "out"]); }
+
+function watch(user) {
+  show(["load"]);
+  // live: the list updates by itself as players come and go
+  stop = F.onSnapshot(F.collection(db, "presence"), (snap) => {
+    rows = snap.docs.map(d => { const x = d.data(); return {uid:d.id, seen:x.seen ? x.seen.toMillis() : 0, level:x.level, joined:x.joined}; });
+    show(["stats", "recent", "out"]); render(); lookUpNames();
+  }, (e) => { if (e.code === "permission-denied") denied(user); else { $("load").textContent = "Couldn't load the numbers. Check your internet."; show(["load", "out"]); } });
+  // everyone with a saved farm, including players who haven't opened the game since this page was added
+  F.getCountFromServer(F.collection(db, "farms")).then((c) => { total = c.data().count; render(); }).catch(() => {});
+  clearInterval(tick); tick = setInterval(render, 30e3); // keep "min ago" and "playing now" current
+}
+
+A.onAuthStateChanged(auth, (user) => {
+  if (stop) { stop(); stop = null; }
+  if (user) watch(user); else show(["signin"]);
+});
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault(); $("msg").textContent = "";
+  try { await A.signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value); }
+  catch (err) { $("msg").textContent = err.code === "auth/network-request-failed" ? "No internet connection." : "Wrong email or password."; }
+});
+$("out").addEventListener("click", () => A.signOut(auth));
+</script>
+</body>
+</html>
