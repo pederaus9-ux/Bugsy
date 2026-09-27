@@ -469,14 +469,38 @@ def cmd_bridges(a):
             "length_m": at.get("STRUCTURE_LEN_MT_049"), "deck_width_m": at.get("DECK_WIDTH_MT_052"),
             "roadway_width_m": at.get("ROADWAY_WIDTH_MT_051"), "lanes": at.get("TRAFFIC_LANES_ON_028A"),
         })
+    # merge: OSM bridge=yes road segments carry the exact deck line; NBI carries dimensions and type
+    osm_path = os.path.join(OUT, "osm_local.json")
+    decks = []
+    if os.path.exists(osm_path) and bridges:
+        from scipy.spatial import cKDTree
+        tree = cKDTree([[b["x"], b["y"]] for b in bridges])
+        with open(osm_path) as f:
+            roads = json.load(f)["layers"]["roads"]
+        for r in roads:
+            if r["tags"].get("bridge") in (None, "no"):
+                continue
+            pts = r["pts"]
+            mx, my = pts[len(pts) // 2]
+            dist, i = tree.query([mx, my])
+            deck = {"osm_id": r["id"], "highway": r["tags"].get("highway"), "name": r["tags"].get("name"),
+                    "ref": r["tags"].get("ref"), "pts": pts,
+                    "length_m": round(sum(math.dist(pts[k], pts[k + 1]) for k in range(len(pts) - 1)), 1)}
+            if dist <= 60:
+                deck["nbi"] = bridges[i]["id"]
+                bridges[i].setdefault("osm_decks", []).append(r["id"])
+            decks.append(deck)
     with open(os.path.join(OUT, "bridges_nbi_local.json"), "w") as f:
         json.dump({"frame": "local meters, +X east, +Y north",
-                   "source": "FHWA National Bridge Inventory 2025 via BTS NTAD (public domain)", "bridges": bridges}, f, indent=1)
+                   "source": "FHWA National Bridge Inventory 2025 via BTS NTAD (public domain); decks from OSM (ODbL)",
+                   "bridges": bridges, "osm_decks": decks}, f, indent=1)
     by = {}
     for b in bridges:
         k = f'{b["material"]} {b["design"]}'
         by[k] = by.get(k, 0) + 1
-    print(json.dumps({"bridges": len(bridges), "by_type": dict(sorted(by.items(), key=lambda kv: -kv[1])[:10]),
+    print(json.dumps({"bridges": len(bridges), "osm_decks": len(decks),
+                      "decks_matched_to_nbi": sum(1 for d_ in decks if "nbi" in d_),
+                      "nbi_with_deck": sum(1 for b in bridges if b.get("osm_decks")), "by_type": dict(sorted(by.items(), key=lambda kv: -kv[1])[:10]),
                       "longest_m": max((b["length_m"] or 0 for b in bridges), default=0),
                       "oldest": min((b["year_built"] or 9999 for b in bridges), default=None)}, indent=2))
 
