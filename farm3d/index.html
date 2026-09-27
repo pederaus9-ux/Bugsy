@@ -2473,7 +2473,7 @@ function aimScan() {
   aim = null;
   if (!walk || inBarn || G.panel) return;
   const h = hitAt(innerWidth / 2, innerHeight / 2); if (!h || h.type === "farmer") return;
-  const reach = (thirdPerson ? 8.5 : 5) + (h.type === "barn" ? 3 : 0);
+  const reach = (thirdPerson ? 8.5 : 5) + (h.type === "barn" ? 3 : h.type === "animal" ? 1 : 0);
   if ((h.dist ?? 99) > reach) return;
   const S = GS(); let label = null, icon = "✋";
   switch (h.type) {
@@ -2529,7 +2529,7 @@ function petFacing(an) {
   const S = GS(), key = an.ref.type === "pen" ? "animal:" + an.kind + ":" + an.ref.i : "pet:" + an.ref.j;
   const m = an.ref.type === "pen" ? G.meta(an.kind, an.ref.i) : S.pets[an.ref.j];
   const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), rel = camera.position.clone().sub(an.g.position);
-  an.target = null; an.path = null; an.facing = rel.dot(right) > 0 ? -1 : 1; an.stay("Loves the attention", 3.5, "idle"); an.hop = 1;
+  an.target = null; an.path = null; an.facing = rel.dot(right) > 0 ? -1 : 1; an.stay("Loves the attention", 4, "idle"); an.hop = 1; an.calmUntil = clockT + 4;
   if (G.interact(m, an.kind, "pet", key)) { an.emote("❤️", 2.2); an.need.lonely = 0; }
   else { an.emote("💕", 1.4); G.toast(esc(m.name) + " was just petted. Try again in " + G.fmt(G.cdLeft(m.petAt || 0, PET_CD)).split(" ")[0]); }
 }
@@ -2919,7 +2919,7 @@ function updateBaits() {
 }
 // what an animal does about you while you walk around (checked a few times a second)
 function sensePlayer(a, t) {
-  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0)) return; a.senseAt = t + .25;
+  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0) || t < (a.calmUntil || 0)) return; a.senseAt = t + .25; // (just petted: happy to stay close)
   const pp = walk.pos, d = a.pos.distanceTo(pp), P = a.P;
   if (a.kind === "dog") { // follows you around, a couple of steps behind
     if (d > 3.4 && d < 30 && !(a.doing === "follow" && a.target)) { const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw);
@@ -2929,6 +2929,7 @@ function sensePlayer(a, t) {
   if (a.kind === "cat") return; // cats do what cats want
   if (a.doing === "bait" && d > 1.3) return; // busy with the snack
   const nerve = 2.1 + (1 - P.brave) * 2.8; // how close you can get
+  if (aim && aim.an === a && d > 1.2) return; // an animal you're looking at (to pet it) stays put
   if (d < nerve && a.act !== "fleeing" && !(P.curious >= .9 && d > 1.4)) { a.flee(pp, P.brave < .3 ? "Scared of you!" : "Moving out of your way"); return; }
   if (P.curious >= .7 && d < 9 && d > nerve + .6 && !a.target && t > (a.lookedAt || 0)) {
     a.lookedAt = t + 9; const q = a.pos.lerp(pp, 1 - (nerve + .4) / d); a.emote("👀", 1.6); a.go(q.x, q.y, false, "Coming to see you", "look");
@@ -3452,7 +3453,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto, get fpState() { return {auto:walk && walk.auto, lastLand, classic:!!classicSaved, inBarn:!!inBarn}; }};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
