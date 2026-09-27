@@ -103,6 +103,10 @@ export const DECOR = {
   confetti:{n:"Confetti ball", e:"🎊", hol:"newyear"}, popper:{n:"Party popper", e:"🎉", hol:"newyear"}, fireworks:{n:"Firework show", e:"🎆", hol:"newyear", size:2},
   heart:{n:"Gift heart", e:"💝", hol:"valentine"}, letter:{n:"Love letter", e:"💌", hol:"valentine"}, chapel:{n:"Wedding chapel", e:"💒", hol:"valentine", size:2},
   chick:{n:"Little chick", e:"🐣", hol:"easter"}, bunny:{n:"Easter bunny", e:"🐰", hol:"easter"}, eggstatue:{n:"Painted egg", e:"🥚", hol:"easter", size:2},
+  blossom:{n:"Cherry blossom", e:"🌸", ssn:"spring"}, hive:{n:"Beehive", e:"🐝", ssn:"spring"}, birdhouse:{n:"Bird house", e:"🐦", ssn:"spring", size:2},
+  parasol:{n:"Beach umbrella", e:"⛱️", ssn:"summer"}, melon:{n:"Melon stand", e:"🍉", ssn:"summer"}, pool:{n:"Paddling pool", e:"🏊", ssn:"summer", size:2},
+  maple:{n:"Maple leaves", e:"🍁", ssn:"fall"}, hay:{n:"Hay bale", e:"🌾", ssn:"fall"}, cider:{n:"Cider press", e:"🍎", ssn:"fall", size:2},
+  sled:{n:"Sled", e:"🛷", ssn:"winter"}, skates:{n:"Ice skates", e:"⛸️", ssn:"winter"}, igloo:{n:"Snow fort", e:"🏔️", ssn:"winter", size:2},
   clover:{n:"Shamrock", e:"☘️", hol:"stpatrick"}, lucky:{n:"Four-leaf clover", e:"🍀", hol:"stpatrick"}, tophat:{n:"Leprechaun hat", e:"🎩", hol:"stpatrick", size:2},
 };
 // Random events: reach the goals before time runs out to win decorations.
@@ -174,7 +178,7 @@ function fresh() {
     pets:[],
     buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === "feedmill", jobs:[]}])),
     orders:[], lastDaily:"",
-    stats:{orders:0, harvests:0, made:0, earned:0, gold:0, water:0, visitors:0, rush:0},
+    stats:{orders:0, harvests:0, made:0, earned:0, gold:0, water:0, visitors:0, rush:0, bestCombo:0, helped:0},
     style:{}, tut:0,
     gold:{},                          // how many of each item in the barn are gold quality (sell for double)
     sprinklers:0, land:0,             // automation and extra land
@@ -182,6 +186,8 @@ function fresh() {
     quests:null, ach:{}, museum:{},   // daily quests, achievements claimed, the collection
     rush:null, nextRushAt:0,          // a limited-time order
     visitor:null, nextVisitorAt:0, villagers:{}, // who is visiting, and friendship with each villager
+    lastSeen:0, streak:{n:0, last:""},  // when you last played (for "while you were away"), and the daily gift streak
+    seasonTrack:null,                 // points and prizes on this season's free track
     layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)
   };
 }
@@ -200,6 +206,7 @@ function upgrade(saved) {
   s.perks = Object.assign({grow:0, sell:0, owed:0}, s.perks);
   s.perks.owed = Math.max(s.perks.owed | 0, Math.floor((s.level || 1) / 5) - s.perks.grow - s.perks.sell); // farms from before perks get their picks too
   s.ach = s.ach || {}; s.museum = s.museum || {}; s.villagers = s.villagers || {};
+  s.streak = s.streak && typeof s.streak === "object" ? s.streak : {n:0, last:""};
   s.stand = s.stand && Array.isArray(s.stand.list) ? s.stand : def.stand;
   while (s.stand.list.length < s.stand.slots) s.stand.list.push(null);
   s.pets = (Array.isArray(s.pets) ? s.pets : []).filter(p => p && PETS[p.kind]);
@@ -228,6 +235,7 @@ export function leaveVisit() { if (!homeS) return; S = homeS; homeS = null; view
 export const isVisiting = () => !!homeS;
 export function save() {
   if (restoring || window.__saHold || homeS) return; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
   window.dispatchEvent(new Event("sa3d:saved")); // accounts back the farm up to the cloud
 }
@@ -582,14 +590,28 @@ export function buyAnimal(kind) {
   return true;
 }
 export const dailyReady = () => S.lastDaily !== today();
+// the daily gift comes on a 7-day calendar: come back every day and the gifts get bigger (miss a day and it starts again)
+const dayBefore = () => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toLocaleDateString("en-CA"); };
+export const STREAK = [{c:1}, {c:1.5}, {gem:1}, {c:2}, {fert:3}, {c:3}, {gem:3, decor:true}];
+const streakDay = () => (S.streak.last === today() ? S.streak.n : S.streak.last === dayBefore() ? S.streak.n + 1 : 1);
 export function claimDaily() {
-  if (!dailyReady()) return false;
-  S.lastDaily = today();
-  const c = 25 + 5 * S.level;
-  S.coins += c; S.gems += 1;
+  if (!dailyReady()) { openPanel("daily"); return false; }
+  const n = streakDay(), R = STREAK[(n - 1) % 7], base = 25 + 5 * S.level;
+  S.lastDaily = today(); S.streak = {n, last:today()};
+  const c = Math.round(base * (R.c || 1)), got = ["+" + c + " 🪙"];
+  S.coins += c; S.gems += 1 + (R.gem || 0); got.push("+" + (1 + (R.gem || 0)) + " 💎");
+  if (R.fert) { add("fertilizer", R.fert); got.push("+" + R.fert + " 🧪"); }
+  if (R.decor) { const id = pick(Object.keys(DECOR).filter(k => DECOR[k].rare === 1)); S.decor.inv[id] = (S.decor.inv[id] || 0) + 1; got.push(decorIcon(id) + " " + DECOR[id].n); }
   view.fx("gift", "+" + c + " 🪙"); sfx("level");
-  toast("🎁 Daily gift: +" + c + " 🪙  +1 💎"); commit();
+  toast("🎁 Day " + n + " gift: " + got.join("  ")); commit(); openPanel("daily");
   return true;
+}
+function panelDaily() {
+  const n = dailyReady() ? streakDay() : S.streak.n, pos = (n - 1) % 7, base = 25 + 5 * S.level;
+  return {title:"Daily gift", body:`<p class="center" style="font-weight:800;margin:0 0 10px">${dailyReady() ? "Tap the 🎁 by the order board to open today's gift!" : "🔥 " + n + " day" + (n > 1 ? "s" : "") + " in a row! Come back tomorrow for the next one."}</p>
+    <div class="streak">${STREAK.map((R, k) => { const st = k < pos || (k === pos && !dailyReady()) ? "got" : k === pos ? "today" : "";
+      return `<div class="sday slot ${st}"><small>Day ${k + 1}</small><span class="e">${R.decor ? "🎁" : R.gem ? "💎" : R.fert ? "🧪" : "🪙"}</span><b>${R.decor ? "+" + (R.gem + 1) + "💎 + prize" : R.gem ? "+" + (R.gem + 1) + " 💎" : R.fert ? R.fert + " fertilizer" : Math.round(base * R.c) + " 🪙"}</b>${st === "got" ? "<i>✔</i>" : ""}</div>`; }).join("")}</div>
+    <p class="center muted" style="font-weight:800;margin:10px 0 0">Every gift also has +1 💎. Miss a day and the calendar starts again.</p>`};
 }
 
 // ---------- roadside shop ----------
@@ -660,7 +682,7 @@ export function storeDecor(j) {
   toast(DECOR[d.id].n + " put away in your Decor box"); sfx("pickup"); view.refresh("decor"); commit();
 }
 export const decorIcon = (id) => DECOR[id].tree ? (DECOR[id].tree === "pine" ? "🌲" : "🌳") : DECOR[id].e;
-const decorTag = (D) => D.hol ? `<span class="tag hol">${HOLIDAYS[D.hol].n}</span>` : D.rare ? `<span class="tag r${D.rare}">${["", "Event prize", "Rare prize", "Grand prize"][D.rare]}</span>` : "";
+const decorTag = (D) => D.ssn ? `<span class="tag hol">${SEASON_E[D.ssn]} Season prize</span>` : D.hol ? `<span class="tag hol">${HOLIDAYS[D.hol].n}</span>` : D.rare ? `<span class="tag r${D.rare}">${["", "Event prize", "Rare prize", "Grand prize"][D.rare]}</span>` : "";
 
 // ---------- special events ----------
 // Level-ups and prizes can happen at the same moment, so they wait their turn.
@@ -802,6 +824,7 @@ export function questsToday() {
 }
 function track(metric, n) {
   if (!S || homeS) return;
+  seasonPoints(metric, n);
   let done = false;
   for (const q of questsToday().list) if (q.m === metric && q.prog < q.n) { q.prog = Math.min(q.n, q.prog + n); if (q.prog >= q.n) done = true; }
   if (done) { toast("📜 Quest done! Collect your reward in 📜 Quests."); sfx("collect"); }
@@ -861,7 +884,7 @@ export const questClaims = () => {
   return (S.perks.owed > 0 ? 1 : 0) + Q.list.filter(q => q.prog >= q.n && !q.got).length + (!Q.bonus && Q.list.length && Q.list.every(q => q.got) ? 1 : 0) + ACH.filter(a => !S.ach[a.id] && a.v() >= a.n).length;
 };
 function panelQuests(tab = "daily") {
-  const tabs = [["daily", "📜 Today"], ["ach", "🏅 Achievements"], ["museum", "🏛️ Collection"]];
+  const tabs = [["daily", "📜 Today"], ["season", SEASON_E[THEME.season] + " Season"], ["ach", "🏅 Achievements"], ["museum", "🏛️ Collection"]];
   let h = (S.perks.owed > 0 ? `<p class="center" style="margin:0 0 8px"><button class="btn gold" data-act="open" data-p="perk">🎁 Choose your level-up perk</button></p>` : "") +
     `<div class="toggles" style="justify-content:center">${tabs.map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-act="qtab" data-k="${k}">${n}</button>`).join("")}</div>`;
   if (tab === "daily") {
@@ -873,6 +896,7 @@ function panelQuests(tab = "daily") {
     h += `<div class="qrow slot"><div class="grow"><b>💎 All three done</b><small class="muted">${Q.list.filter(q => q.got).length} / ${Q.list.length}</small></div>
       ${Q.bonus ? `<span class="done">✔</span>` : `<button class="btn gold sm" data-act="questBonus" ${all ? "" : "disabled"}>+1 💎</button>`}</div></div>`;
   }
+  if (tab === "season") h += seasonTab();
   if (tab === "ach") {
     h += `<div class="qlist">` + ACH.map(a => { const v = Math.min(a.v(), a.n);
       return `<div class="qrow slot ${S.ach[a.id] ? "got" : ""}"><span class="e">${a.e}</span><div class="grow"><b>${a.t}</b><div class="cap"><i style="width:${v / a.n * 100}%"></i></div><small class="muted">${v} / ${a.n} · ${a.gems} 💎</small></div>
@@ -928,6 +952,101 @@ function rainTick() {
   let n = 0; S.plots.forEach((_, i) => { if (waterPlot(i, true)) n++; });
   if (n) { toast("🌧️ The rain watered " + n + " field" + (n > 1 ? "s" : "")); view.refresh("plots"); save(); }
 }
+
+
+// ---------- the season's free event track: everything you do earns points, prizes all season long ----------
+const SEASON_GOALS = [40, 100, 180, 280, 400, 550, 720, 920, 1150, 1400];
+const SEASON_POINTS = {harvest:1, orders:6, make:2, feed:1, egg:2, milk:2, wool:3, rides:2, love:1, market:.1, water:1, gold:2, visitor:8, rush:10};
+const seasonPrize = (k, ssn) => { const d = Object.keys(DECOR).filter(x => DECOR[x].ssn === ssn); return [{c:60}, {gem:1}, {decor:d[0]}, {c:150}, {gem:2}, {decor:d[1]}, {c:300}, {gem:3}, {c:500}, {decor:d[2], gem:5}][k]; };
+export function seasonNow() {
+  const key = new Date().getFullYear() + "-" + THEME.season;
+  if (!S.seasonTrack || S.seasonTrack.key !== key) S.seasonTrack = {key, ssn:THEME.season, pts:0, won:0};
+  return S.seasonTrack;
+}
+function seasonPoints(metric, n) {
+  const p = SEASON_POINTS[metric]; if (!p || !THEME.season) return;
+  const T = seasonNow(); T.pts += p * n;
+  while (T.won < SEASON_GOALS.length && T.pts >= SEASON_GOALS[T.won]) {
+    const R = seasonPrize(T.won, T.ssn); T.won++;
+    if (R.c) S.coins += R.c; if (R.gem) S.gems += R.gem; if (R.decor) S.decor.inv[R.decor] = (S.decor.inv[R.decor] || 0) + 1;
+    toast(SEASON_E[T.ssn] + " Season prize " + T.won + "/" + SEASON_GOALS.length + ": " + [R.c ? "+" + R.c + " 🪙" : "", R.gem ? "+" + R.gem + " 💎" : "", R.decor ? decorIcon(R.decor) + " " + DECOR[R.decor].n : ""].filter(Boolean).join(" "));
+    sfx("level");
+  }
+}
+function seasonTab() {
+  const T = seasonNow(), name = {spring:"Spring", summer:"Summer", fall:"Fall", winter:"Winter"}[T.ssn], top = SEASON_GOALS[SEASON_GOALS.length - 1];
+  let h = `<div class="big">${SEASON_E[T.ssn]}</div><p class="center" style="font-family:var(--fun);font-size:22px;margin:0">${name} Festival</p>
+    <p class="center muted" style="font-weight:800;margin:4px 0 8px">Free all season. Harvesting, orders, making goods, helping villagers… everything earns points.</p>
+    <div class="evbar"><i style="width:${Math.min(100, T.pts / top * 100)}%"></i></div><p class="center" style="font-family:var(--fun);font-size:17px;margin:0 0 8px">${Math.floor(T.pts)} / ${top}</p><div class="track">`;
+  SEASON_GOALS.forEach((g, k) => { const R = seasonPrize(k, T.ssn);
+    h += `<div class="tstep slot ${T.won > k ? "won" : ""}"><small>${g}</small><span class="e">${R.decor ? decorIcon(R.decor) : R.gem ? "💎" : "🪙"}</span><b>${[R.c ? R.c + " 🪙" : "", R.gem ? R.gem + " 💎" : "", R.decor ? DECOR[R.decor].n : ""].filter(Boolean).join(" + ")}</b></div>`; });
+  return h + `</div>`;
+}
+
+// ---------- while you were away ----------
+let awayInfo = null;
+function awaySummary(gap) {
+  const t = now(), out = [];
+  const fields = S.plots.filter(p => p.crop && p.end <= t).length; if (fields) out.push(["🌾", fields + " field" + (fields > 1 ? "s are" : " is") + " ready to harvest"]);
+  let animals = 0; for (const k in S.pens) animals += S.pens[k].list.filter(e => e && e <= t).length; if (animals) out.push(["🐔", animals + " animal" + (animals > 1 ? "s have" : " has") + " something for you"]);
+  let goods = 0; for (const k in S.buildings) goods += S.buildings[k].jobs.filter(j => j.end <= t).length; if (goods) out.push(["🏭", goods + " batch" + (goods > 1 ? "es" : "") + " of goods finished"]);
+  const sold = standSold(); if (sold) out.push(["🏪", sold + " thing" + (sold > 1 ? "s" : "") + " sold at your roadside shop"]);
+  const gifts = S.pets.filter(giftReady).length; if (gifts) out.push(["🎁", "Your pet" + (gifts > 1 ? "s have gifts" : " has a gift") + " for you"]);
+  if (S.visitor) out.push([VILLAGERS[S.visitor.id].e, VILLAGERS[S.visitor.id].n + " is waiting by the path"]);
+  if (S.rush && S.rush.end > t) out.push(["⏰", "A rush order is waiting (" + fmt(S.rush.end - t) + " left)"]);
+  if (dailyReady()) out.push(["🎁", "Today's daily gift is waiting (day " + streakDay() + ")"]);
+  return out;
+}
+export function noteHelp(list) { // friends who watered your fields (friends.js), shown in the recap or as a toast
+  if (awayInfo && panel && panel.type === "away") { awayInfo.help = list; renderPanel(); } else toast(list.map(h => "💧 " + h.name + " watered " + h.n + " of your fields!").join("  "));
+}
+function panelAway() {
+  const A = awayInfo || {gap:0, items:[]};
+  const rows = [...(A.help || []).map(h => ["💧", h.name + " watered " + h.n + " of your fields"]), ...A.items];
+  return {title:"Welcome back!", body:`<p class="center" style="font-weight:800;margin:0 0 10px">While you were away (${fmt(A.gap).replace(/ \d+s$/, "")}):</p>
+    <div class="qlist">${rows.length ? rows.map(([e, t]) => `<div class="qrow slot"><span class="e">${e}</span><div class="grow"><b>${t}</b></div></div>`).join("") : `<p class="center muted" style="font-weight:800">Everything is quiet on the farm.</p>`}</div>
+    <p class="center" style="margin:14px 0 0"><button class="btn" data-act="closePanel">Let's go!</button></p>`};
+}
+
+// ---------- reminders: a notification when something is ready (while the game is open or in the background) ----------
+let remindT = 0;
+export async function setReminders(on) {
+  if (on && "Notification" in window && Notification.permission !== "granted") { try { await Notification.requestPermission(); } catch (e) {} }
+  PREFS.notify = on && "Notification" in window && Notification.permission === "granted"; savePrefs();
+  if (on && !PREFS.notify) toast("Notifications aren't allowed for this page. You can allow them in your browser's site settings.");
+  if (panel) renderPanel();
+}
+function nextThing() { // the soonest thing to finish, and what to say about it
+  const t = now(), cands = [];
+  for (const p of S.plots) if (p.crop && p.end > t) cands.push([p.end, ITEMS[p.crop].e + " Your " + ITEMS[p.crop].n.toLowerCase() + " is ready to harvest!"]);
+  for (const k in S.pens) for (const e of S.pens[k].list) if (e > t) cands.push([e, ANIMALS[k].e + " Your " + ANIMALS[k].n.toLowerCase() + "s have " + (ANIMALS[k].out ? ITEMS[ANIMALS[k].out].n.toLowerCase() : "earned coins") + " for you!"]);
+  for (const k in S.buildings) for (const j of S.buildings[k].jobs) if (j.end > t) cands.push([j.end, ITEMS[j.r].e + " Your " + ITEMS[j.r].n.toLowerCase() + " is done at the " + BUILDINGS[k].n + "!"]);
+  cands.sort((a, b) => a[0] - b[0]);
+  return cands[0];
+}
+function scheduleReminder() {
+  clearTimeout(remindT);
+  if (!PREFS.notify || homeS || !document.hidden) return;
+  const n = nextThing(); if (!n) return;
+  remindT = setTimeout(async () => {
+    try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+      const opts = {body:n[1].replace(/^\S+ /, ""), icon:"../farm/icon-192.png", badge:"../farm/icon-192.png", tag:"sa3d-ready", renotify:true};
+      if (reg && reg.showNotification) reg.showNotification("🌻 Sunny Acres", opts); else new Notification("🌻 Sunny Acres", opts); } catch (e) {}
+    scheduleReminder();
+  }, Math.max(1000, n[0] - now() + 500));
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) scheduleReminder(); else clearTimeout(remindT); });
+
+// ---------- helping friends, and the trading post (the Firestore side lives in friends.js) ----------
+export function applyHelp(plots) { let n = 0; for (const i of plots) if (waterPlot(i, true)) n++; if (n) { view.refresh("plots"); commit(); } return n; }
+export function helpedFriend(n) { S.stats.helped += n; S.coins += 2 * n; gainXP(n); track("water", n); commit(); }
+export function noteCombo(n) { if (n > S.stats.bestCombo) { S.stats.bestCombo = n; save(); } }
+export const marketPrice = (id) => ({min:Math.max(1, Math.floor(ITEMS[id].p * .5)), max:Math.ceil(ITEMS[id].p * 2), base:ITEMS[id].p});
+export function escrow(id, qty) { if (have(id) < qty) return false; take(id, qty); commit(); return true; }       // put up for sale
+export function unEscrow(id, qty) { add(id, qty); commit(); }                                                          // taken back
+export function canBuy(price, qty) { if (S.coins < price) { toast("Need " + price + " 🪙"); sfx("error"); return false; } if (space() < qty) { barnFull(); return false; } return true; }
+export function bought(id, qty, price) { S.coins -= price; add(id, qty); sfx("coin"); toast("Bought " + qty + " " + ITEMS[id].e + " for " + price + " 🪙"); commit(); }
+export function soldAtMarket(price, n) { S.coins += price; S.stats.earned += price; eventProgress("market", price); toast("🏪 You sold " + n + " thing" + (n > 1 ? "s" : "") + " at the trading post: +" + price + " 🪙"); sfx("coin"); commit(); }
 
 /* ============================================================
    REAL WEATHER, SEASONS AND HOLIDAYS
@@ -1313,7 +1432,9 @@ function panelSettings() {
       <button class="btn ${snd.on ? "" : "plain"} sm" data-act="sound">${snd.on ? "🔊 Sounds on" : "🔇 Sounds off"}</button>
       <button class="btn ${snd.music ? "" : "plain"} sm" data-act="music">${snd.music ? "🎵 Music on" : "🎵 Music off"}</button>
       <button class="btn ${snd.amb ? "" : "plain"} sm" data-act="amb">${snd.amb ? "🐦 Farm sounds on" : "🐦 Farm sounds off"}</button>
-      <button class="btn ${snd.buzz ? "" : "plain"} sm" data-act="buzz">${snd.buzz ? "📳 Vibration on" : "📳 Vibration off"}</button></div>
+      <button class="btn ${snd.buzz ? "" : "plain"} sm" data-act="buzz">${snd.buzz ? "📳 Vibration on" : "📳 Vibration off"}</button>
+      ${"Notification" in window ? `<button class="btn ${PREFS.notify ? "" : "plain"} sm" data-act="notify">${PREFS.notify ? "🔔 Reminders on" : "🔕 Reminders off"}</button>` : ""}</div>
+    ${"Notification" in window ? `<p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Reminders tell you when crops, animals or goods are ready, while the game is still open in the background.</p>` : ""}
     <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
     <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto lowers the detail by itself if the phone gets slow. Battery saver is gentlest on the battery.</p>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
@@ -1363,7 +1484,9 @@ const howTo = () => `<ul class="howto">
   <li>Tap a growing field to 💧 water it (25% faster) or add 🧪 fertilizer (better chance of 🥇 gold crops, which sell for double).</li>
   <li>Grow a different crop now and then: the same crop over and over tires the soil. Crops grow at half speed out of season.</li>
   <li>Tap the 📋 order board to deliver orders for coins and ⭐. ⏰ Rush orders pay extra but don't wait long.</li>
-  <li>👋 Villagers stop by with requests. Help them to become friends. Check 📜 Quests every day.</li>
+  <li>👋 Villagers stop by with requests. Help them to become friends. Check 📜 Quests every day, and the season's free prize track.</li>
+  <li>🎁 Open the daily gift every day: the gifts grow over a 7-day streak.</li>
+  <li>👥 Visit friends and 💧 water their crops, compare on the 🏆 leaderboard, and swap goods at the 🏪 trading post.</li>
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the path, at your own price.</li>
   <li>Tap an animal to feed it, collect from it, pet and brush it. Happy animals make more.</li>
@@ -1391,7 +1514,7 @@ export function renderPanel() {
   if (!panel) return;
   const v = {backup:panelBackup, event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, lot:panelLot, penLot:panelPenLot,
     orders:panelOrders, barn:panelBarn, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D,
-    quests:panelQuests, perk:panelPerk, visitor:panelVisitor}[panel.type](panel.arg);
+    quests:panelQuests, perk:panelPerk, visitor:panelVisitor, daily:panelDaily, away:panelAway}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
   $("#panelRoot").innerHTML = `<div class="scrim" data-act="closePanel"><div class="panel" role="dialog" aria-modal="true" aria-label="${v.title}">
     <div class="ribbon out">${v.title}</div><button class="xbtn" data-act="closePanel" aria-label="Close">✕</button>
@@ -1504,6 +1627,7 @@ document.addEventListener("click", (e) => {
     case "standSlot": buyStandSlot(); break;
     case "sound": snd.on = !snd.on; saveSound(); if (panel) renderPanel(); if (snd.on) { audio(); sfx("pop"); } break;
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
+    case "notify": setReminders(!PREFS.notify); break;
     case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
     case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
@@ -1776,6 +1900,15 @@ export function start() {
   if (!WX.cur || Date.now() - WX.cur.t > 10 * 60e3) fetchWeather();
   setInterval(fetchWeather, 15 * 60e3);
   if (how === "3d") setTimeout(eventTick, 1500);
+  // been away a while: show what happened on the farm
+  const gap = now() - (S.lastSeen || now());
+  if (how === "3d" && gap > 10 * 60e3 && !tutActive()) { awayInfo = {gap, items:awaySummary(gap)}; setTimeout(() => { if (!panel && !homeS) openPanel("away"); }, 1200); }
+  document.addEventListener("visibilitychange", () => { // coming back to the game after a while counts too
+    if (document.hidden) { S.lastSeen = now(); save(); return; }
+    const g = now() - (S.lastSeen || now());
+    if (g > 10 * 60e3 && !tutActive() && !homeS && !panel) { awayInfo = {gap:g, items:awaySummary(g)}; openPanel("away"); }
+    S.lastSeen = now();
+  });
   // a gentle, once-a-day reminder to back up
   if (how === "3d" && S.level >= 3 && (!S.lastBackup || now() - S.lastBackup > 7 * 864e5) && S.lastNag !== today()) {
     S.lastNag = today(); save();
