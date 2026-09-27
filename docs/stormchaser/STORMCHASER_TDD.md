@@ -160,7 +160,7 @@ All OU processes are generated at fixed 1 s steps from the replicated seed with 
 
 The map is set in the stormiest place in the country, so the **weather regime chain** (§2.0.1) is weighted heavily toward bad weather. Every in-game day draws a regime from a season-dependent Markov chain. Each regime sets the atmosphere field targets and turns on the hazard modules in §2.0.6. Regimes can also change *during* a day through the diurnal cycle: morning fog can burn off into afternoon supercells, and a clear morning can turn into an evening squall line.
 
-**Spring (peak season) daily share:**
+**Peak-season daily share** (spring in the Plains; May–July for this map, §8.6):
 
 | Regime (`Weather.Regime.*`) | Share | What it feels like |
 |---|---|---|
@@ -998,7 +998,7 @@ storm.Net.T2TopK          48     | 48    | 24
 
 ## 8. The Map: 1:1 Recreation of a Real Rural Area
 
-The game map is a **1:1 real-world recreation** of the lead's home area: rural, flat to rolling, with long sightlines where tornadoes read best against the horizon. Every road, field boundary, creek, tree line, farmstead and town is where it is in real life, at true scale.
+The game map is a **1:1 real-world recreation** of the lead's home area in the Upper Midwest: rural **ridge-and-coulee terrain**, with broad valley floors of cropland cut by steep wooded coulees and topped by open ridgetop farms with long sightlines. Every road, field boundary, creek, tree line, farmstead and town is where it is in real life, at true scale.
 
 ### 8.1 Extent and scale
 
@@ -1009,7 +1009,8 @@ The game map is a **1:1 real-world recreation** of the lead's home area: rural, 
 | Hero zone | A 2 × 2 km area around home, rebuilt from 1 m lidar with Landscape Patch detail and hand-authored buildings |
 | Horizon ring | A further 50 km in every direction as low-poly terrain mesh HLOD from 10 m DEM. Never walkable, but it makes distant supercells sit correctly on the real horizon |
 | Weather margin | 8 km of atmosphere simulation beyond the playable edge (§2.0.1), so storms form off-map and roll in |
-| Z scale | Set from the real relief: `ZScale = (maxElev − minElev + 40 m) / 512 · 100`. Rural plains relief is usually under 150 m, which gives < 0.5 cm vertical precision |
+| Terrain character (measured) | Branching valley network, a broad river floodplain crossing the map, steep 40–120 m coulee walls, flat ridgetop uplands. Valley floors are cropland; the slopes are mostly hardwood forest |
+| Z scale | Set from the real relief: `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured:** elevation 234–405 m, relief 171 m → `ZScale = 41.21`, Landscape Z = 8551 cm (lowest point at Z = 0), 0.32 cm vertical precision |
 | Origin | The `AGeoReferencingSystem` actor (GeoReferencing plugin), with a projected CRS set to the UTM zone of the center point. World origin = center. 1 uu = 1 cm; Large World Coordinates cover ±8 km trivially |
 
 If the real area needs more than 16 km (for example to include the county seat), the fallback is the same 8129 px landscape at **3 m/px = 24.4 km**, with lidar detail kept only in the hero zone.
@@ -1020,13 +1021,16 @@ If the real area needs more than 16 km (for example to include the county seat),
 |---|---|---|---|
 | Elevation | USGS 3DEP lidar DEM (1 m where flown, 1/3″ ≈ 10 m everywhere) | 1–10 m | Landscape heightmap, basins and flood routing (§2.0.6) |
 | Surface heights | 3DEP lidar point cloud (first return), DSM − DEM | 1 m | Building heights, tree heights and canopy extents |
+| Street-level reference | The lead's own photos and video (primary), Mapillary (CC BY-SA, attribution required). **Google Earth / Street View are not used**: Google's terms forbid copying or tracing their imagery into another product, so it cannot be a source for a commercial game | – | Building styles, road-edge detail, signage types, fence and mailbox styles, barn colours |
 | Aerial imagery | USDA NAIP | 0.6 m | Reference only: material tinting via a runtime virtual texture, placement validation. Never used as the final ground texture |
 | Roads, rail, power, POIs | OpenStreetMap | vector | Road splines (surface type: paved / gravel / dirt), rail, **power lines** (poles and spans for storm damage), town layout |
-| Building footprints | OSM + Microsoft US Building Footprints | vector | Every house, barn, shed and silo location |
+| Building footprints | OSM + Microsoft US Building Footprints | vector | Every house, barn, shed and silo location. **Measured:** OSM has only 518 buildings in the square (rural coverage is sparse), so the Microsoft footprints are **required**, not optional |
 | Fields and crops | USDA Cropland Data Layer | 30 m | Per-field crop type (corn, wheat, soy, pasture, fallow). Crop height follows the in-game calendar |
 | Land cover / canopy | NLCD land cover + tree canopy | 30 m | Biome masks and PCG foliage density |
 | Water | USGS National Hydrography Dataset | vector | Creeks, ponds, stock tanks → Water-plugin bodies |
 | Local storm climate | NOAA/SPC tornado tracks since 1950, NOAA Storm Events (hail, wind, flood) within 80 km | records | Calibrates `DA_Climate`: EF shares, month-by-month seasonality, dominant storm motion (usually SW → NE), path lengths. The game then boosts the frequencies (§2.0.3) |
+
+**Measured road network:** about 650 km of road in the square. Roughly 46% is tagged asphalt, but about 48% has no surface tag, so gravel and dirt town roads must be classified from NAIP imagery and the lead's knowledge.
 
 **Licensing.** USGS, USDA and NOAA data are public domain. OSM and the Microsoft footprints are **ODbL**, so the credits must attribute them and the derived *database* stays share-alike. Game art and code produced from it are not affected. Google or Bing photorealistic 3D tiles are **not** used: their terms prohibit extracting the geometry for a shipped game.
 
@@ -1054,12 +1058,14 @@ UE 5.6 Editor Utility "BuildRealMap"
 
 Everything is regenerable. Re-running the pipeline with a new center point builds a new map. Hand-authored hero content (the home, landmarks) lives in separate data layers, so a rebuild never touches it.
 
-### 8.4 Why the rural choice suits the game
+### 8.4 Why this terrain suits the game
 
-- **Sightlines.** Flat to rolling cropland and a 50 km horizon ring mean supercells are visible 30+ km out (§1.2). The whole structure (anvil, wall cloud, funnel) frames against open sky, which is the shot that goes viral.
-- **Performance.** A rural density of about 5–20 buildings per km² keeps actor counts far under the §5.6 budget. This frees the frame budget for volumetric clouds, debris and destruction.
-- **Readable damage.** A tornado track across open fields leaves a visible scar (cycloidal marks, flattened crops, debris lines) that stays in `DL_StormScars`.
-- **Gravel roads.** Low-water crossings, dust and loose surfaces create chase-road texture without any scripting.
+- **Hidden approaches.** In coulee country a supercell is visible from the ridgetops 30+ km out, but a tornado can come over the ridge with almost no warning if you are down in a valley. Players learn to get up high to read the sky, which is exactly the diegetic skill loop from §1.2.
+- **Sightlines.** Ridgetop farms and the broad river floodplain give the long, open views where a funnel frames against the sky, with the 50 km horizon ring behind it.
+- **Terrain changes the wind.** The wind field samples height above the storm's base (§2.1), so a funnel crossing a 100 m ridge-to-valley drop visibly stretches and shifts. Coulees also channel straight-line winds and floodwater (§2.0.6).
+- **Flash floods.** Steep, narrow coulees with roads along the creek beds are real flash-flood terrain. The flood model gets its most dramatic use here.
+- **Performance.** A rural density of about 5–20 buildings per km², plus forest that is instanced foliage on the slopes, keeps actor counts far under the §5.6 budget.
+- **Readable damage.** A track across valley cropland and forested ridges leaves a visible scar (flattened corn, snapped hardwoods, debris lines) that stays in `DL_StormScars`.
 
 ### 8.5 Privacy and real-world content rules
 
@@ -1068,3 +1074,18 @@ Everything is regenerable. Re-running the pipeline with a new center point build
 - **Businesses and brands** are renamed or generic (e.g. the co-op grain elevator becomes a fictional name) unless they are licensed.
 - **Town and road names:** real ones are allowed. The shipping build has a `bFictionalizePlaceNames` switch in case legal review prefers fictional names; since the map shows real places being destroyed, legal must review it before the game ships commercially.
 - **The home itself** is hand-authored at hero quality from the lead's own reference photos, and is the lead's choice to include.
+
+### 8.6 Local climate calibration (measured)
+
+`mapbuilder.py climate` read the SPC database for tornadoes within 80 km of the map center, 1951–2025:
+
+| Metric | Real value | How the game uses it |
+|---|---|---|
+| Tornadoes per year | 3.1 (232 total) | The real area is active for the region but is **not** the country's stormiest spot. The game multiplies the hazard rate so tornadoes happen on about 18% of peak-season days (§2.0.5). That is the "most storms around" fiction |
+| EF share | EF0 33% · EF1 42% · EF2 19% · EF3 5% · EF4 1% · EF5 0% | Shape of the game climatology. The game keeps the curve and fattens the tail to EF3 9%, EF4 4%, EF5 1% |
+| Season | May 19% · **Jun 26% · Jul 22%** · Sep 11% · Dec 6.5% · Aug 6% · Apr 6% | The **peak season for this map is early summer (May–July)**, not spring. There is a secondary September peak, and rare December events are real (a December 2021 outbreak hit the region), so winter tornadoes stay possible at low odds |
+| Mean storm motion | 67° (from the WSW toward the ENE) | Default direction for supercell motion (§2.0.1) and warning polygons. Most storms enter the map from the west or southwest |
+| Path length | median 3.1 km, 90th percentile 26.8 km | Lifespan distribution (§2.0.3): median `T_life` about 4 min at typical speeds, with a long tail |
+| Path width | median 46 m, max 823 m | Size distribution (§2.0.3): the `R_m0` median stays near 45 m, and the widest local tornadoes sit in the upper tail |
+
+The season table in §2.0.5 is written for the peak season. For this map, "peak season" means May–July.
