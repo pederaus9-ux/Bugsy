@@ -99,6 +99,9 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .seed .tag.own{background:var(--green);color:#fff} .seed .tag.buy{background:#fff;color:var(--wood-dk);box-shadow:inset 0 0 0 1.5px var(--gold-dk)}
 .seed.on{border-color:var(--gold-dk);background:#FFF6DC}
 .seed.locked{opacity:.45;filter:grayscale(1)}
+/* out of season: still plantable, but visibly slower. The corner shows the seasons it likes */
+.seed{position:relative} .seed.off{background:#EFE6D2;border-style:dashed;border-color:rgba(110,61,24,.25)} .seed.off img{filter:saturate(.45) brightness(.95)}
+.seed .szn{position:absolute;top:2px;right:3px;font-style:normal;font-size:10px;line-height:1;letter-spacing:-1px}
 .acard{display:flex;align-items:center;gap:10px}
 .acard img{width:66px;height:66px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));flex:none}
 .acard .who{flex:1;min-width:0}
@@ -307,7 +310,8 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .btn,.dock button,.side button,.modebar button,.seed,.islot,.qrow .btn{transition:transform .12s cubic-bezier(.3,1.6,.5,1)}
 .btn:active:not([disabled]),.dock button:active,.side button:active,.modebar button:active,.seed:active,.islot:active{transform:scale(.9)}
 /* coins and gems flying into their counters */
-.flyer{position:fixed;left:0;top:0;z-index:40;font-size:26px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.testbadge{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);left:50%;transform:translateX(-50%);z-index:9;background:#7b3fb5;color:#fff;font-weight:900;font-size:12px;padding:4px 12px;border-radius:99px;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.flyer{position:fixed;left:0;top:0;z-index:40;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 /* photo mode */
 body.photo > :not(canvas):not(#photoBar):not(#photoShot):not(#flash){visibility:hidden!important}
 .photobar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:12px;align-items:center;
@@ -488,7 +492,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=10"></script>
+<script type="module" src="auth.js?v=11"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -496,7 +500,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=16";
+import * as G from "./game.js?v=17";
 import {initFriends} from "./friends.js?v=3"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -1694,6 +1698,7 @@ function leaveVisit() {
   Object.assign(cam, {yaw:v.yaw, pitch:v.pitch, dist:v.dist}); cam.target.copy(v.target); G.sfx("pop");
 }
 visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
+if (G.SANDBOX) { const b = document.createElement("div"); b.className = "testbadge"; b.textContent = "🧪 Test farm · nothing is saved"; document.body.appendChild(b); }
 const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && visiting.name}) || {}; if (window.__saLinked) setTimeout(linkedToast, 1200);
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
@@ -1793,6 +1798,14 @@ const soilGeo = new THREE.PlaneGeometry(2.15, 2.15), sprGeo = new THREE.Cylinder
 const WET_MAT = new THREE.MeshBasicMaterial({color:0x1d1208, transparent:true, opacity:.38, depthWrite:false});
 const DRY_MAT = new THREE.MeshBasicMaterial({color:0xd8c29a, transparent:true, opacity:.3, depthWrite:false});
 const SPR_MAT = new THREE.MeshStandardMaterial({color:0x7a8ea0, metalness:.6, roughness:.4});
+// ripe crops twinkle: a few little stars blink on and off above each ripe field
+const twinkleMat = new THREE.SpriteMaterial({map:(() => { const [c, x] = canvas(64); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,255,235,1)"); g.addColorStop(.25, "rgba(255,240,170,.9)"); g.addColorStop(1, "rgba(255,230,120,0)");
+  x.fillStyle = g; x.beginPath(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, rr = k % 2 ? 7 : 32; x.lineTo(32 + Math.cos(a) * rr, 32 + Math.sin(a) * rr); } x.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
+function twinkle(P, t, on) {
+  if (!P.stars) { if (!on) return; P.stars = [0, 1, 2].map(k => { const s = new THREE.Sprite(twinkleMat.clone()); s.position.set((k - 1) * .6 + (Math.random() - .5) * .3, 1 + Math.random() * .5, (Math.random() - .5) * 1.2); s.userData.ph = Math.random() * 6; P.g.add(s); return s; }); }
+  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b; s.scale.setScalar(.2 + .65 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
+}
 function syncSoil() { // called every second
   plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;
     const wet = !!(p.crop && p.water), dry = !p.crop && G.soilNow(p) < 40;
@@ -1848,13 +1861,14 @@ const green = new THREE.Color(), ripe = new THREE.Color();
 function updatePlots(t) {
   plots.forEach((P, i) => {
     if (P.crop !== GS().plots[i].crop) { buildPlants(i); P.stage = 0; }
-    if (!P.crop) return;
+    if (!P.crop) { twinkle(P, t, false); return; }
     const L = CROP_LOOK[P.crop], g = grown(i), r = THREE.MathUtils.smoothstep(g, .55, 1);
     // growth stages: sprout, leafy, nearly there, ripe. Each new stage gives a little bounce, and ripe crops glint
     const stage = g >= 1 ? 3 : g > .66 ? 2 : g > .33 ? 1 : 0;
     if (stage > (P.stage || 0) && !visiting) { squish(P.g, stage === 3 ? .3 : .15); if (stage === 3) bits(P.g.position.clone().setY(.9), "rgba(255,244,170,1)", 6, 3); }
     P.stage = stage;
-    if (stage === 3 && Math.random() < .004) bits(P.g.position.clone().add(new THREE.Vector3((Math.random() - .5) * 1.6, 1, (Math.random() - .5) * 1.6)), "rgba(255,250,210,1)", 1, 1.4);
+    twinkle(P, t, stage === 3 && !visiting);
+    if (stage === 3 && Math.random() < .01) bits(P.g.position.clone().add(new THREE.Vector3((Math.random() - .5) * 1.6, 1, (Math.random() - .5) * 1.6)), "rgba(255,250,210,1)", 1, 1.4);
     P.plants.scale.set(.55 + .45 * g, .12 + .88 * g, .55 + .45 * g);
     P.mat.color.copy(green.set(L.green)).lerp(ripe.set(L.ripe), r);
     P.fruit.forEach((s, k) => { const f = THREE.MathUtils.smoothstep(g, .65, 1); s.visible = f > .01;
@@ -2403,10 +2417,16 @@ function updateDrops(dt) {
 }
 // a burst of little bits (leaves, juice) that fall and fade
 const bitTex = {};
-function bits(pos, color, n, up = 3.5) {
+function bits(pos, color, n, up = 3.5, sz = 1) {
   const mat = bitTex[color] || (bitTex[color] = new THREE.SpriteMaterial({map:radial(color), transparent:true, depthWrite:false}));
   for (let i = 0; i < n; i++) { const a = rnd() * Math.PI * 2, sp = 1 + rnd() * 2.2;
-    spawnDrop(pos, mat.clone(), new THREE.Vector3(Math.cos(a) * sp, up * (.6 + rnd() * .6), Math.sin(a) * sp), {kind:"bit", size:.12 + rnd() * .12, life:.7 + rnd() * .5, spin:0}); }
+    spawnDrop(pos, mat.clone(), new THREE.Vector3(Math.cos(a) * sp, up * (.6 + rnd() * .6), Math.sin(a) * sp), {kind:"bit", size:(.12 + rnd() * .12) * sz, life:.7 + rnd() * .5, spin:0}); }
+}
+// a puff of soil dust that swells and fades where a crop was pulled up
+const dustMat = new THREE.SpriteMaterial({map:radial("rgba(150,110,70,.75)"), transparent:true, depthWrite:false});
+function dust(pos, n = 7) {
+  for (let i = 0; i < n; i++) { const a = rnd() * Math.PI * 2, sp = .6 + rnd() * 1.2;
+    spawnDrop(pos.clone().add(new THREE.Vector3(Math.cos(a) * .5, 0, Math.sin(a) * .5)), dustMat.clone(), new THREE.Vector3(Math.cos(a) * sp, 1.6 + rnd() * 1.4, Math.sin(a) * sp), {kind:"bit", size:.55 + rnd() * .45, life:.6 + rnd() * .4, spin:0}); }
 }
 const JUICE = {wheat:"rgba(240,200,90,.95)", corn:"rgba(250,215,60,.95)", carrot:"rgba(255,140,40,.95)", soybean:"rgba(150,190,80,.95)", sugarcane:"rgba(170,220,120,.95)",
   tomato:"rgba(230,50,40,.95)", strawberry:"rgba(235,40,70,.95)", pumpkin:"rgba(250,140,30,.95)"};
@@ -2447,7 +2467,8 @@ function sliceFx(i, crop) {
   const at = new THREE.Vector3(c.x, .8, c.z);
   for (const side of [-1, 1]) spawnDrop(at, G.CROPS[crop] ? halfMat(crop, side) : itemMat(crop),
     across.clone().multiplyScalar(side * (2 + rnd())).addScaledVector(cut, 1.2).setY(5.5 + rnd() * 1.5), {size:walk ? .6 : 1, half:!!G.CROPS[crop], spin:side * 10});
-  bits(at, JUICE[crop] || "rgba(240,200,90,.95)", 7, 4); bits(at, "rgba(90,170,60,.95)", 5, 3);
+  const big = walk ? 1 : 1.8; // bigger from the farm view, so the burst reads from far away
+  bits(at, JUICE[crop] || "rgba(240,200,90,.95)", 14, 4.5, big); bits(at, "rgba(90,170,60,.95)", 10, 3.5, big); dust(new THREE.Vector3(c.x, .3, c.z));
   shake = Math.max(shake, .05); G.sfx("slice");
 }
 // goods pop out of a building's door one after another
@@ -2541,13 +2562,13 @@ function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v
 // coins and gems fly from where you tapped into their counters
 let lastTap = {x:innerWidth / 2, y:innerHeight / 2, t:0};
 addEventListener("pointerdown", (e) => { lastTap = {x:e.clientX, y:e.clientY, t:performance.now()}; if (e.target.closest && e.target.closest("button")) G.buzz(6); }, true);
-function flyTo(kind, n) {
-  const target = document.getElementById(kind === "coin" ? "coins" : "gems"); if (!target || document.hidden) return;
-  const r = target.closest(".cnt").getBoundingClientRect(), tx = r.left + 18, ty = r.top + r.height / 2;
-  const from = performance.now() - lastTap.t < 4000 ? lastTap : {x:innerWidth / 2, y:innerHeight * .55};
+function flyTo(kind, n, at) {
+  const target = document.getElementById(kind === "coin" ? "coins" : kind === "xp" ? "lvl" : "gems"); if (!target || document.hidden || visiting) return;
+  const r = target.closest(".cnt, .star").getBoundingClientRect(), tx = r.left + (kind === "xp" ? r.width / 2 : 18), ty = r.top + r.height / 2;
+  const from = at || (performance.now() - lastTap.t < 4000 ? lastTap : {x:innerWidth / 2, y:innerHeight * .55});
   const count = Math.min(7, 1 + Math.floor(Math.log2(n + 1)));
   for (let k = 0; k < count; k++) {
-    const el = document.createElement("div"); el.className = "flyer"; el.textContent = kind === "coin" ? "🪙" : "💎"; document.body.appendChild(el);
+    const el = document.createElement("div"); el.className = "flyer"; el.textContent = kind === "coin" ? "🪙" : kind === "xp" ? "⭐" : "💎"; document.body.appendChild(el);
     const sx = from.x + (Math.random() - .5) * 60, sy = from.y + (Math.random() - .5) * 40, mx = (sx + tx) / 2 + (Math.random() - .5) * 120, my = Math.min(sy, ty) - 40 - Math.random() * 60;
     const a = el.animate([{transform:`translate(${sx - 13}px,${sy - 13}px) scale(.6)`, opacity:0}, {transform:`translate(${mx - 13}px,${my - 13}px) scale(1.15)`, opacity:1, offset:.45},
       {transform:`translate(${tx - 13}px,${ty - 13}px) scale(.7)`, opacity:1}], {duration:650 + k * 70, delay:k * 60, easing:"cubic-bezier(.5,0,.6,1)", fill:"both"});
@@ -2590,8 +2611,8 @@ function renderSeeds() {
     : G.SEASON_E[G.THEME.season] + " Tap a seed, or drag one onto the fields";
   document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
     ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
-    : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b>${G.have(id) // seeds you have show how many; the rest show what one costs
-      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>${G.inSeason(id) ? "⏱ " + G.fmt(c.time * 1000) : "🍂 " + G.fmt(c.time * 2000)}</small></button>`).join("");
+    : `<button class="seed${armed === id ? " on" : ""}${G.inSeason(id) ? "" : " off"}" data-crop="${id}" ${G.inSeason(id) ? "" : `title="Out of season: grows at half speed. Best in ${G.CROP_SEASONS[id].join(", ")}"`}>${G.inSeason(id) ? "" : `<i class="szn">${G.CROP_SEASONS[id].map(x => G.SEASON_E[x]).join("")}</i>`}<img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b>${G.have(id) // seeds you have show how many; the rest show what one costs
+      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>${G.inSeason(id) ? "⏱ " + G.fmt(c.time * 1000) : "🐢 ½ speed · " + G.fmt(c.time * 2000)}</small></button>`).join("");
 }
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
 let pendingPlot = -1;
@@ -2721,7 +2742,7 @@ function hitAt(x, y) {
 }
 const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
-function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
+function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
   if (visiting || photoMode) return false; // a friend's farm: look, don't touch
   paintUsed = false;

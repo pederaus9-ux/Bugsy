@@ -175,7 +175,9 @@ async function linkFarm(user) {
   let remote = null;
   try { remote = await cloud.get(); } catch (e) { console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null; return open(user); }
   cloud.uid = uid;
+  if (owner !== uid) ls.del("sa3d-restored");
   const rrev = remote ? remote.rev || 0 : 0;
+  if (owner === uid && ls.get("sa3d-restored")) { ls.del("sa3d-restored"); await upload(true); return open(user); } // just restored from a backup: that's the farm now, here and in the cloud
   if (owner === uid) { // this account's own farm
     if (remote && rrev > (+ls.get(SYNC_REV) || 0)) { // it was saved from another phone since this one last synced
       if (!dirty) return useFarm(remote.save, uid, rrev);
@@ -268,4 +270,6 @@ form.addEventListener("submit", async (e) => {
 });
 
 const configured = !Object.values(firebaseConfig).some(v => String(v).includes("YOUR_"));
-if (configured) start();
+// ?testfarm opens a throwaway test farm (see game.js): no sign-in, no cloud
+if (new URLSearchParams(location.search).has("testfarm")) { window.saAuth.guest = false; gate.hidden = true; }
+else if (configured) start();

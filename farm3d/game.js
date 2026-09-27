@@ -218,7 +218,22 @@ function upgrade(saved) {
   s.layout = s.layout && typeof s.layout === "object" ? s.layout : {}; s.layout.b = s.layout.b || {}; s.layout.t = s.layout.t || {};
   return s;
 }
+// ?testfarm: a ready-made farm for testing (animals, pets, buildings, crops at every stage). It is never saved and never touches your own farm.
+export const SANDBOX = new URLSearchParams(location.search).has("testfarm");
+function sandboxFarm() {
+  const s = fresh(), t = now();
+  Object.assign(s, {level:12, xp:40, coins:50000, gems:200, tut:TUT.length, lastDaily:"", barnCap:400, sprinklers:1, nextRushAt:t + 45e3, nextVisitorAt:t + 20e3, nextEventAt:t + 5e3, lastSeen:t});
+  s.barn = {wheat:30, corn:30, carrot:20, soybean:20, sugarcane:12, tomato:12, strawberry:8, pumpkin:6, chicken_feed:12, cow_feed:8, sheep_feed:6, fertilizer:10, flour:10, egg:10, milk:6, wool:4, sugar:6, butter:3, cheese:3};
+  for (const k in s.buildings) s.buildings[k].owned = true;
+  s.pens.chicken = {owned:true, list:[0, 0, t + 20e3, t - 1]}; s.pens.cow = {owned:true, list:[0, t - 1]}; s.pens.sheep = {owned:true, list:[0]}; s.pens.horse = {owned:true, list:[0]};
+  s.pets = [{kind:"dog", name:"Buddy", love:60, loveAt:t, petAt:0, playAt:0, treatAt:0, giftAt:0}, {kind:"cat", name:"Whiskers", love:30, loveAt:t, petAt:0, playAt:0, treatAt:0, giftAt:t}];
+  s.plots = Array.from({length:30}, () => newPlot());
+  const crops = ["wheat", "corn", "carrot", "soybean", "tomato", "wheat"];
+  s.plots.forEach((p, i) => { if (i >= 24) return; const c = crops[i % crops.length], dur = CROPS[c].time * 1000; p.crop = c; p.dur = dur; p.end = t + dur * [-.1, .2, .5, .8][i % 4]; }); // ripe, and three growth stages
+  return s;
+}
 export function load() {
+  if (SANDBOX) { S = sandboxFarm(); return "sandbox"; }
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { S = upgrade(JSON.parse(raw)); return "3d"; } } catch (e) {}
   S = fresh();
   try { if (localStorage.getItem(SAVE_2D)) return "has2d"; } catch (e) {} // the 2D game lives on the same site: offer to bring it over
@@ -237,6 +252,7 @@ export function leaveVisit() {
 }
 export const isVisiting = () => !!homeS;
 export function save() {
+  if (SANDBOX) return;
   if (restoring || window.__saHold || homeS) return; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
   if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
@@ -364,6 +380,7 @@ export function feedOne(kind, i) {
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (pen.list[i] !== 0 || have(a.feed) < 1) return false;
   take(a.feed, 1); pen.list[i] = now() + a.time * 1000 * (loveOf(meta(kind, i)) >= 70 ? .8 : 1); // happy animals work faster
+  addLove(meta(kind, i), 5); // and a full tummy is a happy tummy
   sfx("feed");
   return true;
 }
@@ -1758,7 +1775,7 @@ const BUZZ = {harvest:8, collect:12, level:[30, 40, 60], error:[25, 30, 25], bui
 export function sfx(name) { if (BUZZ[name]) buzz(BUZZ[name]); if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
 // a light tap from the phone (Android; iPhones don't allow web pages to vibrate)
 let lastBuzz = 0;
-export function buzz(p) { if (!snd.buzz || !navigator.vibrate || document.hidden) return; const t = performance.now(); if (t - lastBuzz < 40) return; lastBuzz = t; try { navigator.vibrate(p); } catch (e) {} }
+export function buzz(p) { if (!snd.buzz || !navigator.vibrate || document.hidden || (navigator.userActivation && !navigator.userActivation.hasBeenActive)) return; /* phones only allow it after a tap */ const t = performance.now(); if (t - lastBuzz < 40) return; lastBuzz = t; try { navigator.vibrate(p); } catch (e) {} }
 // a sound coming from somewhere on the farm: pan -1 (left) … 1 (right), vol 0…1 (quieter further away)
 let BUS = null;
 export function sfxAt(name, pan, vol) {
@@ -1872,6 +1889,7 @@ async function restoreFrom(text) {
     restoring = true;
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(adopt(farm)));
+      localStorage.setItem("sa3d-restored", "1"); localStorage.setItem("sa3d-dirty", "1"); // signed in: the restored farm becomes the account's farm too (auth.js)
       if (data.weather) localStorage.setItem(WX_KEY, JSON.stringify(Object.assign({look:"real"}, data.weather)));
     } catch (e) { restoring = false; toast("Couldn't restore. Is the phone's storage full?"); return; }
     location.reload();
