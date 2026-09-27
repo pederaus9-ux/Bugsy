@@ -2427,6 +2427,7 @@ function onOrient() {
 }
 addEventListener("resize", () => setTimeout(onOrient, 60));
 addEventListener("orientationchange", () => setTimeout(onOrient, 250));
+setInterval(onOrient, 500); // phones sometimes report the new size a moment after they rotate: check again, so a rotation is never missed
 coach.addEventListener("click", (e) => {
   const b = e.target.closest("[data-c]"); if (!b) return;
   coach.hidden = true;
@@ -3453,7 +3454,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto, get fpState() { return {auto:walk && walk.auto, lastLand, classic:!!classicSaved, inBarn:!!inBarn}; }};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
