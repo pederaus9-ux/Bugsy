@@ -1,7 +1,7 @@
 # STORMCHASER — Technical Design Document
 
-**Engine:** Unreal Engine 5.6 · **Targets:** PC (DX12/Vulkan, SM6), iOS/Android high tier · **Genre:** Open-world disaster survival, 1–8 player co-op (dedicated server)
-**Doc owner:** Lead Systems Architect / TD · **Status:** v1.0, ready for pre-production review
+**Engine:** Unreal Engine 5.6 · **Targets:** PC (DX12/Vulkan, SM6), iOS/Android high tier · **Genre:** Systemic open-world life sim with emergent disasters (GTA-style), solo or up to 16-player sessions (dedicated server)
+**Doc owner:** Lead Systems Architect / TD · **Status:** v1.1 (random, unplanned storms; prompt-free open world)
 
 > Conventions used throughout
 > - All storm math runs in **SI units (m, s, kg, N)** inside the `StormCore` module. Convert only at the engine boundary: `m = uu * 0.01`, and a force in N becomes `N * 100` for `AddForce` (UE force units are kg·cm/s²).
@@ -29,70 +29,135 @@
          └───────────────────────────┘                          └────────────────────────┘
 ```
 
-**The core design decision:** the wind field is a **closed-form, deterministic function** `V(P, t | StormNetState)`. The server replicates only a few bytes of storm state (seed, path keys, lifecycle time). Every machine can then evaluate the same wind at any point. This one choice drives:
+**The core design decision:** the wind field is a **closed-form, deterministic function** `V(P, t | StormNetState)`. The server replicates only a few bytes of storm state (seed, sampled parameters, path keys). Every machine can then evaluate the same wind at any point. This one choice drives:
 1. **Netcode.** Player wind forces run inside client-side movement prediction with zero corrections, and cosmetic debris costs no bandwidth.
 2. **Visual coherence.** Grass, trees, cloth, Niagara and physics all read the same field.
 3. **Performance.** No fluid sim. A field sample costs about 60 flops.
 
 ---
 
-## 1. Core Loop Breakdown
+## 1. Core Experience: A Living Open World Where Storms Just Happen
 
-### 1.1 The 30-Second Survival Panic Loop (micro)
+**Design rule:** there are no prompts, no storm timers, no schedules and no menus that tell the player what to do about a storm. Storms are **weather, not missions**. The world simulates weather continuously, whether or not anyone is watching. A tornado's strength, size, path, timing and lifespan are rolled at random when it forms (§2.0), and nobody, including the designers, knows what the next one will be. The player finds out the way a real person would, by reading the world.
 
-This is the clip generator. It triggers on every storm "threat pulse": touchdown, direction change, a satellite vortex, a debris barrage, or a hail core.
+### 1.1 The world
 
-| t (s) | Beat | Player verbs | Systems / signals |
-|---|---|---|---|
-| 0–3 | **Read** | Look, listen | `Event.Storm.ThreatPulse` → siren GameplayCue, pressure-drop audio (low-pass sweep plus ear-pop), sky darkens (Lumen skylight lerp), the HUD wind-vector ring points to the threat |
-| 3–10 | **Decide** | Shelter / Brace / Chase | Exposure meter starts to rise. Probe "data multiplier" shows on the HUD (risk/reward bait) |
-| 10–25 | **Execute** | Sprint, slide, grapple, anchor, drive, deploy probe | Wind forces active. Tier-1/2 debris ramps up. Hits apply `GE_DebrisImpact` |
-| 25–30 | **Resolve** | Survive / ragdoll / get launched | Reward popup (Data, Salvage). **Clip flag**: the server fires `Event.Clip.Highlight` when a player exceeds 25 m/s airborne or is hit by an object heavier than 200 kg, or when a base breaks with more than 20 joints. The client saves the rolling replay buffer (§4.8) |
+| Pillar | Spec |
+|---|---|
+| Map | 16 × 16 km "Tornado Alley" state: one mid-size city, 6 towns, farmland, interstate, back roads, river valley, lake, oil fields, trailer parks, strip malls |
+| Time | Continuous day/night (1 in-game day = 48 real min). Seasons drive the climate (spring peak). No session phases, no cycles |
+| Population | Mass AI crowds and traffic that react to weather systemically (§4.2) |
+| Player life | Houses, garages, vehicles, jobs, businesses. GTA-style freedom: drive, work, mess around, commit crimes, get chased |
+| Storm opportunities | None forced, all emergent. Film storms and sell footage to the TV station, run storm tours, pick up salvage and repair contracts after damage, commit insurance fraud, loot (police respond), run rescue calls (EMS job) |
+| Multiplayer | Public sessions of up to 16 players, or solo / invite-only. Cross-progression on properties, vehicles, cosmetics and money |
 
-**Three decisions, all valid, all clippable:**
-- **Shelter.** Reach a cellar or reinforced core. Safe, but earns nothing.
-- **Brace** (`GA_Brace`). Anchor to a structure or a ground stake. Your Grip attribute has to beat the wind force (§2.6). Medium risk and medium reward.
-- **Chase** (`GA_DeployProbe`, `GA_Grapple`, `GA_WindSurf`). Ride the edge of the inflow and drop probes as close to the core as you dare. Data reward scales with `v_local²` (§2.9). High risk and a huge payoff. This is the streamer moment.
+### 1.2 How the player learns a storm is coming (all diegetic)
 
-### 1.2 The 5-Minute Storm Phase (meso)
-
-The storm is one `AStormActor` driven by a lifecycle curve `I(t) ∈ [0,1]` from `UStormArchetypeDataAsset`.
-
-| Phase (tag) | Window | I(t) | What happens |
-|---|---|---|---|
-| `Storm.Phase.Forming` | 0:00–0:60 | 0 → 0.35 | Wall cloud and rotating mesocyclone VFX. Rain curtains, gust front (straight-line wind `V_amb` ramps up). The forecast cone on the map narrows |
-| `Storm.Phase.Touchdown` | 0:60–1:30 | 0.35 → 0.8 | Condensation funnel descends (funnel-shader `CloudBase → 0`). Ground debris ring spawns. **Threat pulse #1** |
-| `Storm.Phase.Mature` | 1:30–3:30 | 0.8 → 1.0 | Peak V_max. Path wander plus player-heat bias (§2.8). 1–2 satellite vortices at EF3+. **Threat pulses #2–#4** |
-| `Storm.Phase.Roping` | 3:30–4:30 | 1.0 → 0.4 | Core radius shrinks and the funnel ropes out. Tangential speed briefly spikes (angular momentum conservation, `V_max ∝ 1/r_c` with a clamp). **Final pulse**, the most violent |
-| `Storm.Phase.Dissipated` | 4:30–5:00 | 0.4 → 0 | Debris settles. Fragments sleep → converted to salvage ISM piles. Damage ledger is committed (§4.6) |
-
-### 1.3 The 30-Minute Session (macro): Recovery and Building
-
-A session runs 3 cycles with escalating intensity, then an extraction/bank step. Cross-progression persists the **Home Base blueprint** (the layout), unlocks and cosmetics. The session base itself is disposable.
-
-```
-[Cycle 1 ~10 min]  Forecast(0:30) → Prep/Build(4:00) → STORM EF1–EF2(5:00) → Salvage(0:30)
-[Cycle 2 ~10 min]  Forecast(0:30) → Repair/Upgrade(3:30) → STORM EF2–EF3(5:00) → Salvage(1:00)
-[Cycle 3 ~10 min]  Forecast(0:30) → Fortify(3:00) → FINALE EF4–EF5 / twin vortex(5:30) → Bank & Extract(1:00)
-```
-
-| Recovery verb | System | Output |
+| Signal | Typical lead time | Reliability |
 |---|---|---|
-| Salvage | Line trace → `ASalvagePile` (ISM, from slept Chaos fragments) | Material currency by `Build.Material.*` |
-| Repair | `GA_Repair` → UStructuralIntegrityComponent resets fatigue `D` | Structures back to 100% |
-| Build / Upgrade | `GA_Build` → UBuildGridComponent snapping → part added to the SoA graph | New parts, upgraded material tier |
-| Forecast | `UStormScheduleDataAsset` rolls the next archetype and shows a probability cone | Players plan base orientation (wind load is directional, §3.3) |
-| Research | Data currency → unlocks (anchors, shutters, grapple upgrades) | Persistent meta (cross-progression) |
+| **Sky.** Supercell structure (volumetric, §5.7) visible from 30+ km: anvil, wall cloud, rotation, green tint | 10–60 min | Always there on a clear day. Useless at night or when rain-wrapped |
+| **Radio / TV.** The in-world weather service gives a day outlook ("slight / enhanced / moderate risk") from the current atmosphere state | Hours | Probabilistic; often wrong, exactly like real forecasts |
+| **Phone radar app.** Reflectivity and velocity rendered from the real simulation state. A skilled player can spot a hook echo or a velocity couplet before any warning is issued | Minutes | As good as the player's ability to read it (skill ceiling) |
+| **Phone alert + town sirens.** Issued by the in-world warning service when it "detects" rotation (§2.0.4) | 0–20 min, random | About 20% of tornadoes are never warned, and about 30% of warnings are false alarms |
+| **NPC behaviour.** People run inside, drive away, stop to film, or pull over under overpasses (a bad idea, as in reality). Shops drop their shutters | Seconds–minutes | Reactive: NPCs only respond to warnings or to what they can see |
+| **Senses.** Wind shift, hail, sudden calm, the freight-train roar, the pressure drop in the audio, power flickers and lines coming down | Seconds | Always, but late |
 
-**Retention hook:** the storm path is seeded and shown as a forecast cone, so players can *engineer* their bases against a known threat. Engineering choices matter because the physics are real: aerodynamic orientation, bracing and material tiers all change the outcome.
+There is **no HUD storm meter and no storm marker on the map**. Knowing how to read these signals is where the skill ceiling lives.
+
+### 1.3 When a tornado is close (no choice menu)
+
+Everything is systemic. The player can do anything that is physically possible in the world, and the physics decides the outcome:
+- **Drive away.** Vehicles feel the real wind force (§2.6), so vans and trucks with tall, flat sides can blow over. Roads get blocked by debris and by fleeing traffic.
+- **Get inside.** Protection is not a "safe zone" flag. It comes from the building itself: wind shadow (§3.6) plus the structure standing up (§3). A basement is excellent. An interior bathroom helps. A mobile home is a death trap.
+- **Hold on.** A contextual grab, in the style of climbing and ledge-grab systems, with no button prompt. Hold the grab input near anything solid. Your grip strength against the wind decides whether you hang on (§2.6).
+- **Get taken.** You get lifted, ragdoll, maybe survive, maybe open a parachute. This is the viral clip.
+- **Film it.** Point the phone camera at it. What the footage is worth is only worked out later, when you sell it (§2.9).
+
+Feedback is physical, never a UI element: camera buffeting, character lean and stumble animations, audio (roar, debris impacts, ear-pop), controller rumble and phone haptics.
+
+### 1.4 Aftermath is part of the world, not a phase
+
+- **Damage persists.** The Damage Ledger (§5.6) and the `DL_StormScars` data layer keep damaged houses, debris fields, snapped trees, downed power lines and closed roads. NPC repair crews fix things over several in-game days.
+- **The economy reacts.** Construction prices go up in towns that were hit. Salvage and repair contracts appear. Property insurance pays out, or refuses.
+- **Player property** takes real structural damage (§3). The loss is money and time, never account progression. Rebuilding and reinforcing the house is an ongoing choice, not a scheduled "build phase".
+
+### 1.5 Clip generation (invisible)
+
+The server raises `Event.Clip.Highlight` when a player is carried airborne faster than 25 m/s, is hit by an object heavier than 200 kg, is within 100 m of a funnel of EF3 or stronger, or sees a structure collapse with more than 20 joints. The client saves its rolling replay buffer (`UClipBufferComponent`, §4.2). Nothing appears on screen. The clip is waiting in the phone's gallery or in the replay editor.
 
 ---
 
 ## 2. Physics and Math Spec: Tornado Wind Field
 
+### 2.0 Storm Generation: random, unplanned, emergent
+
+Nothing about a tornado is authored per storm. The pipeline is **atmosphere → supercell → tornado**. Each stage is stochastic and seeded at runtime from server entropy (`FPlatformTime::Cycles64() ^ FPlatformMisc::GetMachineId hash`), never from a schedule. The seed is replicated, so clients reproduce the same storm (§5.2). **Random does not mean desynced.**
+
+#### 2.0.1 Atmosphere simulation (`UAtmosphereSubsystem`, server, 0.2 Hz)
+
+A coarse 2-D grid of 1 km cells, 32 × 32, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
+
+- **Synoptic regime.** A Markov chain rolled once per in-game day: `Quiet, Marginal, Active, Outbreak`. The transition matrix lives in `DA_Climate` and is modulated by season. Regimes set the target field means. The fields relax toward those means (τ = 2 in-game hours) with spatial Perlin noise, plus diurnal heating that peaks late in the afternoon.
+- **Supercell initiation.** A Poisson process per cell. Hazard: `λ_SC = λ₀ · f(CAPE) · g(BWD) · h(CIN)` per in-game hour. Storms can therefore fire anywhere, at any time. Quiet weeks and wild outbreak days both emerge naturally.
+- **Supercell motion.** Mean wind plus the Bunkers right-mover deviation, 7.5 m/s perpendicular to the shear vector.
+
+#### 2.0.2 Tornadogenesis: the Significant Tornado Parameter
+
+Each supercell evaluates the standard fixed-layer STP each minute from the cell it sits over:
+
+```
+STP = (CAPE/1500) · LCLterm · (SRH/150) · SHRterm · CINterm
+      LCLterm = 1 if LCL < 1000 m;  0 if LCL > 2000 m;  (2000 − LCL)/1000 otherwise
+      SHRterm = 0 if BWD < 12.5 m/s;  1.5 if BWD > 30 m/s;  BWD/20 otherwise
+      CINterm = 1 if CIN > −50;  0 if CIN < −200;  (200 + CIN)/150 otherwise
+Tornado hazard per minute:  λ_T = λ_T0 · max(STP, 0)      (λ_T0 ≈ 0.02)
+```
+
+A supercell can produce zero, one or several tornadoes in a row (cyclic tornadogenesis). After a tornado dies there is a random 3–10 min cooldown before the same cell can spawn again.
+
+#### 2.0.3 Tornado parameters: sampled at genesis, never chosen
+
+Intensity, size and lifespan are drawn together with a Gaussian copula. They are correlated, but independent enough that a tiny violent rope and a huge weak wedge are both possible.
+
+```
+z ~ N(0, Σ),   Σ = | 1    0.35  0.50 |      (intensity, size, duration)
+                   | 0.35 1     0.30 |
+                   | 0.50 0.30  1    |
+z₁ ← z₁ + 0.35 · ln(1 + STP)                       (strong environments skew stronger, not deterministically)
+
+Intensity:  u = Φ(z₁)  →  inverse CDF of the game climatology, then uniform within the band
+            EF0 40% · EF1 30% · EF2 16% · EF3 9% · EF4 4% · EF5 1%     (real US is about 90% EF0–1; boosted for play)
+            V_peak continuous: EF0 29–38 · EF1 38–49 · EF2 50–60 · EF3 61–74 · EF4 74–89 · EF5 89–135 m/s (/0.86 for B(10 m))
+Size:       R_m0 = clamp( 45 m · e^(0.75·z₂) , 8 m, 450 m )
+            → damage-path width (where v > 29 m/s) ≈ 2·R_m0·(1.4·V_peak/29) → 50 m ropes up to 4+ km wedges (El Reno scale)
+Duration:   T_life = clamp( 180 s · e^(0.9·z₃) , 15 s, 45 min )
+Height:     H ~ U(700, 1500) m (cloud base follows LCL)
+Morphology: emerges from R_m0/H and I(t); never picked. Rope < 0.02 < cone < 0.08 < stovepipe < 0.15 < wedge
+Multi-vortex:  P = sigmoid((R_m0 − 120)/40) if V_peak > 50;  count ~ U{2..6}; sub-vortex radius 0.15·R_m, orbit at 0.7·R_m
+Rain-wrapped:  P = 0.25 (HP supercell); hides the funnel visually, radar still shows it
+Satellite:     P = 0.10 if V_peak > 61; lifetime 20–90 s
+```
+
+#### 2.0.4 Procedural lifecycle (replaces the authored lifecycle curve)
+
+```
+Envelope:   E(t) = (t/t_p)^a · e^(a(1 − t/t_p)) · (1 − smoothstep(0.85·T_life, T_life, t))
+            t_p ~ U(0.2, 0.6)·T_life ,  a ~ U(1.5, 4)                  (peak = 1 at t_p)
+Wobble:     ε(t) = Ornstein–Uhlenbeck, σ = 0.15, τ = 15 s
+Surges:     Poisson rate 1/60 s; Gaussian bump, amplitude ~ U(0.1, 0.3), width 8 s
+I(t)      = clamp( E(t)·(1 + ε(t)) + Σ bumps , 0, 1.15 )
+V_max(t)  = V_peak · I(t) · RopeBoost(t)
+R_m(t)    = R_m0 · (1 + 0.15·ε_R(t)) · RopeShrink(t)                  (ε_R: an independent OU process)
+Rope-out (final 20% of life):  RopeShrink goes 1 → 0.3 ;  RopeBoost = min(1.3, RopeShrink^(−0.5))
+```
+
+All OU processes are generated at fixed 1 s steps from the replicated seed with `FRandomStream`, and interpolated. Server and clients produce bit-identical `I(t)` and `R_m(t)` with no ongoing bandwidth.
+
+**Warning service.** The in-world warning service "detects" a tornado with lead time `L ~ N(10 min, 6 min)` relative to genesis. If `L < 0` the warning comes late, and a random 20% of tornadoes are never warned at all. False-alarm warnings are raised on 30% of rotating supercells that never produce a tornado. The warning area is a polygon along the supercell's projected motion.
+
 ### 2.1 Symbols and frame
 
-| Symbol | Meaning | Default (EF3) |
+| Symbol | Meaning | Example value (a mid-EF3 draw; real values are sampled per tornado, §2.0.3) |
 |---|---|---|
 | `P` | Sample point (m, world) | – |
 | `C_g(t)` | Storm ground center | replicated path |
@@ -124,7 +189,7 @@ R_m(z) = R_m0 · (1 + κ·ζ)                                      (funnel widen
 
 ### 2.2 Tangential wind speed curves
 
-Three profiles are shipped, and the archetype selects one (`EVortexProfile`).
+Three profiles are shipped. None is picked by a designer: (a) is the default, (b) is the mobile and far-LOD fallback, and (c) switches on automatically whenever the sampled `V_peak > 74 m/s`.
 
 **(a) Burgers–Rott (default, smooth and physical)**, normalized so that `Φ(1) = 1`:
 
@@ -169,16 +234,16 @@ T(r) = 1 − smoothstep(0.7·R_out, R_out, r)
 v_t(r, z, t) = V_max(t) · Φ(ξ) · B(z) · T(r)
 ```
 
-**Enhanced Fujita calibration** (use `V_peak` = mid-band, `B(10m)` ≈ 0.86, so ground-level gusts land in the band):
+**Enhanced Fujita reference.** `V_peak` is sampled continuously (§2.0.3) and divided by `B(10 m) ≈ 0.86`, so ground-level gusts land inside the rated band. Size is sampled **independently** of rating (correlation 0.35 only), so any row can come as a narrow rope or a wide wedge.
 
-| Rating | 3-s gust (m/s) | `V_peak` authored (m/s) | `R_m0` (m) | Gameplay intent |
-|---|---|---|---|---|
-| EF0 | 29–38 | 38 | 30 | Tutorial. Props tumble, players stagger |
-| EF1 | 38–49 | 50 | 40 | Unbraced players lift inside the core |
-| EF2 | 50–60 | 63 | 50 | Wood walls fail on direct hit |
-| EF3 | 61–74 | 78 | 60 | Metal-tier bases needed. Vehicles slide |
-| EF4 | 74–89 | 95 | 80 | Two-cell. Concrete survives only when braced |
-| EF5 | > 89 | 115 | 100 | Finale. Only reinforced bunkers survive |
+| Rating | 3-s gust (m/s) | Spawn share | What the physics produces |
+|---|---|---|---|
+| EF0 | 29–38 | 40% | Props tumble, people stagger, shingles fly |
+| EF1 | 38–49 | 30% | People without a grip lift inside the core. Mobile homes roll |
+| EF2 | 50–60 | 16% | Wood-frame walls fail on a direct hit. Cars slide |
+| EF3 | 61–74 | 9% | Houses lose their roofs and walls. Trucks tip |
+| EF4 | 74–89 | 4% | Two-cell core. Only braced concrete stays standing |
+| EF5 | 89–135 | 1% | Only reinforced basements and bunkers survive |
 
 Bake `Φ(ξ)` for ξ ∈ [0, 12] into a 256-entry `UCurveFloat` or LUT at load time. The runtime cost is one lerp. Burgers–Rott needs `exp`, and the LUT avoids that on mobile.
 
@@ -205,7 +270,7 @@ v_z  = W_max(t) · W(r) · Z(z)
 ```
 V_wind(P,t) = ( v_t·θ̂ + v_r·r̂ + v_z·Û )                             (vortex)
             + V_trans(t) · T(r)                                        (storm motion → asymmetric winds)
-            + V_amb(P,t)                                               (gust front / RFD, archetype curve)
+            + V_amb(P,t)                                               (gust front / RFD, from the parent supercell)
             + σ_g · N₃(P/λ_g, t·f_g, seed) · T(r)                      (gusts: seeded 3-D curl-noise)
 ```
 
@@ -265,10 +330,10 @@ F_total = F_D + F_L + F_P + F_orb + m·g
 
 ```
 v_liftoff = sqrt( 2·m·g / (ρ · (C_D·A_z + C_L·A_plan)) )
-Player (80 kg, C_D·A_z ≈ 0.7 m²): v_liftoff ≈ 42.8 m/s  → unbraced players lift in an EF1 core. Intended.
+Player (80 kg, C_D·A_z ≈ 0.7 m²): v_liftoff ≈ 42.8 m/s  → a player who isn't holding on lifts in an EF1 core. Intended.
 ```
 
-**Brace / Grip check** (`GA_Brace`): the anchor holds while `|F_total,horizontal + F_total,vertical⁺| < Grip`. `Grip` is a GAS attribute in N (base 3 kN, upgrades up to 8 kN). On failure: `State.Airborne.Wind`, a ragdoll blend, and a clip flag.
+**Hold / Grip check** (`GA_Hold`, contextual, no prompt): the grip holds while `|F_total,horizontal + F_total,vertical⁺| < Grip`. `Grip` is a GAS attribute in N (base 3 kN, upgrades up to 8 kN). On failure: `State.Airborne.Wind`, a ragdoll blend, and a clip flag.
 
 ### 2.7 Numerically stable integration
 
@@ -281,23 +346,34 @@ u'     = u / (1 + k·|u|·Δt)                          (implicit quadratic drag
 F_D,applied = m · Δv_D / Δt                          (feed to Chaos as force, or apply Δv directly for Tier-1)
 ```
 
-The other terms (`F_L`, `F_P`, `F_orb`) are explicit, with a clamp of `|a| ≤ a_max` (archetype, default 60 m/s²) so that nothing gets launched at orbital speed.
+The other terms (`F_L`, `F_P`, `F_orb`) are explicit, with a clamp of `|a| ≤ a_max` (`DA_Climate`, default 60 m/s²) so that nothing gets launched at orbital speed.
 
 ### 2.8 Storm path
 
 ```
-C_g(t+Δt) = C_g(t) + Δt·( V_steer(t) + V_wander(t) + V_heat(t) )
-V_wander  : Ornstein–Uhlenbeck,  dW = −W/τ_w·dt + σ_w·√dt·N(0,1)  (seeded PCG, server-only)
-V_heat    : h_max · normalize(Σ_i w_i·(P_i − C_g)) ,  w_i = PlayerHeat_i / |P_i − C_g|²,  capped turn rate 6°/s
+C_g(t+Δt) = C_g(t) + Δt · Rot_z(ψ_hook(t)) · ( V_sc(t) + V_wander(t) )
+V_sc      : parent supercell motion (mean wind + Bunkers deviation, §2.0.1); 0–25 m/s, can nearly stall
+V_wander  : Ornstein–Uhlenbeck,  dW = −W/τ_w·dt + σ_w·√dt·N(0,1),  σ_w ~ U(1, 6) m/s, τ_w ~ U(10, 40) s
+ψ_hook    : occlusion hook. With P = 0.4, over the final 25% of life the track turns left by up to 90°
+            (in UE's left-handed frame "left" is a negative yaw about Z)
 ```
 
-The server bakes the path into **Hermite keys every 2 s with 10 s look-ahead** and replicates them. Clients evaluate the spline, so the path is smooth and cheap and never mispredicts more than 10 s ahead. `PlayerHeat` rises with probe deployments, which is the design lever that makes storms *chase the chasers*.
+**No player attraction, no designer steering.** The track depends only on the atmosphere and the seed, so a tornado ignores players entirely. It can miss a town completely, loop, stall over a farm, or cross the interstate at rush hour.
 
-### 2.9 Chaser reward
+The server bakes the path into **Hermite keys every 2 s with 10 s look-ahead** and replicates them. Clients evaluate the spline, so the path is smooth and cheap and never mispredicts more than 10 s ahead.
+
+### 2.9 Footage value (optional economy, never shown live)
+
+When a player sells a clip to the TV station, the game scores it after the fact from logged frames (camera position, view direction, the storm state at that moment):
 
 ```
-DataRate = k_d · (|V_wind(P_probe)| / V_liftoff,player)² · (1 − Shelter) · ProbeMult
+Value = k_$ · max_frames[ Vis · (V_max/40)² · (R_m / max(d_cam, R_m))^1.2 ] · Rarity · (1 + 0.5·Exclusive)
+        Vis       = funnel screen coverage × (1 − rain/occlusion)  (from a depth-buffer sample at capture)
+        Rarity    = 1 + 3·[EF4+] + 2·[multi-vortex] + 1·[debris-lofted-vehicle in frame]
+        Exclusive = 1 if no other player sold footage of this tornado first
 ```
+
+No meter and no score appear while filming. Players only learn what a clip was worth when they sell it.
 
 ### 2.10 Reference implementation (StormCore, C++, exposed to BP)
 
@@ -306,7 +382,7 @@ DataRate = k_d · (|V_wind(P_probe)| / V_liftoff,player)² · (1 − Shelter) ·
 #pragma once
 #include "CoreMinimal.h"
 
-struct FStormFieldParams            // built from UStormArchetypeDataAsset + FStormNetState each frame
+struct FStormFieldParams            // built from FTornadoSample (§2.0.3) + I(t)/R_m(t) (§2.0.4) + path each frame
 {
     FVector3f GroundCenter;         // m
     FVector3f TranslationVel;       // m/s
@@ -375,7 +451,7 @@ namespace StormMath
 
 `UStormWorldSubsystem::SampleWindBatch(TConstArrayView<FVector3f> Points, TArrayView<FVector3f> Out)` runs a `ParallelFor` over chunks of 64 points. It is exposed to Blueprint as `SampleWind(Vector WorldPos) → Vector WindVel_cms` (BlueprintPure, cm/s at the boundary).
 
-**Single source of truth.** `MF_StormWind` (Material Function) and `NM_StormWind` (Niagara module) implement §2.5 in HLSL, and read storm params from `MPC_Storm` (max 4 storms × 8 float4). An **automation test** (`Stormchaser.Wind.Parity`) samples 10k points on CPU and GPU (a render-target readback) and fails if `|ΔV| > 0.5 m/s`.
+**Single source of truth.** `MF_StormWind` (Material Function) and `NM_StormWind` (Niagara module) implement §2.5 in HLSL, and read storm params from `MPC_Storm` (max 6 tornadoes × 8 float4, matching the outbreak cap). An **automation test** (`Stormchaser.Wind.Parity`) samples 10k points on CPU and GPU (a render-target readback) and fails if `|ΔV| > 0.5 m/s`.
 
 ---
 
@@ -505,11 +581,22 @@ Content/Stormchaser/Blueprints/  BP_ subclasses; data-only children for content 
 ### 4.2 Actor and Component hierarchy
 
 ```
-AStormActor (C++)  →  BP_Storm_Base  →  BP_Storm_Tornado / BP_Storm_Derecho / BP_Storm_Finale (data-only)
+UAtmosphereSubsystem (UWorldSubsystem, server, 0.2 Hz)
+   32×32 km field grid · regime Markov chain · diurnal cycle · supercell Poisson spawner (§2.0.1)
+UWarningServiceSubsystem (server)
+   random-lead-time warnings/false alarms → warning polygons → sirens, phone alerts, radio/TV (§2.0.4)
+
+ASupercell (C++) → BP_Supercell
+ ├─ USupercellCloudComponent      volumetric cloud cell params (anvil, wall cloud, RFD curtain)
+ ├─ UPrecipitationComponent       rain/hail cores → Niagara + radar reflectivity source
+ ├─ URadarSourceComponent         feeds the phone radar app (reflectivity + velocity couplet)
+ └─ UTornadogenesisComponent      STP hazard roll each minute, cyclic cooldown → spawns AStormActor
+
+AStormActor (C++)  →  BP_Storm_Tornado   (one BP; every visual/physical difference comes from the sampled params)
  ├─ USceneComponent (Root, at C_g)
- ├─ UStormFieldComponent          builds FStormFieldParams from DA + NetState; registers with subsystem
- ├─ UStormPathComponent           server: OU wander + heat bias → Hermite keys; client: spline eval
- ├─ UStormLifecycleComponent      I(t), phase tags, threat-pulse scheduler (server) → GameplayEvents
+ ├─ UStormFieldComponent          builds FStormFieldParams from FTornadoSample + lifecycle; registers with subsystem
+ ├─ UStormPathComponent           server: supercell motion + OU wander + hook → Hermite keys; client: spline eval
+ ├─ UStormLifecycleComponent      procedural I(t), R_m(t) from seed (§2.0.4); internal phase tags; no scripted events
  ├─ UStormDebrisSpawnerComponent  ground-scrape spawns (T0 Niagara via Data Channel, T1 Mass, T2 pool)
  ├─ UNiagaraComponent  (Funnel)   funnel particles/ribbons; params from MPC_Storm
  ├─ UStaticMeshComponent (FunnelShell) raymarched funnel material (PC Epic: Heterogeneous Volume [VERIFY 5.6])
@@ -520,15 +607,24 @@ UStormWorldSubsystem (UTickableWorldSubsystem, C++)
    Storms[] · SampleWind/Batch · ΔP lookup · MPC_Storm writer · Deferred Damage Ledger (server)
 
 APlayerState (C++) → BP_PlayerState
- └─ UAbilitySystemComponent (Mixed)  + UCoreAttributeSet, UStormAttributeSet, UChaserAttributeSet
+ └─ UAbilitySystemComponent (Mixed)  + UCoreAttributeSet, UStormAttributeSet, UCareerAttributeSet
 
-ACharacter (C++ AStormCharacter) → BP_Chaser
+ACharacter (C++ AStormCharacter) → BP_Player
  ├─ UStormCharacterMovementComponent  wind force INSIDE predicted move (§5.3); custom mode MOVE_Custom:Tumble
  ├─ UWindReceiverComponent            profile = DA_Wind_Player; mode = Predicted (no physics body)
  ├─ UGrappleComponent                 rope constraint (predicted); anchor validation server-side
- ├─ UExposureComponent                reads Shelter + V_local → GAS Exposure attribute (server)
+ ├─ UHoldComponent                   contextual grab-point search (sphere overlap + socket tags), no UI
+ ├─ UStormPerceptionComponent (local) V_local, ΔP, Shelter → camera buffet, lean anims, audio, rumble (no HUD)
+ ├─ UPhoneComponent                   radar app, alerts, camera (footage log §2.9), contacts/jobs
  ├─ UInventoryComponent / UEquipmentComponent
  └─ UClipBufferComponent (local only) rolling replay flagger
+
+Mass AI (crowds + traffic): UMassEntityConfigAsset traits
+   UStormReactionTrait → processors: evacuate / flee-drive / film / shelter-in-place / freeze, driven by
+   warning polygons + line-of-sight to funnel; per-NPC random temperament so crowds split realistically
+   Near-player NPCs promote to full actors (ragdoll-able, wind-affected); far NPCs stay Mass (cheap wind drift only)
+
+ATownSiren (C++) → BP_TownSiren       listens to UWarningServiceSubsystem; MetaSound rotating siren (attenuated)
 
 APawn (vehicles) → BP_Vehicle_Base  (Chaos Vehicles)
  └─ UWindReceiverComponent            mode = PhysicsBody (async physics tick)
@@ -538,7 +634,7 @@ AStormProp (C++) → BP_Prop_Base → BP_Prop_Car / BP_Prop_Hay / BP_Prop_Cow (d
  ├─ UWindReceiverComponent            mode = PhysicsBody
  └─ UDebrisTierComponent              tier promotion/demotion, net relevancy, pooling
 
-ABasePlot (C++) → BP_BasePlot
+ABasePlot (C++) → BP_BasePlot   (every player-ownable house/garage/business lot; also pre-placed town buildings)
  ├─ UInstancedStaticMeshComponent ×N  one per (mesh, material tier); parts are instances
  ├─ UBuildGridComponent               snapping, placement validation, S-preview
  ├─ UStructuralIntegrityComponent     SoA graph, loads, fatigue, island detection (server tick 10 Hz)
@@ -547,7 +643,7 @@ ABasePlot (C++) → BP_BasePlot
  └─ FBasePartNetArray (FastArray)     replicated part state (§5.4)
 
 ASalvagePile (C++) → BP_SalvagePile  (ISM of settled fragments, interactable)
-AProbe (C++) → BP_Probe               deployable; reads V_local; feeds Data; physics-anchored (Grip)
+AProbe (C++) → BP_Probe               optional equipment (bought, not prompted); logs V_local for sellable data
 ```
 
 **`UWindReceiverComponent` modes:**
@@ -570,23 +666,25 @@ AProbe (C++) → BP_Probe               deployable; reads V_local; feeds Data; p
 
 ### 4.3 Blueprint logic: representative graphs
 
-**BP_Storm_Base: threat pulse → clip flag (server)**
+**BP_WarningService: warning issued → world reacts (server)**
 ```
-Event OnThreatPulse (from UStormLifecycleComponent, C++ delegate)
- → Switch on Authority [Authority]
-   → For Each Player in GetPlayersWithin(R_out * 1.5)
-       → Send Gameplay Event to Actor (Player, Event.Storm.ThreatPulse, Payload{Magnitude=I(t)})
-   → Execute GameplayCue On Owner (GameplayCue.Storm.Siren)   [multicast via GAS, unreliable]
+Event OnWarningIssued (from UWarningServiceSubsystem, C++ delegate; may never fire for a given tornado)
+ → For Each ATownSiren overlapping WarningPolygon → StartSiren (replicated bool, RepNotify drives MetaSound)
+ → For Each Player whose Pawn is inside WarningPolygon
+       → Client RPC on UPhoneComponent: PushAlert(WarningText)   (the phone buzzes; the player chooses whether to look)
+ → Broadcast to Mass: UStormReactionSubsystem.SetWarningPolygon(Polygon)   (NPCs react on their own)
+ → Radio/TV director: queue bulletin (interrupts the current station after the song ends)
 ```
 
-**GA_Brace (LocalPredicted)**
+**GA_Hold (LocalPredicted, activated by holding the grab input; no prompt, no icon)**
 ```
 ActivateAbility
- → Line Trace (ground/structure within 1.5 m) → fail → EndAbility(cancelled)
- → Apply GE_Braced (grants State.Braced, CMC reads it → wind force routed into GripCheck)
+ → UHoldComponent.FindGrabPoint(1.2 m, prefer tagged sockets: rail, pole, doorframe, car door) → none → EndAbility
+ → Play hold montage (IK hands to grab point) → Apply GE_Holding (State.Holding, CMC routes wind force into GripCheck)
  → Wait Gameplay Event (Event.Grip.Broken)  ← fired by UStormCharacterMovementComponent when |F| > Grip
-     → Remove GE_Braced → Apply GE_WindTumble (State.Airborne.Wind, 1.5 s) → EndAbility
+     → Remove GE_Holding → Apply GE_WindTumble (State.Airborne.Wind, 1.5 s) → EndAbility
  → Wait Input Release → EndAbility
+Grip also drains with Stamina, so holding on for a long time is a real test, and nothing on screen tells you.
 ```
 
 **GA_Build (LocalPredicted preview, ServerOnly commit)**
@@ -603,24 +701,26 @@ Confirm → Server RPC (via ability TargetData) → Server: ValidatePlacement (c
 **Gameplay Tags (`Config/Tags/StormchaserTags.ini`, native-declared in `StormchaserGameplayTags.h`):**
 
 ```
-Storm.Type.Tornado | Storm.Type.Derecho | Storm.Type.Hail | Storm.Type.Finale
+Storm.Type.Supercell | Storm.Type.Tornado | Storm.Type.Derecho | Storm.Type.Hail
 Storm.Rating.EF0 … Storm.Rating.EF5
 Storm.Phase.Forming | Touchdown | Mature | Roping | Dissipated
-Storm.Feature.TwoCell | Storm.Feature.Satellite | Storm.Feature.RainWrapped
+Storm.Feature.TwoCell | Storm.Feature.Satellite | Storm.Feature.RainWrapped | Storm.Feature.MultiVortex
+Storm.Morph.Rope | Cone | Stovepipe | Wedge       (derived from sampled params; drives VFX/audio only)
+Weather.Regime.Quiet | Marginal | Active | Outbreak
 
-State.Exposed | State.Sheltered | State.Braced | State.Grappled | State.Gliding
+State.Exposed | State.Sheltered | State.Holding | State.Grappled | State.Gliding
 State.Airborne.Wind | State.Tumbling | State.Downed | State.InVehicle | State.Stunned
 
 Ability.Movement.Sprint | Ability.Movement.Slide | Ability.Movement.Grapple | Ability.Movement.WindSurf
-Ability.Survival.Brace | Ability.Survival.Shelter
-Ability.Chaser.DeployProbe | Ability.Chaser.Scan
+Ability.Survival.Hold
+Ability.Tool.Film | Ability.Tool.DeployProbe | Ability.Tool.Radar
 Ability.Build.Place | Ability.Build.Repair | Ability.Build.Salvage | Ability.Build.Demolish
 
 Damage.Type.Debris | Damage.Type.Fall | Damage.Type.Hail | Damage.Type.Lightning | Damage.Type.Crush
 Build.Material.Wood | Metal | Concrete | Reinforced
 Build.Part.Foundation | Wall | Roof | Floor | Brace | Door | Shutter | Anchor | Cellar
 
-Event.Storm.Warning | Event.Storm.ThreatPulse | Event.Storm.Touchdown | Event.Storm.Dissipated
+Event.Weather.WarningIssued | Event.Weather.WarningExpired | Event.Storm.Touchdown | Event.Storm.Dissipated
 Event.Grip.Broken | Event.Probe.Deployed | Event.Structure.Collapsed | Event.Clip.Highlight
 
 GameplayCue.Storm.Siren | GameplayCue.Storm.PressureDrop | GameplayCue.Impact.Debris
@@ -635,10 +735,10 @@ Cooldown.Grapple | Cooldown.Probe
 | Set | Attributes | Notes |
 |---|---|---|
 | `UCoreAttributeSet` | Health, MaxHealth, Stamina, MaxStamina, `IncomingDamage` (meta) | Standard clamp in `PreAttributeChange` |
-| `UStormAttributeSet` | Grip (N), MaxGrip, WindResist (multiplier on `C_D·A`, 0.5–1), Exposure (0–1), DebrisArmor | The CMC reads `Grip` and `WindResist` from a locally cached copy (predicted) |
-| `UChaserAttributeSet` | Data, ProbeCharge, HeatGeneration | Heat feeds the storm path bias |
+| `UStormAttributeSet` | Grip (N), MaxGrip, WindResist (multiplier on `C_D·A`, 0.5–1), Exposure (0–1, internal only, never shown), DebrisArmor | The CMC reads `Grip` and `WindResist` from a locally cached copy (predicted). Grip is improved through gear such as gloves and boots, not a skill tree |
+| `UCareerAttributeSet` | Money, Reputation (TV station, contractors, police) | Open-world economy hooks; nothing here influences storms |
 
-**Core effects:** `GE_DebrisImpact` (instant, SetByCaller.Damage = `k·½m v²`), `GE_ExposureTick` (periodic 0.5 s, stamina drain ∝ Exposure), `GE_Braced` (infinite, grants tag, +Grip), `GE_WindTumble` (duration, blocks `Ability.Movement.*`), `GE_FallDamage`, `GE_SpendMaterial`.
+**Core effects:** `GE_DebrisImpact` (instant, SetByCaller.Damage = `k·½m v²`), `GE_ExposureTick` (periodic 0.5 s, stamina drain ∝ Exposure), `GE_Holding` (infinite while held, grants `State.Holding`), `GE_WindTumble` (duration, blocks `Ability.Movement.*`), `GE_FallDamage`, `GE_SpendMaterial`.
 
 ### 4.5 Debris tiers and pooling
 
@@ -657,15 +757,16 @@ Pools (`UDebrisPoolSubsystem`) are prewarmed at map load from `UPlatformScalabil
 
 | Primary Asset Type | Key fields | Bundles |
 |---|---|---|
-| **`StormArchetype`** (`UStormArchetypeDataAsset`) | `FGameplayTag Rating, Type` · `EVortexProfile Profile` · `float VPeak, Rm0, Flare, Height, Lean, InflowRatio, UpdraftRatio, DecayN, ROutMul` · `UCurveFloat* Lifecycle` (I(t)) · `UCurveFloat* RmOverLife` · path: `SteerSpeed, WanderSigma, WanderTau, HeatBias, MaxTurnRate` · `FThreatPulseSpec[] Pulses` · `int32 DebrisBudgetMul` · `TArray<FSatelliteSpec> Satellites` · `TSoftObjectPtr<UNiagaraSystem> FunnelFX` · `TSoftObjectPtr<UMetaSoundSource> Roar` · `TSoftObjectPtr<ULootTable> Rewards` | `Server` (math), `Client` (FX/audio) |
-| **`StormSchedule`** | `TArray<FWeightedArchetype> PerCycle[3]` · `FForecastConeSpec` · seasonal modifiers | Server |
+| **`StormClimate`** (`DA_Climate`) | **Distributions only, no individual storms.** EF share table, `V_peak` band edges, copula `Σ`, STP skew, `R_m0` lognormal (median, σ, clamp), `T_life` lognormal, `H` range, multi-vortex/satellite/rain-wrap probabilities, lifecycle ranges (`t_p`, `a`, OU σ/τ, surge rate), wander ranges, hook probability, `a_max`, warning-service lead-time distribution and miss / false-alarm rates | Server |
+| **`AtmosphereRegime`** | Regime Markov matrix (per season), per-regime field means (CAPE, CIN, LCL, SRH, BWD), noise scales, diurnal curve, `λ₀` and `λ_T0` hazard rates | Server |
+| **`TornadoVisuals`** | Funnel FX, shell materials and MetaSounds keyed by *morphology tag* (not by storm): `TMap<FGameplayTag, TSoftObjectPtr<UNiagaraSystem>>` etc., blended continuously by `R_m/H` and `I(t)` | Client |
 | **`WindProfile`** | `Mass (0 = use body)` · `FVector AreaXYZ` · `CD, CL curve, APlan, Volume` · `BetaOrbit` · `LiftoffSpeed (computed in PostEditChangeProperty)` · `DefaultTier` | Server, Client |
 | **`BasePart`** | `FGameplayTag PartType` · `TSoftObjectPtr<UStaticMesh> Mesh` · `TSoftObjectPtr<UGeometryCollection> Fractured` · `UMaterialTier* Material` · `FVector Size, float Mass, Area, Cp, ClRoof` · `TArray<FSnapSocket> Sockets (type, transform, joint modifier)` · `bIsFoundation, bIsSolidForShadow, Porosity` · `FItemCost Cost` · `UIcon` | Server (graph), Client (mesh/GC) |
 | **`MaterialTier`** | `Ct, Cc, Cs (N)` · `Lambda (support loss)` · `T0 (GC strain)` · `HPPerKg` · `ImpactK` · `ShelterMax` · salvage yield · cosmetic skins (IAP hook) | Server, Client |
 | **`DebrisSet`** | Weighted `TArray<{WindProfile, Mesh/Mass config, Tier}>` per biome (farm, town, forest) | Client, Server |
 | **`PlatformScalability`** | tier budgets (T0/T1/T2 counts), receiver Hz per bucket, integrity Hz, net budgets, funnel quality | Client |
 
-**Content scaling rule:** designers add a storm or a part by creating a **new DataAsset only**. No new Blueprint class is needed unless there is new behaviour. Validation runs through `UEditorValidatorBase` subclasses: every BasePart needs a GC, sockets must be symmetric, liftoff speed must be sane, and `Φ` LUT generation must succeed.
+**Content scaling rule:** designers never author a storm. They tune *climate distributions* and add parts, vehicles and props by creating a **new DataAsset only**. No new Blueprint class is needed unless there is new behaviour. Validation runs through `UEditorValidatorBase` subclasses: every BasePart needs a GC, sockets must be symmetric, liftoff speed must be sane, `Φ` LUT generation must succeed, and the climate `Σ` must be positive-definite (Cholesky check).
 
 ---
 
@@ -675,13 +776,14 @@ Pools (`UDebrisPoolSubsystem`) are prewarmed at map load from `UPlatformScalabil
 
 - **Dedicated server**, 30 Hz net tick. Chaos **async physics at a fixed 60 Hz** (Project Settings → Physics → *Tick Physics Async*, fixed Δt = 1/60), same on clients for parity.
 - **Replication system:** Iris, for its per-connection prioritization and filtering (`SetupIrisSupport(Target)` in `Build.cs`, `net.Iris.UseIrisReplication 1`). The fallback is Replication Graph with spatial grid plus always-relevant nodes. **[VERIFY 5.6]** Iris maturity and the plugin set.
-- **Session:** 1–8 players. Per-connection outgoing budget: PC 120 kbps, mobile 64 kbps sustained, burst 200 kbps.
+- **Session:** 1–16 players in one persistent open world (public, invite-only or solo). Several tornadoes can be alive at once in an outbreak (hard cap 6, oldest-weakest culled). Per-connection outgoing budget: PC 120 kbps, mobile 64 kbps sustained, burst 200 kbps.
 
 ### 5.2 What replicates, and how
 
 | Thing | Method | Size / rate |
 |---|---|---|
-| Storm | `FStormNetState` (RepNotify): seed, archetype id (uint16), spawn server-time, lifecycle time, `TArray<FStormPathKey>` (6 keys × {pos NetQuantize10, vel NetQuantize10, t}) | ~150 B at 0.5 Hz |
+| Supercell | `FSupercellNetState`: pos, motion, cloud/precip params (quantised), radar seed | ~40 B at 0.2 Hz |
+| Tornado | `FStormNetState` (RepNotify): seed (uint64), `FTornadoSample` (quantised V_peak, R_m0, T_life, H, flags ≈ 12 B), spawn server-time, `TArray<FStormPathKey>` (6 keys × {pos NetQuantize10, vel NetQuantize10, t}). I(t) and R_m(t) are regenerated from the seed on each client | ~160 B at 0.5 Hz |
 | Wind field | **Not replicated.** Evaluated locally from the storm state plus `GameState->GetServerWorldTimeSeconds()` | 0 |
 | T0 / T1 debris | **Not replicated.** Spawned locally from replicated *events* (break event carries `seed`, scrape events come from the storm state) | 0 |
 | T2 debris | Custom `FDebrisNetArray` (FastArraySerializer), per-connection prioritized, top-K | see below |
@@ -739,7 +841,7 @@ USTRUCT() struct FBasePartNetItem : public FFastArraySerializerItem
 
 ### 5.6 World Partition guidelines
 
-**Map:** 8 × 8 km. Farmland, towns, forest, river valley. The playable storm arena is recentered per session.
+**Map:** 16 × 16 km persistent open world. One city, 6 towns, farmland, interstate, forest, river valley. Storms can form anywhere, including 8 km off-map, and drift in.
 
 | Runtime grid | Cell size | Loading range (PC / mobile) | Contents |
 |---|---|---|---|
@@ -800,7 +902,7 @@ storm.Net.T2TopK          48     | 48    | 24
 ### 5.8 Profiling and CI gates
 
 - Insights markers: `TRACE_CPUPROFILER_EVENT_SCOPE(Storm_SampleBatch)`, `Storm_Integrity_Solve`, `Storm_T1_Integrate`, `Storm_Net_T2Prioritize`.
-- **Gauntlet perf test** `Perf.StormFinale`: a scripted EF5 through a 60-part base with 8 bots. The build fails if PC p95 exceeds 16.6 ms, mobile p95 exceeds 33.3 ms, server p99 exceeds 33 ms, or any connection's p95 goes above its budget.
+- **Gauntlet perf test** `Perf.OutbreakTown`: a fixed-seed EF5 wedge (test-only seed override, never in shipping builds) crossing a town with 16 bots. The build fails if PC p95 exceeds 16.6 ms, mobile p95 exceeds 33.3 ms, server p99 exceeds 33 ms, or any connection's p95 goes above its budget.
 - **Automation tests.** `Wind.Parity` (CPU vs GPU), `Wind.Determinism` (the same seed gives the same path, bit-exact on the server), `Integrity.KnownCases` (a wood wall fails at EF3 and a reinforced bunker survives EF5), `Net.WindPredictionNoCorrections` (8-bot soak, correction count must be 0 when no debris hits).
 
 ---
@@ -809,10 +911,12 @@ storm.Net.T2TopK          48     | 48    | 24
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| GC spawn hitch at touchdown | Frame spikes in the money shot | GC pool prewarmed; async-load bundles at Forecast; no more than 4 GC spawns per frame (queue) |
+| GC spawn hitch at touchdown | Frame spikes in the money shot | GC pool prewarmed; async-load funnel bundles when a supercell spawns (minutes before any touchdown); no more than 4 GC spawns per frame (queue) |
 | Chaos non-determinism across platforms | Divergent debris on clients | Only T2/T3 can affect gameplay (server-owned); everything else is cosmetic by design |
-| Players exploiting sheltered spots | Stale loop | Rain-wrapped storms shift direction; roof uplift ignores walls; storm path heat bias |
-| Mobile thermal throttling in long sessions | Frame drops at the Finale | Thermal step-down; Chaos Cache playback for hero collapses; 30 fps default |
+| Randomness produces long quiet stretches | Players bored waiting for storms | By design there is no pity timer. The open world (jobs, driving, property, crime, multiplayer) carries quiet days. Tune `λ` in the climate, and use live-ops *seasons* that change regime probabilities, never individual storms |
+| A random EF5 wipes out a new player's house | Churn | Loss is money/time only; insurance economy; starter homes cheap to rebuild; the event itself is the best clip they'll ever get |
+| Players exploiting sheltered spots | Stale | Random paths, sizes and rain-wrap mean no spot is safe every time; basements can still collapse (§3) |
+| Mobile thermal throttling in long sessions | Frame drops during outbreaks | Thermal step-down; Chaos Cache playback for hero collapses; 30 fps default |
 | Engine-version API drift (async physics handles, Iris, Heterogeneous Volumes) | Rework | Isolate behind `StormCore` interfaces; each marked **[VERIFY 5.6]** item gets a spike ticket in sprint 1 |
 
 ---
@@ -820,7 +924,9 @@ storm.Net.T2TopK          48     | 48    | 24
 ## 7. Sprint-1 Vertical Slice (deliverables)
 
 1. `StormFieldMath.h` + subsystem + LUT bake, with the `Wind.Parity` test passing.
-2. `UWindReceiverComponent` (Predicted + PhysicsBody), with a player bracing in EF2 over a netcode soak at 0 corrections.
-3. `ABasePlot` with 30 parts: stability, loads, failure, GC hand-off, salvage conversion.
-4. T0/T1/T2 debris with pools and the T2 net array at 73 kbps measured.
-5. One 5-minute EF3 storm on a 2 × 2 km World Partition test map, profiled on an RTX 3060 and an iPhone 15 Pro.
+2. `UAtmosphereSubsystem` + `ASupercell` + tornadogenesis + copula sampler + procedural lifecycle. Run a histogram test over 10k simulated in-game days: EF shares within ±2% of `DA_Climate`, and no two consecutive tornadoes identical. Seed parity is bit-exact on client and server.
+3. `UWindReceiverComponent` (Predicted + PhysicsBody), with a player holding on in EF2 during a netcode soak at 0 corrections.
+4. `ABasePlot` with 30 parts: stability, loads, failure, GC hand-off, salvage conversion.
+5. T0/T1/T2 debris with pools and the T2 net array at 73 kbps measured.
+6. Warning service, town sirens, phone alert/radar app, and the Mass crowd storm reactions, all diegetic, zero HUD prompts.
+7. A 4 × 4 km World Partition slice (one town plus farmland) running the live weather simulation for 2 real hours unattended, profiled on an RTX 3060 and an iPhone 15 Pro.
