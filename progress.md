@@ -147,6 +147,16 @@ Keep the realistic picture animals (billboards). In order:
 - [x] 🎁 Level-up perks every 5 levels: faster crops or better prices.
 - [x] 📜 Quests: 3 daily quests (+1 💎 for all), 15 achievements with gems, and the 🏛️ collection (ship one of everything).
 
+## Builder brief, Phase 3: the AAA feel
+- [x] Walk mode shows your farmer (straw hat, overalls) from just behind, walking with swinging arms and legs; 👁️ switches to first person.
+- [x] Animals fidget while standing: hens peck twice, dogs wiggle, cats stretch, the big ones nod (on top of the existing pecking, grazing and roaming).
+- [x] Crops bounce at each growth stage, sparkle when ripe, and a gold harvest bursts with golden sparkles.
+- [x] Coins and gems fly from where you tapped into their counters whenever you earn them.
+- [x] Farm sounds: wind and rain loops, birds by day, crickets at night, animals heard from where they stand (Settings: 🐦 Farm sounds).
+- [x] Buttons squash when pressed; Android phones give a light vibration (Settings: 📳 Vibration).
+- [x] First launch: a Sunny Acres title card while the camera sweeps down onto the farm.
+- [x] 📷 Photo mode: hide the menus, frame the farm, filters (Warm, Dreamy, Black & white), take a captioned photo and save or share it.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.

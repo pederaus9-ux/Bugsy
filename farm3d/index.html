@@ -288,6 +288,43 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .authgo:disabled{opacity:.6}
 .authlink{background:none;font-weight:800;font-size:13px;color:var(--wood-dk);text-decoration:underline;padding:4px}
 .authguest{margin-top:2px;padding:10px;border-radius:14px;border:2px dashed var(--wood);font-weight:900;font-size:14px;color:var(--wood-dk);background:rgba(255,255,255,.35)}
+/* buttons give a little squash when pressed */
+.btn,.dock button,.side button,.modebar button,.seed,.islot,.qrow .btn{transition:transform .12s cubic-bezier(.3,1.6,.5,1)}
+.btn:active:not([disabled]),.dock button:active,.side button:active,.modebar button:active,.seed:active,.islot:active{transform:scale(.9)}
+/* coins and gems flying into their counters */
+.flyer{position:fixed;left:0;top:0;z-index:40;font-size:26px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+/* photo mode */
+body.photo > :not(canvas):not(#photoBar):not(#photoShot):not(#flash){visibility:hidden!important}
+.photobar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:12px;align-items:center;
+  background:linear-gradient(transparent,rgba(0,0,0,.45))}
+.pfilters{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pfilters button{background:rgba(255,255,255,.85);border-radius:99px;padding:7px 12px;font-weight:900;font-size:13px}
+.pfilters button.on{background:var(--gold);box-shadow:0 0 0 2px #fff}
+.prow2{display:flex;align-items:center;justify-content:center;gap:18px;width:100%;max-width:420px;position:relative}
+.shutter{width:72px;height:72px;border-radius:50%;background:#fff;border:6px solid rgba(255,255,255,.55);box-shadow:0 0 0 3px #fff inset,0 4px 14px rgba(0,0,0,.35)}
+.shutter:active{transform:scale(.9)}
+.pclose{position:absolute;left:0;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.85);font-size:20px;font-weight:900}
+.phelp{position:absolute;right:0;color:#fff;font-weight:800;font-size:12px;max-width:90px;text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.photoshot{position:fixed;inset:0;z-index:45;background:rgba(20,14,6,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px}
+.photoshot img{max-width:100%;max-height:72vh;border:6px solid #fff;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.5);transform:rotate(-1.5deg)}
+.flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:44}
+.flash.go{animation:flash .45s ease-out}
+@keyframes flash{from{opacity:.9}to{opacity:0}}
+/* the first-launch title card */
+.intro{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,rgba(255,236,170,.55),rgba(120,190,240,.25) 60%,rgba(40,90,40,.25));transition:opacity .8s}
+.intro.out-go{opacity:0}
+body.introing > :not(canvas):not(#intro){visibility:hidden!important} /* the farm and the title card only; sign-in and menus wait until it's done */
+.intro .sunburst{position:absolute;width:160vmax;height:160vmax;left:50%;top:40%;margin:-80vmax 0 0 -80vmax;
+  background:repeating-conic-gradient(rgba(255,230,140,.17) 0 10deg,transparent 10deg 20deg);animation:spin 40s linear infinite;pointer-events:none}
+.intro .ilogo{font-size:92px;line-height:1;animation:dropin 1s cubic-bezier(.3,1.5,.5,1) both,spin 16s linear 1s infinite;position:relative}
+.intro h1{margin:0;font:400 54px/1 var(--fun);position:relative;animation:dropin .9s .35s cubic-bezier(.3,1.6,.5,1) both}
+.intro p{margin:0;font-weight:900;color:var(--wood-dk);font-size:17px;position:relative;animation:fadein .8s 1s both}
+.intro small{margin-top:26px;font-weight:900;color:#fff;background:rgba(0,0,0,.28);border-radius:99px;padding:8px 16px;position:relative;animation:fadein .8s 1.8s both,pulse 1.6s 2.6s infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dropin{from{transform:translateY(-60px) scale(.4);opacity:0}}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}}
+@keyframes pulse{50%{transform:scale(1.06)}}
 .guestbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:430px;margin:0 auto;z-index:9;display:flex;align-items:center;gap:8px;
   background:#fff;border:3px solid var(--blue-dk);border-radius:16px;padding:8px 8px 8px 12px;box-shadow:0 4px 0 rgba(31,127,192,.35);font-weight:800;font-size:13px;animation:pop .3s ease-out}
 body:has(#infoTray:not([hidden])) .guestbar,body:has(#seedTray:not([hidden])) .guestbar,body:has(#panelRoot .scrim) .guestbar{display:none}
@@ -369,7 +406,17 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <button id="feedbackBtn" aria-label="Send feedback">💬</button>
   <button id="friendsBtn" aria-label="Friends">👥</button>
   <button id="questBtn" data-act="open" data-p="quests" aria-label="Quests">📜</button>
+  <button id="photoBtn" aria-label="Photo mode">📷</button>
 </div>
+<!-- photo mode: everything else steps aside so you can frame the farm -->
+<div class="photobar" id="photoBar" hidden>
+  <div class="pfilters" id="pFilters"><button data-f="none" class="on">Natural</button><button data-f="warm">Warm</button><button data-f="dreamy">Dreamy</button><button data-f="bw">Black &amp; white</button></div>
+  <div class="prow2"><button class="pclose" data-p="close" aria-label="Leave photo mode">✕</button><button class="shutter" data-p="snap" aria-label="Take photo"></button><span class="phelp">drag to frame · pinch to zoom</span></div>
+</div>
+<div class="photoshot" id="photoShot" hidden><img id="photoImg" alt="Your farm photo"><div class="prow2"><button class="btn plain" data-p="again">↩ Another</button><button class="btn gold" data-p="share">📤 Save / share</button></div></div>
+<div class="flash" id="flash"></div>
+<!-- the first time the game opens -->
+<div class="intro" id="intro" hidden><div class="sunburst"></div><div class="ilogo">🌻</div><h1 class="out">Sunny Acres</h1><p>A cozy farm for the whole family</p><small>Tap to start</small></div>
 <div class="dock">
   <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
   <button data-act="open" data-p="barn" aria-label="Barn">📦<span class="l out">Barn</span></button>
@@ -382,7 +429,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
-<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button data-mode="walk">✕ Exit</button></div>
+<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
 <div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
@@ -434,7 +481,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=14";
+import * as G from "./game.js?v=15";
 import {initFriends} from "./friends.js?v=2"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -1346,7 +1393,14 @@ class Beast {
       if (this.S.eat === "peck") { const p = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * p; y = -.03 * p; }
       else { tilt = .07 + Math.sin(t * 1.3 + this.phase) * .02; y = -h * .02; }
     } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
-    else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; } // breathing, settling out of the last lean
+    else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; // breathing, settling out of the last lean
+      this.fidT = (this.fidT ?? 2 + rnd() * 6) - dt; if (this.fidT < 0) { this.fid = 1; this.fidT = 4 + rnd() * 9; } }
+    // little things animals do while standing about: a hen pecks twice, a dog wiggles, a cat stretches, the big ones nod
+    if (this.fid > 0) { this.fid = moving ? 0 : Math.max(0, this.fid - dt * 1.3); const f = 1 - this.fid;
+      if (this.kind === "chicken") { const q = Math.max(0, Math.sin(f * Math.PI * 4)); tilt += .4 * q; y -= .03 * q; }
+      else if (this.kind === "dog") tilt += Math.sin(f * Math.PI * 12) * .09 * this.fid;
+      else if (this.kind === "cat") { sy *= 1 - Math.sin(f * Math.PI) * .14; tilt -= Math.sin(f * Math.PI) * .05; }
+      else tilt += Math.sin(f * Math.PI * 2) * .06; }
     if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
     // turning round: a flat picture can't rotate without showing its thin edge, so it flips at the top of a tiny hop instead
     if (this.facing !== this.face) { this.face = this.facing; this.turnHop = 1; }
@@ -1768,9 +1822,14 @@ const ready = (i) => { const p = GS().plots[i]; return !!p && !!p.crop && p.end 
 const green = new THREE.Color(), ripe = new THREE.Color();
 function updatePlots(t) {
   plots.forEach((P, i) => {
-    if (P.crop !== GS().plots[i].crop) buildPlants(i);
+    if (P.crop !== GS().plots[i].crop) { buildPlants(i); P.stage = 0; }
     if (!P.crop) return;
     const L = CROP_LOOK[P.crop], g = grown(i), r = THREE.MathUtils.smoothstep(g, .55, 1);
+    // growth stages: sprout, leafy, nearly there, ripe. Each new stage gives a little bounce, and ripe crops glint
+    const stage = g >= 1 ? 3 : g > .66 ? 2 : g > .33 ? 1 : 0;
+    if (stage > (P.stage || 0) && !visiting) { squish(P.g, stage === 3 ? .3 : .15); if (stage === 3) bits(P.g.position.clone().setY(.9), "rgba(255,244,170,1)", 6, 3); }
+    P.stage = stage;
+    if (stage === 3 && Math.random() < .004) bits(P.g.position.clone().add(new THREE.Vector3((Math.random() - .5) * 1.6, 1, (Math.random() - .5) * 1.6)), "rgba(255,250,210,1)", 1, 1.4);
     P.plants.scale.set(.55 + .45 * g, .12 + .88 * g, .55 + .45 * g);
     P.mat.color.copy(green.set(L.green)).lerp(ripe.set(L.ripe), r);
     P.fruit.forEach((s, k) => { const f = THREE.MathUtils.smoothstep(g, .65, 1); s.visible = f > .01;
@@ -1989,6 +2048,7 @@ function setWalk(on) {
     const want = new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
     const onPath = p.distanceTo(want) > 1.5 || PEN_LIST.some(pen => inPen(pen, p.x, p.y, -.4));
     walk = {pos:onPath ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0};
+    farmer.rotation.y = walk.yaw;
     document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
     ultra(true);
   } else {
@@ -1996,7 +2056,7 @@ function setWalk(on) {
     cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
     Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
     joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
-    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = true;
+    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; farmer.visible = false;
     ultra(false);
   }
   G.sfx("pop");
@@ -2041,10 +2101,48 @@ function collideWalker(p, r = WALK_R) {
   const dx = p.x - HOME.x, dz = p.y - HOME.y, d = Math.hypot(dx, dz); if (d > 40) { p.x = HOME.x + dx / d * 40; p.y = HOME.y + dz / d * 40; }
   return p;
 }
+// ---------- the farmer: you, in walk mode, seen from just behind (👁️ switches to your own eyes) ----------
+function makeFarmer() {
+  const g = new THREE.Group(), denim = std({color:0x3d6fa8, roughness:.85}), shirt = std({color:0xd24d3f, roughness:.8}), skin = std({color:0xf0c6a0, roughness:.7});
+  const boot = std({color:0x4a3222, roughness:.9}), straw = std({color:0xe8c86a, roughness:.9}), dark = std({color:0x2a1c12, roughness:.6});
+  const part = (geo, mat, x, y, z, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; };
+  const legs = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .11, .8, 0); g.add(p);
+    part(new THREE.CylinderGeometry(.085, .075, .7, 10), denim, 0, -.35, 0, p); part(new THREE.BoxGeometry(.16, .11, .28), boot, 0, -.74, -.05, p); return p; });
+  part(new THREE.CylinderGeometry(.2, .19, .5, 14), denim, 0, 1.03, 0);                // overalls
+  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, 1.4, 0);                  // shirt
+  part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, 1.33, -.19);                     // bib
+  for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, 1.42, 0); // straps
+  const arms = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .26, 1.5, 0); g.add(p);
+    part(new THREE.CylinderGeometry(.062, .056, .56, 8), shirt, 0, -.28, 0, p); part(new THREE.SphereGeometry(.068, 10, 8), skin, 0, -.58, 0, p); return p; });
+  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, 1.6, 0);                 // neck
+  part(new THREE.SphereGeometry(.19, 18, 14), skin, 0, 1.78, 0);                       // head
+  for (const sd of [-1, 1]) part(new THREE.SphereGeometry(.025, 8, 6), dark, sd * .07, 1.8, -.175); // eyes
+  part(new THREE.CylinderGeometry(.37, .39, .03, 22), straw, 0, 1.9, 0);               // straw hat
+  part(new THREE.CylinderGeometry(.17, .2, .17, 16), straw, 0, 1.99, 0);
+  const band = part(new THREE.TorusGeometry(.195, .02, 6, 20), shirt, 0, 1.94, 0); band.rotation.x = Math.PI / 2;
+  g.userData = {legs, arms}; g.visible = false; scene.add(g);
+  return g;
+}
+const farmer = makeFarmer();
+let thirdPerson = true; try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {}
+document.getElementById("povBtn").addEventListener("click", () => { thirdPerson = !thirdPerson; try { localStorage.setItem("sa3d-pov", thirdPerson ? "farmer" : "eyes"); } catch (e) {} G.sfx("pop"); });
 function placeWalkCamera() {
-  const w = walk, y = groundY(w.pos.x, w.pos.y) + EYE + w.bob, cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
-  camera.position.set(w.pos.x, y, w.pos.y);
-  camera.lookAt(w.pos.x + fx * cp, y + Math.sin(w.pitch), w.pos.y + fz * cp);
+  const w = walk, gy = groundY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
+  farmer.visible = thirdPerson;
+  if (thirdPerson) {
+    // turn the farmer toward where they're walking, and swing arms and legs with each step
+    const sp = w.vel.length(), k = Math.min(1, sp / 3.4), sw = Math.sin(w.walked * 4.4) * .7 * k;
+    if (sp > .3) { const want = Math.atan2(-w.vel.x, -w.vel.y); let d = want - farmer.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); farmer.rotation.y += d * .2; }
+    const { legs, arms } = farmer.userData; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; arms[0].rotation.x = -sw * .8; arms[1].rotation.x = sw * .8;
+    farmer.position.set(w.pos.x, gy + Math.abs(Math.sin(w.walked * 4.4)) * .05 * k, w.pos.y);
+    const back = 4.3, up = 2.6 - w.pitch * 2.2; // tilting the view up or down swings the camera round the farmer's head
+    camera.position.set(w.pos.x - fx * back * cp, gy + up, w.pos.y - fz * back * cp);
+    camera.lookAt(w.pos.x + fx * 2, gy + 1.5 + w.pitch * 2, w.pos.y + fz * 2);
+  } else {
+    const y = gy + EYE + w.bob;
+    camera.position.set(w.pos.x, y, w.pos.y);
+    camera.lookAt(w.pos.x + fx * cp, y + Math.sin(w.pitch), w.pos.y + fz * cp);
+  }
   sun.target.position.set(w.pos.x + fx * 9, 0, w.pos.y + fz * 9); // a tight shadow box around you, reaching ahead where you look
   sun.position.copy(sun.target.position).addScaledVector(sunDir, 60);
 }
@@ -2414,7 +2512,25 @@ function fxAt(key, text) {
   document.body.appendChild(d); setTimeout(() => d.remove(), 1150);
 }
 function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v.z); cam.dist = Math.min(cam.dist, 30); } }
+// coins and gems fly from where you tapped into their counters
+let lastTap = {x:innerWidth / 2, y:innerHeight / 2, t:0};
+addEventListener("pointerdown", (e) => { lastTap = {x:e.clientX, y:e.clientY, t:performance.now()}; if (e.target.closest && e.target.closest("button")) G.buzz(6); }, true);
+function flyTo(kind, n) {
+  const target = document.getElementById(kind === "coin" ? "coins" : "gems"); if (!target || document.hidden) return;
+  const r = target.closest(".cnt").getBoundingClientRect(), tx = r.left + 18, ty = r.top + r.height / 2;
+  const from = performance.now() - lastTap.t < 4000 ? lastTap : {x:innerWidth / 2, y:innerHeight * .55};
+  const count = Math.min(7, 1 + Math.floor(Math.log2(n + 1)));
+  for (let k = 0; k < count; k++) {
+    const el = document.createElement("div"); el.className = "flyer"; el.textContent = kind === "coin" ? "🪙" : "💎"; document.body.appendChild(el);
+    const sx = from.x + (Math.random() - .5) * 60, sy = from.y + (Math.random() - .5) * 40, mx = (sx + tx) / 2 + (Math.random() - .5) * 120, my = Math.min(sy, ty) - 40 - Math.random() * 60;
+    const a = el.animate([{transform:`translate(${sx - 13}px,${sy - 13}px) scale(.6)`, opacity:0}, {transform:`translate(${mx - 13}px,${my - 13}px) scale(1.15)`, opacity:1, offset:.45},
+      {transform:`translate(${tx - 13}px,${ty - 13}px) scale(.7)`, opacity:1}], {duration:650 + k * 70, delay:k * 60, easing:"cubic-bezier(.5,0,.6,1)", fill:"both"});
+    a.onfinish = () => { el.remove(); if (k === count - 1) { G.sfx("tick"); } };
+  }
+}
 Object.assign(GV, {
+  sparkle(key) { const v = keyPos(key); if (v) { bits(v.clone().setY(1), "rgba(255,210,60,1)", 16, 5.5); bits(v.clone().setY(1.2), "rgba(255,255,230,1)", 8, 6.5); } },
+  fly:flyTo,
   fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
   refresh(what) {
     if (what === "plots" || what === "all") syncPlots();
@@ -2581,7 +2697,7 @@ const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" 
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
-  if (visiting) return false; // a friend's farm: look, don't touch
+  if (visiting || photoMode) return false; // a friend's farm: look, don't touch
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
   const h = hitAt(e.clientX, e.clientY);
@@ -2663,6 +2779,7 @@ moveBar.addEventListener("click", (e) => {
   if (b.dataset.m === "done") endMove(true); else { const j = moving.j; endMove(false); G.storeDecor(j); }
 });
 function onTap(e) {
+  if (photoMode) return false;
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
   switch (h.type) {
@@ -2729,6 +2846,81 @@ function syncHoliday() {
   }
 }
 
+// ---------- photo mode: frame the farm, take a picture, share it ----------
+let photoMode = false, photoWant = false, photoFilter = "none", lastPhoto = null;
+const FILTERS = {none:"none", warm:"sepia(.28) saturate(1.3) brightness(1.05)", dreamy:"saturate(1.35) contrast(.88) brightness(1.1)", bw:"grayscale(1) contrast(1.12)"};
+const photoBar = document.getElementById("photoBar"), photoShot = document.getElementById("photoShot");
+function setPhoto(on) {
+  if (on) { if (walk) setWalk(false); if (editMode) setEdit(false); closeTrays(); G.close(); if (moving) endMove(true); }
+  photoMode = on; document.body.classList.toggle("photo", on); photoBar.hidden = !on; photoShot.hidden = true;
+  renderer.domElement.style.filter = on && photoFilter !== "none" ? FILTERS[photoFilter] : "";
+}
+document.getElementById("photoBtn").addEventListener("click", () => setPhoto(true));
+photoBar.addEventListener("click", (e) => {
+  const f = e.target.closest("[data-f]"), b = e.target.closest("[data-p]");
+  if (f) { photoFilter = f.dataset.f; for (const x of photoBar.querySelectorAll("[data-f]")) x.classList.toggle("on", x === f); renderer.domElement.style.filter = photoFilter !== "none" ? FILTERS[photoFilter] : ""; G.sfx("tick"); }
+  if (b && b.dataset.p === "close") setPhoto(false);
+  if (b && b.dataset.p === "snap") photoWant = true; // taken right after the next frame is drawn
+});
+photoShot.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-p]"); if (!b) return;
+  if (b.dataset.p === "again") { photoShot.hidden = true; photoBar.hidden = false; return; }
+  if (b.dataset.p === "share" && lastPhoto) {
+    const name = "sunny-acres-" + new Date().toISOString().slice(0, 10) + ".jpg";
+    try { const file = new File([lastPhoto], name, {type:"image/jpeg"});
+      if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"My farm in Sunny Acres"}); return; } } catch (err) { if (err && err.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(lastPhoto); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000); G.toast("📷 Photo saved");
+  }
+});
+function takePhoto() { // called straight after drawing, while the picture is still in the canvas
+  photoWant = false;
+  const src = renderer.domElement, W = src.width, H = src.height, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"), f = FILTERS[photoFilter];
+  if (f !== "none" && "filter" in x) x.filter = f;
+  x.drawImage(src, 0, 0);
+  if (f !== "none" && !("filter" in x)) { // phones without canvas filters: do it by hand
+    const d = x.getImageData(0, 0, W, H), a = d.data;
+    for (let i = 0; i < a.length; i += 4) { let r = a[i], g = a[i + 1], b = a[i + 2];
+      if (photoFilter === "bw") { const l = Math.min(255, (r * .3 + g * .59 + b * .11 - 128) * 1.12 + 128); r = g = b = l; }
+      else if (photoFilter === "warm") { r = Math.min(255, r * 1.1 + 12); g = Math.min(255, g * 1.03 + 4); b = b * .88; }
+      else { r = Math.min(255, (r - 128) * .88 + 140); g = Math.min(255, (g - 128) * .88 + 140); b = Math.min(255, (b - 128) * .88 + 136); }
+      a[i] = r; a[i + 1] = g; a[i + 2] = b; }
+    x.putImageData(d, 0, 0);
+  }
+  x.filter = "none";
+  // a little caption in the corner
+  const s = H / 900, lvl = GS().level;
+  x.font = `400 ${Math.round(44 * s)}px "Lilita One",sans-serif`; x.textAlign = "right"; x.textBaseline = "bottom";
+  x.lineWidth = 8 * s; x.strokeStyle = "rgba(110,61,24,.9)"; x.fillStyle = "#fff";
+  const label = "🌻 Sunny Acres", sub = "Level " + lvl + " · " + new Date().toLocaleDateString();
+  x.strokeText(label, W - 24 * s, H - 52 * s); x.fillText(label, W - 24 * s, H - 52 * s);
+  x.font = `800 ${Math.round(22 * s)}px Nunito,sans-serif`; x.lineWidth = 5 * s; x.strokeText(sub, W - 26 * s, H - 22 * s); x.fillText(sub, W - 26 * s, H - 22 * s);
+  const fl = document.getElementById("flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); G.sfx("shutter"); G.buzz(20);
+  c.toBlob((blob) => { lastPhoto = blob; const img = document.getElementById("photoImg"); if (img.src) URL.revokeObjectURL(img.src); img.src = URL.createObjectURL(blob); photoBar.hidden = true; photoShot.hidden = false; }, "image/jpeg", .92);
+}
+addEventListener("keydown", (e) => { if (e.key === "Escape" && photoMode) setPhoto(false); });
+
+// ---------- the first time the game opens: a title card while the camera sweeps down onto the farm ----------
+let intro = null;
+function playIntro() {
+  let seen = false; try { seen = !!localStorage.getItem("sa3d-intro"); localStorage.setItem("sa3d-intro", "1"); } catch (e) {}
+  if (seen || (qs.has("debug") && !qs.has("intro")) || qs.has("shot")) return;
+  const el = document.getElementById("intro"); el.hidden = false; document.body.classList.add("introing");
+  const to = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  const done = () => { if (el.hidden) return; el.classList.add("out-go"); setTimeout(() => { el.hidden = true; el.classList.remove("out-go"); document.body.classList.remove("introing"); }, 800); };
+  intro = {t0:null, dur:5200, done, to, from:{yaw:to.yaw + 2.4, pitch:1.1, dist:68, target:to.target.clone().add(new THREE.Vector3(-8, 0, -6))}};
+  Object.assign(view, {yaw:intro.from.yaw, pitch:intro.from.pitch, dist:intro.from.dist}); view.target.copy(intro.from.target);
+  el.addEventListener("pointerdown", done);
+}
+function updateIntro() {
+  if (!intro) return;
+  if (intro.t0 == null) { intro.t0 = performance.now(); setTimeout(intro.done, intro.dur); } // the clock starts once the farm is actually on screen
+  const k = Math.min(1, (performance.now() - intro.t0) / intro.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, a = intro.from, b = intro.to;
+  cam.yaw = a.yaw + (b.yaw - a.yaw) * e; cam.pitch = a.pitch + (b.pitch - a.pitch) * e; cam.dist = a.dist + (b.dist - a.dist) * e; cam.target.lerpVectors(a.target, b.target, e);
+  if (k >= 1) intro = null;
+}
+
 // ---------- tutorial pointer ----------
 const pointer = document.getElementById("pointer"); let tutLooked = null;
 function updatePointer() {
@@ -2771,6 +2963,15 @@ function updateGame(t, dt) {
 }
 setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
 setInterval(() => { GV.applyWeather(); syncHoliday(); }, 60000);
+// the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
+setInterval(() => {
+  const rainy = !!(PRESET.rain), night = !!PRESET.night;
+  G.ambience(wind, rainy);
+  if (document.hidden || photoMode) return;
+  if (!rainy && Math.random() < (night ? .45 : .3)) G.sfxAt(night ? "cricket" : "bird", Math.random() * 2 - 1, .4 + Math.random() * .6);
+  if (animals.length && Math.random() < .1) { const a = animals[Math.floor(Math.random() * animals.length)], sc = toScreen(a.g.position);
+    if (sc && a.act !== "sleeping") G.sfxAt(a.kind, THREE.MathUtils.clamp(sc.x / innerWidth * 2 - 1, -1, 1), Math.min(1, 12 / camera.position.distanceTo(a.g.position)) * .7); }
+}, 1000);
 
 bootStep("loading your farm");
 // ---------------- start the game ----------------
@@ -2803,12 +3004,12 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
 { // hide the loading screen once the textures are in
-  const L = document.getElementById("loading"); const hide = () => { L.style.opacity = 0; setTimeout(() => L.remove(), 700); };
+  const L = document.getElementById("loading"); const hide = () => { if (hide.done) return; hide.done = true; L.style.opacity = 0; setTimeout(() => L.remove(), 700); playIntro(); };
   if (texturesReady) hide(); else { THREE.DefaultLoadingManager.onLoad = () => { texturesReady = true; hide(); }; setTimeout(hide, 6000); } }
 
 // ---------------- animation ----------------
@@ -2820,7 +3021,7 @@ function frame() {
   // the animals live their lives
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
   if (walk) updateWalk(dt);
-  placeCamera(dt); updateSquish(performance.now());
+  updateIntro(); placeCamera(dt); updateSquish(performance.now());
   updateDrops(dt); updateBaits(); drawTrail();
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   for (const a of animals) a.update(dt, t);
@@ -2831,6 +3032,7 @@ function frame() {
   if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
   if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
   composer.render();
+  if (photoWant) takePhoto();
   if (!frame.okAt && ++frame.drawn >= 3) { frame.okAt = true; bootStep("ok"); }
   if (qs.has("shot") && texturesReady && ++shotFrames >= 3) { window.__done = true; return; } // snapshot mode: draw a few frames, then hold still
   requestAnimationFrame(frame);
