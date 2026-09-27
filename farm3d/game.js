@@ -12,7 +12,7 @@ export const view = {
   refresh(what) {},               // "plots" | "herd" | "buildings" | "decor" | "stand" | "style" | "all"
   sparkle(key) {}, fly(kind, n) {}, // a gold burst over something; coins or gems flying into their counter
   freeDecorSpot(size) { return null; },
-  paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; }, resolution() { return 100; },
+  paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; }, resolution() { return 100; }, wardrobe(on) {},
 };
 
 // ---------- game data (same as the 2D game) ----------
@@ -72,6 +72,33 @@ export const RECIPES = {
   strawberry_jam:{in:{strawberry:3,sugar:1},out:1,time:240,xp:7}, pumpkin_pie:{in:{pumpkin:1,egg:2,sugar:1},out:1,time:300,xp:8}, sweater:{in:{wool:2},out:1,time:300,xp:8},
   cake:{in:{flour:2,egg:2,butter:1,sugar:1},out:1,time:360,xp:10}, pizza:{in:{flour:1,tomato:2,cheese:1},out:1,time:300,xp:10},
 };
+// ---------- the wardrobe: how your farmer looks ----------
+// Each option: [name, value, unlock]. unlock: 0 = free from the start, a number = that player level, "spring" etc. = win 3 prizes on
+// that season's track, "gem" = the gem shop (coming later, not for sale yet). Skin tones and hairstyles are always free.
+export const WARDROBE = {
+  skin:{n:"Skin", opts:[["Porcelain", 0xf6d7c3, 0], ["Peach", 0xf0c6a0, 0], ["Honey", 0xd9a577, 0], ["Caramel", 0xb57c52, 0], ["Chestnut", 0x8a5635, 0], ["Espresso", 0x5b3822, 0]]},
+  hair:{n:"Hair", opts:[["Short", "short", 0], ["Long", "long", 0], ["Ponytail", "pony", 0], ["Bun", "bun", 0], ["Curly", "curly", 0], ["Buzz", "buzz", 0], ["Bob", "bob", 0], ["Braids", "braids", 0]]},
+  hairColor:{n:"Hair colour", opts:[["Black", 0x1f1a17, 0], ["Dark brown", 0x3b2519, 0], ["Brown", 0x6b4127, 0], ["Blonde", 0xd9b56a, 0], ["Ginger", 0xb4552a, 0], ["Silver", 0xb9b9b9, 0], ["Pink", 0xe88fb4, 8], ["Blue", 0x5b8fd8, 12]]},
+  shirt:{n:"Shirt", opts:[["Barn red", 0xd24d3f, 0], ["Sky blue", 0x5aa6dd, 0], ["Leaf green", 0x5ea64a, 0], ["Sunflower", 0xf2c23a, 2], ["Lavender", 0x9c7cd4, 5], ["Cream", 0xf1e6cf, 8], ["Pumpkin", 0xe8812f, "fall"], ["Teal", 0x2aa39a, "gem"]]},
+  hat:{n:"Hat", opts:[["Straw hat", "straw", 0], ["No hat", "none", 0], ["Cap", "cap", 2], ["Beanie", "beanie", 5], ["Cowboy", "cowboy", 12], ["Flower crown", "flowers", "spring"]]},
+  overalls:{n:"Overalls", opts:[["Overalls", true, 0], ["No overalls", false, 0]]},
+  overallColor:{n:"Overall colour", opts:[["Denim", 0x3d6fa8, 0], ["Brown", 0x7a5334, 5], ["Forest", 0x3f6b3a, 16], ["Rose", 0xc0607f, "gem"]]},
+  boots:{n:"Boots", opts:[["Brown", 0x4a3222, 0], ["Black", 0x222222, 0], ["Red", 0xa8322a, 2], ["Yellow", 0xe0b030, 8], ["White", 0xeeeeee, 20], ["Purple", 0x6b4a9c, "gem"]]},
+};
+export const DEFAULT_LOOK = {skin:1, hair:0, hairColor:2, shirt:0, hat:0, overalls:0, overallColor:0, boots:0};
+export const lookOf = (s = S) => Object.assign({}, DEFAULT_LOOK, (s && s.look) || {});
+// can this option be worn? {ok, why}
+export function lookUnlocked(cat, i) {
+  const u = WARDROBE[cat].opts[i][2];
+  if (!u) return {ok:true};
+  if (typeof u === "number") return S.level >= u ? {ok:true} : {ok:false, why:"🔒 Level " + u};
+  if (u === "gem") return {ok:false, why:"💎 Coming soon"};
+  return (S.unlocks || {})["ssn_" + u] ? {ok:true} : {ok:false, why:SEASON_E[u] + " " + u[0].toUpperCase() + u.slice(1) + " prize"};
+}
+export function wear(cat, i) {
+  if (!lookUnlocked(cat, i).ok) { sfx("error"); return false; }
+  S.look = Object.assign(lookOf(), {[cat]:i}); sfx("tick"); save(); view.refresh("look"); return true;
+}
 export const MAX_PLOTS = 30, QUEUE_SLOTS = 3, STAND_MAX = 8;
 // more land west of the fields: each deed makes room for 6 more fields
 export const LAND = [{lvl:8, cost:1500}, {lvl:12, cost:3000}, {lvl:16, cost:6000}], LAND_FIELDS = 6;
@@ -190,7 +217,7 @@ function fresh() {
     rush:null, nextRushAt:0,          // a limited-time order
     visitor:null, nextVisitorAt:0, villagers:{}, // who is visiting, and friendship with each villager
     lastSeen:0, streak:{n:0, last:""},  // when you last played (for "while you were away"), and the daily gift streak
-    seasonTrack:null,                 // points and prizes on this season's free track
+    seasonTrack:null, look:null, unlocks:{}, // your farmer's clothes, and wardrobe items won in season events                 // points and prizes on this season's free track
     layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)
   };
 }
@@ -210,6 +237,7 @@ function upgrade(saved) {
   s.perks.owed = Math.max(s.perks.owed | 0, Math.floor((s.level || 1) / 5) - s.perks.grow - s.perks.sell); // farms from before perks get their picks too
   s.ach = s.ach || {}; s.museum = s.museum || {}; s.villagers = s.villagers || {};
   s.streak = s.streak && typeof s.streak === "object" ? s.streak : {n:0, last:""};
+  s.unlocks = s.unlocks || {};
   s.stand = s.stand && Array.isArray(s.stand.list) ? s.stand : def.stand;
   while (s.stand.list.length < s.stand.slots) s.stand.list.push(null);
   s.pets = (Array.isArray(s.pets) ? s.pets : []).filter(p => p && PETS[p.kind]);
@@ -992,6 +1020,7 @@ function seasonPoints(metric, n) {
   const T = seasonNow(); T.pts += p * n;
   while (T.won < SEASON_GOALS.length && T.pts >= SEASON_GOALS[T.won]) {
     const R = seasonPrize(T.won, T.ssn); T.won++;
+    if (T.won === 3 && !S.unlocks["ssn_" + T.ssn]) { S.unlocks["ssn_" + T.ssn] = 1; const it = Object.values(WARDROBE).flatMap(c => c.opts).find(o => o[2] === T.ssn); if (it) toast("👕 New in your wardrobe: " + it[0] + "!"); }
     if (R.c) S.coins += R.c; if (R.gem) S.gems += R.gem; if (R.decor) S.decor.inv[R.decor] = (S.decor.inv[R.decor] || 0) + 1;
     toast(SEASON_E[T.ssn] + " Season prize " + T.won + "/" + SEASON_GOALS.length + ": " + [R.c ? "+" + R.c + " 🪙" : "", R.gem ? "+" + R.gem + " 💎" : "", R.decor ? decorIcon(R.decor) + " " + DECOR[R.decor].n : ""].filter(Boolean).join(" "));
     sfx("level");
@@ -1290,7 +1319,7 @@ function panelBarn() {
   if (selItem && !have(selItem)) selItem = null;
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
     <b style="font-family:var(--fun);font-weight:400;font-size:18px">${used} / ${S.barnCap}</b>
-    <button class="btn gold sm" data-act="barnUp">Upgrade +25 · ${barnCost()} 🪙</button></div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn plain sm" data-act="wardrobe">👕 Wardrobe</button><button class="btn gold sm" data-act="barnUp">Upgrade +25 · ${barnCost()} 🪙</button></span></div>
     <div class="cap ${used >= S.barnCap ? "full" : ""}"><i style="width:${Math.min(100, used / S.barnCap * 100)}%"></i></div>`;
   if (!ids.length) return {title:"Barn", body:h + `<p class="center muted" style="font-weight:800">Your barn is empty. Go harvest something!</p>`};
   h += `<div class="inv">` + ids.map(id => `<button class="islot slot ${selItem === id ? "sel" : ""}" data-act="selItem" data-id="${id}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><span class="q out">${have(id)}</span>${goldOf(id) ? `<span class="gq">🥇${goldOf(id)}</span>` : ""}</button>`).join("") + `</div>`;
@@ -1437,7 +1466,7 @@ const promise = () => `<div class="promise"><b>💎 No real money. Ever.</b><div
   <ul><li>+2 💎 every level up</li><li>+1 💎 from the daily gift 🎁</li><li>+1 💎 every 10th order, and some orders pay 💎</li></ul></div>`;
 
 // Settings: sound, graphics, how the farm looks, the barn's colours, backup and the tutorial
-export const PREFS = {quality:"auto"};
+export const PREFS = {quality:"auto", bob:true}; // landscape: "fp" (walk in first person) | "classic" | "ask" (set on first launch, see start())
 try { Object.assign(PREFS, JSON.parse(localStorage.getItem(SAVE_KEY + "-prefs") || "{}")); } catch (e) {}
 const savePrefs = () => { try { localStorage.setItem(SAVE_KEY + "-prefs", JSON.stringify(PREFS)); } catch (e) {} };
 function panelSettings() {
@@ -1462,6 +1491,9 @@ function panelSettings() {
     ${"Notification" in window ? `<p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Reminders tell you when crops, animals or goods are ready, while the game is still open in the background.</p>` : ""}
     <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
     <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto adjusts the sharpness by itself to keep the game smooth${PREFS.quality === "auto" || !PREFS.quality ? ` (drawing at ${view.resolution()}% right now)` : ""}. Battery saver is gentlest on the battery.</p>
+    <h4>Your farmer</h4><div class="toggles"><button class="btn sm" data-act="wardrobe">👕 Wardrobe</button></div>
+    <h4>Phone sideways</h4><div class="toggles">${[["fp", "🚶 Walk in first person"], ["classic", "🌻 Classic view"], ["ask", "❓ Ask every time"]].map(([k, n]) => `<button class="btn ${PREFS.landscape === k ? "" : "plain"} sm" data-act="landscape" data-k="${k}">${n}</button>`).join("")}</div>
+    <div class="toggles" style="margin-top:6px"><button class="btn ${PREFS.bob !== false ? "" : "plain"} sm" data-act="bob">${PREFS.bob !== false ? "🚶 Head bob on" : "🚶 Head bob off (gentler)"}</button></div>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
     <h4>Barn colours</h4><div class="slot" style="padding:10px">${sw}</div>
     <h4>Backup</h4>
@@ -1653,6 +1685,9 @@ document.addEventListener("click", (e) => {
     case "sound": snd.on = !snd.on; saveSound(); if (panel) renderPanel(); if (snd.on) { audio(); sfx("pop"); } break;
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
     case "notify": setReminders(!PREFS.notify); break;
+    case "wardrobe": closePanel(); view.wardrobe(true); break;
+    case "landscape": PREFS.landscape = d.k; savePrefs(); renderPanel(); break;
+    case "bob": PREFS.bob = PREFS.bob === false; savePrefs(); renderPanel(); break;
     case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
     case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
@@ -1797,6 +1832,20 @@ function loop(name, freq, type, q) {
   src.connect(f); f.connect(g); g.connect(master); src.start();
   return (loops[name] = {g, f});
 }
+// footsteps in first person: soft swish on grass, a crunch on dirt, a hollow knock on wood
+let stepAlt = 0;
+export function step(surface, run) {
+  if (!snd.on || !AC || AC.state !== "running") return;
+  const v = run ? 1.25 : 1, p = (stepAlt ^= 1) ? 1 : .9; // left and right feet sound a little different
+  if (surface === "wood") { tone(190 * p, .08, {type:"triangle", vol:.09 * v, to:120}); noise(.05, {vol:.05 * v, freq:900, q:1.2}); }
+  else if (surface === "dirt") { noise(.09, {vol:.1 * v, freq:700 * p, q:.7}); noise(.05, {vol:.05 * v, freq:2600, q:1, at:.02}); }
+  else noise(.12, {vol:.07 * v, freq:3800 * p, q:.5}); // grass
+}
+// air rushing past while running
+export function windRush(k) {
+  if (!AC || AC.state !== "running") return;
+  const r = loop("rush", 900, "bandpass", .4); r.g.gain.setTargetAtTime(snd.on && snd.amb && !document.hidden ? k * .07 : 0, AC.currentTime, .25);
+}
 export function ambience(wind, rain) {
   if (!AC || AC.state !== "running") return;
   const on = snd.on && snd.amb && !document.hidden ? 1 : 0, t = AC.currentTime;
@@ -1922,6 +1971,7 @@ export function start() {
   refreshTheme();
   fillOrders();
   renderHud(); applySound();
+  if (PREFS.landscape == null) { PREFS.landscape = how === "new" || how === "has2d" ? "fp" : "ask"; savePrefs(); } // new players walk right away (after the tutorial); everyone else is asked once
   if (how === "has2d") openPanel("import2d");
   else if (how === "new") openPanel("welcome");
   else if (S.tut == null) S.tut = TUT.length;
