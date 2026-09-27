@@ -1,23 +1,36 @@
-"""Convert MapBuilder layers into Unreal-ready JSON/CSV (TDD §8.3).
+"""Convert MapBuilder layers into the files the Unreal import package reads (TDD §8.3).
 
-Runs outside Unreal (needs numpy, shapely, scipy). The Unreal-side importer
-(ue/stormchaser_import.py) only reads the files written here, so it needs no
-GIS libraries.
+Runs outside Unreal (needs numpy, shapely, pillow). The Unreal scripts only read
+what is written here, with the Python standard library, so they need no GIS tools.
 
 Unreal frame: 1 uu = 1 cm, +X = east, +Y = south (GIS north flipped), +Z = up.
-Heights are snapped to the same heightmap tiles the landscape is imported from.
+Every height is sampled from the same heightmap tiles the landscape is imported from.
+
+Output: out/ue/
+  manifest.json        geo mapping, landscape settings, chunk + instance index, perf budget report
+  landscape.json       landscape import settings per tile
+  meshes/*.bin         merged triangle meshes (roads by class, streams, lakes) per 8 km cell
+  instances/*.bin      instance transforms (buildings, bridges, trees) per 8 km cell
+  playable.json        PlayerStarts snapped onto real roads
+  landmarks.json       landmark anchors
+
+Binary formats (little-endian):
+  mesh:     uint32 nverts, uint32 ntris, float32[nverts*3] xyz (cm, relative to the chunk pivot), uint32[ntris*3]
+  instance: uint32 count, then per instance float32[7] = x, y, bottom_z (cm, world), yaw (deg),
+            size_x, size_y, size_z (metres; Unreal scales the chosen mesh from its bounds to this size)
 """
-import csv
-import glob
 import json
 import math
 import os
 import re
+import struct
 
 import numpy as np
 
+CELL_M = 8000.0                                   # chunk size for merged meshes / instance groups
 EXCLUDED_HIGHWAYS = {"footway", "path", "cycleway", "steps", "pedestrian", "bridleway", "construction",
                      "proposed", "corridor", "elevator", "platform", "raceway", "bus_stop", "abandoned"}
+EXCLUDED_SERVICE = {"parking_aisle", "drive-through", "emergency_access"}
 ROAD_CLASS = {
     "motorway": "Interstate", "motorway_link": "Interstate",
     "trunk": "Highway", "trunk_link": "Highway", "primary": "Highway", "primary_link": "Highway",
@@ -25,11 +38,14 @@ ROAD_CLASS = {
     "unclassified": "Town", "residential": "Town", "living_street": "Town", "road": "Town",
     "service": "Service", "track": "Track",
 }
-# (default width m, default speed km/h, default surface) per class (TDD §8.10)
+# default width m, speed km/h, surface, lift above terrain cm (higher classes win where ribbons overlap)
 CLASS_DEFAULTS = {
-    "Interstate": (7.4, 113, "asphalt"), "Highway": (8.0, 89, "asphalt"), "County": (7.0, 80, "asphalt"),
-    "Town": (6.0, 56, "gravel"), "Service": (3.5, 24, "gravel"), "Track": (3.0, 24, "dirt"),
+    "Interstate": (7.4, 113, "asphalt", 12), "Highway": (8.0, 89, "asphalt", 11), "County": (7.0, 80, "asphalt", 10),
+    "Town": (6.0, 56, "gravel", 9), "Service": (3.5, 24, "gravel", 8), "Track": (3.0, 24, "dirt", 7),
 }
+# budgets for 60 fps on an RTX 5060 Ti class GPU (per loaded area, Nanite on)
+BUDGET = {"road_tris_total": 6_000_000, "instances_per_cell": 250_000, "trees_total": 3_000_000,
+          "landscape_vertices": 700_000_000}
 
 
 # ---------------------------------------------------------------- ground sampling
@@ -70,10 +86,18 @@ class Ground:
             out[sel] = self.z0 + (v - 32768.0) * self.zs / 128.0
         return out
 
+    def grid(self, stride):
+        """Whole-map height grid (cm) at res*stride metres, row 0 = north. Used for slope masks."""
+        rows = []
+        for ty in range(self.fr.tiles_y):
+            cols = [np.asarray(self.tiles[(tx, ty)][:-1:stride, :-1:stride], np.float32) for tx in range(self.fr.tiles_x)]
+            rows.append(np.concatenate(cols, 1))
+        g = np.concatenate(rows, 0)
+        return self.z0 + (g - 32768.0) * self.zs / 128.0
+
 
 # ---------------------------------------------------------------- helpers
 def resample(pts, max_seg):
-    """Insert vertices so no segment is longer than max_seg (keeps originals)."""
     out = [pts[0]]
     for p, q in zip(pts[:-1], pts[1:]):
         d = math.dist(p, q)
@@ -84,17 +108,21 @@ def resample(pts, max_seg):
 
 
 def ue_xy(x, y):
-    return round(x * 100.0, 1), round(-y * 100.0, 1)
+    return x * 100.0, -y * 100.0
 
 
-def ue_path(pts, zs, dz=0.0):
-    return [[*ue_xy(x, y), round(float(z) + dz, 1)] for (x, y), z in zip(pts, zs)]
+def cell_of(fr, x, y):
+    return (int(min(max((x + fr.half_x) // CELL_M, 0), (2 * fr.half_x) // CELL_M)),
+            int(min(max((fr.half_y - y) // CELL_M, 0), (2 * fr.half_y) // CELL_M)))
+
+
+def cell_pivot(fr, cx, cy):
+    """Chunk pivot in Unreal cm: the cell's north-west corner (min X, min Y)."""
+    return ((-fr.half_x + cx * CELL_M) * 100.0, (-fr.half_y + cy * CELL_M) * 100.0)
 
 
 def parse_speed_kph(tag):
-    if not tag:
-        return None
-    m = re.match(r"\s*(\d+(?:\.\d+)?)\s*(mph)?", str(tag))
+    m = re.match(r"\s*(\d+(?:\.\d+)?)\s*(mph)?", str(tag or ""))
     if not m:
         return None
     v = float(m.group(1))
@@ -109,260 +137,443 @@ def load(out_dir, name):
         return json.load(f)
 
 
+class MeshChunks:
+    """Accumulates triangles per (layer, class, cell) in Unreal cm, relative to each cell pivot."""
+
+    def __init__(self, fr):
+        self.fr, self.data = fr, {}
+
+    def add(self, layer, cls, cell, verts_world, tris):
+        key = (layer, cls, cell)
+        v, t = self.data.setdefault(key, ([], []))
+        px, py = cell_pivot(self.fr, *cell)
+        base = len(v)
+        for x, y, z in verts_world:
+            v.append((x - px, y - py, z))
+        t.extend((a + base, b + base, c + base) for a, b, c in tris)
+
+    def write(self, ue_dir, material_of):
+        os.makedirs(os.path.join(ue_dir, "meshes"), exist_ok=True)
+        index = []
+        for (layer, cls, cell), (v, t) in sorted(self.data.items()):
+            if not t:
+                continue
+            name = f"{layer}_{cls}_{cell[0]}_{cell[1]}"
+            with open(os.path.join(ue_dir, "meshes", name + ".bin"), "wb") as f:
+                f.write(struct.pack("<II", len(v), len(t)))
+                f.write(np.asarray(v, "<f4").tobytes())
+                f.write(np.asarray(t, "<u4").tobytes())
+            px, py = cell_pivot(self.fr, *cell)
+            index.append({"name": name, "layer": layer, "class": cls, "cell": list(cell), "pivot_cm": [px, py, 0.0],
+                          "verts": len(v), "tris": len(t), "material": material_of(layer, cls)})
+        return index
+
+
+def upward(tri, verts):
+    """Winding so that cross(b-a, c-a).z > 0 in Unreal coordinates (materials are two-sided anyway)."""
+    a, b, c = (verts[i] for i in tri)
+    z = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    return tri if z > 0 else (tri[0], tri[2], tri[1])
+
+
+def ribbon(pts_xy, half_w, z_left, z_right):
+    """Quad strip for a centreline in local metres -> (verts in Unreal cm, tris)."""
+    n = len(pts_xy)
+    p = np.asarray(pts_xy, float)
+    d = np.zeros_like(p)
+    d[1:-1] = p[2:] - p[:-2]
+    d[0], d[-1] = p[1] - p[0], p[-1] - p[-2]
+    d /= np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-6)
+    nrm = np.stack([-d[:, 1], d[:, 0]], 1)                # left-hand normal in the GIS (north-up) frame
+    L, R = p + nrm * half_w, p - nrm * half_w
+    verts = []
+    for i in range(n):
+        lx, ly = ue_xy(*L[i]); rx, ry = ue_xy(*R[i])
+        verts += [(lx, ly, float(z_left[i])), (rx, ry, float(z_right[i]))]
+    tris = []
+    for i in range(n - 1):
+        a, b, c, e = 2 * i, 2 * i + 1, 2 * i + 2, 2 * i + 3
+        tris += [upward((a, b, c), verts), upward((b, e, c), verts)]
+    return verts, tris, L, R
+
+
+def write_instances(ue_dir, kind, groups):
+    os.makedirs(os.path.join(ue_dir, "instances"), exist_ok=True)
+    index = []
+    for cell, rows in sorted(groups.items()):
+        if not rows:
+            continue
+        name = f"{kind}_{cell[0]}_{cell[1]}"
+        with open(os.path.join(ue_dir, "instances", name + ".bin"), "wb") as f:
+            f.write(struct.pack("<I", len(rows)))
+            f.write(np.asarray(rows, "<f4").tobytes())
+        index.append({"name": name, "kind": kind, "cell": list(cell), "count": len(rows)})
+    return index
+
+
 # ---------------------------------------------------------------- layers
 def export_landscape(fr, g, ue_dir, png):
     m = g.m
     tile_len_cm = g.tq * fr.res * 100
-    x0, y0 = -fr.half_x * 100, -fr.half_y * 100            # north-west corner in Unreal (min X, min Y)
+    x0, y0 = -fr.half_x * 100, -fr.half_y * 100
     tiles = []
     for ty in range(fr.tiles_y):
         for tx in range(fr.tiles_x):
-            tiles.append({"file_r16": f"heightmap_x{tx}_y{ty}.r16", "file_png": f"heightmap_x{tx}_y{ty}.png",
-                          "tx": tx, "ty": ty,
+            tiles.append({"file_r16": f"heightmap_x{tx}_y{ty}.r16", "file_png": f"heightmap_x{tx}_y{ty}.png", "tx": tx, "ty": ty,
                           "location_cm": [round(x0 + tx * tile_len_cm, 1), round(y0 + ty * tile_len_cm, 1), m["ue_location_z_cm"]]})
             if png:
                 from PIL import Image
-                arr = np.array(g.tiles[(tx, ty)], dtype=np.uint16)
-                Image.fromarray(arr).save(os.path.join(ue_dir, f"heightmap_x{tx}_y{ty}.png"))
-    doc = {
-        "tiles": [fr.tiles_x, fr.tiles_y], "tile_px": m["tile_px"],
-        "section_quads": 127, "sections_per_component": 2,
-        "components_per_tile": [g.tq // 254, g.tq // 254],
-        "scale": [m["ue_scale"]["x"], m["ue_scale"]["y"], m["ue_scale"]["z"]],
-        "location_cm": [round(x0, 1), round(y0, 1), m["ue_location_z_cm"]],
-        "extent_cm": [round(2 * fr.half_x * 100, 1), round(2 * fr.half_y * 100, 1)],
-        "tile_files": tiles,
-        "note": "Tiles share edge vertices. Import as one tiled landscape at location_cm, or as one landscape per tile at each tile's location_cm.",
-    }
+                Image.fromarray(np.array(g.tiles[(tx, ty)], dtype=np.uint16)).save(os.path.join(ue_dir, f"heightmap_x{tx}_y{ty}.png"))
+    doc = {"tiles": [fr.tiles_x, fr.tiles_y], "tile_px": m["tile_px"], "section_quads": 127, "sections_per_component": 2,
+           "components_per_tile": [g.tq // 254, g.tq // 254], "scale": [m["ue_scale"]["x"], m["ue_scale"]["y"], m["ue_scale"]["z"]],
+           "location_cm": [round(x0, 1), round(y0, 1), m["ue_location_z_cm"]],
+           "extent_cm": [round(2 * fr.half_x * 100, 1), round(2 * fr.half_y * 100, 1)], "tile_files": tiles,
+           "vertices": fr.nx * fr.ny}
     with open(os.path.join(ue_dir, "landscape.json"), "w") as f:
         json.dump(doc, f, indent=1)
-    return {"landscape_tiles": len(tiles), "png": bool(png)}
+    return doc
 
 
-def export_roads(fr, g, out_dir, ue_dir):
+def export_roads(fr, g, out_dir, chunks):
     osm = load(out_dir, "osm_local.json")
-    roads, skipped = [], 0
+    stats, road_pts = {"ways": 0, "skipped": 0, "km": 0.0, "by_class": {}}, []
     for r in osm["layers"]["roads"]:
         t = r["tags"]
         hw = t.get("highway", "")
         cls = ROAD_CLASS.get(hw)
-        if hw in EXCLUDED_HIGHWAYS or cls is None or t.get("area") == "yes":
-            skipped += 1
+        if hw in EXCLUDED_HIGHWAYS or cls is None or t.get("area") == "yes" or t.get("service") in EXCLUDED_SERVICE:
+            stats["skipped"] += 1
             continue
-        width, speed, surf = CLASS_DEFAULTS[cls]
-        lanes = t.get("lanes")
-        if lanes and str(lanes).isdigit():
+        width, speed, surf, lift = CLASS_DEFAULTS[cls]
+        lanes = str(t.get("lanes") or "")
+        if lanes.isdigit():
             width = max(width, int(lanes) * 3.6)
-        surface = t.get("surface")
-        is_bridge = t.get("bridge") not in (None, "no")
-        pts = r["pts"] if is_bridge else resample(r["pts"], 20.0)
-        pts = [p for p in pts if fr.inside(*p)] if not is_bridge else pts
-        if len(pts) < 2:
+        pts = resample(r["pts"], 15.0)
+        if not any(fr.inside(*p) for p in pts):
             continue
-        zs = g.z_cm([p[0] for p in pts], [p[1] for p in pts])
-        if is_bridge:                                       # deck spans between the abutments, never dips into the valley
-            zs = np.linspace(zs[0], zs[-1], len(zs))
-        roads.append({
-            "id": r["id"], "class": cls, "highway": hw, "name": t.get("name"), "ref": t.get("ref"),
-            "surface": surface or surf, "surface_guessed": surface is None,
-            "width_m": round(width, 2), "speed_kph": parse_speed_kph(t.get("maxspeed")) or speed,
-            "oneway": t.get("oneway") == "yes", "is_bridge": is_bridge,
-            "pts": ue_path(pts, zs, dz=8.0),
-        })
-    with open(os.path.join(ue_dir, "roads.json"), "w") as f:
-        json.dump({"frame": "Unreal cm", "roads": roads}, f)
-    by = {}
-    for r in roads:
-        by[r["class"]] = by.get(r["class"], 0) + 1
-    return {"roads": len(roads), "skipped_non_drivable": skipped, "by_class": by}
+        is_bridge = t.get("bridge") not in (None, "no")
+        p = np.asarray(pts)
+        zc = g.z_cm(p[:, 0], p[:, 1])
+        if is_bridge:
+            zc = np.linspace(zc[0], zc[-1], len(zc))
+        verts, tris, L, R = ribbon(pts, width / 2, zc, zc)
+        if not is_bridge:
+            zl, zr = g.z_cm(L[:, 0], L[:, 1]), g.z_cm(R[:, 0], R[:, 1])
+            for i in range(len(pts)):                    # drape each edge on the terrain
+                verts[2 * i] = (verts[2 * i][0], verts[2 * i][1], float(zl[i]) + lift)
+                verts[2 * i + 1] = (verts[2 * i + 1][0], verts[2 * i + 1][1], float(zr[i]) + lift)
+        else:
+            verts = [(x, y, z + lift) for x, y, z in verts]
+        # split the strip into runs that stay in one cell, so each merged chunk streams on its own
+        seg_cells = [cell_of(fr, (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2) for i in range(len(pts) - 1)]
+        start = 0
+        for i in range(1, len(seg_cells) + 1):
+            if i == len(seg_cells) or seg_cells[i] != seg_cells[start]:
+                vs = verts[2 * start: 2 * (i + 1)]
+                ts = [(a - 2 * start, b - 2 * start, c - 2 * start) for a, b, c in tris[2 * start: 2 * i]]
+                chunks.add("Road", cls, seg_cells[start], vs, ts)
+                start = i
+        stats["ways"] += 1
+        stats["by_class"][cls] = stats["by_class"].get(cls, 0) + 1
+        stats["km"] += sum(math.dist(pts[i], pts[i + 1]) for i in range(len(pts) - 1)) / 1000
+        if cls in ("Highway", "County", "Town"):
+            road_pts.append((cls, t.get("name"), pts, zc))
+    stats["km"] = round(stats["km"], 1)
+    return stats, road_pts
 
 
-def export_water(fr, g, out_dir, ue_dir):
+def export_water(fr, g, out_dir, chunks):
+    import shapely
     from shapely.geometry import LineString, Point, Polygon
-    from shapely.ops import unary_union
     from shapely.strtree import STRtree
 
     w = load(out_dir, "water_nhd_local.json")
+    stats = {"streams": 0, "stream_km": 0.0, "lakes": 0, "river_areas": 0}
+
+    def add_polygon(poly, cls):
+        poly = poly.simplify(2.0)
+        if poly.is_empty or poly.area < 800:
+            return False
+        for part in getattr(poly, "geoms", [poly]):
+            if part.geom_type != "Polygon" or part.area < 800:
+                continue
+            tri = shapely.constrained_delaunay_triangles(part)
+            verts, tris, vid = [], [], {}
+            coords = [c for tr in tri.geoms for c in list(tr.exterior.coords)[:3]]
+            if not coords:
+                continue
+            arr = np.asarray(coords)
+            z = g.z_cm(arr[:, 0], arr[:, 1]) + 10.0      # hydro-flattened water surface
+            for k, (xy, zz) in enumerate(zip(coords, z)):
+                key = (round(xy[0], 2), round(xy[1], 2))
+                if key not in vid:
+                    vid[key] = len(verts)
+                    verts.append((*ue_xy(*xy), float(zz)))
+            for k in range(0, len(coords), 3):
+                a, b, c = (vid[(round(coords[k + j][0], 2), round(coords[k + j][1], 2))] for j in range(3))
+                tris.append(upward((a, b, c), verts))
+            c = part.representative_point()
+            chunks.add("Water", cls, cell_of(fr, c.x, c.y), verts, tris)
+        return True
+
     areas = [Polygon(a["pts"]).buffer(0) for a in w["areas"] if len(a["pts"]) >= 4]
     areas = [a for a in areas if a.area > 0]
+    for a in areas:
+        stats["river_areas"] += add_polygon(a, "River")
     tree = STRtree(areas) if areas else None
-    rivers, creeks, lakes = [], [], []
     for fl in w["flowlines"]:
-        pts = [p for p in resample(fl["pts"], 30.0) if fr.inside(*p)]
+        pts = [p for p in resample(fl["pts"], 20.0) if fr.inside(*p)]
         if len(pts) < 2:
             continue
-        line = LineString(pts)
-        width = None
         if tree is not None:
+            line = LineString(pts)
             hits = [areas[i] for i in tree.query(line)]
-            inside = sum(1 for p in pts[::3] if any(h.contains(Point(p)) for h in hits))
-            if hits and inside >= 0.5 * len(pts[::3]):
-                a = max(hits, key=lambda h: h.intersection(line).length)
-                width = max(8.0, min(250.0, 2 * a.area / max(a.length, 1)))
-        zs = g.z_cm([p[0] for p in pts], [p[1] for p in pts])
-        zs = np.minimum.accumulate(zs)                       # NHD flowlines run downstream: water never climbs
-        item = {"name": fl.get("name"), "ftype": fl.get("ftype"), "pts": ue_path(pts, zs, dz=10.0)}
-        if width:
-            item["width_m"] = round(width, 1)
-            rivers.append(item)
-        else:
-            item["width_m"] = 6.0 if fl.get("name") else 2.5
-            creeks.append(item)
+            if hits and sum(1 for p in pts[::3] if any(h.contains(Point(p)) for h in hits)) >= 0.5 * len(pts[::3]):
+                continue                                  # covered by the river-area surface
+        p = np.asarray(pts)
+        z = np.minimum.accumulate(g.z_cm(p[:, 0], p[:, 1])) + 10.0   # downstream: water never climbs
+        width = 6.0 if fl.get("name") else 2.5
+        verts, tris, _, _ = ribbon(pts, width / 2, z, z)
+        c = pts[len(pts) // 2]
+        chunks.add("Water", "Stream", cell_of(fr, *c), verts, tris)
+        stats["streams"] += 1
+        stats["stream_km"] += sum(math.dist(pts[i], pts[i + 1]) for i in range(len(pts) - 1)) / 1000
     for wb in w["waterbodies"]:
-        if len(wb["pts"]) < 4:
+        if wb.get("ftype") == 466 or len(wb["pts"]) < 4:  # marsh stays terrain
             continue
-        poly = Polygon(wb["pts"]).buffer(0)
-        if poly.area < 800 or poly.geom_type != "Polygon":
-            continue
-        ring = list(poly.simplify(3.0).exterior.coords)[:-1]
-        ring = [p for p in ring if fr.inside(*p)]
-        if len(ring) < 3:
-            continue
-        shore = g.z_cm([p[0] for p in ring], [p[1] for p in ring])
-        surface = float(np.percentile(shore, 20))              # hydro-flattened lake surface
-        lakes.append({"name": wb.get("name"), "ftype": wb.get("ftype"), "area_m2": round(poly.area),
-                      "marsh": wb.get("ftype") == 466, "surface_z_cm": round(surface, 1),
-                      "pts": [[*ue_xy(x, y), round(surface, 1)] for x, y in ring]})
-    with open(os.path.join(ue_dir, "water.json"), "w") as f:
-        json.dump({"frame": "Unreal cm", "rivers": rivers, "creeks": creeks, "lakes": lakes}, f)
-    return {"rivers": len(rivers), "creeks": len(creeks), "lakes": len(lakes)}
+        stats["lakes"] += add_polygon(Polygon(wb["pts"]).buffer(0), "Lake")
+    stats["stream_km"] = round(stats["stream_km"], 1)
+    return stats
 
 
-def export_bridges(fr, g, out_dir, ue_dir):
+def export_bridges(fr, g, out_dir):
     from scipy.spatial import cKDTree
     b = load(out_dir, "bridges_nbi_local.json")
     nbi = {x["id"]: x for x in b["bridges"]}
-    decks, points = [], []
+    groups, n_deck, n_short = {}, 0, 0
+    thick = 1.0
+
+    def add(cx, cy, top_z_cm, yaw_math, length, width):
+        ux, uy = ue_xy(cx, cy)
+        groups.setdefault(cell_of(fr, cx, cy), []).append(
+            [ux, uy, top_z_cm - thick * 100.0, -yaw_math, max(length, 4.0), max(width, 3.5), thick])
+
     for d in b.get("osm_decks", []):
         p0, p1 = d["pts"][0], d["pts"][-1]
+        if not (fr.inside(*p0) or fr.inside(*p1)):
+            continue
         z = g.z_cm([p0[0], p1[0]], [p0[1], p1[1]])
         rec = nbi.get(d.get("nbi")) or {}
-        decks.append({"osm_id": d["osm_id"], "nbi_id": d.get("nbi"), "highway": d["highway"], "name": d["name"],
-                      "length_m": rec.get("length_m") or d["length_m"],
-                      "deck_width_m": rec.get("deck_width_m") or rec.get("roadway_width_m") or 8.0,
-                      "material": rec.get("material"), "design": rec.get("design"), "year_built": rec.get("year_built"),
-                      "spans": rec.get("spans"), "start": [*ue_xy(*p0), round(float(z[0]), 1)],
-                      "end": [*ue_xy(*p1), round(float(z[1]), 1)]})
-    # NBI structures with no OSM deck: culverts and short spans, oriented along the nearest road
+        yaw = math.degrees(math.atan2(p1[1] - p0[1], p1[0] - p0[0]))
+        length = math.dist(p0, p1) + 4.0                   # overlap the abutments
+        width = rec.get("deck_width_m") or rec.get("roadway_width_m") or 8.0
+        add((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, float(z.mean()) + 5.0, yaw, length, width)
+        n_deck += 1
     osm = load(out_dir, "osm_local.json")
     segs = []
     for r in osm["layers"]["roads"]:
         if ROAD_CLASS.get(r["tags"].get("highway", "")):
             segs += [(p, q) for p, q in zip(r["pts"][:-1], r["pts"][1:])]
-    mids = np.array([[(p[0] + q[0]) / 2, (p[1] + q[1]) / 2] for p, q in segs]) if segs else np.zeros((1, 2))
-    kd = cKDTree(mids)
+    kd = cKDTree(np.array([[(p[0] + q[0]) / 2, (p[1] + q[1]) / 2] for p, q in segs]))
     for x in b["bridges"]:
-        if x.get("osm_decks"):
+        if x.get("osm_decks") or not fr.inside(x["x"], x["y"]):
             continue
-        _, i = kd.query([x["x"], x["y"]])
-        p, q = segs[i] if segs else ([0, 0], [1, 0])
-        yaw_math = math.degrees(math.atan2(q[1] - p[1], q[0] - p[0]))
-        culvert = "culvert" in (x.get("design") or "") or (x.get("length_m") or 0) < 6
-        points.append({"nbi_id": x["id"], "kind": "culvert" if culvert else "short_bridge",
-                       "length_m": x.get("length_m"), "deck_width_m": x.get("deck_width_m") or x.get("roadway_width_m"),
-                       "material": x.get("material"), "design": x.get("design"), "year_built": x.get("year_built"),
-                       "location": [*ue_xy(x["x"], x["y"]), round(float(g.z_cm(x["x"], x["y"])[0]), 1)],
-                       "yaw_deg": round(-yaw_math, 2)})
-    with open(os.path.join(ue_dir, "bridges.json"), "w") as f:
-        json.dump({"frame": "Unreal cm", "decks": decks, "structures": points}, f)
-    return {"bridge_decks": len(decks), "culverts_and_short_spans": len(points)}
+        if "culvert" in (x.get("design") or "") or (x.get("length_m") or 0) < 6:
+            continue                                        # culverts: the bare-earth DEM keeps the embankment
+        dist, i = kd.query([x["x"], x["y"]])
+        if dist > 60:
+            continue
+        p, q = segs[i]
+        yaw = math.degrees(math.atan2(q[1] - p[1], q[0] - p[0]))
+        L = float(x.get("length_m") or 10.0)
+        ux, uy = math.cos(math.radians(yaw)), math.sin(math.radians(yaw))
+        ends = g.z_cm([x["x"] - ux * L / 2, x["x"] + ux * L / 2], [x["y"] - uy * L / 2, x["y"] + uy * L / 2])
+        add(x["x"], x["y"], float(ends.mean()) + 5.0, yaw, L + 4.0, x.get("deck_width_m") or 8.0)
+        n_short += 1
+    return {"osm_decks": n_deck, "nbi_short_spans": n_short}, groups
 
 
-def export_buildings(fr, g, out_dir, ue_dir):
+def export_buildings(fr, g, out_dir):
     from shapely.geometry import Polygon
     b = load(out_dir, "buildings_ms_local.json")
-    out = []
-    for i, bl in enumerate(b["buildings"]):
+    groups, guessed, n = {}, 0, 0
+    for bl in b["buildings"]:
         if len(bl["pts"]) < 4:
             continue
         poly = Polygon(bl["pts"]).buffer(0)
         if poly.area < 8 or poly.geom_type != "Polygon":
             continue
-        rect = list(poly.minimum_rotated_rectangle.exterior.coords)[:4]
-        e1 = np.subtract(rect[1], rect[0]); e2 = np.subtract(rect[2], rect[1])
-        L, W = float(np.hypot(*e1)), float(np.hypot(*e2))
-        major = e1 if L >= W else e2
-        L, W = max(L, W), min(L, W)
-        yaw_math = math.degrees(math.atan2(major[1], major[0]))
         cx, cy = poly.centroid.x, poly.centroid.y
         if not fr.inside(cx, cy):
             continue
-        ring = list(poly.exterior.coords)[:-1]
-        base = float(np.min(g.z_cm([p[0] for p in ring], [p[1] for p in ring])))   # never float above sloped ground
+        rect = list(poly.minimum_rotated_rectangle.exterior.coords)[:4]
+        e1, e2 = np.subtract(rect[1], rect[0]), np.subtract(rect[2], rect[1])
+        L, W = float(np.hypot(*e1)), float(np.hypot(*e2))
+        major = e1 if L >= W else e2
+        L, W = max(L, W), min(L, W)
+        ring = np.asarray(poly.exterior.coords)
+        base = float(np.min(g.z_cm(ring[:, 0], ring[:, 1])))
         h = bl.get("height_m")
-        guessed = h is None or h < 2.5
-        if guessed:
-            h = 3.0 if poly.area < 60 else 5.5            # shed vs. 1.5-storey house/barn fallback
-        out.append({"i": i, "center": [*ue_xy(cx, cy), round(base, 1)], "yaw_deg": round(-yaw_math, 2),
-                    "length_m": round(L, 2), "width_m": round(W, 2), "height_m": round(min(h, 40.0), 2),
-                    "height_guessed": guessed, "area_m2": round(poly.area, 1),
-                    "footprint": [list(ue_xy(x, y)) for x, y in ring]})
-    with open(os.path.join(ue_dir, "buildings.json"), "w") as f:
-        json.dump({"frame": "Unreal cm", "buildings": out}, f)
-    return {"buildings": len(out), "height_guessed": sum(1 for x in out if x["height_guessed"])}
+        if h is None or h < 2.5:
+            h = 3.0 if poly.area < 60 else 5.5
+            guessed += 1
+        h = min(h, 40.0)
+        ux, uy = ue_xy(cx, cy)
+        groups.setdefault(cell_of(fr, cx, cy), []).append(
+            [ux, uy, base, -math.degrees(math.atan2(major[1], major[0])), L, W, h])
+        n += 1
+    return {"buildings": n, "height_guessed": guessed}, groups
 
 
-def export_trees(fr, g, out_dir, ue_dir):
-    rows = []
-    for p in sorted(glob.glob(os.path.join(out_dir, "lidar_objects_*.json"))):
-        with open(p) as f:
-            for x, y, h, r in json.load(f)["trees_xyhr"]:
-                if fr.inside(x, y):
-                    rows.append((x, y, h, r))
-    path = os.path.join(ue_dir, "trees.csv")
-    with open(path, "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["Name", "X", "Y", "Z", "HeightM", "CrownRadiusM"])   # DataTable row struct S_TreePoint
-        if rows:
-            zs = g.z_cm([r[0] for r in rows], [r[1] for r in rows])
-            for k, ((x, y, h, r), z) in enumerate(zip(rows, zs)):
-                w.writerow([f"T{k}", *ue_xy(x, y), round(float(z), 1), h, r])
-    return {"lidar_trees": len(rows), "note": "0 means no lidar tiles processed yet; PCG + NLCD fills forests"}
+def export_trees(fr, g, out_dir, spacing_m=24.0, slope_deg=14.0):
+    """Forest scatter: OSM woods plus steep coulee walls (in this terrain the slopes are wooded),
+    minus roads, buildings and water. Jittered grid, one tree per spacing^2."""
+    from PIL import Image, ImageDraw
+    stride = max(1, int(round(spacing_m / 2 / fr.res)))    # mask cell = spacing/2
+    cell = fr.res * stride
+    zg = g.grid(stride) / 100.0
+    H, W = zg.shape
+    gy, gx = np.gradient(zg, cell)
+    slope = np.degrees(np.arctan(np.hypot(gx, gy)))
+    wood = Image.new("L", (W, H), 0)
+    block = Image.new("L", (W, H), 0)
+    dw, db = ImageDraw.Draw(wood), ImageDraw.Draw(block)
+    to_px = lambda x, y: ((x + fr.half_x) / cell, (fr.half_y - y) / cell)
+    osm = load(out_dir, "osm_local.json")["layers"]
+    for lu in osm["landuse"]:
+        t = lu["tags"]
+        if (t.get("natural") == "wood" or t.get("landuse") == "forest") and len(lu["pts"]) >= 3:
+            dw.polygon([to_px(*p) for p in lu["pts"]], fill=255)
+    for r in osm["roads"]:
+        if len(r["pts"]) >= 2:
+            db.line([to_px(*p) for p in r["pts"]], fill=255, width=max(1, int(round(14 / cell))))
+    for wtr in osm["water"]:
+        if len(wtr["pts"]) >= 3:
+            db.polygon([to_px(*p) for p in wtr["pts"]], fill=255)
+    bl = load(out_dir, "buildings_ms_local.json")
+    for b in bl["buildings"]:
+        if len(b["pts"]) >= 3:
+            db.polygon([to_px(*p) for p in b["pts"]], fill=255)
+    forest = ((np.asarray(wood) > 0) | (slope > slope_deg)) & (np.asarray(block) == 0)
+    rng = np.random.default_rng(1848)                        # deterministic: re-running gives the same forest
+    rr, cc = np.nonzero(forest[::2, ::2])
+    rr, cc = rr * 2, cc * 2
+    xs = -fr.half_x + (cc + rng.random(len(cc))) * cell * 2 * 0.999
+    ys = fr.half_y - (rr + rng.random(len(rr))) * cell * 2 * 0.999
+    zs = g.z_cm(xs, ys)
+    hts = rng.uniform(12.0, 24.0, len(xs))
+    yaws = rng.uniform(0, 360, len(xs))
+    groups = {}
+    for x, y, z, h, yaw in zip(xs, ys, zs, hts, yaws):
+        ux, uy = ue_xy(x, y)
+        crown = h * 0.4                                   # crown diameter
+        groups.setdefault(cell_of(fr, x, y), []).append([ux, uy, float(z) - 30.0, float(yaw), crown, crown, h])
+    return {"trees": int(len(xs)), "forest_km2": round(float(forest.sum()) * cell * cell / 1e6, 1),
+            "tree_spacing_m": spacing_m}, groups
 
 
 def parse_landmarks(path):
-    items, town = [], None
+    items, area = [], None
     with open(path) as f:
         for line in f:
             if line.startswith("## "):
-                town = line[3:].strip()
+                area = line[3:].strip()
                 continue
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
             if len(cells) == 6 and re.match(r"^-?\d+\.\d+$", cells[3]) and re.match(r"^-?\d+\.\d+$", cells[4]):
                 items.append({"name": cells[0], "type": cells[1], "why": cells[2], "lat": float(cells[3]),
-                              "lon": float(cells[4]), "confidence": cells[5], "area": town})
+                              "lon": float(cells[4]), "confidence": cells[5], "area": area})
     return items
 
 
-def export_landmarks(fr, g, ue_dir, path):
-    if not path or not os.path.exists(path):
-        return {"landmarks": 0, "note": "landmarks file not found"}
+def export_landmarks_and_starts(fr, g, ue_dir, path, road_pts, start_towns):
+    lms = parse_landmarks(path) if path and os.path.exists(path) else []
     out, outside = [], []
-    for it in parse_landmarks(path):
+    for it in lms:
         x, y = fr.to_local(it["lon"], it["lat"])
         if not fr.inside(x, y):
             outside.append(it["name"])
             continue
         z = float(g.z_cm(x, y)[0])
-        out.append({k: it[k] for k in ("name", "type", "why", "confidence", "area")} | {"location": [*ue_xy(x, y), round(z, 1)]})
+        out.append({k: it[k] for k in ("name", "type", "why", "confidence", "area")} | {"xy_m": [x, y], "location": [*ue_xy(x, y), z]})
     with open(os.path.join(ue_dir, "landmarks.json"), "w") as f:
         json.dump({"frame": "Unreal cm", "landmarks": out}, f, indent=1)
-    return {"landmarks": len(out), "outside_map": outside,
-            "needs_aerial_pin": sum(1 for x in out if x["confidence"] != "verified")}
+
+    # PlayerStarts: each town's downtown landmark, snapped onto the nearest real road, facing along it
+    all_pts = [(cls, name, p, zc[i], pts, i) for cls, name, pts, zc in road_pts for i, p in enumerate(pts)]
+    arr = np.asarray([a[2] for a in all_pts]) if all_pts else np.zeros((0, 2))
+    starts = []
+    for town in start_towns:
+        cands = [lm for lm in out if (lm["area"] or "").lower().startswith(town.lower())]
+        cands.sort(key=lambda lm: (lm["type"] != "Downtown strip", lm["confidence"] != "verified"))
+        if not cands or not len(arr):
+            starts.append({"town": town, "error": "no downtown landmark or roads"})
+            continue
+        lm = cands[0]
+        d = np.hypot(arr[:, 0] - lm["xy_m"][0], arr[:, 1] - lm["xy_m"][1])
+        k = int(np.argmin(d))
+        cls, name, p, z, pts, i = all_pts[k]
+        q = pts[min(i + 1, len(pts) - 1)] if i + 1 < len(pts) else pts[i - 1]
+        yaw_math = math.degrees(math.atan2(q[1] - p[1], q[0] - p[0])) if i + 1 < len(pts) else math.degrees(math.atan2(p[1] - q[1], p[0] - q[0]))
+        starts.append({"town": town, "landmark": lm["name"], "road": name, "road_class": cls,
+                       "snap_distance_m": round(float(d[k]), 1),
+                       "location": [*ue_xy(*p), float(z) + 150.0], "yaw_deg": round(-yaw_math, 2)})
+    with open(os.path.join(ue_dir, "playable.json"), "w") as f:
+        json.dump({"frame": "Unreal cm", "player_starts": starts}, f, indent=1)
+    return {"landmarks": len(out), "landmarks_outside_map": outside,
+            "landmarks_need_aerial_pin": sum(1 for x in out if x["confidence"] != "verified")}, starts
 
 
-def run(fr, out_dir, landmarks_path=None, png=False):
+def geo_mapping(fr, g):
+    return {
+        "origin_lat": round(fr.lat, 6), "origin_lon": round(fr.lon, 6), "crs": f"EPSG:{fr.epsg}",
+        "origin_easting_m": round(fr.cx, 3), "origin_northing_m": round(fr.cy, 3),
+        "elev_min_m": g.m["elev_min_m"], "elev_max_m": g.m["elev_max_m"],
+        "to_ue": "X_cm = (easting - origin_easting) * 100;  Y_cm = -(northing - origin_northing) * 100;  Z_cm = (elevation_m - elev_min_m) * 100",
+        "axes": "Unreal +X = east, +Y = south, +Z = up; 1 uu = 1 cm; yaw 0 = east, 90 = south",
+    }
+
+
+def run(fr, out_dir, landmarks_path=None, png=False, start_towns=("Whitehall", "Arcadia"), tree_spacing=24.0):
     ue_dir = os.path.join(out_dir, "ue")
     os.makedirs(ue_dir, exist_ok=True)
     g = Ground(fr, out_dir)
-    report = {}
-    report.update(export_landscape(fr, g, ue_dir, png))
-    report.update(export_roads(fr, g, out_dir, ue_dir))
-    report.update(export_water(fr, g, out_dir, ue_dir))
-    report.update(export_bridges(fr, g, out_dir, ue_dir))
-    report.update(export_buildings(fr, g, out_dir, ue_dir))
-    report.update(export_trees(fr, g, out_dir, ue_dir))
-    report.update(export_landmarks(fr, g, ue_dir, landmarks_path))
-    with open(os.path.join(ue_dir, "export_report.json"), "w") as f:
-        json.dump(report, f, indent=2)
-    return report
+    chunks = MeshChunks(fr)
+    land = export_landscape(fr, g, ue_dir, png)
+    road_stats, road_pts = export_roads(fr, g, out_dir, chunks)
+    water_stats = export_water(fr, g, out_dir, chunks)
+    mats = {"Road": {"Interstate": "Asphalt", "Highway": "Asphalt", "County": "Asphalt", "Town": "Gravel",
+                     "Service": "Gravel", "Track": "Dirt"}, "Water": {}}
+    mesh_index = chunks.write(ue_dir, lambda layer, cls: mats[layer].get(cls, "Water"))
+    br_stats, br_groups = export_bridges(fr, g, out_dir)
+    bd_stats, bd_groups = export_buildings(fr, g, out_dir)
+    tr_stats, tr_groups = export_trees(fr, g, out_dir, spacing_m=tree_spacing)
+    inst_index = (write_instances(ue_dir, "Bridge", br_groups) + write_instances(ue_dir, "Building", bd_groups)
+                  + write_instances(ue_dir, "Tree", tr_groups))
+    lm_stats, starts = export_landmarks_and_starts(fr, g, ue_dir, landmarks_path, road_pts, start_towns)
+
+    road_tris = sum(m["tris"] for m in mesh_index if m["layer"] == "Road")
+    warnings = []
+    if land["vertices"] > BUDGET["landscape_vertices"]:
+        warnings.append(f"landscape has {land['vertices']:,} vertices: enable Nanite on the landscape or use a coarser res")
+    if road_tris > BUDGET["road_tris_total"]:
+        warnings.append(f"road meshes total {road_tris:,} triangles: keep Nanite on for road meshes")
+    worst = max((i for i in inst_index), key=lambda i: i["count"], default=None)
+    if worst and worst["count"] > BUDGET["instances_per_cell"]:
+        warnings.append(f"{worst['name']} has {worst['count']:,} instances in one 8 km cell: raise tree spacing or lower cull distance")
+    if tr_stats["trees"] > BUDGET["trees_total"]:
+        warnings.append(f"{tr_stats['trees']:,} trees exceeds the {BUDGET['trees_total']:,} day-one budget: re-export with a larger --tree-spacing")
+
+    manifest = {
+        "geo": geo_mapping(fr, g), "landscape": "landscape.json", "cell_m": CELL_M,
+        "meshes": mesh_index, "instances": inst_index, "playable": "playable.json", "landmarks": "landmarks.json",
+        "stats": {"roads": road_stats | {"merged_meshes": sum(1 for m in mesh_index if m["layer"] == "Road"), "tris": road_tris},
+                  "water": water_stats | {"merged_meshes": sum(1 for m in mesh_index if m["layer"] == "Water"),
+                                          "tris": sum(m["tris"] for m in mesh_index if m["layer"] == "Water")},
+                  "bridges": br_stats, "buildings": bd_stats, "trees": tr_stats, "landmarks": lm_stats,
+                  "landscape_vertices": land["vertices"]},
+        "perf_warnings": warnings, "player_starts": starts,
+    }
+    with open(os.path.join(ue_dir, "manifest.json"), "w") as f:
+        json.dump(manifest, f, indent=1)
+    return {k: manifest[k] for k in ("stats", "perf_warnings", "player_starts")}

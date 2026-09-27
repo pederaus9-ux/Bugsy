@@ -249,24 +249,33 @@ def cmd_osm(a):
     os.makedirs(CACHE, exist_ok=True)
     os.makedirs(OUT, exist_ok=True)
     s, w, n, e = fr.bbox_lonlat()
-    q = OSM_QUERY.replace("{b}", f"{s},{w},{n},{e}")
-    raw_path = os.path.join(CACHE, "osm_raw.json")
-    if not os.path.exists(raw_path):
-        last = None
-        for url in OVERPASS:
-            try:
-                print(f"  Overpass: {url}")
-                raw = http_get(url, {"data": q}, timeout=240, retries=2)
-                json.loads(raw)
-                with open(raw_path, "wb") as f:
-                    f.write(raw)
-                break
-            except Exception as ex:
-                last = ex
-        else:
-            sys.exit(f"all Overpass mirrors failed: {last}")
-    with open(raw_path) as f:
-        els = json.load(f)["elements"]
+    k = max(1, math.ceil(max(fr.half_x, fr.half_y) * 2 / 40000))      # split big maps into ~40 km sub-boxes
+    els, seen = [], set()
+    for i in range(k):
+        for j in range(k):
+            sub = (s + (n - s) * j / k, w + (e - w) * i / k, s + (n - s) * (j + 1) / k, w + (e - w) * (i + 1) / k)
+            raw_path = os.path.join(CACHE, f"osm_raw_{k}_{i}_{j}.json")
+            if not os.path.exists(raw_path):
+                q = OSM_QUERY.replace("{b}", ",".join(f"{v:.6f}" for v in sub))
+                last = None
+                for url in OVERPASS:
+                    try:
+                        print(f"  Overpass {i},{j} of {k}x{k}: {url}")
+                        raw = http_get(url, {"data": q}, timeout=300, retries=2)
+                        json.loads(raw)
+                        with open(raw_path, "wb") as f:
+                            f.write(raw)
+                        break
+                    except Exception as ex:
+                        last = ex
+                else:
+                    sys.exit(f"all Overpass mirrors failed: {last}")
+            with open(raw_path) as f:
+                for el in json.load(f)["elements"]:
+                    key = (el["type"], el["id"])
+                    if key not in seen:          # features crossing sub-box edges come back twice
+                        seen.add(key)
+                        els.append(el)
 
     def keep(x, y):
         return fr.inside(x, y)
@@ -800,7 +809,7 @@ DEFAULT_LANDMARKS = os.path.join(HERE, "..", "..", "docs", "stormchaser", "priva
 def cmd_ue_export(a):
     import ue_export
     fr = Frame(load_location())
-    print(json.dumps(ue_export.run(fr, OUT, a.landmarks, a.png), indent=2))
+    print(json.dumps(ue_export.run(fr, OUT, a.landmarks, a.png, tuple(a.start_towns.split(",")), a.tree_spacing), indent=2))
 
 
 def main():
@@ -815,6 +824,8 @@ def main():
     sub.add_parser("water"); sub.add_parser("bridges"); sub.add_parser("buildings"); sub.add_parser("preview")
     p = sub.add_parser("ue_export", help="write out/ue/*.json for the Unreal importer")
     p.add_argument("--landmarks", default=DEFAULT_LANDMARKS); p.add_argument("--png", action="store_true")
+    p.add_argument("--start-towns", default="Whitehall,Arcadia", help="landmark areas that get a PlayerStart")
+    p.add_argument("--tree-spacing", type=float, default=24.0, help="metres between scattered trees (larger = faster)")
     p = sub.add_parser("climate"); p.add_argument("--radius-km", type=float, default=80.0)
     p = sub.add_parser("lidar", help="trees + buildings from the 3DEP lidar point cloud for one tile")
     p.add_argument("--dataset", default="WI_12County_7_B22")
