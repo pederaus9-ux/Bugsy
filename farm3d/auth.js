@@ -5,10 +5,12 @@
 // Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
 //   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
+  authDomain: "fir-config-18b64.firebaseapp.com",
+  projectId: "fir-config-18b64",
+  storageBucket: "fir-config-18b64.firebasestorage.app",
+  messagingSenderId: "899020605923",
+  appId: "1:899020605923:web:d7e1d51888451d991eb8d6",
 };
 const SDK = "https://www.gstatic.com/firebasejs/9.23.0/";
 const REMEMBER = "sa3d-account";      // this phone has signed in before, so it can keep playing without internet
