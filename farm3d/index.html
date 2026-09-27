@@ -3130,18 +3130,18 @@ function setShadow(n) { if (sun.shadow.mapSize.x !== n) { sun.shadow.mapSize.set
 let watching = false;
 function watchFrames() {
   if (watching || qs.has("shot")) return; watching = true;
-  let last = performance.now(), sum = 0, n = 0, since = last + 4000, fast = 0; // ignore the first seconds while shaders compile and textures load
+  let last = performance.now(), ts = [], since = last + 4000, fast = 0; // ignore the first seconds while shaders compile and textures load
   const watch = (now) => {
     const ft = now - last; last = now;
-    if (now > since && ft < 250 && !document.hidden) { sum += ft; n++; }
-    if (n >= 60) {
-      const avg = sum / n; sum = 0; n = 0;
-      if (avg > 23) { // too slow: draw fewer pixels (the bigger the lag, the bigger the step)
+    if (now > since && ft < 2000 && !document.hidden) ts.push(ft); // (a frame over 2 s is the phone waking up, not the game)
+    if (ts.length >= 40) {
+      const med = ts.sort((a, b) => a - b)[20]; ts = []; // the typical frame: one hiccup doesn't count, a slow phone does
+      if (med > 23) { // too slow: draw fewer pixels (the bigger the lag, the bigger the step)
         fast = 0;
-        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (avg > 40 ? .8 : .9)); applySize(); since = now + 2500; }
-        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 2500; }                  // then softer shadows
-        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 2500; } // then no glow or blur
-      } else if (avg < 15.5 && QUALITY.pr < DPR - .01) { // plenty of time to spare for a while: sharpen back up, gently
+        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }
+        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }                  // then softer shadows
+        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur
+      } else if (med < 15.5 && QUALITY.pr < DPR - .01) { // plenty of time to spare for a while: sharpen back up, gently
         if (++fast >= 4) { fast = 0; QUALITY.pr = Math.min(DPR, QUALITY.pr * 1.08); applySize(); since = now + 3500; }
       } else fast = 0;
     }
