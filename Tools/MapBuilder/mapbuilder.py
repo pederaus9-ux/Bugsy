@@ -9,6 +9,7 @@ Turns a real-world center point into Unreal-ready map data:
   bridges  FHWA National Bridge Inventory (BTS NTAD) -> bridge points with length, width, spans, type
   buildings Microsoft Global ML Building Footprints -> footprints with height estimates
   ue_export Unreal-ready roads/water/bridges/buildings/trees/landmarks in cm, snapped to the heightmap
+  geojson  processed layers as WGS84 GeoJSON in out/geojson/ (review / cross-checks)
   preview  composite map image: terrain, water, buildings, roads, bridges, towns
   climate  SPC tornado database -> local climatology for DA_Climate calibration
   lidar    3DEP lidar point cloud -> every tree (x, y, height, crown) + building (footprint, height, roof) per tile
@@ -812,6 +813,63 @@ def cmd_ue_export(a):
     print(json.dumps(ue_export.run(fr, OUT, a.landmarks, a.png, tuple(a.start_towns.split(",")), a.tree_spacing), indent=2))
 
 
+# ---------------------------------------------------------------- GeoJSON export (for review / cross-checks)
+def cmd_geojson(a):
+    """Write the processed layers as WGS84 GeoJSON (lon/lat) in out/geojson/ for GIS review."""
+    fr = Frame(load_location())
+    gdir = os.path.join(OUT, "geojson")
+    os.makedirs(gdir, exist_ok=True)
+
+    def ll(pts):
+        return [[round(v, 7) for v in fr.inv.transform(fr.cx + x, fr.cy + y)] for x, y in pts]
+
+    def write(name, feats, source):
+        with open(os.path.join(gdir, name), "w") as f:
+            json.dump({"type": "FeatureCollection", "source": source, "crs_note": "WGS84 lon/lat (EPSG:4326)",
+                       "features": feats}, f)
+        print(f"  {name}: {len(feats):,} features")
+
+    osm = json.load(open(os.path.join(OUT, "osm_local.json")))["layers"]
+    keep = ("highway", "name", "ref", "surface", "lanes", "maxspeed", "bridge", "oneway", "service")
+    write("roads.geojson", [{"type": "Feature", "properties": {"osm_id": r["id"], **{k: r["tags"][k] for k in keep if k in r["tags"]}},
+                             "geometry": {"type": "LineString", "coordinates": ll(r["pts"])}}
+                            for r in osm["roads"] if len(r["pts"]) >= 2], "OpenStreetMap (ODbL)")
+    w = json.load(open(os.path.join(OUT, "water_nhd_local.json")))
+    feats = [{"type": "Feature", "properties": {"layer": "flowline", "name": f["name"], "ftype": f["ftype"], "fcode": f["fcode"]},
+              "geometry": {"type": "LineString", "coordinates": ll(f["pts"])}} for f in w["flowlines"] if len(f["pts"]) >= 2]
+    for key in ("waterbodies", "areas"):
+        feats += [{"type": "Feature", "properties": {"layer": key, "name": f["name"], "ftype": f["ftype"], "fcode": f["fcode"]},
+                   "geometry": {"type": "Polygon", "coordinates": [ll(f["pts"])]}} for f in w[key] if len(f["pts"]) >= 4]
+    write("water.geojson", feats, "USGS NHD large scale (public domain)")
+    b = json.load(open(os.path.join(OUT, "bridges_nbi_local.json")))
+    feats = [{"type": "Feature", "properties": {"layer": "nbi"} | {k: v for k, v in x.items() if k not in ("x", "y")},
+              "geometry": {"type": "Point", "coordinates": ll([[x["x"], x["y"]]])[0]}} for x in b["bridges"]]
+    feats += [{"type": "Feature", "properties": {"layer": "osm_deck"} | {k: v for k, v in d.items() if k != "pts"},
+               "geometry": {"type": "LineString", "coordinates": ll(d["pts"])}} for d in b.get("osm_decks", [])]
+    write("bridges.geojson", feats, "FHWA NBI 2025 via BTS NTAD (public domain) + OSM bridge decks (ODbL)")
+    bl = json.load(open(os.path.join(OUT, "buildings_ms_local.json")))
+    write("buildings.geojson", [{"type": "Feature", "properties": {"height_m": x["height_m"], "confidence": x["confidence"]},
+                                 "geometry": {"type": "Polygon", "coordinates": [ll(x["pts"])]}} for x in bl["buildings"]],
+          "Microsoft GlobalMLBuildingFootprints (CDLA Permissive 2.0)")
+    ue = os.path.join(OUT, "ue")
+    feats = []
+    if os.path.exists(os.path.join(ue, "landmarks.json")):
+        for lm in json.load(open(os.path.join(ue, "landmarks.json")))["landmarks"]:
+            feats.append({"type": "Feature", "properties": {"layer": "landmark", **{k: lm[k] for k in ("name", "type", "confidence", "area")}},
+                          "geometry": {"type": "Point", "coordinates": ll([lm["xy_m"]])[0]}})
+    if os.path.exists(os.path.join(ue, "playable.json")):
+        for st in json.load(open(os.path.join(ue, "playable.json")))["player_starts"]:
+            if "location" in st:
+                x, y = st["location"][0] / 100, -st["location"][1] / 100
+                feats.append({"type": "Feature", "properties": {"layer": "player_start", "town": st["town"], "road": st["road"]},
+                              "geometry": {"type": "Point", "coordinates": ll([[x, y]])[0]}})
+    s_, w_, n_, e_ = fr.bbox_lonlat()
+    corners = [[-fr.half_x, fr.half_y], [fr.half_x, fr.half_y], [fr.half_x, -fr.half_y], [-fr.half_x, -fr.half_y], [-fr.half_x, fr.half_y]]
+    feats.append({"type": "Feature", "properties": {"layer": "map_frame", "extent_m": [2 * fr.half_x, 2 * fr.half_y]},
+                  "geometry": {"type": "Polygon", "coordinates": [ll(corners)]}})
+    write("places.geojson", feats, "landmark list + MapBuilder frame")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -822,6 +880,7 @@ def main():
     p.add_argument("--tile-quads", type=int, default=TILE_QUADS, help="4064 (4065 px tiles) or 8128 (8129 px tiles)")
     sub.add_parser("dem"); sub.add_parser("osm")
     sub.add_parser("water"); sub.add_parser("bridges"); sub.add_parser("buildings"); sub.add_parser("preview")
+    sub.add_parser("geojson", help="write processed layers as WGS84 GeoJSON for review")
     p = sub.add_parser("ue_export", help="write out/ue/*.json for the Unreal importer")
     p.add_argument("--landmarks", default=DEFAULT_LANDMARKS); p.add_argument("--png", action="store_true")
     p.add_argument("--start-towns", default="Whitehall,Arcadia", help="landmark areas that get a PlayerStart")
@@ -839,7 +898,8 @@ def main():
         cmd_dem(a); cmd_osm(a); cmd_water(a); cmd_bridges(a); cmd_buildings(a); cmd_climate(a); cmd_preview(a)
     else:
         {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate, "lidar": cmd_lidar,
-         "water": cmd_water, "bridges": cmd_bridges, "buildings": cmd_buildings, "preview": cmd_preview, "ue_export": cmd_ue_export}[a.cmd](a)
+         "water": cmd_water, "bridges": cmd_bridges, "buildings": cmd_buildings, "preview": cmd_preview, "ue_export": cmd_ue_export,
+         "geojson": cmd_geojson}[a.cmd](a)
 
 
 if __name__ == "__main__":

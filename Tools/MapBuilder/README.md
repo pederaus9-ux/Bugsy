@@ -16,9 +16,19 @@ Outputs land in `out/` (git-ignored):
 - `bridges_nbi_local.json`: National Bridge Inventory bridges with length, width, spans, material, design
 - `buildings_ms_local.json`: Microsoft building footprints with height estimates
 - `preview_map.png`: everything drawn over the terrain for a visual check
+- `geojson/`: processed layers as WGS84 GeoJSON for review (`mapbuilder.py geojson`)
 - `ue/`: Unreal-ready files from `mapbuilder.py ue_export` (landscape.json, roads, water, bridges, buildings, trees.csv, landmarks). Import them with `ue/stormchaser_import.py`, see `ue/README.md`
 - `climate_calibration.json`: local SPC tornado climatology for `DA_Climate`
 - `lidar_objects_<x>_<y>_<size>.json` + `lidar_preview_*.png`: every tree (x, y, height, crown radius) and building (footprint, height, eave, roof) in a tile (`mapbuilder.py lidar --offset-x .. --offset-y .. --size-m 2000`)
 
 Never commit `location.local.json`, `cache/` or `out/`. They hold or derive from the real home location.
 Data: USGS (3DEP, NHD), NOAA SPC and FHWA/BTS NBI are public domain. OpenStreetMap is ODbL (credit "© OpenStreetMap contributors"). Microsoft building footprints are CDLA Permissive 2.0 (attribute Microsoft/Bing). Do not use Google Earth/Street View, and do not ship on Cesium ion.
+
+## Verification
+
+`verify/` re-runs the checks behind the handoff report (outputs in `out/verification/`):
+- `check_seams.py`: tile seams bit-exact (original and road-carved)
+- `check_usgs_points.py [n]`: terrain vs the USGS elevation point service
+- `check_roads.py`: road mesh vs carved terrain fit
+- `check_vs_datapack.py <pack dir>`: counts vs an independent GeoJSON pack
+- `run_mock_import.py [1|0]`: the UE import scripts against a stand-in `unreal` module (not a real editor)
