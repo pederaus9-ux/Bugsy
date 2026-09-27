@@ -137,6 +137,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;
 // ---------- state (the same shape as the 2D game, so a 2D farm can move over) ----------
 export const SAVE_KEY = "sunny-acres-3d-v1", SAVE_2D = "sunny-acres-v1";
 export let S;
+let homeS = null; // your own farm, kept aside while you visit a friend's
 function fresh() {
   return {
     v:1, coins:60, gems:5, xp:0, level:1,
@@ -182,8 +183,16 @@ export function load() {
   return "new";
 }
 let restoring = false; // stops the page from re-saving the old farm while a backup is being loaded
+// visit a friend's farm: their farm is shown instead of yours (read-only), and nothing is saved until you go home
+export function visitFarm(saved) {
+  if (!homeS) homeS = S;
+  const v = upgrade(saved); v.tut = TUT.length; v.event = null; v.nextEventAt = 9e15; // no tutorial or event pop-ups on someone else's farm
+  S = v; closePanel(); view.refresh("all"); renderHud();
+}
+export function leaveVisit() { if (!homeS) return; S = homeS; homeS = null; view.refresh("all"); renderHud(); }
+export const isVisiting = () => !!homeS;
 export function save() {
-  if (restoring || window.__saHold) return; // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (restoring || window.__saHold || homeS) return; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
   window.dispatchEvent(new Event("sa3d:saved")); // accounts back the farm up to the cloud
 }
