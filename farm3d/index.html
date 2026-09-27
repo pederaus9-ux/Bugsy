@@ -54,7 +54,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:var(--red);border:2px solid #fff;
   color:#fff;font-family:var(--fun);font-size:13px;display:grid;place-items:center;padding:0 5px}
 .side{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:5;display:flex;flex-direction:column;gap:8px}
-.side button{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:21px}
+.side button{position:relative;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:21px}
 /* walk and edit modes */
 .modebar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:9;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);
   background:rgba(70,35,10,.88);color:#fff;border:3px solid #fff;border-radius:99px;padding:5px 5px 5px 16px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
@@ -187,6 +187,14 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .islot .e{font-size:32px;line-height:1}
 .islot .q{position:absolute;bottom:4px;right:6px;font-family:var(--fun);font-size:15px}
 .islot.sel{outline:3px solid var(--wood);background:#FFF6DC}
+.islot .gq{position:absolute;top:3px;left:4px;font-size:11px;font-weight:900}
+.islot.got{background:#E6F5D8} .islot.got .q{color:var(--green-dk)} .islot.missing{opacity:.35;filter:grayscale(1)}
+.qlist{display:flex;flex-direction:column;gap:8px}
+.qrow{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.qrow .e{font-size:26px;flex:none} .qrow .grow{flex:1;min-width:0} .qrow b{display:block;font-weight:900;font-size:14px;line-height:1.25}
+.qrow .cap{margin:5px 0 2px} .qrow .done{font-size:22px;color:var(--green-dk);font-weight:900;flex:none} .qrow.got{opacity:.7}
+.note.rush{grid-column:1/-1;outline:3px solid var(--gold-dk);background:#FFF8E0;margin-bottom:12px} .note.rush.can{outline-color:var(--green)}
+.note .rtag{font-weight:900;color:var(--red-dk);text-align:center;font-size:14px}
 .sellbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px;margin-top:12px}
 .sellbar .e{font-size:34px}
 .sellbar .grow{flex:1;min-width:120px}
@@ -282,6 +290,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .authguest{margin-top:2px;padding:10px;border-radius:14px;border:2px dashed var(--wood);font-weight:900;font-size:14px;color:var(--wood-dk);background:rgba(255,255,255,.35)}
 .guestbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:430px;margin:0 auto;z-index:9;display:flex;align-items:center;gap:8px;
   background:#fff;border:3px solid var(--blue-dk);border-radius:16px;padding:8px 8px 8px 12px;box-shadow:0 4px 0 rgba(31,127,192,.35);font-weight:800;font-size:13px;animation:pop .3s ease-out}
+body:has(#infoTray:not([hidden])) .guestbar,body:has(#seedTray:not([hidden])) .guestbar,body:has(#panelRoot .scrim) .guestbar{display:none}
 .guestbar span{flex:1;line-height:1.25} .guestbar .btn{flex:none} .guestbar .gx{flex:none;font-size:16px;padding:4px 6px;color:var(--wood)}
 .fbbox{position:fixed;left:12px;right:12px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;z-index:35;display:flex;flex-direction:column;gap:8px;
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
@@ -359,6 +368,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
   <button id="feedbackBtn" aria-label="Send feedback">💬</button>
   <button id="friendsBtn" aria-label="Friends">👥</button>
+  <button id="questBtn" data-act="open" data-p="quests" aria-label="Quests">📜</button>
 </div>
 <div class="dock">
   <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
@@ -424,7 +434,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=13";
+import * as G from "./game.js?v=14";
 import {initFriends} from "./friends.js?v=2"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -1690,6 +1700,7 @@ const FIELD_SLOTS = (() => {
   const all = [];
   for (let row = 0; row < 6; row++) for (let col = -2; col <= 2; col++) all.push({col, row, d:Math.hypot(col, (row - .5) * 1.15) + (Math.abs(col) === 2 ? .15 : 0)});
   all.sort((a, b) => a.d - b.d || a.row - b.row || a.col - b.col);
+  for (const col of [-3, -4, -5]) for (let row = 0; row < 6; row++) all.push({col, row}); // more land (Shop): a new column west for each deed
   return all.map(({col, row}) => { const lx = col * 2.5, lz = (row - .5) * 2.5;
     return new THREE.Vector2(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), FIELD_C.y - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); });
 })();
@@ -1699,6 +1710,15 @@ const furrowGeo = new THREE.CylinderGeometry(.19, .19, 2.0, 10, 1, false, 0, Mat
 const fruitMats = {};
 const fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + ".webp"), alphaTest:.3}));
 const plots = [];
+const soilGeo = new THREE.PlaneGeometry(2.15, 2.15), sprGeo = new THREE.CylinderGeometry(.07, .09, .5, 8);
+const WET_MAT = new THREE.MeshBasicMaterial({color:0x1d1208, transparent:true, opacity:.38, depthWrite:false});
+const DRY_MAT = new THREE.MeshBasicMaterial({color:0xd8c29a, transparent:true, opacity:.3, depthWrite:false});
+const SPR_MAT = new THREE.MeshStandardMaterial({color:0x7a8ea0, metalness:.6, roughness:.4});
+function syncSoil() { // called every second
+  plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;
+    const wet = !!(p.crop && p.water), dry = !p.crop && G.soilNow(p) < 40;
+    P.wet.visible = wet || dry; P.wet.material = wet ? WET_MAT : DRY_MAT; P.spr.visible = G.sprinkled(i); });
+}
 function makePlot(i) {
   const g = new THREE.Group(), p = FIELD_SLOTS[i];
   g.position.set(p.x, 0, p.y); g.rotation.y = FIELD_ROT;
@@ -1706,7 +1726,10 @@ function makePlot(i) {
   for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }
   const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
   g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
-  const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2)};
+  // dark wet soil after watering, pale dry soil when it's worn out, and a little sprinkler head on fields a sprinkler covers
+  const wet = new THREE.Mesh(soilGeo, WET_MAT); wet.position.y = .17; wet.rotation.x = -Math.PI / 2; wet.visible = false; wet.raycast = () => {}; g.add(wet);
+  const spr = new THREE.Mesh(sprGeo, SPR_MAT); spr.position.set(1.02, .25, 1.02); spr.visible = false; spr.raycast = () => {}; g.add(spr);
+  const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2), wet, spr};
   clearGrass(p.x, p.y, 1.3, "plot:" + i);
   return P;
 }
@@ -1717,7 +1740,7 @@ function syncPlots() {
   while (plots.length < n) plots.push(makePlot(plots.length));
   while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }
   plots.forEach((_, i) => buildPlants(i));
-  if (n < G.MAX_PLOTS) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
+  if (n < G.maxPlots()) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
   else plotSale.visible = false;
 }
 const plotCostTxt = () => (40 + (GS().plots.length - 6) * 35) + " 🪙";
@@ -1740,7 +1763,7 @@ function buildPlants(i) {
     s.position.copy(s.userData.base); s.visible = false; P.plants.add(s); P.fruit.push(s);
   }
 }
-const grown = (i) => { const p = GS().plots[i]; return p.crop ? THREE.MathUtils.clamp(1 - (p.end - nowMs()) / (G.CROPS[p.crop].time * 1000), 0, 1) : 0; };
+const grown = (i) => { const p = GS().plots[i]; return p.crop ? THREE.MathUtils.clamp(1 - (p.end - nowMs()) / (p.dur || G.CROPS[p.crop].time * 1000), 0, 1) : 0; };
 const ready = (i) => { const p = GS().plots[i]; return !!p && !!p.crop && p.end <= nowMs(); };
 const green = new THREE.Color(), ripe = new THREE.Color();
 function updatePlots(t) {
@@ -1880,6 +1903,22 @@ BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4, "stand");
 function syncStand() {
   const list = GS().stand.list;
   stall.userData.goods.forEach((s, k) => { const L = list[k]; s.visible = !!L; if (L) s.material = emoteMat(L.sellAt <= nowMs() ? "💰" : G.ITEMS[L.id].e); });
+}
+
+// ---------- a villager visiting, waiting by the path with a request ----------
+const visitorCard = new THREE.Group(); visitorCard.position.set(1.3, 0, 16.2); visitorCard.visible = false; visitorCard.userData.hit = {type:"visitor"}; scene.add(visitorCard);
+const visitorFace = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.05), new THREE.MeshStandardMaterial({alphaTest:.35, side:THREE.DoubleSide, emissive:0xffffff, emissiveIntensity:.35, roughness:.8}));
+visitorFace.position.y = 1.5; visitorCard.add(visitorFace);
+// a simple coat under the face, in each villager's own colour
+const visitorBody = new THREE.Mesh(new THREE.CylinderGeometry(.24, .42, 1.05, 14), std({color:0xcc6677, roughness:.8})); visitorBody.position.y = .52; visitorBody.castShadow = true; visitorCard.add(visitorBody);
+visitorCard.add(hitProxy(1.1, 2.1, .9, 0, 1.05, 0));
+const visitorBub = bubble("❗"); visitorBub.visible = true; visitorBub.position.set(0, 2.45, 0); visitorCard.add(visitorBub);
+const VILLAGER_COAT = {rosa:0xd9788f, joe:0x8a6a48, mia:0xf2c14e, sam:0x4f8a4a, lily:0x8e6bc2};
+function syncVisitor() {
+  const v = GS().visitor, V = v && G.VILLAGERS[v.id];
+  visitorCard.visible = !!V && !visiting;
+  if (V && visitorFace.userData.e !== V.e) { const t = emojiTexture(V.e); visitorFace.material.map = t; visitorFace.material.emissiveMap = t; visitorFace.material.needsUpdate = true; visitorFace.userData.e = V.e; visitorBody.material.color.set(VILLAGER_COAT[v.id] || 0xcc6677); }
+  if (V) { const ok = G.hasAll ? G.hasAll(v.items) : false, e = ok ? "🎁" : "❗"; if (visitorBub.userData.e !== e) { visitorBub.material = emoteMat(e); visitorBub.userData.e = e; } }
 }
 
 // ---------- pen signs: "Chicken coop · 100 🪙" until the pen is bought ----------
@@ -2363,6 +2402,7 @@ function keyPos(key) {
   if (type === "board") return board.position.clone().setY(2.8);
   if (type === "gift") return gift.position.clone().setY(1);
   if (type === "stand") return stall.position.clone().setY(2);
+  if (type === "visitor") return visitorCard.position.clone().setY(2);
   if (type === "decor") { const d = GS().decor.placed[+a]; return d && new THREE.Vector3(d.x, 1.2, d.z); }
   if (type === "pen") { const pen = penOf(a); return pen && new THREE.Vector3(pen.bed[0], 1, pen.bed[1]); }
   return null;
@@ -2382,6 +2422,7 @@ Object.assign(GV, {
     if (what === "buildings" || what === "all") syncBuildings();
     if (what === "decor" || what === "all") syncDecor();
     if (what === "stand" || what === "all") syncStand();
+    if (what === "visitor" || what === "all") syncVisitor();
     if (what === "style" || what === "all") applyStyle();
     if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout(); }
   },
@@ -2401,11 +2442,14 @@ const seedTray = document.getElementById("seedTray"), infoTray = document.getEle
 function closeTrays() { seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
 function renderSeeds() {
   if (seedTray.hidden) return;
-  document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera" : "Tap a seed, or drag one onto the fields";
+  const pp = pendingPlot >= 0 && GS().plots[pendingPlot], soil = pp ? G.soilNow(pp) : 100;
+  document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera"
+    : pp && soil < 70 ? G.soilWord(soil) + ": last grew " + (pp.last ? G.ITEMS[pp.last].n.toLowerCase() : "something") + ". Plant something different to freshen it up."
+    : G.SEASON_E[G.THEME.season] + " Tap a seed, or drag one onto the fields";
   document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
     ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
     : `<button class="seed${armed === id ? " on" : ""}" data-crop="${id}"><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b>${G.have(id) // seeds you have show how many; the rest show what one costs
-      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>⏱ ${G.fmt(c.time * 1000)}</small></button>`).join("");
+      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>${G.inSeason(id) ? "⏱ " + G.fmt(c.time * 1000) : "🍂 " + G.fmt(c.time * 2000)}</small></button>`).join("");
 }
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
 let pendingPlot = -1;
@@ -2451,11 +2495,15 @@ function trayHtml() {
   const f = trayFor; if (!f) return "";
   const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
   if (f.type === "plot") {
-    const p = GS().plots[f.i], it = G.ITEMS[p.crop], left = p.end - nowMs();
-    return `<h3><span>${it.e} ${it.n}</span>${x}</h3><div class="tray-sub">Ready in ${G.fmt(left)}</div>
-      <div class="row"><button class="btn blue sm" data-w="speedPlot" data-i="${f.i}">Finish now · ${G.gemCost(left)} 💎</button></div>`;
+    const p = GS().plots[f.i]; if (!p.crop) return ""; const it = G.ITEMS[p.crop], left = p.end - nowMs(), n = G.thirsty();
+    const tags = [p.water ? "💧 Watered" : G.heatwave() ? "🥵 Thirsty in the heat" : "Not watered yet", p.fert ? "🧪 Fertilized" : "", G.soilWord(p.soil),
+      G.inSeason(p.crop) ? "" : "🍂 Out of season (grows slower)"].filter(Boolean).join(" · ");
+    return `<h3><span>${it.e} ${it.n}</span>${x}</h3><div class="tray-sub">Ready in ${G.fmt(left)} · 🥇 chance ${Math.round(G.goldChance(p) * 100)}%</div><div class="tray-sub">${tags}</div>
+      <div class="row">${p.water ? "" : `<button class="btn sm" data-w="water" data-i="${f.i}">💧 Water</button>`}${n > 1 ? `<button class="btn sm" data-w="waterAll">💧 Water all ${n}</button>` : ""}
+      ${p.fert ? "" : `<button class="btn plain sm" data-w="fert" data-i="${f.i}" ${G.have("fertilizer") ? "" : "disabled"}>🧪 Fertilize (${G.have("fertilizer")})</button>`}
+      <button class="btn blue sm" data-w="speedPlot" data-i="${f.i}">Finish now · ${G.gemCost(left)} 💎</button></div>`;
   }
-  if (f.type === "plotSale") return `<h3><span>🟫 New field</span>${x}</h3><div class="tray-sub">More fields, bigger harvests (${GS().plots.length}/${G.MAX_PLOTS})</div>
+  if (f.type === "plotSale") return `<h3><span>🟫 New field</span>${x}</h3><div class="tray-sub">More fields, bigger harvests (${GS().plots.length}/${G.maxPlots()})</div>
       <div class="row"><button class="btn gold" data-act="plot+">Buy · ${plotCostTxt()}</button></div>`;
   if (f.type === "animal") {
     const an = f.an, k = an.kind, i = an.ref.i, a = G.ANIMALS[k], pen = GS().pens[k], m = G.meta(k, i), end = pen.list[i], t = nowMs();
@@ -2488,6 +2536,9 @@ infoTray.addEventListener("click", (e) => {
   switch (d.w) {
     case "close": closeTrays(); return;
     case "speedPlot": G.speedPlot(i); return;
+    case "water": if (G.waterPlot(i)) squish(plots[i].g, .25); break;
+    case "waterAll": G.waterAll(); break;
+    case "fert": G.fertilize(i); break;
     case "feed": if (!G.feedOne(d.k, i)) G.toast("You need " + G.ITEMS[G.ANIMALS[d.k].feed].n.toLowerCase() + ". " + (G.ANIMALS[d.k].feed === "carrot" ? "Grow some in your fields." : "Make it at the Feed Mill.")); else { f.an.emote("😋"); G.commit(); } break;
     case "feedAll": G.feedAll(d.k); break;
     case "petA": case "brushA": case "rideA": { const act = {petA:"pet", brushA:"brush", rideA:"play"}[d.w];
@@ -2508,7 +2559,7 @@ let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const an = ray.intersectObjects(animals.map(a => a.card))[0];
-  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, ...decorObjs, barn].filter(o => o.visible);
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
   let hit = hits[0];
   // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
@@ -2637,6 +2688,7 @@ function onTap(e) {
       if (n) machineDrop(h.bid, jobs.slice(0, n).flatMap(j => Array(Math.min(3, (G.RECIPES[j.r] || {}).out || 1)).fill(j.r))); else G.openPanel("building", h.bid); return true; }
     case "lot": squish(h.obj, .45); G.openPanel("lot", h.bid); return true;
     case "board": squish(h.obj, .6); G.sfx("truck"); G.openPanel("orders"); return true;
+    case "visitor": squish(h.obj, .8); G.sfx("pop"); G.openPanel("visitor"); return true;
     case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
     case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
     case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
@@ -2707,14 +2759,17 @@ function updateGame(t, dt) {
     a.status.visible = !!e && a.act !== "sleeping"; if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
     if (e) a.status.position.y = a.S.h + .5 + Math.sin(t * 3 + a.phase) * .06;
   }
-  const n = G.readyOrders(); boardBub.visible = n > 0; boardBub.position.y = 3.4 + Math.sin(t * 2.5) * .08;
+  const n = G.readyOrders(), rush = GS().rush && GS().rush.end > T, be = rush ? "⏰" : "🚚";
+  boardBub.visible = n > 0 || rush; boardBub.position.y = 3.4 + Math.sin(t * (rush ? 5 : 2.5)) * .08;
+  if (boardBub.userData.e !== be) { boardBub.material = emoteMat(be); boardBub.userData.e = be; }
+  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06; }
   board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
   gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
   for (const o of holidayObjs) o.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   for (const o of decorObjs) if (o.userData.card) o.userData.card.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   updatePointer();
 }
-setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
 setInterval(() => { GV.applyWeather(); syncHoliday(); }, 60000);
 
 bootStep("loading your farm");
