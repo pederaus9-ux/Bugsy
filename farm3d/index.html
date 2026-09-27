@@ -2475,7 +2475,7 @@ function goFullscreen() {
     if (p && p.then) p.then(lock, () => {}); else lock();
   } catch (e) {}
 }
-addEventListener("pointerup", goFullscreen, true); addEventListener("click", goFullscreen, true);
+addEventListener("touchend", goFullscreen, true); addEventListener("click", goFullscreen, true); // (both count as a real tap for the browser; pointerup doesn't always)
 document.addEventListener("fullscreenchange", () => { document.body.classList.toggle("fullscreen", !!document.fullscreenElement); });
 { // the iPhone tip, once
   const ios = /iPhone|iPod/.test(navigator.userAgent), standalone = navigator.standalone || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches;
