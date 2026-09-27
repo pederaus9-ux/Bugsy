@@ -101,3 +101,11 @@ No real money, ever. Coins and gems are only earned by playing.
   - Level unlocks: 2 (sunflower shirt, cap, red boots), 5 (lavender shirt, beanie, brown overalls), 8 (cream shirt, pink hair, yellow boots), 12 (blue hair, cowboy hat), 16 (forest overalls), 20 (white boots).
   - Season prizes (win 3 prizes on that season's track): spring flower crown, fall pumpkin shirt.
   - 💎 items (teal shirt, rose overalls, purple boots) wait for the gem shop.
+
+## Landscape and fullscreen
+
+- **The game is played in landscape.** In portrait, a "Rotate your phone sideways to play" screen covers everything, and the farm stops drawing and ignores taps until the phone is turned.
+  - For testing on a tall window, add `?portrait` to the link; this also skips fullscreen.
+- **Fullscreen:** the first tap requests fullscreen (and a landscape lock). Any later exit, such as a swipe, the back gesture or locking the phone, is undone by the next tap.
+- **iPhone:** iPhone Safari has no fullscreen for web pages. "Add to Home Screen" opens the game fullscreen (manifest `display: fullscreen`), and a one-time tip explains this.
+- **Walking:** the 🚶 button (not rotation) enters first-person walking.
