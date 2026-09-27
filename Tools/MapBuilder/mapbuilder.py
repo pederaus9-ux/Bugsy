@@ -8,6 +8,7 @@ Turns a real-world center point into Unreal-ready map data:
   water    USGS NHD flowlines, waterbodies and river areas -> local-meter JSON
   bridges  FHWA National Bridge Inventory (BTS NTAD) -> bridge points with length, width, spans, type
   buildings Microsoft Global ML Building Footprints -> footprints with height estimates
+  ue_export Unreal-ready roads/water/bridges/buildings/trees/landmarks in cm, snapped to the heightmap
   preview  composite map image: terrain, water, buildings, roads, bridges, towns
   climate  SPC tornado database -> local climatology for DA_Climate calibration
   lidar    3DEP lidar point cloud -> every tree (x, y, height, crown) + building (footprint, height, roof) per tile
@@ -792,6 +793,16 @@ def cmd_preview(a):
     print("wrote", os.path.join(OUT, "preview_map.png"))
 
 
+# ---------------------------------------------------------------- Unreal export
+DEFAULT_LANDMARKS = os.path.join(HERE, "..", "..", "docs", "stormchaser", "private", "pack", "storm-chaser-landmarks.md")
+
+
+def cmd_ue_export(a):
+    import ue_export
+    fr = Frame(load_location())
+    print(json.dumps(ue_export.run(fr, OUT, a.landmarks, a.png), indent=2))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -802,6 +813,8 @@ def main():
     p.add_argument("--tile-quads", type=int, default=TILE_QUADS, help="4064 (4065 px tiles) or 8128 (8129 px tiles)")
     sub.add_parser("dem"); sub.add_parser("osm")
     sub.add_parser("water"); sub.add_parser("bridges"); sub.add_parser("buildings"); sub.add_parser("preview")
+    p = sub.add_parser("ue_export", help="write out/ue/*.json for the Unreal importer")
+    p.add_argument("--landmarks", default=DEFAULT_LANDMARKS); p.add_argument("--png", action="store_true")
     p = sub.add_parser("climate"); p.add_argument("--radius-km", type=float, default=80.0)
     p = sub.add_parser("lidar", help="trees + buildings from the 3DEP lidar point cloud for one tile")
     p.add_argument("--dataset", default="WI_12County_7_B22")
@@ -815,7 +828,7 @@ def main():
         cmd_dem(a); cmd_osm(a); cmd_water(a); cmd_bridges(a); cmd_buildings(a); cmd_climate(a); cmd_preview(a)
     else:
         {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate, "lidar": cmd_lidar,
-         "water": cmd_water, "bridges": cmd_bridges, "buildings": cmd_buildings, "preview": cmd_preview}[a.cmd](a)
+         "water": cmd_water, "bridges": cmd_bridges, "buildings": cmd_buildings, "preview": cmd_preview, "ue_export": cmd_ue_export}[a.cmd](a)
 
 
 if __name__ == "__main__":

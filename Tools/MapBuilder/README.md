@@ -16,6 +16,7 @@ Outputs land in `out/` (git-ignored):
 - `bridges_nbi_local.json`: National Bridge Inventory bridges with length, width, spans, material, design
 - `buildings_ms_local.json`: Microsoft building footprints with height estimates
 - `preview_map.png`: everything drawn over the terrain for a visual check
+- `ue/`: Unreal-ready files from `mapbuilder.py ue_export` (landscape.json, roads, water, bridges, buildings, trees.csv, landmarks). Import them with `ue/stormchaser_import.py`, see `ue/README.md`
 - `climate_calibration.json`: local SPC tornado climatology for `DA_Climate`
 - `lidar_objects_<x>_<y>_<size>.json` + `lidar_preview_*.png`: every tree (x, y, height, crown radius) and building (footprint, height, eave, roof) in a tile (`mapbuilder.py lidar --offset-x .. --offset-y .. --size-m 2000`)
 
