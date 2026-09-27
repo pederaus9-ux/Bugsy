@@ -242,6 +242,38 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .tray.away{opacity:0;pointer-events:none;transition:opacity .12s}
 .ghost{position:fixed;z-index:25;width:56px;height:56px;object-fit:contain;pointer-events:none;transform:translate(-50%,-125%);filter:drop-shadow(0 5px 6px rgba(0,0,0,.35))}
 .movebar{text-align:center}
+/* sign in / create account */
+.authgate{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:linear-gradient(rgba(142,201,238,.82),rgba(207,233,192,.9));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.authgate[hidden],.authcard [hidden]{display:none!important}
+.authcard{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;background:var(--parch);border:4px solid var(--wood);border-radius:24px;
+  padding:18px 18px 16px;box-shadow:0 7px 0 var(--wood-dk),0 18px 40px rgba(60,40,10,.35);color:var(--ink);text-align:center}
+.authlogo{font-size:44px;line-height:1;margin-top:-4px}
+.authcard h2{margin:0;font:400 28px/1.1 var(--fun);color:var(--wood-dk)}
+.authsub{margin:-4px 0 2px;font-weight:800;font-size:14px;opacity:.75}
+.authnote{margin:0;padding:9px 12px;border-radius:14px;background:#EAF7DC;border:2px solid #9BD17A;color:#2F6B1C;font-weight:800;font-size:13.5px;line-height:1.35}
+.authtabs{display:flex;background:var(--parch2);border-radius:99px;padding:4px;gap:4px}
+.authtabs button{flex:1;padding:9px 6px;border-radius:99px;font-weight:900;font-size:14px;color:var(--wood-dk);background:transparent}
+.authtabs button.on{background:#fff;box-shadow:0 2px 0 rgba(110,61,24,.25)}
+.authfield{display:flex;flex-direction:column;gap:4px;text-align:left;font-weight:900;font-size:13px}
+.authfield input{width:100%;font:700 16px var(--body);padding:11px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);
+  -webkit-user-select:text;user-select:text}
+.authfield input:focus{outline:none;border-color:var(--gold-dk)}
+.authpw{position:relative;display:block}
+.authpw input{padding-right:46px}
+.authpw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:transparent;font-size:18px}
+.authchoose{display:flex;flex-direction:column;gap:8px}
+.authchoose button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:16px;background:#fff;border:3px solid var(--parch2);
+  color:var(--wood-dk);text-align:left;box-shadow:0 3px 0 var(--parch2)}
+.authchoose button:active{transform:translateY(2px);box-shadow:none}
+.authchoose b{font:400 18px var(--fun)}
+.authchoose small{font-weight:800;font-size:13px;opacity:.75}
+.authchoose p{margin:0;font-weight:700;font-size:12px;opacity:.7}
+.authmsg{min-height:18px;margin:0;font-weight:800;font-size:13px;color:#c0392b}
+.authmsg.ok{color:var(--green-dk)}
+.authgo{width:100%;padding:13px;font-size:17px}
+.authgo:disabled{opacity:.6}
+.authlink{background:none;font-weight:800;font-size:13px;color:var(--wood-dk);text-decoration:underline;padding:4px}
 .fbbox{position:fixed;left:12px;right:12px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;z-index:35;display:flex;flex-direction:column;gap:8px;
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
 .fbbox[hidden]{display:none}
@@ -337,6 +369,28 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div id="panelRoot"></div>
 <input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
+<!-- accounts: this window covers the game until the player signs in (only once auth.js has a real Firebase config) -->
+<div class="authgate" id="authGate" hidden>
+  <form class="authcard" id="authForm" novalidate>
+    <div class="authlogo" aria-hidden="true">🌻</div>
+    <h2 id="authTitle">Welcome back!</h2>
+    <p class="authsub" id="authSub">Sign in to play Sunny Acres</p>
+    <p class="authnote" id="authNote" hidden></p>
+    <div class="authtabs" id="authTabs"><button type="button" data-mode="signin">Sign in</button><button type="button" data-mode="register">Create account</button></div>
+    <label class="authfield" id="fEmail"><span>Email</span><input id="authEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></label>
+    <label class="authfield" id="fPass"><span>Password</span><span class="authpw"><input id="authPass" type="password" autocomplete="current-password" minlength="6"><button type="button" id="authEye" aria-label="Show or hide the password">👁️</button></span></label>
+    <label class="authfield" id="fPass2" hidden><span>Password again</span><input id="authPass2" type="password" autocomplete="new-password" minlength="6"></label>
+    <div class="authchoose" id="authChoose" hidden>
+      <button type="button" data-pick="phone"><b>📱 This phone's farm</b><small></small></button>
+      <button type="button" data-pick="cloud"><b>☁️ My account's farm</b><small></small></button>
+      <p>The other farm is kept as a backup on this phone.</p>
+    </div>
+    <p class="authmsg" id="authMsg" role="alert"></p>
+    <button class="btn authgo" id="authGo" type="submit">Sign in</button>
+    <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
+  </form>
+</div>
+<script type="module" src="auth.js?v=7"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -344,7 +398,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=9"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=11"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1503,6 +1557,9 @@ renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.add
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
+// accounts (auth.js): a farm from before accounts moved into a new account. That can happen before or after the game has loaded.
+const linkedToast = () => { if (window.__saLinkedShown) return; window.__saLinkedShown = true; G.toast("🌻 Your farm is now saved to your account"); };
+addEventListener("sa3d:linked", linkedToast); if (window.__saLinked) setTimeout(linkedToast, 1200);
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
