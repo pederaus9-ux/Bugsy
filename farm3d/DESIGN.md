@@ -82,3 +82,22 @@ No real money, ever. Coins and gems are only earned by playing.
 
 - **⚙️ › Backup code** makes a code (gzip + base64). **Restore from code** replaces the farm on this phone and reloads.
   - For a signed-in player, the restored farm is also saved to their account, so it stays after a reload and on their other phones.
+
+## Walking (Phase 6)
+
+- **Phone sideways:** landscape on a touch screen starts first-person walking, depending on Settings › Phone sideways.
+  - Default for new players: walk (only once the tutorial is done).
+  - Default for existing players: ask once with a card; the answer becomes the setting unless "Ask every time" is picked in Settings.
+  - Turning back to portrait swoops back to the classic view where you were.
+- **Controls:**
+  - Left half of the screen: a joystick where your thumb lands; the edge runs at 6 m/s, otherwise 3.4 m/s.
+  - Right half: drag to look, 1:1 (a full screen height = the field of view), with pitch limited to ±80°.
+  - The big button bottom-right uses what the crosshair is on. Keyboard: WASD, Shift to run, E to use.
+- **Reach:** 5 m, 6 m for animals and 8 m for the barn (more in the over-the-shoulder view).
+- **Petting in first person** uses the same Pet as the classic view: +15 happiness, with the 20-minute cooldown.
+- **Barn interior:** reuses the Barn panel.
+- **Wardrobe unlocks:**
+  - Skin tones and hairstyles are always free.
+  - Level unlocks: 2 (sunflower shirt, cap, red boots), 5 (lavender shirt, beanie, brown overalls), 8 (cream shirt, pink hair, yellow boots), 12 (blue hair, cowboy hat), 16 (forest overalls), 20 (white boots).
+  - Season prizes (win 3 prizes on that season's track): spring flower crown, fall pumpkin shirt.
+  - 💎 items (teal shirt, rose overalls, purple boots) wait for the gem shop.

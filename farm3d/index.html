@@ -344,6 +344,38 @@ body.introing > :not(canvas):not(#intro){visibility:hidden!important} /* the far
 @keyframes dropin{from{transform:translateY(-60px) scale(.4);opacity:0}}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}}
 @keyframes pulse{50%{transform:scale(1.06)}}
+/* walking: the controller surface, crosshair and interact button */
+.fpspad{position:fixed;inset:0;z-index:4;touch-action:none}
+.stick.live{opacity:1} body.walking .stick:not(.live){opacity:.45} .stick.run{box-shadow:0 0 0 4px rgba(255,210,80,.8) inset}
+.xhair{position:fixed;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.25);z-index:6;pointer-events:none;transition:all .15s}
+.xhair.on{width:22px;height:22px;margin:-11px 0 0 -11px;background:transparent;box-shadow:0 0 0 3px #FFD23F,0 0 0 5px rgba(0,0,0,.25)}
+.actbtn{position:fixed;right:22px;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);z-index:9;width:92px;height:92px;border-radius:50%;background:linear-gradient(#8ad866,#58ad36);
+  border:4px solid #fff;box-shadow:0 5px 0 var(--green-dk),0 8px 18px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;animation:pop .18s ease-out}
+.actbtn .ai{font-size:34px;line-height:1} .actbtn .al{font:400 15px/1 var(--fun);text-shadow:0 2px 0 var(--green-dk);margin-top:2px}
+.actbtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--green-dk)}
+body.fp .dock,body.fp #hint,body.fp .testbadge{display:none!important}
+body.fp .throwbtn{right:128px;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);width:56px;height:56px;font-size:24px}
+.barnfade{position:fixed;inset:0;z-index:15;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(120,70,30,.35),rgba(40,20,5,.9));opacity:0;transition:opacity .8s}
+.barnfade.on{opacity:1}
+/* the "turn sideways" card */
+.coach{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,20,0,.45)}
+.ccard{background:var(--parch);border:4px solid var(--wood);border-radius:22px;box-shadow:0 6px 0 var(--wood-dk);padding:16px 18px;max-width:440px;text-align:center;display:flex;flex-direction:column;gap:8px;animation:pop .25s ease-out}
+.ccard .cico{font-size:40px;line-height:1} .ccard b{font:400 22px/1.15 var(--fun);color:var(--wood-dk)} .ccard small{font-weight:800;opacity:.75}
+.ccard .crow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+/* the wardrobe */
+body.dressing > :not(canvas):not(#wardrobe):not(#toasts){visibility:hidden!important}
+.wardrobe{position:fixed;inset:0;z-index:30;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+.wtop{pointer-events:auto;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 0}
+.wtop span{font:400 28px var(--fun)}
+.wsheet{pointer-events:auto;background:var(--parch);border-top:4px solid var(--wood);border-radius:22px 22px 0 0;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);max-height:48vh;display:flex;flex-direction:column;gap:8px;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
+.wtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex:none}
+.wtabs button{flex:none;border-radius:99px;padding:7px 12px;font-weight:900;font-size:13px;background:var(--parch2);color:var(--wood-dk)} .wtabs button.on{background:var(--wood);color:#fff}
+.wopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;overflow-y:auto}
+.wopt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:14px;background:#fff8e6;border:3px solid transparent;font-size:12px}
+.wopt b{font-weight:900;line-height:1.1;text-align:center} .wopt small{font-size:10px;font-weight:900;color:var(--muted,#8a6440);text-align:center;line-height:1.1}
+.wopt .sw{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(255,255,255,.7),0 2px 0 rgba(0,0,0,.2)} .wopt .ic{font-size:30px;line-height:1;font-style:normal}
+.wopt.sel{border-color:var(--green);background:#EAF7DC} .wopt.lock{opacity:.55} .wopt.lock .sw,.wopt.lock .ic{filter:grayscale(.7)}
+.whelp{margin:0;text-align:center;font-weight:800;font-size:12px;opacity:.65;flex:none}
 .guestbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:430px;margin:0 auto;z-index:9;display:flex;align-items:center;gap:8px;
   background:#fff;border:3px solid var(--blue-dk);border-radius:16px;padding:8px 8px 8px 12px;box-shadow:0 4px 0 rgba(31,127,192,.35);font-weight:800;font-size:13px;animation:pop .3s ease-out}
 body:has(#infoTray:not([hidden])) .guestbar,body:has(#seedTray:not([hidden])) .guestbar,body:has(#panelRoot .scrim) .guestbar{display:none}
@@ -477,10 +509,25 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
-<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
+<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>left thumb walks · right thumb looks</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
 <div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
+<!-- walking: the whole screen is the controller (left thumb moves, right thumb looks) -->
+<div class="fpspad" id="fpsPad" hidden></div>
+<div class="xhair" id="xhair" hidden></div>
+<button class="actbtn" id="actBtn" hidden aria-label="Use what you're looking at"></button>
+<div class="barnfade" id="barnFade"></div>
+<!-- phone turned sideways -->
+<div class="coach" id="coach" hidden><div class="ccard"><div class="cico">📱↻</div><b>Turn your phone sideways to walk your farm!</b>
+  <small>Left thumb walks, right thumb looks around. Turn it back to see the whole farm again.</small>
+  <div class="crow"><button class="btn" data-c="fp">🚶 Walk my farm</button><button class="btn plain" data-c="classic">Stay in classic view</button></div></div></div>
+<!-- the wardrobe -->
+<div class="wardrobe" id="wardrobe" hidden>
+  <div class="wtop"><span class="out">👕 Wardrobe</span><button class="btn" data-wd="1">✔ Done</button></div>
+  <div class="wsheet"><div class="wtabs" id="wardTabs"></div><div class="wopts" id="wardOpts"></div>
+    <p class="whelp">Drag to turn around · new looks unlock as you level up and in season events</p></div>
+</div>
 <canvas id="swipe"></canvas>
 <div class="fbbox friendsbox" id="friendsBox" hidden>
   <h3><span>👥 Friends</span><button type="button" class="x" data-f="close" aria-label="Close">✕</button></h3>
@@ -529,7 +576,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=18"; window.__gameVer = 18;
+import * as G from "./game.js?v=19"; window.__gameVer = 19;
 import {initFriends} from "./friends.js?v=4"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -785,8 +832,21 @@ function makeBarn() {
   // big front doors with X braces and a hayloft door
   const z = D / 2 + .09;
   const doorFrame = (x0, x1, y0, y1) => { g.add(beam([x0, y0], [x0, y1], .2, .1, M.trim, z)); g.add(beam([x1, y0], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y1], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y0], [x1, y0], .2, .1, M.trim, z)); };
-  doorFrame(-1.9, 1.9, base, 3.8); g.add(beam([0, base], [0, 3.8], .14, .1, M.trim, z));
-  for (const [a, b] of [[-1.9, 0], [0, 1.9]]) { g.add(beam([a, base], [b, 3.8], .16, .1, M.trim, z)); g.add(beam([a, 3.8], [b, base], .16, .1, M.trim, z)); }
+  doorFrame(-1.9, 1.9, base, 3.8);
+  // inside: plank walls, a floor, hay bales and a warm lantern glow (seen when you step in through the doors)
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(W - .4, HW - .1, D - .4), std({map:M.fence.map || null, color:0x6b4a2e, roughness:.95, side:THREE.BackSide, emissive:0x2a1608, emissiveIntensity:.6}));
+  inner.position.set(0, base + (HW - .1) / 2 - .05, 0); g.add(inner);
+  const hay = std({color:0xd9b24c, roughness:1, emissive:0x3a2a08, emissiveIntensity:.5});
+  for (const [x, y, zz, r] of [[-2.6, base + .35, -3.4, 0], [-2.6, base + 1.05, -3.4, .1], [-1.3, base + .35, -3.6, -.1], [2.7, base + .35, -2.2, .2], [2.6, base + .35, 1.2, 0]]) { const b = box(1.1, .7, .75, hay, x, y, zz, .5); b.rotation.y = r; g.add(b); }
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(.14, 12, 10), new THREE.MeshBasicMaterial({color:0xffd27a})); glow.position.set(0, HW - .4, -1); g.add(glow);
+  // the two big doors swing open (first-person walk: Open), showing the dark barn behind
+  g.add(box(3.7, 3.05, .04, std({color:0x1c120b, roughness:1}), 0, base + 1.53, D / 2 + .01));
+  g.userData.doors = [-1, 1].map(sd => { const leaf = new THREE.Group(); leaf.position.set(sd * 1.9, base, z - .03); leaf.userData.door = true; leaf.userData.side = sd;
+    const w = 1.88, h = 3.08, lb = (a, b, t) => { const m = beam(a, b, t, .1, M.trim, .05); leaf.add(m); };
+    leaf.add(box(w, h, .08, M.red, -sd * w / 2, h / 2, 0));
+    lb([0, 0], [0, h], .16); lb([-sd * w, 0], [-sd * w, h], .14); lb([0, h], [-sd * w, h], .16); lb([0, 0], [-sd * w, 0], .16);
+    lb([0, 0], [-sd * w, h], .16); lb([0, h], [-sd * w, 0], .16);
+    leaf.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); g.add(leaf); return leaf; });
   doorFrame(-.8, .8, 4.7, 6.1); g.add(beam([-.8, 4.7], [.8, 6.1], .12, .1, M.trim, z)); g.add(beam([-.8, 6.1], [.8, 4.7], .12, .1, M.trim, z));
   // side windows (they glow at night)
   for (const s of [1, -1]) for (const wz of [-2.6, 2.6]) {
@@ -1050,7 +1110,7 @@ const keepCanopy = (t) => (o) => o === t.userData.canopy;
 
 bootStep("placing the barn and trees");
 // ---------------- place things ----------------
-const barn = mergeStatic(makeBarn()); scene.add(barn); contact(0, 0, 11, 14);
+const barn = mergeStatic(makeBarn(), (o) => o.userData.door); scene.add(barn); contact(0, 0, 11, 14);
 const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = "t:tree";
 const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
 const groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };
@@ -1629,9 +1689,10 @@ const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.M
 // (fast at first, settling softly), the same at any frame rate: 1 - e^(-speed * dt)
 const view = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
 function placeCamera(dt = 1) {
+  if (walk && inBarn && inBarn.phase === "inside") return barnPose();
   if (walk) return placeWalkCamera();
   if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up
-  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, 10, 70);
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : 70);
   const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
   view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
   const v = view;
@@ -1648,7 +1709,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   if (!ptr.has(e.pointerId)) return;
   if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
-  if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -1.35, 1.35); } return; } // look around
+  if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around
   if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -18, 28); return; } // slide the map
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
@@ -2105,18 +2166,19 @@ function spotFree(x, z, size, skip = -1) {
 // ================= walk around in first person, and rearrange the farm =================
 // Walk: the camera drops to eye height (1.8 m). A thumbstick (or WASD / arrow keys) walks, dragging the screen looks around.
 // You bump into buildings, fences, bushes and decorations but can walk across the fields. Taps still harvest, plant and pet.
-const EYE = 1.8, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));
+const EYE = 1.6, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));
 const throwBtn = document.getElementById("throwBtn"), walkBar = document.getElementById("walkBar"), editBar = document.getElementById("editBar"), stick = document.getElementById("stick"), knob = stick.querySelector("i");
-function setWalk(on) {
+function setWalk(on, startAt, fp) {
   if (!!walk === on) return;
   if (on) {
     if (editMode) setEdit(false);
     closeTrays(); G.close(); if (moving) endMove(true);
     // start under where the camera was looking; if that's inside a building or a pen, start on the path facing the barn
-    const want = new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
+    const want = startAt ? startAt.clone() : new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
     const onPath = p.distanceTo(want) > 1.5 || PEN_LIST.some(pen => inPen(pen, p.x, p.y, -.4));
-    walk = {pos:onPath ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0};
-    farmer.rotation.y = walk.yaw;
+    walk = {pos:onPath && !startAt ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath && !startAt ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0, fp:!!fp};
+    farmer.rotation.y = walk.yaw; if (fp) thirdPerson = false; else { try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {} }
+    pad.hidden = false; document.body.classList.toggle("fp", !!fp);
     document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
     ultra(true);
   } else {
@@ -2124,7 +2186,10 @@ function setWalk(on) {
     cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
     Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
     joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
-    document.body.classList.remove("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; farmer.visible = false;
+    document.body.classList.remove("walking", "fp"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; pad.hidden = true;
+    farmer.position.set(w.pos.x, 0, w.pos.y); farmer.rotation.y = w.yaw; // the farmer stays where you stopped walking
+    joyF = lookF = null; joy.run = false; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = ""; G.windRush(0);
+    if (inBarn) { inBarn = null; barnFade.classList.remove("on"); doorWant = 0; }
     ultra(false);
   }
   G.sfx("pop");
@@ -2138,12 +2203,17 @@ function updateWalk(dt) {
   if (keys.has("ArrowLeft") || keys.has("KeyQ")) w.yaw += dt * 1.8;
   if (keys.has("ArrowRight") || keys.has("KeyE")) w.yaw -= dt * 1.8;
   const n = Math.hypot(ix, iy); if (n > 1) { ix /= n; iy /= n; }
-  const sp = keys.has("ShiftLeft") || keys.has("ShiftRight") ? 6 : 3.4, s = Math.sin(w.yaw), c = Math.cos(w.yaw), k = Math.min(1, dt * 10);
+  const running = keys.has("ShiftLeft") || keys.has("ShiftRight") || joy.run, sp = running ? 6 : 3.4;
+  const sp_ = sp, s = Math.sin(w.yaw), c = Math.cos(w.yaw), k = Math.min(1, dt * 10);
   w.vel.x += ((-s * iy + c * ix) * sp - w.vel.x) * k; w.vel.y += ((-c * iy - s * ix) * sp - w.vel.y) * k; // ease into and out of a walk
   const ox = w.pos.x, oz = w.pos.y;
   w.pos.x += w.vel.x * dt; w.pos.y += w.vel.y * dt; collideWalker(w.pos);
   const moved = Math.hypot(w.pos.x - ox, w.pos.y - oz); w.walked += moved;
-  w.bob += (Math.sin(w.walked * 4.4) * .045 * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // a gentle step bob
+  w.bob += ((G.PREFS.bob === false ? 0 : Math.sin(w.walked * 4.4) * .045) * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // a gentle step bob (Settings can turn it off)
+  // footsteps: grass, dirt (fields and the path) or wood (the stall and the order board), faster when running
+  const speed = moved / Math.max(dt, 1e-3); w.stepAcc = (w.stepAcc || 0) + moved;
+  if (w.stepAcc > (speed > 4.5 ? 1.05 : .72)) { w.stepAcc = 0; G.step(surfaceAt(w.pos.x, w.pos.y), speed > 4.5); }
+  G.windRush(!thirdPerson && speed > 4.5 ? Math.min(1, (speed - 4.5) / 1.5) : 0); // air rushing past when you run
 }
 // push a walker (a circle on the ground) out of buildings, bushes, fences and decorations, and keep it on the farm
 function collideWalker(p, r = WALK_R) {
@@ -2170,28 +2240,60 @@ function collideWalker(p, r = WALK_R) {
   return p;
 }
 // ---------- the farmer: you, in walk mode, seen from just behind (👁️ switches to your own eyes) ----------
-function makeFarmer() {
-  const g = new THREE.Group(), denim = std({color:0x3d6fa8, roughness:.85}), shirt = std({color:0xd24d3f, roughness:.8}), skin = std({color:0xf0c6a0, roughness:.7});
-  const boot = std({color:0x4a3222, roughness:.9}), straw = std({color:0xe8c86a, roughness:.9}), dark = std({color:0x2a1c12, roughness:.6});
+// Built from the player's wardrobe choices (game.js WARDROBE); rebuilt whenever they change something.
+let hands = null; // first-person mitten hands (made further down)
+const farmer = new THREE.Group(); farmer.visible = false; scene.add(farmer);
+farmer.userData.hit = {type:"farmer"};
+function buildFarmer(L = G.lookOf(GS())) {
+  const W = G.WARDROBE, pick = (cat) => W[cat].opts[L[cat]] || W[cat].opts[0];
+  for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  const g = new THREE.Group(); farmer.add(g);
+  const col = (c) => std({color:c, roughness:.82});
+  const skin = col(pick("skin")[1]), shirt = col(pick("shirt")[1]), hairC = col(pick("hairColor")[1]), boot = col(pick("boots")[1]);
+  const over = pick("overalls")[1], denim = col(over ? pick("overallColor")[1] : 0x8b7355), dark = std({color:0x2a1c12, roughness:.6});
   const part = (geo, mat, x, y, z, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; };
   const legs = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .11, .8, 0); g.add(p);
     part(new THREE.CylinderGeometry(.085, .075, .7, 10), denim, 0, -.35, 0, p); part(new THREE.BoxGeometry(.16, .11, .28), boot, 0, -.74, -.05, p); return p; });
-  part(new THREE.CylinderGeometry(.2, .19, .5, 14), denim, 0, 1.03, 0);                // overalls
-  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, 1.4, 0);                  // shirt
-  part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, 1.33, -.19);                     // bib
-  for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, 1.42, 0); // straps
+  part(new THREE.CylinderGeometry(.2, .19, .5, 14), over ? denim : shirt, 0, 1.03, 0);   // overalls (or the shirt tucked into trousers)
+  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, 1.4, 0);                   // shirt
+  if (over) { part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, 1.33, -.19); for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, 1.42, 0); }
+  else part(new THREE.CylinderGeometry(.205, .205, .06, 14), dark, 0, .8, 0);            // belt
   const arms = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .26, 1.5, 0); g.add(p);
     part(new THREE.CylinderGeometry(.062, .056, .56, 8), shirt, 0, -.28, 0, p); part(new THREE.SphereGeometry(.068, 10, 8), skin, 0, -.58, 0, p); return p; });
-  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, 1.6, 0);                 // neck
-  part(new THREE.SphereGeometry(.19, 18, 14), skin, 0, 1.78, 0);                       // head
-  for (const sd of [-1, 1]) part(new THREE.SphereGeometry(.025, 8, 6), dark, sd * .07, 1.8, -.175); // eyes
-  part(new THREE.CylinderGeometry(.37, .39, .03, 22), straw, 0, 1.9, 0);               // straw hat
-  part(new THREE.CylinderGeometry(.17, .2, .17, 16), straw, 0, 1.99, 0);
-  const band = part(new THREE.TorusGeometry(.195, .02, 6, 20), shirt, 0, 1.94, 0); band.rotation.x = Math.PI / 2;
-  g.userData = {legs, arms}; g.visible = false; scene.add(g);
-  return g;
+  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, 1.6, 0);                  // neck
+  const head = new THREE.Group(); head.position.set(0, 1.78, 0); g.add(head);
+  part(new THREE.SphereGeometry(.19, 18, 14), skin, 0, 0, 0, head);
+  for (const sd of [-1, 1]) part(new THREE.SphereGeometry(.025, 8, 6), dark, sd * .07, .02, -.175, head); // eyes (the farmer faces -z)
+  const smile = part(new THREE.TorusGeometry(.05, .01, 5, 12, Math.PI), dark, 0, -.06, -.178, head); smile.rotation.z = Math.PI;
+  // hair
+  const hs = pick("hair")[1], cap = (r, y, sy, back = 0) => { const m = part(new THREE.SphereGeometry(r, 16, 12, 0, Math.PI * 2, 0, Math.PI * .56), hairC, 0, y, back, head); m.scale.y = sy; return m; };
+  if (hs === "buzz") cap(.196, .005, 1);
+  else if (hs === "curly") { for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = .16; part(new THREE.SphereGeometry(.07, 8, 6), hairC, Math.cos(a) * r, .1 + (k % 2) * .04, Math.sin(a) * r * .9 + .02, head); } part(new THREE.SphereGeometry(.1, 10, 8), hairC, 0, .17, .02, head); }
+  else {
+    cap(.205, .01, 1.05, .01);
+    if (hs === "long") part(new THREE.BoxGeometry(.36, .42, .1), hairC, 0, -.16, .12, head);
+    if (hs === "bob") { const b2 = part(new THREE.CylinderGeometry(.215, .22, .2, 16, 1, true), hairC, 0, -.04, .01, head); b2.material = hairC; }
+    if (hs === "pony") { const t = part(new THREE.CylinderGeometry(.05, .03, .36, 8), hairC, 0, -.1, .23, head); t.rotation.x = -.35; }
+    if (hs === "bun") part(new THREE.SphereGeometry(.09, 10, 8), hairC, 0, .14, .17, head);
+    if (hs === "braids") for (const sd of [-1, 1]) { const t = part(new THREE.CylinderGeometry(.035, .025, .4, 8), hairC, sd * .16, -.24, -.02, head); t.rotation.z = sd * .12; }
+  }
+  // hat
+  const ht = pick("hat")[1], straw = std({color:0xe8c86a, roughness:.9});
+  if (ht === "straw") { part(new THREE.CylinderGeometry(.37, .39, .03, 22), straw, 0, .12, 0, head); part(new THREE.CylinderGeometry(.17, .2, .17, 16), straw, 0, .21, 0, head);
+    const band = part(new THREE.TorusGeometry(.195, .02, 6, 20), shirt, 0, .16, 0, head); band.rotation.x = Math.PI / 2; }
+  if (ht === "cap") { part(new THREE.SphereGeometry(.21, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), shirt, 0, .06, 0, head); const br = part(new THREE.CylinderGeometry(.16, .16, .02, 16, 1, false, 0, Math.PI), shirt, 0, .07, -.12, head); br.rotation.y = Math.PI / 2; br.scale.set(1, 1, 1.2); }
+  if (ht === "beanie") { part(new THREE.SphereGeometry(.215, 16, 10, 0, Math.PI * 2, 0, Math.PI * .55), shirt, 0, .04, 0, head); part(new THREE.CylinderGeometry(.215, .215, .07, 16), col(0xf1e6cf), 0, .03, 0, head); part(new THREE.SphereGeometry(.05, 8, 6), col(0xf1e6cf), 0, .26, 0, head); }
+  if (ht === "cowboy") { const leather = col(0x7a4b28); const br = part(new THREE.CylinderGeometry(.42, .42, .03, 24), leather, 0, .1, 0, head); br.scale.set(1, 1, .85);
+    for (const sd of [-1, 1]) { const e = part(new THREE.BoxGeometry(.12, .03, .5), leather, sd * .38, .15, 0, head); e.rotation.z = sd * -.5; }
+    part(new THREE.CylinderGeometry(.16, .2, .22, 16), leather, 0, .22, 0, head); part(new THREE.TorusGeometry(.19, .018, 6, 20), dark, 0, .13, 0, head).rotation.x = Math.PI / 2; }
+  if (ht === "flowers") { const fc = [0xf28bb5, 0xffe066, 0xffffff, 0xb48cf2, 0xff9a5a]; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; part(new THREE.SphereGeometry(.045, 8, 6), col(fc[k % fc.length]), Math.cos(a) * .19, .1, Math.sin(a) * .19, head); }
+    const vine = part(new THREE.TorusGeometry(.19, .015, 6, 24), col(0x5ea64a), 0, .09, 0, head); vine.rotation.x = Math.PI / 2; }
+  // an invisible box to tap (the classic view: tap the farmer to open the wardrobe)
+  const hb = hitProxy(.8, 2.1, .8, 0, 1.05, 0); g.add(hb);
+  g.traverse(o => { if (o.isMesh && o !== hb) o.receiveShadow = true; });
+  farmer.userData.legs = legs; farmer.userData.arms = arms; farmer.userData.head = head; farmer.userData.body = g;
+  if (hands) hands.userData.sleeve.color.set(pick("shirt")[1]), hands.userData.skin.color.set(pick("skin")[1]);
 }
-const farmer = makeFarmer();
 let thirdPerson = true; try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {}
 document.getElementById("povBtn").addEventListener("click", () => { thirdPerson = !thirdPerson; try { localStorage.setItem("sa3d-pov", thirdPerson ? "farmer" : "eyes"); } catch (e) {} G.sfx("pop"); });
 function placeWalkCamera() {
@@ -2219,12 +2321,14 @@ function placeWalkCamera() {
 const ULTRA = {aniso:false, groundNormal:null};
 function ultra(on) {
   if (on) {
-    QUALITY.auto = false; QUALITY.steps = []; QUALITY.fps30 = false; QUALITY.pr = window.devicePixelRatio || 1;
+    // walking stays on dynamic resolution when the player picked Auto, so first person holds its frame rate on mid-range phones
+    const auto = (G.PREFS.quality || "auto") === "auto"; QUALITY.fps30 = false; QUALITY.cut = 0;
+    if (auto) { QUALITY.auto = true; QUALITY.pr = Math.min(DPR, 1.5); watchFrames(); } else { QUALITY.auto = false; QUALITY.pr = window.devicePixelRatio || 1; }
     setShadow(2048); bloom.enabled = true; tiltH.enabled = tiltV.enabled = false;
     Object.assign(sun.shadow.camera, {left:-14, right:14, top:14, bottom:-14}); sun.shadow.camera.updateProjectionMatrix();
     if (!ULTRA.aniso) { maxAnisotropy(); ULTRA.aniso = true; }
     boostNormals(true); walkLook();
-    camera.fov = innerWidth < innerHeight ? 72 : 60; camera.near = .05;
+    camera.fov = 70; camera.near = .1; // eye level: a natural field of view, and crops can be seen up close
     applySize();
   } else {
     Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24}); sun.shadow.camera.updateProjectionMatrix();
@@ -2270,6 +2374,278 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());
+
+// ================= Phase 6: walk your farm (phone sideways), the wardrobe =================
+const PITCH_MAX = THREE.MathUtils.degToRad(80);
+// what's underfoot, for footstep sounds
+function surfaceAt(x, z) {
+  if (Math.hypot(x - stall.position.x, z - stall.position.z) < 1.8 || Math.hypot(x - board.position.x, z - board.position.z) < 1.5) return "wood";
+  if (Math.abs(x) < 2.3 && z > 5 && z < 22) return "dirt";
+  if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return "dirt";
+  return "grass";
+}
+
+// ---------- a smooth camera swoop between any two views (classic ↔ eye level, into the barn and out) ----------
+let camTween = null;
+function startTween(dur = 1.2) { camTween = {t0:null, dur:dur * 1000, p:camera.position.clone(), q:camera.quaternion.clone(), fov:camera.fov}; }
+function applyTween() { // after the new view has placed the camera: blend from where it was
+  if (!camTween) return 1;
+  if (camTween.t0 == null) camTween.t0 = performance.now(); // the clock starts on the first frame drawn (switching modes can take a moment)
+  const k = Math.min(1, (performance.now() - camTween.t0) / camTween.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const fov = camera.fov; camera.position.lerpVectors(camTween.p, camera.position.clone(), e); camera.quaternion.slerpQuaternions(camTween.q, camera.quaternion.clone(), e);
+  camera.fov = camTween.fov + (fov - camTween.fov) * e; camera.updateProjectionMatrix(); camera.fov = fov;
+  if (k >= 1) { camTween = null; camera.updateProjectionMatrix(); }
+  return e;
+}
+
+// ---------- phone sideways: walk in first person ----------
+const touchy = () => matchMedia("(pointer: coarse)").matches || qs.has("landscape");
+const isLand = () => innerWidth > innerHeight;
+const coach = document.getElementById("coach");
+let lastLand = isLand(), classicSaved = null;
+function canWalkNow() { return !G.tutActive() && !visiting && !photoMode && !editMode && !wardrobeOn && GS(); }
+function enterFP(auto) {
+  if (walk || !canWalkNow()) return;
+  classicSaved = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  startTween(1.2);
+  // start where the farmer is standing, looking the way the camera was looking
+  const f = farmer.visible ? new THREE.Vector2(farmer.position.x, farmer.position.z) : null;
+  setWalk(true, f, true);
+  if (walk) { walk.auto = !!auto; walk.fp = true; thirdPerson = false; }
+}
+function exitFP() {
+  if (!walk) return;
+  startTween(1.2);
+  const back = classicSaved; setWalk(false);
+  if (back) { Object.assign(cam, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); cam.target.copy(back.target); Object.assign(view, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); view.target.copy(back.target); }
+  classicSaved = null;
+}
+function onOrient() {
+  const land = isLand(); if (land === lastLand) return; lastLand = land;
+  if (!touchy()) return;
+  coach.hidden = true;
+  if (land) {
+    if (!canWalkNow()) return;
+    const pref = G.PREFS.landscape || "ask";
+    if (pref === "fp") enterFP(true);
+    else if (pref === "ask") { coach.hidden = false; G.sfx("pop"); }
+  } else if (walk && walk.auto) exitFP();
+}
+addEventListener("resize", () => setTimeout(onOrient, 60));
+addEventListener("orientationchange", () => setTimeout(onOrient, 250));
+setInterval(onOrient, 500); // phones sometimes report the new size a moment after they rotate: check again, so a rotation is never missed
+coach.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-c]"); if (!b) return;
+  coach.hidden = true;
+  if (!G.PREFS.askAlways) { G.PREFS.landscape = b.dataset.c; try { localStorage.setItem("sunny-acres-3d-v1-prefs", JSON.stringify(G.PREFS)); } catch (err) {} }
+  if (b.dataset.c === "fp") enterFP(true); else G.sfx("tick");
+});
+
+// ---------- touch controls while walking: left thumb moves (the stick appears where it lands), right thumb looks ----------
+const pad = document.getElementById("fpsPad"), xhair = document.getElementById("xhair"), actBtn = document.getElementById("actBtn");
+const JOY_R = 58; let joyF = null, lookF = null;
+joy.run = false;
+pad.addEventListener("pointerdown", (e) => {
+  pad.setPointerCapture(e.pointerId);
+  if (e.clientX < innerWidth / 2 && joyF == null) {
+    joyF = {id:e.pointerId, x:e.clientX, y:e.clientY};
+    stick.style.left = e.clientX - 58 + "px"; stick.style.top = e.clientY - 58 + "px"; stick.style.bottom = "auto"; stick.classList.add("live");
+  } else if (lookF == null) lookF = {id:e.pointerId, x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, t:performance.now()};
+  e.preventDefault();
+});
+pad.addEventListener("pointermove", (e) => {
+  if (joyF && e.pointerId === joyF.id) {
+    let dx = e.clientX - joyF.x, dy = e.clientY - joyF.y; const d = Math.hypot(dx, dy); if (d > JOY_R) { dx *= JOY_R / d; dy *= JOY_R / d; }
+    const m = Math.hypot(dx, dy) / JOY_R; joy.x = m < .12 ? 0 : dx / JOY_R; joy.y = m < .12 ? 0 : -dy / JOY_R; joy.run = m > .93; // push to the edge: run
+    knob.style.transform = `translate(${dx}px,${dy}px)`; stick.classList.toggle("run", joy.run);
+  } else if (lookF && e.pointerId === lookF.id && walk) {
+    // 1:1: dragging across the screen's height turns the view by one screen's worth (no smoothing, no lag)
+    const k = THREE.MathUtils.degToRad(camera.fov) / innerHeight;
+    walk.yaw += (e.clientX - lookF.x) * k * -1; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - lookF.y) * k, -PITCH_MAX, PITCH_MAX);
+    lookF.x = e.clientX; lookF.y = e.clientY;
+  }
+});
+function padUp(e) {
+  if (joyF && e.pointerId === joyF.id) { joyF = null; joy.x = joy.y = 0; joy.run = false; knob.style.transform = ""; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = ""; }
+  else if (lookF && e.pointerId === lookF.id) {
+    const tap = Math.hypot(e.clientX - lookF.x0, e.clientY - lookF.y0) < 8 && performance.now() - lookF.t < 350; lookF = null;
+    if (tap && e.type === "pointerup") { if (!onTap(e)) interact(); } // a quick tap: use what was tapped, or what the crosshair is on
+  }
+}
+pad.addEventListener("pointerup", padUp); pad.addEventListener("pointercancel", padUp);
+
+// ---------- what you're looking at: the crosshair lights up and the interact button says what it will do ----------
+let aim = null, aimT = 0;
+function aimScan() {
+  aim = null;
+  if (!walk || inBarn || G.panel) return;
+  const h = hitAt(innerWidth / 2, innerHeight / 2); if (!h || h.type === "farmer") return;
+  const reach = (thirdPerson ? 8.5 : 5) + (h.type === "barn" ? 3 : h.type === "animal" ? 1 : 0);
+  if ((h.dist ?? 99) > reach) return;
+  const S = GS(); let label = null, icon = "✋";
+  switch (h.type) {
+    case "plot": { const p = S.plots[h.i];
+      if (!p.crop) { label = "Plant"; icon = "🌱"; } else if (ready(h.i)) { label = "Harvest"; icon = G.ITEMS[p.crop].e; } else if (!p.water) { label = "Water"; icon = "💧"; } break; }
+    case "animal": { const an = h.an;
+      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
+      else { const pt = S.pets[an.ref.j]; if (pt && G.giftReady(pt)) { label = "Gift"; icon = "🎁"; } else { label = "Pet"; icon = "🤚"; } } break; }
+    case "barn": label = "Open"; icon = "🚪"; break;
+    case "building": label = "Open"; icon = G.BUILDINGS[h.bid].e; break;
+    case "lot": label = "Look"; icon = "🔨"; break;
+    case "board": label = "Orders"; icon = "📋"; break;
+    case "stand": label = "Shop"; icon = "🏪"; break;
+    case "gift": label = "Open"; icon = "🎁"; break;
+    case "visitor": label = "Talk"; icon = "💬"; break;
+    case "plotSale": label = "Buy"; icon = "🟫"; break;
+    case "penSign": label = "Look"; icon = "🪧"; break;
+  }
+  if (label) aim = Object.assign(h, {label, icon});
+}
+function updateAim(t) {
+  if (!walk) { xhair.hidden = actBtn.hidden = true; return; }
+  if (t - aimT > .12) { aimT = t; aimScan(); }
+  xhair.hidden = inBarn || !!G.panel; xhair.classList.toggle("on", !!aim);
+  actBtn.hidden = !aim;
+  if (aim) { const h = `<span class="ai">${aim.icon}</span><span class="al">${aim.label}</span>`; if (actBtn.dataset.h !== h) { actBtn.innerHTML = h; actBtn.dataset.h = h; } }
+}
+function interact() {
+  const h = aim; if (!h) return false;
+  handPunch(h.label === "Pet" ? "pat" : "reach");
+  if (h.type === "plot" && h.label === "Harvest") { const crop = GS().plots[h.i].crop; if (harvestAt(h.i) === true) fpBurst(h.i, crop); return true; }
+  if (h.type === "plot" && h.label === "Water") { if (G.waterPlot(h.i)) { squish(plots[h.i].g, .25); syncSoil(); } return true; }
+  if (h.type === "animal" && h.label === "Pet") { petFacing(h.an); return true; }
+  if (h.type === "barn") { enterBarn(); return true; }
+  return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view
+}
+actBtn.addEventListener("click", (e) => { e.stopPropagation(); interact(); });
+addEventListener("keydown", (e) => { if (walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && e.target.closest("input,textarea"))) interact(); });
+// the harvest, up close: juice and leaves fly past your face
+function fpBurst(i, crop) {
+  const at = plots[i].g.position.clone().setY(.9), cp = camera.position;
+  const juice = bitTex[JUICE[crop]] || (bitTex[JUICE[crop]] = new THREE.SpriteMaterial({map:radial(JUICE[crop] || "rgba(240,200,90,.95)"), transparent:true, depthWrite:false}));
+  const leaf = bitTex["rgba(90,170,60,.95)"] || (bitTex["rgba(90,170,60,.95)"] = new THREE.SpriteMaterial({map:radial("rgba(90,170,60,.95)"), transparent:true, depthWrite:false}));
+  for (let k = 0; k < 22; k++) {
+    const toCam = cp.clone().sub(at).normalize(), side = new THREE.Vector3(-toCam.z, 0, toCam.x);
+    const v = toCam.multiplyScalar(5 + rnd() * 4).addScaledVector(side, (rnd() - .5) * 5).add(new THREE.Vector3(0, 2 + rnd() * 3, 0));
+    spawnDrop(at, (k % 3 ? juice : leaf).clone(), v, {kind:"bit", size:.08 + rnd() * .1, life:.6 + rnd() * .4, spin:0});
+  }
+  const sp = GV.screenPos("plot:" + i) || {x:innerWidth / 2, y:innerHeight / 2}; flyTo("xp", 1, sp);
+}
+// petting in first person: the animal stops, turns to you, a heart, +15 happiness (the same as the classic view's Pet)
+function petFacing(an) {
+  const S = GS(), key = an.ref.type === "pen" ? "animal:" + an.kind + ":" + an.ref.i : "pet:" + an.ref.j;
+  const m = an.ref.type === "pen" ? G.meta(an.kind, an.ref.i) : S.pets[an.ref.j];
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), rel = camera.position.clone().sub(an.g.position);
+  an.target = null; an.path = null; an.facing = rel.dot(right) > 0 ? -1 : 1; an.stay("Loves the attention", 4, "idle"); an.hop = 1; an.calmUntil = clockT + 4;
+  if (G.interact(m, an.kind, "pet", key)) { an.emote("❤️", 2.2); an.need.lonely = 0; }
+  else { an.emote("💕", 1.4); G.toast(esc(m.name) + " was just petted. Try again in " + G.fmt(G.cdLeft(m.petAt || 0, PET_CD)).split(" ")[0]); }
+}
+
+// ---------- going into the barn: the doors swing open, you step inside, the barn opens; close it and you step back out ----------
+let inBarn = null, doorOpen = 0, doorWant = 0;
+const barnFade = document.getElementById("barnFade");
+function enterBarn() {
+  if (inBarn) return;
+  doorWant = 1; G.sfx("build");
+  inBarn = {phase:"in", t:performance.now()};
+  setTimeout(() => { startTween(1.1); inBarn.phase = "inside"; barnFade.classList.add("on"); setTimeout(() => { if (inBarn) G.openPanel("barn"); }, 900); }, 450);
+}
+function leaveBarn() {
+  barnFade.classList.remove("on"); startTween(1); inBarn = null; setTimeout(() => { doorWant = 0; }, 900);
+}
+function barnPose() { // standing just inside the doors, looking around the dim barn
+  camera.position.set(0, EYE + .1, 3.4); camera.lookAt(0, EYE, -2);
+}
+function updateDoors(dt) {
+  doorOpen += (doorWant - doorOpen) * Math.min(1, dt * 4);
+  for (const d of barn.userData.doors || []) d.rotation.y = d.userData.side * doorOpen * 1.75;
+  if (inBarn && inBarn.phase === "inside" && !G.panel && performance.now() - inBarn.t > 2500) leaveBarn();
+}
+
+// ---------- first-person hands: simple mittens at the bottom of the screen, sleeves in your shirt colour ----------
+scene.add(camera);
+hands = (() => {
+  const g = new THREE.Group(), sleeve = std({color:0xd24d3f, roughness:.8}), skin = std({color:0xf0c6a0, roughness:.7});
+  for (const sd of [-1, 1]) {
+    const h = new THREE.Group(); h.position.set(sd * .22, -.19, -.44); h.rotation.set(-.2, sd * -.3, sd * .2); g.add(h);
+    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.036, .044, .24, 12), sleeve); sl.rotation.x = Math.PI / 2; sl.position.z = .15; h.add(sl);
+    const mit = new THREE.Mesh(new THREE.SphereGeometry(.05, 14, 10), skin); mit.scale.set(1, .8, 1.3); mit.position.z = -.02; h.add(mit);
+    const th = new THREE.Mesh(new THREE.SphereGeometry(.024, 8, 6), skin); th.position.set(-sd * .045, .02, 0); h.add(th);
+    h.userData.base = h.position.clone(); h.userData.side = sd;
+  }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.renderOrder = 10; } });
+  g.visible = false; camera.add(g); g.userData = {sleeve, skin};
+  return g;
+})();
+let punch = null;
+function handPunch(kind) { punch = {kind, t:0}; }
+function updateHands(dt, t, tweenK) {
+  const on = !!walk && !thirdPerson && !inBarn && tweenK > .75 && !photoMode;
+  hands.visible = on; if (!on) return;
+  const w = walk, sp = w.vel.length(), sway = Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
+  if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
+  const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
+  for (const h of hands.children) {
+    const b = h.userData.base, sd = h.userData.side;
+    h.position.set(b.x + sd * sway, b.y + w.bob * .6 + Math.sin(t * 1.6 + sd) * .004 + Math.abs(sway) * .5, b.z);
+    if (punch && sd === 1) { if (punch.kind === "pat") { h.position.y += pk * .12; h.position.z -= pk * .12; h.rotation.x = -.2 - pk * .6; } else { h.position.z -= pk * .22; h.position.y += pk * .06; } }
+    else h.rotation.x = -.2;
+  }
+}
+
+// ---------- the farmer, standing about in the classic view (tap them to open the wardrobe) ----------
+const FARMER_HOME = new THREE.Vector3(-1.8, 0, 8.4);
+farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI * .85;
+function updateFarmerIdle(t) {
+  if (walk) return;
+  farmer.visible = !!GS() && !editMode;
+  const { legs, arms, head, body } = farmer.userData; if (!legs) return;
+  legs[0].rotation.x = legs[1].rotation.x = 0;
+  const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
+  arms[0].rotation.x = Math.sin(t * 1.3) * .04; arms[1].rotation.x = Math.sin(t * 1.3 + 1) * .04; arms[1].rotation.z = wave ? -2.3 + wave : 0;
+  head.rotation.y = Math.sin(t * .4) * .5; body.scale.y = 1 + Math.sin(t * 1.8) * .006;
+}
+
+// ---------- the wardrobe: a close-up of your farmer and the closet ----------
+let wardrobeOn = null, wardCat = "hair";
+const wardUI = document.getElementById("wardrobe");
+function setWardrobe(on) {
+  if (!!wardrobeOn === on) return;
+  if (on) {
+    if (walk) exitFP(); if (editMode) setEdit(false); if (photoMode) setPhoto(false);
+    closeTrays(); G.close();
+    wardrobeOn = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone(), tilt:tiltH.enabled, fpos:farmer.position.clone(), frot:farmer.rotation.y};
+    farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI; tiltH.enabled = tiltV.enabled = false; // facing out, away from the barn
+    cam.target.set(FARMER_HOME.x, .15, FARMER_HOME.z); cam.yaw = .15; cam.pitch = .1; cam.dist = 6.2; // aim low, so the farmer stands above the closet sheet
+    document.body.classList.add("dressing"); wardUI.hidden = false; renderWardrobe(); G.sfx("pop");
+  } else {
+    const W = wardrobeOn; wardrobeOn = null;
+    Object.assign(cam, {yaw:W.yaw, pitch:W.pitch, dist:W.dist}); cam.target.copy(W.target); tiltH.enabled = tiltV.enabled = W.tilt;
+    farmer.position.copy(W.fpos); farmer.rotation.y = W.frot;
+    document.body.classList.remove("dressing"); wardUI.hidden = true; G.sfx("pop");
+  }
+}
+function renderWardrobe() {
+  const W = G.WARDROBE, L = G.lookOf(GS()), cats = Object.keys(W).filter(c => c !== "overallColor" || W.overalls.opts[L.overalls][1]);
+  if (!cats.includes(wardCat)) wardCat = "hair";
+  const hex = (v) => "#" + v.toString(16).padStart(6, "0"), ICON = {short:"💇", long:"👩", pony:"🎀", bun:"🍩", curly:"🌀", buzz:"🪒", bob:"💁", braids:"🪢", straw:"👒", none:"🚫", cap:"🧢", beanie:"🧶", cowboy:"🤠", flowers:"🌸"};
+  document.getElementById("wardTabs").innerHTML = cats.map(c => `<button class="${c === wardCat ? "on" : ""}" data-wc="${c}">${W[c].n}</button>`).join("");
+  document.getElementById("wardOpts").innerHTML = W[wardCat].opts.map(([n, v], i) => {
+    const u = G.lookUnlocked(wardCat, i), sel = L[wardCat] === i;
+    const face = typeof v === "number" ? `<i class="sw" style="background:${hex(v)}"></i>` : typeof v === "boolean" ? `<i class="ic">${v ? "👖" : "🚫"}</i>` : `<i class="ic">${ICON[v] || "✨"}</i>`;
+    return `<button class="wopt ${sel ? "sel" : ""} ${u.ok ? "" : "lock"}" data-wi="${i}" ${u.ok ? "" : "aria-disabled=true"}>${face}<b>${n}</b>${u.ok ? "" : `<small>${u.why}</small>`}</button>`;
+  }).join("");
+}
+wardUI.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-wc]"), o = e.target.closest("[data-wi]"), done = e.target.closest("[data-wd]");
+  if (done) return setWardrobe(false);
+  if (t) { wardCat = t.dataset.wc; G.sfx("tick"); renderWardrobe(); }
+  if (o) { const i = +o.dataset.wi, u = G.lookUnlocked(wardCat, i); if (!u.ok) { G.toast(u.why.replace("💎 Coming soon", "💎 Gem items arrive with the gem shop soon")); G.sfx("error"); return; }
+    G.wear(wardCat, i); squish(farmer, .5); renderWardrobe(); }
+});
+GV.wardrobe = setWardrobe;
+buildFarmer();
+
 
 // Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
 // to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
@@ -2378,7 +2754,7 @@ function editCancel() { const d = editMode.drag; editMode.drag = null; editShade
 document.getElementById("walkBtn").addEventListener("click", () => setWalk(true));
 throwBtn.addEventListener("click", throwBait);
 document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
-walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setWalk(false); });
+walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) { if (classicSaved) exitFP(); else setWalk(false); } });
 editBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setEdit(false); });
 
 // ================= tactile physics: slicing, bouncing drops, bait and herding =================
@@ -2550,7 +2926,7 @@ function updateBaits() {
 }
 // what an animal does about you while you walk around (checked a few times a second)
 function sensePlayer(a, t) {
-  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0)) return; a.senseAt = t + .25;
+  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0) || t < (a.calmUntil || 0)) return; a.senseAt = t + .25; // (just petted: happy to stay close)
   const pp = walk.pos, d = a.pos.distanceTo(pp), P = a.P;
   if (a.kind === "dog") { // follows you around, a couple of steps behind
     if (d > 3.4 && d < 30 && !(a.doing === "follow" && a.target)) { const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw);
@@ -2560,6 +2936,7 @@ function sensePlayer(a, t) {
   if (a.kind === "cat") return; // cats do what cats want
   if (a.doing === "bait" && d > 1.3) return; // busy with the snack
   const nerve = 2.1 + (1 - P.brave) * 2.8; // how close you can get
+  if (aim && aim.an === a && d > 1.2) return; // an animal you're looking at (to pet it) stays put
   if (d < nerve && a.act !== "fleeing" && !(P.curious >= .9 && d > 1.4)) { a.flee(pp, P.brave < .3 ? "Scared of you!" : "Moving out of your way"); return; }
   if (P.curious >= .7 && d < 9 && d > nerve + .6 && !a.target && t > (a.lookedAt || 0)) {
     a.lookedAt = t + 9; const q = a.pos.lerp(pp, 1 - (nerve + .4) / d); a.emote("👀", 1.6); a.go(q.x, q.y, false, "Coming to see you", "look");
@@ -2615,6 +2992,7 @@ Object.assign(GV, {
     if (what === "decor" || what === "all") syncDecor();
     if (what === "stand" || what === "all") syncStand();
     if (what === "visitor" || what === "all") syncVisitor();
+    if (what === "look" || what === "all") buildFarmer();
     if (what === "style" || what === "all") applyStyle();
     if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout(); }
   },
@@ -2751,29 +3129,29 @@ let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const an = ray.intersectObjects(animals.map(a => a.card))[0];
-  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn].filter(o => o.visible);
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
   let hit = hits[0];
   // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
   if (hit && (owner(hit).userData.hit || {}).type === "lot") { const b = hits.find(h => (owner(h).userData.hit || {}).type === "building"); if (b) hit = b; }
-  if (an && (!hit || an.distance < hit.distance + .5)) return {type:"animal", an:animals.find(a => a.card === an.object)};
+  if (an && (!hit || an.distance < hit.distance + .5)) return {type:"animal", an:animals.find(a => a.card === an.object), dist:an.distance};
   // animals are small from the usual camera: a tap close to one counts, unless something is clearly in front of it
   if (!an) {
     let best = null, bd = 34;
     for (const a of animals) { if (!a.g.visible) continue; const p = a.g.position.clone().setY(a.S.h * .45), s = toScreen(p); if (!s) continue;
       const d = Math.hypot(s.x - x, s.y - y); if (d < bd && (!hit || camera.position.distanceTo(p) < hit.distance + 1)) { bd = d; best = a; } }
-    if (best) return {type:"animal", an:best};
+    if (best) return {type:"animal", an:best, dist:camera.position.distanceTo(best.g.position)};
   }
   if (!hit) return null;
   let o = owner(hit);
-  if (o === barn) return {type:"barn"};
-  return o ? Object.assign({obj:o}, o.userData.hit) : null;
+  if (o === barn) return {type:"barn", dist:hit.distance};
+  return o ? Object.assign({obj:o, dist:hit.distance}, o.userData.hit) : null;
 }
 const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
-  if (visiting || photoMode) return false; // a friend's farm: look, don't touch
+  if (visiting || photoMode || wardrobeOn) return false; // a friend's farm: look, don't touch
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
   const h = hitAt(e.clientX, e.clientY);
@@ -2856,6 +3234,7 @@ moveBar.addEventListener("click", (e) => {
 });
 function onTap(e) {
   if (photoMode) return false;
+  if (wardrobeOn) return true; // (drag to turn around your farmer; taps do nothing here)
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
   switch (h.type) {
@@ -2882,6 +3261,7 @@ function onTap(e) {
     case "lot": squish(h.obj, .45); G.openPanel("lot", h.bid); return true;
     case "board": squish(h.obj, .6); G.sfx("truck"); G.openPanel("orders"); return true;
     case "visitor": squish(h.obj, .8); G.sfx("pop"); G.openPanel("visitor"); return true;
+    case "farmer": squish(farmer, .6); setWardrobe(true); return true;
     case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
     case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
     case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
@@ -3097,11 +3477,11 @@ function frame() {
   // the animals live their lives
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
   if (walk) updateWalk(dt);
-  updateIntro(); placeCamera(dt); updateSquish(performance.now());
+  updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); updateDoors(dt); updateSquish(performance.now());
   updateDrops(dt); updateBaits(); drawTrail();
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   for (const a of animals) a.update(dt, t);
-  updateGame(t, dt);
+  updateGame(t, dt); updateAim(t); updateFarmerIdle(t);
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
   for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
