@@ -166,6 +166,11 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Co-op: while visiting, tap a friend's growing crops to 💧 water them (+2 🪙 each, 12 a day per friend); they're thanked and watered when they next play.
 - [x] Trading post (👥 › 🏪): up to 4 listings at your own price (half to double the barn price), buy from friends and other players.
 
+## Builder brief, Phase 5: tech foundation
+- [x] Dynamic resolution (Settings › Graphics › Auto): judges the typical frame time and scales the drawing resolution between 100% and about 45%, then softer shadows, then no glow/blur; sharpens back up gently when the phone has time to spare. Settings shows the current %.
+- [x] Privacy-friendly stats: each phone reports each milestone once (opened, guest/account, tutorial steps, levels 2-20, came back another day / a week later, added a friend). Only the milestone name and the date. The players page shows the drop-off funnel and marks the biggest drop.
+- [x] Crash and error reports to the Discord feedback channel: message, file:line, stack, game version, boot stage, phone type. Max 3 per visit and 10 a day per phone, noise filtered, only from the real site.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.
