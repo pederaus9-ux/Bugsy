@@ -1,7 +1,7 @@
 # STORMCHASER — Technical Design Document
 
 **Engine:** Unreal Engine 5.6 · **V1 target:** PC (DX12/Vulkan, SM6), single-player · **Later:** multiplayer (up to 16, dedicated server), mobile high tier · **Genre:** GTA-style open-world action on a 1:1 real county, where the severe weather is the system trying to kill you
-**Design authority:** `GAME_DESIGN_DOC.md` (v1). Where this TDD and the GDD disagree on *what* the game is, the GDD wins; this document owns *how* it is built.
+**Design authority:** the game design doc (v1.1, kept privately in the git-ignored `docs/stormchaser/private/`). Where this TDD and the GDD disagree on *what* the game is, the GDD wins; this document owns *how* it is built.
 **Doc owner:** Lead Systems Architect / TD · **Status:** v1.1 (random, unplanned storms; prompt-free open world)
 
 > Conventions used throughout
@@ -1226,4 +1226,4 @@ Every road gets a gameplay class from its real OSM tags, lidar grade and flood b
 
 ### 8.11 Landmarks
 
-The GDD lists 38 easter-egg landmarks (in `storm-chaser-landmarks.md`) that double as mission locations, fuel stops and hideouts. They are hand-authored hero content in their own data layer (`DL_Landmarks`), placed on the real coordinates and built above the procedural baseline, so a MapBuilder re-run never overwrites them. That landmarks file is not yet in the repo.
+The GDD lists 38 easter-egg landmarks (in `storm-chaser-landmarks.md`) that double as mission locations, fuel stops and hideouts. They are hand-authored hero content in their own data layer (`DL_Landmarks`), placed on the real coordinates and built above the procedural baseline, so a MapBuilder re-run never overwrites them. The landmarks file, like the GDD, lives in the git-ignored `docs/stormchaser/private/`.
