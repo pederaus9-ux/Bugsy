@@ -1507,7 +1507,7 @@ document.getElementById("soundBtn").addEventListener("click", () => G.toggleSoun
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
 // one message a minute, and if the webhook is ever abused just delete it in Discord and paste a new one here.
-const FEEDBACK_WEBHOOK = ""; // Discord: channel settings › Integrations › Webhooks › New Webhook › Copy Webhook URL
+const FEEDBACK_WEBHOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ"; // Discord: channel settings › Integrations › Webhooks
 async function sendFeedback(text) {
   const S = GS(), info = `Level ${S.level} · ${innerWidth}×${innerHeight} · ${/Android|iPhone|iPad/.exec(navigator.userAgent)?.[0] || "computer"} · ${new Date().toLocaleString()}`;
   const res = await fetch(FEEDBACK_WEBHOOK, {
