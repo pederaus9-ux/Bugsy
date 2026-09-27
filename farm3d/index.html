@@ -242,6 +242,15 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .tray.away{opacity:0;pointer-events:none;transition:opacity .12s}
 .ghost{position:fixed;z-index:25;width:56px;height:56px;object-fit:contain;pointer-events:none;transform:translate(-50%,-125%);filter:drop-shadow(0 5px 6px rgba(0,0,0,.35))}
 .movebar{text-align:center}
+.fbbox{position:fixed;left:12px;right:12px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;z-index:35;display:flex;flex-direction:column;gap:8px;
+  background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
+.fbbox[hidden]{display:none}
+.fbbox h3{margin:0;font:400 20px var(--fun);display:flex;justify-content:space-between;align-items:center}
+.fbbox .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2)}
+.fbbox textarea{width:100%;font:700 15px/1.35 var(--body);padding:10px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);resize:none;-webkit-user-select:text;user-select:text}
+.fbbox textarea:focus{outline:none;border-color:var(--gold-dk)}
+.fbbox .row{display:flex;justify-content:space-between;align-items:center}
+.fbbox small{font-weight:800;opacity:.6}
 .movehint{position:fixed;top:calc(env(safe-area-inset-top,0px) + 160px);left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;
   background:rgba(70,35,10,.85);border:2px solid #fff;color:#fff;border-radius:99px;padding:7px 16px;font-weight:800;font-size:14px;white-space:nowrap}
 .toasts{position:fixed;left:0;right:0;bottom:calc(320px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
@@ -297,6 +306,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
   <button id="editBtn" aria-label="Move trees and buildings">🏗️</button>
   <button data-act="open" data-p="settings" aria-label="Settings">⚙️</button>
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
+  <button id="feedbackBtn" aria-label="Send feedback">💬</button>
 </div>
 <div class="dock">
   <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
@@ -315,6 +325,12 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
 <canvas id="swipe"></canvas>
+<form class="fbbox" id="fbBox" hidden>
+  <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
+  <p class="tray-sub">Found a bug or have an idea? Tell us!</p>
+  <textarea id="fbText" maxlength="1000" rows="4" placeholder="Type your message…" required></textarea>
+  <div class="row"><small id="fbCount">0 / 1000</small><button type="submit" class="btn sm" id="fbSend">Send 💌</button></div>
+</form>
 <div class="tray movebar" id="moveBar" hidden><h3><span id="moveTitle">Move</span></h3><div class="tray-sub">Drag it with one finger to where you want it</div>
   <div class="row"><button class="btn plain sm" data-m="store">Put away</button><button class="btn sm" data-m="done">✔ Done</button></div></div>
 <img class="ghost" id="ghost" hidden alt="">
@@ -1487,6 +1503,40 @@ renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.add
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
+
+// ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
+// Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
+// one message a minute, and if the webhook is ever abused just delete it in Discord and paste a new one here.
+const FEEDBACK_WEBHOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ"; // Discord: channel settings › Integrations › Webhooks
+async function sendFeedback(text) {
+  const S = GS(), info = `Level ${S.level} · ${innerWidth}×${innerHeight} · ${/Android|iPhone|iPad/.exec(navigator.userAgent)?.[0] || "computer"} · ${new Date().toLocaleString()}`;
+  const res = await fetch(FEEDBACK_WEBHOOK, {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({username: "Sunny Acres feedback", content: text.slice(0, 1000) + "\n-# " + info, allowed_mentions: {parse: []}}),
+  });
+  if (!res.ok) throw new Error("Discord answered " + res.status);
+}
+const fbBox = document.getElementById("fbBox"), fbText = document.getElementById("fbText"), fbSend = document.getElementById("fbSend"), fbCount = document.getElementById("fbCount");
+const FB_KEY = "sa3d-feedback-at", FB_WAIT = 60e3;
+function openFeedback(on) { G.close(); closeTrays(); fbBox.hidden = !on; if (on) { fbCount.textContent = fbText.value.length + " / 1000"; fbText.focus(); } }
+document.getElementById("feedbackBtn").addEventListener("click", () => openFeedback(true));
+fbBox.addEventListener("click", (e) => { if (e.target.closest('[data-fb="close"]')) openFeedback(false); });
+fbText.addEventListener("input", () => { fbCount.textContent = fbText.value.length + " / 1000"; });
+fbBox.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = fbText.value.trim(); if (text.length < 3) { G.toast("Type a little more first"); return; }
+  if (!FEEDBACK_WEBHOOK) { G.toast("Feedback isn't switched on yet"); return; }
+  let last = 0; try { last = +localStorage.getItem(FB_KEY) || 0; } catch (err) {}
+  if (Date.now() - last < FB_WAIT) { G.toast("Thanks! You can send another in a minute"); return; }
+  fbSend.disabled = true; fbSend.textContent = "Sending…";
+  try {
+    await sendFeedback(text);
+    try { localStorage.setItem(FB_KEY, String(Date.now())); } catch (err) {}
+    fbText.value = ""; openFeedback(false); G.toast("Thank you! Your message was sent 💌"); G.sfx("collect");
+  } catch (err) { G.toast("Couldn't send it. Check your internet and try again."); G.sfx("error"); }
+  fbSend.disabled = false; fbSend.textContent = "Send 💌";
+});
+addEventListener("keydown", (e) => { if (e.code === "Escape" && !fbBox.hidden) openFeedback(false); });
 addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
 
 bootStep("building the fields and buildings");
