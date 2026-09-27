@@ -10,6 +10,7 @@ export const opts = {quiet:false}; // test pictures: never pop up menus by thems
 export const view = {
   fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; }, moveDecor(j) {},
   refresh(what) {},               // "plots" | "herd" | "buildings" | "decor" | "stand" | "style" | "all"
+  sparkle(key) {}, fly(kind, n) {}, // a gold burst over something; coins or gems flying into their counter
   freeDecorSpot(size) { return null; },
   paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; },
 };
@@ -332,7 +333,7 @@ export function harvest(i, quiet) {
   if (space() < 2) { if (!quiet) barnFull(); return "full"; }
   const crop = p.crop, gold = Math.random() < goldChance(p);
   view.fx("plot:" + i, (gold ? "🥇 +2 " : "+2 ") + ITEMS[crop].e);
-  add(crop, 2); if (gold) addGold(crop, 2);
+  add(crop, 2); if (gold) { addGold(crop, 2); view.sparkle("plot:" + i); }
   gainXP(CROPS[crop].xp); S.stats.harvests++; sfx("harvest"); if (gold) sfx("magic"); eventProgress("harvest", 2);
   // crop rotation: the same crop again wears the soil out, a different one freshens it up
   p.soil = clamp(p.soil + (p.last === crop ? -15 : 10), 0, 100); p.soilAt = now(); p.last = crop;
@@ -1048,6 +1049,7 @@ export function renderHud() {
   $("#coins").textContent = S.coins.toLocaleString();
   $("#gems").textContent = S.gems;
   for (const [id, v] of [["coins", S.coins], ["gems", S.gems], ["lvl", S.level * 1e6 + S.xp]]) {
+    if (bumpPrev[id] !== undefined && v > bumpPrev[id] && id !== "lvl" && !homeS) view.fly(id === "coins" ? "coin" : "gem", v - bumpPrev[id]); // earned: they fly in
     if (bumpPrev[id] !== undefined && bumpPrev[id] !== v) { const el = $("#" + id).closest(".cnt, .lvlbox"); el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
     bumpPrev[id] = v;
   }
@@ -1309,7 +1311,9 @@ function panelSettings() {
       <div class="stat slot"><b>${S.stats.earned.toLocaleString()}</b>coins earned</div></div>
     <h4>Sound</h4><div class="toggles">
       <button class="btn ${snd.on ? "" : "plain"} sm" data-act="sound">${snd.on ? "🔊 Sounds on" : "🔇 Sounds off"}</button>
-      <button class="btn ${snd.music ? "" : "plain"} sm" data-act="music">${snd.music ? "🎵 Music on" : "🎵 Music off"}</button></div>
+      <button class="btn ${snd.music ? "" : "plain"} sm" data-act="music">${snd.music ? "🎵 Music on" : "🎵 Music off"}</button>
+      <button class="btn ${snd.amb ? "" : "plain"} sm" data-act="amb">${snd.amb ? "🐦 Farm sounds on" : "🐦 Farm sounds off"}</button>
+      <button class="btn ${snd.buzz ? "" : "plain"} sm" data-act="buzz">${snd.buzz ? "📳 Vibration on" : "📳 Vibration off"}</button></div>
     <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
     <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto lowers the detail by itself if the phone gets slow. Battery saver is gentlest on the battery.</p>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
@@ -1500,6 +1504,8 @@ document.addEventListener("click", (e) => {
     case "standSlot": buyStandSlot(); break;
     case "sound": snd.on = !snd.on; saveSound(); if (panel) renderPanel(); if (snd.on) { audio(); sfx("pop"); } break;
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
+    case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
+    case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
     case "signOut": closePanel(); if (window.saAuth) window.saAuth.signOut(); break;
     case "makeAccount": closePanel(); if (window.saAuth && window.saAuth.upgrade) window.saAuth.upgrade(); break;
@@ -1541,7 +1547,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) save(
 /* ============================================================
    SOUND: little effects and a gentle tune, all made on the fly (no sound files to download)
    ============================================================ */
-export const snd = {on:true, music:true};
+export const snd = {on:true, music:true, amb:true, buzz:true}; // amb: birds, wind and rain around the farm; buzz: the phone vibrates a little
 try { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + "-sound") || "{}")); } catch (e) {}
 let AC = null, master = null, musicBus = null, noiseBuf = null;
 function audio() {
@@ -1578,7 +1584,7 @@ function tone(f, d, o = {}) {
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   let out = g;
   if (o.lp) { const f2 = ac.createBiquadFilter(); f2.type = "lowpass"; f2.frequency.value = o.lp; g.connect(f2); out = f2; }
-  osc.connect(g); out.connect(o.bus || master);
+  osc.connect(g); out.connect(o.bus || BUS || master);
   osc.start(t); osc.stop(t + d + .05);
 }
 function noise(d, o = {}) {
@@ -1586,7 +1592,7 @@ function noise(d, o = {}) {
   const t = ac.currentTime + (o.at || 0), src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
   src.buffer = noiseBuf; f.type = "bandpass"; f.frequency.value = o.freq || 1500; f.Q.value = o.q || 1;
   g.gain.setValueAtTime(o.vol || .2, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  src.connect(f); f.connect(g); g.connect(master); src.start(t); src.stop(t + d + .05);
+  src.connect(f); f.connect(g); g.connect(o.bus || BUS || master); src.start(t); src.stop(t + d + .05);
 }
 const SOUNDS = {
   pop:() => tone(520, .08, {to:820, vol:.12, type:"triangle"}),
@@ -1614,9 +1620,41 @@ const SOUNDS = {
   slice:() => { noise(.12, {vol:.16, freq:3200, q:.5}); tone(1400, .09, {type:"triangle", vol:.05, to:420}); },
   bounce:() => tone(210, .07, {vol:.07, to:130}),
   water:() => { noise(.35, {vol:.12, freq:5200, q:.4}); noise(.25, {vol:.08, freq:3000, q:.6, at:.12}); },
+  bird:() => { const f = 2400 + Math.random() * 1600, n = 2 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < n; i++) tone(f * (1 + (Math.random() - .5) * .25), .07 + Math.random() * .05, {type:"sine", vol:.05, at:i * (.1 + Math.random() * .06), to:f * (Math.random() < .5 ? 1.3 : .8)}); },
+  cricket:() => { for (let i = 0; i < 3; i++) tone(4300, .035, {type:"square", vol:.012, at:i * .06, lp:6000}); },
+  shutter:() => { noise(.05, {vol:.25, freq:3500, q:.8}); noise(.07, {vol:.2, freq:1800, q:.8, at:.09}); },
   throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:"triangle", vol:.06, to:520}); },
 };
-export function sfx(name) { if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
+const BUZZ = {harvest:8, collect:12, level:[30, 40, 60], error:[25, 30, 25], build:[20, 30, 20], coin:6, magic:[10, 20, 10], thunder:[60, 40, 80]};
+export function sfx(name) { if (BUZZ[name]) buzz(BUZZ[name]); if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
+// a light tap from the phone (Android; iPhones don't allow web pages to vibrate)
+let lastBuzz = 0;
+export function buzz(p) { if (!snd.buzz || !navigator.vibrate || document.hidden) return; const t = performance.now(); if (t - lastBuzz < 40) return; lastBuzz = t; try { navigator.vibrate(p); } catch (e) {} }
+// a sound coming from somewhere on the farm: pan -1 (left) … 1 (right), vol 0…1 (quieter further away)
+let BUS = null;
+export function sfxAt(name, pan, vol) {
+  if (!snd.on || !snd.amb || !AC || AC.state !== "running" || !SOUNDS[name] || document.hidden) return;
+  const g = AC.createGain(), p = AC.createStereoPanner ? AC.createStereoPanner() : null;
+  g.gain.value = clamp(vol, 0, 1); if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(master); } else g.connect(master);
+  BUS = g; try { SOUNDS[name](); } catch (e) {} BUS = null;
+}
+// the steady sounds of the farm: wind in the grass and rain on the roof
+const loops = {};
+function loop(name, freq, type, q) {
+  if (loops[name]) return loops[name];
+  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  src.buffer = noiseBuf; src.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = 0;
+  src.connect(f); f.connect(g); g.connect(master); src.start();
+  return (loops[name] = {g, f});
+}
+export function ambience(wind, rain) {
+  if (!AC || AC.state !== "running") return;
+  const on = snd.on && snd.amb && !document.hidden ? 1 : 0, t = AC.currentTime;
+  const w = loop("wind", 420, "lowpass", .7), r = loop("rain", 2600, "bandpass", .5);
+  w.g.gain.setTargetAtTime(on * (.012 + wind * .05), t, 1.5); w.f.frequency.setTargetAtTime(300 + wind * 500 + Math.random() * 200, t, 2);
+  r.g.gain.setTargetAtTime(on * (rain ? .09 : 0), t, 1.2);
+}
 // A soft, wandering tune in C major pentatonic over a I–V–vi–IV bass line.
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 const SCALE = [60, 62, 64, 67, 69, 72, 74, 76, 79], ROOTS = [48, 43, 45, 41];
