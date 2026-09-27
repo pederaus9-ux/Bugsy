@@ -182,7 +182,11 @@ export function load() {
   return "new";
 }
 let restoring = false; // stops the page from re-saving the old farm while a backup is being loaded
-export function save() { if (restoring) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+export function save() {
+  if (restoring || window.__saHold) return; // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+  window.dispatchEvent(new Event("sa3d:saved")); // accounts back the farm up to the cloud
+}
 
 // ---------- inventory ----------
 export const have = (id) => S.barn[id] || 0;

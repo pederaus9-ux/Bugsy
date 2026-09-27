@@ -261,6 +261,13 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .authpw{position:relative;display:block}
 .authpw input{padding-right:46px}
 .authpw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:transparent;font-size:18px}
+.authchoose{display:flex;flex-direction:column;gap:8px}
+.authchoose button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:16px;background:#fff;border:3px solid var(--parch2);
+  color:var(--wood-dk);text-align:left;box-shadow:0 3px 0 var(--parch2)}
+.authchoose button:active{transform:translateY(2px);box-shadow:none}
+.authchoose b{font:400 18px var(--fun)}
+.authchoose small{font-weight:800;font-size:13px;opacity:.75}
+.authchoose p{margin:0;font-weight:700;font-size:12px;opacity:.7}
 .authmsg{min-height:18px;margin:0;font-weight:800;font-size:13px;color:#c0392b}
 .authmsg.ok{color:var(--green-dk)}
 .authgo{width:100%;padding:13px;font-size:17px}
@@ -371,12 +378,17 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
     <label class="authfield" id="fEmail"><span>Email</span><input id="authEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></label>
     <label class="authfield" id="fPass"><span>Password</span><span class="authpw"><input id="authPass" type="password" autocomplete="current-password" minlength="6"><button type="button" id="authEye" aria-label="Show or hide the password">👁️</button></span></label>
     <label class="authfield" id="fPass2" hidden><span>Password again</span><input id="authPass2" type="password" autocomplete="new-password" minlength="6"></label>
+    <div class="authchoose" id="authChoose" hidden>
+      <button type="button" data-pick="phone"><b>📱 This phone's farm</b><small></small></button>
+      <button type="button" data-pick="cloud"><b>☁️ My account's farm</b><small></small></button>
+      <p>The other farm is kept as a backup on this phone.</p>
+    </div>
     <p class="authmsg" id="authMsg" role="alert"></p>
     <button class="btn authgo" id="authGo" type="submit">Sign in</button>
     <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=1"></script>
+<script type="module" src="auth.js?v=2"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -384,7 +396,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=10"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=11"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1543,6 +1555,7 @@ renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.add
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
+addEventListener("sa3d:linked", () => G.toast("🌻 Your farm is now saved to your account")); // accounts (auth.js): a farm from before accounts moved in
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows

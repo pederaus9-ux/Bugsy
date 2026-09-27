@@ -1,7 +1,9 @@
-// Sunny Acres 3D: player accounts with Firebase Authentication (v9 modular Web SDK), email and password.
+// Sunny Acres 3D: player accounts with Firebase Authentication (v9 modular Web SDK), email and password,
+// and cloud saves in Firestore so a farm belongs to its account and follows it to any phone.
 // Until the config below is filled in (it still says YOUR_…), accounts stay switched off and the game plays as before.
-// To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here,
-// then Authentication › Sign-in method › turn on Email/Password.
+// To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here;
+// Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
+//   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -9,14 +11,23 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID",
 };
 const SDK = "https://www.gstatic.com/firebasejs/9.23.0/";
-const REMEMBER = "sa3d-account"; // this phone has signed in before, so it can keep playing without internet
+const REMEMBER = "sa3d-account";      // this phone has signed in before, so it can keep playing without internet
+const SAVE_KEY = "sunny-acres-3d-v1"; // the farm, as game.js saves it
+const OWNER = "sa3d-save-owner";      // which account the farm on this phone belongs to ("" = a farm from before accounts)
+const SYNC_REV = "sa3d-sync-rev";     // the cloud version this phone's farm was last in step with
+const DIRTY = "sa3d-dirty";           // "1" when this phone's farm has changed since then
 
 const $ = (id) => document.getElementById(id);
 const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo");
-const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs");
+const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs"), choose = $("authChoose");
 window.saAuth = {user:null, signOut:async () => {}}; // the game's Settings panel reads this
-let mode = "signin", fb = null;
+let mode = "signin", fb = null, cloud = null;
 
+const ls = {
+  get:(k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set:(k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
+  del:(k) => { try { localStorage.removeItem(k); } catch (e) {} },
+};
 const ERR = {
   "auth/invalid-email":"That email address doesn't look right.",
   "auth/missing-email":"Type your email address.",
@@ -37,10 +48,12 @@ function show(m) {
   mode = m; gate.hidden = false; say("");
   const t = {
     checking:["🌻 Sunny Acres", "Checking your account…"],
+    syncing:["🌻 Sunny Acres", "Getting your farm ready…"],
     signin:["Welcome back!", "Sign in to play Sunny Acres"],
-    register:["Join the farm!", "Make an account to start playing"],
+    register:["Join the farm!", "Make an account. Your farm comes with you."],
     reset:["Forgot your password?", "We'll email you a link to make a new one"],
     offline:["No connection", "Can't reach the sign-in service right now"],
+    choose:["Two farms found", "This phone and your account each have a farm. Which one do you want to keep playing?"],
   }[m];
   title.textContent = t[0]; sub.textContent = t[1];
   const fields = m === "signin" || m === "register" || m === "reset";
@@ -48,33 +61,121 @@ function show(m) {
   for (const b of tabs.querySelectorAll("button")) b.classList.toggle("on", b.dataset.mode === m);
   $("fEmail").hidden = !fields; $("fPass").hidden = !(m === "signin" || m === "register"); $("fPass2").hidden = m !== "register";
   pass.autocomplete = m === "register" ? "new-password" : "current-password";
-  go.hidden = m === "checking";
+  choose.hidden = m !== "choose";
+  go.hidden = m === "checking" || m === "syncing" || m === "choose";
   go.textContent = {signin:"Sign in", register:"Create account", reset:"Send reset link", offline:"Try again"}[m] || "";
   forgot.hidden = !(m === "signin" || m === "reset"); forgot.textContent = m === "reset" ? "← Back to sign in" : "Forgot your password?";
   if (fields) setTimeout(() => (email.value ? pass : email).focus(), 50);
 }
-function unlock(user) {
+function open(user) {
   window.saAuth.user = {email:user.email, uid:user.uid};
-  try { localStorage.setItem(REMEMBER, JSON.stringify(window.saAuth.user)); } catch (e) {}
+  ls.set(REMEMBER, JSON.stringify(window.saAuth.user));
   gate.hidden = true; pass.value = pass2.value = "";
+}
+
+// ---------- the farm and the account ----------
+// what a saved farm amounts to, for the "which farm?" choice and to tell a real farm from a brand-new one
+function summary(raw) {
+  try { const s = JSON.parse(raw); return {level:s.level || 1, coins:s.coins || 0, real:(s.level || 1) > 1 || (s.xp || 0) > 0 || ((s.stats || {}).harvests || 0) > 0}; }
+  catch (e) { return null; }
+}
+// put a farm on this phone and restart the game with it (the game mustn't save its old farm over it on the way out)
+function useFarm(raw, uid, rev, dirty) {
+  window.__saHold = true;
+  if (raw) ls.set(SAVE_KEY, raw); else ls.del(SAVE_KEY);
+  ls.set(OWNER, uid); ls.set(SYNC_REV, String(rev || 0)); if (dirty) ls.set(DIRTY, "1"); else ls.del(DIRTY);
+  location.reload();
+  return new Promise(() => {}); // the page is reloading
+}
+// Save this phone's farm to the account. Only over the version this phone last saw: if another phone saved
+// in between, nothing is overwritten and the player chooses next time the game opens. `force` is for when the
+// player has already chosen (or a farm from before accounts moves in).
+async function upload(force) {
+  clearTimeout(upload.t);
+  const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
+  if (!cloud || !cloud.uid || !s || ls.get(OWNER) !== cloud.uid) return false;
+  if (!force && ls.get(DIRTY) !== "1") return true; // nothing new
+  try {
+    const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);
+    if (rev == null) { console.warn("This farm was saved from another phone meanwhile; you'll get to choose next time."); return false; }
+    ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); return true;
+  } catch (e) { console.warn("Cloud save will try again later:", e.code || e.message); return false; }
+}
+// the game saves often, even when nothing changed (like when the app is closed): only a real change counts
+let lastRaw = ls.get(SAVE_KEY);
+addEventListener("sa3d:saved", () => {
+  const raw = ls.get(SAVE_KEY); if (raw === lastRaw) return; lastRaw = raw; ls.set(DIRTY, "1");
+  if (cloud && cloud.uid) { clearTimeout(upload.t); upload.t = setTimeout(upload, 15000); }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) upload(); }); // leaving the app: save to the cloud now
+
+// Decide which farm this account plays, the moment it signs in. No farm is ever thrown away:
+// - a farm from before accounts moves into the brand-new account (or, if the account already has one, the player picks)
+// - someone else's farm on this phone is put aside for them (they get it back when they sign in again)
+// - a new phone gets the account's farm from the cloud
+async function linkFarm(user) {
+  const uid = user.uid, owner = ls.get(OWNER) || "", raw = ls.get(SAVE_KEY), here = raw && summary(raw), dirty = ls.get(DIRTY) === "1";
+  let remote = null;
+  try { remote = await cloud.get(); } catch (e) { console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null; return open(user); }
+  cloud.uid = uid;
+  const rrev = remote ? remote.rev || 0 : 0;
+  if (owner === uid) { // this account's own farm
+    if (remote && rrev > (+ls.get(SYNC_REV) || 0)) { // it was saved from another phone since this one last synced
+      if (!dirty) return useFarm(remote.save, uid, rrev);
+      return pickFarm(user, raw, here, remote); // and this phone changed it too: the player decides
+    }
+    await upload(); return open(user);
+  }
+  if (owner) { // another account's farm is on this phone: keep it safe for them
+    if (raw) ls.set(SAVE_KEY + "@" + owner, raw);
+    if (remote) return useFarm(remote.save, uid, rrev);
+    const mine = ls.get(SAVE_KEY + "@" + uid); if (mine) { ls.del(SAVE_KEY + "@" + uid); return useFarm(mine, uid, 0, true); }
+    return useFarm(null, uid); // a fresh farm for a new player
+  }
+  // a farm from before accounts (or a phone that has never been played)
+  if (!here || !here.real) {
+    if (remote) return useFarm(remote.save, uid, rrev);
+    ls.set(OWNER, uid); await upload(true); return open(user);
+  }
+  if (!remote || remote.save === raw) { ls.set(OWNER, uid); await upload(true); open(user); window.dispatchEvent(new Event("sa3d:linked")); return; } // the farm moves into the account
+  return pickFarm(user, raw, here, remote);
+}
+// two different farms for one account: show both and let the player keep one; the other stays on this phone as a backup
+async function pickFarm(user, raw, here, remote) {
+  const uid = user.uid, there = summary(remote.save) || {level:1, coins:0}; here = here || {level:1, coins:0};
+  choose.querySelector('[data-pick="phone"] small').textContent = `Level ${here.level} · ${here.coins.toLocaleString()} 🪙`;
+  choose.querySelector('[data-pick="cloud"] small').textContent = `Level ${there.level} · ${there.coins.toLocaleString()} 🪙`;
+  show("choose");
+  const pick = await new Promise((res) => { choose.onclick = (e) => { const b = e.target.closest("[data-pick]"); if (b) res(b.dataset.pick); }; });
+  if (pick === "phone") { ls.set(SAVE_KEY + "-backup-account", remote.save); ls.set(OWNER, uid); await upload(true); return open(user); }
+  ls.set(SAVE_KEY + "-backup-phone", raw); return useFarm(remote.save, uid, remote.rev || 0);
 }
 
 async function start() {
   show("checking");
   try {
-    const [{initializeApp}, A] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js")]);
-    const auth = A.getAuth(initializeApp(firebaseConfig));
+    const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
+    const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app);
     fb = {A, auth};
-    window.saAuth.signOut = () => A.signOut(auth);
+    cloud = {uid:null,
+      get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },
+      // write a new version, only if the cloud still has the version this phone expects (null: write regardless)
+      put:(raw, s, expect) => F.runTransaction(db, async (tx) => {
+        const ref = F.doc(db, "farms", cloud.uid), d = await tx.get(ref), cur = d.exists() ? d.data().rev || 0 : 0;
+        if (expect != null && cur !== expect) return null;
+        tx.set(ref, {save:raw, level:s.level, coins:s.coins, rev:cur + 1, updatedAt:Date.now()});
+        return cur + 1;
+      })};
+    window.saAuth.signOut = async () => { await upload(); cloud.uid = null; await A.signOut(auth); };
     // fires straight away with the saved sign-in (kept on this phone), and again on every sign-in and sign-out
-    A.onAuthStateChanged(auth, (user) => {
-      if (user) return unlock(user);
-      window.saAuth.user = null; try { localStorage.removeItem(REMEMBER); } catch (e) {}
+    A.onAuthStateChanged(auth, async (user) => {
+      if (user) { show("syncing"); return linkFarm(user); }
+      window.saAuth.user = null; ls.del(REMEMBER);
       show("signin");
     });
   } catch (e) {
     // the sign-in service didn't load (usually no internet): a phone that has signed in before keeps playing
-    let known = null; try { known = JSON.parse(localStorage.getItem(REMEMBER)); } catch (err) {}
+    let known = null; try { known = JSON.parse(ls.get(REMEMBER)); } catch (err) {}
     if (known) { window.saAuth.user = known; gate.hidden = true; return; }
     show("offline");
   }
@@ -86,7 +187,7 @@ $("authEye").addEventListener("click", () => { const t = pass.type === "password
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (mode === "offline") return location.reload(); // a failed download is remembered until the page reloads
-  if (!fb) return;
+  if (!fb || mode === "choose") return;
   const {A, auth} = fb, em = email.value.trim(), pw = pass.value;
   if (!em) return say(ERR["auth/missing-email"]);
   if (mode !== "reset" && !pw) return say(ERR["auth/missing-password"]);
