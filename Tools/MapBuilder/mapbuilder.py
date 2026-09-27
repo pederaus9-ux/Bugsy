@@ -6,13 +6,14 @@ Turns a real-world center point into Unreal-ready map data:
   dem      USGS 3DEP bare-earth DEM -> 8129x8129 .r16 heightmap + manifest + preview
   osm      OpenStreetMap roads/buildings/water/power/landuse -> local-meter JSON
   climate  SPC tornado database -> local climatology for DA_Climate calibration
+  lidar    3DEP lidar point cloud -> every tree (x, y, height, crown) + building (footprint, height, roof) per tile
   all      dem + osm + climate
 
 All outputs go to out/ (git-ignored). Coordinates in outputs are local meters
 relative to the map center, UTM-projected, +X east, +Y north.
 Unreal is +X forward/+Y right; the Editor import script flips Y.
 
-Requires: numpy pyproj tifffile pillow
+Requires: numpy pyproj tifffile pillow (+ scipy, laspy[lazrs] for lidar)
 """
 import argparse
 import csv
@@ -344,6 +345,178 @@ def cmd_climate(a):
     print(json.dumps(out, indent=2))
 
 
+# ---------------------------------------------------------------- lidar (trees + buildings)
+EPT_BASE = "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/"
+
+
+def ept_nodes(base, ept, qmin, qmax, max_depth):
+    """Yield EPT node keys whose cube intersects the 3857 query box [qmin, qmax] (xy only)."""
+    b = ept["bounds"]
+    pages = {}
+
+    def page(key):
+        if key not in pages:
+            pages[key] = json.loads(http_get(f"{base}ept-hierarchy/{key}.json"))
+        return pages[key]
+
+    def walk(d, x, y, z, hier):
+        key = f"{d}-{x}-{y}-{z}"
+        if key not in hier:
+            return
+        if hier[key] == -1:                       # sub-hierarchy page
+            hier = page(key)
+        size = (b[3] - b[0]) / 2 ** d
+        x0, y0 = b[0] + x * size, b[1] + y * size
+        if x0 > qmax[0] or x0 + size < qmin[0] or y0 > qmax[1] or y0 + size < qmin[1]:
+            return
+        if hier[key] > 0:
+            yield key
+        if d < max_depth:
+            for dx in (0, 1):
+                for dy in (0, 1):
+                    for dz in (0, 1):
+                        yield from walk(d + 1, 2 * x + dx, 2 * y + dy, 2 * z + dz, hier)
+
+    yield from walk(0, 0, 0, 0, page("0-0-0-0"))
+
+
+def cmd_lidar(a):
+    import laspy
+    from scipy import ndimage as ndi
+
+    fr = Frame(load_location())
+    os.makedirs(OUT, exist_ok=True)
+    base = EPT_BASE + a.dataset + "/"
+    ept = json.loads(http_get(base + "ept.json"))
+    half, cell = a.size_m / 2, a.cell_m
+    ox, oy = a.offset_x, a.offset_y                       # tile center, local meters
+    n = int(round(a.size_m / cell))
+    to3857 = Transformer.from_crs(fr.epsg, 3857, always_xy=True)
+    from3857 = Transformer.from_crs(3857, fr.epsg, always_xy=True)
+    corners = [to3857.transform(fr.cx + ox + sx * half, fr.cy + oy + sy * half) for sx in (-1, 1) for sy in (-1, 1)]
+    qmin = (min(c[0] for c in corners), min(c[1] for c in corners))
+    qmax = (max(c[0] for c in corners), max(c[1] for c in corners))
+
+    dsm = np.full((n, n), -np.inf, np.float32)
+    gsum = np.zeros((n, n), np.float64); gcnt = np.zeros((n, n), np.int32)
+    ocnt = np.zeros((n, n), np.int32); osingle = np.zeros((n, n), np.int32)
+    keys = list(ept_nodes(base, ept, qmin, qmax, a.max_depth))
+    print(f"  {len(keys)} EPT nodes")
+    tile_cache = os.path.join(CACHE, "ept_" + a.dataset)
+    os.makedirs(tile_cache, exist_ok=True)
+    total = 0
+    for i, k in enumerate(keys):
+        fp = os.path.join(tile_cache, k + ".laz")
+        if not os.path.exists(fp):
+            with open(fp, "wb") as f:
+                f.write(http_get(f"{base}ept-data/{k}.laz"))
+        las = laspy.read(fp)
+        cls = np.asarray(las.classification)
+        keep = (cls != 7) & (cls != 18)
+        if not keep.any():
+            continue
+        X, Y = from3857.transform(np.asarray(las.x)[keep], np.asarray(las.y)[keep])
+        col = ((X - (fr.cx + ox - half)) / cell).astype(np.int64)
+        row = (((fr.cy + oy + half) - Y) / cell).astype(np.int64)      # row 0 = north
+        inb = (col >= 0) & (col < n) & (row >= 0) & (row < n)
+        if not inb.any():
+            continue
+        col, row = col[inb], row[inb]
+        Z = np.asarray(las.z)[keep][inb].astype(np.float32)
+        c = cls[keep][inb]
+        nr = np.asarray(las.number_of_returns)[keep][inb]
+        np.maximum.at(dsm, (row, col), Z)
+        g = c == 2
+        np.add.at(gsum, (row[g], col[g]), Z[g]); np.add.at(gcnt, (row[g], col[g]), 1)
+        o = c == 1
+        np.add.at(ocnt, (row[o], col[o]), 1); np.add.at(osingle, (row[o], col[o]), (nr[o] == 1).astype(np.int32))
+        total += int(inb.sum())
+        if (i + 1) % 50 == 0:
+            print(f"  {i + 1}/{len(keys)} nodes, {total / 1e6:.1f} M points")
+    print(f"  {total / 1e6:.1f} M points in tile")
+
+    # ground model: mean ground return per cell, holes filled from the nearest ground cell
+    dtm = np.where(gcnt > 0, gsum / np.maximum(gcnt, 1), np.nan).astype(np.float32)
+    idx = ndi.distance_transform_edt(np.isnan(dtm), return_distances=False, return_indices=True)
+    dtm = dtm[tuple(idx)]
+    dsm = np.where(np.isfinite(dsm), dsm, dtm)
+    chm = np.clip(ndi.median_filter(dsm, 3) - dtm, 0, None)
+
+    # buildings: tall, planar, single-return surfaces; trees: rough multi-return canopy
+    rough = ndi.generic_filter(dsm, np.std, size=3) if n <= 1200 else np.sqrt(np.clip(
+        ndi.uniform_filter(dsm.astype(np.float64) ** 2, 3) - ndi.uniform_filter(dsm.astype(np.float64), 3) ** 2, 0, None))
+    single = osingle / np.maximum(ocnt, 1)
+    bmask = (chm > 2.5) & (rough < 0.35) & (single > 0.7) & (ocnt >= 1)
+    bmask = ndi.binary_closing(ndi.binary_opening(bmask, iterations=2), iterations=2)
+    lab, nb = ndi.label(bmask)
+    buildings = []
+    min_cells = int(a.min_building_m2 / cell ** 2)
+    for bi, sl in enumerate(ndi.find_objects(lab), 1):
+        m = lab[sl] == bi
+        if m.sum() < min_cells:
+            continue
+        rr, cc = np.nonzero(m)
+        xs = (cc + sl[1].start + 0.5) * cell - half + ox
+        ys = half - (rr + sl[0].start + 0.5) * cell + oy
+        pts = np.stack([xs, ys], 1)
+        mu = pts.mean(0)
+        w, v = np.linalg.eigh(np.cov((pts - mu).T))
+        major = v[:, 1]
+        yaw = math.degrees(math.atan2(major[1], major[0]))
+        pr = (pts - mu) @ v
+        L, W = np.ptp(pr[:, 1]) + cell, np.ptp(pr[:, 0]) + cell
+        fill = m.sum() * cell ** 2 / max(L * W, 1e-6)
+        if fill < 0.45 or W < 3.0:                    # tree clumps and hedges are ragged and thin
+            continue
+        hts = chm[sl][m]
+        h95, h50, h10 = (float(np.percentile(hts, q)) for q in (95, 50, 10))
+        buildings.append({
+            "x": round(float(mu[0]), 2), "y": round(float(mu[1]), 2),
+            "length_m": round(float(L), 1), "width_m": round(float(W), 1), "yaw_deg": round(yaw, 1),
+            "height_m": round(h95, 2), "eave_m": round(h10, 2),
+            "roof": "flat" if h95 - h10 < 0.8 else "pitched",
+            "ridge_axis": "length" if h95 - h10 >= 0.8 else None,
+            "area_m2": round(float(m.sum() * cell ** 2), 1),
+        })
+
+    # trees: local maxima of the smoothed canopy outside building footprints (dilated)
+    nob = ~ndi.binary_dilation(bmask, iterations=int(2 / cell))
+    sm = ndi.gaussian_filter(chm, 1.0)
+    win = max(3, int(round(3.0 / cell)) | 1)
+    peaks = (sm == ndi.maximum_filter(sm, size=win)) & (sm > a.min_tree_m) & nob
+    pr_, pc_ = np.nonzero(peaks)
+    trees = []
+    if len(pr_):
+        from scipy.spatial import cKDTree
+        tx = (pc_ + 0.5) * cell - half + ox
+        ty = half - (pr_ + 0.5) * cell + oy
+        th = chm[pr_, pc_]
+        d, _ = cKDTree(np.stack([tx, ty], 1)).query(np.stack([tx, ty], 1), k=2)
+        for x, y, h, dn in zip(tx, ty, th, d[:, 1]):
+            r = min(0.12 * h + 1.5, max(dn * 0.6, 1.0))    # allometric crown, limited by neighbour spacing
+            trees.append([round(float(x), 2), round(float(y), 2), round(float(h), 2), round(float(r), 2)])
+
+    tag = f"{int(ox)}_{int(oy)}_{int(a.size_m)}"
+    with open(os.path.join(OUT, f"lidar_objects_{tag}.json"), "w") as f:
+        json.dump({"frame": "local meters, +X east, +Y north", "cell_m": cell,
+                   "source": f"USGS 3DEP lidar {a.dataset} (public domain)",
+                   "buildings": buildings, "trees_xyhr": trees}, f)
+
+    # preview: canopy height, buildings red, tree tops green, 1/2 scale
+    step = max(1, n // 2000)
+    ch = np.clip(chm[::step, ::step] / 30.0, 0, 1)
+    rgb = np.stack([ch * 0.6 + 0.15] * 3, -1)
+    bm = bmask[::step, ::step]
+    rgb[bm] = [0.85, 0.15, 0.1]
+    img = (rgb * 255).astype(np.uint8)
+    for x, y, h, r in trees:
+        c_ = int(((x - ox + half) / cell) / step); r_ = int(((half - (y - oy)) / cell) / step)
+        img[max(r_ - 1, 0):r_ + 2, max(c_ - 1, 0):c_ + 2] = [40, 220, 60]
+    Image.fromarray(img).save(os.path.join(OUT, f"lidar_preview_{tag}.png"))
+    print(json.dumps({"tile": tag, "buildings": len(buildings), "trees": len(trees),
+                      "tallest_tree_m": max((t[2] for t in trees), default=0)}, indent=2))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -351,12 +524,18 @@ def main():
     p.add_argument("--lon", type=float, required=True); p.add_argument("--res", type=float, default=DEFAULT_RES_M)
     sub.add_parser("dem"); sub.add_parser("osm")
     p = sub.add_parser("climate"); p.add_argument("--radius-km", type=float, default=80.0)
+    p = sub.add_parser("lidar", help="trees + buildings from the 3DEP lidar point cloud for one tile")
+    p.add_argument("--dataset", default="WI_12County_7_B22")
+    p.add_argument("--size-m", type=float, default=2000.0); p.add_argument("--cell-m", type=float, default=0.5)
+    p.add_argument("--offset-x", type=float, default=0.0); p.add_argument("--offset-y", type=float, default=0.0)
+    p.add_argument("--max-depth", type=int, default=30)
+    p.add_argument("--min-tree-m", type=float, default=4.0); p.add_argument("--min-building-m2", type=float, default=15.0)
     p = sub.add_parser("all"); p.add_argument("--radius-km", type=float, default=80.0)
     a = ap.parse_args()
     if a.cmd == "all":
         cmd_dem(a); cmd_osm(a); cmd_climate(a)
     else:
-        {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate}[a.cmd](a)
+        {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate, "lidar": cmd_lidar}[a.cmd](a)
 
 
 if __name__ == "__main__":
