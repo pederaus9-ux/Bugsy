@@ -277,6 +277,16 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .fbbox{position:fixed;left:12px;right:12px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;z-index:35;display:flex;flex-direction:column;gap:8px;
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
 .fbbox[hidden]{display:none}
+.friendsbox{max-height:80vh;overflow:auto}
+.friendsbox h4{margin:6px 0 2px;font:400 16px var(--fun);color:var(--wood-dk)}
+.fnote{margin:0;font-weight:800;font-size:14px;opacity:.8}
+.fmsg{margin:0;min-height:16px;font-weight:800;font-size:13px;color:#c0392b}
+.fform{display:flex;gap:8px}
+.fform input{flex:1;min-width:0;font:700 16px var(--body);padding:9px 12px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.frow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:2px solid var(--parch2);font-weight:800}
+.frow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .frm{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:900}
+body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .money,body.visiting #hint,body.visiting .tray{display:none!important}
 .fbbox h3{margin:0;font:400 20px var(--fun);display:flex;justify-content:space-between;align-items:center}
 .fbbox .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2)}
 .fbbox textarea{width:100%;font:700 15px/1.35 var(--body);padding:10px;border-radius:12px;border:3px solid var(--parch2);background:#fff;color:var(--ink);resize:none;-webkit-user-select:text;user-select:text}
@@ -339,6 +349,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
   <button data-act="open" data-p="settings" aria-label="Settings">⚙️</button>
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
   <button id="feedbackBtn" aria-label="Send feedback">💬</button>
+  <button id="friendsBtn" aria-label="Friends">👥</button>
 </div>
 <div class="dock">
   <button data-act="open" data-p="orders" aria-label="Orders">🚚<span class="l out">Orders</span></button>
@@ -357,6 +368,11 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
 <canvas id="swipe"></canvas>
+<div class="fbbox friendsbox" id="friendsBox" hidden>
+  <h3><span>👥 Friends</span><button type="button" class="x" data-f="close" aria-label="Close">✕</button></h3>
+  <div id="friendsBody"></div>
+</div>
+<div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>look around · read-only</small><button data-mode="home">🏠 Home</button></div>
 <form class="fbbox" id="fbBox" hidden>
   <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
   <p class="tray-sub">Found a bug or have an idea? Tell us!</p>
@@ -390,7 +406,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
     <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=7"></script>
+<script type="module" src="auth.js?v=8"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -398,7 +414,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=11"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=12";
+import {initFriends} from "./friends.js?v=2"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1544,7 +1561,7 @@ let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
-  if (editMode) return; // the layout editor only drags things
+  if (editMode || visiting) return; // the layout editor only drags things; a friend's farm is read-only
   if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
   if (onTap(e)) return;
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
@@ -1559,7 +1576,25 @@ renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
 // accounts (auth.js): a farm from before accounts moved into a new account. That can happen before or after the game has loaded.
 const linkedToast = () => { if (window.__saLinkedShown) return; window.__saLinkedShown = true; G.toast("🌻 Your farm is now saved to your account"); };
-addEventListener("sa3d:linked", linkedToast); if (window.__saLinked) setTimeout(linkedToast, 1200);
+addEventListener("sa3d:linked", linkedToast);
+// ---------- visiting a friend's farm (read-only) ----------
+let visiting = null;
+const visitBar = document.getElementById("visitBar");
+function enterVisit(farm, name) {
+  if (walk) setWalk(false); if (editMode) setEdit(false); if (moving) endMove(true); closeTrays();
+  if (!visiting) visiting = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  G.visitFarm(farm);
+  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Level " + (G.S.level || 1);
+  document.body.classList.add("visiting"); visitBar.hidden = false;
+  Object.assign(cam, {yaw:.6, pitch:.56, dist:40}); cam.target.set(1.5, 2.5, 2); G.sfx("pop");
+}
+function leaveVisit() {
+  if (!visiting) return; const v = visiting; visiting = null;
+  G.leaveVisit(); document.body.classList.remove("visiting"); visitBar.hidden = true;
+  Object.assign(cam, {yaw:v.yaw, pitch:v.pitch, dist:v.dist}); cam.target.copy(v.target); G.sfx("pop");
+}
+visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
+initFriends(G, {enterVisit}); if (window.__saLinked) setTimeout(linkedToast, 1200);
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
@@ -2463,6 +2498,7 @@ const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" 
 function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
+  if (visiting) return false; // a friend's farm: look, don't touch
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
   const h = hitAt(e.clientX, e.clientY);

@@ -108,7 +108,7 @@ async function upload(force) {
   try {
     const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);
     if (rev == null) { console.warn("This farm was saved from another phone meanwhile; you'll get to choose next time."); return false; }
-    ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); return true;
+    ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); window.dispatchEvent(new CustomEvent("sa3d:uploaded", {detail:raw})); return true;
   } catch (e) { console.warn("Cloud save will try again later:", e.code || e.message); return false; }
 }
 // the game saves often, even when nothing changed (like when the app is closed), and refreshes truck orders and
@@ -171,6 +171,7 @@ async function start() {
     const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
     const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default"); // this project's Firestore database is named "default"
     fb = {A, auth};
+    window.saAuth.fb = {F, db, auth}; // friends.js uses the same Firebase app
     cloud = {uid:null,
       get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },
       // write a new version, only if the cloud still has the version this phone expects (null: write regardless)
