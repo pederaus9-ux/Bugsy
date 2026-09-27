@@ -109,10 +109,14 @@ async function upload(force) {
     ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); return true;
   } catch (e) { console.warn("Cloud save will try again later:", e.code || e.message); return false; }
 }
-// the game saves often, even when nothing changed (like when the app is closed): only a real change counts
-let lastRaw = ls.get(SAVE_KEY);
+// the game saves often, even when nothing changed (like when the app is closed), and refreshes truck orders and
+// events by itself: only a change the player made counts
+function progressOf(raw) {
+  try { const s = JSON.parse(raw); for (const k of ["orders", "event", "nextEventAt", "lastNag", "lastBackup"]) delete s[k]; return JSON.stringify(s); } catch (e) { return raw; }
+}
+let lastProgress = progressOf(ls.get(SAVE_KEY));
 addEventListener("sa3d:saved", () => {
-  const raw = ls.get(SAVE_KEY); if (raw === lastRaw) return; lastRaw = raw; ls.set(DIRTY, "1");
+  const p = progressOf(ls.get(SAVE_KEY)); if (p === lastProgress) return; lastProgress = p; ls.set(DIRTY, "1");
   if (cloud && cloud.uid) { clearTimeout(upload.t); upload.t = setTimeout(upload, 15000); }
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden) upload(); }); // leaving the app: save to the cloud now
@@ -145,7 +149,7 @@ async function linkFarm(user) {
     if (remote) return useFarm(remote.save, uid, rrev);
     ls.set(OWNER, uid); await upload(true); return open(user);
   }
-  if (!remote || remote.save === raw) { ls.set(OWNER, uid); await upload(true); open(user); window.dispatchEvent(new Event("sa3d:linked")); return; } // the farm moves into the account
+  if (!remote || remote.save === raw) { ls.set(OWNER, uid); await upload(true); open(user); window.__saLinked = true; window.dispatchEvent(new Event("sa3d:linked")); return; } // the farm moves into the account
   return pickFarm(user, raw, here, remote);
 }
 // two different farms for one account: show both and let the player keep one; the other stays on this phone as a backup

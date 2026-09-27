@@ -118,7 +118,8 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Sign in / Create account window (email and password, show-password eye, forgot-password email) that covers the game until the player is signed in. Friendly error messages. Sign out lives in Settings.
 - [x] Stays signed in on each phone; a phone that has signed in before can keep playing offline.
 - [ ] Waiting on the Firebase config: until `farm3d/auth.js` has the real values (it still says YOUR_…), accounts stay off and the game plays as before. Then turn on Email/Password under Authentication › Sign-in method.
-- [ ] Next step after that: cloud saves, so a farm follows the account to any phone.
+- [x] Cloud saves (Firestore, farms/{uid}): a farm from before accounts moves into the new account; a new phone gets the account's farm; saves are versioned so an older phone never overwrites newer progress; if two phones both changed the farm the player chooses and the other is kept as a backup; another family member's farm on the same phone is kept aside for them.
+- [x] The sign-in screen tells players their farm is safe (with its level and coins when this phone has one).
 
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).

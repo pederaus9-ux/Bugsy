@@ -390,7 +390,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
     <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=3"></script>
+<script type="module" src="auth.js?v=5"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -1557,7 +1557,9 @@ renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.add
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
 document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
-addEventListener("sa3d:linked", () => G.toast("🌻 Your farm is now saved to your account")); // accounts (auth.js): a farm from before accounts moved in
+// accounts (auth.js): a farm from before accounts moved into a new account. That can happen before or after the game has loaded.
+const linkedToast = () => { if (window.__saLinkedShown) return; window.__saLinkedShown = true; G.toast("🌻 Your farm is now saved to your account"); };
+addEventListener("sa3d:linked", linkedToast); if (window.__saLinked) setTimeout(linkedToast, 1200);
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
