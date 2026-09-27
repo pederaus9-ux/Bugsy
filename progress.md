@@ -157,6 +157,15 @@ Keep the realistic picture animals (billboards). In order:
 - [x] First launch: a Sunny Acres title card while the camera sweeps down onto the farm.
 - [x] 📷 Photo mode: hide the menus, frame the farm, filters (Warm, Dreamy, Black & white), take a captioned photo and save or share it.
 
+## Builder brief, Phase 4: retention and social
+- [x] "While you were away" recap after 10+ minutes away: ready fields, animals, goods, shop sales, pet gifts, visitors, rush orders, the daily gift, and friends who watered your fields.
+- [x] Reminders (Settings 🔔): a notification when something is ready, while the game is open or in the background. (True push to a closed app needs a server: Firebase Blaze plan + Cloud Functions.)
+- [x] Daily gift streak: a 7-day calendar with growing gifts (day 3 gems, day 5 fertilizer, day 7 gems and a prize).
+- [x] Free season track (📜 Quests › Season): 10 prizes per season, including 3 season-only decorations; everything you do earns points.
+- [x] Friend leaderboard (👥 › 🏆): coins earned, harvests, level, best swipe.
+- [x] Co-op: while visiting, tap a friend's growing crops to 💧 water them (+2 🪙 each, 12 a day per friend); they're thanked and watered when they next play.
+- [x] Trading post (👥 › 🏪): up to 4 listings at your own price (half to double the barn price), buy from friends and other players.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.
