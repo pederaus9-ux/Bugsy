@@ -181,6 +181,12 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Head bob (Settings toggle), footsteps by surface (grass, dirt, wood), wind rush when running, mitten hands with sleeves in your shirt colour.
 - [x] 👕 Wardrobe (tap your farmer by the barn, Settings or the Barn): 6 skin tones, 8 hairstyles, 8 hair colours, 8 shirts, 6 hats, overalls on/off with 4 colours, 6 boots. Skin and hair always free; unlocks at levels 2-20, spring and fall season prizes; gem items say "Coming soon". Saved with the farm (guests too); shows in the classic view, walk, photo mode and on friends' visits.
 
+## Phase 6 follow-up: landscape only, fullscreen
+- [x] Portrait shows only "🔄 Rotate your phone sideways to play"; drawing and input pause behind it; rotating back resumes with nothing lost.
+- [x] The sideways card and the portrait/landscape split are gone; the 🚶 button enters first-person walking (with the swoop).
+- [x] Fullscreen on the first tap (and landscape lock where allowed); re-requested on the next tap after any exit. Manifest: display fullscreen, orientation landscape. iPhone Safari can't do this from the browser: a one-time tip suggests Add to Home Screen.
+- [x] Landscape layout for short screens: side buttons in 2 columns, the dock as a 2×2 block, trays between them, panels fully on screen (title ribbons no longer squash), the wardrobe as a side closet, toasts and the tutorial card at the top.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.

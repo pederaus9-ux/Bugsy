@@ -128,7 +128,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
   padding:30px 14px calc(14px + env(safe-area-inset-bottom,0px))}
 .panel{width:100%;max-width:580px;max-height:100%;display:flex;flex-direction:column;background:var(--parch);border:6px solid var(--wood);
   border-radius:26px;box-shadow:inset 0 0 0 4px var(--parch2),0 12px 30px rgba(0,0,0,.45);position:relative;animation:pop .18s ease-out}
-.ribbon{align-self:center;margin-top:-24px;background:linear-gradient(#F0664F,#C9381F);font-family:var(--fun);font-size:22px;padding:6px 26px;
+.ribbon{flex:none;align-self:center;margin-top:-24px;background:linear-gradient(#F0664F,#C9381F);font-family:var(--fun);font-size:22px;padding:6px 26px;
   border-radius:14px;border:3px solid #fff;box-shadow:0 4px 0 #8A2415;white-space:nowrap;max-width:calc(100% - 70px);overflow:hidden;text-overflow:ellipsis}
 .ribbon.out{text-shadow:0 2px 0 #8A2415,2px 0 0 #8A2415,-2px 0 0 #8A2415,0 -2px 0 #8A2415}
 .xbtn{position:absolute;top:-18px;right:-14px;width:44px;height:44px;border-radius:50%;background:linear-gradient(#F0664F,#C9381F);border:3px solid #fff;
@@ -410,6 +410,31 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 .toast{background:rgba(70,35,10,.88);color:#fff;padding:9px 16px;border-radius:99px;font-weight:800;font-size:14px;border:2px solid #fff;
   box-shadow:0 4px 14px rgba(0,0,0,.25);animation:pop .2s ease-out;max-width:100%;text-align:center}
 .loading{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:linear-gradient(#8ec9ee,#cfe9c0);transition:opacity .6s;font:400 26px var(--fun);color:#fff}
+/* ---------- short landscape screens (every phone held sideways) ---------- */
+@media (orientation: landscape) and (max-height: 560px) {
+  /* left: the round buttons in two columns of four, under the level and chips */
+  .side{display:grid;grid-auto-flow:column;grid-template-rows:repeat(4,40px);gap:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
+  .side button{width:40px;height:40px;font-size:19px;border-width:2px}
+  /* right: Orders, Barn, Decor and Shop in a 2×2 block */
+  .dock{display:grid;grid-template-columns:repeat(2,auto);gap:4px 8px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
+  .dock button{transform:scale(.88);transform-origin:bottom right}
+  /* trays (seeds, a growing field, an animal…) sit in the free space between them */
+  .tray{left:104px;right:170px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);max-width:none;max-height:calc(100vh - 84px);overflow-y:auto}
+  /* panels: room for the title ribbon, and the whole panel on screen */
+  .scrim{padding:36px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+  .panel{max-height:calc(100vh - 46px);max-width:640px}
+  /* messages near the top, the tutorial card at the top middle, the long hint hidden */
+  .toasts{top:calc(env(safe-area-inset-top,0px) + 62px);bottom:auto}
+  .tut{top:calc(env(safe-area-inset-top,0px) + 6px);left:190px;right:150px;max-width:460px}
+  .hint{display:none}
+  .guestbar{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:104px;right:170px;max-width:none}
+  .testbadge{bottom:calc(env(safe-area-inset-bottom,0px) + 4px);top:auto}
+  .fbbox{max-height:calc(100vh - 24px);overflow:auto}
+  /* the wardrobe: the closet on the right, your farmer on the left */
+  .wtop{position:absolute;left:0;top:0;right:min(440px,56vw);padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+  .wsheet{position:absolute;right:0;top:0;bottom:0;width:min(440px,56vw);max-height:none;border-top:0;border-left:4px solid var(--wood);border-radius:22px 0 0 22px;padding-top:12px}
+  .wtabs{flex-wrap:wrap;overflow:visible}
+}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
 </head>
@@ -581,7 +606,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=19"; window.__gameVer = 19;
+import * as G from "./game.js?v=20"; window.__gameVer = 20;
 import {initFriends} from "./friends.js?v=4"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -2421,6 +2446,7 @@ function exitFP() {
   classicSaved = null;
 }
 
+const isLand = () => innerWidth > innerHeight;
 // ---------- landscape only: in portrait, a "rotate your phone" screen covers the game and the farm pauses ----------
 const rotateEl = document.getElementById("rotate");
 let rotatePaused = false;
@@ -2438,10 +2464,12 @@ setInterval(checkRotate, 500); // phones sometimes report the new size a moment 
 // (a swipe, the back gesture, locking the phone), the next tap asks again. iPhone Safari has no fullscreen for pages:
 // there, "Add to Home Screen" opens the game fullscreen (the manifest says display: fullscreen).
 const FS_OFF = qs.has("portrait") || qs.has("shot");
+let fsAsking = false;
 function goFullscreen() {
-  if (FS_OFF || document.fullscreenElement || document.webkitFullscreenElement) return;
+  if (FS_OFF || fsAsking || document.fullscreenElement || document.webkitFullscreenElement) return;
   const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen; if (!req) return;
   try {
+    fsAsking = true; setTimeout(() => { fsAsking = false; }, 600); // one tap = one request (pointerup and click both fire)
     const p = req.call(el, {navigationUI:"hide"});
     const lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock("landscape").catch(() => {}); } catch (e) {} };
     if (p && p.then) p.then(lock, () => {}); else lock();
@@ -2632,7 +2660,9 @@ function setWardrobe(on) {
     closeTrays(); G.close();
     wardrobeOn = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone(), tilt:tiltH.enabled, fpos:farmer.position.clone(), frot:farmer.rotation.y};
     farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI; tiltH.enabled = tiltV.enabled = false; // facing out, away from the barn
-    cam.target.set(FARMER_HOME.x, .15, FARMER_HOME.z); cam.yaw = .15; cam.pitch = .1; cam.dist = 6.2; // aim low, so the farmer stands above the closet sheet
+    if (isLand()) { // the closet is on the right: aim to the right of the farmer, so they stand in the left half
+      cam.yaw = .15; cam.pitch = .1; cam.dist = 5.6; cam.target.set(FARMER_HOME.x + Math.cos(cam.yaw) * 1.5, 1.0, FARMER_HOME.z - Math.sin(cam.yaw) * 1.5);
+    } else { cam.target.set(FARMER_HOME.x, .15, FARMER_HOME.z); cam.yaw = .15; cam.pitch = .1; cam.dist = 6.2; } // aim low, so the farmer stands above the closet sheet
     document.body.classList.add("dressing"); wardUI.hidden = false; renderWardrobe(); G.sfx("pop");
   } else {
     const W = wardrobeOn; wardrobeOn = null;
