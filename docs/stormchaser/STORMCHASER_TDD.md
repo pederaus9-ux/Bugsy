@@ -1,6 +1,7 @@
 # STORMCHASER — Technical Design Document
 
-**Engine:** Unreal Engine 5.6 · **Targets:** PC (DX12/Vulkan, SM6), iOS/Android high tier · **Genre:** Systemic open-world life sim with emergent disasters (GTA-style), solo or up to 16-player sessions (dedicated server)
+**Engine:** Unreal Engine 5.6 · **V1 target:** PC (DX12/Vulkan, SM6), single-player · **Later:** multiplayer (up to 16, dedicated server), mobile high tier · **Genre:** GTA-style open-world action on a 1:1 real county, where the severe weather is the system trying to kill you
+**Design authority:** `GAME_DESIGN_DOC.md` (v1). Where this TDD and the GDD disagree on *what* the game is, the GDD wins; this document owns *how* it is built.
 **Doc owner:** Lead Systems Architect / TD · **Status:** v1.1 (random, unplanned storms; prompt-free open world)
 
 > Conventions used throughout
@@ -46,11 +47,11 @@
 |---|---|
 | Map | **1:1 recreation of the lead's real home area** (§8): about **49 × 49 km (2,380 km²)** at true scale: the home village plus 10 more villages, one town, 21 hamlets, an interstate corridor, cropland, gravel roads, farmsteads, coulees and creeks (§8.9) |
 | Time | Continuous day/night (1 in-game day = 48 real min). Seasons drive the climate (spring peak). No session phases, no cycles |
-| Weather | The stormiest place in the country. Most days bring something: tornadoes, hail, derechos, lightning, floods, fog, dust, and ice or blizzards in winter. **Good days are rare** (15–25% by season, §2.0.5) |
+| Weather | The stormiest place in the country. Most days bring something: tornadoes, hail, derechos, lightning, floods, fog and dust. **Good days are rare** (15–25% by season, §2.0.5). V1 runs spring through fall; the **winter season** (ice storms, blizzards, snowmobiles) is a later update, and its systems are specified here so they drop in |
 | Population | Mass AI crowds and traffic that react to weather systemically (§4.2) |
 | Player life | Houses, garages, vehicles, jobs, businesses. GTA-style freedom: drive, work, mess around, commit crimes, get chased |
 | Storm opportunities | None forced, all emergent. Film storms and sell footage to the TV station, run storm tours, pick up salvage and repair contracts after damage, commit insurance fraud, loot (police respond), run rescue calls (EMS job) |
-| Multiplayer | Public sessions of up to 16 players, or solo / invite-only. Cross-progression on properties, vehicles, cosmetics and money |
+| Multiplayer | **V1 is single-player** (GDD scope). Every system is still built server-authoritative (a listen/standalone server in V1), so the later multiplayer mode (up to 16) needs no rewrite. Deterministic weather (§5.3) already makes that cheap |
 
 ### 1.2 How the player learns a storm is coming (all diegetic)
 
@@ -82,7 +83,18 @@ Feedback is physical, never a UI element: camera buffeting, character lean and s
 - **The economy reacts.** Construction prices go up in towns that were hit. Salvage and repair contracts appear. Property insurance pays out, or refuses.
 - **Player property** takes real structural damage (§3). The loss is money and time, never account progression. Rebuilding and reinforcing the house is an ongoing choice, not a scheduled "build phase".
 
-### 1.5 Clip generation (invisible)
+### 1.5 Missions, story and the sheriff
+
+- **Missions and jobs are opt-in, GTA-style.** They're offered by people and places in the world (phone calls, the truck stop board, the co-op, the sheriff's office), never by a storm. Taking one is the player's choice.
+- **Weather is never scripted, even inside a mission.** A job that starts on a clear morning can run into a tornado warning at noon. That collision, a tornado warning mid-job, is the game's signature moment (GDD), and it has to happen for real, not on cue. Missions carry weather *fallbacks* (alternate routes, time extensions after a warning) so an unlucky storm is exciting, not a fail state.
+- **Road hierarchy is gameplay** (§8.10): highways are fast, county roads medium, and town and minimum-maintenance roads slow and flood-prone. Bridges are chokepoints, and rivers become barriers in floods.
+- **Sheriff system** (`USheriffSubsystem`, server):
+  - *Response time* = dispatch delay (30–90 s) + drive time from the nearest free deputy along the real road graph at road-class speeds. Rural response is slow on purpose: you can outrun the law.
+  - *Memory*: every crime adds `Notoriety` to a per-player, per-town ledger that decays over in-game days, not minutes. Deputies recognise your vehicle (colour, model, plate state) until you change it. "They remember."
+  - *Storms change policing*: during a warning, deputies are pulled to storm response and response times double. After a storm, looting brings a heavier response.
+  - The sheriff's tone (straight crime vs. cleaner odd-jobs) is an open GDD question; the subsystem supports both through data-asset tuning.
+
+### 1.6 Clip generation (invisible)
 
 The server raises `Event.Clip.Highlight` when a player is carried airborne faster than 25 m/s, is hit by an object heavier than 200 kg, is within 100 m of a funnel of EF3 or stronger, or sees a structure collapse with more than 20 joints. The client saves its rolling replay buffer (`UClipBufferComponent`, §4.2). Nothing appears on screen. The clip is waiting in the phone's gallery or in the replay editor.
 
@@ -184,7 +196,7 @@ Every hazard is a module on `UAtmosphereSubsystem`. It is triggered by the atmos
 
 | Hazard | Trigger (from fields) | Model | Gameplay effect |
 |---|---|---|---|
-| **Hail** | Any supercell; size scales with CAPE | See the maths below. A statistical hit model, with no per-stone simulation | Dents cars, smashes windshields and windows (opening buildings to wind, `C_int ↑`), hurts people in the open (`GE_HailImpact`), shreds crops |
+| **Hail** | Any supercell; size scales with CAPE | See the maths below. A statistical hit model, with no per-stone simulation | **Tiered vehicle damage** (below), smashes house windows (opening buildings to wind, `C_int ↑`), hurts people in the open (`GE_HailImpact`), shreds crops |
 | **Straight-line wind / downburst / derecho** | Precipitation cores, bow echoes when BWD is high | Adds to `V_amb` (§2.5). A downburst is a radial outflow that reuses the inflow shape `Ψ` with the sign reversed | Barns, trees and power lines fail across a wide swath with no funnel. Semi trucks tip over |
 | **Lightning** | CAPE plus precipitation → strike rate per km² | Poisson strikes. The strike point is biased toward tall objects: `P ∝ e^(h/15 m)` within a 30 m capture radius | Damage and death, grass and structure fires, transformer blowouts, power outages |
 | **Grass fire** | Lightning or a spark while `DryLineWind`, heat or drought is active | Cellular automaton on a 10 m land-cover grid. `ROS = ROS₀ · (1 + 0.8·U^1.5) · Dryness` along the wind vector | Wind-driven fire fronts, smoke that cuts visibility, a rural firefighting job |
@@ -206,6 +218,15 @@ Hits on exposed area A in Δt:  N_hits ~ Poisson( n_tot · v_h · A · Δt )
 Energy per hit:  E = ½ · (ρ_ice·π·D³/6) · v_h²         (5 cm stone ≈ 24 J; 9 cm ≈ 250 J)
 Windshield breaks when a single hit exceeds 30 J; a person takes damage = k·E through GE_HailImpact (reduced when under cover)
 ```
+
+**Tiered hail damage on vehicles** (per panel, from the per-hit energy `E`; hail armor is a buyable upgrade that divides `E` by 2–4):
+
+| Tier | Trigger | Effect |
+|---|---|---|
+| 0 Cosmetic dents | cumulative `E` on a panel > 150 J | Dent normal map blended in (`VehicleDamage` runtime virtual texture); resale value down |
+| 1 Cracked windshield | one hit > 30 J on glass | Screen-space crack overlay in first person; visibility −15% per crack cluster |
+| 2 Shattered glass | 3+ cracks, or one hit > 90 J | Windshield or window gone: rain and hail now enter the cabin, the driver takes `GE_HailImpact`, and visibility is limited by rain on screen |
+| 3 Body damage | cumulative `E` on the roof or hood > 1.5 kJ | Drag coefficient +8%, hood-up visibility block, broken lights (headlight dark at night) |
 
 Hail, lightning and fire outcomes that change gameplay are server-authoritative. Clients render hail and rain Niagara from the replicated swath parameters only (§5.2).
 
@@ -834,7 +855,7 @@ Pools (`UDebrisPoolSubsystem`) are prewarmed at map load from `UPlatformScalabil
 
 - **Dedicated server**, 30 Hz net tick. Chaos **async physics at a fixed 60 Hz** (Project Settings → Physics → *Tick Physics Async*, fixed Δt = 1/60), same on clients for parity.
 - **Replication system:** Iris, for its per-connection prioritization and filtering (`SetupIrisSupport(Target)` in `Build.cs`, `net.Iris.UseIrisReplication 1`). The fallback is Replication Graph with spatial grid plus always-relevant nodes. **[VERIFY 5.6]** Iris maturity and the plugin set.
-- **Session:** 1–16 players in one persistent open world (public, invite-only or solo). Several tornadoes can be alive at once in an outbreak (hard cap 6, oldest-weakest culled). Per-connection outgoing budget: PC 120 kbps, mobile 64 kbps sustained, burst 200 kbps.
+- **Session:** V1 runs single-player on a standalone/listen server, using the same authority model. Later: 1–16 players in one persistent open world (public, invite-only or solo). Several tornadoes can be alive at once in an outbreak (hard cap 6, oldest-weakest culled). Per-connection outgoing budget: PC 120 kbps, mobile 64 kbps sustained, burst 200 kbps.
 
 ### 5.2 What replicates, and how
 
@@ -1186,3 +1207,23 @@ An OpenStreetMap census of the 49 km square (`mapbuilder.py osm`; the named list
 | **Farms** (thousands of fields, farmsteads with lidar-accurate barns and bins) | Farmhand and harvest jobs, tractors and combines, crop damage from hail, livestock to rescue after storms |
 
 **Detail budget follows the places.** Towns, the interstate and activity sites get full-detail streets and interiors. Farmland between them is generated from the lidar, aerial photos and crop data (§8.7), so it's accurate but cheap to build. Everywhere is 1:1, but the art hours go where players spend their time.
+
+### 8.10 Road hierarchy as a mechanic
+
+Every road gets a gameplay class from its real OSM tags, lidar grade and flood basin (§2.0.6). Nothing is hand-assigned.
+
+| Class | Source tags | Surface / grip | Typical speed | Floods? | Role |
+|---|---|---|---|---|---|
+| Interstate | `motorway`, `motorway_link` | Asphalt, μ 0.8 | 110 km/h | No | Trucking corridor, pursuits, fast travel by driving |
+| US/State highway | `trunk`, `primary` | Asphalt | 90 km/h | Rarely (river bottoms) | Main content corridors between towns |
+| County road | `secondary`, `tertiary` | Asphalt/chip-seal | 70–90 km/h | Where they cross coulee creeks | Most of the driving |
+| Town road | `unclassified`, `residential` with gravel or unknown surface | Gravel μ 0.55, dust plume | 40–70 km/h | Yes, low-water crossings | Farm access, chases, shortcuts |
+| Minimum-maintenance / field track | `track`, `unpaved`, `compacted` | Dirt, μ 0.45 (mud 0.3) | 20–50 km/h | Yes, first to close | Off-road, hunting, escapes |
+
+- **Bridges** (§8.2) are chokepoints: a flooded approach or a bridge blocked by debris cuts the road graph, and police, NPC traffic and the mission router all re-route in real time.
+- **Rivers** become barriers when the flood model (§2.0.6) raises stage above a crossing's deck or approach height.
+- **Content corridors** (GDD scale recommendation: 1:1 plus corridors): mission start points, random road events and NPC traffic density concentrate along the interstate, the US/State highways and the towns. The open country between them stays atmospheric, and the weather is its content.
+
+### 8.11 Landmarks
+
+The GDD lists 38 easter-egg landmarks (in `storm-chaser-landmarks.md`) that double as mission locations, fuel stops and hideouts. They are hand-authored hero content in their own data layer (`DL_Landmarks`), placed on the real coordinates and built above the procedural baseline, so a MapBuilder re-run never overwrites them. That landmarks file is not yet in the repo.
