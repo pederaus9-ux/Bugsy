@@ -391,10 +391,39 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
         String(msg).replace(/</g, "&lt;") + '</code>' : 'Still loading… this is taking longer than usual.') +
       '<br><button onclick="location.reload()" style="font:400 20px \'Lilita One\',system-ui,sans-serif;background:#6cc04a;color:#fff;border:0;border-radius:14px;padding:10px 22px;box-shadow:0 4px 0 #3e8e24">Reload</button></div>';
   }
-  window.addEventListener("error", function (e) { show((e.message || "error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : "")); });
-  window.addEventListener("unhandledrejection", function (e) { show(e.reason && (e.reason.message || e.reason)); });
+  // crash and error reports: anything that goes wrong on a player's phone is posted to the Discord feedback channel.
+  // Nothing personal is sent (no name, email or farm), only the error, where it happened, the game version and the kind of phone.
+  // At most 3 reports per visit and 10 a day per phone, each message once, and only from the real site (not tests).
+  var sent = {}, nSent = 0;
+  function report(msg, where, stack, kind) {
+    try {
+      msg = String(msg || "error").slice(0, 300);
+      if (/ResizeObserver loop|^Script error\.?$|Failed to fetch|Load failed|NetworkError|network-request-failed|offline|AbortError|The operation was aborted|webkit-masked-url|chrome-extension:|moz-extension:/i.test(msg + " " + (where || ""))) return;
+      if (sent[msg] || nSent >= 3 || (location.hostname.indexOf("github.io") < 0 && !localStorage.getItem("sa3d-errtest")) || /[?&](testfarm|shot)\b/.test(location.search)) return;
+      var day = new Date().toLocaleDateString("en-CA"), k = "sa3d-errs", c = {}; try { c = JSON.parse(localStorage.getItem(k) || "{}"); } catch (e) {}
+      if (c.d !== day) c = {d:day, n:0}; if (c.n >= 10) return; c.n++; try { localStorage.setItem(k, JSON.stringify(c)); } catch (e) {}
+      sent[msg] = 1; nSent++;
+      var ua = navigator.userAgent, dev = (/iPhone|iPad|Android/.exec(ua) || ["computer"])[0] + " · " + ((/(Chrome|CriOS|Firefox|FxiOS|Edg|SamsungBrowser)\/[\d]+/.exec(ua) || /Version\/[\d.]+.*Safari/.exec(ua) || ["?"])[0]).replace(/Version\/([\d.]+).*Safari/, "Safari $1");
+      var boot = ""; try { boot = localStorage.getItem("sa3d-boot") || ""; } catch (e) {}
+      var info = [kind || "error", "game " + (window.__gameVer || "?"), "boot: " + (boot || "-"), dev, innerWidth + "×" + innerHeight, new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC"].join(" · ");
+      var body = "🐞 **" + msg.replace(/[`*_~|]/g, "") + "**" + (where ? "\n`" + where + "`" : "") + (stack ? "\n```\n" + String(stack).split("\n").slice(0, 4).join("\n").slice(0, 600) + "\n```" : "") + "\n-# " + info;
+      fetch(window.__ERR_HOOK, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:"Sunny Acres errors", content:body.slice(0, 1900), allowed_mentions:{parse:[]}}), keepalive:true}).catch(function () {});
+    } catch (e) {}
+  }
+  window.__report = report;
+  window.__ERR_HOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ";
+  window.addEventListener("error", function (e) {
+    var where = e.filename ? e.filename.split("/").pop().split("?")[0] + ":" + e.lineno + ":" + e.colno : "";
+    if (e.filename && e.filename.indexOf(location.origin) !== 0 && e.filename.indexOf("gstatic.com") < 0) return; // someone else's script (a browser add-on)
+    report(e.message, where, e.error && e.error.stack, window.__ready ? "error while playing" : "error while starting");
+    show((e.message || "error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : ""));
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e.reason; report(r && (r.message || r), "", r && r.stack, window.__ready ? "promise error while playing" : "promise error while starting");
+    show(r && (r.message || r));
+  });
   setTimeout(function () { show(); }, 25000);
-  window.__bootFail = show;
+  window.__bootFail = function (msg) { report(msg, "", "", "couldn't start"); show(msg); };
   var last = null; try { last = localStorage.getItem("sa3d-boot"); } catch (e) {}
   if (last && last !== "ok") { var L = document.getElementById("loading");
     L.insertAdjacentHTML("beforeend", '<div style="position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center;font:800 13px Nunito,system-ui,sans-serif;color:#5a3413;text-shadow:none">Last time the farm stopped while ' + String(last).replace(/</g, "&lt;") + '. Trying again…</div>'); }
@@ -492,7 +521,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=11"></script>
+<script type="module" src="auth.js?v=12"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -500,8 +529,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=17";
-import {initFriends} from "./friends.js?v=3"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=18"; window.__gameVer = 18;
+import {initFriends} from "./friends.js?v=4"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1704,7 +1733,7 @@ const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && v
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
 // one message a minute, and if the webhook is ever abused just delete it in Discord and paste a new one here.
-const FEEDBACK_WEBHOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ"; // Discord: channel settings › Integrations › Webhooks
+const FEEDBACK_WEBHOOK = window.__ERR_HOOK; // set in the safety-net script at the top (error reports go to the same channel) // Discord: channel settings › Integrations › Webhooks
 async function sendFeedback(text) {
   const S = GS(), info = `Level ${S.level} · ${innerWidth}×${innerHeight} · ${/Android|iPhone|iPad/.exec(navigator.userAgent)?.[0] || "computer"} · ${new Date().toLocaleString()}`;
   const res = await fetch(FEEDBACK_WEBHOOK, {
@@ -3092,22 +3121,31 @@ function applySize() {
   for (const t of [tiltH, tiltV]) { renderer.getDrawingBufferSize(t.uniforms.uRes.value); t.uniforms.uAmount.value = 4 * QUALITY.pr; }
 }
 addEventListener("resize", applySize);
-// graphics quality, from Settings: Auto watches the real frame time and, only if the phone can't hold ~45 fps, steps down one notch
-// at a time (sharpness first, then shadow detail) and never steps back up, so it can't flicker. Best, Balanced and Battery saver are fixed.
-const DPR = Math.min(devicePixelRatio, 2);
-const autoSteps = () => [() => QUALITY.pr = Math.min(QUALITY.pr, 1.6), () => QUALITY.pr = Math.min(QUALITY.pr, 1.3),
-  () => setShadow(1024), () => QUALITY.pr = Math.min(QUALITY.pr, 1)];
-const QUALITY = {pr:DPR, steps:autoSteps(), auto:true, fps30:false};
+// graphics quality, from Settings. Auto is dynamic resolution: it watches the real frame time and keeps the game near 50-60 fps
+// by drawing at a lower or higher resolution, a little at a time (never more often than every few seconds, so it can't flicker).
+// On a very slow phone it also turns the shadows down, then the glow and tilt-shift. Best, Balanced and Battery saver are fixed.
+const DPR = Math.min(devicePixelRatio, 2), PR_MIN = Math.max(.55, DPR * .45);
+const QUALITY = {pr:DPR, auto:true, fps30:false, steps:[], cut:0};
 function setShadow(n) { if (sun.shadow.mapSize.x !== n) { sun.shadow.mapSize.set(n, n); sun.shadow.map?.dispose(); sun.shadow.map = null; } }
 let watching = false;
 function watchFrames() {
   if (watching || qs.has("shot")) return; watching = true;
-  let last = performance.now(), sum = 0, n = 0, since = last + 4000; // ignore the first seconds while shaders compile and textures load
+  let last = performance.now(), sum = 0, n = 0, since = last + 4000, fast = 0; // ignore the first seconds while shaders compile and textures load
   const watch = (now) => {
     const ft = now - last; last = now;
     if (now > since && ft < 250 && !document.hidden) { sum += ft; n++; }
-    if (n >= 90) { if (sum / n > 22 && QUALITY.steps.length) { QUALITY.steps.shift()(); applySize(); since = now + 1500; } sum = 0; n = 0; }
-    if (QUALITY.auto && QUALITY.steps.length) requestAnimationFrame(watch); else watching = false;
+    if (n >= 60) {
+      const avg = sum / n; sum = 0; n = 0;
+      if (avg > 23) { // too slow: draw fewer pixels (the bigger the lag, the bigger the step)
+        fast = 0;
+        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (avg > 40 ? .8 : .9)); applySize(); since = now + 2500; }
+        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 2500; }                  // then softer shadows
+        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 2500; } // then no glow or blur
+      } else if (avg < 15.5 && QUALITY.pr < DPR - .01) { // plenty of time to spare for a while: sharpen back up, gently
+        if (++fast >= 4) { fast = 0; QUALITY.pr = Math.min(DPR, QUALITY.pr * 1.08); applySize(); since = now + 3500; }
+      } else fast = 0;
+    }
+    if (QUALITY.auto) requestAnimationFrame(watch); else watching = false;
   };
   requestAnimationFrame(watch);
 }
@@ -3116,8 +3154,7 @@ function setQuality(q) {
   QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
   QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
   setShadow(q === "battery" ? 1024 : 2048);
-  bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery";
-  QUALITY.steps = QUALITY.auto ? autoSteps() : [];
+  bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery"; QUALITY.cut = 0;
   applySize();
   if (QUALITY.auto) watchFrames();
 }
@@ -3125,8 +3162,8 @@ bootStep("drawing the first picture");
 setQuality(G.PREFS.quality || "auto");
 frame();
 if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});
-if (qs.has("debug")) { window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.steps.length, renderer.domElement.width];
-  window.__qstep = () => { QUALITY.steps.shift()(); applySize(); }; }
+if (qs.has("debug")) window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.cut, renderer.domElement.width];
+GV.resolution = () => Math.round(QUALITY.pr / DPR * 100); // shown in Settings
 window.__ready = true;
 </script>
 </body>
