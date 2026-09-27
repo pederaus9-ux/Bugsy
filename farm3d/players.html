@@ -36,6 +36,11 @@ h2{margin:0 0 8px;font:400 20px/1.1 "Lilita One",sans-serif;color:var(--wood-dk)
 .row .when{grid-row:span 2;font-size:14px;font-weight:800;text-align:right;color:var(--muted);white-space:nowrap}
 .row .when.on{color:var(--green-dk)}
 .note{margin:0;color:var(--muted);font-size:14px}
+.fun{display:grid;gap:5px;margin-top:10px}
+.fr{display:grid;grid-template-columns:132px 1fr 64px;gap:8px;align-items:center;font-size:13px;font-weight:800}
+.fr .bar{height:14px;border-radius:7px;background:var(--parch2);overflow:hidden} .fr .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#9ad97a);border-radius:7px}
+.fr .n{text-align:right;font-variant-numeric:tabular-nums} .fr.drop{color:#A8321F} .fr.drop .bar i{background:linear-gradient(90deg,#e8513c,#f08a6f)}
+.fr.head{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 form{display:grid;gap:8px}
 input{font:inherit;padding:10px 12px;border:3px solid var(--parch2);border-radius:12px;background:#fff;color:var(--ink);width:100%}
 button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999px;padding:11px 18px;background:linear-gradient(#8ad866,#58ad36);color:#fff;box-shadow:0 4px 0 var(--green-dk);cursor:pointer}
@@ -73,6 +78,12 @@ button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999
     </div>
   </div>
 
+  <section class="card" id="funnel" hidden>
+    <h2>Where players stop</h2>
+    <p class="note">How many phones reached each step (each phone counts once). The biggest drop is marked 🔻: that's the step to make easier.</p>
+    <div class="fun" id="fun"></div>
+  </section>
+
   <section class="card" id="recent" hidden>
     <h2>Recent players</h2>
     <div class="list" id="list"></div>
@@ -96,7 +107,7 @@ const SDK = "https://www.gstatic.com/firebasejs/9.23.0/";
 const NOW = 3 * 60e3, DAY = 864e5; // the game checks in every minute while it's open on screen
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
-const show = (ids) => { for (const id of ["signin", "denied", "stats", "recent", "out", "load"]) $(id).hidden = !ids.includes(id); };
+const show = (ids) => { for (const id of ["signin", "denied", "stats", "funnel", "recent", "out", "load"]) $(id).hidden = !ids.includes(id); };
 
 const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
 const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default");
@@ -138,15 +149,34 @@ async function lookUpNames() {
 }
 function denied(user) { $("who").textContent = user.email; show(["denied", "out"]); }
 
+// the milestones the game reports (auth.js / game.js), in the order players reach them
+const STEPS = [["open", "Opened the game"], ["guest", "Played as a guest"], ["account", "Made an account"],
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ["tut_" + n, "Tutorial step " + n]), ["tut_done", "Finished the tutorial"],
+  ["lvl_2", "Level 2"], ["lvl_3", "Level 3"], ["lvl_5", "Level 5"], ["lvl_8", "Level 8"], ["lvl_10", "Level 10"], ["lvl_15", "Level 15"], ["lvl_20", "Level 20"],
+  ["back_d1", "Came back another day"], ["back_d7", "Still playing a week later"], ["friend", "Added a friend"]];
+async function loadFunnel() {
+  const counts = await Promise.all(STEPS.map(([e]) => F.getCountFromServer(F.query(F.collection(db, "events"), F.where("e", "==", e))).then(c => c.data().count).catch(() => null)));
+  const top = Math.max(1, counts[0] || 0);
+  // the biggest drop between two steps in the main path (tutorial and levels), not the side branches
+  const path = STEPS.map((s, k) => k).filter(k => !["guest", "account", "friend", "back_d1", "back_d7"].includes(STEPS[k][0]));
+  let worst = -1, worstLoss = 0;
+  for (let j = 1; j < path.length; j++) { const a = counts[path[j - 1]], b = counts[path[j]]; if (a && b != null && a - b > worstLoss) { worstLoss = a - b; worst = path[j]; } }
+  $("fun").innerHTML = `<div class="fr head"><span>Step</span><span></span><span class="n">Phones</span></div>` + STEPS.map(([e, name], k) => {
+    const n = counts[k]; if (n == null) return "";
+    return `<div class="fr ${k === worst ? "drop" : ""}"><span>${k === worst ? "🔻 " : ""}${name}</span><span class="bar"><i style="width:${Math.min(100, n / top * 100)}%"></i></span><span class="n">${n}${k ? " · " + Math.round(n / top * 100) + "%" : ""}</span></div>`;
+  }).join("") + (counts[0] ? "" : `<p class="note">No stats yet. They start with the next person who opens the game.</p>`);
+}
+
 function watch(user) {
   show(["load"]);
   // live: the list updates by itself as players come and go
   stop = F.onSnapshot(F.collection(db, "presence"), (snap) => {
     rows = snap.docs.map(d => { const x = d.data(); return {uid:d.id, seen:x.seen ? x.seen.toMillis() : 0, level:x.level, joined:x.joined}; });
-    show(["stats", "recent", "out"]); render(); lookUpNames();
+    show(["stats", "funnel", "recent", "out"]); render(); lookUpNames();
   }, (e) => { if (e.code === "permission-denied") denied(user); else { $("load").textContent = "Couldn't load the numbers. Check your internet."; show(["load", "out"]); } });
   // everyone with a saved farm, including players who haven't opened the game since this page was added
   F.getCountFromServer(F.collection(db, "farms")).then((c) => { total = c.data().count; render(); }).catch(() => {});
+  loadFunnel(); setInterval(loadFunnel, 120e3);
   clearInterval(tick); tick = setInterval(render, 30e3); // keep "min ago" and "playing now" current
 }
 

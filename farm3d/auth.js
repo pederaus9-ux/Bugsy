@@ -24,6 +24,23 @@ const $ = (id) => document.getElementById(id);
 const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo"), note = $("authNote");
 const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs"), choose = $("authChoose"), guestBtn = $("authGuest");
 window.saAuth = {user:null, signOut:async () => {}}; // the game's Settings panel reads this
+// ---------- anonymous stats: how far players get, so we can see where they stop ----------
+// Each phone reports each milestone once ("opened the game", "tutorial step 3", "reached level 5", "came back the next day").
+// Only the milestone's name and the date are sent: no name, email, account or farm. The players page counts them.
+const STATS_DONE = "sa3d-stats";
+const statQueue = [];
+window.saStats = (name) => {
+  if (/[?&](testfarm|shot)\b/.test(location.search)) return; // the test farm and picture-taking don't count
+  let done = {}; try { done = JSON.parse(ls.get(STATS_DONE) || "{}"); } catch (e) {}
+  if (done[name]) return; done[name] = 1; ls.set(STATS_DONE, JSON.stringify(done));
+  statQueue.push(name); flushStats();
+};
+function flushStats() {
+  const fb = window.saAuth.fb; if (!fb) return; // Firebase isn't loaded yet: they're sent once it is
+  while (statQueue.length) { const e = statQueue.shift();
+    fb.F.addDoc(fb.F.collection(fb.db, "events"), {e, d:new Date().toLocaleDateString("en-CA")}).catch(() => { // offline: try again next time the game opens
+      let done = {}; try { done = JSON.parse(ls.get(STATS_DONE) || "{}"); } catch (err) {} delete done[e]; ls.set(STATS_DONE, JSON.stringify(done)); }); }
+}
 let mode = "signin", fb = null, cloud = null;
 
 const ls = {
@@ -86,7 +103,7 @@ function farmNote() {
 function open(user) {
   window.saAuth.user = {email:user.email, uid:user.uid};
   ls.set(REMEMBER, JSON.stringify(window.saAuth.user)); ls.set(SEEN, "1");
-  ls.del(GUEST); window.saAuth.guest = false; banner(false);
+  ls.del(GUEST); window.saAuth.guest = false; banner(false); window.saStats("account");
   gate.hidden = true; pass.value = pass2.value = "";
   if (beat) { beat(); clearInterval(open.iv); open.iv = setInterval(beat, 60000); }
 }
@@ -95,7 +112,7 @@ function open(user) {
 // account later, linkFarm moves it into the new account like any other (or lets them choose, if the account has a farm already).
 function playAsGuest() {
   const owner = ls.get(OWNER) || "";
-  ls.set(GUEST, "1"); ls.set(SEEN, "1");
+  ls.set(GUEST, "1"); ls.set(SEEN, "1"); window.saStats("guest");
   if (owner) { // the farm on this phone belongs to an account: keep it safe for them and start the guest on a new farm
     window.__saHold = true;
     const raw = ls.get(SAVE_KEY); if (raw) ls.set(SAVE_KEY + "@" + owner, raw);
@@ -217,6 +234,7 @@ async function start() {
     const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default"); // this project's Firestore database is named "default"
     fb = {A, auth};
     window.saAuth.fb = {F, db, auth}; // friends.js uses the same Firebase app
+    flushStats();
     cloud = {uid:null,
       get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },
       // write a new version, only if the cloud still has the version this phone expects (null: write regardless)

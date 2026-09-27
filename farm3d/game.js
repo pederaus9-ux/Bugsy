@@ -12,7 +12,7 @@ export const view = {
   refresh(what) {},               // "plots" | "herd" | "buildings" | "decor" | "stand" | "style" | "all"
   sparkle(key) {}, fly(kind, n) {}, // a gold burst over something; coins or gems flying into their counter
   freeDecorSpot(size) { return null; },
-  paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; },
+  paintOptions: {}, setQuality(q) {}, applyWeather() {}, screenPos(key) { return null; }, resolution() { return 100; },
 };
 
 // ---------- game data (same as the 2D game) ----------
@@ -138,6 +138,9 @@ export const HOLIDAYS = {
   halloween:{n:"Halloween", e:"🎃"}, thanksgiving:{n:"Thanksgiving", e:"🦃"}, christmas:{n:"Christmas", e:"🎄"}, newyear:{n:"New Year", e:"🎆"},
 };
 
+// anonymous milestones for the players page (auth.js sends each one once per phone; nothing personal)
+const stat = (name) => { if (!SANDBOX && !homeS && window.saStats) try { window.saStats(name); } catch (e) {} };
+const STAT_LEVELS = [2, 3, 5, 8, 10, 15, 20];
 // ---------- helpers ----------
 const $ = (s) => document.querySelector(s);
 export const now = () => Date.now();
@@ -283,6 +286,7 @@ export function gainXP(n) {
     S.coins += 20 * S.level;
     showLevelUp(S.level, unlocksAt(S.level));
     if (S.level % 5 === 0) { S.perks.owed++; popup("perk"); }
+    if (STAT_LEVELS.includes(S.level)) stat("lvl_" + S.level);
     fillOrders();
     view.refresh("all");
   }
@@ -1457,7 +1461,7 @@ function panelSettings() {
       ${"Notification" in window ? `<button class="btn ${PREFS.notify ? "" : "plain"} sm" data-act="notify">${PREFS.notify ? "🔔 Reminders on" : "🔕 Reminders off"}</button>` : ""}</div>
     ${"Notification" in window ? `<p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Reminders tell you when crops, animals or goods are ready, while the game is still open in the background.</p>` : ""}
     <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
-    <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto lowers the detail by itself if the phone gets slow. Battery saver is gentlest on the battery.</p>
+    <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto adjusts the sharpness by itself to keep the game smooth${PREFS.quality === "auto" || !PREFS.quality ? ` (drawing at ${view.resolution()}% right now)` : ""}. Battery saver is gentlest on the battery.</p>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
     <h4>Barn colours</h4><div class="slot" style="padding:10px">${sw}</div>
     <h4>Backup</h4>
@@ -1580,7 +1584,7 @@ export const tutActive = () => S && S.tut >= 0 && S.tut < TUT.length;
 let tutShown = -1;
 export function tutEvent(e) {
   if (!tutActive()) return;
-  if (TUT[S.tut].done(e)) { S.tut++; save(); tutShown = -1; if (S.tut < TUT.length) sfx("pop"); else view.applyWeather(); renderTut(); }
+  if (TUT[S.tut].done(e)) { S.tut++; save(); tutShown = -1; stat(S.tut < TUT.length ? "tut_" + (S.tut + 1) : "tut_done"); if (S.tut < TUT.length) sfx("pop"); else view.applyWeather(); renderTut(); }
 }
 function tutTick() { if (tutActive()) tutEvent("tick"); renderTut(); }
 export function tutTarget() { return tutActive() ? TUT[S.tut].at : null; }
@@ -1590,7 +1594,7 @@ export function renderTut() {
   el.hidden = false;
   if (tutShown !== S.tut) { const T = TUT[S.tut]; tutShown = S.tut; $("#tutText").textContent = typeof T.say === "function" ? T.say() : T.say; $("#tutStep").textContent = (S.tut + 1) + " / " + TUT.length; $("#tutNext").hidden = !T.next; }
 }
-function startTutorial() { S.tut = 0; save(); closePanel(); renderTut(); view.applyWeather(); }
+function startTutorial() { S.tut = 0; save(); closePanel(); renderTut(); view.applyWeather(); stat("tut_1"); }
 
 // ---------- buttons ----------
 document.addEventListener("click", (e) => {
@@ -1912,6 +1916,9 @@ document.addEventListener("change", async (e) => {
 // ---------- start ----------
 export function start() {
   const how = load();
+  // first open, and coming back on a later day
+  if (!SANDBOX) { let first = null; try { first = localStorage.getItem("sa3d-first"); if (!first) localStorage.setItem("sa3d-first", first = today()); } catch (e) {}
+    stat("open"); const days = first ? Math.round((new Date(today()) - new Date(first)) / 864e5) : 0; if (days >= 1) stat("back_d1"); if (days >= 7) stat("back_d7"); }
   refreshTheme();
   fillOrders();
   renderHud(); applySound();

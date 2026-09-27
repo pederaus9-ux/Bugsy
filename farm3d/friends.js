@@ -44,7 +44,7 @@ export function initFriends(G, hooks) {
     const snap = await F.getDocs(F.query(F.collection(db, "players"), F.where("nameLower", ">=", q), F.where("nameLower", "<=", q + ""), F.limit(10)));
     return snap.docs.filter(d => d.id !== uid()).map(d => ({uid:d.id, name:d.data().name}));
   }
-  async function addFriend(p) { const {F, db} = fb(); await F.setDoc(F.doc(db, "players", uid(), "friends", p.uid), {name:p.name, addedAt:Date.now()}); }
+  async function addFriend(p) { const {F, db} = fb(); await F.setDoc(F.doc(db, "players", uid(), "friends", p.uid), {name:p.name, addedAt:Date.now()}); if (window.saStats) window.saStats("friend"); }
   async function removeFriend(fid) { const {F, db} = fb(); await F.deleteDoc(F.doc(db, "players", uid(), "friends", fid)); }
   async function listFriends() {
     const {F, db} = fb(), snap = await F.getDocs(F.collection(db, "players", uid(), "friends"));
