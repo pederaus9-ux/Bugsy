@@ -462,7 +462,7 @@ def export_bridges(fr, g, out_dir):
     from scipy.spatial import cKDTree
     b = load(out_dir, "bridges_nbi_local.json")
     nbi = {x["id"]: x for x in b["bridges"]}
-    groups, n_deck, n_short = {}, 0, 0
+    groups, n_deck, n_short, n_foot = {}, 0, 0, 0
     thick = 1.0
 
     def add(cx, cy, z_start, z_end, yaw_math, length, width):
@@ -471,17 +471,19 @@ def export_bridges(fr, g, out_dir):
         pitch = math.degrees(math.atan2((z_end - z_start) / 100.0, max(length, 1.0)))
         top_mid = (z_start + z_end) / 2
         groups.setdefault(cell_of(fr, cx, cy), []).append(
-            [ux, uy, top_mid - thick * 100.0, -yaw_math, max(length, 4.0), max(width, 3.5), thick, pitch])
+            [ux, uy, top_mid - thick * 100.0, -yaw_math, max(length, 4.0), max(width, 2.5), thick, pitch])
 
     for d in b.get("osm_decks", []):
         p0, p1 = d["pts"][0], d["pts"][-1]
         if not (fr.inside(*p0) or fr.inside(*p1)):
             continue
         z = g.z_cm([p0[0], p1[0]], [p0[1], p1[1]])
-        rec = nbi.get(d.get("nbi")) or {}
+        foot = d["highway"] not in ROAD_CLASS                # footway / cycleway / path / steps bridges
+        rec = {} if foot else (nbi.get(d.get("nbi")) or {})  # never borrow a nearby road bridge's width
         yaw = math.degrees(math.atan2(p1[1] - p0[1], p1[0] - p0[0]))
         length = math.dist(p0, p1) + 4.0                   # overlap the abutments
-        width = rec.get("deck_width_m") or rec.get("roadway_width_m") or 8.0
+        width = 3.0 if foot else (rec.get("deck_width_m") or rec.get("roadway_width_m") or 8.0)
+        n_foot += foot
         add((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, float(z[0]), float(z[1]), yaw, length, width)
         n_deck += 1
     osm = load(out_dir, "osm_local.json")
@@ -505,7 +507,7 @@ def export_bridges(fr, g, out_dir):
         ends = g.z_cm([x["x"] - ux * L / 2, x["x"] + ux * L / 2], [x["y"] - uy * L / 2, x["y"] + uy * L / 2])
         add(x["x"], x["y"], float(ends[0]), float(ends[1]), yaw, L + 4.0, x.get("deck_width_m") or 8.0)
         n_short += 1
-    return {"osm_decks": n_deck, "nbi_short_spans": n_short}, groups
+    return {"osm_decks": n_deck, "osm_foot_bridges_3m": n_foot, "nbi_short_spans": n_short}, groups
 
 
 def export_buildings(fr, g, out_dir):

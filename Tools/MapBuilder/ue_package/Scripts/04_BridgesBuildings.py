@@ -42,8 +42,8 @@ def main():
     with C.Step("bridges + buildings"):
         man, nb, ab = instance_step("Bridge", "Bridges", "Bridge")
         bs = man["stats"]["bridges"]
-        C.log(f"bridges: {bs['osm_decks']} OSM decks + {bs['nbi_short_spans']} inventory short spans -> {nb:,} "
-              f"instances in {ab} HISM actors (collision on)")
+        C.log(f"bridges: {bs['osm_decks']} OSM decks ({bs.get('osm_foot_bridges_3m', 0)} of them 3 m foot/cycle bridges) + "
+              f"{bs['nbi_short_spans']} inventory short spans -> {nb:,} instances in {ab} HISM actors (collision on)")
         man, n, a = instance_step("Building", "Buildings", "Building")
         st = man["stats"]["buildings"]
         C.log(f"buildings: {st['buildings']:,} footprints -> {n:,} instances in {a} HISM actors "
