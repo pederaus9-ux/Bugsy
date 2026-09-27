@@ -1089,3 +1089,52 @@ Everything is regenerable. Re-running the pipeline with a new center point build
 | Path width | median 46 m, max 823 m | Size distribution (§2.0.3): the `R_m0` median stays near 45 m, and the widest local tornadoes sit in the upper tail |
 
 The season table in §2.0.5 is written for the peak season. For this map, "peak season" means May–July.
+
+### 8.7 Street-level fidelity: the "that's my road" standard
+
+**Goal:** a local player driving any road in the map recognises it as their own road: the same curves, hills, barns, tree lines, signs and mailboxes in the right places. Google Street View cannot be the source (§8.2), so fidelity comes from three legal sources, from highest to lowest priority:
+
+| Source | Coverage | What it gives |
+|---|---|---|
+| **Own drive-capture** (primary) | Every road in the square, about 650 km | A 360° camera with GPS (GoPro MAX / Insta360 X-series class) roof-mounted, driving every road once at 40–60 km/h. That is about 13–16 hours of driving over several weekends, ideally in leaf-off season (late April) and again in summer for foliage reference |
+| **Mapillary** | Whatever the community has uploaded (check coverage first) | CC BY-SA street imagery plus Mapillary's own machine-detected map features: traffic signs, poles, hydrants, with positions |
+| **Aerial + lidar** (§8.2) | 100% | Every building's footprint, height and roof shape; every tree's position, height and crown width; fence and field lines |
+
+**Capture → map pipeline (`Tools/MapBuilder/capture/`):**
+
+```
+360 video + GPS track
+  └─ frame extraction every 3 m of travel; automatic blurring of faces, plates and house numbers BEFORE anything is stored
+  └─ OpenSfM (open source, the SfM engine behind Mapillary): precise camera poses along the road
+  └─ object detection per frame: signs (MUTCD classes), mailboxes, fire-number posts, utility poles, fences/gates,
+     culverts, guardrails, silos, grain bins, windbreaks, driveways
+  └─ triangulate each detection across frames → a world position ± 0.5 m; merge duplicates
+  └─ sign text/class via OCR restricted to the MUTCD catalogue (speed values, road-name blades, warning types)
+  ▼
+street_furniture.json (local meters) → PCG spawns the matching kit asset at each position and heading
+```
+
+**Per-object fidelity rules:**
+
+| Object | Source of truth | In-game |
+|---|---|---|
+| Road geometry, crown, ditches, culverts | Lidar DEM (§8.2) + capture | Landscape splines follow the real centerline; ditch profile comes from lidar |
+| Road signs | Capture detections, with a MUTCD rules fallback (stop/yield at minor approaches, curve warnings where the radius is under 150 m) | Real type, text and position. Road-name blades use the real names (subject to the §8.5 switch) |
+| Fire-number / address posts | Capture detections (the post positions only) | Placed at every real driveway with the local colour and style. **Numbers are generic**, never the real address (§8.5) |
+| Mailboxes, driveways, gates, fences | Capture + NAIP | Real positions; styles picked from the kit to match the photos |
+| Houses, barns, sheds, silos, grain bins | Footprints + lidar roof shape + capture photos for colour, material and style | Kit assembly (destructible, §3): gambrel/gable/shed roof, siding colour, barn red/white, stone foundations. Generic interiors |
+| Trees | Lidar canopy-height model: one tree per local maximum (height, crown radius) + species from leaf-on/off NAIP | Every real tree in the right place with the right size. Forest interiors are PCG-filled to the same density |
+| Fields | Cropland Data Layer + capture | Real crop per field and row direction; crop growth follows the in-game calendar |
+| People, license plates, real vehicles | **Never captured, never reproduced** | – |
+
+**Easter-egg standard.** The acceptance test is a blind drive: a local tester drives a random 5 km of in-game road and must identify where they are within 60 s. Any failed segment gets another capture/fix-up pass.
+
+### 8.8 Parked vehicles you can steal
+
+Real vehicles are never copied from imagery: the imagery goes stale, and copying them is a privacy problem. Parked cars are **generated** from the real driveway and building layout, so every farmstead looks lived-in.
+
+- **Spawn points.** Driveways come from capture detections, or from the nearest-road link of each residential footprint. Each driveway gets 0–3 `AParkedVehicleSpawn` points along its last 30 m and in front of garages and machine sheds.
+- **Vehicle choice.** A weighted pick from `DA_RuralVehicleSet` by building class. Farmhouses favour pickups, SUVs and older sedans. Farmsteads with machine sheds add a tractor, a skid steer or a truck with a stock trailer. In-town houses favour sedans and minivans. All models are fictional (no licensed brands unless a deal is signed).
+- **Behaviour.** A `BP_Vehicle_Base` child (§4.2) in *parked* state: physics asleep, doors locked by probability. It can be stolen with a break-in or hotwire ability (a GAS ability). The owner NPC (Mass, promoted to an actor when a player is near) may come out and react; police respond through the open-world crime system.
+- **Storms move them.** Parked vehicles are T3 wind receivers (§4.5): a tornado can roll them across the yard or carry them into a field, and they stay there (Damage Ledger).
+- **Streaming and netcode.** The spawn points are World Partition actors in `Grid_Props`. The server seeds which vehicle goes where per in-game week, so parked cars change slowly over time. A stolen vehicle becomes player-owned state and persists.
