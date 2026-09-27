@@ -171,6 +171,16 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Privacy-friendly stats: each phone reports each milestone once (opened, guest/account, tutorial steps, levels 2-20, came back another day / a week later, added a friend). Only the milestone name and the date. The players page shows the drop-off funnel and marks the biggest drop.
 - [x] Crash and error reports to the Discord feedback channel: message, file:line, stack, game version, boot stage, phone type. Max 3 per visit and 10 a day per phone, noise filtered, only from the real site.
 
+## Builder brief, Phase 6: walk your farm
+- [x] Phone sideways: a one-time "Turn your phone sideways to walk your farm!" card (existing players; new players walk straight in after the tutorial). Settings › Phone sideways: first person / classic / ask every time. 1.2 s camera swoop down to eye level and back; no state lost.
+- [x] Eye height 1.6 m, FOV 70, near 0.1; walking stays on dynamic resolution.
+- [x] Controls: left thumb = joystick where it lands (edge = run), right thumb = 1:1 look (pitch ±80°), short tap = use.
+- [x] Crosshair + contextual interact button (Harvest, Water, Plant, Pet, Collect, Gift, Open, Orders, Shop, Talk, Buy, Look).
+- [x] First-person harvest burst flies past the camera; Pet: the animal stops and turns to you, ❤️, +15 (animals you look at stay put).
+- [x] Barn: the doors swing open, you step into a lantern-lit interior with hay, the barn opens; close it to step back out.
+- [x] Head bob (Settings toggle), footsteps by surface (grass, dirt, wood), wind rush when running, mitten hands with sleeves in your shirt colour.
+- [x] 👕 Wardrobe (tap your farmer by the barn, Settings or the Barn): 6 skin tones, 8 hairstyles, 8 hair colours, 8 shirts, 6 hats, overalls on/off with 4 colours, 6 boots. Skin and hair always free; unlocks at levels 2-20, spring and fall season prizes; gem items say "Coming soon". Saved with the farm (guests too); shows in the classic view, walk, photo mode and on friends' visits.
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.

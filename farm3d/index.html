@@ -509,7 +509,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="pointer" id="pointer" hidden>👇</div>
 <div class="hint" id="hint">Drag to look all the way around · pinch to zoom · two fingers to move</div>
 <div class="movehint" id="moveHint" hidden>Let go to place it</div>
-<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>stick to move · drag to look</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
+<div class="modebar" id="walkBar" hidden><span>🚶 Walking</span><small>left thumb walks · right thumb looks</small><button id="povBtn" aria-label="Switch view">👁️</button><button data-mode="walk">✕ Exit</button></div>
 <div class="modebar" id="editBar" hidden><span>🏗️ Edit farm</span><small>drag trees &amp; buildings</small><button data-mode="edit">✔ Done</button></div>
 <div class="stick" id="stick" hidden><i></i></div>
 <button class="throwbtn" id="throwBtn" hidden aria-label="Throw some feed">🌾<span class="l out">Bait</span></button>
@@ -833,6 +833,12 @@ function makeBarn() {
   const z = D / 2 + .09;
   const doorFrame = (x0, x1, y0, y1) => { g.add(beam([x0, y0], [x0, y1], .2, .1, M.trim, z)); g.add(beam([x1, y0], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y1], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y0], [x1, y0], .2, .1, M.trim, z)); };
   doorFrame(-1.9, 1.9, base, 3.8);
+  // inside: plank walls, a floor, hay bales and a warm lantern glow (seen when you step in through the doors)
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(W - .4, HW - .1, D - .4), std({map:M.fence.map || null, color:0x6b4a2e, roughness:.95, side:THREE.BackSide, emissive:0x2a1608, emissiveIntensity:.6}));
+  inner.position.set(0, base + (HW - .1) / 2 - .05, 0); g.add(inner);
+  const hay = std({color:0xd9b24c, roughness:1, emissive:0x3a2a08, emissiveIntensity:.5});
+  for (const [x, y, zz, r] of [[-2.6, base + .35, -3.4, 0], [-2.6, base + 1.05, -3.4, .1], [-1.3, base + .35, -3.6, -.1], [2.7, base + .35, -2.2, .2], [2.6, base + .35, 1.2, 0]]) { const b = box(1.1, .7, .75, hay, x, y, zz, .5); b.rotation.y = r; g.add(b); }
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(.14, 12, 10), new THREE.MeshBasicMaterial({color:0xffd27a})); glow.position.set(0, HW - .4, -1); g.add(glow);
   // the two big doors swing open (first-person walk: Open), showing the dark barn behind
   g.add(box(3.7, 3.05, .04, std({color:0x1c120b, roughness:1}), 0, base + 1.53, D / 2 + .01));
   g.userData.doors = [-1, 1].map(sd => { const leaf = new THREE.Group(); leaf.position.set(sd * 1.9, base, z - .03); leaf.userData.door = true; leaf.userData.side = sd;
@@ -2561,10 +2567,10 @@ scene.add(camera);
 hands = (() => {
   const g = new THREE.Group(), sleeve = std({color:0xd24d3f, roughness:.8}), skin = std({color:0xf0c6a0, roughness:.7});
   for (const sd of [-1, 1]) {
-    const h = new THREE.Group(); h.position.set(sd * .27, -.3, -.42); h.rotation.set(-.35, sd * -.25, sd * .2); g.add(h);
-    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.06, .07, .34, 12), sleeve); sl.rotation.x = Math.PI / 2; sl.position.z = .12; h.add(sl);
-    const mit = new THREE.Mesh(new THREE.SphereGeometry(.065, 14, 10), skin); mit.scale.set(1, .8, 1.35); mit.position.z = -.08; h.add(mit);
-    const th = new THREE.Mesh(new THREE.SphereGeometry(.03, 8, 6), skin); th.position.set(-sd * .055, .02, -.05); h.add(th);
+    const h = new THREE.Group(); h.position.set(sd * .22, -.19, -.44); h.rotation.set(-.2, sd * -.3, sd * .2); g.add(h);
+    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.036, .044, .24, 12), sleeve); sl.rotation.x = Math.PI / 2; sl.position.z = .15; h.add(sl);
+    const mit = new THREE.Mesh(new THREE.SphereGeometry(.05, 14, 10), skin); mit.scale.set(1, .8, 1.3); mit.position.z = -.02; h.add(mit);
+    const th = new THREE.Mesh(new THREE.SphereGeometry(.024, 8, 6), skin); th.position.set(-sd * .045, .02, 0); h.add(th);
     h.userData.base = h.position.clone(); h.userData.side = sd;
   }
   g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.renderOrder = 10; } });
@@ -2582,8 +2588,8 @@ function updateHands(dt, t, tweenK) {
   for (const h of hands.children) {
     const b = h.userData.base, sd = h.userData.side;
     h.position.set(b.x + sd * sway, b.y + w.bob * .6 + Math.sin(t * 1.6 + sd) * .004 + Math.abs(sway) * .5, b.z);
-    if (punch && sd === 1) { if (punch.kind === "pat") { h.position.y += pk * .12; h.position.z -= pk * .12; h.rotation.x = -.35 - pk * .6; } else { h.position.z -= pk * .22; h.position.y += pk * .06; } }
-    else h.rotation.x = -.35;
+    if (punch && sd === 1) { if (punch.kind === "pat") { h.position.y += pk * .12; h.position.z -= pk * .12; h.rotation.x = -.2 - pk * .6; } else { h.position.z -= pk * .22; h.position.y += pk * .06; } }
+    else h.rotation.x = -.2;
   }
 }
 
@@ -2609,8 +2615,8 @@ function setWardrobe(on) {
     if (walk) exitFP(); if (editMode) setEdit(false); if (photoMode) setPhoto(false);
     closeTrays(); G.close();
     wardrobeOn = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone(), tilt:tiltH.enabled, fpos:farmer.position.clone(), frot:farmer.rotation.y};
-    farmer.position.copy(FARMER_HOME); farmer.rotation.y = 0; tiltH.enabled = tiltV.enabled = false;
-    cam.target.set(FARMER_HOME.x, 1.05, FARMER_HOME.z); cam.yaw = Math.PI; cam.pitch = .12; cam.dist = 4.6;
+    farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI; tiltH.enabled = tiltV.enabled = false; // facing out, away from the barn
+    cam.target.set(FARMER_HOME.x, .15, FARMER_HOME.z); cam.yaw = .15; cam.pitch = .1; cam.dist = 6.2; // aim low, so the farmer stands above the closet sheet
     document.body.classList.add("dressing"); wardUI.hidden = false; renderWardrobe(); G.sfx("pop");
   } else {
     const W = wardrobeOn; wardrobeOn = null;
