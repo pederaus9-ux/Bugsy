@@ -1,0 +1,57 @@
+
+==== run 1 (no landscape yet): 15 log lines, 0 errors, level has 0 actors
+  info  [CountyMap] geo: origin 44.2999, -91.3825 = UE (0,0); Unreal +X = east, +Y = south, +Z = up; 1 uu = 1 cm; yaw 0 = east, 90 = south
+  info  [CountyMap] landscape: 9/9 heightmap tiles found in /home/user/Bugsy/Tools/MapBuilder/out/ue
+  info  [CountyMap] landscape: 594,628,225 vertices total (73.2 x 73.2 km)
+  warn  [CountyMap] landscape: NOT IMPORTED YET. Do README step 4c (Landscape Mode > Manage > Import) with the settings above, then run ImportCountyMap.py again.
+  warn  [CountyMap] Stopping here: import the landscape first (README step 4c), then run ImportCountyMap.py again.
+  info  [CountyMap] summary: 01_Landscape=FAILED/STOPPED  (0s)
+
+==== run 2 (landscape imported): 44 log lines, 1 errors, level has 985 actors
+  info  [CountyMap] geo: origin 44.2999, -91.3825 = UE (0,0); Unreal +X = east, +Y = south, +Z = up; 1 uu = 1 cm; yaw 0 = east, 90 = south
+  info  [CountyMap] landscape: 9/9 heightmap tiles found in /home/user/Bugsy/Tools/MapBuilder/out/ue
+  info  [CountyMap] landscape: 594,628,225 vertices total (73.2 x 73.2 km)
+  info  [CountyMap] landscape: 1 landscape actors found, scale OK, material assigned
+  info  [CountyMap] roads: 20,883 ways (9,134.2 km) -> 451 merged meshes, 9,626,736 triangles (no collision: the car drives on the road-shaped landscape)
+  info  [CountyMap] roads: meshes per class: County 96, Highway 67, Interstate 11, Service 100, Town 100, Track 77
+  info  [CountyMap] roads: 3,359 non-drivable ways skipped (footpaths, cycleways, parking aisles)
+  info  [CountyMap] roads: terrain carved under roads at export (5,352,124 vertices set, 4,235,335 bank vertices lowered); road sits a median 4.4 cm above it, terrain shows through 0.71% of road surface
+  info  [CountyMap] water: 2,144 lakes/ponds + 529 river areas + 9,440 streams (6,912.5 km) -> 233 merged meshes, 1,076,842 triangles
+  info  [CountyMap] water: meshes per class: Lake 93, River 41, Stream 99
+  info  [CountyMap] water: V1 water is an opaque glossy surface (cheap). Swap M_Water for a translucent or Water-plugin material later; translucency over large areas costs GPU time, so check fps when you do.
+  info  [CountyMap] bridges: 559 OSM decks (120 of them 3 m foot/cycle bridges) + 265 inventory short spans -> 824 instances in 94 HISM actors (collision on)
+  info  [CountyMap] buildings: 75,803 footprints -> 75,803 instances in 100 HISM actors (15,804 with a fallback height)
+  info  [CountyMap] trees: 1,554.9 km² of forest at 24.0 m spacing -> 2,699,988 instances in 100 HISM actors (no collision, culled at 1500 m)
+  info  [CountyMap] trees: tree cells stream with World Partition. If trees pop in close to the car, raise World Settings > World Partition > Runtime Grids > Loading Range to 200000 (2 km).
+  info  [CountyMap] lighting: added sun, sky atmosphere, sky light, height fog
+  info  [CountyMap] player start Whitehall: on Main Street (Highway), 0.3 m from the 'Main Street downtown' landmark, facing along the road
+  info  [CountyMap] player start Arcadia: on West Main Street (Highway), 0.7 m from the 'Downtown Arcadia (Main St)' landmark, facing along the road
+  info  [CountyMap] player starts: UE picks one of these at random on Play. To choose, right-click the road in the viewport > 'Play From Here', or delete the start you don't want.
+  error [CountyMap] drive mode: no Chaos vehicle found. Add the Vehicle template content (README step 1), then re-run.
+  warn  [CountyMap] playable: falling back to fly mode so Play still works
+  info  [CountyMap] fly mode: DefaultPawn free camera (/Game/CountyMap/GameModes/BP_CountyGameMode_Fly). WASD to move, mouse to look, E/Q up/down
+  info  [CountyMap] playable: 2 PlayerStarts, mode = fly. Press Play. While playing, open the console (~) and type ToggleDebugCamera for a free camera.
+  info  [CountyMap] summary: 01_Landscape=OK, 02_Roads=OK, 03_Water=OK, 04_BridgesBuildings=OK, 05_Trees=OK, 06_Playable=OK  (24s)
+
+==== re-run steps 2, 4, 6: 25 log lines, 1 errors, level has 985 actors
+  info  [CountyMap] roads: 20,883 ways (9,134.2 km) -> 451 merged meshes, 9,626,736 triangles (no collision: the car drives on the road-shaped landscape)
+  info  [CountyMap] roads: meshes per class: County 96, Highway 67, Interstate 11, Service 100, Town 100, Track 77
+  info  [CountyMap] roads: 3,359 non-drivable ways skipped (footpaths, cycleways, parking aisles)
+  info  [CountyMap] roads: terrain carved under roads at export (5,352,124 vertices set, 4,235,335 bank vertices lowered); road sits a median 4.4 cm above it, terrain shows through 0.71% of road surface
+  info  [CountyMap] bridges: 559 OSM decks (120 of them 3 m foot/cycle bridges) + 265 inventory short spans -> 824 instances in 94 HISM actors (collision on)
+  info  [CountyMap] buildings: 75,803 footprints -> 75,803 instances in 100 HISM actors (15,804 with a fallback height)
+  info  [CountyMap] lighting: added sun, sky atmosphere, sky light, height fog
+  info  [CountyMap] player start Whitehall: on Main Street (Highway), 0.3 m from the 'Main Street downtown' landmark, facing along the road
+  info  [CountyMap] player start Arcadia: on West Main Street (Highway), 0.7 m from the 'Downtown Arcadia (Main St)' landmark, facing along the road
+  info  [CountyMap] player starts: UE picks one of these at random on Play. To choose, right-click the road in the viewport > 'Play From Here', or delete the start you don't want.
+  error [CountyMap] drive mode: no Chaos vehicle found. Add the Vehicle template content (README step 1), then re-run.
+  warn  [CountyMap] playable: falling back to fly mode so Play still works
+  info  [CountyMap] fly mode: DefaultPawn free camera (/Game/CountyMap/GameModes/BP_CountyGameMode_Fly). WASD to move, mouse to look, E/Q up/down
+  info  [CountyMap] playable: 2 PlayerStarts, mode = fly. Press Play. While playing, open the console (~) and type ToggleDebugCamera for a free camera.
+
+==== play mode switches: 2 log lines, 1 errors, level has 985 actors
+  info  [CountyMap] fly mode: DefaultPawn free camera (/Game/CountyMap/GameModes/BP_CountyGameMode_Fly). WASD to move, mouse to look, E/Q up/down
+  error [CountyMap] drive mode: no Chaos vehicle found. Add the Vehicle template content (README step 1), then re-run.
+
+STATS {'assets_created': 9, 'saves': 12, 'meshes_built': 1135, 'mesh_tris': 20330314, 'spawned_StaticMeshActor': 1135, 'spawned_Actor': 488, 'instances': 2853242, 'spawned_DirectionalLight': 2, 'spawned_SkyAtmosphere': 2, 'spawned_SkyLight': 2, 'spawned_ExponentialHeightFog': 2, 'spawned_PlayerStart': 4, 'destroyed': 651, 'assets_deleted': 451}
+actor count stable across re-runs: 985

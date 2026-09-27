@@ -50,7 +50,9 @@ def landscape_material():
 
 
 def print_import_settings(L, tiles_dir):
-    first = os.path.join(tiles_dir, L["tile_files"][0]["file_r16"])
+    t0 = L["tile_files"][0]
+    first = next((os.path.join(tiles_dir, t0[k]) for k in ("file_r16", "file_png")
+                  if os.path.exists(os.path.join(tiles_dir, t0[k]))), os.path.join(tiles_dir, t0["file_r16"]))
     sx, sy, sz = L["scale"]
     C.log("---- Landscape import settings (README step 4c) ----")
     C.log(f"Heightmap file : {first}")
@@ -65,7 +67,8 @@ def main():
     with C.Step("landscape"):
         L = C.load_json("landscape.json")
         tiles_dir = C.data_dir()                                 # road-carved tiles: out/ue/terrain/
-        missing = [t["file_r16"] for t in L["tile_files"] if not os.path.exists(os.path.join(tiles_dir, t["file_r16"]))]
+        have = lambda t: any(os.path.exists(os.path.join(tiles_dir, t[k])) for k in ("file_r16", "file_png"))
+        missing = [t["file_r16"] for t in L["tile_files"] if not have(t)]     # .r16 or lossless 16-bit .png
         C.log(f"landscape: {len(L['tile_files']) - len(missing)}/{len(L['tile_files'])} heightmap tiles found in {tiles_dir}")
         if missing:
             C.error(f"missing tiles: {', '.join(missing)}. Re-run `mapbuilder.py ue_export` (README step 3).")

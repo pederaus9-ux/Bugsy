@@ -1,0 +1,159 @@
+HANDOFF — GODS COUNTRY (Trempealeau County, WI) — PHASE 1: MAP / TERRAIN IMPORT
+Prepared by the data-pipeline Claude session, 2026-09-27. Target: Unreal Engine 5.8, Blueprint, Third Person template,
+project at C:\UnrealProjects\GodsCountry.
+
+=====================================================================================================
+0. WHERE THE FILES ARE
+=====================================================================================================
+GitHub repo: pederaus9-ux/Bugsy   (https://github.com/pederaus9-ux/Bugsy)   — PUBLIC repository
+Branch:      claude/ue5-viral-game-concepts-k6hy3j
+Folder:      MapData/Phase1/   (about 2.05 GB, 1,044 files; every file is under GitHub's 100 MB limit, no Git LFS needed)
+
+Get it (Git for Windows required; a plain "Download ZIP" of a 2 GB branch is slow and may fail):
+  git clone --branch claude/ue5-viral-game-concepts-k6hy3j --single-branch https://github.com/pederaus9-ux/Bugsy.git C:\GodsCountryData
+Then the terrain tiles are in C:\GodsCountryData\MapData\Phase1\ue_export\terrain\
+
+Key files (sizes in bytes):
+  ue_export/terrain/heightmap_x{0..2}_y{0..2}.png   9 files, 76.5–87.3 MB each — ROAD-CARVED terrain. IMPORT THESE.
+  terrain_original/heightmap_x{0..2}_y{0..2}.png    9 files, same sizes — raw USGS terrain before road carving (backup / re-processing only)
+  CHECKSUMS.txt                                      sha256 of all 18 PNGs
+  preview/preview_map.png (4.0 MB), preview/preview_hillshade.png (3.5 MB) — whole-map previews, north up
+  ue_export/manifest.json, landscape.json, playable.json, landmarks.json — settings, stats, PlayerStarts, landmarks (Unreal cm)
+  ue_export/meshes/*.bin (684 files, 220 MB), ue_export/instances/*.bin (294 files, 86 MB) — prebuilt roads/water meshes and
+      building/bridge/tree instances for the (untested) import scripts
+  data/geojson/roads|water|bridges|buildings|places.geojson (49 MB total) — the same layers as standard WGS84 GeoJSON
+  data/local/*.json — MapBuilder intermediates in local metres; data/raw/ — raw downloads (OSM, Microsoft, SPC) for provenance
+  docs/ — game design doc v1.1, landmark list, map pipeline brief, open-world design doc, data pack README
+  import_package/CountyMap_Import.zip — UE import scripts + beginner README (written for UE 5.6, never run in a real editor)
+  verification/ — pipeline check reports
+  FILES.txt — every file with its size
+Code that produced all of it: Tools/MapBuilder/ (mapbuilder.py, ue_export.py, README.md, verify/, ue_package/).
+
+=====================================================================================================
+1. PHASE 1 GOAL
+=====================================================================================================
+Get the real Trempealeau County terrain into the GodsCountry project as a World Partition landscape at true 1:1 scale,
+positioned in the shared coordinate system below, so every later layer (roads, water, buildings) lines up with it.
+DONE = in GodsCountry, pressing Play spawns the Third Person character on Main Street in Whitehall, standing on the real
+terrain; walking/flying across the map shows the real valleys and ridges with no gaps or steps at tile seams; the landscape
+spans 73.152 km x 73.152 km; spot heights match the checks in section 6.
+
+=====================================================================================================
+2. MAP FACTS
+=====================================================================================================
+Area covered: a 73.152 km x 73.152 km square (5,351 km²) aligned to UTM zone 15N grid (not to lat/long lines).
+  Corners (lat, lon):  NW 44.63469, -91.83437   NE 44.62156, -90.91255   SE 43.96340, -90.93574   SW 43.97624, -91.84733
+  Lat/long bounding box: 43.96340–44.63469 N, 91.84733–90.91255 W
+  Contains all of Trempealeau County (county extent 43.984–44.597 N, 91.613–91.152 W) plus neighbouring areas
+  (parts of Jackson, Buffalo, La Crosse counties and the Minnesota side of the Mississippi).
+Map centre = Unreal origin (0,0): 44.2999 N, 91.3825 W = UTM 15N (EPSG:32615) easting 629,027.069 m, northing 4,906,455.118 m.
+Source: USGS 3DEP bare-earth DEM (lidar-derived), resampled to 3 m (bilinear) via the USGS 3DEP ImageServer. Public domain.
+Resolution: 3.0 metres per pixel.
+Tiles: 3 x 3 = 9 tiles, each 8129 x 8129 pixels (8128 quads x 3 m = 24.384 km per tile).
+  Neighbouring tiles SHARE their edge row/column (the last column of x0 equals the first column of x1, bit-exact),
+  so 3 tiles span 3*8128+1 = 24,385 vertices = 73.152 km.
+Format: PNG, 16-bit greyscale, single channel, lossless (converted from the .r16 master; verified identical).
+  (.r16 = raw uint16 little-endian 8129x8129 can be regenerated from the PNG if a tool wants raw.)
+Naming: heightmap_x{COL}_y{ROW}.png. COL 0 = west, 2 = east. ROW 0 = NORTH, 2 = south. Inside each file, pixel row 0 is the
+  north edge and pixel column 0 is the west edge (north at the top of the image).
+  Grid (north at top):   x0_y0 | x1_y0 | x2_y0
+                         x0_y1 | x1_y1 | x2_y1
+                         x0_y2 | x1_y2 | x2_y2
+Elevation: min 195.03 m, max 428.31 m above sea level (relief 233.28 m). No missing-data pixels.
+Height encoding (pixel value v, 0–65535): elevation_m = 311.672 + (v - 32768) * 0.00416999 ... i.e. Unreal Z below.
+
+=====================================================================================================
+3. UNREAL LANDSCAPE IMPORT SETTINGS (computed for these tiles)
+=====================================================================================================
+Scale X = 300, Scale Y = 300   (cm per pixel; 3 m).
+Scale Z = 53.3759
+  Formula (Unreal: height_cm = LocationZ + (v - 32768) * ScaleZ / 128):
+  ScaleZ = ((maxElev - minElev)/2 + 20 m headroom) * 100 * 128 / 32768 = (233.2846/2 + 20) * 12800 / 32768 = 53.3759
+  (with the rounded 195.03/428.31 the formula gives 53.375; the tiles were encoded with 53.3759 — use 53.3759.)
+Location Z = 11664.2 cm for every tile (puts the lowest point on the map at Z = 0; Z_cm = (elevation_m - 195.03) * 100).
+Component layout per tile: Section Size 127x127 quads, Sections Per Component 2x2, 32 x 32 components = 8129 x 8129.
+World location of each tile's north-west corner (X, Y, Z in cm) — seams line up exactly with these:
+  x0_y0: -3657600, -3657600, 11664.2     x1_y0: -1219200, -3657600, 11664.2     x2_y0: 1219200, -3657600, 11664.2
+  x0_y1: -3657600, -1219200, 11664.2     x1_y1: -1219200, -1219200, 11664.2     x2_y1: 1219200, -1219200, 11664.2
+  x0_y2: -3657600,  1219200, 11664.2     x1_y2: -1219200,  1219200, 11664.2     x2_y2: 1219200,  1219200, 11664.2
+  (tile spacing = 8128 * 300 = 2,438,400 cm; whole map spans X and Y from -3,657,600 to +3,657,600 cm)
+If ONE tiled import is used instead of 9 separate imports: location = x0_y0's (-3657600, -3657600, 11664.2), same scales.
+World Partition: YES. Use an Open World / World Partition level (73 km cannot stream otherwise). Enable Nanite on the
+landscape if 5.8 offers it (594.6 million vertices total).
+
+=====================================================================================================
+4. OTHER DATA AND COORDINATE CONVERSION
+=====================================================================================================
+Unreal frame used by everything: 1 unit = 1 cm; +X = EAST, +Y = SOUTH (north is -Y; Unreal is left-handed), +Z = UP.
+Yaw 0 = facing east, yaw 90 = facing south.
+  X_cm = (easting_m - 629027.069) * 100
+  Y_cm = -(northing_m - 4906455.118) * 100
+  Z_cm = (elevation_m - 195.03) * 100        (for ground height, sample the landscape instead)
+  easting/northing are UTM zone 15N (EPSG:32615). From lat/long: project to EPSG:32615 first (pyproj / epsg.io), then apply.
+Files by coordinate system:
+  data/geojson/*.geojson            WGS84 lon/lat (EPSG:4326). roads (24,242 OSM ways), water (USGS NHD: 10,440 flowlines,
+                                    2,967 waterbodies, 724 river areas), bridges (707 FHWA NBI points + 559 OSM deck lines),
+                                    buildings (75,910 Microsoft footprints with height_m), places (38 landmarks, 2 PlayerStarts,
+                                    map frame polygon).
+  data/local/*.json                 local metres from the origin, x = east, y = NORTH  ->  X_cm = x*100, Y_cm = -y*100.
+  ue_export/*.json, instances/*.bin already Unreal cm (world). instances: per record float32[8] = x, y, bottom_z, yaw_deg,
+                                    size_x_m, size_y_m, size_z_m, pitch_deg.
+  ue_export/meshes/*.bin            Unreal cm RELATIVE to the chunk pivot_cm listed in manifest.json (uint32 nverts, uint32 ntris,
+                                    float32 xyz..., uint32 indices...).
+Towns: Whitehall, Arcadia, Independence, Blair, Ettrick, Osseo, Galesville, Trempealeau, Strum, Eleva, Pigeon Falls and more are
+inside the map; names/positions in data/geojson/places.geojson (landmarks) and data/local/osm_summary.json (OSM places).
+PlayerStart candidates (ue_export/playable.json, already snapped onto the road, Z = road + 150 cm):
+  Whitehall, Main Street:      X  508970.7, Y -787860.3, Z 5461.0, yaw -91.53
+  Arcadia, West Main Street:   X -930652.0, Y  543986.7, Z 2849.2, yaw -170.14
+
+=====================================================================================================
+5. PHASE 1 STEPS (in order)
+=====================================================================================================
+ 1. Clone the branch to the PC (section 0). Confirm 9 PNGs in MapData\Phase1\ue_export\terrain and check a few sha256 values
+    against CHECKSUMS.txt.
+ 2. Open C:\UnrealProjects\GodsCountry in UE 5.8. Create a new World Partition level (e.g. "Empty Open World"), save it
+    (e.g. Content/Maps/County). Keep the Third Person game mode/character as they are.
+ 3. HUMAN/EDITOR: Landscape mode > Manage > New > Import from File. Import the 9 carved tiles with section 3's settings —
+    either 9 separate imports (each tile at its own location; most predictable) or one tiled import if 5.8 recognises the
+    _x#_y# naming. Takes several minutes per tile; watch RAM (32 GB machine).
+ 4. Verify (section 6). Fix scale/location now if wrong — everything else depends on it.
+ 5. Optional: enable Nanite on the landscape; assign any simple landscape material.
+ 6. Place a PlayerStart at the Whitehall coordinates above (delete/move the template one). Press Play: the Third Person
+    character should stand on Main Street, Whitehall. Walk/fly around, cross a tile seam. Save all.
+ 7. (Later phases, not required for Phase 1) roads, water, bridges, buildings, trees from ue_export/ or data/geojson/.
+    The import scripts in import_package/ target UE 5.6, have never run in a real editor, and their step 6 would replace the
+    level's game mode with a vehicle/fly mode — do NOT run 06_Playable.py in GodsCountry; run steps selectively after review.
+Needs a human (or computer-use) in the editor: plugin/level creation, the landscape import dialog(s), Nanite toggle,
+PlayerStart placement, the Play test, and saving. Nothing in Phase 1 is scripted.
+
+=====================================================================================================
+6. CHECKS AFTER IMPORT
+=====================================================================================================
+ - Landscape actor scale reads 300, 300, 53.3759 (not 53.4 — rounding Z moves heights by up to ~45 cm).
+ - Total extent 73,152 m each way (from X/Y -3,657,600 to +3,657,600 cm). If it is 73,158 m or tiles overlap/gap by 3 m, the
+   import did not treat the shared edge rows as shared — use 9 separate imports at the listed locations.
+ - Ground height at Whitehall start (X 508970.7, Y -787860.3) ≈ 5,306–5,311 cm (USGS: 248.09 m; the road carve shifts it by
+   a few cm). Arcadia start (X -930652.0, Y 543986.7) ≈ 2,700 cm (222.03 m). Our tiles match the USGS point service to a
+   mean 0.04 m (max 0.18 m) at 22 test points (verification/usgs_elevation_check.txt).
+ - No visible step at tile seams (verified bit-exact in the data: verification/seam_check.txt).
+ - North check: the Mississippi River / lock and dam should be at the south (+Y) edge area, the I-94 interstate near the
+   north-east; compare with preview/preview_map.png (north up).
+
+=====================================================================================================
+7. UNFINISHED / UNCERTAIN / DOUBLE-CHECK
+=====================================================================================================
+ - UE 5.8 specifics are UNKNOWN to me (my knowledge is of UE 5.x up to about 5.6): exact menu names, whether the landscape
+   importer accepts tiled PNG sets with shared edges, 5.8's maximum landscape size, and 5.8 Python API names — verify in the editor.
+ - Memory: importing 594.6 million vertices may be heavy on 32 GB. Separate per-tile imports reduce peak memory. Lighter
+   fallback: regenerate at 6 m/pixel with Tools/MapBuilder (same area, 9 tiles of 4065 px, Scale X/Y 600) — scale/location
+   values then change (the tool prints them).
+ - The carved tiles differ from raw lidar where roads are: terrain was shaped to the road surfaces (changes p1/p99 −36/+11 cm,
+   banks lowered within ~2.25 m of road edges). Use terrain_original/ if you want untouched terrain (then the prebuilt road
+   meshes will not sit exactly on it).
+ - Nothing Unreal-side has ever run in a real editor; import_package/ scripts were only exercised against a stand-in module.
+ - Data caveats (details in the pipeline docs): OSM roads come from Overpass mirrors of different dates (2026-05-06 to
+   2026-07-24); 50% of road length has no surface tag; stream widths and some bridge deck pitches are estimates; trees are
+   a heuristic scatter (not measured); buildings are boxes from Microsoft footprints (15,804 with fallback heights).
+ - The repo is PUBLIC. With this push it contains the design docs, the landmark list and county data. Make the repo private
+   in GitHub settings if that matters. (No home address is in the repo.)
+ - Repo size: this branch is now about 2 GB; cloning takes a while; GitHub may show size warnings.
