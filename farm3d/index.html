@@ -251,6 +251,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .authlogo{font-size:44px;line-height:1;margin-top:-4px}
 .authcard h2{margin:0;font:400 28px/1.1 var(--fun);color:var(--wood-dk)}
 .authsub{margin:-4px 0 2px;font-weight:800;font-size:14px;opacity:.75}
+.authnote{margin:0;padding:9px 12px;border-radius:14px;background:#EAF7DC;border:2px solid #9BD17A;color:#2F6B1C;font-weight:800;font-size:13.5px;line-height:1.35}
 .authtabs{display:flex;background:var(--parch2);border-radius:99px;padding:4px;gap:4px}
 .authtabs button{flex:1;padding:9px 6px;border-radius:99px;font-weight:900;font-size:14px;color:var(--wood-dk);background:transparent}
 .authtabs button.on{background:#fff;box-shadow:0 2px 0 rgba(110,61,24,.25)}
@@ -374,6 +375,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
     <div class="authlogo" aria-hidden="true">🌻</div>
     <h2 id="authTitle">Welcome back!</h2>
     <p class="authsub" id="authSub">Sign in to play Sunny Acres</p>
+    <p class="authnote" id="authNote" hidden></p>
     <div class="authtabs" id="authTabs"><button type="button" data-mode="signin">Sign in</button><button type="button" data-mode="register">Create account</button></div>
     <label class="authfield" id="fEmail"><span>Email</span><input id="authEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></label>
     <label class="authfield" id="fPass"><span>Password</span><span class="authpw"><input id="authPass" type="password" autocomplete="current-password" minlength="6"><button type="button" id="authEye" aria-label="Show or hide the password">👁️</button></span></label>
@@ -388,7 +390,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
     <button type="button" class="authlink" id="authForgot">Forgot your password?</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=2"></script>
+<script type="module" src="auth.js?v=3"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";

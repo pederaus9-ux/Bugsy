@@ -18,7 +18,7 @@ const SYNC_REV = "sa3d-sync-rev";     // the cloud version this phone's farm was
 const DIRTY = "sa3d-dirty";           // "1" when this phone's farm has changed since then
 
 const $ = (id) => document.getElementById(id);
-const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo");
+const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo"), note = $("authNote");
 const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs"), choose = $("authChoose");
 window.saAuth = {user:null, signOut:async () => {}}; // the game's Settings panel reads this
 let mode = "signin", fb = null, cloud = null;
@@ -56,6 +56,7 @@ function show(m) {
     choose:["Two farms found", "This phone and your account each have a farm. Which one do you want to keep playing?"],
   }[m];
   title.textContent = t[0]; sub.textContent = t[1];
+  note.hidden = !(m === "signin" || m === "register"); if (!note.hidden) note.textContent = farmNote();
   const fields = m === "signin" || m === "register" || m === "reset";
   tabs.hidden = !(m === "signin" || m === "register");
   for (const b of tabs.querySelectorAll("button")) b.classList.toggle("on", b.dataset.mode === m);
@@ -66,6 +67,13 @@ function show(m) {
   go.textContent = {signin:"Sign in", register:"Create account", reset:"Send reset link", offline:"Try again"}[m] || "";
   forgot.hidden = !(m === "signin" || m === "reset"); forgot.textContent = m === "reset" ? "← Back to sign in" : "Forgot your password?";
   if (fields) setTimeout(() => (email.value ? pass : email).focus(), 50);
+}
+// players who were already farming before accounts must see straight away that nothing is lost
+function farmNote() {
+  const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
+  if (s && s.real && !ls.get(OWNER)) return `🌻 Your farm is safe! (Level ${s.level} · ${s.coins.toLocaleString()} 🪙) Make an account or sign in and it comes right along with you.`;
+  if (s && s.real) return "🌻 Your farm is safe in your account. Sign in to keep playing where you left off.";
+  return "🌻 Played before? Your farm is safe. Sign in or make an account and it will be waiting for you.";
 }
 function open(user) {
   window.saAuth.user = {email:user.email, uid:user.uid};
