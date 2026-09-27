@@ -133,6 +133,20 @@ Keep the realistic picture animals (billboards). In order:
 - [x] Order notes show each item's name under its count.
 - [x] Empty building lots: bigger signs, and a 🔨 over the lots you can already build.
 
+## Builder brief, Phase 2: gameplay depth
+- [x] Watering (tap a growing field: 25% faster); 💦 sprinklers (Shop, level 5) water 6 fields each by themselves; rain waters everything.
+- [x] 🧪 Fertilizer (Feed Mill) and 🥇 gold crops/goods that sell for double.
+- [x] Soil health: the same crop again tires the soil, a different crop or fertilizer freshens it, empty fields rest.
+- [x] Seasons: crops out of season grow at half speed (and never gold); the seed tray shows which.
+- [x] Heatwaves (real weather ≥ 32°C / 90°F) slow crops nobody watered.
+- [x] Happy animals work 20% faster and sometimes make gold goods.
+- [x] Deeper chains: wheat → flour → bread, cookies, pies, 🎂 cake, 🍕 pizza.
+- [x] ⏰ Rush orders (level 3+): bigger rewards, 20 minutes to deliver.
+- [x] 👋 Villagers (level 3+) visit by the path with requests; 5 hearts of friendship each.
+- [x] 🗺️ More land (levels 8, 12, 16): 6 more fields each, up to 48.
+- [x] 🎁 Level-up perks every 5 levels: faster crops or better prices.
+- [x] 📜 Quests: 3 daily quests (+1 💎 for all), 15 achievements with gems, and the 🏛️ collection (ship one of everything).
+
 ## Next big update (after launch)
 1. First-person walk mode (planned with the user and Gemini).
 2. Real 3D animals, if the user picks a model pack.

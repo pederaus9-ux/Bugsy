@@ -20,11 +20,13 @@ export const ITEMS = {
   soybean:{n:"Soybean",e:"🫘",p:7,lvl:3,kind:"crop"}, sugarcane:{n:"Sugarcane",e:"🎋",p:9,lvl:4,kind:"crop"}, tomato:{n:"Tomato",e:"🍅",p:11,lvl:5,kind:"crop"},
   strawberry:{n:"Strawberry",e:"🍓",p:14,lvl:6,kind:"crop"}, pumpkin:{n:"Pumpkin",e:"🎃",p:20,lvl:8,kind:"crop"},
   chicken_feed:{n:"Chicken feed",e:"🟡",p:3,lvl:1,kind:"feed"}, cow_feed:{n:"Cow feed",e:"🟤",p:5,lvl:4,kind:"feed"}, sheep_feed:{n:"Sheep feed",e:"🟢",p:7,lvl:7,kind:"feed"},
+  fertilizer:{n:"Fertilizer",e:"🧪",p:4,lvl:3,kind:"feed"}, flour:{n:"Flour",e:"🥣",p:5,lvl:2,kind:"good"},
   egg:{n:"Egg",e:"🥚",p:10,lvl:2,kind:"animal"}, milk:{n:"Milk",e:"🥛",p:18,lvl:4,kind:"animal"}, wool:{n:"Wool",e:"🧶",p:28,lvl:7,kind:"animal"},
-  bread:{n:"Bread",e:"🍞",p:12,lvl:2,kind:"good"}, cornbread:{n:"Corn bread",e:"🥯",p:32,lvl:3,kind:"good"}, sugar:{n:"Brown sugar",e:"🍬",p:16,lvl:4,kind:"good"},
+  bread:{n:"Bread",e:"🍞",p:18,lvl:2,kind:"good"}, cornbread:{n:"Corn bread",e:"🥯",p:32,lvl:3,kind:"good"}, sugar:{n:"Brown sugar",e:"🍬",p:16,lvl:4,kind:"good"},
   butter:{n:"Butter",e:"🧈",p:45,lvl:4,kind:"good"}, cookie:{n:"Cookie",e:"🍪",p:45,lvl:5,kind:"good"}, tomato_soup:{n:"Tomato soup",e:"🍲",p:55,lvl:5,kind:"good"},
   cheese:{n:"Cheese",e:"🧀",p:65,lvl:6,kind:"good"}, carrot_pie:{n:"Carrot pie",e:"🥧",p:70,lvl:6,kind:"good"}, strawberry_jam:{n:"Strawberry jam",e:"🍯",p:70,lvl:7,kind:"good"},
   pumpkin_pie:{n:"Pumpkin pie",e:"🍮",p:85,lvl:8,kind:"good"}, sweater:{n:"Sweater",e:"🧥",p:90,lvl:8,kind:"good"},
+  cake:{n:"Cake",e:"🎂",p:130,lvl:7,kind:"good"}, pizza:{n:"Pizza",e:"🍕",p:140,lvl:8,kind:"good"},
 };
 // time in seconds; seed = coin price when you have none of that crop to replant
 export const CROPS = {
@@ -53,21 +55,38 @@ export const PETS = {
 };
 const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
 export const BUILDINGS = {
-  feedmill:{n:"Feed Mill",e:"🏭",lvl:1,cost:0,recipes:["chicken_feed","cow_feed","sheep_feed"]},
-  bakery:{n:"Bakery",e:"🥖",lvl:2,cost:120,recipes:["bread","cornbread","cookie"]},
+  feedmill:{n:"Feed Mill",e:"🏭",lvl:1,cost:0,recipes:["chicken_feed","flour","fertilizer","cow_feed","sheep_feed"]},
+  bakery:{n:"Bakery",e:"🥖",lvl:2,cost:120,recipes:["bread","cornbread","cookie","cake"]},
   sugarmill:{n:"Sugar Mill",e:"🍬",lvl:4,cost:250,recipes:["sugar"]},
   dairy:{n:"Dairy",e:"🧀",lvl:4,cost:300,recipes:["butter","cheese"]},
-  kitchen:{n:"Kitchen",e:"🍳",lvl:5,cost:450,recipes:["tomato_soup","carrot_pie","strawberry_jam","pumpkin_pie"]},
+  kitchen:{n:"Kitchen",e:"🍳",lvl:5,cost:450,recipes:["tomato_soup","carrot_pie","strawberry_jam","pumpkin_pie","pizza"]},
   loom:{n:"Loom",e:"🧵",lvl:8,cost:600,recipes:["sweater"]},
 };
 export const RECIPES = {
   chicken_feed:{in:{wheat:2,corn:1},out:3,time:30,xp:1}, cow_feed:{in:{corn:2,soybean:1},out:3,time:60,xp:1}, sheep_feed:{in:{soybean:2,carrot:1},out:3,time:90,xp:2},
-  bread:{in:{wheat:3},out:1,time:60,xp:2}, cornbread:{in:{corn:2,egg:2},out:1,time:120,xp:4}, cookie:{in:{wheat:2,egg:1,sugar:1},out:1,time:180,xp:5},
+  flour:{in:{wheat:3},out:2,time:40,xp:1}, fertilizer:{in:{wheat:1,corn:1},out:2,time:45,xp:1}, // wheat → flour → bread, cookies, pies, cake, pizza
+  bread:{in:{flour:2},out:1,time:60,xp:2}, cornbread:{in:{corn:2,egg:2},out:1,time:120,xp:4}, cookie:{in:{flour:1,egg:1,sugar:1},out:1,time:180,xp:5},
   sugar:{in:{sugarcane:1},out:1,time:90,xp:2}, butter:{in:{milk:2},out:1,time:120,xp:4}, cheese:{in:{milk:3},out:1,time:180,xp:6},
-  tomato_soup:{in:{tomato:3,carrot:1},out:1,time:180,xp:5}, carrot_pie:{in:{carrot:3,egg:2,wheat:2},out:1,time:240,xp:7},
+  tomato_soup:{in:{tomato:3,carrot:1},out:1,time:180,xp:5}, carrot_pie:{in:{carrot:3,egg:2,flour:1},out:1,time:240,xp:7},
   strawberry_jam:{in:{strawberry:3,sugar:1},out:1,time:240,xp:7}, pumpkin_pie:{in:{pumpkin:1,egg:2,sugar:1},out:1,time:300,xp:8}, sweater:{in:{wool:2},out:1,time:300,xp:8},
+  cake:{in:{flour:2,egg:2,butter:1,sugar:1},out:1,time:360,xp:10}, pizza:{in:{flour:1,tomato:2,cheese:1},out:1,time:300,xp:10},
 };
 export const MAX_PLOTS = 30, QUEUE_SLOTS = 3, STAND_MAX = 8;
+// more land west of the fields: each deed makes room for 6 more fields
+export const LAND = [{lvl:8, cost:1500}, {lvl:12, cost:3000}, {lvl:16, cost:6000}], LAND_FIELDS = 6;
+export const maxPlots = () => MAX_PLOTS + LAND_FIELDS * ((S && S.land) || 0);
+// crops grow best in their own seasons; out of season they still grow, only half as fast (and never gold)
+export const CROP_SEASONS = {wheat:null, corn:["spring", "summer", "fall"], carrot:["spring", "fall", "winter"], soybean:["spring", "summer"],
+  sugarcane:["summer", "fall"], tomato:["summer", "fall"], strawberry:["spring", "summer"], pumpkin:["fall", "winter"]};
+export const SEASON_E = {spring:"🌸", summer:"☀️", fall:"🍂", winter:"❄️"};
+// villagers who stop by with a request; helping them makes friends (up to 5 hearts), and friends pay better
+export const VILLAGERS = {
+  rosa:{n:"Granny Rosa", e:"👵", pers:"The cheerful baker from town", likes:["good"], hi:["Something smells lovely on your farm!", "My customers can't get enough of your goods."]},
+  joe:{n:"Grandpa Joe", e:"👴", pers:"A bit grumpy, but always fair", likes:["crop"], hi:["Hmph. Your fields look... acceptable.", "Back in my day we grew our own. Now I buy yours."]},
+  mia:{n:"Mia", e:"👧", pers:"Loves every animal she meets", likes:["animal", "crop"], hi:["Can I say hi to your animals? Pleeease?", "I'm making pancakes with my grandma!"]},
+  sam:{n:"Sam", e:"🧔", pers:"Your neighbor, always busy", likes:["crop", "feed"], hi:["Howdy, neighbor! My farm's a mess this week.", "Could you help me out? I'll pay you well."]},
+  lily:{n:"Lily", e:"👩", pers:"An artist who paints farm life", likes:["crop", "good"], hi:["The light on your barn is perfect today!", "I need a few things for my picnic painting."]},
+};
 // Decorations. Some are bought with coins; the rest can only be won in events. rare: 1-3 = event prize tier. hol = holiday prize.
 export const DECOR = {
   tulips:{n:"Tulip bed", e:"🌷", cost:30}, sunflowers:{n:"Sunflowers", e:"🌻", cost:40}, roses:{n:"Rose bush", e:"🌹", cost:50},
@@ -130,6 +149,8 @@ export const gemCost = (ms) => Math.max(1, Math.ceil(ms / 300000)); // 1 gem per
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const plotCost = () => 40 + (S.plots.length - 6) * 35;
+const sprinklerCost = () => 200 * (S.sprinklers + 1);
+export const maxSprinklers = () => Math.ceil(maxPlots() / 6);
 const barnCost = () => Math.round(80 * Math.pow(1.55, S.barnUps) / 10) * 10;
 const orderSlots = () => Math.min(4 + Math.floor(S.level / 2), 9);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
@@ -138,11 +159,13 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;
 export const SAVE_KEY = "sunny-acres-3d-v1", SAVE_2D = "sunny-acres-v1";
 export let S;
 let homeS = null; // your own farm, kept aside while you visit a friend's
+// a field: what grows, when it's ready, watered/fertilized, soil health (0-100) and the last crop grown there
+const newPlot = () => ({crop:null, end:0, water:0, fert:0, soil:100, soilAt:0, last:null});
 function fresh() {
   return {
     v:1, coins:60, gems:5, xp:0, level:1,
     barn:{wheat:3, corn:2}, barnCap:50, barnUps:0,
-    plots:Array.from({length:6}, () => ({crop:null, end:0})),
+    plots:Array.from({length:6}, () => newPlot()),
     stand:{slots:4, list:[null, null, null, null]},
     decor:{inv:{}, placed:[]}, event:null, nextEventAt:0, holidayDone:{},
     lastCrop:"wheat",
@@ -150,8 +173,14 @@ function fresh() {
     pets:[],
     buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === "feedmill", jobs:[]}])),
     orders:[], lastDaily:"",
-    stats:{orders:0, harvests:0, made:0, earned:0},
+    stats:{orders:0, harvests:0, made:0, earned:0, gold:0, water:0, visitors:0, rush:0},
     style:{}, tut:0,
+    gold:{},                          // how many of each item in the barn are gold quality (sell for double)
+    sprinklers:0, land:0,             // automation and extra land
+    perks:{grow:0, sell:0, owed:0},   // level-up perks: every 5 levels, pick faster crops or better prices
+    quests:null, ach:{}, museum:{},   // daily quests, achievements claimed, the collection
+    rush:null, nextRushAt:0,          // a limited-time order
+    visitor:null, nextVisitorAt:0, villagers:{}, // who is visiting, and friendship with each villager
     layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)
   };
 }
@@ -164,7 +193,12 @@ function upgrade(saved) {
   for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }
   s.stats = Object.assign(def.stats, s.stats);
   s.barn = s.barn || {};
-  s.plots = (Array.isArray(s.plots) && s.plots.length ? s.plots : def.plots).map(p => Object.assign({crop:null, end:0}, p));
+  s.plots = (Array.isArray(s.plots) && s.plots.length ? s.plots : def.plots).map(p => Object.assign(newPlot(), p));
+  s.gold = s.gold && typeof s.gold === "object" ? s.gold : {};
+  s.sprinklers = s.sprinklers | 0; s.land = s.land | 0;
+  s.perks = Object.assign({grow:0, sell:0, owed:0}, s.perks);
+  s.perks.owed = Math.max(s.perks.owed | 0, Math.floor((s.level || 1) / 5) - s.perks.grow - s.perks.sell); // farms from before perks get their picks too
+  s.ach = s.ach || {}; s.museum = s.museum || {}; s.villagers = s.villagers || {};
   s.stand = s.stand && Array.isArray(s.stand.list) ? s.stand : def.stand;
   while (s.stand.list.length < s.stand.slots) s.stand.list.push(null);
   s.pets = (Array.isArray(s.pets) ? s.pets : []).filter(p => p && PETS[p.kind]);
@@ -202,8 +236,14 @@ export const have = (id) => S.barn[id] || 0;
 export const barnUsed = () => Object.values(S.barn).reduce((a, b) => a + b, 0);
 export const space = () => S.barnCap - barnUsed();
 function add(id, n) { S.barn[id] = have(id) + n; }
-function take(id, n) { S.barn[id] = have(id) - n; if (S.barn[id] <= 0) delete S.barn[id]; }
-const hasAll = (req) => Object.entries(req).every(([id, n]) => have(id) >= n);
+function take(id, n) { // plain ones go first; gold ones are kept for last
+  S.barn[id] = have(id) - n; if (S.barn[id] <= 0) delete S.barn[id];
+  if (S.gold[id] > have(id)) S.gold[id] = have(id); if (!S.gold[id]) delete S.gold[id];
+}
+export const goldOf = (id) => Math.min(S.gold[id] || 0, have(id));
+function addGold(id, n) { S.gold[id] = goldOf(id) + n; S.stats.gold += n; track("gold", n); }
+export const sellPrice = (id) => Math.round(ITEMS[id].p * (1 + .1 * S.perks.sell)); // the "Haggler" perk
+export const hasAll = (req) => Object.entries(req).every(([id, n]) => have(id) >= n);
 
 // ---------- progression ----------
 export function gainXP(n) {
@@ -214,6 +254,7 @@ export function gainXP(n) {
     S.gems += 2;
     S.coins += 20 * S.level;
     showLevelUp(S.level, unlocksAt(S.level));
+    if (S.level % 5 === 0) { S.perks.owed++; popup("perk"); }
     fillOrders();
     view.refresh("all");
   }
@@ -225,28 +266,77 @@ function unlocksAt(lvl) {
   for (const P of Object.values(PETS)) if (P.lvl === lvl) out.push(P.e + " A pet " + P.n.toLowerCase() + " in the Shop");
   for (const b of Object.values(BUILDINGS)) if (b.lvl === lvl && b.cost) out.push(b.e + " " + b.n);
   for (const id of Object.keys(RECIPES)) if (ITEMS[id].lvl === lvl) out.push(ITEMS[id].e + " " + ITEMS[id].n + " recipe");
+  if (lvl === 3) out.push("⏰ Rush orders and 👋 visitors");
+  if (lvl === 5) out.push("💦 Sprinklers in the Shop");
+  LAND.forEach(L => { if (L.lvl === lvl) out.push("🗺️ More land in the Shop"); });
+  if (lvl % 5 === 0) out.push("🎁 Choose a perk");
   return out;
 }
 
 // ---------- fields ----------
 export function isRaining() { const w = weatherNow(); return !!w && (w.kind === "rain" || w.kind === "storm"); }
+export function heatwave() { const w = weatherNow(); return !!w && w.temp != null && w.temp >= (w.unit === "°F" ? 90 : 32); }
+export const inSeason = (crop) => !CROP_SEASONS[crop] || CROP_SEASONS[crop].includes(THEME.season);
+// an empty field rests and slowly gets its strength back (+10 an hour)
+export const soilNow = (p) => p.crop ? p.soil : Math.min(100, p.soil + Math.max(0, now() - (p.soilAt || 0)) / 36e4);
+export const soilWord = (v) => v >= 70 ? "🟢 Healthy soil" : v >= 40 ? "🟡 Tired soil" : "🔴 Worn-out soil";
+export const sprinkled = (i) => i < S.sprinklers * 6;
+// how long a crop takes on this field: season, soil, perks, and water (a heatwave slows crops nobody watered)
+export function growTime(crop, p) {
+  let t = CROPS[crop].time * 1000;
+  if (!inSeason(crop)) t *= 2;
+  if (soilNow(p) < 40) t *= 1.25;
+  t *= Math.max(.5, 1 - .1 * S.perks.grow);
+  return t * (p.water ? .75 : heatwave() ? 1.2 : 1);
+}
+export const goldChance = (p) => !inSeason(p.crop) ? 0 : .05 + (p.water ? .1 : 0) + (p.fert ? .35 : 0) + (p.soil >= 70 ? .05 : 0);
 export function plant(i, crop, quiet) {
   const p = S.plots[i], c = CROPS[crop];
   if (!p || p.crop || ITEMS[crop].lvl > S.level) return false;
   if (have(crop) > 0) take(crop, 1);
   else if (S.coins >= c.seed) S.coins -= c.seed;
   else { if (!quiet) { toast("Not enough coins for " + ITEMS[crop].n + " seeds"); sfx("error"); } return false; }
-  p.crop = crop; p.end = now() + c.time * 1000 * (isRaining() ? .9 : 1); S.lastCrop = crop; // rain waters the fields
+  p.soil = soilNow(p); p.soilAt = now();
+  p.crop = crop; p.water = isRaining() || sprinkled(i) ? 1 : 0; p.hot = !p.water && heatwave() ? 1 : 0; // rain and sprinklers water for you
+  p.dur = growTime(crop, p); p.end = now() + p.dur; S.lastCrop = crop;
   sfx("plant");
+  return true;
+}
+// watering: a growing crop finishes 25% sooner (and shrugs off a heatwave)
+export function waterPlot(i, quiet) {
+  const p = S.plots[i];
+  if (!p || !p.crop || p.water || p.end <= now()) return false;
+  const left = p.end - now(); p.end = now() + left * .75 / (p.hot ? 1.2 : 1); p.water = 1; p.hot = 0;
+  S.stats.water++; track("water", 1);
+  if (!quiet) { sfx("water"); view.fx("plot:" + i, "💧"); view.refresh("plots"); commit(); }
+  return true;
+}
+export function waterAll() {
+  let n = 0; S.plots.forEach((_, i) => { if (waterPlot(i, true)) n++; });
+  if (n) { sfx("water"); toast("💧 Watered " + n + " field" + (n > 1 ? "s" : "")); view.refresh("plots"); commit(); }
+  return n;
+}
+export const thirsty = () => S.plots.filter(p => p.crop && !p.water && p.end > now()).length;
+// fertilizer (made at the Feed Mill): much better odds of a gold harvest, and the soil gets stronger
+export function fertilize(i) {
+  const p = S.plots[i];
+  if (!p || p.fert) return false;
+  if (have("fertilizer") < 1) { toast("You need 🧪 fertilizer. Make it at the Feed Mill."); sfx("error"); return false; }
+  take("fertilizer", 1); p.soil = Math.min(100, soilNow(p) + 25); p.soilAt = now(); p.fert = 1;
+  sfx("magic"); view.fx("plot:" + i, "🧪"); commit();
   return true;
 }
 export function harvest(i, quiet) {
   const p = S.plots[i];
   if (!p || !p.crop || p.end > now()) return false;
   if (space() < 2) { if (!quiet) barnFull(); return "full"; }
-  view.fx("plot:" + i, "+2 " + ITEMS[p.crop].e);
-  add(p.crop, 2); gainXP(CROPS[p.crop].xp); S.stats.harvests++; sfx("harvest"); eventProgress("harvest", 2);
-  p.crop = null; p.end = 0;
+  const crop = p.crop, gold = Math.random() < goldChance(p);
+  view.fx("plot:" + i, (gold ? "🥇 +2 " : "+2 ") + ITEMS[crop].e);
+  add(crop, 2); if (gold) addGold(crop, 2);
+  gainXP(CROPS[crop].xp); S.stats.harvests++; sfx("harvest"); if (gold) sfx("magic"); eventProgress("harvest", 2);
+  // crop rotation: the same crop again wears the soil out, a different one freshens it up
+  p.soil = clamp(p.soil + (p.last === crop ? -15 : 10), 0, 100); p.soilAt = now(); p.last = crop;
+  p.crop = null; p.end = 0; p.water = 0; p.fert = 0; p.hot = 0;
   return true;
 }
 export function speedPlot(i) {
@@ -261,7 +351,7 @@ export function speedPlot(i) {
 export function feedOne(kind, i) {
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (pen.list[i] !== 0 || have(a.feed) < 1) return false;
-  take(a.feed, 1); pen.list[i] = now() + a.time * 1000;
+  take(a.feed, 1); pen.list[i] = now() + a.time * 1000 * (loveOf(meta(kind, i)) >= 70 ? .8 : 1); // happy animals work faster
   sfx("feed");
   return true;
 }
@@ -286,8 +376,9 @@ export function collectAnimal(kind, i) {
   }
   const n = happy && Math.random() < .25 && space() >= 2 ? 2 : 1; // happy animals sometimes make double
   if (space() < 1) { barnFull(); return false; }
-  add(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);
-  view.fx("animal:" + kind + ":" + i, (n > 1 ? "×2! " : "+1 ") + ITEMS[a.out].e); sfx(kind);
+  const gold = happy && Math.random() < .3; // and very happy ones sometimes make gold-quality goods
+  add(a.out, n); if (gold) addGold(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);
+  view.fx("animal:" + kind + ":" + i, (gold ? "🥇 " : "") + (n > 1 ? "×2! " : "+1 ") + ITEMS[a.out].e); sfx(kind);
   return true;
 }
 export function collectAll(kind) {
@@ -423,7 +514,7 @@ function genOrder() {
   return {items, coins:Math.round(value * 1.35 + 4), xp:Math.max(2, Math.round(value / 4)), gem:Math.random() < 0.12 ? 1 : 0, wait:0};
 }
 export function fillOrders() { while (S.orders.length < orderSlots()) S.orders.push(genOrder()); }
-export const readyOrders = () => S.orders.filter(o => !o.wait && hasAll(o.items)).length;
+export const readyOrders = () => S.orders.filter(o => !o.wait && hasAll(o.items)).length + (S.rush && S.rush.end > now() && hasAll(S.rush.items) ? 1 : 0);
 function deliver(i) {
   const o = S.orders[i];
   if (!o || o.wait || !hasAll(o.items)) return;
@@ -450,8 +541,9 @@ function discard(i) {
 function sell(id, n) {
   n = Math.min(n, have(id));
   if (!n) return;
-  take(id, n); S.coins += ITEMS[id].p * n; S.stats.earned += ITEMS[id].p * n; sfx("coin");
-  toast("Sold " + n + " " + ITEMS[id].e + " for " + ITEMS[id].p * n + " 🪙");
+  const g = Math.min(n, goldOf(id)), coins = sellPrice(id) * (n + g); // gold ones go first, for double
+  S.gold[id] = goldOf(id) - g; take(id, n); S.coins += coins; S.stats.earned += coins; sfx("coin");
+  toast("Sold " + n + " " + ITEMS[id].e + (g ? " (" + g + " 🥇)" : "") + " for " + coins + " 🪙");
   commit();
 }
 function upgradeBarn() {
@@ -460,10 +552,10 @@ function upgradeBarn() {
   S.coins -= c; S.barnUps++; S.barnCap += 25; sfx("build"); toast("Barn now holds " + S.barnCap); commit();
 }
 export function buyPlot() {
-  if (S.plots.length >= MAX_PLOTS) return false;
+  if (S.plots.length >= maxPlots()) return false;
   const c = plotCost();
   if (S.coins < c) { toast("Need " + c + " 🪙"); sfx("error"); return false; }
-  S.coins -= c; S.plots.push({crop:null, end:0}); toast("New field ready!"); sfx("build"); view.refresh("plots"); commit();
+  S.coins -= c; S.plots.push(newPlot()); toast("New field ready!"); sfx("build"); view.refresh("plots"); commit();
   return true;
 }
 export function buyBuilding(bid) {
@@ -503,7 +595,7 @@ export function claimDaily() {
 // Put items out with your own price. Townsfolk buy them over time: the higher the price, the longer it takes.
 const standSlotCost = () => 150 * Math.pow(2, S.stand.slots - 4);
 function priceRange(id, qty) {
-  const base = ITEMS[id].p * qty;
+  const base = sellPrice(id) * qty;
   return {base, min:Math.max(1, Math.floor(base * .8)), max:Math.ceil(base * 1.6), step:Math.max(1, Math.round(base * .1))};
 }
 const saleSecs = (id, qty, price) => Math.round(20 + 200 * clamp((price / (ITEMS[id].p * qty) - .8) / .8, 0, 1));
@@ -574,7 +666,7 @@ const decorTag = (D) => D.hol ? `<span class="tag hol">${HOLIDAYS[D.hol].n}</spa
 const popups = [];
 function popup(type, arg) {
   if (opts.quiet) return;
-  if (view.busy() || (panel && (panel.type === "level" || panel.type === "prize" || panel.type === "confirm"))) { popups.push([type, arg]); return; }
+  if (view.busy() || (panel && (panel.type === "level" || panel.type === "prize" || panel.type === "confirm" || panel.type === "perk"))) { popups.push([type, arg]); return; }
   openPanel(type, arg);
 }
 const evDef = (ev = S.event) => ev.type.startsWith("h:") ? HOLIDAY_EVENTS[ev.type.slice(2)] : EVENTS[ev.type];
@@ -600,6 +692,7 @@ function startEvent() {
   else toast(def.e + " A new event started: " + def.n + "!");
 }
 function eventProgress(metric, n) {
+  track(metric, n);
   const ev = S.event;
   if (!ev || ev.end <= now() || evDef(ev).metric !== metric) return;
   ev.prog += n;
@@ -610,6 +703,229 @@ function eventProgress(metric, n) {
     S.coins += PRIZE_COINS[tier]; S.gems += PRIZE_GEMS[tier];
     sfx("level"); popup("prize", {id, tier});
   }
+}
+
+
+/* ============================================================
+   MORE TO DO: rush orders, visitors, daily quests, achievements, the collection, perks, sprinklers and land
+   ============================================================ */
+// ---------- rush orders: a bigger order that has to go out within 20 minutes ----------
+const RUSH_LEN = 20 * 60e3;
+function rushTick() {
+  const t = now();
+  if (S.rush && S.rush.end <= t) { S.rush = null; S.nextRushAt = t + rand(30, 90) * 60e3; toast("⏰ The rush order's truck left. Another one will come."); save(); }
+  if (S.rush || S.level < 3) return;
+  if (!S.nextRushAt) { S.nextRushAt = t + rand(5, 15) * 60e3; save(); return; } // the first one comes a little after level 3
+  if (t < S.nextRushAt) return;
+  const o = genOrder();
+  for (const id in o.items) o.items[id] += ITEMS[id].kind === "crop" ? 2 : 1;
+  const value = Object.entries(o.items).reduce((a, [id, n]) => a + ITEMS[id].p * n, 0);
+  S.rush = {items:o.items, coins:Math.round(value * 2.2 + 10), xp:Math.max(4, Math.round(value / 3)), gem:Math.random() < .5 ? 1 : 0, end:t + RUSH_LEN};
+  save(); sfx("truck"); toast("⏰ Rush order! Fill it in 20 minutes for a big reward. See 🚚 Orders.");
+}
+function deliverRush() {
+  const o = S.rush;
+  if (!o || o.end <= now() || !hasAll(o.items)) return;
+  for (const [id, n] of Object.entries(o.items)) take(id, n);
+  S.coins += o.coins; S.gems += o.gem; S.stats.orders++; S.stats.rush++; S.stats.earned += o.coins;
+  toast("⏰ Rush order delivered! +" + o.coins + " 🪙" + (o.gem ? "  +" + o.gem + " 💎" : "") + "  +" + o.xp + " ⭐");
+  view.fx("board", "+" + o.coins + " 🪙"); sfx("truck"); sfx("coin");
+  S.rush = null; S.nextRushAt = now() + rand(30, 90) * 60e3;
+  eventProgress("orders", 1); track("rush", 1); gainXP(o.xp); commit();
+}
+
+// ---------- visitors ----------
+const VISIT_LEN = 30 * 60e3;
+export const friendOf = (id) => S.villagers[id] || (S.villagers[id] = {h:0, n:0});
+function visitorTick() {
+  const t = now(), v = S.visitor;
+  if (v && v.end <= t) { S.visitor = null; S.nextVisitorAt = t + rand(10, 40) * 60e3; toast(VILLAGERS[v.id].e + " " + VILLAGERS[v.id].n + " headed home. Maybe next time!"); view.refresh("visitor"); save(); }
+  if (S.visitor || S.level < 3 || t < (S.nextVisitorAt || 0)) return;
+  const ids = Object.keys(VILLAGERS).filter(k => k !== S.lastVisitor), id = pick(ids), V = VILLAGERS[id], f = friendOf(id);
+  const all = producible(), liked = all.filter(x => V.likes.includes(ITEMS[x].kind)), pool = liked.length ? liked : all, items = {};
+  const kinds = Math.min(pool.length, rand(1, 2));
+  while (Object.keys(items).length < kinds) { const x = pick(pool); if (items[x]) continue; const k = ITEMS[x].kind; items[x] = k === "crop" ? rand(3, 6) : k === "good" ? rand(1, 2) : rand(1, 3); }
+  const value = Object.entries(items).reduce((a, [x, n]) => a + ITEMS[x].p * n, 0);
+  S.visitor = {id, items, coins:Math.round((value * 1.6 + 10) * (1 + .1 * f.h)), xp:Math.max(3, Math.round(value / 3)), end:t + VISIT_LEN, say:pick(V.hi)};
+  S.lastVisitor = id; save(); view.refresh("visitor");
+  toast(V.e + " " + V.n + " is visiting! Tap them by the path.");
+}
+function helpVisitor() {
+  const v = S.visitor;
+  if (!v || !hasAll(v.items)) return;
+  const V = VILLAGERS[v.id], f = friendOf(v.id);
+  for (const [id, n] of Object.entries(v.items)) take(id, n);
+  f.h = Math.min(5, f.h + 1); f.n++;
+  const gem = f.h >= 5 ? 1 : 0; // best friends always bring a little extra
+  S.coins += v.coins; S.gems += gem; S.stats.visitors++; S.stats.earned += v.coins;
+  toast(V.e + " " + V.n + ": \"Thank you, dear!\" +" + v.coins + " 🪙" + (gem ? " +1 💎" : "") + "  +" + v.xp + " ⭐");
+  sfx("coin"); sfx("level");
+  S.visitor = null; S.nextVisitorAt = now() + rand(10, 40) * 60e3;
+  track("visitor", 1); gainXP(v.xp); closePanel(); view.refresh("visitor"); commit();
+}
+function panelVisitor() {
+  const v = S.visitor;
+  if (!v) return {title:"Visitors", body:`<p class="center" style="font-weight:800">Nobody is visiting right now. Villagers stop by from level 3.</p>`};
+  const V = VILLAGERS[v.id], f = friendOf(v.id), can = hasAll(v.items);
+  return {title:V.n, body:`<div class="big">${V.e}</div><p class="center muted" style="font-weight:800;margin:0">${V.pers}</p>
+    <p class="center" style="font-weight:800;font-size:16px;margin:8px 0">"${esc(v.say)}"</p>
+    <p class="center" style="margin:0">${"💞".repeat(f.h)}${"🤍".repeat(5 - f.h)}</p>
+    <div class="slot" style="padding:10px;margin-top:10px"><b>Could you spare:</b><div class="need" style="justify-content:center;margin-top:6px">${needList(v.items)}</div>
+    <div class="reward center" style="margin-top:8px;display:flex;gap:12px;justify-content:center;font-weight:800"><span>🪙 ${v.coins}</span><span>⭐ ${v.xp}</span>${f.h >= 4 ? "<span>💎 1</span>" : ""}<span>+💞</span></div></div>
+    <p class="center muted" style="font-weight:800;margin:8px 0 0">Leaves in ${timer(v.end)}</p>
+    <p class="center" style="margin:12px 0 0;display:flex;gap:8px;justify-content:center"><button class="btn" data-act="helpVisitor" ${can ? "" : "disabled"}>Give</button><button class="btn plain" data-act="closePanel">Not now</button></p>`};
+}
+
+// ---------- daily quests ----------
+const QUESTS = [
+  {m:"harvest", t:"Harvest {n} crops", n:(L) => 10 + 2 * Math.min(L, 15)},
+  {m:"orders", t:"Deliver {n} truck orders", n:(L) => 2 + Math.floor(L / 5)},
+  {m:"water", t:"Water {n} fields", n:(L) => 6 + Math.min(L, 14)},
+  {m:"make", t:"Make {n} goods in your buildings", n:(L) => 2 + Math.floor(L / 4), need:() => S.buildings.bakery.owned},
+  {m:"feed", t:"Make {n} animal feed", n:() => 6, need:() => S.pens.chicken.owned},
+  {m:"egg", t:"Collect {n} eggs", n:() => 6, need:() => S.pens.chicken.owned},
+  {m:"milk", t:"Collect {n} milk", n:() => 4, need:() => S.pens.cow.owned},
+  {m:"love", t:"Pet or brush animals {n} times", n:() => 4, need:() => S.pets.length || Object.values(S.pens).some(p => p.owned)},
+  {m:"market", t:"Earn {n} 🪙 at your roadside shop", n:(L) => 30 + 10 * Math.min(L, 20)},
+  {m:"gold", t:"Grow {n} gold crops or goods", n:() => 2, need:() => S.level >= 3},
+  {m:"visitor", t:"Help {n} visitor", n:() => 1, need:() => S.level >= 3},
+];
+const questDef = (m) => QUESTS.find(q => q.m === m);
+const questReward = () => ({coins:20 + 5 * Math.min(S.level, 30), xp:5 + Math.min(S.level, 30)});
+export function questsToday() {
+  if (S.quests && S.quests.day === today()) return S.quests;
+  const pool = QUESTS.filter(q => !q.need || q.need()), list = [];
+  while (list.length < 3 && pool.length) { const q = pool.splice(rand(0, pool.length - 1), 1)[0]; list.push({m:q.m, n:q.n(S.level), prog:0, got:0}); }
+  S.quests = {day:today(), list, bonus:0};
+  return S.quests;
+}
+function track(metric, n) {
+  if (!S || homeS) return;
+  let done = false;
+  for (const q of questsToday().list) if (q.m === metric && q.prog < q.n) { q.prog = Math.min(q.n, q.prog + n); if (q.prog >= q.n) done = true; }
+  if (done) { toast("📜 Quest done! Collect your reward in 📜 Quests."); sfx("collect"); }
+}
+function claimQuest(k) {
+  const q = questsToday().list[k];
+  if (!q || q.got || q.prog < q.n) return;
+  const r = questReward(); q.got = 1; S.coins += r.coins; S.stats.earned += r.coins;
+  toast("📜 +" + r.coins + " 🪙  +" + r.xp + " ⭐"); sfx("coin"); gainXP(r.xp); commit();
+}
+function claimQuestBonus() {
+  const Q = questsToday();
+  if (Q.bonus || !Q.list.every(q => q.got)) return;
+  Q.bonus = 1; S.gems += 1; toast("📜 All of today's quests done! +1 💎"); sfx("level"); commit();
+}
+
+// ---------- achievements ----------
+export const ACH = [
+  {id:"h50", e:"🌾", t:"Harvest 50 fields", v:() => S.stats.harvests, n:50, gems:1},
+  {id:"h500", e:"🌾", t:"Harvest 500 fields", v:() => S.stats.harvests, n:500, gems:3},
+  {id:"o10", e:"🚚", t:"Deliver 10 orders", v:() => S.stats.orders, n:10, gems:1},
+  {id:"o100", e:"🚚", t:"Deliver 100 orders", v:() => S.stats.orders, n:100, gems:3},
+  {id:"r5", e:"⏰", t:"Deliver 5 rush orders", v:() => S.stats.rush, n:5, gems:2},
+  {id:"m50", e:"🏭", t:"Make 50 goods", v:() => S.stats.made, n:50, gems:2},
+  {id:"g10", e:"🥇", t:"Get 10 gold crops or goods", v:() => S.stats.gold, n:10, gems:2},
+  {id:"w100", e:"💧", t:"Water 100 fields", v:() => S.stats.water, n:100, gems:1},
+  {id:"v10", e:"👋", t:"Help 10 visitors", v:() => S.stats.visitors, n:10, gems:2},
+  {id:"bff", e:"💞", t:"Become best friends with a villager", v:() => Math.max(0, ...Object.values(S.villagers).map(f => f.h)), n:5, gems:3},
+  {id:"l10", e:"⭐", t:"Reach level 10", v:() => S.level, n:10, gems:2},
+  {id:"l20", e:"🌟", t:"Reach level 20", v:() => S.level, n:20, gems:5},
+  {id:"f30", e:"🟫", t:"Own 30 fields", v:() => S.plots.length, n:30, gems:2},
+  {id:"all", e:"🏘️", t:"Build every building", v:() => Object.values(S.buildings).filter(b => b.owned).length, n:Object.keys(BUILDINGS).length, gems:3},
+  {id:"mus", e:"🏛️", t:"Add 10 things to your collection", v:() => Object.keys(S.museum).length, n:10, gems:1},
+];
+function claimAch(id) {
+  const a = ACH.find(x => x.id === id);
+  if (!a || S.ach[id] || a.v() < a.n) return;
+  S.ach[id] = now(); S.gems += a.gems; toast(a.e + " Achievement: " + a.t + "! +" + a.gems + " 💎"); sfx("level"); commit();
+}
+
+// ---------- the collection: ship one of everything ----------
+const MUSEUM_GROUPS = [["crop", "🌾 Crops"], ["animal", "🥚 From animals"], ["feed", "🟡 Feed and farm supplies"], ["good", "🍞 Goods"]];
+function shipToMuseum(id) {
+  if (S.museum[id] || have(id) < 1) return;
+  take(id, 1); S.museum[id] = now(); sfx("place"); toast(ITEMS[id].e + " " + ITEMS[id].n + " added to your collection!");
+  for (const [kind, name] of MUSEUM_GROUPS) {
+    const ids = Object.keys(ITEMS).filter(x => ITEMS[x].kind === kind);
+    if (ITEMS[id].kind === kind && ids.every(x => S.museum[x])) { S.gems += 2; toast("🏛️ " + name + " collection complete! +2 💎"); sfx("level"); }
+  }
+  if (Object.keys(ITEMS).every(x => S.museum[x])) { S.gems += 5; S.decor.inv.trophy = (S.decor.inv.trophy || 0) + 1; toast("🏆 You shipped one of everything! +5 💎 and a Gold trophy"); }
+  commit();
+}
+
+export const questClaims = () => {
+  if (!S || homeS) return 0;
+  const Q = questsToday();
+  return (S.perks.owed > 0 ? 1 : 0) + Q.list.filter(q => q.prog >= q.n && !q.got).length + (!Q.bonus && Q.list.length && Q.list.every(q => q.got) ? 1 : 0) + ACH.filter(a => !S.ach[a.id] && a.v() >= a.n).length;
+};
+function panelQuests(tab = "daily") {
+  const tabs = [["daily", "📜 Today"], ["ach", "🏅 Achievements"], ["museum", "🏛️ Collection"]];
+  let h = (S.perks.owed > 0 ? `<p class="center" style="margin:0 0 8px"><button class="btn gold" data-act="open" data-p="perk">🎁 Choose your level-up perk</button></p>` : "") +
+    `<div class="toggles" style="justify-content:center">${tabs.map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-act="qtab" data-k="${k}">${n}</button>`).join("")}</div>`;
+  if (tab === "daily") {
+    const Q = questsToday(), r = questReward();
+    h += `<p class="center muted" style="font-weight:800;margin:8px 0">New quests every day. Each pays ${r.coins} 🪙 and ${r.xp} ⭐; finish all three for +1 💎.</p><div class="qlist">`;
+    h += Q.list.map((q, k) => `<div class="qrow slot"><div class="grow"><b>${questDef(q.m).t.replace("{n}", q.n)}</b><div class="cap"><i style="width:${Math.min(100, q.prog / q.n * 100)}%"></i></div><small class="muted">${q.prog} / ${q.n}</small></div>
+      ${q.got ? `<span class="done">✔</span>` : `<button class="btn sm" data-act="claimQuest" data-i="${k}" ${q.prog >= q.n ? "" : "disabled"}>Collect</button>`}</div>`).join("");
+    const all = Q.list.every(q => q.got);
+    h += `<div class="qrow slot"><div class="grow"><b>💎 All three done</b><small class="muted">${Q.list.filter(q => q.got).length} / ${Q.list.length}</small></div>
+      ${Q.bonus ? `<span class="done">✔</span>` : `<button class="btn gold sm" data-act="questBonus" ${all ? "" : "disabled"}>+1 💎</button>`}</div></div>`;
+  }
+  if (tab === "ach") {
+    h += `<div class="qlist">` + ACH.map(a => { const v = Math.min(a.v(), a.n);
+      return `<div class="qrow slot ${S.ach[a.id] ? "got" : ""}"><span class="e">${a.e}</span><div class="grow"><b>${a.t}</b><div class="cap"><i style="width:${v / a.n * 100}%"></i></div><small class="muted">${v} / ${a.n} · ${a.gems} 💎</small></div>
+        ${S.ach[a.id] ? `<span class="done">✔</span>` : `<button class="btn gold sm" data-act="claimAch" data-id="${a.id}" ${a.v() >= a.n ? "" : "disabled"}>+${a.gems} 💎</button>`}</div>`; }).join("") + `</div>`;
+  }
+  if (tab === "museum") {
+    const n = Object.keys(S.museum).length, all = Object.keys(ITEMS).length;
+    h += `<p class="center muted" style="font-weight:800;margin:8px 0">Ship one of everything to the town collection (${n}/${all}). Each finished shelf gives 2 💎, and the whole set a 🏆 trophy.</p>`;
+    for (const [kind, name] of MUSEUM_GROUPS) {
+      h += `<h4>${name}</h4><div class="inv">` + Object.keys(ITEMS).filter(x => ITEMS[x].kind === kind).map(x => S.museum[x]
+        ? `<div class="islot slot got" title="${ITEMS[x].n}"><span class="e">${ITEMS[x].e}</span><span class="q">✔</span></div>`
+        : have(x) ? `<button class="islot slot" data-act="ship" data-id="${x}" title="Ship 1 ${ITEMS[x].n}"><span class="e">${ITEMS[x].e}</span><span class="q out">Ship</span></button>`
+        : `<div class="islot slot missing" title="${ITEMS[x].n}"><span class="e">${ITEMS[x].e}</span></div>`).join("") + `</div>`;
+    }
+  }
+  return {title:"Quests", body:h};
+}
+
+// ---------- level-up perks ----------
+let perkAsked = false; // offered once per visit; after that the choice waits in 📜 Quests
+function panelPerk() {
+  return {title:"Choose a perk", body:`<div class="big">🎁</div><p class="center" style="font-weight:800">Every 5 levels you pick one. They add up!</p>
+    <div class="shop"><div class="scard slot"><span class="e">🌱</span><b>Green thumb</b><small>Crops grow 10% faster (now ${S.perks.grow * 10}%)</small><button class="btn" data-act="perk" data-k="grow">Pick</button></div>
+    <div class="scard slot"><span class="e">💰</span><b>Haggler</b><small>Things sell for 10% more (now ${S.perks.sell * 10}%)</small><button class="btn gold" data-act="perk" data-k="sell">Pick</button></div></div>`};
+}
+function pickPerk(k) {
+  if (S.perks.owed < 1 || (k !== "grow" && k !== "sell")) return;
+  S.perks[k]++; S.perks.owed--; sfx("level");
+  toast(k === "grow" ? "🌱 Green thumb! Crops grow faster." : "💰 Haggler! Better prices.");
+  closePanel(); if (S.perks.owed > 0) openPanel("perk"); commit();
+}
+
+// ---------- sprinklers and land ----------
+function buySprinkler() {
+  if (S.level < 5 || S.sprinklers >= maxSprinklers()) return;
+  const c = sprinklerCost();
+  if (S.coins < c) { toast("Need " + c + " 🪙"); sfx("error"); return; }
+  S.coins -= c; S.sprinklers++; sfx("build");
+  toast("💦 Sprinkler installed! Fields " + ((S.sprinklers - 1) * 6 + 1) + "-" + S.sprinklers * 6 + " water themselves when planted.");
+  S.plots.forEach((_, i) => { if (sprinkled(i)) waterPlot(i, true); });
+  view.refresh("plots"); commit();
+}
+function buyLand() {
+  const L = LAND[S.land];
+  if (!L || S.level < L.lvl) return;
+  if (S.coins < L.cost) { toast("Need " + L.cost + " 🪙"); sfx("error"); return; }
+  S.coins -= L.cost; S.land++; sfx("build"); toast("🗺️ New land cleared! Room for " + LAND_FIELDS + " more fields.");
+  closePanel(); view.refresh("plots"); view.focus("plot:" + Math.min(S.plots.length, maxPlots() - 1)); commit();
+}
+// rain waters every growing field for you
+function rainTick() {
+  if (!isRaining()) return;
+  let n = 0; S.plots.forEach((_, i) => { if (waterPlot(i, true)) n++; });
+  if (n) { toast("🌧️ The rain watered " + n + " field" + (n > 1 ? "s" : "")); view.refresh("plots"); save(); }
 }
 
 /* ============================================================
@@ -745,9 +1061,10 @@ export function renderHud() {
   badge('[data-p="orders"]', readyOrders());
   badge('[data-p="barn"]', space() <= 0 ? "!" : 0);
   badge('[data-p="decor"]', Object.values(S.decor.inv).reduce((a, b) => a + b, 0));
+  badge('#questBtn', questClaims());
   // weather chip
   const w = weatherNow(), wc = $("#wxChip");
-  const wHtml = w ? `<span class="e">${WX_ICON[w.kind][w.day ? 0 : 1]}</span><span>${w.temp != null ? w.temp + (w.unit || "°") : WX_NAME[w.kind]}</span>`
+  const wHtml = w ? `<span class="e">${WX_ICON[w.kind][w.day ? 0 : 1]}</span><span>${w.temp != null ? w.temp + (w.unit || "°") : WX_NAME[w.kind]}${heatwave() ? " 🔥" : ""}</span>`
     : `<span class="e">🌤️</span><span>${WX.mode === "off" ? "Weather" : "Real weather?"}</span>`;
   if (wc.innerHTML !== wHtml) wc.innerHTML = wHtml;
   // event chip
@@ -804,7 +1121,13 @@ function panelPenLot(kind) {
 }
 
 function panelOrders() {
-  let h = `<div class="orders">` + S.orders.map((o, i) => {
+  const R = S.rush && S.rush.end > now() ? S.rush : null, rc = R && hasAll(R.items);
+  let h = R ? `<div class="note rush ${rc ? "can" : ""}"><div class="rtag">⏰ Rush order · ${timer(R.end)} left</div><div class="items">` +
+      Object.entries(R.items).map(([id, n]) => `<span class="oi ${have(id) < n ? "short" : "ok"}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><b class="n">${have(id)}/${n}</b><small>${ITEMS[id].n}</small></span>`).join("") +
+      `</div><div class="reward"><span>🪙 ${R.coins}</span><span>⭐ ${R.xp}</span>${R.gem ? `<span>💎 ${R.gem}</span>` : ""}</div>
+      <div class="foot"><button class="btn gold sm" data-act="deliverRush" ${rc ? "" : "disabled"}>Deliver</button></div></div>` : "";
+  if (S.visitor) { const V = VILLAGERS[S.visitor.id]; h += `<p class="center" style="font-weight:800;margin:0 0 8px"><button class="btn plain sm" data-act="open" data-p="visitor">${V.e} ${V.n} is waiting by the path</button></p>`; }
+  h += `<div class="orders">` + S.orders.map((o, i) => {
     if (o.wait) return `<div class="note waiting"><div><div class="e">🚚</div>New order in<br>${timer(o.wait)}</div></div>`;
     const can = hasAll(o.items);
     return `<div class="note ${can ? "can" : ""}"><div class="items">` +
@@ -824,12 +1147,12 @@ function panelBarn() {
     <button class="btn gold sm" data-act="barnUp">Upgrade +25 · ${barnCost()} 🪙</button></div>
     <div class="cap ${used >= S.barnCap ? "full" : ""}"><i style="width:${Math.min(100, used / S.barnCap * 100)}%"></i></div>`;
   if (!ids.length) return {title:"Barn", body:h + `<p class="center muted" style="font-weight:800">Your barn is empty. Go harvest something!</p>`};
-  h += `<div class="inv">` + ids.map(id => `<button class="islot slot ${selItem === id ? "sel" : ""}" data-act="selItem" data-id="${id}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><span class="q out">${have(id)}</span></button>`).join("") + `</div>`;
+  h += `<div class="inv">` + ids.map(id => `<button class="islot slot ${selItem === id ? "sel" : ""}" data-act="selItem" data-id="${id}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><span class="q out">${have(id)}</span>${goldOf(id) ? `<span class="gq">🥇${goldOf(id)}</span>` : ""}</button>`).join("") + `</div>`;
   if (selItem) {
     const it = ITEMS[selItem];
-    h += `<div class="sellbar slot"><span class="e">${it.e}</span><div class="grow"><b style="font-family:var(--fun);font-weight:400;font-size:17px">${it.n}</b><div class="muted" style="font-weight:800">Sells for ${it.p} 🪙 each</div></div>
+    h += `<div class="sellbar slot"><span class="e">${it.e}</span><div class="grow"><b style="font-family:var(--fun);font-weight:400;font-size:17px">${it.n}</b><div class="muted" style="font-weight:800">Sells for ${sellPrice(selItem)} 🪙 each${goldOf(selItem) ? ` · 🥇 gold ones ${sellPrice(selItem) * 2} 🪙` : ""}</div></div>
       <button class="btn gold sm" data-act="sell" data-id="${selItem}" data-n="1">Sell 1</button>
-      ${have(selItem) > 1 ? `<button class="btn gold sm" data-act="sell" data-id="${selItem}" data-n="${have(selItem)}">Sell all · ${it.p * have(selItem)} 🪙</button>` : ""}</div>`;
+      ${have(selItem) > 1 ? `<button class="btn gold sm" data-act="sell" data-id="${selItem}" data-n="${have(selItem)}">Sell all · ${sellPrice(selItem) * (have(selItem) + goldOf(selItem))} 🪙</button>` : ""}</div>`;
   } else h += `<p class="center muted" style="font-weight:800;margin:12px 0 0">Tap an item to sell it</p>`;
   return {title:"Barn", body:h};
 }
@@ -915,20 +1238,27 @@ function panelWeather() {
   if (w) h += `<div class="wxnow slot"><span class="e">${WX_ICON[w.kind][w.day ? 0 : 1]}</span><div><b>${WX_NAME[w.kind]}${w.temp != null ? " · " + w.temp + (w.unit || "°") : ""}</b>
     <span class="muted" style="font-weight:800">${w.preview ? "Preview" : esc(WX.place)}${w.day ? "" : " · night"}</span></div></div>`;
   else h += `<p style="font-weight:800;margin:0">Make your farm match the real weather outside: sun, rain, snow and night time with glowing windows.</p>`;
-  if (isRaining()) h += `<p style="font-weight:800">💧 Rain is watering your fields! Crops planted now grow 10% faster.</p>`;
+  if (isRaining()) h += `<p style="font-weight:800">💧 Rain is watering your fields for you! Watered crops grow 25% faster.</p>`;
+  if (heatwave()) h += `<p style="font-weight:800">🔥 Heatwave! Crops nobody waters grow 20% slower. Water them, or get 💦 sprinklers.</p>`;
   h += `<div class="wxrow"><button class="btn" data-act="wxGPS">📍 Use my location</button>${WX.mode !== "off" && WX.mode !== "ask" ? `<button class="btn plain" data-act="wxOff">Turn off</button>` : ""}</div>
     <div class="wxrow"><input id="wxCity" placeholder="…or type your town" autocomplete="off" enterkeyhint="done"><button class="btn gold" data-act="wxCity">Set</button></div>
     <p class="muted" style="font-weight:700;font-size:13px">Your location is only used to look up the weather (from Open-Meteo, a free weather service). It stays on your phone.</p>
     <h4>How the farm looks</h4><div class="toggles">${LOOKS.map(([k, n]) => `<button class="btn ${WX.look === k ? "" : "plain"} sm" data-act="look" data-k="${k}">${n}</button>`).join("")}</div>
     <h4>Season</h4><p style="font-weight:800;margin:0">${{spring:"🌸 Spring", summer:"☀️ Summer", fall:"🍂 Fall", winter:"❄️ Winter"}[THEME.season]}${hol ? ` &nbsp;·&nbsp; ${hol.e} ${hol.n}` : ""}</p>
+    <p style="font-weight:800;margin:4px 0 0">In season now: ${Object.keys(CROPS).filter(inSeason).map(c => ITEMS[c].e).join(" ")}. <span class="muted">Other crops grow at half speed.</span></p>
     <p class="muted" style="font-weight:700;font-size:13px">The farm dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day.</p>`;
   return {title:"Weather", body:h};
 }
 function panelShop() {
   let h = `<h4>Expand</h4><div class="shop">`;
-  h += S.plots.length < MAX_PLOTS
-    ? `<div class="scard slot"><span class="e">🟫</span><b>New field</b><small>${S.plots.length}/${MAX_PLOTS} fields</small><button class="btn gold sm" data-act="plot+">${plotCost()} 🪙</button></div>`
-    : `<div class="scard slot"><span class="e">🟫</span><b>Fields</b><small>All ${MAX_PLOTS} owned!</small></div>`;
+  h += S.plots.length < maxPlots()
+    ? `<div class="scard slot"><span class="e">🟫</span><b>New field</b><small>${S.plots.length}/${maxPlots()} fields</small><button class="btn gold sm" data-act="plot+">${plotCost()} 🪙</button></div>`
+    : `<div class="scard slot"><span class="e">🟫</span><b>Fields</b><small>All ${maxPlots()} owned!</small></div>`;
+  const L = LAND[S.land];
+  h += L ? (S.level >= L.lvl ? `<div class="scard slot"><span class="e">🗺️</span><b>More land</b><small>Room for ${LAND_FIELDS} more fields</small><button class="btn gold sm" data-act="land">${L.cost.toLocaleString()} 🪙</button></div>`
+      : `<div class="scard slot locked"><span class="e">🗺️</span><b>More land</b><small>Level ${L.lvl}</small></div>`) : "";
+  h += S.level >= 5 ? (S.sprinklers < maxSprinklers() ? `<div class="scard slot"><span class="e">💦</span><b>Sprinkler</b><small>Waters 6 fields by itself (${S.sprinklers} owned)</small><button class="btn gold sm" data-act="sprinkler">${sprinklerCost()} 🪙</button></div>`
+      : `<div class="scard slot"><span class="e">💦</span><b>Sprinklers</b><small>Every field is covered!</small></div>`) : `<div class="scard slot locked"><span class="e">💦</span><b>Sprinkler</b><small>Level 5</small></div>`;
   h += `<div class="scard slot"><span class="e">📦</span><b>Barn +25</b><small>Holds ${S.barnCap} now</small><button class="btn gold sm" data-act="barnUp">${barnCost()} 🪙</button></div></div>`;
   h += `<h4>Animals</h4><div class="shop">`;
   for (const [k, a] of Object.entries(ANIMALS)) {
@@ -1026,7 +1356,10 @@ function panelImport2D() {
 const howTo = () => `<ul class="howto">
   <li>Tap an empty field, pick a seed, then tap or <b>drag across</b> empty fields to plant.</li>
   <li>When crops are ripe, tap one, or start a swipe on a ripe crop and slide across the rest, to harvest. A drag that starts anywhere else turns the camera.</li>
-  <li>Tap the 📋 order board to deliver orders for coins and ⭐.</li>
+  <li>Tap a growing field to 💧 water it (25% faster) or add 🧪 fertilizer (better chance of 🥇 gold crops, which sell for double).</li>
+  <li>Grow a different crop now and then: the same crop over and over tires the soil. Crops grow at half speed out of season.</li>
+  <li>Tap the 📋 order board to deliver orders for coins and ⭐. ⏰ Rush orders pay extra but don't wait long.</li>
+  <li>👋 Villagers stop by with requests. Help them to become friends. Check 📜 Quests every day.</li>
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the path, at your own price.</li>
   <li>Tap an animal to feed it, collect from it, pet and brush it. Happy animals make more.</li>
@@ -1046,14 +1379,15 @@ function panelSig() {
   if (!panel) return "";
   const t = now(), f = (e) => (e && e <= t ? 1 : 0);
   if (panel.type === "building") return S.buildings[panel.arg].jobs.map(j => f(j.end)).join("");
-  if (panel.type === "orders") return S.orders.map(o => f(o.wait)).join("");
+  if (panel.type === "orders") return S.orders.map(o => f(o.wait)).join("") + (S.rush ? "r" : "");
   if (panel.type === "stand") return S.stand.list.map(L => L ? f(L.sellAt) : "-").join("");
   return "";
 }
 export function renderPanel() {
   if (!panel) return;
   const v = {backup:panelBackup, event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, lot:panelLot, penLot:panelPenLot,
-    orders:panelOrders, barn:panelBarn, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D}[panel.type](panel.arg);
+    orders:panelOrders, barn:panelBarn, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D,
+    quests:panelQuests, perk:panelPerk, visitor:panelVisitor}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
   $("#panelRoot").innerHTML = `<div class="scrim" data-act="closePanel"><div class="panel" role="dialog" aria-modal="true" aria-label="${v.title}">
     <div class="ribbon out">${v.title}</div><button class="xbtn" data-act="closePanel" aria-label="Close">✕</button>
@@ -1073,6 +1407,7 @@ export function tick() {
   S.orders.forEach((o, i) => { if (o.wait && o.wait <= t) { S.orders[i] = genOrder(); changed = true; } });
   if (changed) save();
   refreshTheme(); eventTick();
+  if (!homeS) { rushTick(); visitorTick(); rainTick(); if (!perkAsked && !panel && S.perks.owed > 0 && !tutActive() && !opts.quiet && !view.busy()) { perkAsked = true; openPanel("perk"); } }
   renderHud(); tutTick();
   if (panel) { if (changed || panelSig() !== lastPanelSig) renderPanel(); else tickTimers(); }
 }
@@ -1170,6 +1505,16 @@ document.addEventListener("click", (e) => {
     case "makeAccount": closePanel(); if (window.saAuth && window.saAuth.upgrade) window.saAuth.upgrade(); break;
     case "paint": S.style[d.k] = +d.i; save(); view.refresh("style"); renderPanel(); break;
     case "sell": sell(d.id, +d.n); break;
+    case "deliverRush": deliverRush(); break;
+    case "helpVisitor": helpVisitor(); break;
+    case "qtab": panel.arg = d.k; renderPanel(); break;
+    case "claimQuest": claimQuest(i); break;
+    case "questBonus": claimQuestBonus(); break;
+    case "claimAch": claimAch(d.id); break;
+    case "ship": shipToMuseum(d.id); break;
+    case "perk": pickPerk(d.k); break;
+    case "sprinkler": buySprinkler(); break;
+    case "land": buyLand(); break;
     case "barnUp": upgradeBarn(); break;
     case "tutorial": startTutorial(); break;
     case "startTut": startTutorial(); break;
@@ -1268,6 +1613,7 @@ const SOUNDS = {
   cat:() => tone(700, .45, {type:"triangle", vol:.08, to:950, attack:.08, vib:5}),
   slice:() => { noise(.12, {vol:.16, freq:3200, q:.5}); tone(1400, .09, {type:"triangle", vol:.05, to:420}); },
   bounce:() => tone(210, .07, {vol:.07, to:130}),
+  water:() => { noise(.35, {vol:.12, freq:5200, q:.4}); noise(.25, {vol:.08, freq:3000, q:.6, at:.12}); },
   throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:"triangle", vol:.06, to:520}); },
 };
 export function sfx(name) { if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
@@ -1346,7 +1692,7 @@ function copyCode() {
 function adopt(farm) {
   const hadTut = farm.tut != null, s = upgrade(farm);
   for (const d of s.decor.placed.splice(0)) if (d.x == null) s.decor.inv[d.id] = (s.decor.inv[d.id] || 0) + 1; else s.decor.placed.push(d);
-  s.plots = s.plots.slice(0, MAX_PLOTS);
+  s.plots = s.plots.slice(0, MAX_PLOTS + LAND_FIELDS * LAND.length);
   if (!hadTut) s.tut = TUT.length; // a farm from the 2D game doesn't need the tutorial
   return s;
 }
