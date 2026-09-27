@@ -1,6 +1,6 @@
 # Trempealeau County — Open-World Game Design Doc
 
-**Status:** v1 (GTA-style direction) — Sep 27, 2026
+**Status:** v1.1 (GTA-style direction; open questions decided) — Sep 27, 2026
 **Supersedes:** `storm-chaser-game-design-doc.md` (retired — that was the documentarian concept)
 **Engine:** Unreal Engine 5.6 | **Platform:** PC | **Map:** 1:1 Trempealeau County, WI, 49×49 km (see `storm-chaser-map-pipeline-claude-brief.md`)
 
@@ -15,9 +15,9 @@ A GTA-style open-world action game on a 1:1 recreation of Trempealeau County, Wi
 3. **Rural sandbox.** Country life as gameplay: trucking, farm work, hunting, dirt-track racing, flying, emergency response.
 4. **Consequences stick.** Storm damage persists, the sheriff remembers, money matters.
 
-## Player fantasy (open — needs Austin's call)
+## Player fantasy (decided)
 
-A newcomer doing odd jobs across the county, pulled into bigger trouble. Alternatives: a local trying to save the family farm; an ex-storm-chaser turned drifter. See open questions.
+**An ex-storm-chaser turned drifter**, taking odd jobs across the county and getting pulled into bigger trouble. It explains why the player heads *toward* storms, and it ties storm footage into the job economy (footage sells to the local TV station).
 
 ## Core loop
 
@@ -63,7 +63,7 @@ Options:
 - **(b) Compress to ~1:2 or 1:3:** still "the county," just denser.
 - **(c) 1:1 with content corridors:** action concentrated along US-53 / I-94 / towns; wilderness as atmospheric transit.
 
-**Recommendation: (a) + (c).** Keep the 1:1 bragging right — "every road real" IS the hook — but design content along corridors and make driving itself fun. The weather system fills the emptiness: a tornado on the horizon is content you can see for miles.
+**Decision: (a) + (c).** Keep the 1:1 bragging right — "every road real" IS the hook — but design content along corridors and make driving itself fun. The weather system fills the emptiness: a tornado on the horizon is content you can see for miles.
 
 ## Scope control
 
@@ -72,9 +72,11 @@ Options:
 
 **Explicitly out of V1:** heavy on-foot combat systems, multiplayer, second county.
 
-## Open questions for Austin
+## Decisions (formerly open questions)
 
-1. Protagonist: newcomer drifter, local saving the farm, or ex-storm-chaser?
-2. Story vs. pure sandbox: how much scripted story in v1?
-3. Scale: 1:1 or compressed? (see above — recommendation: keep 1:1)
-4. Tone: straight GTA crime, or cleaner (odd jobs, no glorified crime)? This decides how the sheriff system and story work.
+| # | Question | Decision |
+|---|---|---|
+| 1 | Protagonist | **Ex-storm-chaser drifter** |
+| 2 | Story vs. sandbox | **Sandbox-led, with one short story thread in V1.** Mostly sandbox jobs and activities; the story thread gives a spine and an ending without heavy scripting |
+| 3 | Scale | **1:1**, with content corridors along I-94, US-53 and the towns (see the scale section) |
+| 4 | Tone | **Crime is available, never required.** The player can steal cars, run from the sheriff and loot after storms, and the sheriff system responds. The story thread itself stays on the cleaner side: odd jobs and storm work, with no mission that forces the player into crime |

@@ -92,7 +92,7 @@ Feedback is physical, never a UI element: camera buffeting, character lean and s
   - *Response time* = dispatch delay (30–90 s) + drive time from the nearest free deputy along the real road graph at road-class speeds. Rural response is slow on purpose: you can outrun the law.
   - *Memory*: every crime adds `Notoriety` to a per-player, per-town ledger that decays over in-game days, not minutes. Deputies recognise your vehicle (colour, model, plate state) until you change it. "They remember."
   - *Storms change policing*: during a warning, deputies are pulled to storm response and response times double. After a storm, looting brings a heavier response.
-  - The sheriff's tone (straight crime vs. cleaner odd-jobs) is an open GDD question; the subsystem supports both through data-asset tuning.
+  - Tone (GDD decision 4): crime is available but never required. No story mission forces a crime, so the sheriff system only reacts to what the player chooses to do.
 
 ### 1.6 Clip generation (invisible)
 
