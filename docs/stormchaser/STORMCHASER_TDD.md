@@ -44,8 +44,9 @@
 
 | Pillar | Spec |
 |---|---|
-| Map | 16 × 16 km "Tornado Alley" state: one mid-size city, 6 towns, farmland, interstate, back roads, river valley, lake, oil fields, trailer parks, strip malls |
+| Map | **1:1 recreation of the lead's real home area** (§8): about 16 × 16 km of rural cropland, gravel roads, farmsteads, creeks and the nearby towns, at true scale |
 | Time | Continuous day/night (1 in-game day = 48 real min). Seasons drive the climate (spring peak). No session phases, no cycles |
+| Weather | The stormiest place in the country. Most days bring something: tornadoes, hail, derechos, lightning, floods, fog, dust, and ice or blizzards in winter. **Good days are rare** (15–25% by season, §2.0.5) |
 | Population | Mass AI crowds and traffic that react to weather systemically (§4.2) |
 | Player life | Houses, garages, vehicles, jobs, businesses. GTA-style freedom: drive, work, mess around, commit crimes, get chased |
 | Storm opportunities | None forced, all emergent. Film storms and sell footage to the TV station, run storm tours, pick up salvage and repair contracts after damage, commit insurance fraud, loot (police respond), run rescue calls (EMS job) |
@@ -97,7 +98,7 @@ Nothing about a tornado is authored per storm. The pipeline is **atmosphere → 
 
 A coarse 2-D grid of 1 km cells, 32 × 32, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
 
-- **Synoptic regime.** A Markov chain rolled once per in-game day: `Quiet, Marginal, Active, Outbreak`. The transition matrix lives in `DA_Climate` and is modulated by season. Regimes set the target field means. The fields relax toward those means (τ = 2 in-game hours) with spatial Perlin noise, plus diurnal heating that peaks late in the afternoon.
+- **Weather regime.** A Markov chain rolled once per in-game day over the regimes in §2.0.5 (clear through outbreak, plus winter regimes). The transition matrix lives in `DA_Climate`, is modulated by season, and is calibrated from the real local climate records (§8.2). Regimes set the target field means. The fields relax toward those means (τ = 2 in-game hours) with spatial Perlin noise, plus diurnal heating that peaks late in the afternoon.
 - **Supercell initiation.** A Poisson process per cell. Hazard: `λ_SC = λ₀ · f(CAPE) · g(BWD) · h(CIN)` per in-game hour. Storms can therefore fire anywhere, at any time. Quiet weeks and wild outbreak days both emerge naturally.
 - **Supercell motion.** Mean wind plus the Bunkers right-mover deviation, 7.5 m/s perpendicular to the shear vector.
 
@@ -154,6 +155,59 @@ Rope-out (final 20% of life):  RopeShrink goes 1 → 0.3 ;  RopeBoost = min(1.3,
 All OU processes are generated at fixed 1 s steps from the replicated seed with `FRandomStream`, and interpolated. Server and clients produce bit-identical `I(t)` and `R_m(t)` with no ongoing bandwidth.
 
 **Warning service.** The in-world warning service "detects" a tornado with lead time `L ~ N(10 min, 6 min)` relative to genesis. If `L < 0` the warning comes late, and a random 20% of tornadoes are never warned at all. False-alarm warnings are raised on 30% of rotating supercells that never produce a tornado. The warning area is a polygon along the supercell's projected motion.
+
+#### 2.0.5 Daily weather: mostly stormy, good days are rare
+
+The map is set in the stormiest place in the country, so the **weather regime chain** (§2.0.1) is weighted heavily toward bad weather. Every in-game day draws a regime from a season-dependent Markov chain. Each regime sets the atmosphere field targets and turns on the hazard modules in §2.0.6. Regimes can also change *during* a day through the diurnal cycle: morning fog can burn off into afternoon supercells, and a clear morning can turn into an evening squall line.
+
+**Spring (peak season) daily share:**
+
+| Regime (`Weather.Regime.*`) | Share | What it feels like |
+|---|---|---|
+| `Clear` (**good day**) | 8% | Blue sky, light wind, long golden-hour light |
+| `FairBreezy` (**good day**) | 7% | Fair-weather cumulus, 5–10 m/s wind, dry roads |
+| `OvercastDrizzle` | 12% | Low stratus, drizzle, morning fog, wet roads |
+| `GeneralStorms` | 20% | Pop-up thunderstorms, lightning, heavy rain, gusty outflows |
+| `SevereHailWind` | 20% | Non-tornadic supercells, big hail, downbursts, derecho segments |
+| `Tornadic` | 18% | Supercells capable of tornadoes (STP-driven, §2.0.2) |
+| `Outbreak` | 5% | Multiple tornadic supercells, some long-track |
+| `FloodTraining` | 6% | Storms repeatedly crossing the same area, flash floods |
+| `DryLineWind` | 4% | No storms, 15–25 m/s wind, blowing dust, grass-fire weather |
+
+**Good-day share by season:** Spring 15% · Summer 20% (heat waves, derechos, fewer tornadoes) · Fall 25% (a second, smaller tornado peak) · Winter 20% (`IceStorm`, `Blizzard` and `ArcticClear` join the chain; tornadoes are rare but possible).
+
+**Keeping good days sparse:** the chain has a low self-transition probability for good regimes (`P(Clear → Clear) = 0.30`) and a high one for stormy regimes (`0.55`). Good days usually arrive one at a time, and a run of three is a rare event. There is no "good-day pity" either. The calendar is `DA_Climate.DaysPerSeason = 24` in-game days, which is about 19 real hours per season (tunable). After any storm there is a clearing window: when the sun is lower than 42° and rain lies opposite the sun, a rainbow renders from the actual geometry. It is never scripted.
+
+#### 2.0.6 Non-tornado hazards
+
+Every hazard is a module on `UAtmosphereSubsystem`. It is triggered by the atmosphere fields, never by a timer, and it reuses the existing systems: the wind field, the structural integrity graph, GAS damage and the debris tiers.
+
+| Hazard | Trigger (from fields) | Model | Gameplay effect |
+|---|---|---|---|
+| **Hail** | Any supercell; size scales with CAPE | See the maths below. A statistical hit model, with no per-stone simulation | Dents cars, smashes windshields and windows (opening buildings to wind, `C_int ↑`), hurts people in the open (`GE_HailImpact`), shreds crops |
+| **Straight-line wind / downburst / derecho** | Precipitation cores, bow echoes when BWD is high | Adds to `V_amb` (§2.5). A downburst is a radial outflow that reuses the inflow shape `Ψ` with the sign reversed | Barns, trees and power lines fail across a wide swath with no funnel. Semi trucks tip over |
+| **Lightning** | CAPE plus precipitation → strike rate per km² | Poisson strikes. The strike point is biased toward tall objects: `P ∝ e^(h/15 m)` within a 30 m capture radius | Damage and death, grass and structure fires, transformer blowouts, power outages |
+| **Grass fire** | Lightning or a spark while `DryLineWind`, heat or drought is active | Cellular automaton on a 10 m land-cover grid. `ROS = ROS₀ · (1 + 0.8·U^1.5) · Dryness` along the wind vector | Wind-driven fire fronts, smoke that cuts visibility, a rural firefighting job |
+| **Flash flood** | `FloodTraining`, or when rain accumulated over a catchment exceeds a threshold | Offline: D8 flow accumulation and watershed basins from the DEM (§8). Runtime: a bucket model per basin: `dV/dt = P·A·C_runoff − Q_out(h)`. A precomputed stage–volume curve gives water height `h`, which drives Water-plugin bodies at low spots | Low-water crossings flood on the gravel roads. Cars float at 0.4–0.6 m depth (buoyancy vs. mass). Creeks leave their banks |
+| **Heavy rain / fog / drizzle** | `OvercastDrizzle`, storm cores | Height fog density, rain curtain particles (Niagara), global wetness in material parameters | Visibility 50 m – 2 km. Road friction `μ`: dry 0.8, wet 0.5 (Chaos Vehicle tire friction through the physical surface) |
+| **Dust** | `DryLineWind` or an outflow crossing fallow and tilled fields (from the Cropland Data Layer, §8) | A volumetric dust wall advected by `V_amb` | Near-zero visibility, highway pile-ups (NPC traffic reacts) |
+| **Ice storm** (winter) | Warm air aloft over a sub-zero surface | Ice accretion rate on lines and branches. Power-line spans become integrity-graph members with a sag load of `ice + wind` | Lines and limbs snap. Roads at `μ = 0.1`. Multi-day blackouts |
+| **Blizzard** (winter) | Cold regime plus high `V_amb` | Snow accumulation mask in a runtime virtual texture, drifts downwind of the wind shadow (§3.6) | Whiteout, stranded vehicles, snow load on roofs (integrity graph) |
+| **Heat wave** (summer) | Hot regime with high CAPE capped by CIN | Stamina and heat attributes, crop stress | Exhaustion, fire risk; the cap can break explosively late in the day |
+
+**Hail maths (no per-stone physics):**
+
+```
+Updraft (parcel theory, entrainment-reduced):  w_up ≈ 0.5 · √(2·CAPE)
+Stone terminal velocity:  v_h(D) = √( 4·ρ_ice·g·D / (3·ρ_air·C_D) ) ≈ 126.6·√D      (ρ_ice = 900, C_D = 0.6, D in m)
+Largest stone the updraft can hold:  D_max = w_up² / 16016       (CAPE 3000 → w_up 38.7 m/s → D_max ≈ 9 cm, softball size)
+Stone size in a hail swath: exponential, n(D) = N₀·e^(−D/D̄), truncated at D_max
+Hits on exposed area A in Δt:  N_hits ~ Poisson( n_tot · v_h · A · Δt )
+Energy per hit:  E = ½ · (ρ_ice·π·D³/6) · v_h²         (5 cm stone ≈ 24 J; 9 cm ≈ 250 J)
+Windshield breaks when a single hit exceeds 30 J; a person takes damage = k·E through GE_HailImpact (reduced when under cover)
+```
+
+Hail, lightning and fire outcomes that change gameplay are server-authoritative. Clients render hail and rain Niagara from the replicated swath parameters only (§5.2).
 
 ### 2.1 Symbols and frame
 
@@ -706,7 +760,9 @@ Storm.Rating.EF0 … Storm.Rating.EF5
 Storm.Phase.Forming | Touchdown | Mature | Roping | Dissipated
 Storm.Feature.TwoCell | Storm.Feature.Satellite | Storm.Feature.RainWrapped | Storm.Feature.MultiVortex
 Storm.Morph.Rope | Cone | Stovepipe | Wedge       (derived from sampled params; drives VFX/audio only)
-Weather.Regime.Quiet | Marginal | Active | Outbreak
+Weather.Regime.Clear | FairBreezy | OvercastDrizzle | GeneralStorms | SevereHailWind | Tornadic | Outbreak | FloodTraining | DryLineWind | IceStorm | Blizzard | ArcticClear | HeatWave
+Weather.Hazard.Hail | Downburst | Derecho | Lightning | GrassFire | FlashFlood | Fog | Dust | Ice | Blizzard | Heat
+Damage.Type.Fire | Damage.Type.Drowning | Damage.Type.Cold | Damage.Type.Heat
 
 State.Exposed | State.Sheltered | State.Holding | State.Grappled | State.Gliding
 State.Airborne.Wind | State.Tumbling | State.Downed | State.InVehicle | State.Stunned
@@ -758,7 +814,9 @@ Pools (`UDebrisPoolSubsystem`) are prewarmed at map load from `UPlatformScalabil
 | Primary Asset Type | Key fields | Bundles |
 |---|---|---|
 | **`StormClimate`** (`DA_Climate`) | **Distributions only, no individual storms.** EF share table, `V_peak` band edges, copula `Σ`, STP skew, `R_m0` lognormal (median, σ, clamp), `T_life` lognormal, `H` range, multi-vortex/satellite/rain-wrap probabilities, lifecycle ranges (`t_p`, `a`, OU σ/τ, surge rate), wander ranges, hook probability, `a_max`, warning-service lead-time distribution and miss / false-alarm rates | Server |
-| **`AtmosphereRegime`** | Regime Markov matrix (per season), per-regime field means (CAPE, CIN, LCL, SRH, BWD), noise scales, diurnal curve, `λ₀` and `λ_T0` hazard rates | Server |
+| **`AtmosphereRegime`** | Regime Markov matrix (per season, including good-regime self-transition), per-regime field means (CAPE, CIN, LCL, SRH, BWD, temperature, moisture), noise scales, diurnal curve, `λ₀` and `λ_T0` hazard rates, enabled hazard modules | Server |
+| **`WeatherHazard`** | One per hazard (§2.0.6): trigger thresholds, model constants (hail `C_D`/density/damage thresholds, lightning rate and height bias, fire ROS, flood runoff coefficients), VFX/SFX soft refs | Server, Client |
+| **`RealMapManifest`** | Generated by `Tools/MapBuilder` (§8.3): CRS/UTM zone, *relative* extents, landscape scale, basin table and stage–volume curves, data-source versions and licences. Never holds the absolute home coordinates | Server, Client |
 | **`TornadoVisuals`** | Funnel FX, shell materials and MetaSounds keyed by *morphology tag* (not by storm): `TMap<FGameplayTag, TSoftObjectPtr<UNiagaraSystem>>` etc., blended continuously by `R_m/H` and `I(t)` | Client |
 | **`WindProfile`** | `Mass (0 = use body)` · `FVector AreaXYZ` · `CD, CL curve, APlan, Volume` · `BetaOrbit` · `LiftoffSpeed (computed in PostEditChangeProperty)` · `DefaultTier` | Server, Client |
 | **`BasePart`** | `FGameplayTag PartType` · `TSoftObjectPtr<UStaticMesh> Mesh` · `TSoftObjectPtr<UGeometryCollection> Fractured` · `UMaterialTier* Material` · `FVector Size, float Mass, Area, Cp, ClRoof` · `TArray<FSnapSocket> Sockets (type, transform, joint modifier)` · `bIsFoundation, bIsSolidForShadow, Porosity` · `FItemCost Cost` · `UIcon` | Server (graph), Client (mesh/GC) |
@@ -783,6 +841,8 @@ Pools (`UDebrisPoolSubsystem`) are prewarmed at map load from `UPlatformScalabil
 | Thing | Method | Size / rate |
 |---|---|---|
 | Supercell | `FSupercellNetState`: pos, motion, cloud/precip params (quantised), radar seed | ~40 B at 0.2 Hz |
+| Weather regime + hazards | `FWeatherNetState` on GameState: regime tag, day seed, hail swaths (center, radius, D̄, D_max), flood basin levels (uint8 per basin, delta-only), fire grid changes (RLE), wind/dust fronts | < 1 KB/s during storms, ~0 otherwise |
+| Lightning | Unreliable multicast `{pos, seed}`. Fire and damage results replicate through the normal state paths | 10 B per strike |
 | Tornado | `FStormNetState` (RepNotify): seed (uint64), `FTornadoSample` (quantised V_peak, R_m0, T_life, H, flags ≈ 12 B), spawn server-time, `TArray<FStormPathKey>` (6 keys × {pos NetQuantize10, vel NetQuantize10, t}). I(t) and R_m(t) are regenerated from the seed on each client | ~160 B at 0.5 Hz |
 | Wind field | **Not replicated.** Evaluated locally from the storm state plus `GameState->GetServerWorldTimeSeconds()` | 0 |
 | T0 / T1 debris | **Not replicated.** Spawned locally from replicated *events* (break event carries `seed`, scrape events come from the storm state) | 0 |
@@ -841,7 +901,7 @@ USTRUCT() struct FBasePartNetItem : public FFastArraySerializerItem
 
 ### 5.6 World Partition guidelines
 
-**Map:** 16 × 16 km persistent open world. One city, 6 towns, farmland, interstate, forest, river valley. Storms can form anywhere, including 8 km off-map, and drift in.
+**Map:** a 16.26 × 16.26 km 1:1 real-world recreation (§8), plus a 50 km non-walkable horizon ring. Storms can form anywhere, including 8 km off-map, and drift in.
 
 | Runtime grid | Cell size | Loading range (PC / mobile) | Contents |
 |---|---|---|---|
@@ -914,6 +974,8 @@ storm.Net.T2TopK          48     | 48    | 24
 | GC spawn hitch at touchdown | Frame spikes in the money shot | GC pool prewarmed; async-load funnel bundles when a supercell spawns (minutes before any touchdown); no more than 4 GC spawns per frame (queue) |
 | Chaos non-determinism across platforms | Divergent debris on clients | Only T2/T3 can affect gameplay (server-owned); everything else is cosmetic by design |
 | Randomness produces long quiet stretches | Players bored waiting for storms | By design there is no pity timer. The open world (jobs, driving, property, crime, multiplayer) carries quiet days. Tune `λ` in the climate, and use live-ops *seasons* that change regime probabilities, never individual storms |
+| Real-world map data gaps (no 1 m lidar, stale OSM) | Wrong terrain or missing buildings | Fall back to 10 m DEM plus a NAIP-guided manual fix-up pass; pipeline flags any footprint without a height |
+| Legal or PR exposure from destroying a real place | Complaints or takedown | §8.5 rules, generic neighbour homes, `bFictionalizePlaceNames`, legal review before launch |
 | A random EF5 wipes out a new player's house | Churn | Loss is money/time only; insurance economy; starter homes cheap to rebuild; the event itself is the best clip they'll ever get |
 | Players exploiting sheltered spots | Stale | Random paths, sizes and rain-wrap mean no spot is safe every time; basements can still collapse (§3) |
 | Mobile thermal throttling in long sessions | Frame drops during outbreaks | Thermal step-down; Chaos Cache playback for hero collapses; 30 fps default |
@@ -930,3 +992,79 @@ storm.Net.T2TopK          48     | 48    | 24
 5. T0/T1/T2 debris with pools and the T2 net array at 73 kbps measured.
 6. Warning service, town sirens, phone alert/radar app, and the Mass crowd storm reactions, all diegetic, zero HUD prompts.
 7. A 4 × 4 km World Partition slice (one town plus farmland) running the live weather simulation for 2 real hours unattended, profiled on an RTX 3060 and an iPhone 15 Pro.
+8. `Tools/MapBuilder` run on the real center point: the 16 km landscape, roads, fields and generated destructible farmsteads imported into World Partition, plus the hero-zone home, with `DA_Climate` calibrated from the local SPC/NOAA records.
+
+---
+
+## 8. The Map: 1:1 Recreation of a Real Rural Area
+
+The game map is a **1:1 real-world recreation** of the lead's home area: rural, flat to rolling, with long sightlines where tornadoes read best against the horizon. Every road, field boundary, creek, tree line, farmstead and town is where it is in real life, at true scale.
+
+### 8.1 Extent and scale
+
+| Item | Spec |
+|---|---|
+| Center | The chosen real-world point (stored locally only, §8.5) |
+| Playable area | **16.26 × 16.26 km** (≈ 10 × 10 mi): a Landscape of **8129 × 8129 px at 2 m/px** (Scale X/Y = 200), with 32 × 32 components of 2 × 2 sections of 127 quads |
+| Hero zone | A 2 × 2 km area around home, rebuilt from 1 m lidar with Landscape Patch detail and hand-authored buildings |
+| Horizon ring | A further 50 km in every direction as low-poly terrain mesh HLOD from 10 m DEM. Never walkable, but it makes distant supercells sit correctly on the real horizon |
+| Weather margin | 8 km of atmosphere simulation beyond the playable edge (§2.0.1), so storms form off-map and roll in |
+| Z scale | Set from the real relief: `ZScale = (maxElev − minElev + 40 m) / 512 · 100`. Rural plains relief is usually under 150 m, which gives < 0.5 cm vertical precision |
+| Origin | The `AGeoReferencingSystem` actor (GeoReferencing plugin), with a projected CRS set to the UTM zone of the center point. World origin = center. 1 uu = 1 cm; Large World Coordinates cover ±8 km trivially |
+
+If the real area needs more than 16 km (for example to include the county seat), the fallback is the same 8129 px landscape at **3 m/px = 24.4 km**, with lidar detail kept only in the hero zone.
+
+### 8.2 Source data (all public; US assumed)
+
+| Layer | Source | Resolution | Used for |
+|---|---|---|---|
+| Elevation | USGS 3DEP lidar DEM (1 m where flown, 1/3″ ≈ 10 m everywhere) | 1–10 m | Landscape heightmap, basins and flood routing (§2.0.6) |
+| Surface heights | 3DEP lidar point cloud (first return), DSM − DEM | 1 m | Building heights, tree heights and canopy extents |
+| Aerial imagery | USDA NAIP | 0.6 m | Reference only: material tinting via a runtime virtual texture, placement validation. Never used as the final ground texture |
+| Roads, rail, power, POIs | OpenStreetMap | vector | Road splines (surface type: paved / gravel / dirt), rail, **power lines** (poles and spans for storm damage), town layout |
+| Building footprints | OSM + Microsoft US Building Footprints | vector | Every house, barn, shed and silo location |
+| Fields and crops | USDA Cropland Data Layer | 30 m | Per-field crop type (corn, wheat, soy, pasture, fallow). Crop height follows the in-game calendar |
+| Land cover / canopy | NLCD land cover + tree canopy | 30 m | Biome masks and PCG foliage density |
+| Water | USGS National Hydrography Dataset | vector | Creeks, ponds, stock tanks → Water-plugin bodies |
+| Local storm climate | NOAA/SPC tornado tracks since 1950, NOAA Storm Events (hail, wind, flood) within 80 km | records | Calibrates `DA_Climate`: EF shares, month-by-month seasonality, dominant storm motion (usually SW → NE), path lengths. The game then boosts the frequencies (§2.0.3) |
+
+**Licensing.** USGS, USDA and NOAA data are public domain. OSM and the Microsoft footprints are **ODbL**, so the credits must attribute them and the derived *database* stays share-alike. Game art and code produced from it are not affected. Google or Bing photorealistic 3D tiles are **not** used: their terms prohibit extracting the geometry for a shipped game.
+
+### 8.3 Build pipeline (`Tools/MapBuilder/`, Python + UE Editor Utility)
+
+```
+location.local.json (lat, lon, size_km; git-ignored)
+  └─ fetch.py     3DEP DEM + lidar tiles, NAIP, CDL, NLCD, NHD, OSM (Overpass), MS footprints → cache/
+  └─ project.py   everything reprojected to UTM (GDAL/rasterio), clipped to the square, origin shifted to center
+  └─ terrain.py   DEM → 8129² 16-bit heightmap (+ hero-zone 0.5 m patch), road-corridor flattening mask,
+                  D8 flow accumulation → basins + stage–volume curves (flood model)
+  └─ layers.py    NLCD/CDL → landscape weight maps (grass, dirt, gravel, crop-row, mud, water edge)
+  └─ vectors.py   roads/rail/power/buildings/trees/fields → GeoJSON in local meters with attributes
+                  (road width from lane tags, building height from lidar DSM, tree height from canopy)
+  ▼
+UE 5.6 Editor Utility "BuildRealMap"
+  Landscape import (World Partition, streaming proxies) → Landscape splines/patches for roads
+  PCG graphs:  fields (crop per CDL class, row direction from field geometry), tree lines/windbreaks,
+               fences along parcel/field edges, mailboxes/driveways from footprint-to-road nearest point
+  PCG shape grammar: footprint + height + roof class → modular farmhouse/barn/shed/silo from the
+               destructible kit, so every generated building is automatically an ABasePlot integrity graph (§3)
+  Power grid:  OSM lines → poles + cable spans registered as integrity-graph members (§2.0.6 ice/wind)
+  Water:       NHD → Water bodies; flood basins → dynamic water level actors
+```
+
+Everything is regenerable. Re-running the pipeline with a new center point builds a new map. Hand-authored hero content (the home, landmarks) lives in separate data layers, so a rebuild never touches it.
+
+### 8.4 Why the rural choice suits the game
+
+- **Sightlines.** Flat to rolling cropland and a 50 km horizon ring mean supercells are visible 30+ km out (§1.2). The whole structure (anvil, wall cloud, funnel) frames against open sky, which is the shot that goes viral.
+- **Performance.** A rural density of about 5–20 buildings per km² keeps actor counts far under the §5.6 budget. This frees the frame budget for volumetric clouds, debris and destruction.
+- **Readable damage.** A tornado track across open fields leaves a visible scar (cycloidal marks, flattened crops, debris lines) that stays in `DL_StormScars`.
+- **Gravel roads.** Low-water crossings, dust and loose surfaces create chase-road texture without any scripting.
+
+### 8.5 Privacy and real-world content rules
+
+- **The exact home coordinates are never committed.** This repository is public, so `location.local.json` is git-ignored and the committed map uses coordinates relative to the center only. The build machine holds the real anchor.
+- **Neighbours' homes** are generated as *generic* buildings from footprint and height data. No names on mailboxes, no real house numbers, no interiors modelled from real photos, and nothing that identifies a private person.
+- **Businesses and brands** are renamed or generic (e.g. the co-op grain elevator becomes a fictional name) unless they are licensed.
+- **Town and road names:** real ones are allowed. The shipping build has a `bFictionalizePlaceNames` switch in case legal review prefers fictional names; since the map shows real places being destroyed, legal must review it before the game ships commercially.
+- **The home itself** is hand-authored at hero quality from the lead's own reference photos, and is the lead's choice to include.
