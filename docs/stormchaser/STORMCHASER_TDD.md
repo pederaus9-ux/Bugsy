@@ -44,7 +44,7 @@
 
 | Pillar | Spec |
 |---|---|
-| Map | **1:1 recreation of the lead's real home area** (§8): about 16 × 16 km of rural cropland, gravel roads, farmsteads, creeks and the nearby towns, at true scale |
+| Map | **1:1 recreation of the lead's real home area** (§8): about **49 × 49 km (2,380 km²)** at true scale: the home village plus 10 more villages, one town, 21 hamlets, an interstate corridor, cropland, gravel roads, farmsteads, coulees and creeks (§8.9) |
 | Time | Continuous day/night (1 in-game day = 48 real min). Seasons drive the climate (spring peak). No session phases, no cycles |
 | Weather | The stormiest place in the country. Most days bring something: tornadoes, hail, derechos, lightning, floods, fog, dust, and ice or blizzards in winter. **Good days are rare** (15–25% by season, §2.0.5) |
 | Population | Mass AI crowds and traffic that react to weather systemically (§4.2) |
@@ -96,7 +96,7 @@ Nothing about a tornado is authored per storm. The pipeline is **atmosphere → 
 
 #### 2.0.1 Atmosphere simulation (`UAtmosphereSubsystem`, server, 0.2 Hz)
 
-A coarse 2-D grid of 1 km cells, 32 × 32, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
+A coarse 2-D grid of 1 km cells, 65 × 65, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
 
 - **Weather regime.** A Markov chain rolled once per in-game day over the regimes in §2.0.5 (clear through outbreak, plus winter regimes). The transition matrix lives in `DA_Climate`, is modulated by season, and is calibrated from the real local climate records (§8.2). Regimes set the target field means. The fields relax toward those means (τ = 2 in-game hours) with spatial Perlin noise, plus diurnal heating that peaks late in the afternoon.
 - **Supercell initiation.** A Poisson process per cell. Hazard: `λ_SC = λ₀ · f(CAPE) · g(BWD) · h(CIN)` per in-game hour. Storms can therefore fire anywhere, at any time. Quiet weeks and wild outbreak days both emerge naturally.
@@ -636,7 +636,7 @@ Content/Stormchaser/Blueprints/  BP_ subclasses; data-only children for content 
 
 ```
 UAtmosphereSubsystem (UWorldSubsystem, server, 0.2 Hz)
-   32×32 km field grid · regime Markov chain · diurnal cycle · supercell Poisson spawner (§2.0.1)
+   65×65 km field grid · regime Markov chain · diurnal cycle · supercell Poisson spawner (§2.0.1)
 UWarningServiceSubsystem (server)
    random-lead-time warnings/false alarms → warning polygons → sirens, phone alerts, radio/TV (§2.0.4)
 
@@ -901,7 +901,7 @@ USTRUCT() struct FBasePartNetItem : public FFastArraySerializerItem
 
 ### 5.6 World Partition guidelines
 
-**Map:** a 16.26 × 16.26 km 1:1 real-world recreation (§8), plus a 50 km non-walkable horizon ring. Storms can form anywhere, including 8 km off-map, and drift in.
+**Map:** a 48.77 × 48.77 km 1:1 real-world recreation (§8), built as 6 × 6 landscape tiles, plus a 50 km non-walkable horizon ring. The dedicated server streams cells only around players (server-side World Partition streaming **[VERIFY 5.6]** cvar name). With 16 players spread over 2,380 km², that keeps server memory proportional to the number of player bubbles, not the map size. Storms can form anywhere, including 8 km off-map, and drift in.
 
 | Runtime grid | Cell size | Loading range (PC / mobile) | Contents |
 |---|---|---|---|
@@ -976,6 +976,7 @@ storm.Net.T2TopK          48     | 48    | 24
 | Randomness produces long quiet stretches | Players bored waiting for storms | By design there is no pity timer. The open world (jobs, driving, property, crime, multiplayer) carries quiet days. Tune `λ` in the climate, and use live-ops *seasons* that change regime probabilities, never individual storms |
 | Real-world map data gaps (no 1 m lidar, stale OSM) | Wrong terrain or missing buildings | Fall back to 10 m DEM plus a NAIP-guided manual fix-up pass; pipeline flags any footprint without a height |
 | Legal or PR exposure from destroying a real place | Complaints or takedown | §8.5 rules, generic neighbour homes, `bFictionalizePlaceNames`, legal review before launch |
+| A 2,380 km² map feels empty | Long drives with nothing happening | Activity density follows the real places (§8.9); the weather keeps the open country eventful; vehicles, including small planes from real airstrips, make distance part of the fun; POI-driven detail budget (towns full detail, farmland procedural) |
 | A random EF5 wipes out a new player's house | Churn | Loss is money/time only; insurance economy; starter homes cheap to rebuild; the event itself is the best clip they'll ever get |
 | Players exploiting sheltered spots | Stale | Random paths, sizes and rain-wrap mean no spot is safe every time; basements can still collapse (§3) |
 | Mobile thermal throttling in long sessions | Frame drops during outbreaks | Thermal step-down; Chaos Cache playback for hero collapses; 30 fps default |
@@ -992,7 +993,7 @@ storm.Net.T2TopK          48     | 48    | 24
 5. T0/T1/T2 debris with pools and the T2 net array at 73 kbps measured.
 6. Warning service, town sirens, phone alert/radar app, and the Mass crowd storm reactions, all diegetic, zero HUD prompts.
 7. A 4 × 4 km World Partition slice (one town plus farmland) running the live weather simulation for 2 real hours unattended, profiled on an RTX 3060 and an iPhone 15 Pro.
-8. `Tools/MapBuilder` run on the real center point: the 16 km landscape, roads, fields and generated destructible farmsteads imported into World Partition, plus the hero-zone home, with `DA_Climate` calibrated from the local SPC/NOAA records.
+8. `Tools/MapBuilder` run on the real center point: the 6 × 6-tile landscape, roads, fields and generated destructible farmsteads imported into World Partition, plus the hero-zone home, with `DA_Climate` calibrated from the local SPC/NOAA records.
 
 ---
 
@@ -1005,7 +1006,8 @@ The game map is a **1:1 real-world recreation** of the lead's home area in the U
 | Item | Spec |
 |---|---|
 | Center | The chosen real-world point (stored locally only, §8.5) |
-| Playable area | **16.26 × 16.26 km** (≈ 10 × 10 mi): a Landscape of **8129 × 8129 px at 2 m/px** (Scale X/Y = 200), with 32 × 32 components of 2 × 2 sections of 127 quads |
+| Playable area | **48.77 × 48.77 km** (≈ 30 × 30 mi, 2,380 km², about 30× the land area of a GTA V-scale map): **6 × 6 landscape tiles of 4065 × 4065 px at 2 m/px** (Scale X/Y = 200). Each tile is 16 × 16 components of 2 × 2 sections of 127 quads, and neighbouring tiles share edge vertices. Import through World Partition tiled heightmap import (`heightmap_x#_y#.r16`) **[VERIFY 5.6]**. Mobile cooks a 4 m/px downsample |
+| Framing | The map center is offset from home so that all nearby towns, the interstate and the raceway fit. Home sits a few km south-west of the center, well inside the map |
 | Hero zone | A 2 × 2 km area around home, rebuilt from 1 m lidar with Landscape Patch detail and hand-authored buildings |
 | Horizon ring | A further 50 km in every direction as low-poly terrain mesh HLOD from 10 m DEM. Never walkable, but it makes distant supercells sit correctly on the real horizon |
 | Weather margin | 8 km of atmosphere simulation beyond the playable edge (§2.0.1), so storms form off-map and roll in |
@@ -1013,7 +1015,7 @@ The game map is a **1:1 real-world recreation** of the lead's home area in the U
 | Z scale | Set from the real relief: `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured:** elevation 234–405 m, relief 171 m → `ZScale = 41.21`, Landscape Z = 8551 cm (lowest point at Z = 0), 0.32 cm vertical precision |
 | Origin | The `AGeoReferencingSystem` actor (GeoReferencing plugin), with a projected CRS set to the UTM zone of the center point. World origin = center. 1 uu = 1 cm; Large World Coordinates cover ±8 km trivially |
 
-If the real area needs more than 16 km (for example to include the county seat), the fallback is the same 8129 px landscape at **3 m/px = 24.4 km**, with lidar detail kept only in the hero zone.
+Drive times at true scale: about 30 min edge to edge at 100 km/h on highways, longer on gravel. That is the point: real distance between towns, with storms visible across it.
 
 ### 8.2 Source data (all public; US assumed)
 
@@ -1040,7 +1042,7 @@ If the real area needs more than 16 km (for example to include the county seat),
 location.local.json (lat, lon, size_km; git-ignored)
   └─ fetch.py     3DEP DEM + lidar tiles, NAIP, CDL, NLCD, NHD, OSM (Overpass), MS footprints → cache/
   └─ project.py   everything reprojected to UTM (GDAL/rasterio), clipped to the square, origin shifted to center
-  └─ terrain.py   DEM → 8129² 16-bit heightmap (+ hero-zone 0.5 m patch), road-corridor flattening mask,
+  └─ terrain.py   DEM → 6×6 tiles of 4065² 16-bit heightmaps, one shared Z scale (+ hero-zone 0.5 m patch), road-corridor flattening mask,
                   D8 flow accumulation → basins + stage–volume curves (flood model)
   └─ layers.py    NLCD/CDL → landscape weight maps (grass, dirt, gravel, crop-row, mud, water edge)
   └─ vectors.py   roads/rail/power/buildings/trees/fields → GeoJSON in local meters with attributes
@@ -1096,7 +1098,7 @@ The season table in §2.0.5 is written for the peak season. For this map, "peak 
 
 | Source | Coverage | What it gives |
 |---|---|---|
-| **3DEP lidar point cloud** (primary; `mapbuilder.py lidar`) | 100%. Dataset `WI_12County_7_B22` (2022), **measured at 19.5 points/m²** | Every tree (position, height, crown), every building (footprint, height, eave, roof type and ridge direction), road crown and ditches, **power lines and poles** (visible as wire returns), fences and hedgerows. First 1 × 1 km test: 19.5 M points → 6,035 trees (tallest 27.6 m) and 6 buildings, matching the farmstead layout |
+| **3DEP lidar point cloud** (primary; `mapbuilder.py lidar`) | 100% (about 46 billion points over the full map; processed tile by tile on a workstation, and only the derived objects are kept). Dataset `WI_12County_7_B22` (2022), **measured at 19.5 points/m²** | Every tree (position, height, crown), every building (footprint, height, eave, roof type and ridge direction), road crown and ditches, **power lines and poles** (visible as wire returns), fences and hedgerows. First 1 × 1 km test: 19.5 M points → 6,035 trees (tallest 27.6 m) and 6 buildings, matching the farmstead layout |
 | **NAIP + state/county orthophotos** | 100%, 0.15–0.6 m | Roof and siding colours, gravel vs. paved roads, driveways, field edges, silos and grain bins, yard layout |
 | **Mapillary** | Whatever the community has uploaded | CC BY-SA street photos and machine-detected signs with positions. Used where available to confirm sign types |
 | **Statewide parcels and address points** (public GIS) | 100% | Every driveway location (address point → road link), parcel lines for fences. Owner names and house numbers are dropped on import (§8.5) |
@@ -1142,3 +1144,21 @@ Real vehicles are never copied from imagery: the imagery goes stale, and copying
 - **Behaviour.** A `BP_Vehicle_Base` child (§4.2) in *parked* state: physics asleep, doors locked by probability. It can be stolen with a break-in or hotwire ability (a GAS ability). The owner NPC (Mass, promoted to an actor when a player is near) may come out and react; police respond through the open-world crime system.
 - **Storms move them.** Parked vehicles are T3 wind receivers (§4.5): a tornado can roll them across the yard or carry them into a field, and they stay there (Damage Ledger).
 - **Streaming and netcode.** The spawn points are World Partition actors in `Grid_Props`. The server seeds which vehicle goes where per in-game week, so parked cars change slowly over time. A stolen vehicle becomes player-owned state and persists.
+
+### 8.9 Places and things to do (from the real map)
+
+An OpenStreetMap census of the 49 km square (`mapbuilder.py osm`; the named list stays in the git-ignored `out/`) found the real places below. Each one becomes gameplay. Real business names are renamed (§8.5); the place types and positions stay real.
+
+| Real feature (count) | What it becomes in-game |
+|---|---|
+| **Interstate corridor** (about 40 motorway segments, interchanges, a truck stop with a weigh scale, a motel) | Highway pursuits, a trucking and freight job, semis tipping in derecho winds (§2.0.6), the truck stop as a social hub |
+| **1 town + 11 villages + 21 hamlets** | Each has real streets, a main street, churches (16), schools (28), fire stations, bars and taverns, gas stations and convenience stores (20). Property to buy, shops, jobs, crime and police |
+| **Furniture-factory complex** (industrial) and **sand quarries** (12) | Factory and haul-truck jobs, heavy equipment to drive or steal, big industrial destruction set pieces when a tornado hits them |
+| **Motorsport:** a raceway, 7 dirt tracks, motocross, a hill-climb | Weekly dirt-track races, motocross and hill-climb events, a demolition derby at the fairgrounds, street and gravel-road racing |
+| **Airfields** (6, including private strips) + **hospital helipads** (2) | Small planes and a helicopter to fly (storm chasing from the air is dangerous and spectacular), a medevac job, respawn points |
+| **Hospitals** (2), fire and police stations | EMS, firefighting (grass fires, §2.0.6) and police jobs. Storm response calls come to you after real damage |
+| **Outdoors:** wildlife and public hunting areas, 33 parks, 6 campgrounds/RV parks, 4 golf courses, a state trail, 188 field tracks, the river and creeks | Hunting and fishing seasons, ATVs and dirt bikes on field tracks, snowmobiles on the state trail in winter, camping (a tent is the worst place to be in a storm) |
+| **FM radio tower** | The in-game local radio station: music, ads and live weather bulletins (§1.2). A tornado can take the tower down, and the station goes off-air |
+| **Farms** (thousands of fields, farmsteads with lidar-accurate barns and bins) | Farmhand and harvest jobs, tractors and combines, crop damage from hail, livestock to rescue after storms |
+
+**Detail budget follows the places.** Towns, the interstate and activity sites get full-detail streets and interiors. Farmland between them is generated from the lidar, aerial photos and crop data (§8.7), so it's accurate but cheap to build. Everywhere is 1:1, but the art hours go where players spend their time.

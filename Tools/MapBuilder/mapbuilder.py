@@ -3,7 +3,7 @@
 
 Turns a real-world center point into Unreal-ready map data:
   init     write location.local.json (git-ignored; never commit it)
-  dem      USGS 3DEP bare-earth DEM -> 8129x8129 .r16 heightmap + manifest + preview
+  dem      USGS 3DEP bare-earth DEM -> tiled 4065px .r16 landscape heightmaps + manifest + preview
   osm      OpenStreetMap roads/buildings/water/power/landuse -> local-meter JSON
   climate  SPC tornado database -> local climatology for DA_Climate calibration
   lidar    3DEP lidar point cloud -> every tree (x, y, height, crown) + building (footprint, height, roof) per tile
@@ -37,8 +37,9 @@ OUT = os.path.join(HERE, "out")
 CACHE = os.path.join(HERE, "cache")
 UA = "stormchaser-mapbuilder/0.1"
 
-LANDSCAPE_PX = 8129          # 32x32 components, 2x2 sections, 127 quads (UE recommended size)
-DEFAULT_RES_M = 2.0          # 8128 quads * 2 m = 16.256 km
+TILE_QUADS = 4064            # one landscape tile: 16x16 components of 2x2 sections of 127 quads
+DEFAULT_RES_M = 2.0          # 4064 quads * 2 m = 8.128 km per landscape tile
+DEFAULT_TILES = (6, 6)       # 6x6 tiles = 48.77 km square
 DEM_URL = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage"
 DEM_TILE_QUADS = 2032        # 4x4 tiles of 2033 px (server returns 500 above ~2000 px)
 OVERPASS = [
@@ -72,87 +73,124 @@ def load_location():
 
 
 class Frame:
-    """Local metric frame: UTM zone of the center, origin at the center."""
+    """Local metric frame: UTM zone of the map center, origin at the map center.
+
+    The map is tiles_x * tiles_y landscape tiles of TILE_QUADS quads at res_m.
+    """
 
     def __init__(self, loc):
         self.lat, self.lon = loc["center_lat"], loc["center_lon"]
         self.res = loc.get("res_m", DEFAULT_RES_M)
+        self.tiles_x, self.tiles_y = loc.get("tiles", [2, 2])
         self.zone = int((self.lon + 180) // 6) + 1
         self.epsg = (32600 if self.lat >= 0 else 32700) + self.zone
         self.fwd = Transformer.from_crs(4326, self.epsg, always_xy=True)
         self.inv = Transformer.from_crs(self.epsg, 4326, always_xy=True)
         self.cx, self.cy = self.fwd.transform(self.lon, self.lat)
-        self.half = (LANDSCAPE_PX - 1) * self.res / 2.0
+        self.nx = self.tiles_x * TILE_QUADS + 1          # vertices across the whole map
+        self.ny = self.tiles_y * TILE_QUADS + 1
+        self.half_x = (self.nx - 1) * self.res / 2.0
+        self.half_y = (self.ny - 1) * self.res / 2.0
 
     def to_local(self, lon, lat):
         x, y = self.fwd.transform(lon, lat)
         return x - self.cx, y - self.cy
 
+    def inside(self, x, y):
+        return abs(x) <= self.half_x and abs(y) <= self.half_y
+
     def bbox_lonlat(self, margin_m=0.0):
-        h = self.half + margin_m
-        pts = [self.inv.transform(self.cx + sx * h, self.cy + sy * h) for sx in (-1, 1) for sy in (-1, 1)]
+        hx, hy = self.half_x + margin_m, self.half_y + margin_m
+        pts = [self.inv.transform(self.cx + sx * hx, self.cy + sy * hy) for sx in (-1, 1) for sy in (-1, 1)]
         lons, lats = zip(*pts)
         return min(lats), min(lons), max(lats), max(lons)
 
 
 # ---------------------------------------------------------------- init
 def cmd_init(a):
-    loc = {"center_lat": a.lat, "center_lon": a.lon, "res_m": a.res}
+    loc = {"center_lat": a.lat, "center_lon": a.lon, "res_m": a.res, "tiles": [a.tiles_x, a.tiles_y]}
+    if a.shift_east_m or a.shift_north_m:         # move the map center off the given point (e.g. to take in towns)
+        fr0 = Frame(loc)
+        loc["center_lon"], loc["center_lat"] = fr0.inv.transform(fr0.cx + a.shift_east_m, fr0.cy + a.shift_north_m)
     with open(LOCATION, "w") as f:
         json.dump(loc, f, indent=2)
     fr = Frame(loc)
-    print(f"wrote {LOCATION}  (UTM zone {fr.zone}, EPSG:{fr.epsg}, map {2 * fr.half / 1000:.3f} km square)")
+    print(f"wrote {LOCATION}  (UTM zone {fr.zone}, EPSG:{fr.epsg}, map {2 * fr.half_x / 1000:.2f} x "
+          f"{2 * fr.half_y / 1000:.2f} km, {fr.tiles_x}x{fr.tiles_y} landscape tiles)")
 
 
 # ---------------------------------------------------------------- DEM
-def fetch_dem(fr):
+def dem_request(fr, rx, ry):
+    """One cached DEM request tile (DEM_TILE_QUADS+1 px) whose pixel centers sit on landscape vertices.
+    rx, ry index request tiles from the north-west corner."""
     os.makedirs(CACHE, exist_ok=True)
-    n = LANDSCAPE_PX
-    dem = np.full((n, n), np.nan, dtype=np.float32)      # row 0 = north edge
-    x0, y1 = fr.cx - fr.half, fr.cy + fr.half
-    tiles = (n - 1) // DEM_TILE_QUADS
-    for ty in range(tiles):
-        for tx in range(tiles):
-            i0, j0 = tx * DEM_TILE_QUADS, ty * DEM_TILE_QUADS
-            size = DEM_TILE_QUADS + 1
-            # pixel centers land exactly on landscape vertices
-            xmin = x0 + i0 * fr.res - fr.res / 2
-            ymax = y1 - j0 * fr.res + fr.res / 2
-            xmax, ymin = xmin + size * fr.res, ymax - size * fr.res
-            path = os.path.join(CACHE, f"dem_{fr.res:g}m_{tx}_{ty}.tif")
-            if not os.path.exists(path):
-                print(f"  DEM tile {tx},{ty} ...")
-                raw = http_get(DEM_URL, {
-                    "bbox": f"{xmin},{ymin},{xmax},{ymax}", "bboxSR": fr.epsg, "imageSR": fr.epsg,
-                    "size": f"{size},{size}", "format": "tiff", "pixelType": "F32",
-                    "noData": "-9999", "interpolation": "RSP_BilinearInterpolation", "f": "image",
-                })
-                if raw[:2] not in (b"II", b"MM"):
-                    sys.exit(f"DEM service returned non-TIFF: {raw[:200]!r}")
-                with open(path, "wb") as f:
-                    f.write(raw)
-            t = tifffile.imread(path).astype(np.float32)
-            t[t < -1000] = np.nan
-            dem[j0:j0 + size, i0:i0 + size] = t
-    if np.isnan(dem).any():
-        bad = np.isnan(dem)
-        print(f"  filling {bad.sum()} nodata px with the median elevation")
-        dem[bad] = np.nanmedian(dem)
-    return dem
+    size = DEM_TILE_QUADS + 1
+    i0, j0 = rx * DEM_TILE_QUADS, ry * DEM_TILE_QUADS
+    xmin = fr.cx - fr.half_x + i0 * fr.res - fr.res / 2
+    ymax = fr.cy + fr.half_y - j0 * fr.res + fr.res / 2
+    xmax, ymin = xmin + size * fr.res, ymax - size * fr.res
+    path = os.path.join(CACHE, f"dem_{fr.res:g}m_{int(xmin)}_{int(ymax)}.tif")
+    if not os.path.exists(path):
+        raw = http_get(DEM_URL, {
+            "bbox": f"{xmin},{ymin},{xmax},{ymax}", "bboxSR": fr.epsg, "imageSR": fr.epsg,
+            "size": f"{size},{size}", "format": "tiff", "pixelType": "F32",
+            "noData": "-9999", "interpolation": "RSP_BilinearInterpolation", "f": "image",
+        })
+        if raw[:2] not in (b"II", b"MM"):
+            sys.exit(f"DEM service returned non-TIFF: {raw[:200]!r}")
+        with open(path, "wb") as f:
+            f.write(raw)
+    t = tifffile.imread(path).astype(np.float32)
+    t[t < -1000] = np.nan
+    return t
 
 
-def write_heightmap(fr, dem):
+def landscape_tile(fr, tx, ty):
+    """Heights (m) for landscape tile (tx, ty) from the north-west: (TILE_QUADS+1)^2 px, edges shared with neighbours."""
+    k = TILE_QUADS // DEM_TILE_QUADS
+    out = np.empty((TILE_QUADS + 1, TILE_QUADS + 1), np.float32)
+    for dy in range(k):
+        for dx in range(k):
+            t = dem_request(fr, tx * k + dx, ty * k + dy)
+            out[dy * DEM_TILE_QUADS:(dy + 1) * DEM_TILE_QUADS + 1, dx * DEM_TILE_QUADS:(dx + 1) * DEM_TILE_QUADS + 1] = t
+    return out
+
+
+def cmd_dem(a):
+    fr = Frame(load_location())
     os.makedirs(OUT, exist_ok=True)
-    hmin, hmax = float(dem.min()), float(dem.max())
+    ntiles = fr.tiles_x * fr.tiles_y
+    # pass 1: fetch everything and find the global range (one Z scale for every tile)
+    hmin, hmax, filled = np.inf, -np.inf, 0
+    for ty in range(fr.tiles_y):
+        for tx in range(fr.tiles_x):
+            print(f"  fetch tile x{tx}_y{ty} ({ty * fr.tiles_x + tx + 1}/{ntiles})")
+            t = landscape_tile(fr, tx, ty)
+            hmin, hmax = min(hmin, float(np.nanmin(t))), max(hmax, float(np.nanmax(t)))
     mid = (hmin + hmax) / 2
     half_m = (hmax - hmin) / 2 + 20.0                       # 20 m headroom each way for edits
     zscale = half_m * 100 * 128 / 32768                     # UE: height_cm = (v - 32768) * ZScale / 128
-    v = np.clip(np.round(32768 + (dem - mid) * 100 * 128 / zscale), 0, 65535).astype("<u2")
-    v.tofile(os.path.join(OUT, "heightmap_8129.r16"))
+    # pass 2: encode tiles (UE tiled-import naming _x#_y#; y counts from the north edge)
+    step = 16
+    prev_rows = []
+    for ty in range(fr.tiles_y):
+        row_imgs = []
+        for tx in range(fr.tiles_x):
+            t = landscape_tile(fr, tx, ty)
+            bad = np.isnan(t)
+            if bad.any():
+                filled += int(bad.sum())
+                t[bad] = mid
+            v = np.clip(np.round(32768 + (t - mid) * 100 * 128 / zscale), 0, 65535).astype("<u2")
+            v.tofile(os.path.join(OUT, f"heightmap_x{tx}_y{ty}.r16"))
+            row_imgs.append(t[:-1:step, :-1:step])
+        prev_rows.append(np.concatenate(row_imgs, 1))
+    small = np.concatenate(prev_rows, 0)
+    if filled:
+        print(f"  filled {filled} nodata px with the mid elevation")
 
-    # quick-look preview: hillshade (sun from NW) blended with elevation tint, 1/8 scale
-    small = dem[::8, ::8]
-    gy, gx = np.gradient(small, fr.res * 8)
+    # preview: hillshade (sun from NW) with elevation tint
+    gy, gx = np.gradient(small, fr.res * step)
     slope = np.arctan(np.hypot(gx, gy))
     aspect = np.arctan2(-gx, gy)
     az, alt = math.radians(315), math.radians(45)
@@ -163,24 +201,18 @@ def write_heightmap(fr, dem):
 
     manifest = {
         "crs": f"EPSG:{fr.epsg}", "utm_zone": fr.zone,
-        "landscape_px": LANDSCAPE_PX, "res_m": fr.res,
-        "extent_m": 2 * fr.half,
+        "tiles": [fr.tiles_x, fr.tiles_y], "tile_px": TILE_QUADS + 1, "res_m": fr.res,
+        "tile_files": "heightmap_x{tx}_y{ty}.r16 (uint16 LE, y from the north edge, edge rows shared)",
+        "extent_m": [2 * fr.half_x, 2 * fr.half_y],
         "ue_scale": {"x": fr.res * 100, "y": fr.res * 100, "z": round(zscale, 4)},
         "ue_location_z_cm": round((mid - hmin) * 100, 1),     # lowest real point sits at Z = 0
-        "elev_min_m": round(hmin, 2), "elev_max_m": round(hmax, 2),
-        "relief_m": round(hmax - hmin, 2),
+        "elev_min_m": round(hmin, 2), "elev_max_m": round(hmax, 2), "relief_m": round(hmax - hmin, 2),
         "source": "USGS 3DEP bare-earth DEM (public domain)",
         "note": "Local frame only. Absolute center lives in location.local.json.",
     }
     with open(os.path.join(OUT, "map_manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
-    return manifest
-
-
-def cmd_dem(a):
-    fr = Frame(load_location())
-    m = write_heightmap(fr, fetch_dem(fr))
-    print(json.dumps(m, indent=2))
+    print(json.dumps(manifest, indent=2))
 
 
 # ---------------------------------------------------------------- OSM
@@ -227,7 +259,7 @@ def cmd_osm(a):
         els = json.load(f)["elements"]
 
     def keep(x, y):
-        return abs(x) <= fr.half and abs(y) <= fr.half
+        return fr.inside(x, y)
 
     layers = {k: [] for k in ("roads", "buildings", "water", "landuse", "power_lines", "power_poles", "rail", "places")}
     for el in els:
@@ -522,6 +554,8 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("init"); p.add_argument("--lat", type=float, required=True)
     p.add_argument("--lon", type=float, required=True); p.add_argument("--res", type=float, default=DEFAULT_RES_M)
+    p.add_argument("--tiles-x", type=int, default=DEFAULT_TILES[0]); p.add_argument("--tiles-y", type=int, default=DEFAULT_TILES[1])
+    p.add_argument("--shift-east-m", type=float, default=0.0); p.add_argument("--shift-north-m", type=float, default=0.0)
     sub.add_parser("dem"); sub.add_parser("osm")
     p = sub.add_parser("climate"); p.add_argument("--radius-km", type=float, default=80.0)
     p = sub.add_parser("lidar", help="trees + buildings from the 3DEP lidar point cloud for one tile")

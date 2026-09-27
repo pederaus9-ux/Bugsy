@@ -4,12 +4,12 @@ Builds the STORMCHASER real-world map data (see `docs/stormchaser/STORMCHASER_TD
 
 ```
 pip install numpy pyproj tifffile pillow scipy "laspy[lazrs]"
-python3 mapbuilder.py init --lat <center lat> --lon <center lon>   # writes location.local.json (git-ignored)
+python3 mapbuilder.py init --lat <lat> --lon <lon> [--tiles-x 6 --tiles-y 6 --shift-east-m .. --shift-north-m ..]   # writes location.local.json (git-ignored)
 python3 mapbuilder.py all
 ```
 
 Outputs land in `out/` (git-ignored):
-- `heightmap_8129.r16` + `map_manifest.json`: import as a World Partition Landscape with the scale and Z location from the manifest
+- `heightmap_x#_y#.r16` + `map_manifest.json`: 6×6 landscape tiles (4065 px, 2 m, shared edges, one Z scale) for World Partition tiled import, with scale and Z location from the manifest
 - `preview_hillshade.png`: a quick look at the terrain
 - `osm_local.json` / `osm_summary.json`: roads, buildings, water, power and rail in local meters (+X east, +Y north)
 - `climate_calibration.json`: local SPC tornado climatology for `DA_Climate`
