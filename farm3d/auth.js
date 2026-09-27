@@ -18,10 +18,11 @@ const SAVE_KEY = "sunny-acres-3d-v1"; // the farm, as game.js saves it
 const OWNER = "sa3d-save-owner";      // which account the farm on this phone belongs to ("" = a farm from before accounts)
 const SYNC_REV = "sa3d-sync-rev";     // the cloud version this phone's farm was last in step with
 const DIRTY = "sa3d-dirty";           // "1" when this phone's farm has changed since then
+const GUEST = "sa3d-guest";           // "1": playing without an account (the farm is saved on this phone only)
 
 const $ = (id) => document.getElementById(id);
 const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo"), note = $("authNote");
-const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs"), choose = $("authChoose");
+const email = $("authEmail"), pass = $("authPass"), pass2 = $("authPass2"), forgot = $("authForgot"), tabs = $("authTabs"), choose = $("authChoose"), guestBtn = $("authGuest");
 window.saAuth = {user:null, signOut:async () => {}}; // the game's Settings panel reads this
 let mode = "signin", fb = null, cloud = null;
 
@@ -51,7 +52,7 @@ function show(m) {
   const t = {
     checking:["🌻 Sunny Acres", "Checking your account…"],
     syncing:["🌻 Sunny Acres", "Getting your farm ready…"],
-    signin:["Welcome back!", "Sign in to play Sunny Acres"],
+    signin:[returning() ? "Welcome back!" : "Welcome!", "Sign in to play Sunny Acres"],
     register:["Join the farm!", "Make an account. Your farm comes with you."],
     reset:["Forgot your password?", "We'll email you a link to make a new one"],
     offline:["No connection", "Can't reach the sign-in service right now"],
@@ -68,8 +69,13 @@ function show(m) {
   go.hidden = m === "checking" || m === "syncing" || m === "choose";
   go.textContent = {signin:"Sign in", register:"Create account", reset:"Send reset link", offline:"Try again"}[m] || "";
   forgot.hidden = !(m === "signin" || m === "reset"); forgot.textContent = m === "reset" ? "← Back to sign in" : "Forgot your password?";
+  guestBtn.hidden = !(m === "signin" || m === "register" || m === "offline");
+  guestBtn.textContent = ls.get(GUEST) ? "🌱 Keep playing as a guest" : "🌱 Play as a guest";
   if (fields) setTimeout(() => (email.value ? pass : email).focus(), 50);
 }
+// "Welcome back!" is only for people who have played on this phone before
+const SEEN = "sa3d-seen";
+const returning = () => !!(ls.get(SEEN) || ls.get(REMEMBER) || ls.get(OWNER) || (summary(ls.get(SAVE_KEY) || "") || {}).real);
 // players who were already farming before accounts must see straight away that nothing is lost
 function farmNote() {
   const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
@@ -79,10 +85,42 @@ function farmNote() {
 }
 function open(user) {
   window.saAuth.user = {email:user.email, uid:user.uid};
-  ls.set(REMEMBER, JSON.stringify(window.saAuth.user));
+  ls.set(REMEMBER, JSON.stringify(window.saAuth.user)); ls.set(SEEN, "1");
+  ls.del(GUEST); window.saAuth.guest = false; banner(false);
   gate.hidden = true; pass.value = pass2.value = "";
   if (beat) { beat(); clearInterval(open.iv); open.iv = setInterval(beat, 60000); }
 }
+// ---------- playing as a guest ----------
+// No account: the farm is saved on this phone only. It is a farm "from before accounts" (no owner), so if the guest makes an
+// account later, linkFarm moves it into the new account like any other (or lets them choose, if the account has a farm already).
+function playAsGuest() {
+  const owner = ls.get(OWNER) || "";
+  ls.set(GUEST, "1"); ls.set(SEEN, "1");
+  if (owner) { // the farm on this phone belongs to an account: keep it safe for them and start the guest on a new farm
+    window.__saHold = true;
+    const raw = ls.get(SAVE_KEY); if (raw) ls.set(SAVE_KEY + "@" + owner, raw);
+    for (const k of [SAVE_KEY, OWNER, SYNC_REV, DIRTY]) ls.del(k);
+    location.reload(); return;
+  }
+  window.saAuth.user = null; window.saAuth.guest = true; gate.hidden = true;
+  clearTimeout(banner.t); banner.t = setTimeout(() => banner(true), 45000); // a gentle reminder, once per visit
+}
+// "Create an account to save your farm to the cloud": never in the way, and it can be closed
+function banner(on) {
+  let el = $("guestBanner");
+  if (!on) { clearTimeout(banner.t); if (el) el.hidden = true; return; }
+  if (!window.saAuth.guest || !gate.hidden) return;
+  const tut = $("tut"); if (tut && !tut.hidden) { clearTimeout(banner.t); banner.t = setTimeout(() => banner(true), 30000); return; } // not in the middle of the tutorial
+  if (!el) {
+    el = document.createElement("div"); el.id = "guestBanner"; el.className = "guestbar";
+    el.innerHTML = `<span>☁️ Create an account to save your farm to the cloud</span><button type="button" class="btn sm" data-g="make">Create account</button><button type="button" class="gx" data-g="x" aria-label="Not now">✕</button>`;
+    el.addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (!b) return; el.hidden = true; if (b.dataset.g === "make") window.saAuth.upgrade(); });
+    document.body.appendChild(el);
+  }
+  el.hidden = false;
+}
+window.saAuth.upgrade = () => { banner(false); show("register"); };
+
 // "I'm playing": while the game is open on screen, a signed-in player's presence/{uid} is refreshed every minute,
 // so the players page (players.html) can count who is playing now, today and this week
 let beat = null;
@@ -196,16 +234,19 @@ async function start() {
     A.onAuthStateChanged(auth, async (user) => {
       if (user) { show("syncing"); return linkFarm(user); }
       window.saAuth.user = null; ls.del(REMEMBER);
+      if (ls.get(GUEST)) return playAsGuest();
       show("signin");
     });
   } catch (e) {
     // the sign-in service didn't load (usually no internet): a phone that has signed in before keeps playing
     let known = null; try { known = JSON.parse(ls.get(REMEMBER)); } catch (err) {}
     if (known) { window.saAuth.user = known; gate.hidden = true; return; }
+    if (ls.get(GUEST)) { window.saAuth.guest = true; gate.hidden = true; return; }
     show("offline");
   }
 }
 
+guestBtn.addEventListener("click", () => playAsGuest());
 tabs.addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (b) show(b.dataset.mode); });
 forgot.addEventListener("click", () => show(mode === "reset" ? "signin" : "reset"));
 $("authEye").addEventListener("click", () => { const t = pass.type === "password" ? "text" : "password"; pass.type = pass2.type = t; });
