@@ -901,7 +901,7 @@ USTRUCT() struct FBasePartNetItem : public FFastArraySerializerItem
 
 ### 5.6 World Partition guidelines
 
-**Map:** a 48.77 × 48.77 km 1:1 real-world recreation (§8), built as 6 × 6 landscape tiles, plus a 50 km non-walkable horizon ring. The dedicated server streams cells only around players (server-side World Partition streaming **[VERIFY 5.6]** cvar name). With 16 players spread over 2,380 km², that keeps server memory proportional to the number of player bubbles, not the map size. Storms can form anywhere, including 8 km off-map, and drift in.
+**Map:** a 48.77 × 48.77 km 1:1 real-world recreation (§8), built as 3 × 3 landscape tiles of 8129 px, plus a 50 km non-walkable horizon ring. The dedicated server streams cells only around players (server-side World Partition streaming **[VERIFY 5.6]** cvar name). With 16 players spread over 2,380 km², that keeps server memory proportional to the number of player bubbles, not the map size. Storms can form anywhere, including 8 km off-map, and drift in.
 
 | Runtime grid | Cell size | Loading range (PC / mobile) | Contents |
 |---|---|---|---|
@@ -1006,13 +1006,13 @@ The game map is a **1:1 real-world recreation** of the lead's home area in the U
 | Item | Spec |
 |---|---|
 | Center | The chosen real-world point (stored locally only, §8.5) |
-| Playable area | **48.77 × 48.77 km** (≈ 30 × 30 mi, 2,380 km², about 30× the land area of a GTA V-scale map): **6 × 6 landscape tiles of 4065 × 4065 px at 2 m/px** (Scale X/Y = 200). Each tile is 16 × 16 components of 2 × 2 sections of 127 quads, and neighbouring tiles share edge vertices. Import through World Partition tiled heightmap import (`heightmap_x#_y#.r16`) **[VERIFY 5.6]**. Mobile cooks a 4 m/px downsample |
+| Playable area | **48.77 × 48.77 km** (≈ 30 × 30 mi, 2,380 km², about 30× the land area of a GTA V-scale map): **3 × 3 landscape tiles of 8129 × 8129 px at 2 m/px** (Scale X/Y = 200). 8129 is Epic's largest listed single-landscape size (32 × 32 components, 2 × 2 sections, 127 quads). Neighbouring tiles share edge vertices, verified bit-exact. Import through World Partition tiled heightmap import (`heightmap_x#_y#.r16`) **[VERIFY 5.6]**. `--tile-quads 4064` gives an equivalent 6 × 6 grid of 4065 px tiles if smaller import units are easier. Mobile cooks a 4 m/px downsample |
 | Framing | The map center is offset from home so that all nearby towns, the interstate and the raceway fit. Home sits a few km south-west of the center, well inside the map |
 | Hero zone | A 2 × 2 km area around home, rebuilt from 1 m lidar with Landscape Patch detail and hand-authored buildings |
 | Horizon ring | A further 50 km in every direction as low-poly terrain mesh HLOD from 10 m DEM. Never walkable, but it makes distant supercells sit correctly on the real horizon |
 | Weather margin | 8 km of atmosphere simulation beyond the playable edge (§2.0.1), so storms form off-map and roll in |
 | Terrain character (measured) | Branching valley network, a broad river floodplain crossing the map, steep 40–120 m coulee walls, flat ridgetop uplands. Valley floors are cropland; the slopes are mostly hardwood forest |
-| Z scale | Set from the real relief: `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured:** elevation 234–405 m, relief 171 m → `ZScale = 41.21`, Landscape Z = 8551 cm (lowest point at Z = 0), 0.32 cm vertical precision |
+| Z scale | Set from the real relief: `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured over the full map:** elevation 217–428 m, relief 211 m → `ZScale = 49.07`, Landscape Z = 10,561 cm (lowest point at Z = 0), 0.38 cm vertical precision. The DEM came back complete, with zero gaps across all tiles |
 | Origin | The `AGeoReferencingSystem` actor (GeoReferencing plugin), with a projected CRS set to the UTM zone of the center point. World origin = center. 1 uu = 1 cm; Large World Coordinates cover ±8 km trivially |
 
 Drive times at true scale: about 30 min edge to edge at 100 km/h on highways, longer on gravel. That is the point: real distance between towns, with storms visible across it.
@@ -1026,15 +1026,39 @@ Drive times at true scale: about 30 min edge to edge at 100 km/h on highways, lo
 | Street-level reference | The lead's own photos and video (primary), Mapillary (CC BY-SA, attribution required). **Google Earth / Street View are not used**: Google's terms forbid copying or tracing their imagery into another product, so it cannot be a source for a commercial game | – | Building styles, road-edge detail, signage types, fence and mailbox styles, barn colours |
 | Aerial imagery | USDA NAIP | 0.6 m | Reference only: material tinting via a runtime virtual texture, placement validation. Never used as the final ground texture |
 | Roads, rail, power, POIs | OpenStreetMap | vector | Road splines (surface type: paved / gravel / dirt), rail, **power lines** (poles and spans for storm damage), town layout |
-| Building footprints | OSM + Microsoft US Building Footprints | vector | Every house, barn, shed and silo location. **Measured:** OSM has only 518 buildings in the square (rural coverage is sparse), so the Microsoft footprints are **required**, not optional |
+| Building footprints | **Microsoft Global ML Building Footprints** (`mapbuilder.py buildings`) + OSM + lidar | vector | Every house, barn, shed and silo. **Measured over the full map:** Microsoft has 27,089 footprints (26,339 with a height estimate) against 1,674 in OSM. Lidar (§8.7) refines height, eave and roof shape |
+| Bridges | **FHWA National Bridge Inventory 2025 via BTS NTAD** (`mapbuilder.py bridges`) | points | **Measured:** 314 bridges and culverts with real length, deck width, span count, material and design (the oldest is from 1920, the longest is 92.7 m). A procedural bridge is placed wherever a road spline crosses NHD water, and each is matched to the nearest NBI record within 50 m for its dimensions and type |
 | Fields and crops | USDA Cropland Data Layer | 30 m | Per-field crop type (corn, wheat, soy, pasture, fallow). Crop height follows the in-game calendar |
-| Land cover / canopy | NLCD land cover + tree canopy | 30 m | Biome masks and PCG foliage density |
-| Water | USGS National Hydrography Dataset | vector | Creeks, ponds, stock tanks → Water-plugin bodies |
+| Land cover / canopy | NLCD 2021 land cover + tree canopy | 30 m | Biome masks and PCG density for ground cover and forest fill. There is no public per-tree dataset, so individual trees come from lidar canopy-height analysis instead (§8.7). NLCD drives the fill and species mix |
+| Water | USGS National Hydrography Dataset, large scale (`mapbuilder.py water`) | vector | **Measured:** 3,460 km of flowlines (80 named streams), 758 waterbodies, 109 river areas → Water-plugin rivers and lakes. The lidar DEM is already hydro-flattened, so channels are in the terrain before import; spline masks refine them |
 | Local storm climate | NOAA/SPC tornado tracks since 1950, NOAA Storm Events (hail, wind, flood) within 80 km | records | Calibrates `DA_Climate`: EF shares, month-by-month seasonality, dominant storm motion (usually SW → NE), path lengths. The game then boosts the frequencies (§2.0.3) |
 
 **Measured road network:** about 650 km of road in the square. Roughly 46% is tagged asphalt, but about 48% has no surface tag, so gravel and dirt town roads must be classified from NAIP imagery and the lead's knowledge.
 
-**Licensing.** USGS, USDA and NOAA data are public domain. OSM and the Microsoft footprints are **ODbL**, so the credits must attribute them and the derived *database* stays share-alike. Game art and code produced from it are not affected. Google or Bing photorealistic 3D tiles are **not** used: their terms prohibit extracting the geometry for a shipped game.
+**Licensing.**
+- **Public domain:** USGS (3DEP, NHD), USDA (NAIP, CDL, NLCD), NOAA/SPC and FHWA/BTS (NBI). Citation is appreciated.
+- **OpenStreetMap = ODbL.** The in-game credits must say "© OpenStreetMap contributors". Share-alike applies to a redistributed derived *database*, not to the game's art or code.
+- **Microsoft Global ML Building Footprints = CDLA Permissive 2.0** (the legacy US dataset was ODbL). Attribute Microsoft/Bing, and legal reads the CDLA before ship.
+- **Not used:** Google or Bing photorealistic 3D tiles, and Google Earth / Street View. Their terms prohibit extracting or tracing their data into a shipped product.
+- **Cesium ion is not shipped on.** The Community tier is non-commercial; the terms ban offline or baked use and require an in-game Cesium ion logo; display rights end if the plan lapses. Cesium for Unreal (Apache 2.0) may be used as a development-only reference layer. The shipped build is fully self-contained, with all data baked in.
+- **Real brands** (the regional convenience-store chain, the furniture maker, restaurants) appear with their real names and signage only under a trademark licence. Otherwise they get a close local-flavour lookalike (§8.5).
+
+**Import tooling options (UE 5.6):**
+- **Our own Editor Utility** (default): reads the MapBuilder JSON directly.
+- **Landscape Combinator** (Fab, paid; heightmap → landscape, OSM → splines, buildings, foliage): **[VERIFY]** the current price and EULA before relying on it.
+- **StreetMap plugin forks and blosm** (Blender, GPL): acceptable for one-off asset generation only after each repo's licence is checked for commercial use.
+
+**Open data questions and their status:**
+
+| # | Question | Status |
+|---|---|---|
+| 1 | DEM completeness across the map | **Closed:** zero nodata across all tiles; the 1 m lidar is also confirmed (2022 flight) |
+| 2 | OSM completeness | **Closed:** roads are complete in every village (4,390 km, verified visually against the terrain). Buildings are **not** complete (1,674), so Microsoft footprints are used |
+| 3 | County road-centerline set on geodata.wisc.edu | Open. Only needed if an OSM road proves wrong |
+| 4 | WisDOT bulk centerlines | Open, and unlikely to be public (WISLR is internal). Not needed |
+| 5 | NBI lat/long withheld | **Closed:** the BTS NTAD feature service returns positions for all 314 bridges |
+| 6 | Landscape Combinator price and EULA | Open **[VERIFY]** |
+| 7 | Cesium ion pricing | Not needed; not shipping on Cesium |
 
 ### 8.3 Build pipeline (`Tools/MapBuilder/`, Python + UE Editor Utility)
 
@@ -1042,7 +1066,7 @@ Drive times at true scale: about 30 min edge to edge at 100 km/h on highways, lo
 location.local.json (lat, lon, size_km; git-ignored)
   └─ fetch.py     3DEP DEM + lidar tiles, NAIP, CDL, NLCD, NHD, OSM (Overpass), MS footprints → cache/
   └─ project.py   everything reprojected to UTM (GDAL/rasterio), clipped to the square, origin shifted to center
-  └─ terrain.py   DEM → 6×6 tiles of 4065² 16-bit heightmaps, one shared Z scale (+ hero-zone 0.5 m patch), road-corridor flattening mask,
+  └─ terrain.py   DEM → 3×3 tiles of 8129² 16-bit heightmaps, one shared Z scale (+ hero-zone 0.5 m patch), road-corridor flattening mask,
                   D8 flow accumulation → basins + stage–volume curves (flood model)
   └─ layers.py    NLCD/CDL → landscape weight maps (grass, dirt, gravel, crop-row, mud, water edge)
   └─ vectors.py   roads/rail/power/buildings/trees/fields → GeoJSON in local meters with attributes

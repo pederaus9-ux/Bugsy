@@ -5,6 +5,10 @@ Turns a real-world center point into Unreal-ready map data:
   init     write location.local.json (git-ignored; never commit it)
   dem      USGS 3DEP bare-earth DEM -> tiled 4065px .r16 landscape heightmaps + manifest + preview
   osm      OpenStreetMap roads/buildings/water/power/landuse -> local-meter JSON
+  water    USGS NHD flowlines, waterbodies and river areas -> local-meter JSON
+  bridges  FHWA National Bridge Inventory (BTS NTAD) -> bridge points with length, width, spans, type
+  buildings Microsoft Global ML Building Footprints -> footprints with height estimates
+  preview  composite map image: terrain, water, buildings, roads, bridges, towns
   climate  SPC tornado database -> local climatology for DA_Climate calibration
   lidar    3DEP lidar point cloud -> every tree (x, y, height, crown) + building (footprint, height, roof) per tile
   all      dem + osm + climate
@@ -37,7 +41,8 @@ OUT = os.path.join(HERE, "out")
 CACHE = os.path.join(HERE, "cache")
 UA = "stormchaser-mapbuilder/0.1"
 
-TILE_QUADS = 4064            # one landscape tile: 16x16 components of 2x2 sections of 127 quads
+TILE_QUADS = 4064            # default landscape tile: 16x16 components of 2x2 sections of 127 quads (4065 px)
+                             # --tile-quads 8128 gives 32x32 components -> 8129 px, Epic's largest listed size
 DEFAULT_RES_M = 2.0          # 4064 quads * 2 m = 8.128 km per landscape tile
 DEFAULT_TILES = (6, 6)       # 6x6 tiles = 48.77 km square
 DEM_URL = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage"
@@ -82,13 +87,14 @@ class Frame:
         self.lat, self.lon = loc["center_lat"], loc["center_lon"]
         self.res = loc.get("res_m", DEFAULT_RES_M)
         self.tiles_x, self.tiles_y = loc.get("tiles", [2, 2])
+        self.tile_quads = loc.get("tile_quads", TILE_QUADS)
         self.zone = int((self.lon + 180) // 6) + 1
         self.epsg = (32600 if self.lat >= 0 else 32700) + self.zone
         self.fwd = Transformer.from_crs(4326, self.epsg, always_xy=True)
         self.inv = Transformer.from_crs(self.epsg, 4326, always_xy=True)
         self.cx, self.cy = self.fwd.transform(self.lon, self.lat)
-        self.nx = self.tiles_x * TILE_QUADS + 1          # vertices across the whole map
-        self.ny = self.tiles_y * TILE_QUADS + 1
+        self.nx = self.tiles_x * self.tile_quads + 1     # vertices across the whole map
+        self.ny = self.tiles_y * self.tile_quads + 1
         self.half_x = (self.nx - 1) * self.res / 2.0
         self.half_y = (self.ny - 1) * self.res / 2.0
 
@@ -108,7 +114,10 @@ class Frame:
 
 # ---------------------------------------------------------------- init
 def cmd_init(a):
-    loc = {"center_lat": a.lat, "center_lon": a.lon, "res_m": a.res, "tiles": [a.tiles_x, a.tiles_y]}
+    if a.tile_quads % DEM_TILE_QUADS:
+        sys.exit(f"--tile-quads must be a multiple of {DEM_TILE_QUADS}")
+    loc = {"center_lat": a.lat, "center_lon": a.lon, "res_m": a.res, "tiles": [a.tiles_x, a.tiles_y],
+           "tile_quads": a.tile_quads}
     if a.shift_east_m or a.shift_north_m:         # move the map center off the given point (e.g. to take in towns)
         fr0 = Frame(loc)
         loc["center_lon"], loc["center_lat"] = fr0.inv.transform(fr0.cx + a.shift_east_m, fr0.cy + a.shift_north_m)
@@ -146,9 +155,9 @@ def dem_request(fr, rx, ry):
 
 
 def landscape_tile(fr, tx, ty):
-    """Heights (m) for landscape tile (tx, ty) from the north-west: (TILE_QUADS+1)^2 px, edges shared with neighbours."""
-    k = TILE_QUADS // DEM_TILE_QUADS
-    out = np.empty((TILE_QUADS + 1, TILE_QUADS + 1), np.float32)
+    """Heights (m) for landscape tile (tx, ty) from the north-west: (tile_quads+1)^2 px, edges shared with neighbours."""
+    k = fr.tile_quads // DEM_TILE_QUADS
+    out = np.empty((fr.tile_quads + 1, fr.tile_quads + 1), np.float32)
     for dy in range(k):
         for dx in range(k):
             t = dem_request(fr, tx * k + dx, ty * k + dy)
@@ -201,7 +210,7 @@ def cmd_dem(a):
 
     manifest = {
         "crs": f"EPSG:{fr.epsg}", "utm_zone": fr.zone,
-        "tiles": [fr.tiles_x, fr.tiles_y], "tile_px": TILE_QUADS + 1, "res_m": fr.res,
+        "tiles": [fr.tiles_x, fr.tiles_y], "tile_px": fr.tile_quads + 1, "res_m": fr.res,
         "tile_files": "heightmap_x{tx}_y{ty}.r16 (uint16 LE, y from the north edge, edge rows shared)",
         "extent_m": [2 * fr.half_x, 2 * fr.half_y],
         "ue_scale": {"x": fr.res * 100, "y": fr.res * 100, "z": round(zscale, 4)},
@@ -377,6 +386,167 @@ def cmd_climate(a):
     print(json.dumps(out, indent=2))
 
 
+# ---------------------------------------------------------------- ArcGIS REST helper
+def arcgis_query(url, fr, out_fields, where="1=1"):
+    """All features of an ArcGIS layer intersecting the map, geometry in WGS84 (esri JSON)."""
+    s_, w, n, e = fr.bbox_lonlat()
+    feats, offset = [], 0
+    while True:
+        d = json.loads(http_get(url + "/query", {
+            "where": where, "geometry": f"{w},{s_},{e},{n}", "geometryType": "esriGeometryEnvelope",
+            "inSR": 4326, "spatialRel": "esriSpatialRelIntersects", "outFields": out_fields,
+            "outSR": 4326, "returnGeometry": "true", "resultOffset": offset, "resultRecordCount": 1000, "f": "json",
+        }, timeout=300))
+        if "error" in d:
+            sys.exit(f"ArcGIS error from {url}: {d['error']}")
+        batch = d.get("features", [])
+        feats += batch
+        offset += len(batch)
+        if not batch or not d.get("exceededTransferLimit"):
+            return feats
+
+
+def local_path(fr, coords):
+    return [[round(v, 2) for v in fr.to_local(lon, lat)] for lon, lat in coords]
+
+
+# ---------------------------------------------------------------- water (USGS NHD)
+NHD = "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer"
+
+
+def cmd_water(a):
+    fr = Frame(load_location())
+    os.makedirs(OUT, exist_ok=True)
+    out = {"frame": "local meters, +X east, +Y north", "source": "USGS NHD large scale (public domain)",
+           "flowlines": [], "waterbodies": [], "areas": []}
+    for layer, key, geom in ((6, "flowlines", "paths"), (12, "waterbodies", "rings"), (9, "areas", "rings")):
+        feats = arcgis_query(f"{NHD}/{layer}", fr, "gnis_name,ftype,fcode")
+        for f_ in feats:
+            at = {k.lower(): v for k, v in f_["attributes"].items()}
+            for part in f_.get("geometry", {}).get(geom, []):
+                pts = local_path(fr, part)
+                if any(fr.inside(x, y) for x, y in pts):
+                    out[key].append({"name": at.get("gnis_name"), "ftype": at.get("ftype"), "fcode": at.get("fcode"), "pts": pts})
+        print(f"  NHD {key}: {len(out[key])}")
+    with open(os.path.join(OUT, "water_nhd_local.json"), "w") as f:
+        json.dump(out, f)
+    km = sum(math.dist(p[i], p[i + 1]) for fl in out["flowlines"] for p in [fl["pts"]] for i in range(len(p) - 1)) / 1000
+    names = sorted({fl["name"] for fl in out["flowlines"] if fl["name"]})
+    print(json.dumps({"flowline_km": round(km, 1), "waterbodies": len(out["waterbodies"]),
+                      "areas": len(out["areas"]), "named_streams": len(names)}, indent=2))
+
+
+# ---------------------------------------------------------------- bridges (FHWA NBI via BTS NTAD)
+NBI = "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Bridge_Inventory/FeatureServer/0"
+NBI_FIELDS = ("STRUCTURE_NUMBER_008,FACILITY_CARRIED_007,FEATURES_DESC_006A,YEAR_BUILT_027,STRUCTURE_KIND_043A,"
+              "STRUCTURE_TYPE_043B,MAIN_UNIT_SPANS_045,MAX_SPAN_LEN_MT_048,STRUCTURE_LEN_MT_049,DECK_WIDTH_MT_052,"
+              "ROADWAY_WIDTH_MT_051,TRAFFIC_LANES_ON_028A,SERVICE_UND_042B,LATDD,LONGDD")
+NBI_KIND = {"1": "concrete", "2": "concrete continuous", "3": "steel", "4": "steel continuous", "5": "prestressed concrete",
+            "6": "prestressed concrete continuous", "7": "wood/timber", "8": "masonry", "9": "aluminum/iron", "0": "other"}
+NBI_TYPE = {"01": "slab", "02": "stringer/girder", "03": "girder-floorbeam", "04": "tee beam", "05": "box beam multiple",
+            "06": "box beam single", "07": "frame", "09": "deck truss", "10": "thru truss", "11": "deck arch",
+            "12": "thru arch", "19": "culvert", "22": "channel beam", "00": "other"}
+
+
+def cmd_bridges(a):
+    fr = Frame(load_location())
+    os.makedirs(OUT, exist_ok=True)
+    bridges = []
+    for f_ in arcgis_query(NBI, fr, NBI_FIELDS):
+        at, g = f_["attributes"], f_.get("geometry") or {}
+        lon, lat = g.get("x", at.get("LONGDD")), g.get("y", at.get("LATDD"))
+        if lon is None or lat is None:
+            continue
+        x, y = fr.to_local(lon, lat)
+        if not fr.inside(x, y):
+            continue
+        kind, typ = str(at.get("STRUCTURE_KIND_043A") or "0"), str(at.get("STRUCTURE_TYPE_043B") or "00").zfill(2)
+        bridges.append({
+            "x": round(x, 2), "y": round(y, 2), "id": at.get("STRUCTURE_NUMBER_008"),
+            "carries": (at.get("FACILITY_CARRIED_007") or "").strip(), "over": (at.get("FEATURES_DESC_006A") or "").strip(),
+            "year_built": at.get("YEAR_BUILT_027"), "material": NBI_KIND.get(kind, kind), "design": NBI_TYPE.get(typ, typ),
+            "spans": at.get("MAIN_UNIT_SPANS_045"), "max_span_m": at.get("MAX_SPAN_LEN_MT_048"),
+            "length_m": at.get("STRUCTURE_LEN_MT_049"), "deck_width_m": at.get("DECK_WIDTH_MT_052"),
+            "roadway_width_m": at.get("ROADWAY_WIDTH_MT_051"), "lanes": at.get("TRAFFIC_LANES_ON_028A"),
+        })
+    with open(os.path.join(OUT, "bridges_nbi_local.json"), "w") as f:
+        json.dump({"frame": "local meters, +X east, +Y north",
+                   "source": "FHWA National Bridge Inventory 2025 via BTS NTAD (public domain)", "bridges": bridges}, f, indent=1)
+    by = {}
+    for b in bridges:
+        k = f'{b["material"]} {b["design"]}'
+        by[k] = by.get(k, 0) + 1
+    print(json.dumps({"bridges": len(bridges), "by_type": dict(sorted(by.items(), key=lambda kv: -kv[1])[:10]),
+                      "longest_m": max((b["length_m"] or 0 for b in bridges), default=0),
+                      "oldest": min((b["year_built"] or 9999 for b in bridges), default=None)}, indent=2))
+
+
+# ---------------------------------------------------------------- buildings (Microsoft Global ML Building Footprints)
+MS_LINKS = "https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv"
+
+
+def quadkeys(fr, z=9):
+    s_, w, n, e = fr.bbox_lonlat()
+
+    def tile(lon, lat):
+        x = int((lon + 180) / 360 * 2 ** z)
+        r = math.radians(lat)
+        y = int((1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * 2 ** z)
+        return x, y
+
+    x0, y0 = tile(w, n)
+    x1, y1 = tile(e, s_)
+    keys = []
+    for x in range(x0, x1 + 1):
+        for y in range(y0, y1 + 1):
+            q = ""
+            for i in range(z, 0, -1):
+                m = 1 << (i - 1)
+                q += str((1 if x & m else 0) + (2 if y & m else 0))
+            keys.append(q)
+    return keys
+
+
+def cmd_buildings(a):
+    import gzip
+    fr = Frame(load_location())
+    os.makedirs(OUT, exist_ok=True); os.makedirs(CACHE, exist_ok=True)
+    links_path = os.path.join(CACHE, "ms_dataset_links.csv")
+    if not os.path.exists(links_path):
+        with open(links_path, "wb") as f:
+            f.write(http_get(MS_LINKS, timeout=300))
+    want = set(quadkeys(fr))
+    urls = []
+    with open(links_path, newline="") as f:
+        for r in csv.DictReader(f):
+            if r["Location"] == "UnitedStates" and r["QuadKey"] in want:
+                urls.append(r["Url"])
+    print(f"  {len(urls)} footprint tiles for quadkeys {sorted(want)}")
+    out, heights = [], 0
+    for u in urls:
+        path = os.path.join(CACHE, "ms_" + u.split("quadkey=")[1].replace("/", "_"))
+        if not os.path.exists(path):
+            with open(path, "wb") as f:
+                f.write(http_get(u, timeout=600))
+        with gzip.open(path, "rt") as f:
+            for line in f:
+                ft = json.loads(line)
+                ring = ft["geometry"]["coordinates"][0]
+                lon = sum(p[0] for p in ring) / len(ring); lat = sum(p[1] for p in ring) / len(ring)
+                x, y = fr.to_local(lon, lat)
+                if not fr.inside(x, y):
+                    continue
+                h = ft.get("properties", {}).get("height", -1)
+                heights += h is not None and h > 0
+                out.append({"pts": local_path(fr, ring), "height_m": h,
+                            "confidence": ft.get("properties", {}).get("confidence")})
+    with open(os.path.join(OUT, "buildings_ms_local.json"), "w") as f:
+        json.dump({"frame": "local meters, +X east, +Y north",
+                   "source": "Microsoft Global ML Building Footprints (CDLA Permissive 2.0; attribute Microsoft/Bing)",
+                   "buildings": out}, f)
+    print(json.dumps({"buildings": len(out), "with_height": int(heights)}, indent=2))
+
+
 # ---------------------------------------------------------------- lidar (trees + buildings)
 EPT_BASE = "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/"
 
@@ -549,6 +719,55 @@ def cmd_lidar(a):
                       "tallest_tree_m": max((t[2] for t in trees), default=0)}, indent=2))
 
 
+# ---------------------------------------------------------------- composite preview
+def cmd_preview(a):
+    from PIL import ImageDraw
+    fr = Frame(load_location())
+    base = Image.open(os.path.join(OUT, "preview_hillshade.png")).convert("RGB")
+    W, H = base.size
+    sx, sy = W / (2 * fr.half_x), H / (2 * fr.half_y)
+    px = lambda x, y: ((x + fr.half_x) * sx, (fr.half_y - y) * sy)
+    d = ImageDraw.Draw(base)
+
+    def load(name):
+        path = os.path.join(OUT, name)
+        return json.load(open(path)) if os.path.exists(path) else None
+
+    w = load("water_nhd_local.json")
+    if w:
+        for poly in w["areas"] + w["waterbodies"]:
+            if len(poly["pts"]) > 2:
+                d.polygon([px(*p) for p in poly["pts"]], fill=(70, 120, 200))
+        for fl in w["flowlines"]:
+            d.line([px(*p) for p in fl["pts"]], fill=(90, 150, 230), width=1)
+    b = load("buildings_ms_local.json")
+    if b:
+        for bl in b["buildings"]:
+            x, y = px(*bl["pts"][0])
+            d.point((x, y), fill=(255, 190, 60))
+    o = load("osm_local.json")
+    if o:
+        widths = {"motorway": 4, "trunk": 3, "primary": 3, "secondary": 2, "tertiary": 2}
+        for r in o["layers"]["roads"]:
+            hw = r["tags"].get("highway", "")
+            if hw in ("footway", "path", "cycleway", "steps", "service", "track"):
+                continue
+            col = (255, 80, 60) if hw.startswith("motorway") else (250, 250, 250) if hw in widths else (200, 200, 200)
+            d.line([px(*p) for p in r["pts"]], fill=col, width=widths.get(hw, 1))
+    br = load("bridges_nbi_local.json")
+    if br:
+        for bg in br["bridges"]:
+            x, y = px(bg["x"], bg["y"])
+            d.rectangle([x - 2, y - 2, x + 2, y + 2], fill=(255, 0, 255))
+    if o:
+        for pl in o["layers"]["places"]:
+            if pl["tags"].get("place") in ("town", "village", "city"):
+                x, y = px(pl["x"], pl["y"])
+                d.text((x + 4, y - 6), pl["tags"].get("name", ""), fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+    base.save(os.path.join(OUT, "preview_map.png"))
+    print("wrote", os.path.join(OUT, "preview_map.png"))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -556,7 +775,9 @@ def main():
     p.add_argument("--lon", type=float, required=True); p.add_argument("--res", type=float, default=DEFAULT_RES_M)
     p.add_argument("--tiles-x", type=int, default=DEFAULT_TILES[0]); p.add_argument("--tiles-y", type=int, default=DEFAULT_TILES[1])
     p.add_argument("--shift-east-m", type=float, default=0.0); p.add_argument("--shift-north-m", type=float, default=0.0)
+    p.add_argument("--tile-quads", type=int, default=TILE_QUADS, help="4064 (4065 px tiles) or 8128 (8129 px tiles)")
     sub.add_parser("dem"); sub.add_parser("osm")
+    sub.add_parser("water"); sub.add_parser("bridges"); sub.add_parser("buildings"); sub.add_parser("preview")
     p = sub.add_parser("climate"); p.add_argument("--radius-km", type=float, default=80.0)
     p = sub.add_parser("lidar", help="trees + buildings from the 3DEP lidar point cloud for one tile")
     p.add_argument("--dataset", default="WI_12County_7_B22")
@@ -567,9 +788,10 @@ def main():
     p = sub.add_parser("all"); p.add_argument("--radius-km", type=float, default=80.0)
     a = ap.parse_args()
     if a.cmd == "all":
-        cmd_dem(a); cmd_osm(a); cmd_climate(a)
+        cmd_dem(a); cmd_osm(a); cmd_water(a); cmd_bridges(a); cmd_buildings(a); cmd_climate(a); cmd_preview(a)
     else:
-        {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate, "lidar": cmd_lidar}[a.cmd](a)
+        {"init": cmd_init, "dem": cmd_dem, "osm": cmd_osm, "climate": cmd_climate, "lidar": cmd_lidar,
+         "water": cmd_water, "bridges": cmd_bridges, "buildings": cmd_buildings, "preview": cmd_preview}[a.cmd](a)
 
 
 if __name__ == "__main__":
