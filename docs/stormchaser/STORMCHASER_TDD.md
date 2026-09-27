@@ -45,7 +45,7 @@
 
 | Pillar | Spec |
 |---|---|
-| Map | **1:1 recreation of the lead's real home area** (§8): **the whole home county, 40.6 × 73.2 km (2,970 km²)** at true scale: every town and village in the county, dozens of hamlets, the interstate at the north end, the Mississippi River bluffs and lock and dam at the south end, cropland, gravel roads, farmsteads, coulees and creeks (§8.9) |
+| Map | **1:1 recreation of the lead's real home area** (§8): **the whole home county inside a 73.2 × 73.2 km frame (5,350 km²)** at true scale: every town and village in the county, dozens of hamlets, the interstate at the north end, the Mississippi River bluffs and lock and dam at the south end, cropland, gravel roads, farmsteads, coulees and creeks (§8.9) |
 | Time | Continuous day/night (1 in-game day = 48 real min). Seasons drive the climate (spring peak). No session phases, no cycles |
 | Weather | The stormiest place in the country. Most days bring something: tornadoes, hail, derechos, lightning, floods, fog and dust. **Good days are rare** (15–25% by season, §2.0.5). V1 runs spring through fall; the **winter season** (ice storms, blizzards, snowmobiles) is a later update, and its systems are specified here so they drop in |
 | Population | Mass AI crowds and traffic that react to weather systemically (§4.2) |
@@ -108,7 +108,7 @@ Nothing about a tornado is authored per storm. The pipeline is **atmosphere → 
 
 #### 2.0.1 Atmosphere simulation (`UAtmosphereSubsystem`, server, 0.2 Hz)
 
-A coarse 2-D grid of 1 km cells, 57 × 90, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
+A coarse 2-D grid of 1 km cells, 90 × 90, covering the map plus an 8 km off-map margin on each side so storms can form outside the map and drift in. Each cell holds CAPE (J/kg), CIN (J/kg), LCL height (m), 0–1 km storm-relative helicity SRH (m²/s²) and 0–6 km bulk shear BWD (m/s).
 
 - **Weather regime.** A Markov chain rolled once per in-game day over the regimes in §2.0.5 (clear through outbreak, plus winter regimes). The transition matrix lives in `DA_Climate`, is modulated by season, and is calibrated from the real local climate records (§8.2). Regimes set the target field means. The fields relax toward those means (τ = 2 in-game hours) with spatial Perlin noise, plus diurnal heating that peaks late in the afternoon.
 - **Supercell initiation.** A Poisson process per cell. Hazard: `λ_SC = λ₀ · f(CAPE) · g(BWD) · h(CIN)` per in-game hour. Storms can therefore fire anywhere, at any time. Quiet weeks and wild outbreak days both emerge naturally.
@@ -657,7 +657,7 @@ Content/Stormchaser/Blueprints/  BP_ subclasses; data-only children for content 
 
 ```
 UAtmosphereSubsystem (UWorldSubsystem, server, 0.2 Hz)
-   57×90 km field grid · regime Markov chain · diurnal cycle · supercell Poisson spawner (§2.0.1)
+   90×90 km field grid · regime Markov chain · diurnal cycle · supercell Poisson spawner (§2.0.1)
 UWarningServiceSubsystem (server)
    random-lead-time warnings/false alarms → warning polygons → sirens, phone alerts, radio/TV (§2.0.4)
 
@@ -922,7 +922,7 @@ USTRUCT() struct FBasePartNetItem : public FFastArraySerializerItem
 
 ### 5.6 World Partition guidelines
 
-**Map:** a 40.64 × 73.15 km 1:1 recreation of the whole county (§8), built as 5 × 9 landscape tiles of 4065 px, plus a 50 km non-walkable horizon ring. The dedicated server streams cells only around players (server-side World Partition streaming **[VERIFY 5.6]** cvar name). With 16 players spread over 2,970 km², that keeps server memory proportional to the number of player bubbles, not the map size. Storms can form anywhere, including 8 km off-map, and drift in.
+**Map:** a 73.15 km square 1:1 frame around the whole county (§8), built as 3 × 3 landscape tiles of 8129 px at 3 m, plus a 50 km non-walkable horizon ring. The dedicated server streams cells only around players (server-side World Partition streaming **[VERIFY 5.6]** cvar name). With 16 players spread over 2,970 km², that keeps server memory proportional to the number of player bubbles, not the map size. Storms can form anywhere, including 8 km off-map, and drift in.
 
 | Runtime grid | Cell size | Loading range (PC / mobile) | Contents |
 |---|---|---|---|
@@ -997,7 +997,7 @@ storm.Net.T2TopK          48     | 48    | 24
 | Randomness produces long quiet stretches | Players bored waiting for storms | By design there is no pity timer. The open world (jobs, driving, property, crime, multiplayer) carries quiet days. Tune `λ` in the climate, and use live-ops *seasons* that change regime probabilities, never individual storms |
 | Real-world map data gaps (no 1 m lidar, stale OSM) | Wrong terrain or missing buildings | Fall back to 10 m DEM plus a NAIP-guided manual fix-up pass; pipeline flags any footprint without a height |
 | Legal or PR exposure from destroying a real place | Complaints or takedown | §8.5 rules, generic neighbour homes, `bFictionalizePlaceNames`, legal review before launch |
-| A 2,970 km² map feels empty | Long drives with nothing happening | Activity density follows the real places (§8.9); the weather keeps the open country eventful; vehicles, including small planes from real airstrips, make distance part of the fun; POI-driven detail budget (towns full detail, farmland procedural) |
+| A 5,350 km² map feels empty | Long drives with nothing happening | Activity density follows the real places (§8.9); the weather keeps the open country eventful; vehicles, including small planes from real airstrips, make distance part of the fun; POI-driven detail budget (towns full detail, farmland procedural) |
 | A random EF5 wipes out a new player's house | Churn | Loss is money/time only; insurance economy; starter homes cheap to rebuild; the event itself is the best clip they'll ever get |
 | Players exploiting sheltered spots | Stale | Random paths, sizes and rain-wrap mean no spot is safe every time; basements can still collapse (§3) |
 | Mobile thermal throttling in long sessions | Frame drops during outbreaks | Thermal step-down; Chaos Cache playback for hero collapses; 30 fps default |
@@ -1027,13 +1027,13 @@ The game map is a **1:1 real-world recreation** of the lead's home area in the U
 | Item | Spec |
 |---|---|
 | Center | The chosen real-world point (stored locally only, §8.5) |
-| Playable area | **40.64 × 73.15 km** (≈ 25 × 45 mi, 2,970 km²): **5 × 9 landscape tiles of 4065 × 4065 px at 2 m/px** (Scale X/Y = 200). Each tile is 16 × 16 components of 2 × 2 sections of 127 quads, a legal size by Epic's formula. Neighbouring tiles share edge vertices, verified bit-exact. Import through World Partition tiled heightmap import (`heightmap_x#_y#.r16`) **[VERIFY 5.6]**. `--tile-quads 8128` gives 8129 px tiles where the extent is a multiple of 16.256 km. Mobile cooks a 4 m/px downsample |
+| Playable area | **73.15 × 73.15 km** (≈ 45 × 45 mi): **3 × 3 landscape tiles of 8129 × 8129 px at 3 m/px** (Scale X/Y = 300), 594.6 M vertices. 8129 is Epic's largest listed landscape size (32 × 32 components, 2 × 2 sections, 127 quads). 3 m is the finest resolution at which 9 such tiles still cover the county's 70 km north–south span. Neighbouring tiles share edge vertices. The imported tiles are the **road-carved** copies in `out/ue/terrain/` (§8.12). Lighter fallback: `--res 6 --tile-quads 4064` (same frame, 9 tiles of 4065 px) |
 | Framing | **The county is the map.** The frame is the county boundary plus a margin of about 1.5–2 km: from the Mississippi River and lock and dam at the south end to the interstate at the north end. All 38 landmarks in the landmark list fall inside. The interstate stretch east of the county line is out of frame; the interstate content sits at the north-end interchange town |
 | Hero zone | A 2 × 2 km area around home, rebuilt from 1 m lidar with Landscape Patch detail and hand-authored buildings |
 | Horizon ring | A further 50 km in every direction as low-poly terrain mesh HLOD from 10 m DEM. Never walkable, but it makes distant supercells sit correctly on the real horizon |
 | Weather margin | 8 km of atmosphere simulation beyond the playable edge (§2.0.1), so storms form off-map and roll in |
 | Terrain character (measured) | Branching valley network, a broad river floodplain crossing the map, steep 40–120 m coulee walls, flat ridgetop uplands. Valley floors are cropland; the slopes are mostly hardwood forest |
-| Z scale | Set from the real relief: `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured over the full map:** elevation 217–428 m, relief 211 m → `ZScale = 49.07`, Landscape Z = 10,561 cm (lowest point at Z = 0), 0.38 cm vertical precision. The DEM came back complete, with zero gaps across all tiles |
+| Z scale | `ZScale = ((maxElev − minElev)/2 + 20 m) · 100 · 128 / 32768`. **Measured over the frame:** elevation 195–428 m, relief 233 m → `ZScale = 53.3759`, Landscape Z = 11,664.2 cm (lowest point at Z = 0), 0.42 cm vertical precision. Verified: PlayerStart heights match the USGS point elevation service to 1 cm. No DEM gaps |
 | Origin | The `AGeoReferencingSystem` actor (GeoReferencing plugin), with a projected CRS set to the UTM zone of the center point. World origin = center. 1 uu = 1 cm; Large World Coordinates cover ±8 km trivially |
 
 Drive times at true scale: about 30 min edge to edge at 100 km/h on highways, longer on gravel. That is the point: real distance between towns, with storms visible across it.
@@ -1228,3 +1228,18 @@ Every road gets a gameplay class from its real OSM tags, lidar grade and flood b
 ### 8.11 Landmarks
 
 The GDD lists 38 easter-egg landmarks (in `storm-chaser-landmarks.md`) that double as mission locations, fuel stops and hideouts. They are hand-authored hero content in their own data layer (`DL_Landmarks`), placed on the real coordinates and built above the procedural baseline, so a MapBuilder re-run never overwrites them. The landmarks file, like the GDD, lives in the git-ignored `docs/stormchaser/private/`.
+
+### 8.12 Unreal import package
+
+`Tools/MapBuilder/ue_package/` (zipped by `build_package.py` as `CountyMap_Import.zip`) imports the map into UE 5.6. It has a master `ImportCountyMap.py` plus re-runnable per-layer scripts:
+
+| Step | What it builds | Counts at the current export |
+|---|---|---|
+| 1 Landscape | Validates the imported tiles (one import dialog), assigns a slope-blend material, enables Nanite | 594.6 M vertices, 9 tiles |
+| 2 Roads | Merged Nanite ribbons, one mesh per road class per 8 km cell. The heightmap is **carved to the roads at export**, like landscape splines, so the car drives on the landscape at road height and road meshes carry no collision | 20,883 ways → 451 meshes, 9.6 M tris. Terrain shows through 0.71% of the road surface |
+| 3 Water | Lakes and river areas as meshes on the hydro-flattened surface; streams as ribbons | 233 meshes |
+| 4 Bridges + buildings | HISM, one actor per 8 km cell. Bridge decks are pitched slabs with collision | 824 decks, 75,803 buildings |
+| 5 Trees | HISM scatter from OSM woods plus slopes over 14°, no collision, 1.5 km cull | 2.7 M trees |
+| 6 Playable | Sky and sun, drive game mode (Chaos Vehicle template) and fly game mode, PlayerStarts snapped onto the main streets of two towns from the landmark list | 2 starts |
+
+Every step logs counts and `PERF:` warnings against the 60 fps budget (RTX 5060 Ti class). The scripts have been exercised end to end against a stand-in `unreal` module (including re-run idempotency and the no-vehicle fallback), **but not yet inside a real 5.6 editor**. The Geometry Script and SubobjectDataSubsystem calls are the first things to confirm there.

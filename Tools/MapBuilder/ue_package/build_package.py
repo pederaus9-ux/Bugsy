@@ -79,7 +79,8 @@ def main():
         "INIT_CMD": init_cmd,
         "LAND_LOC_X": fmt(lx), "LAND_LOC_Y": fmt(ly), "LAND_LOC_Z": fmt(lz),
         "LAND_MAX_X": fmt(lx + land["extent_cm"][0]), "LAND_MAX_Y": fmt(ly + land["extent_cm"][1]),
-        "LAND_SCALE_X": fmt(land["scale"][0]), "LAND_SCALE_Y": fmt(land["scale"][1]), "LAND_SCALE_Z": fmt(land["scale"][2]),
+        # scale goes in exactly: Z rounded to 1 decimal would put roads up to ~45 cm off the terrain
+        "LAND_SCALE_X": f"{land['scale'][0]:g}", "LAND_SCALE_Y": f"{land['scale'][1]:g}", "LAND_SCALE_Z": f"{land['scale'][2]:.4f}",
         "ORIGIN_LAT": geo["origin_lat"], "ORIGIN_LON": geo["origin_lon"], "EPSG": geo["crs"],
         "E0": f"{geo['origin_easting_m']:.3f}", "N0": f"{geo['origin_northing_m']:.3f}",
         "ELEV_MIN": geo["elev_min_m"], "ELEV_MAX": geo["elev_max_m"],

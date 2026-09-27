@@ -109,9 +109,9 @@ def set_play_mode(mode):
 
 # ----------------------------------------------------------------------------- level content
 def ensure_lighting():
+    C.clear_step("Lighting")      # first remove our own lights, then only add what the level still lacks
     have = {cls.__name__: bool(C.all_actors_of(cls)) for cls in
             (unreal.DirectionalLight, unreal.SkyAtmosphere, unreal.SkyLight, unreal.ExponentialHeightFog)}
-    C.clear_step("Lighting")
     added = []
     if not have["DirectionalLight"]:
         sun = C.spawn(unreal.DirectionalLight, unreal.Vector(0, 0, 100000), label="Sun", folder="CountyMap/Lighting", step_tag="Lighting")

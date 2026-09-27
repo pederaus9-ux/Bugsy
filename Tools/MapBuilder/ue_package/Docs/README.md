@@ -19,7 +19,7 @@ CountyMap_Import/
   Docs/README.md                 this file
 ```
 
-The terrain files (about 1.2 GB) are **not** in the zip. MapBuilder makes them on your PC in step 3.
+The terrain files (about 1.2 GB, plus a road-carved copy) are **not** in the zip. MapBuilder makes them on your PC in step 3.
 
 ---
 
@@ -64,7 +64,7 @@ The terrain files (about 1.2 GB) are **not** in the zip. MapBuilder makes them o
 
 **4c. Import the landscape (the one manual step).**
 1. Press **Shift+2** for Landscape Mode, open the **Manage** tab, then **New**.
-2. Choose **Import from File**. For **Heightmap File**, pick `Tools/MapBuilder/out/heightmap_x0_y0.r16`. The `_x0_y0` name tells Unreal it is a set of tiles.
+2. Choose **Import from File**. For **Heightmap File**, pick `Tools/MapBuilder/out/ue/terrain/heightmap_x0_y0.r16`. Use this folder: these tiles have the roads carved in. The `_x0_y0` name tells Unreal it is a set of tiles.
 3. Set **Section Size** `127x127 Quads` and **Sections Per Component** `2x2 Sections`.
 4. Set **Location** and **Scale** exactly as below:
 
@@ -117,7 +117,7 @@ To convert a lat/lon yourself, project it to {{EPSG}} (for example with `pyproj`
 {{COUNTS_TABLE}}
 
 **Performance (target 60 fps on an RTX 5060 Ti with 32 GB RAM):**
-- Roads and water are a few hundred merged Nanite meshes, not thousands of actors.
+- Roads and water are a few hundred merged Nanite meshes, not thousands of actors. The terrain is carved to the roads at export (like landscape splines), so the car drives on the landscape at road height and road meshes need no collision.
 - Buildings, bridges and trees are hierarchical instanced meshes (HISM), one actor per 8 km cell. Trees have no collision and are culled beyond 1.5 km.
 - Roads, water, bridges and buildings stay loaded (no pop-in). Trees stream with World Partition.
 - Warnings from this export: {{PERF_WARNINGS}}
@@ -149,7 +149,8 @@ Every step logs a line starting with `PERF:` if it goes over budget. If fps is l
 | `drive mode: no Chaos vehicle found` | Add the Vehicle template content (step 1). Until then the script falls back to fly mode so Play still works |
 | The car doesn't respond to keys | Click inside the game viewport once. If that doesn't help, re-run `PlayMode_Drive.py`: it uses the Vehicle template's own game mode, which sets up the input |
 | The car falls through the ground at the start | The landscape isn't loaded where the start is: open **Window → World Partition** and load the whole map once, or check the landscape Location Z in 4c |
-| Roads flicker where two roads overlap | Two ribbons meet at the same height. Higher road classes sit 1 cm higher; send the location if it's distracting |
+| The tyres look sunk into the road | By design they sit about 4 cm into the road surface (the car drives on the landscape just under it). If it's more, the landscape was imported from `out/` instead of `out/ue/terrain/`; re-import from `out/ue/terrain/` |
+| Roads flicker where two roads overlap, or grass shows through a road | Where two roads overlap the terrain is carved to the lower one, and higher road classes sit 1–2 cm higher. MapBuilder reports how much road the terrain shows through (`fit_terrain_through_road_pct`, about 0.7% at export). Send the location and it can be fixed in the carve |
 | Trees pop in close to the car | **World Settings → World Partition Setup → Runtime Grids → Loading Range**: set `200000` (2 km) |
 | Low fps | 1. Landscape **Enable Nanite** on (step 4c.6). 2. Re-export with fewer trees (`ue_export --tree-spacing 32`) and re-run `05_Trees.py`. 3. **Settings → Engine Scalability → High** instead of Epic. 4. `stat unit` shows whether the GPU or the game thread is the limit |
 | A step failed in the middle | Fix the cause shown in the log and re-run just that step; it cleans up after itself |

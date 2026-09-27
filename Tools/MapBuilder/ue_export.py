@@ -16,8 +16,8 @@ Output: out/ue/
 
 Binary formats (little-endian):
   mesh:     uint32 nverts, uint32 ntris, float32[nverts*3] xyz (cm, relative to the chunk pivot), uint32[ntris*3]
-  instance: uint32 count, then per instance float32[7] = x, y, bottom_z (cm, world), yaw (deg),
-            size_x, size_y, size_z (metres; Unreal scales the chosen mesh from its bounds to this size)
+  instance: uint32 count, then per instance float32[8] = x, y, bottom_z (cm, world), yaw (deg),
+            size_x, size_y, size_z (metres; Unreal scales the chosen mesh from its bounds to this size), pitch (deg)
 """
 import json
 import math
@@ -28,6 +28,8 @@ import struct
 import numpy as np
 
 CELL_M = 8000.0                                   # chunk size for merged meshes / instance groups
+ROAD_SAMPLE_M = 4.0                               # road cross-section spacing along the road
+CARVE_BELOW_CM = 4.0                              # terrain under a road is set this far below the road surface
 EXCLUDED_HIGHWAYS = {"footway", "path", "cycleway", "steps", "pedestrian", "bridleway", "construction",
                      "proposed", "corridor", "elevator", "platform", "raceway", "bus_stop", "abandoned"}
 EXCLUDED_SERVICE = {"parking_aisle", "drive-through", "emergency_access"}
@@ -40,11 +42,11 @@ ROAD_CLASS = {
 }
 # default width m, speed km/h, surface, lift above terrain cm (higher classes win where ribbons overlap)
 CLASS_DEFAULTS = {
-    "Interstate": (7.4, 113, "asphalt", 12), "Highway": (8.0, 89, "asphalt", 11), "County": (7.0, 80, "asphalt", 10),
-    "Town": (6.0, 56, "gravel", 9), "Service": (3.5, 24, "gravel", 8), "Track": (3.0, 24, "dirt", 7),
+    "Interstate": (7.4, 113, "asphalt", 3), "Highway": (8.0, 89, "asphalt", 3), "County": (7.0, 80, "asphalt", 2),
+    "Town": (6.0, 56, "gravel", 2), "Service": (3.5, 24, "gravel", 1), "Track": (3.0, 24, "dirt", 1),
 }
 # budgets for 60 fps on an RTX 5060 Ti class GPU (per loaded area, Nanite on)
-BUDGET = {"road_tris_total": 6_000_000, "instances_per_cell": 250_000, "trees_total": 3_000_000,
+BUDGET = {"road_tris_total": 12_000_000, "instances_per_cell": 250_000, "trees_total": 3_000_000,
           "landscape_vertices": 700_000_000}
 
 
@@ -52,7 +54,7 @@ BUDGET = {"road_tris_total": 6_000_000, "instances_per_cell": 250_000, "trees_to
 class Ground:
     """Bilinear heights (cm, Unreal Z) from the exported landscape tiles."""
 
-    def __init__(self, fr, out_dir):
+    def __init__(self, fr, out_dir, tile_dir=None):
         with open(os.path.join(out_dir, "map_manifest.json")) as f:
             self.m = json.load(f)
         self.fr = fr
@@ -63,7 +65,7 @@ class Ground:
         self.tiles = {}
         for tx in range(fr.tiles_x):
             for ty in range(fr.tiles_y):
-                p = os.path.join(out_dir, f"heightmap_x{tx}_y{ty}.r16")
+                p = os.path.join(tile_dir or out_dir, f"heightmap_x{tx}_y{ty}.r16")
                 self.tiles[(tx, ty)] = np.memmap(p, dtype="<u2", mode="r", shape=(n, n))
 
     def z_cm(self, x, y):
@@ -176,25 +178,32 @@ def upward(tri, verts):
     return tri if z > 0 else (tri[0], tri[2], tri[1])
 
 
-def ribbon(pts_xy, half_w, z_left, z_right):
-    """Quad strip for a centreline in local metres -> (verts in Unreal cm, tris)."""
-    n = len(pts_xy)
+def cross_sections(pts_xy, half_w, k):
+    """k points across the road at every centreline vertex, from left edge to right edge (local metres)."""
     p = np.asarray(pts_xy, float)
     d = np.zeros_like(p)
     d[1:-1] = p[2:] - p[:-2]
     d[0], d[-1] = p[1] - p[0], p[-1] - p[-2]
     d /= np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-6)
-    nrm = np.stack([-d[:, 1], d[:, 0]], 1)                # left-hand normal in the GIS (north-up) frame
-    L, R = p + nrm * half_w, p - nrm * half_w
+    nrm = np.stack([-d[:, 1], d[:, 0]], 1)               # left-hand normal in the GIS (north-up) frame
+    offs = np.linspace(half_w, -half_w, k)
+    return p[:, None, :] + nrm[:, None, :] * offs[None, :, None]    # (n, k, 2)
+
+
+def strip(sec_xy, sec_z):
+    """Triangle strip over (n, k) cross-section points -> (verts in Unreal cm, tris)."""
+    n, k = sec_z.shape
     verts = []
     for i in range(n):
-        lx, ly = ue_xy(*L[i]); rx, ry = ue_xy(*R[i])
-        verts += [(lx, ly, float(z_left[i])), (rx, ry, float(z_right[i]))]
+        for j in range(k):
+            x, y = ue_xy(*sec_xy[i, j])
+            verts.append((x, y, float(sec_z[i, j])))
     tris = []
     for i in range(n - 1):
-        a, b, c, e = 2 * i, 2 * i + 1, 2 * i + 2, 2 * i + 3
-        tris += [upward((a, b, c), verts), upward((b, e, c), verts)]
-    return verts, tris, L, R
+        for j in range(k - 1):
+            a, b, c, e = i * k + j, i * k + j + 1, (i + 1) * k + j, (i + 1) * k + j + 1
+            tris += [upward((a, b, c), verts), upward((b, e, c), verts)]
+    return verts, tris
 
 
 def write_instances(ue_dir, kind, groups):
@@ -206,7 +215,7 @@ def write_instances(ue_dir, kind, groups):
         name = f"{kind}_{cell[0]}_{cell[1]}"
         with open(os.path.join(ue_dir, "instances", name + ".bin"), "wb") as f:
             f.write(struct.pack("<I", len(rows)))
-            f.write(np.asarray(rows, "<f4").tobytes())
+            f.write(np.asarray([r if len(r) == 8 else list(r) + [0.0] for r in rows], "<f4").tobytes())
         index.append({"name": name, "kind": kind, "cell": list(cell), "count": len(rows)})
     return index
 
@@ -219,11 +228,11 @@ def export_landscape(fr, g, ue_dir, png):
     tiles = []
     for ty in range(fr.tiles_y):
         for tx in range(fr.tiles_x):
-            tiles.append({"file_r16": f"heightmap_x{tx}_y{ty}.r16", "file_png": f"heightmap_x{tx}_y{ty}.png", "tx": tx, "ty": ty,
+            tiles.append({"file_r16": f"terrain/heightmap_x{tx}_y{ty}.r16", "file_png": f"terrain/heightmap_x{tx}_y{ty}.png", "tx": tx, "ty": ty,
                           "location_cm": [round(x0 + tx * tile_len_cm, 1), round(y0 + ty * tile_len_cm, 1), m["ue_location_z_cm"]]})
             if png:
                 from PIL import Image
-                Image.fromarray(np.array(g.tiles[(tx, ty)], dtype=np.uint16)).save(os.path.join(ue_dir, f"heightmap_x{tx}_y{ty}.png"))
+                Image.fromarray(np.array(g.tiles[(tx, ty)], dtype=np.uint16)).save(os.path.join(ue_dir, "terrain", f"heightmap_x{tx}_y{ty}.png"))
     doc = {"tiles": [fr.tiles_x, fr.tiles_y], "tile_px": m["tile_px"], "section_quads": 127, "sections_per_component": 2,
            "components_per_tile": [g.tq // 254, g.tq // 254], "scale": [m["ue_scale"]["x"], m["ue_scale"]["y"], m["ue_scale"]["z"]],
            "location_cm": [round(x0, 1), round(y0, 1), m["ue_location_z_cm"]],
@@ -237,6 +246,7 @@ def export_landscape(fr, g, ue_dir, png):
 def export_roads(fr, g, out_dir, chunks):
     osm = load(out_dir, "osm_local.json")
     stats, road_pts = {"ways": 0, "skipped": 0, "km": 0.0, "by_class": {}}, []
+    carve = {"P0": [], "P1": [], "HW": [], "K": [], "Z0": [], "Z1": []}
     for r in osm["layers"]["roads"]:
         t = r["tags"]
         hw = t.get("highway", "")
@@ -248,7 +258,7 @@ def export_roads(fr, g, out_dir, chunks):
         lanes = str(t.get("lanes") or "")
         if lanes.isdigit():
             width = max(width, int(lanes) * 3.6)
-        pts = resample(r["pts"], 15.0)
+        pts = resample(r["pts"], ROAD_SAMPLE_M)
         if not any(fr.inside(*p) for p in pts):
             continue
         is_bridge = t.get("bridge") not in (None, "no")
@@ -256,21 +266,27 @@ def export_roads(fr, g, out_dir, chunks):
         zc = g.z_cm(p[:, 0], p[:, 1])
         if is_bridge:
             zc = np.linspace(zc[0], zc[-1], len(zc))
-        verts, tris, L, R = ribbon(pts, width / 2, zc, zc)
-        if not is_bridge:
-            zl, zr = g.z_cm(L[:, 0], L[:, 1]), g.z_cm(R[:, 0], R[:, 1])
-            for i in range(len(pts)):                    # drape each edge on the terrain
-                verts[2 * i] = (verts[2 * i][0], verts[2 * i][1], float(zl[i]) + lift)
-                verts[2 * i + 1] = (verts[2 * i + 1][0], verts[2 * i + 1][1], float(zr[i]) + lift)
+        k = 5 if width > 9 else 3                          # centre vertex follows the road crown
+        sec = cross_sections(pts, width / 2, k)
+        if is_bridge:
+            sz = np.repeat(zc[:, None], k, 1) + lift            # deck: flat across, straight between abutments
         else:
-            verts = [(x, y, z + lift) for x, y, z in verts]
-        # split the strip into runs that stay in one cell, so each merged chunk streams on its own
+            sz = g.z_cm(sec[..., 0].ravel(), sec[..., 1].ravel()).reshape(sec.shape[:2]) + lift
+        verts, tris = strip(sec, sz)
+        if not is_bridge:                                        # bridges span; everything else shapes the terrain
+            pa = np.asarray(pts)
+            zp = np.full((len(pts), 5), np.nan)
+            zp[:, :k] = sz
+            carve["P0"].append(pa[:-1]); carve["P1"].append(pa[1:]); carve["HW"].append(np.full(len(pts) - 1, width / 2))
+            carve["K"].append(np.full(len(pts) - 1, k)); carve["Z0"].append(zp[:-1]); carve["Z1"].append(zp[1:])
+        # split into runs that stay in one cell, so each merged chunk streams on its own
         seg_cells = [cell_of(fr, (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2) for i in range(len(pts) - 1)]
         start = 0
+        per = 2 * (k - 1)                                        # triangles per segment
         for i in range(1, len(seg_cells) + 1):
             if i == len(seg_cells) or seg_cells[i] != seg_cells[start]:
-                vs = verts[2 * start: 2 * (i + 1)]
-                ts = [(a - 2 * start, b - 2 * start, c - 2 * start) for a, b, c in tris[2 * start: 2 * i]]
+                vs = verts[k * start: k * (i + 1)]
+                ts = [(a_ - k * start, b_ - k * start, c_ - k * start) for a_, b_, c_ in tris[per * start: per * i]]
                 chunks.add("Road", cls, seg_cells[start], vs, ts)
                 start = i
         stats["ways"] += 1
@@ -279,7 +295,103 @@ def export_roads(fr, g, out_dir, chunks):
         if cls in ("Highway", "County", "Town"):
             road_pts.append((cls, t.get("name"), pts, zc))
     stats["km"] = round(stats["km"], 1)
-    return stats, road_pts
+    carve = {k_: np.concatenate(v) for k_, v in carve.items()} if carve["P0"] else None
+    return stats, road_pts, carve
+
+
+def carve_terrain(fr, g, ue_dir, cv):
+    """Shape the heightmap to the roads, like landscape splines do: every terrain vertex under a road is set
+    CARVE_BELOW_CM under the road surface, and vertices just outside the edge are lowered (never raised) so
+    banks can't poke through. Writes carved copies to ue/terrain/; the original tiles are never modified."""
+    tdir = os.path.join(ue_dir, "terrain")
+    os.makedirs(tdir, exist_ok=True)
+    res, tq, nx, ny = fr.res, g.tq, fr.nx, fr.ny
+    grid = np.arange(-3, 4)
+    dc, dr = [a.ravel() for a in np.meshgrid(grid, grid)]
+    set_i, set_z, low_i, low_z = [], [], [], []
+    N = len(cv["P0"])
+    for s0 in range(0, N, 100_000):
+        sl = slice(s0, min(N, s0 + 100_000))
+        P0, P1, HW, K = cv["P0"][sl], cv["P1"][sl], cv["HW"][sl][:, None], cv["K"][sl][:, None]
+        Z0, Z1 = cv["Z0"][sl], cv["Z1"][sl]
+        mid = (P0 + P1) / 2
+        col = np.round((mid[:, 0] + fr.half_x) / res)[:, None] + dc[None, :]
+        row = np.round((fr.half_y - mid[:, 1]) / res)[:, None] + dr[None, :]
+        vx, vy = -fr.half_x + col * res, fr.half_y - row * res
+        d = P1 - P0
+        L = np.maximum(np.hypot(d[:, 0], d[:, 1]), 1e-6)[:, None]
+        ux, uy = d[:, 0:1] / L, d[:, 1:2] / L
+        rx, ry = vx - P0[:, 0:1], vy - P0[:, 1:2]
+        t = (rx * ux + ry * uy) / L
+        off = rx * -uy + ry * ux                                # left of the road is positive (matches cross_sections)
+        ok = (t >= -0.4) & (t <= 1.4) & (col >= 0) & (col < nx) & (row >= 0) & (row < ny)   # overlap covers bend corners
+        t = np.clip(t, 0.0, 1.0)
+        inside = ok & (np.abs(off) <= HW)
+        margin = ok & (np.abs(off) > HW) & (np.abs(off) <= HW + 0.75 * res)   # wider margins terrace the banks
+        u = (HW - np.clip(off, -HW, HW)) / (2 * HW)             # 0 at the left edge, 1 at the right edge
+        f = u * (K - 1)
+        j = np.clip(np.floor(f), 0, K - 2).astype(int)
+        w = f - j
+        z0 = np.take_along_axis(Z0, j, 1) * (1 - w) + np.take_along_axis(Z0, j + 1, 1) * w
+        z1 = np.take_along_axis(Z1, j, 1) * (1 - w) + np.take_along_axis(Z1, j + 1, 1) * w
+        z = z0 * (1 - t) + z1 * t - CARVE_BELOW_CM
+        gi = (row * nx + col).astype(np.int64)
+        set_i.append(gi[inside]); set_z.append(z[inside])
+        low_i.append(gi[margin]); low_z.append(z[margin])
+
+    def reduce(idx, val, fn):
+        idx, val = np.concatenate(idx), np.concatenate(val)
+        o = np.argsort(idx, kind="stable")
+        idx, val = idx[o], val[o]
+        starts = np.flatnonzero(np.r_[True, idx[1:] != idx[:-1]])
+        return idx[starts], fn.reduceat(val, starts)
+    si, sz = reduce(set_i, set_z, np.minimum)                   # overlaps: carve to the lower road (float, never bury)
+    li, lz = reduce(low_i, low_z, np.minimum)
+    keep = ~np.isin(li, si)
+    li, lz = li[keep], lz[keep]
+
+    enc = lambda zc: np.clip(np.round(32768 + (zc - g.z0) * 128.0 / g.zs), 0, 65535).astype(np.uint16)
+    changed, dz = 0, []
+    for (tx, ty), src in g.tiles.items():
+        dst = np.array(src)                                     # copy of the original tile
+        for idx, zc, mode in ((si, sz, "set"), (li, lz, "lower")):
+            r, c = idx // nx, idx % nx
+            lr, lc = r - ty * tq, c - tx * tq
+            sel = (lr >= 0) & (lr <= tq) & (lc >= 0) & (lc <= tq)   # tile edges are shared: both tiles get the update
+            lr, lc, v = lr[sel], lc[sel], enc(zc[sel])
+            old = dst[lr, lc]
+            new = v if mode == "set" else np.minimum(old, v)
+            dz.append((new.astype(np.int64) - old.astype(np.int64)) * g.zs / 128.0)
+            dst[lr, lc] = new
+        dst.astype("<u2").tofile(os.path.join(tdir, f"heightmap_x{tx}_y{ty}.r16"))
+        changed += 1
+    dz = np.concatenate(dz) if dz else np.zeros(1)
+    return {"carved_vertices": int(len(si)), "lowered_bank_vertices": int(len(li)),
+            "carve_change_cm_median": round(float(np.median(dz)), 1), "carve_change_cm_p1_p99":
+            [round(float(np.percentile(dz, 1)), 1), round(float(np.percentile(dz, 99)), 1)]}
+
+
+def road_fit_check(fr, g, chunks, every=4):
+    """Share of road surface the carved terrain comes through, worst case over both landscape triangle splits."""
+    def worst(x, y):
+        col = np.clip((x + fr.half_x) / fr.res, 0, fr.nx - 1.001); row = np.clip((fr.half_y - y) / fr.res, 0, fr.ny - 1.001)
+        c0, r0 = np.floor(col), np.floor(row); fc, fr_ = col - c0, row - r0
+        at = lambda dc, dr: g.z_cm(-fr.half_x + (c0 + dc) * fr.res, fr.half_y - (r0 + dr) * fr.res)
+        z00, z10, z01, z11 = at(0, 0), at(1, 0), at(0, 1), at(1, 1)
+        a = np.where(fc >= fr_, z00 + (z10 - z00) * fc + (z11 - z10) * fr_, z00 + (z01 - z00) * fr_ + (z11 - z01) * fc)
+        b = np.where(fc + fr_ <= 1, z00 + (z10 - z00) * fc + (z01 - z00) * fr_, z11 + (z01 - z11) * (1 - fc) + (z10 - z11) * (1 - fr_))
+        return np.maximum(a, b)
+    es = []
+    keys = [k for k in sorted(chunks.data) if k[0] == "Road"][::every]
+    for key in keys:
+        v, t = chunks.data[key]
+        v, t = np.asarray(v, float), np.asarray(t)
+        px, py = cell_pivot(fr, *key[2])
+        c = (v[t[:, 0]] + v[t[:, 1]] + v[t[:, 2]]) / 3
+        es.append(c[:, 2] - worst((c[:, 0] + px) / 100, -(c[:, 1] + py) / 100))
+    e = np.concatenate(es) if es else np.zeros(1)
+    return {"fit_median_lift_cm": round(float(np.median(e)), 1),
+            "fit_terrain_through_road_pct": round(float((e < -2).mean() * 100), 2)}
 
 
 def export_water(fr, g, out_dir, chunks):
@@ -333,7 +445,7 @@ def export_water(fr, g, out_dir, chunks):
         p = np.asarray(pts)
         z = np.minimum.accumulate(g.z_cm(p[:, 0], p[:, 1])) + 10.0   # downstream: water never climbs
         width = 6.0 if fl.get("name") else 2.5
-        verts, tris, _, _ = ribbon(pts, width / 2, z, z)
+        verts, tris = strip(cross_sections(pts, width / 2, 2), np.repeat(z[:, None], 2, 1))
         c = pts[len(pts) // 2]
         chunks.add("Water", "Stream", cell_of(fr, *c), verts, tris)
         stats["streams"] += 1
@@ -353,10 +465,13 @@ def export_bridges(fr, g, out_dir):
     groups, n_deck, n_short = {}, 0, 0
     thick = 1.0
 
-    def add(cx, cy, top_z_cm, yaw_math, length, width):
+    def add(cx, cy, z_start, z_end, yaw_math, length, width):
+        """Deck slab whose top runs straight from abutment to abutment; pitched like the road on it."""
         ux, uy = ue_xy(cx, cy)
+        pitch = math.degrees(math.atan2((z_end - z_start) / 100.0, max(length, 1.0)))
+        top_mid = (z_start + z_end) / 2
         groups.setdefault(cell_of(fr, cx, cy), []).append(
-            [ux, uy, top_z_cm - thick * 100.0, -yaw_math, max(length, 4.0), max(width, 3.5), thick])
+            [ux, uy, top_mid - thick * 100.0, -yaw_math, max(length, 4.0), max(width, 3.5), thick, pitch])
 
     for d in b.get("osm_decks", []):
         p0, p1 = d["pts"][0], d["pts"][-1]
@@ -367,7 +482,7 @@ def export_bridges(fr, g, out_dir):
         yaw = math.degrees(math.atan2(p1[1] - p0[1], p1[0] - p0[0]))
         length = math.dist(p0, p1) + 4.0                   # overlap the abutments
         width = rec.get("deck_width_m") or rec.get("roadway_width_m") or 8.0
-        add((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, float(z.mean()) + 5.0, yaw, length, width)
+        add((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, float(z[0]), float(z[1]), yaw, length, width)
         n_deck += 1
     osm = load(out_dir, "osm_local.json")
     segs = []
@@ -388,7 +503,7 @@ def export_bridges(fr, g, out_dir):
         L = float(x.get("length_m") or 10.0)
         ux, uy = math.cos(math.radians(yaw)), math.sin(math.radians(yaw))
         ends = g.z_cm([x["x"] - ux * L / 2, x["x"] + ux * L / 2], [x["y"] - uy * L / 2, x["y"] + uy * L / 2])
-        add(x["x"], x["y"], float(ends.mean()) + 5.0, yaw, L + 4.0, x.get("deck_width_m") or 8.0)
+        add(x["x"], x["y"], float(ends[0]), float(ends[1]), yaw, L + 4.0, x.get("deck_width_m") or 8.0)
         n_short += 1
     return {"osm_decks": n_deck, "nbi_short_spans": n_short}, groups
 
@@ -456,10 +571,9 @@ def export_trees(fr, g, out_dir, spacing_m=24.0, slope_deg=14.0):
             db.polygon([to_px(*p) for p in b["pts"]], fill=255)
     forest = ((np.asarray(wood) > 0) | (slope > slope_deg)) & (np.asarray(block) == 0)
     rng = np.random.default_rng(1848)                        # deterministic: re-running gives the same forest
-    rr, cc = np.nonzero(forest[::2, ::2])
-    rr, cc = rr * 2, cc * 2
-    xs = -fr.half_x + (cc + rng.random(len(cc))) * cell * 2 * 0.999
-    ys = fr.half_y - (rr + rng.random(len(rr))) * cell * 2 * 0.999
+    rr, cc = np.nonzero(forest[::2, ::2])                   # one tree per 2x2 mask cells = one per spacing^2
+    xs = -fr.half_x + (cc * 2 + rng.random(len(cc)) * 2) * cell
+    ys = fr.half_y - (rr * 2 + rng.random(len(rr)) * 2) * cell
     zs = g.z_cm(xs, ys)
     hts = rng.uniform(12.0, 24.0, len(xs))
     yaws = rng.uniform(0, 360, len(xs))
@@ -537,10 +651,13 @@ def geo_mapping(fr, g):
 def run(fr, out_dir, landmarks_path=None, png=False, start_towns=("Whitehall", "Arcadia"), tree_spacing=24.0):
     ue_dir = os.path.join(out_dir, "ue")
     os.makedirs(ue_dir, exist_ok=True)
-    g = Ground(fr, out_dir)
+    g0 = Ground(fr, out_dir)                                     # original lidar terrain
     chunks = MeshChunks(fr)
+    road_stats, road_pts, cv = export_roads(fr, g0, out_dir, chunks)
+    carve_stats = carve_terrain(fr, g0, ue_dir, cv) if cv is not None else {}
+    g = Ground(fr, out_dir, tile_dir=os.path.join(ue_dir, "terrain"))   # carved terrain = what Unreal imports
+    carve_stats |= road_fit_check(fr, g, chunks)
     land = export_landscape(fr, g, ue_dir, png)
-    road_stats, road_pts = export_roads(fr, g, out_dir, chunks)
     water_stats = export_water(fr, g, out_dir, chunks)
     mats = {"Road": {"Interstate": "Asphalt", "Highway": "Asphalt", "County": "Asphalt", "Town": "Gravel",
                      "Service": "Gravel", "Track": "Dirt"}, "Water": {}}
@@ -556,8 +673,10 @@ def run(fr, out_dir, landmarks_path=None, png=False, start_towns=("Whitehall", "
     warnings = []
     if land["vertices"] > BUDGET["landscape_vertices"]:
         warnings.append(f"landscape has {land['vertices']:,} vertices: enable Nanite on the landscape or use a coarser res")
+    if carve_stats.get("fit_terrain_through_road_pct", 0) > 2.0:
+        warnings.append(f"terrain shows through {carve_stats['fit_terrain_through_road_pct']}% of road surface (> 2%)")
     if road_tris > BUDGET["road_tris_total"]:
-        warnings.append(f"road meshes total {road_tris:,} triangles: keep Nanite on for road meshes")
+        warnings.append(f"road meshes total {road_tris:,} triangles (> {BUDGET['road_tris_total']:,}): keep Nanite on for road meshes")
     worst = max((i for i in inst_index), key=lambda i: i["count"], default=None)
     if worst and worst["count"] > BUDGET["instances_per_cell"]:
         warnings.append(f"{worst['name']} has {worst['count']:,} instances in one 8 km cell: raise tree spacing or lower cull distance")
@@ -567,7 +686,7 @@ def run(fr, out_dir, landmarks_path=None, png=False, start_towns=("Whitehall", "
     manifest = {
         "geo": geo_mapping(fr, g), "landscape": "landscape.json", "cell_m": CELL_M,
         "meshes": mesh_index, "instances": inst_index, "playable": "playable.json", "landmarks": "landmarks.json",
-        "stats": {"roads": road_stats | {"merged_meshes": sum(1 for m in mesh_index if m["layer"] == "Road"), "tris": road_tris},
+        "stats": {"roads": road_stats | carve_stats | {"merged_meshes": sum(1 for m in mesh_index if m["layer"] == "Road"), "tris": road_tris},
                   "water": water_stats | {"merged_meshes": sum(1 for m in mesh_index if m["layer"] == "Water"),
                                           "tris": sum(m["tris"] for m in mesh_index if m["layer"] == "Water")},
                   "bridges": br_stats, "buildings": bd_stats, "trees": tr_stats, "landmarks": lm_stats,

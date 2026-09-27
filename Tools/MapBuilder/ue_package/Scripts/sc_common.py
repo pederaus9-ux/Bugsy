@@ -145,10 +145,10 @@ def read_mesh_bin(path):
 def read_instances_bin(path):
     with open(path, "rb") as f:
         (n,) = struct.unpack("<I", f.read(4))
-        a = array.array("f"); a.frombytes(f.read(n * 28))
+        a = array.array("f"); a.frombytes(f.read(n * 32))
     if sys.byteorder != "little":
         a.byteswap()
-    return [a[i * 7:(i + 1) * 7] for i in range(n)]
+    return [a[i * 8:(i + 1) * 8] for i in range(n)]    # x, y, bottom_z, yaw, size_x, size_y, size_z, pitch
 
 
 # ----------------------------------------------------------------------------- actors
@@ -283,6 +283,12 @@ def build_static_mesh(bin_path, asset_path, mat, nanite=True, collision=False):
     if mesh is None:
         raise RuntimeError(f"Geometry Script could not create {asset_path}")
     mesh.set_material(0, mat)
+    if collision:                      # drive on the exact road surface: use the triangles as the collision shape
+        try:
+            body = mesh.get_editor_property("body_setup")
+            body.set_editor_property("collision_trace_flag", unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
+        except Exception as e:
+            warn(f"{asset_path}: could not set complex-as-simple collision ({e}); the car then drives on the landscape")
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
     return mesh, nt
 
@@ -334,10 +340,10 @@ def spawn_hism(kind, rows, cell, mat, step_tag):
     cull = CULL_M[kind] * 100.0
     hism.set_cull_distances(int(cull * 0.8), int(cull))
     xforms = []
-    for x, y, zb, yaw, lx, ly, lz in rows:
+    for x, y, zb, yaw, lx, ly, lz, pitch in rows:
         s = unreal.Vector(lx * 100.0 / sx0, ly * 100.0 / sy0, lz * 100.0 / sz0)
         z = zb - bottom * s.z                          # put the mesh's lowest point on the ground
-        xforms.append(unreal.Transform(unreal.Vector(x, y, z), unreal.Rotator(roll=0.0, pitch=0.0, yaw=yaw), s))
+        xforms.append(unreal.Transform(unreal.Vector(x, y, z), unreal.Rotator(roll=0.0, pitch=pitch, yaw=yaw), s))
     hism.add_instances(xforms, False, True)            # (transforms, return indices, world space)
     set_spatially_loaded(a, kind != "Tree")
     return a, len(xforms)

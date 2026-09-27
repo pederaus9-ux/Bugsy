@@ -64,11 +64,11 @@ def print_import_settings(L, tiles_dir):
 def main():
     with C.Step("landscape"):
         L = C.load_json("landscape.json")
-        tiles_dir = os.path.dirname(C.data_dir())                # heightmaps live in out/, the export in out/ue
+        tiles_dir = C.data_dir()                                 # road-carved tiles: out/ue/terrain/
         missing = [t["file_r16"] for t in L["tile_files"] if not os.path.exists(os.path.join(tiles_dir, t["file_r16"]))]
         C.log(f"landscape: {len(L['tile_files']) - len(missing)}/{len(L['tile_files'])} heightmap tiles found in {tiles_dir}")
         if missing:
-            C.error(f"missing tiles: {', '.join(missing)}. Re-run MapBuilder (README step 3).")
+            C.error(f"missing tiles: {', '.join(missing)}. Re-run `mapbuilder.py ue_export` (README step 3).")
             return False
         print_import_settings(L, tiles_dir)
         verts = L["vertices"]
