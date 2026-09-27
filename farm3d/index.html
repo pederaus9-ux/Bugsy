@@ -453,7 +453,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <h3><span>👥 Friends</span><button type="button" class="x" data-f="close" aria-label="Close">✕</button></h3>
   <div id="friendsBody"></div>
 </div>
-<div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>look around · read-only</small><button data-mode="home">🏠 Home</button></div>
+<div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>tap growing crops to 💧 water them</small><button data-mode="home">🏠 Home</button></div>
 <form class="fbbox" id="fbBox" hidden>
   <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
   <p class="tray-sub">Found a bug or have an idea? Tell us!</p>
@@ -1684,7 +1684,7 @@ function enterVisit(farm, name) {
   if (!visiting) visiting = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
   visiting.name = name;
   G.visitFarm(farm);
-  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Level " + (G.S.level || 1) + " · tap crops to 💧 water";
+  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Lv " + (G.S.level || 1);
   document.body.classList.add("visiting"); visitBar.hidden = false;
   Object.assign(cam, {yaw:.6, pitch:.56, dist:40}); cam.target.set(1.5, 2.5, 2); G.sfx("pop");
 }
