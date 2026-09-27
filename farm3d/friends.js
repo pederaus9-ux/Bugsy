@@ -86,7 +86,7 @@ export function initFriends(G, hooks) {
     if (!fb() || helpBusy || G.isVisiting()) return; helpBusy = true;
     try {
       const {F, db} = fb(), snap = await F.getDocs(F.collection(db, "help", uid(), "items")), by = {};
-      for (const d of snap.docs) { const x = d.data(); const n = G.applyHelp(x.plots || []); if (n) by[x.name] = (by[x.name] || 0) + n; await F.deleteDoc(d.ref || F.doc(db, "help", uid(), "items", d.id)); }
+      for (const d of snap.docs) { const x = d.data(), plots = x.plots || []; G.applyHelp(plots); by[x.name] = (by[x.name] || 0) + plots.length; await F.deleteDoc(d.ref || F.doc(db, "help", uid(), "items", d.id)); } // (crops that ripened meanwhile don't need it, but the thank-you still counts)
       const list = Object.entries(by).map(([name, n]) => ({name, n}));
       if (list.length) G.noteHelp(list);
     } catch (e) {}
