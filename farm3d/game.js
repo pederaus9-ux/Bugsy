@@ -1775,7 +1775,7 @@ const BUZZ = {harvest:8, collect:12, level:[30, 40, 60], error:[25, 30, 25], bui
 export function sfx(name) { if (BUZZ[name]) buzz(BUZZ[name]); if (!snd.on || !AC) return; try { SOUNDS[name] && SOUNDS[name](); } catch (e) {} }
 // a light tap from the phone (Android; iPhones don't allow web pages to vibrate)
 let lastBuzz = 0;
-export function buzz(p) { if (!snd.buzz || !navigator.vibrate || document.hidden) return; const t = performance.now(); if (t - lastBuzz < 40) return; lastBuzz = t; try { navigator.vibrate(p); } catch (e) {} }
+export function buzz(p) { if (!snd.buzz || !navigator.vibrate || document.hidden || (navigator.userActivation && !navigator.userActivation.hasBeenActive)) return; /* phones only allow it after a tap */ const t = performance.now(); if (t - lastBuzz < 40) return; lastBuzz = t; try { navigator.vibrate(p); } catch (e) {} }
 // a sound coming from somewhere on the farm: pan -1 (left) … 1 (right), vol 0…1 (quieter further away)
 let BUS = null;
 export function sfxAt(name, pan, vol) {

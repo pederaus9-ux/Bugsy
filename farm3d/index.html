@@ -310,7 +310,7 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .btn,.dock button,.side button,.modebar button,.seed,.islot,.qrow .btn{transition:transform .12s cubic-bezier(.3,1.6,.5,1)}
 .btn:active:not([disabled]),.dock button:active,.side button:active,.modebar button:active,.seed:active,.islot:active{transform:scale(.9)}
 /* coins and gems flying into their counters */
-.testbadge{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);z-index:9;background:#7b3fb5;color:#fff;font-weight:900;font-size:12px;padding:4px 12px;border-radius:99px;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.testbadge{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);left:50%;transform:translateX(-50%);z-index:9;background:#7b3fb5;color:#fff;font-weight:900;font-size:12px;padding:4px 12px;border-radius:99px;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .flyer{position:fixed;left:0;top:0;z-index:40;font-size:30px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 /* photo mode */
 body.photo > :not(canvas):not(#photoBar):not(#photoShot):not(#flash){visibility:hidden!important}
@@ -1804,7 +1804,7 @@ const twinkleMat = new THREE.SpriteMaterial({map:(() => { const [c, x] = canvas(
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
 function twinkle(P, t, on) {
   if (!P.stars) { if (!on) return; P.stars = [0, 1, 2].map(k => { const s = new THREE.Sprite(twinkleMat.clone()); s.position.set((k - 1) * .6 + (Math.random() - .5) * .3, 1 + Math.random() * .5, (Math.random() - .5) * 1.2); s.userData.ph = Math.random() * 6; P.g.add(s); return s; }); }
-  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b; s.scale.setScalar(.15 + .45 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
+  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b; s.scale.setScalar(.2 + .65 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
 }
 function syncSoil() { // called every second
   plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;
