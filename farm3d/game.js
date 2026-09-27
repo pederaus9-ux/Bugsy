@@ -1466,7 +1466,7 @@ const promise = () => `<div class="promise"><b>💎 No real money. Ever.</b><div
   <ul><li>+2 💎 every level up</li><li>+1 💎 from the daily gift 🎁</li><li>+1 💎 every 10th order, and some orders pay 💎</li></ul></div>`;
 
 // Settings: sound, graphics, how the farm looks, the barn's colours, backup and the tutorial
-export const PREFS = {quality:"auto", bob:true}; // landscape: "fp" (walk in first person) | "classic" | "ask" (set on first launch, see start())
+export const PREFS = {quality:"auto", bob:true};
 try { Object.assign(PREFS, JSON.parse(localStorage.getItem(SAVE_KEY + "-prefs") || "{}")); } catch (e) {}
 const savePrefs = () => { try { localStorage.setItem(SAVE_KEY + "-prefs", JSON.stringify(PREFS)); } catch (e) {} };
 function panelSettings() {
@@ -1492,7 +1492,7 @@ function panelSettings() {
     <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
     <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto adjusts the sharpness by itself to keep the game smooth${PREFS.quality === "auto" || !PREFS.quality ? ` (drawing at ${view.resolution()}% right now)` : ""}. Battery saver is gentlest on the battery.</p>
     <h4>Your farmer</h4><div class="toggles"><button class="btn sm" data-act="wardrobe">👕 Wardrobe</button></div>
-    <h4>Phone sideways</h4><div class="toggles">${[["fp", "🚶 Walk in first person"], ["classic", "🌻 Classic view"], ["ask", "❓ Ask every time"]].map(([k, n]) => `<button class="btn ${PREFS.landscape === k ? "" : "plain"} sm" data-act="landscape" data-k="${k}">${n}</button>`).join("")}</div>
+    <h4>Walking</h4>
     <div class="toggles" style="margin-top:6px"><button class="btn ${PREFS.bob !== false ? "" : "plain"} sm" data-act="bob">${PREFS.bob !== false ? "🚶 Head bob on" : "🚶 Head bob off (gentler)"}</button></div>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
     <h4>Barn colours</h4><div class="slot" style="padding:10px">${sw}</div>
@@ -1686,7 +1686,6 @@ document.addEventListener("click", (e) => {
     case "music": snd.music = !snd.music; saveSound(); if (panel) renderPanel(); break;
     case "notify": setReminders(!PREFS.notify); break;
     case "wardrobe": closePanel(); view.wardrobe(true); break;
-    case "landscape": PREFS.landscape = d.k; savePrefs(); renderPanel(); break;
     case "bob": PREFS.bob = PREFS.bob === false; savePrefs(); renderPanel(); break;
     case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
     case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
@@ -1971,7 +1970,6 @@ export function start() {
   refreshTheme();
   fillOrders();
   renderHud(); applySound();
-  if (PREFS.landscape == null) { PREFS.landscape = how === "new" || how === "has2d" ? "fp" : "ask"; savePrefs(); } // new players walk right away (after the tutorial); everyone else is asked once
   if (how === "has2d") openPanel("import2d");
   else if (how === "new") openPanel("welcome");
   else if (S.tut == null) S.tut = TUT.length;

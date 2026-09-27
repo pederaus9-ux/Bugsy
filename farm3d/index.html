@@ -357,11 +357,16 @@ body.fp .dock,body.fp #hint,body.fp .testbadge{display:none!important}
 body.fp .throwbtn{right:128px;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);width:56px;height:56px;font-size:24px}
 .barnfade{position:fixed;inset:0;z-index:15;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(120,70,30,.35),rgba(40,20,5,.9));opacity:0;transition:opacity .8s}
 .barnfade.on{opacity:1}
-/* the "turn sideways" card */
-.coach{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,20,0,.45)}
-.ccard{background:var(--parch);border:4px solid var(--wood);border-radius:22px;box-shadow:0 6px 0 var(--wood-dk);padding:16px 18px;max-width:440px;text-align:center;display:flex;flex-direction:column;gap:8px;animation:pop .25s ease-out}
-.ccard .cico{font-size:40px;line-height:1} .ccard b{font:400 22px/1.15 var(--fun);color:var(--wood-dk)} .ccard small{font-weight:800;opacity:.75}
-.ccard .crow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+/* landscape only: the rotate screen */
+.rotate{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;
+  background:linear-gradient(#8ec9ee,#bfe6a8);color:var(--wood-dk)}
+.rotate .rphone{font-size:72px;line-height:1;animation:turn 2.2s ease-in-out infinite}
+.rotate b{font:400 28px/1.15 var(--fun);color:#fff;-webkit-text-stroke:6px var(--wood-dk);paint-order:stroke fill;text-shadow:0 4px 0 var(--wood-dk);max-width:320px}
+.rotate small{font-weight:800;font-size:15px;max-width:300px}
+@keyframes turn{0%,20%{transform:rotate(0)}50%,70%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+.iostip{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);z-index:45;width:min(520px,calc(100vw - 24px));display:flex;gap:8px;align-items:center;
+  background:#fff;border:3px solid var(--blue-dk);border-radius:16px;padding:8px 8px 8px 12px;font-weight:800;font-size:13px;box-shadow:0 4px 0 rgba(31,127,192,.35)}
+.iostip span{flex:1} .iostip button{font-size:16px;padding:4px 8px;color:var(--wood)}
 /* the wardrobe */
 body.dressing > :not(canvas):not(#wardrobe):not(#toasts){visibility:hidden!important}
 .wardrobe{position:fixed;inset:0;z-index:30;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
@@ -518,10 +523,10 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div class="xhair" id="xhair" hidden></div>
 <button class="actbtn" id="actBtn" hidden aria-label="Use what you're looking at"></button>
 <div class="barnfade" id="barnFade"></div>
-<!-- phone turned sideways -->
-<div class="coach" id="coach" hidden><div class="ccard"><div class="cico">📱↻</div><b>Turn your phone sideways to walk your farm!</b>
-  <small>Left thumb walks, right thumb looks around. Turn it back to see the whole farm again.</small>
-  <div class="crow"><button class="btn" data-c="fp">🚶 Walk my farm</button><button class="btn plain" data-c="classic">Stay in classic view</button></div></div></div>
+<!-- the game is played sideways: in portrait this covers everything and the farm pauses -->
+<div class="rotate" id="rotate" hidden><div class="rphone">📱</div><b>Rotate your phone sideways to play</b><small>Sunny Acres is played in landscape. Your farm is waiting!</small></div>
+<!-- iPhone Safari can't go fullscreen from the browser: a one-time tip -->
+<div class="iostip" id="iosTip" hidden><span>📲 For fullscreen on iPhone: tap <b>Share</b> › <b>Add to Home Screen</b>, then open Sunny Acres from there.</span><button type="button" aria-label="Got it">✕</button></div>
 <!-- the wardrobe -->
 <div class="wardrobe" id="wardrobe" hidden>
   <div class="wtop"><span class="out">👕 Wardrobe</span><button class="btn" data-wd="1">✔ Done</button></div>
@@ -2398,20 +2403,15 @@ function applyTween() { // after the new view has placed the camera: blend from 
   return e;
 }
 
-// ---------- phone sideways: walk in first person ----------
-const touchy = () => matchMedia("(pointer: coarse)").matches || qs.has("landscape");
-const isLand = () => innerWidth > innerHeight;
-const coach = document.getElementById("coach");
-let lastLand = isLand(), classicSaved = null;
+// ---------- walking in first person (the 🚶 button): swoop down to eye level, and back up when you're done ----------
+let classicSaved = null;
 function canWalkNow() { return !G.tutActive() && !visiting && !photoMode && !editMode && !wardrobeOn && GS(); }
-function enterFP(auto) {
+function enterFP() {
   if (walk || !canWalkNow()) return;
   classicSaved = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
   startTween(1.2);
-  // start where the farmer is standing, looking the way the camera was looking
-  const f = farmer.visible ? new THREE.Vector2(farmer.position.x, farmer.position.z) : null;
+  const f = farmer.visible ? new THREE.Vector2(farmer.position.x, farmer.position.z) : null; // you start where your farmer is standing
   setWalk(true, f, true);
-  if (walk) { walk.auto = !!auto; walk.fp = true; thirdPerson = false; }
 }
 function exitFP() {
   if (!walk) return;
@@ -2420,26 +2420,42 @@ function exitFP() {
   if (back) { Object.assign(cam, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); cam.target.copy(back.target); Object.assign(view, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); view.target.copy(back.target); }
   classicSaved = null;
 }
-function onOrient() {
-  const land = isLand(); if (land === lastLand) return; lastLand = land;
-  if (!touchy()) return;
-  coach.hidden = true;
-  if (land) {
-    if (!canWalkNow()) return;
-    const pref = G.PREFS.landscape || "ask";
-    if (pref === "fp") enterFP(true);
-    else if (pref === "ask") { coach.hidden = false; G.sfx("pop"); }
-  } else if (walk && walk.auto) exitFP();
+
+// ---------- landscape only: in portrait, a "rotate your phone" screen covers the game and the farm pauses ----------
+const rotateEl = document.getElementById("rotate");
+let rotatePaused = false;
+function checkRotate() {
+  const port = innerWidth < innerHeight && !qs.has("portrait"); // (?portrait: for testing on a tall window)
+  if (port === rotatePaused) return;
+  rotatePaused = port; rotateEl.hidden = !port;
+  if (port) { joyF = lookF = null; joy.x = joy.y = 0; joy.run = false; keys.clear(); ptr.clear(); farmDrag = null; }
 }
-addEventListener("resize", () => setTimeout(onOrient, 60));
-addEventListener("orientationchange", () => setTimeout(onOrient, 250));
-setInterval(onOrient, 500); // phones sometimes report the new size a moment after they rotate: check again, so a rotation is never missed
-coach.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-c]"); if (!b) return;
-  coach.hidden = true;
-  if (!G.PREFS.askAlways) { G.PREFS.landscape = b.dataset.c; try { localStorage.setItem("sunny-acres-3d-v1-prefs", JSON.stringify(G.PREFS)); } catch (err) {} }
-  if (b.dataset.c === "fp") enterFP(true); else G.sfx("tick");
-});
+addEventListener("resize", checkRotate); addEventListener("orientationchange", () => setTimeout(checkRotate, 200));
+setInterval(checkRotate, 500); // phones sometimes report the new size a moment late
+
+// ---------- fullscreen for the whole session ----------
+// The first tap asks for fullscreen (and to lock landscape, where the phone allows it). If the player leaves fullscreen
+// (a swipe, the back gesture, locking the phone), the next tap asks again. iPhone Safari has no fullscreen for pages:
+// there, "Add to Home Screen" opens the game fullscreen (the manifest says display: fullscreen).
+const FS_OFF = qs.has("portrait") || qs.has("shot");
+function goFullscreen() {
+  if (FS_OFF || document.fullscreenElement || document.webkitFullscreenElement) return;
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen; if (!req) return;
+  try {
+    const p = req.call(el, {navigationUI:"hide"});
+    const lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock("landscape").catch(() => {}); } catch (e) {} };
+    if (p && p.then) p.then(lock, () => {}); else lock();
+  } catch (e) {}
+}
+addEventListener("pointerup", goFullscreen, true); addEventListener("click", goFullscreen, true);
+document.addEventListener("fullscreenchange", () => { document.body.classList.toggle("fullscreen", !!document.fullscreenElement); });
+{ // the iPhone tip, once
+  const ios = /iPhone|iPod/.test(navigator.userAgent), standalone = navigator.standalone || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches;
+  let seen = false; try { seen = !!localStorage.getItem("sa3d-iostip"); } catch (e) {}
+  const tip = document.getElementById("iosTip");
+  if (ios && !standalone && !seen && !FS_OFF) { setTimeout(() => { tip.hidden = false; }, 4000); }
+  tip.addEventListener("click", () => { tip.hidden = true; try { localStorage.setItem("sa3d-iostip", "1"); } catch (e) {} });
+}
 
 // ---------- touch controls while walking: left thumb moves (the stick appears where it lands), right thumb looks ----------
 const pad = document.getElementById("fpsPad"), xhair = document.getElementById("xhair"), actBtn = document.getElementById("actBtn");
@@ -2518,7 +2534,7 @@ function interact() {
   return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view
 }
 actBtn.addEventListener("click", (e) => { e.stopPropagation(); interact(); });
-addEventListener("keydown", (e) => { if (walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && e.target.closest("input,textarea"))) interact(); });
+addEventListener("keydown", (e) => { if (!rotatePaused && walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && e.target.closest("input,textarea"))) interact(); });
 // the harvest, up close: juice and leaves fly past your face
 function fpBurst(i, crop) {
   const at = plots[i].g.position.clone().setY(.9), cp = camera.position;
@@ -2751,7 +2767,7 @@ function editUp(e) {
   else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
-document.getElementById("walkBtn").addEventListener("click", () => setWalk(true));
+document.getElementById("walkBtn").addEventListener("click", () => enterFP());
 throwBtn.addEventListener("click", throwBait);
 document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
 walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) { if (classicSaved) exitFP(); else setWalk(false); } });
@@ -3472,6 +3488,7 @@ if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 
 const clock = new THREE.Timer(); let shotFrames = 0;
 frame.drawn = 0;
 function frame() {
+  if (rotatePaused && frame.okAt) { requestAnimationFrame(frame); return; } // portrait: nothing to draw behind the rotate screen
   if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
   // the animals live their lives
