@@ -169,7 +169,7 @@ async function start() {
   show("checking");
   try {
     const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
-    const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app);
+    const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default"); // this project's Firestore database is named "default"
     fb = {A, auth};
     cloud = {uid:null,
       get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },
