@@ -231,7 +231,10 @@ export function visitFarm(saved) {
   const v = upgrade(saved); v.tut = TUT.length; v.event = null; v.nextEventAt = 9e15; // no tutorial or event pop-ups on someone else's farm
   S = v; closePanel(); view.refresh("all"); renderHud();
 }
-export function leaveVisit() { if (!homeS) return; S = homeS; homeS = null; view.refresh("all"); renderHud(); }
+export function leaveVisit() {
+  if (!homeS) return; S = homeS; homeS = null; bumpPrev = {}; view.refresh("all"); renderHud(); // (no coins "flying in" just from switching farms)
+  if (helpOwed) { const n = helpOwed; helpOwed = 0; helpedFriend(n); toast("💧 Thanks for helping! +" + 2 * n + " 🪙"); }
+}
 export const isVisiting = () => !!homeS;
 export function save() {
   if (restoring || window.__saHold || homeS) return; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
@@ -1039,7 +1042,8 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) sched
 
 // ---------- helping friends, and the trading post (the Firestore side lives in friends.js) ----------
 export function applyHelp(plots) { let n = 0; for (const i of plots) if (waterPlot(i, true)) n++; if (n) { view.refresh("plots"); commit(); } return n; }
-export function helpedFriend(n) { S.stats.helped += n; S.coins += 2 * n; gainXP(n); track("water", n); commit(); }
+let helpOwed = 0; // coins for watering a friend's crops, paid into your own farm once you're home
+export function helpedFriend(n) { if (homeS) { helpOwed += n; return; } S.stats.helped += n; S.coins += 2 * n; gainXP(n); track("water", n); commit(); }
 export function noteCombo(n) { if (n > S.stats.bestCombo) { S.stats.bestCombo = n; save(); } }
 export const marketPrice = (id) => ({min:Math.max(1, Math.floor(ITEMS[id].p * .5)), max:Math.ceil(ITEMS[id].p * 2), base:ITEMS[id].p});
 export function escrow(id, qty) { if (have(id) < qty) return false; take(id, qty); commit(); return true; }       // put up for sale
@@ -1902,7 +1906,7 @@ export function start() {
   if (how === "3d") setTimeout(eventTick, 1500);
   // been away a while: show what happened on the farm
   const gap = now() - (S.lastSeen || now());
-  if (how === "3d" && gap > 10 * 60e3 && !tutActive()) { awayInfo = {gap, items:awaySummary(gap)}; setTimeout(() => { if (!panel && !homeS) openPanel("away"); }, 1200); }
+  if (how === "3d" && gap > 10 * 60e3 && !tutActive()) { awayInfo = {gap, items:awaySummary(gap)}; if (!panel) openPanel("away"); }
   document.addEventListener("visibilitychange", () => { // coming back to the game after a while counts too
     if (document.hidden) { S.lastSeen = now(); save(); return; }
     const g = now() - (S.lastSeen || now());
