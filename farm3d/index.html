@@ -614,7 +614,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=20"; window.__gameVer = 20;
+import * as G from "./game.js?v=21"; window.__gameVer = 21;
 import {initFriends} from "./friends.js?v=4"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -3107,6 +3107,7 @@ addEventListener("pointermove", (e) => {
     s.on = true; armed = s.crop; pendingPlot = -1; farmDrag = {id:e.pointerId, mode:"plant", n:0}; ghost.src = ART + s.crop + ".webp"; ghost.hidden = false; G.sfx("pickup"); renderSeeds();
     seedTray.classList.add("away");
   }
+  if (!farmDrag) { seedDrag = null; ghost.hidden = true; seedTray.classList.remove("away"); return; } // the drag was called off: drop the seed
   ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
   paintAlong(e.clientX, e.clientY);
 });
@@ -3229,11 +3230,13 @@ function farmDown(e) {
 }
 // check a few points along the finger's path so fast swipes don't skip fields
 function paintAlong(x, y) {
+  if (!farmDrag) return; // the drag was called off (a second finger, the phone turned…)
   const lastP = farmDrag.last || [x, y];
   for (let k = 1; k <= 3; k++) { const px = lastP[0] + (x - lastP[0]) * k / 3, py = lastP[1] + (y - lastP[1]) * k / 3;
     if (document.elementFromPoint(px, py) !== renderer.domElement) continue; // over the seed tray or a button, not a field you can see
     const i = plotAt(px, py);
-    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); } }
+    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); }
+    if (!farmDrag) return; } // (a level-up or a full barn can end the drag part-way)
   farmDrag.last = [x, y];
 }
 function farmMove(e) {
