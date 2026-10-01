@@ -19,7 +19,9 @@ const {start,artifacts}=require('./browser-harness.cjs');
     const measured=a.rig3d.state.distance-start;
     const x=a.g.position.x,z=a.g.position.z,fit=a.fit;a.fit=v=>v.set(x,z);a.target=a.pos.addScalar(5);a.until=9e15;
     const phase=a.rig3d.state.phase;for(let i=0;i<180;i++)a.update(1/60,d.clock());a.fit=fit;
-    d.camera.position.set(x+2,1.6,z-3);d.camera.lookAt(x,.9,z);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
+    // Pick the real rig from a clear test position: nearby roaming animals can
+    // legitimately occlude this cow in its pen and win the same center ray.
+    a.g.position.set(40,0,40);d.camera.position.set(42,1.6,37);d.camera.lookAt(40,.9,40);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
     const hit=d.hitAt(innerWidth/2,innerHeight/2);
     return {types,lighting,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
    });
