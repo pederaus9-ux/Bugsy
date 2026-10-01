@@ -977,23 +977,54 @@ function makeAnimal(src, h, x, z, rig) {
   return {g, card, shadowCard, h, pup};
 }
 
-// ---------------- walking legs for the painted animals (Phase 7E prototype: cow and chicken) ----------------
+// ---------------- walking legs for the painted animals (Phase 7E prototype, rolled out to every animal in 7F) ----------------
 // The painted legs are cut out of the same picture and stepped in its shader: each leg is a strip of the image
 // that shears about its hip (top fixed, hoof swinging) and lifts during its swing; far legs draw behind the body,
-// near legs in front, and a soft patch around the head can nod or thrust. Still one card, one draw call.
-// Pixel coordinates in the source art (y down). leg: r = [x0, x1, hipY, footY], ph = phase offset in the stride.
-// A pixel belongs to the first leg whose rectangle holds it (after any leg's "claim" rectangle), so overlapping toes stay with the right foot.
+// near legs in front. Two soft patches bend the picture without cutting it: one round the head (nod, thrust, a
+// look about) and one round the tail (swish, wag). Still one card, one draw call, and one texture read per leg
+// plus one for the body: the patches only move where the body is read from.
+// Pixel coordinates in the source art (y down). leg: r = [x0, x1, hipY, footY], ph = phase offset in the stride
+// (phRun: where it moves to at a run, so a walk can turn into a trot or a bound). A pixel belongs to the first leg
+// whose rectangle holds it (after any leg's "claim" rectangle), so overlapping toes stay with the right foot.
+// L/Lrun: stride in metres; beta: share of the stride a foot is planted; lift: foot lift (m); bob: body rise (share
+// of height); rock: body pitch (rad) at a walk / extra at a run; squash: springy landing; head/tail: [x, y, r0, r1] px;
+// nod/thrust/look (m); tail: swing (m) per stride, tailIdle/tailHz: idle swish or wag; tailDir: which way it swings.
 const RIGS = {
-  cow:{L:.8, Lrun:1.45, beta:.62, betaRun:.45, lift:.05, bob:.012, maxShear:.42, head:[110, 105, 70, 125], nod:.012, thrust:0,
+  cow:{L:.8, Lrun:1.45, beta:.62, betaRun:.45, lift:.05, bob:.012, rock:.012, rockRun:.02, squash:0, maxShear:.42,
+    head:[110, 105, 70, 125], nod:.012, thrust:0, look:.018, tail:[497, 300, 18, 62], tailAmp:.035, tailIdle:.03, tailHz:.9, tailDir:[1, .15],
     legs:[{r:[100, 182, 322, 505], near:0, ph:.5}, {r:[182, 262, 322, 505], near:1, ph:0},     // far front, near front
-          {r:[340, 420, 322, 458], near:0, ph:.08}, {r:[420, 487, 322, 458], near:1, ph:.58}]}, // far hind, near hind (the tail stays put)
-  chicken:{L:.26, Lrun:.42, beta:.56, betaRun:.45, lift:.035, bob:.02, maxShear:.62, head:[56, 80, 52, 96], nod:.006, thrust:.03,
+          {r:[340, 420, 322, 458], near:0, ph:.08}, {r:[420, 487, 322, 458], near:1, ph:.58}]}, // far hind, near hind (the tail stays out)
+  chicken:{L:.26, Lrun:.42, beta:.56, betaRun:.45, lift:.035, bob:.02, rock:0, rockRun:.03, squash:.015, maxShear:.62,
+    head:[56, 80, 52, 96], nod:.006, thrust:.03, look:.008, tail:null,
     legs:[{r:[60, 182, 396, 490], near:0, ph:.5}, {r:[60, 270, 398, 512], claim:[150, 270, 476, 512], near:1, ph:0}]}, // the near foot's back toe reaches under the far foot
+  // sheep: light and a little springy, a shorter, livelier stride than the cow
+  sheep:{L:.5, Lrun:.95, beta:.58, betaRun:.42, lift:.045, bob:.03, rock:.02, rockRun:.05, squash:.03, maxShear:.5,
+    head:[78, 112, 62, 112], nod:.012, thrust:0, look:.02, tail:null,
+    legs:[{r:[115, 186, 356, 500], near:1, ph:0}, {r:[365, 412, 322, 448], near:0, ph:.06},     // near front, far hind
+          {r:[222, 279, 356, 512], near:1, ph:.5}, {r:[279, 330, 352, 448], near:0, ph:.56}]},  // near hind, far front
+  // horse: the longest stride; a four-beat walk (hind, fore, hind, fore down one side then the other) that becomes a
+  // diagonal trot, with little vertical bounce; its long tail swings on its own
+  horse:{L:1.25, Lrun:2.8, beta:.6, betaRun:.4, lift:.07, bob:.008, rock:.01, rockRun:.025, squash:0, maxShear:.45,
+    head:[105, 110, 55, 115], nod:.02, thrust:.012, look:.025, tail:[335, 330, 30, 110], tailAmp:.05, tailIdle:.04, tailHz:.7, tailDir:[1, .1],
+    legs:[{r:[284, 345, 405, 505], near:1, ph:0, phRun:0}, {r:[88, 136, 310, 512], claim:[80, 136, 501, 512], near:1, ph:.25, phRun:.5},   // near hind, near fore
+          {r:[225, 288, 305, 490], near:0, ph:.5, phRun:.5}, {r:[26, 88, 310, 512], near:0, ph:.75, phRun:1}]},  // far hind, far fore
+  // dog: quick and bouncy; a diagonal trot that gathers into a bounding run (fore feet together, hind feet together)
+  dog:{L:.5, Lrun:1.1, beta:.55, betaRun:.38, lift:.05, bob:.022, rock:.025, rockRun:.09, squash:.012, maxShear:.55,
+    head:[96, 76, 58, 108], nod:.012, thrust:0, look:.03, tail:[372, 118, 40, 92], tailAmp:.04, tailIdle:.035, tailHz:3.2, tailDir:[.45, 1],
+    legs:[{r:[125, 215, 372, 512], near:1, ph:0, phRun:0}, {r:[240, 302, 322, 404], near:0, ph:.1, phRun:.55},  // near fore, far hind
+          {r:[330, 402, 322, 418], near:1, ph:.5, phRun:.45}, {r:[38, 125, 372, 488], near:0, ph:.6, phRun:.1}]}, // near hind, far fore
+  // cat: smooth and quiet, low steps and almost no bounce; a soft bound at a run; the tail sways slowly
+  cat:{L:.3, Lrun:.7, beta:.62, betaRun:.4, lift:.022, bob:.005, rock:.008, rockRun:.04, squash:0, maxShear:.48,
+    head:[92, 140, 80, 130], nod:.006, thrust:0, look:.02, tail:[432, 112, 45, 115], tailAmp:.025, tailIdle:.03, tailHz:.45, tailDir:[1, .25],
+    legs:[{r:[352, 452, 370, 460], near:1, ph:0, phRun:.5}, {r:[165, 258, 374, 512], claim:[150, 260, 480, 512], near:1, ph:.22, phRun:0}, // near hind, near fore
+          {r:[248, 345, 370, 448], near:0, ph:.5, phRun:.6}, {r:[55, 165, 374, 492], near:0, ph:.72, phRun:.1}]},                        // far hind, far fore
 };
 const PUP_GLSL = `
 #ifdef USE_MAP
-uniform vec4 pupRect[PUP_LEGS]; uniform vec4 pupClaim[PUP_LEGS]; uniform vec4 pupMove[PUP_LEGS]; uniform vec4 pupHead; uniform vec4 pupHeadOff;
+uniform vec4 pupRect[PUP_LEGS]; uniform vec4 pupClaim[PUP_LEGS]; uniform vec4 pupMove[PUP_LEGS];
+uniform vec4 pupHead; uniform vec4 pupTail; uniform vec4 pupOff; uniform vec2 pupSize;
 bool pupIn(vec2 q, vec4 r) { return q.x >= r.x && q.x <= r.y && q.y <= r.z && q.y >= r.w; }
+bool pupOut(vec2 q) { return q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0; } // past the picture's edge: nothing (not a smear of the edge pixels)
 int pupOwner(vec2 q) {
   for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupClaim[i])) return i;
   for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupRect[i])) return i;
@@ -1001,6 +1032,7 @@ int pupOwner(vec2 q) {
 }
 vec4 pupOver(vec4 dst, vec4 src) { float a = src.a + dst.a * (1.0 - src.a);
   return a < 1e-4 ? vec4(0.0) : vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / a, a); }
+float pupPatch(vec2 p, vec4 c) { return 1.0 - smoothstep(c.z, c.w, length((p - c.xy) * pupSize)); }
 vec4 pupSample(vec2 p) {
   vec2 dx = dFdx(p), dy = dFdy(p); // one gradient for every layer, so cut edges don't pick a blurry mip level
   vec4 col = vec4(0.0), nearCol = vec4(0.0);
@@ -1009,21 +1041,23 @@ vec4 pupSample(vec2 p) {
     if (p.y > r.z || r.z <= r.w) continue;
     float d = clamp((r.z - p.y) / (r.z - r.w), 0.0, 1.0);
     vec2 q = vec2(p.x + m.x * d, p.y - m.y * d);
-    if (pupOwner(q) != i) continue;
+    if (pupOut(q) || pupOwner(q) != i) continue;
     vec4 c = textureGrad(map, q, dx, dy);
     if (m.z > 0.5) nearCol = pupOver(nearCol, c); else col = pupOver(col, c);
   }
-  vec2 hp = (p - pupHead.xy) * pupHeadOff.zw;
-  float w = 1.0 - smoothstep(pupHead.z, pupHead.w, length(hp));
-  vec2 q = p - pupHeadOff.xy * w;
-  vec4 body = pupOwner(q) < 0 ? textureGrad(map, q, dx, dy) : vec4(0.0);
+  // the body: never where a leg is cut out, and a head or tail bend never borrows a leg's pixels (it keeps its own instead)
+  vec2 q = p - pupOff.xy * pupPatch(p, pupHead) - pupOff.zw * pupPatch(p, pupTail);
+  if (pupOwner(q) >= 0) q = p;
+  vec4 body = !pupOut(q) && pupOwner(q) < 0 ? textureGrad(map, q, dx, dy) : vec4(0.0);
   return pupOver(pupOver(col, body), nearCol);
 }
 #endif
 `;
 function pupRig(rig, mat, depth) {
   const n = rig.legs.length, V4 = () => new THREE.Vector4();
-  const U = {pupRect:{value:rig.legs.map(V4)}, pupClaim:{value:rig.legs.map(V4)}, pupMove:{value:rig.legs.map(V4)}, pupHead:{value:V4()}, pupHeadOff:{value:V4()}};
+  // patches start empty (r0 > distance everywhere) until the picture's size is known
+  const U = {pupRect:{value:rig.legs.map(V4)}, pupClaim:{value:rig.legs.map(V4)}, pupMove:{value:rig.legs.map(V4)},
+    pupHead:{value:new THREE.Vector4(0, 0, -2, -1)}, pupTail:{value:new THREE.Vector4(0, 0, -2, -1)}, pupOff:{value:V4()}, pupSize:{value:new THREE.Vector2(1, 1)}};
   for (const m of [mat, depth]) {
     m.defines = {...(m.defines || {}), PUP_LEGS:n};
     m.customProgramCacheKey = () => "pup" + n;
@@ -1035,47 +1069,62 @@ function pupRig(rig, mat, depth) {
         .replace("#include <emissivemap_fragment>", "#if defined( USE_EMISSIVEMAP ) && defined( USE_MAP )\ntotalEmissiveRadiance *= pupCol.rgb;\n#endif");
     };
   }
-  return {U, n, gait:Math.random(), env:0, spd:0, px:null, pz:0, ready:false, W:1, H:1};
+  return {U, n, gait:Math.random(), env:0, spd:0, run:0, px:null, pz:0, ready:false, W:1, H:1, seed:Math.random() * 50, rock:0, sq:1};
 }
 // art size known: pixel rectangles become texture coordinates (v up)
 function pupLoad(P, rig, W, H) {
   P.W = W; P.H = H;
   rig.legs.forEach((l, i) => { const [x0, x1, y0, y1] = l.r; P.U.pupRect.value[i].set(x0 / W, x1 / W, 1 - y0 / H, 1 - y1 / H); P.U.pupMove.value[i].z = l.near;
     if (l.claim) { const [a0, a1, b0, b1] = l.claim; P.U.pupClaim.value[i].set(a0 / W, a1 / W, 1 - b0 / H, 1 - b1 / H); } });
-  const [hx, hy, r0, r1] = rig.head; P.U.pupHead.value.set(hx / W, 1 - hy / H, r0, r1); P.U.pupHeadOff.value.set(0, 0, W, H);
+  const [hx, hy, r0, r1] = rig.head; P.U.pupHead.value.set(hx / W, 1 - hy / H, r0, r1);
+  if (rig.tail) { const [tx, ty, t0, t1] = rig.tail; P.U.pupTail.value.set(tx / W, 1 - ty / H, t0, t1); }
+  P.U.pupSize.value.set(W, H);
   P.ready = true;
 }
 // Step the legs from the distance this animal really covered this frame (fences and shoves included), not the clock:
-// standing still means no stepping, and the cadence follows the speed. Returns the body's bob in metres.
-function pupStep(b, dt) {
-  const P = b.pup, R = RIGS[b.kind], S = b.S, x = b.g.position.x, z = b.g.position.z;
+// standing still means no stepping, and the cadence follows the speed. Also sets the body's pitch rock (P.rock) and
+// springy squash (P.sq) for the pose, and moves the head and tail patches. Returns the body's bob in metres.
+function pupStep(b, dt, t) {
+  const P = b.pup, R = RIGS[b.kind], S = b.S, x = b.g.position.x, z = b.g.position.z, lerp = THREE.MathUtils.lerp;
   let d = P.px === null ? 0 : Math.hypot(x - P.px, z - P.pz); P.px = x; P.pz = z;
   if (d > 1.5) d = 0; // a spawn or a jump, not a step
   const spd = d / Math.max(dt, 1e-3); P.spd += (spd - P.spd) * Math.min(1, dt * 8);
-  const run = THREE.MathUtils.clamp((P.spd - S.walk * 1.3) / (S.run - S.walk * 1.3), 0, 1);
-  const L = THREE.MathUtils.lerp(R.L, R.Lrun, run), beta = THREE.MathUtils.lerp(R.beta, R.betaRun, run);
+  const run = P.run = THREE.MathUtils.clamp((P.spd - S.walk * 1.3) / (S.run - S.walk * 1.3), 0, 1);
+  const L = lerp(R.L, R.Lrun, run), beta = lerp(R.beta, R.betaRun, run);
   P.gait = (P.gait + d / L) % 1;
   const envTo = THREE.MathUtils.smoothstep(P.spd, S.walk * .08, S.walk * .45);
   P.env += (envTo - P.env) * Math.min(1, dt * (envTo > P.env ? 9 : 6));
   if (!P.ready) return 0;
+  const env = P.env, h = S.h, wm = h * P.W / P.H, TAU = Math.PI * 2;
   // feet only slide across the picture as far as the walk runs across the screen; walking at you, they mostly lift
   const right = _pupV.setFromMatrixColumn(camera.matrixWorld, 0), vl = Math.hypot(b.vel.x, b.vel.y);
   const lateral = vl > 1e-3 ? Math.abs((b.vel.x * right.x + b.vel.y * right.z) / vl) : 1;
-  const wm = b.S.h * P.W / P.H, A = P.env * beta * L / 2 * Math.max(lateral, .35); // planted feet move back exactly as far as the body goes forward
-  const lift = P.env * R.lift * (1 + run * .6);
+  const A = env * beta * L / 2 * Math.max(lateral, .35); // planted feet move back exactly as far as the body goes forward
+  const lift = env * R.lift * (1 + run * .6);
   for (let i = 0; i < P.n; i++) {
-    const leg = R.legs[i], c = (P.gait + leg.ph) % 1, rect = P.U.pupRect.value[i], len = (rect.z - rect.w) * b.S.h;
+    const leg = R.legs[i], ph = leg.phRun === undefined ? leg.ph : lerp(leg.ph, leg.phRun, run);
+    const c = ((P.gait + ph) % 1 + 1) % 1, rect = P.U.pupRect.value[i], len = (rect.z - rect.w) * h;
     let f, up = 0;
     if (c < beta) f = A * (1 - 2 * c / beta);
     else { const s = (c - beta) / (1 - beta), e = s * s * (3 - 2 * s); f = -A + 2 * A * e; up = Math.sin(s * Math.PI) * lift; }
     f = THREE.MathUtils.clamp(f, -R.maxShear * len, R.maxShear * len);
-    P.U.pupMove.value[i].x = f / wm; P.U.pupMove.value[i].y = up / b.S.h;
+    P.U.pupMove.value[i].x = f / wm; P.U.pupMove.value[i].y = up / h;
   }
-  // head: a hen holds her head still and then thrusts it forward each step; a cow nods into her front footfalls
-  const st = (P.gait * 2) % 1, hold = .72, th = R.thrust * P.env, hf = st < hold ? th * (1 - 2 * st / hold) : th * (-1 + 2 * (st - hold) / (1 - hold));
-  P.U.pupHeadOff.value.x = -hf / wm; // forward is -u: the art faces left P.U.pupHeadOff.value.y = -R.nod * P.env * (.5 + .5 * Math.cos(P.gait * Math.PI * 4)) / b.S.h;
+  const off = P.U.pupOff.value, still = 1 - env, sd = P.seed;
+  // head: a hen holds her head still and then thrusts it forward each step; the big ones nod into their footfalls;
+  // standing about, every animal looks around a little (slow and different for each one)
+  const st = (P.gait * 2) % 1, hold = .72, th = R.thrust * env, hf = st < hold ? th * (1 - 2 * st / hold) : th * (-1 + 2 * (st - hold) / (1 - hold));
+  const lookX = Math.sin(t * .31 + sd) * Math.sin(t * .17 + sd * 2) * R.look * still, lookY = Math.sin(t * .23 + sd * 3) * R.look * .5 * still;
+  off.x = (-hf + lookX) / wm; // forward is -u: the art faces left
+  off.y = (-R.nod * env * (.5 + .5 * Math.cos(P.gait * TAU * 2)) + lookY) / h;
+  // tail: swings once a stride while walking; standing, a slow swish (cow, horse, cat) or a wag (dog)
+  if (R.tail) { const sw = Math.sin(P.gait * TAU) * R.tailAmp * env + Math.sin(t * TAU * R.tailHz + sd) * R.tailIdle * (b.kind === "dog" ? 1 : still);
+    off.z = sw * R.tailDir[0] / wm; off.w = sw * R.tailDir[1] / h; }
+  // the body rocks fore and aft with the legs, more at a run; springy species squash a touch as feet land
+  P.rock = env * (R.rock + R.rockRun * run) * Math.sin(P.gait * TAU * 2);
+  P.sq = 1 - env * R.squash * (.5 - .5 * Math.cos(P.gait * TAU * 2));
   // the body rides up as the legs pass under it, twice a stride
-  return P.env * R.bob * b.S.h * (.5 + .5 * Math.cos(P.gait * Math.PI * 4)) * (1 + run);
+  return env * R.bob * h * (.5 + .5 * Math.cos(P.gait * TAU * 2)) * (1 + run);
 }
 const _pupV = new THREE.Vector3();
 
@@ -1635,8 +1684,8 @@ class Beast {
     const spd = moving ? this.vel.length() : 0, k = Math.min(1, spd / this.S.run), acc = (spd - this.lastSpd) / Math.max(dt, 1e-3); this.lastSpd = spd;
     const leanTo = moving ? k * .09 + THREE.MathUtils.clamp(acc * .015, -.06, .06) : 0;
     this.lean += (leanTo - this.lean) * Math.min(1, dt * 6);
-    const rigBob = this.pup ? pupStep(this, dt) : 0; // cow and hen: legs that step with the ground covered
-    if (moving && this.pup) { y = rigBob; tilt = this.lean; }
+    const rigBob = this.pup ? pupStep(this, dt, t) : 0; // legs that step with the ground covered
+    if (moving && this.pup) { y = rigBob; tilt = this.lean + this.pup.rock; sy = this.pup.sq; }
     else if (moving) {
       // stride bob: two footfalls per stride; the body rides highest mid-stride and dips, with a slight squash, as each foot lands
       const s = Math.abs(Math.sin(this.phase));
@@ -1672,6 +1721,16 @@ class Beast {
   mood() { const N = this.need; return N.tired > .75 ? "Sleepy" : N.hunger > .75 ? "Hungry" : N.lonely > .75 ? "Lonely" : N.hunger + N.tired + N.lonely < .9 ? "Happy" : "Content"; }
 }
 let clockT = 0, tapPoint = null, PRESET = {};
+// ?loco (for reviewing the walking animations): every few seconds the next animal sets off on a walk or a run
+// through its own pen or yard, using its normal moves; everything else about it carries on as usual
+const LOCO = qs.has("loco");
+let locoNext = 4, locoI = 0;
+function locoParade(t) {
+  if (t < locoNext || !animals.length) return; locoNext = t + 4;
+  const a = animals[locoI++ % animals.length]; if (!a || a.gone || a.act === "sleeping" || a.act === "fleeing") return;
+  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen);
+  a.go(p.x, p.y, run, run ? "Showing off a run" : "Out for a walk");
+}
 let animals = [];
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
@@ -2471,7 +2530,11 @@ function poseFarmerGait(w) {
   U.torso.rotation.y = sn * THREE.MathUtils.lerp(.1, .16, run) * env;
   U.torso.rotation.x = -THREE.MathUtils.lerp(.04, .2, run) * env;
   U.torso.rotation.z = sn * .025 * env * (1 - run);
-  U.head.rotation.y = -U.torso.rotation.y * .8; U.head.rotation.x = -U.torso.rotation.x * .6; // eyes stay on the road
+  U.head.rotation.y = -U.torso.rotation.y * .8; // eyes stay on the road
+  // weight shifts over the planted foot (hips sway, the head tips a little against it) and the head settles on each footfall
+  U.body.position.x = sn * THREE.MathUtils.lerp(.024, .01, run) * env;
+  U.head.rotation.z = -sn * .035 * env * (1 - run * .5);
+  U.head.rotation.x = -U.torso.rotation.x * .6 + (Math.abs(cs) - .5) * .05 * env;
   // the body rises as each leg passes under it (twice a stride) and sits a touch lower when running
   return (Math.abs(cs) * THREE.MathUtils.lerp(.035, .08, run) - run * .05) * env;
 }
@@ -2792,7 +2855,7 @@ function updateFarmerIdle(t) {
   if (walk) return;
   farmer.visible = !!GS() && !editMode;
   const { legs, knees, torso, arms, head, body } = farmer.userData; if (!legs) return;
-  legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = 0; arms[0].rotation.z = 0;
+  legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = head.rotation.z = 0; body.position.x = 0; arms[0].rotation.z = 0;
   const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
   arms[0].rotation.x = Math.sin(t * 1.3) * .04; arms[1].rotation.x = Math.sin(t * 1.3 + 1) * .04; arms[1].rotation.z = wave ? -2.3 + wave : 0;
   head.rotation.y = Math.sin(t * .4) * .5; body.scale.y = 1 + Math.sin(t * 1.8) * .006;
@@ -3616,7 +3679,11 @@ function updateGame(t, dt) {
   const n = G.readyOrders(), rush = GS().rush && GS().rush.end > T, be = rush ? "⏰" : "🚚";
   boardBub.visible = n > 0 || rush; boardBub.position.y = 3.4 + Math.sin(t * (rush ? 5 : 2.5)) * .08;
   if (boardBub.userData.e !== be) { boardBub.material = emoteMat(be); boardBub.userData.e = be; }
-  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06; }
+  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06;
+    // idle life while they wait: weight shifting foot to foot, breathing, a tilt and a glance of the head, and now and then a happy wiggle
+    const wig = Math.max(0, Math.sin(t * .8)) > .97 ? Math.sin(t * 16) * .14 : 0;
+    visitorBody.rotation.z = Math.sin(t * .9) * .045; visitorBody.scale.y = 1 + Math.sin(t * 1.7) * .018;
+    visitorFace.position.x = Math.sin(t * .9) * .05; visitorFace.rotation.z = Math.sin(t * .6 + 1) * .06 + wig; visitorFace.rotation.y = Math.sin(t * .27) * Math.sin(t * .13) * .3; }
   board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
   gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
   for (const o of holidayObjs) o.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
@@ -3687,6 +3754,7 @@ function frame() {
   updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); updateDoors(dt); updateSquish(performance.now());
   updateDrops(dt); updateBaits(); drawTrail();
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
+  if (LOCO) locoParade(t);
   for (const a of animals) a.update(dt, t);
   updateGame(t, dt); updateAim(t); updateFarmerIdle(t);
   // trees sway with the wind
