@@ -3,13 +3,15 @@
 This roadmap supersedes older Phase 7 labels. Work in order, using focused
 branches and PRs from current main. The owner reviews and merges each PR.
 Phases 7A and 7B are merged. The owner reports a successful Phase 7C performance
-session on an S26 Ultra; the shed-switching defect found in that session is being
-repaired. Stop after the repair PR for owner review and merging. Phase 7D requires
-a separate go-ahead.
+session on an S26 Ultra. Its shed-switching repair is merged in PR #27 and live;
+the owner's subsequent "good continue" is taken as phone confirmation and
+authorization for Phase 7D. Phase 7D adds regression tests and CI; stop for owner
+review/merging before starting Phase 7E.
 
 ## Rules for every phase
 
-- Work only in `farm3d/`; preserve the older `/farm` game and unrelated root app.
+- Work in `farm3d/`; Phase 7D additionally needs its single GitHub Actions workflow
+  in `.github/workflows/`. Preserve the older `/farm` game and unrelated root app.
 - No real money, ever. Coins and gems are earned through gameplay.
 - Preserve saves, progression, mobile usability and the cozy game identity.
 - Keep the handwritten three.js/JavaScript architecture. Avoid giant rewrites,

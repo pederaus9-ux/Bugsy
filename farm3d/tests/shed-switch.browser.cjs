@@ -1,22 +1,13 @@
 // Focused touch regression; Playwright is supplied externally (no game build dependencies).
 // ?shot freezes the 3D fixture so software-renderer stalls cannot turn taps into long presses.
-const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const root=path.resolve(__dirname,'../..'),results=[];
-const server=http.createServer((req,res)=>{
- let file=path.join(root,decodeURIComponent(new URL(req.url,'http://localhost').pathname));
- if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
- if(fs.existsSync(file)&&fs.statSync(file).isDirectory())file=path.join(file,'index.html');
- if(!fs.existsSync(file)){res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file));
-});
-(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;let browser;
+const fs=require('fs'),path=require('path'),assert=require('assert/strict');
+const {start,artifacts}=require('./browser-harness.cjs');
+const results=[];
+(async()=>{const harness=await start(),base=harness.base;let failed=true;
  try{
-  browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const viewport of [{width:740,height:360},{width:844,height:390},{width:1280,height:720}]){
-   const context=await browser.newContext({viewport,hasTouch:true,isMobile:viewport.width<1000}),page=await context.newPage(),errors=[];
-   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-   await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.fulfill({contentType:r.request().url().includes('gstatic.com/firebasejs/')?'text/javascript':'application/json',body:r.request().url().includes('gstatic.com/firebasejs/')?'export {};':'{}'}));
+   const session=await harness.setup(viewport,true,'shed-'+viewport.width+'x'+viewport.height,viewport.width<1000);
+   const {context,page,errors}=session;
    await page.goto(base+'farm3d/?testfarm&debug&portrait&shot&sim=0');
    await page.waitForFunction(()=>window.__ready&&window.__dbg&&window.__done&&!document.getElementById('loading'),null,{timeout:90000});
    await page.evaluate(()=>{const d=__dbg;d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;d.G.opts.quiet=true;d.G.close();d.G.view.setQuality('battery');for(const s of Object.values(d.G.S.buildings))s.jobs=[];});
@@ -89,7 +80,8 @@ const server=http.createServer((req,res)=>{
     assert.equal(await page.evaluate(()=>JSON.stringify(__dbg.G.S.plots)),crops);
     console.log('PASS one-tap shed switch',viewport.width+'x'+viewport.height,JSON.stringify(pair));
    }
-   results.push({viewport,pair,first,errors});assert.deepEqual(errors,[]);await cdp.detach();await context.close();
+   results.push({viewport,pair,first,errors});assert.deepEqual(errors,[]);await cdp.detach();await session.finish();
   }
- }finally{if(browser)await browser.close();server.close();if(process.env.SHED_RESULTS)fs.writeFileSync(process.env.SHED_RESULTS,JSON.stringify(results,null,2));}
+  failed=false;
+ }finally{await harness.close(failed);fs.writeFileSync(process.env.SHED_RESULTS||path.join(artifacts,'shed-results.json'),JSON.stringify({status:failed?'FAIL':'PASS',checks:results},null,2));}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

@@ -2,7 +2,10 @@
 
 Base: merged Phase 7B on main, `3f06eae623a6d0dba04560c62812054fcaa2f9d6`.
 Branch: `codex/sunny-acres-shed-switch`. Changes are limited to `farm3d/`.
-Stop for owner review and merging; Phase 7D needs a separate go-ahead.
+Repair merged as PR #27, commit `a26fb18292336a4d4b8bf370c28d658287939cb2`.
+Page, versioned game/perf modules and service worker matched the tested repair
+source on the live site at 2026-10-01 02:41 UTC. The owner's subsequent "good
+continue" is taken as phone confirmation and authorization for Phase 7D.
 
 ## Owner-reported device result
 
@@ -67,6 +70,7 @@ Auth/friends/perf modules retain versions 12/4/1.
 - Service-worker simulation passes v23 install/activation, v22-only cleanup,
   unrelated-cache preservation and offline page/versioned game/perf responses.
 
-The repaired behavior still needs a quick owner retest on the S26 Ultra after
-merging/deployment. Live account/cloud behavior, iPhone and other Android hardware
-were not tested here. No general regression CI or Phase 7D work was started.
+The owner's "good continue" after the phone retest instructions is taken as
+confirmation of the repair. No numeric device trace was added. Live account/cloud
+behavior, iPhone and other Android hardware were not tested here. Phase 7D follows
+in a separate regression-testing PR.
