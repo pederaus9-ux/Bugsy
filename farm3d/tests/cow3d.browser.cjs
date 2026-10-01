@@ -10,7 +10,9 @@ const {start,artifacts}=require('./browser-harness.cjs');
    const integration=await page.evaluate(()=>{
     const d=__dbg,before=localStorage.getItem('sunny-acres-3d-v1');d.G.opts.quiet=true;d.renderer.shadowMap.enabled=false;
     const types=d.animals.map(a=>({kind:a.kind,real3d:!!a.rig3d}));
-    const a=d.animals.find(a=>a.kind==='cow');a.mode='fair';a.until=9e15;a.act='idle';a.doing=null;a.need={hunger:0,tired:0,lonely:0};
+    const a=d.animals.find(a=>a.kind==='cow'),picture=d.animals.find(a=>!a.rig3d);
+    const lighting=['noon','golden','rain','snow','night'].map(preset=>{d.setPreset(preset);return {preset,cowEmissive:a.card.material.emissive.toArray(),pictureGlow:picture.card.material.emissiveIntensity};});
+    a.mode='fair';a.until=9e15;a.act='idle';a.doing=null;a.need={hunger:0,tired:0,lonely:0};
     a.go(a.g.position.x+.9,a.g.position.z+.6,false,'Test stroll');
     const start=a.rig3d.state.distance;let distance=0;
     for(let i=0;i<120;i++){const x=a.g.position.x,z=a.g.position.z;a.update(1/60,d.clock());distance+=Math.hypot(a.g.position.x-x,a.g.position.z-z);}
@@ -19,9 +21,10 @@ const {start,artifacts}=require('./browser-harness.cjs');
     const phase=a.rig3d.state.phase;for(let i=0;i<180;i++)a.update(1/60,d.clock());a.fit=fit;
     d.camera.position.set(x+2,1.6,z-3);d.camera.lookAt(x,.9,z);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
     const hit=d.hitAt(innerWidth/2,innerHeight/2);
-    return {types,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
+    return {types,lighting,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
    });
    for(const a of integration.types)assert.equal(a.real3d,a.kind==='cow');
+   for(const l of integration.lighting){assert.deepEqual(l.cowEmissive,[0,0,0],'3D coat must not inherit untextured picture glow');assert.ok(l.pictureGlow>0,'existing painted animals retain their preset glow');}
    assert.ok(integration.distance>.01);assert.ok(Math.abs(integration.distance-integration.measured)<1e-8);
    assert.equal(integration.phase,integration.afterPhase);assert.ok(integration.amount<1e-10);assert.equal(integration.hit,'animal');assert.equal(integration.kind,'cow');assert.ok(integration.savePreserved);
    assert.deepEqual(errors,[]);console.log('PASS 3D cow farm travel, blocking, picking and sandbox save',viewport.width);

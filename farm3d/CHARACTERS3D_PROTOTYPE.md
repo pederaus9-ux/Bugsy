@@ -52,8 +52,10 @@ individual skeleton GPU resources; the shared model remains reusable.
 
 Local full suite passed: 11 unit tests, existing 50 game checkpoints, shed
 switching and focused cow/preview scenarios at 740×360, 844×390 and 1280×720.
-The angle test was then clarified to track the cow's heading for genuine
-front/flank/rear views and rerun separately. Browser external services are
+In-farm visual review caught picture glow washing out the new coat. Cows now use
+scene lighting, while painted animals retain their preset glow. A regression
+covers noon, golden hour, rain, snow and night. Angle checks follow the cow's
+heading for genuine front/flank/rear views. Browser external services are
 isolated and service workers blocked; this does not verify Firebase, Safari,
 PWA cache recovery, thermals or real phone FPS. The existing CI runs the additions.
 

@@ -1848,7 +1848,7 @@ function setPreset(name) {
   for (const m of Object.values(emoteMats)) m.color.setScalar(P.night ? .55 : 1); // bubbles don't glow like lamps after dark lamp.intensity = P.night ? 16 : 0;
   lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
   M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
-  for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
+  for (const a of animals) if (!a.rig3d) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); } // 3D coats use scene lighting; picture glow would wash out their patches
   windU.uWind.value = wind;
   // sky reflections for glossy paint, glass and wet surfaces
   skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
