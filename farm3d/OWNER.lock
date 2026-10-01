@@ -1,0 +1,60 @@
+version: 1
+project: Sunny Acres 3D
+updated: 2026-10-01
+
+locks:
+  - scope: SunnyAcres/ArchitecturePhaseGates
+    owner: ChatGPT
+    branch: chatgpt/sunny-acres-phase7g-entry
+    baseline_commit: 97cb54055e3284d5ec2a063a48d7991658075c73
+    purpose: Phase-gate design, review, regression acceptance, and Claude handoff
+    allowed_paths:
+      - farm3d/PHASE7*_*.md
+      - farm3d/PHASE7_PLAN.md
+      - farm3d/CLAUDE_HANDOFF_*.md
+      - farm3d/OWNER.lock
+    protected_without_handoff:
+      - farm3d/game.js
+      - farm3d/auth.js
+      - farm3d/friends.js
+      - farm3d/index.html
+      - farm3d/cow3d.js
+      - farm3d/sw.js
+      - farm3d/manifest.webmanifest
+      - farm3d/lib/**
+      - farm/**
+      - root Bugsy app files
+
+  - scope: SunnyAcres/FirebaseHardening
+    owner: Claude
+    branch: null
+    baseline_commit: 97cb54055e3284d5ec2a063a48d7991658075c73
+    activation: after Phase 7G entry documentation is merged
+    purpose: Firestore rules inventory, emulator/rules tests, market/shared-write hardening, App Check evaluation, and full regressions
+    required_read_first:
+      - farm3d/CLAUDE_HANDOFF_PHASE7G.md
+      - farm3d/PHASE7G_FIREBASE.md
+      - farm3d/PHASE7_PLAN.md
+      - farm3d/HANDOFF.md
+    protected_without_handoff:
+      - save ownership semantics
+      - cloud-save revision/conflict behavior
+      - guest migration semantics
+      - Phase 7E/7F locomotion
+      - 3D cow rendering and behavior
+      - older /farm game
+      - unrelated root Bugsy app
+      - GitHub Pages hosting structure
+
+handoff_required_when:
+  - a protected system must change
+  - save compatibility or ownership semantics would change
+  - production Firebase rules cannot be inspected before deployment
+  - a security rule cannot preserve an existing required game flow
+  - a major product/architecture choice has multiple materially different safe options
+
+completion_rule:
+  - Claude returns the Phase 7G evidence packet to ChatGPT for audit
+  - routine failures are fixed without Austin
+  - clean Phase 7G merges under standing authorization
+  - then advance automatically to Phase 7H
