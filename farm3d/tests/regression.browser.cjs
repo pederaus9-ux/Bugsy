@@ -25,7 +25,7 @@ let base;
 async function boot(page,query){
   await page.goto(base+query,{waitUntil:'load'});
   await page.waitForFunction(()=>window.__dbg&&!document.getElementById('loading'),{},{timeout:90000});
-  await page.evaluate(()=>{__dbg.G.S.nextEventAt=9e15;__dbg.G.S.nextVisitorAt=9e15;__dbg.G.S.nextRushAt=9e15;__dbg.G.opts.quiet=true;__dbg.G.close();});
+  await page.evaluate(()=>{__dbg.G.S.nextEventAt=9e15;__dbg.G.S.nextVisitorAt=9e15;__dbg.G.S.nextRushAt=9e15;__dbg.G.opts.quiet=true;__dbg.G.close();__dbg.renderer.shadowMap.enabled=false;});
 }
 async function resetWalker(page){await page.evaluate(()=>{const w=__dbg.walk;w.pos.set(-1.4,22);w.vel.set(0,0);w.yaw=0;w.pitch=-.1;});}
 async function hold(page,key,ms=500){

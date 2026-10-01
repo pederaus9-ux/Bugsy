@@ -34,8 +34,12 @@ The one necessary file outside `farm3d/` is the GitHub Actions workflow under
 - Leaving a normal page can legitimately update `lastSeen`; the sandbox test
   preserves every other saved field across navigation and then requires the
   complete saved JSON to remain unchanged during sandbox planting/saving.
-- The broad browser suite keeps ordinary 3D rendering active. The focused shed
-  check retains its documented static-scene touch fixture.
+- The broad browser suite keeps animated 3D rendering active at DPR 0.5 and
+  disables renderer shadow maps after boot; CSS viewport dimensions remain exact.
+  The first hosted run booted but stalled at the Walk click with full graphics on
+  its software GPU. Lower drawing cost is confined to test fixtures; production
+  rendering is unchanged. CI uses matching Chromium's current headless mode.
+  The focused shed check retains its documented static-scene touch fixture.
 - Screenshots and JSON summaries are saved locally and uploaded by CI. Failures
   also produce Playwright traces; failure screenshot/trace generation was observed
   during test development. The suite has no automatic retries.

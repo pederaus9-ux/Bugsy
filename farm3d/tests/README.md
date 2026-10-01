@@ -12,7 +12,8 @@ npm test
 ```
 
 Tests run sequentially against an ephemeral localhost server. The pinned
-Playwright lockfile selects its matching Chromium. On an existing developer
+Playwright lockfile selects its matching Chromium with its current headless mode.
+On an existing developer
 machine, `CHROME_PATH` can select installed Chrome and `PLAYWRIGHT_MODULE` can
 select an external Playwright installation; neither is needed in CI.
 `TEST_ARTIFACTS` overrides the ignored `artifacts/` output directory.
@@ -37,7 +38,10 @@ select an external Playwright installation; neither is needed in CI.
   collection, explicit close, menu contents and other/non-building backdrops.
 - Fail on page exceptions, console errors and failed/HTTP-error local resources.
 
-`regression.browser.cjs` keeps the ordinary animated 3D loop active. The focused
+`regression.browser.cjs` keeps the animated 3D loop active. CSS viewports stay
+exact, while the test context uses DPR 0.5 and disables renderer shadow maps after
+boot to keep the software GPU responsive. These are test-only fixture settings,
+not game changes or full-graphics performance claims. The focused
 shed test uses the existing static `?shot&sim=0` scene, redraws its selected camera
 once and sends real Chrome touch events. This avoids software-renderer stalls
 turning a short tap into a long press. It does not measure phone performance.

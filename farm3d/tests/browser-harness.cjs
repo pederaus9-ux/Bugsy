@@ -20,14 +20,15 @@ async function start() {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   let browser;
   try {
-    browser = await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+    browser = await chromium.launch({executablePath:process.env.CHROME_PATH,channel:process.env.CHROME_PATH?undefined:'chromium',headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   } catch (error) { await new Promise(resolve => server.close(resolve)); throw error; }
   const base = `http://127.0.0.1:${server.address().port}/`;
   const sessions = [];
   return {
     base,
     async setup(viewport, touch, name, mobile = touch) {
-      const context = await browser.newContext({viewport,hasTouch:touch,isMobile:mobile,serviceWorkers:'block'});
+      // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
+      const context = await browser.newContext({viewport,deviceScaleFactor:.5,hasTouch:touch,isMobile:mobile,serviceWorkers:'block'});
       await context.tracing.start({screenshots:true,snapshots:true,sources:true});
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push('pageerror: ' + error.message));
