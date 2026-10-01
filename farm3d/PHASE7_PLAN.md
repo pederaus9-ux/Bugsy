@@ -2,7 +2,8 @@
 
 This roadmap supersedes older Phase 7 labels. Work in order, using focused
 branches and PRs from current main. The owner reviews and merges each PR.
-Phase 7A is the only currently authorized implementation phase; stop after its PR.
+Phase 7A is merged. Phase 7B is currently authorized; stop after its PR for owner
+review and merging. Phase 7C requires a separate go-ahead.
 
 ## Rules for every phase
 
@@ -24,7 +25,7 @@ Phase 7A is the only currently authorized implementation phase; stop after its P
 | Phase | Scope and acceptance |
 | --- | --- |
 | **7A — Baseline stabilization** | Audit current main, verify PR #24's seed-drag guards, make E interact only (Enter also interacts; Q/Left turn left, Right turns right; WASD moves), record this plan and correct stale handoff statements. Validate parse, normal/testfarm boot, page errors, input, planting/cancelled drag, save/reload and mobile layouts. Handle cache invalidation. Open a focused PR; **stop for owner review, do not merge or start 7B**. |
-| **7B — Performance observability** | Optional `?perf` overlay: FPS, median/p95/worst recent frame time, render scale, renderer calls/triangles/geometries/textures, shadow resolution, bloom, tilt-shift, mode, viewport and DPR. Use renderer info; keep overhead small. |
+| **7B — Performance observability** | Optional `?perf` overlay: FPS, median/p95/worst recent frame time, render scale, renderer calls/triangles/geometries/textures, shadow resolution, bloom, tilt-shift, mode, viewport and DPR. Use renderer info; keep overhead small. Count the complete composer frame; document windows and limitations. **Stop for owner review, do not merge or start 7C.** |
 | **7C — Real-device baseline** | Android classic/walk modes; noon, golden hour, rain, snow and night; full crops, many animals, heavy decorations/effects and panels; 20–30 minute sessions. Identify CPU/GPU/memory/thermal/network/save/UI constraints. No optimization unless a severe blocker is found. |
 | **7D — Automated regression testing + CI** | Prefer Playwright when practical: normal/testfarm boot, page errors, planting, harvest, orders, walking, interaction, save/reload, panel fit at both mobile sizes and desktop. Add CI; recommend required checks only after reliable results. Repository settings require owner approval. |
 | **7E — Locomotion prototype** | Audit cow, chicken, sheep, horse, dog, cat, farmer and Rosa/Joe/Mia/Sam/Lily: groups, legs/head/tail, skeletons, movement/bob, speed ownership, facing/update rate and reusable parts. Prototype **cow, chicken and farmer only**. Require visible legs, travel-synchronized cadence and smooth starts/stops. Cow: restrained heavy motion; chicken: alternating short steps with subtle head/body motion; farmer: opposite arm/leg swing and distinct walk/run. **Stop for human visual approval.** |

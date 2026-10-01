@@ -278,17 +278,53 @@ Every change to a module must bump its query in `index.html`:
 - `auth.js?v=12`
 - `friends.js?v=4`
 
-**and** the `CACHE` name in `sw.js` (currently `sa3d-v21`). Otherwise phones may mix an old module with a new page.
+**and** the `CACHE` name in `sw.js` (currently `sa3d-v22`). Otherwise phones may mix an old module with a new page.
+The optional diagnostics module is `perf.js?v=1`; it is also cached for offline use.
 
 ### Debug and test URL flags
 
 - `?debug` exposes `window.__dbg` (scene, cam, walk getter, plots, animals, `G`, `hitAt`, `keyPos`, …).
+- `?perf` shows local performance diagnostics; combine flags with `&`, e.g. `?testfarm&perf`.
 - `?testfarm` loads a sandbox farm that is never saved; auth is skipped.
 - `?portrait` disables the rotate overlay and fullscreen.
 - `?preset=noon|golden|night|rain|snow|morning`
 - `?shot` is snapshot mode.
 - `?intro` forces the intro under `debug`.
 - `?weather=`, `?night=1`, `?season=`, `?theme=`
+
+### Phase 7B performance readings
+
+The `?perf` display updates at most twice per second and can be collapsed using
+its header. Its body lets taps pass through to the game; menus and blocking
+screens appear above it while measurements continue. Without the flag the
+module is not imported and no samples or overlay are created.
+
+- FPS is 1000 divided by the mean interval between completed composer frames ending in
+  the last second. Median, nearest-rank p95 and worst interval use the last five
+  seconds (at most 1200 samples; extremely high refresh rates can shorten that
+  window). Battery mode's skipped animation callbacks are not counted as frames.
+  A dash means no completed interval yet. Startup hitches remain visible.
+- Intervals use unclamped monotonic timestamps. They include game work, rendering,
+  browser scheduling and foreground stalls; they are **not GPU timings**. Hidden
+  tabs and the portrait rotate pause clear history, excluding resume gaps.
+- Calls and triangles come from `renderer.info` for the latest complete composer
+  render, including shadows and enabled post-processing passes. The usual
+  `autoReset` policy is restored afterward. Resource counts are renderer-owned
+  geometries/textures, not bytes or total browser memory; a shadow draw may occur
+  only when its map updates. Snapshot/thumbnail renders outside the composer
+  are not included.
+- Scale is actual render DPR divided by the game's baseline DPR (device DPR
+  capped at 2). Viewport uses CSS pixels; device and render DPR are shown
+  separately. Shadow map size and bloom/tilt states reflect the current settings.
+  Mode includes classic/first-person/third-person plus active edit/photo/wardrobe,
+  visiting or barn state.
+
+No telemetry, saves, adaptive-quality decisions or visual settings are changed.
+Sampling uses fixed buffers; sorting/DOM work happens only at display updates.
+There is still measurement overhead, so compare with the flag off for real-device
+baselines. Desktop software-renderer checks establish functionality, not mobile
+FPS, GPU cost, thermal behavior or long-session stability. Phase 7C awaits owner
+approval after this PR.
 
 ---
 
