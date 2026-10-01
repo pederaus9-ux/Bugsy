@@ -22,6 +22,9 @@ select an external Playwright installation; neither is needed in CI.
 
 - Six performance-monitor unit tests: statistics, bounded windows, resume reset,
   complete composer counts and throttled overlay updates.
+- Five 3D cow unit tests: actual joint/hoof position, planted-foot travel,
+  stopped cadence, head/ear/blink/tail gestures, shared skin with independent
+  skeletons, disposal, teleport and equal-distance cadence at 30/60/120 Hz.
 - Game modules and inline scripts parse; cancelled planting/harvesting guards.
 - At **740×360, 844×390 and 1280×720**: test-farm boot, planting through the seed
   tray, pointer harvest/inventory/XP, order delivery/inventory/rewards/cooldown,
@@ -36,6 +39,11 @@ select an external Playwright installation; neither is needed in CI.
 - Shed touch regression at all three sizes: immediate/repeated A-to-B switch,
   same-shed menu stability, finished goods preserved during switching, ordinary
   collection, explicit close, menu contents and other/non-building backdrops.
+- At all three sizes: opt-in cow integration measures final AI displacement,
+  frozen gait at a blocked boundary, mesh picking and sandbox save preservation;
+  standalone preview movement buttons/orbit/layout and geometry raycasts from
+  front, flank and rear. Isolated rendered old-card/new-cow counts and stable
+  renderer resources are checked with shadows on and off.
 - Fail on page exceptions, console errors and failed/HTTP-error local resources.
 
 `regression.browser.cjs` keeps the animated 3D loop active. CSS viewports stay
@@ -45,6 +53,9 @@ not game changes or full-graphics performance claims. The focused
 shed test uses the existing static `?shot&sim=0` scene, redraws its selected camera
 once and sends real Chrome touch events. This avoids software-renderer stalls
 turning a short tap into a long press. It does not measure phone performance.
+The cow fixture uses manual animation steps for deterministic travel/pose checks
+and a warmed CPU pose-update sample. That timer excludes rendering/GPU skinning;
+draw/triangle comparisons cover one isolated animal, not a loaded farm.
 Debug hooks prepare deterministic inventory, ripe crops and unobstructed camera
 positions; planting, harvest, orders and interactions still use the actual UI.
 

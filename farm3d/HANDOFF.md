@@ -1,6 +1,17 @@
 # Sunny Acres 3D: development continuation handoff
 
-Written 2026-09-30, from an inspection of the repository at commit `714a896`.
+Original inspection 2026-09-30 at `714a896`; continuation updated 2026-10-01.
+
+Current baseline is main `7ed0c9908ce97c03d5a5de1f6c855a7dcace4b69`, including
+PR #29 (Phase 7E, owner approved) and PR #30 (Phase 7F, merged). The owner asked
+to replace painted animal cards with true 3D characters before Phase 7G.
+The current deliverable is **one opt-in 3D cow prototype**, awaiting owner style
+and S26 Ultra approval. Read `CHARACTERS3D_PROTOTYPE.md` and `PHASE7_PLAN.md`
+before choosing the next task; do not advance to Firebase hardening yet.
+
+Use `characters3d.html` to review all angles and `?characters3d` to try the cow
+in the farm. Default animals retain Phase 7F artwork. `cow3d.js?v=1` and
+service-worker cache `sa3d-v26` accompany this prototype. Saves and AI are unchanged.
 
 It is written for the next developer or AI. Read it together with `farm3d/DESIGN.md` (the game-design rules and chosen values) and `/progress.md` (the change log by phase).
 

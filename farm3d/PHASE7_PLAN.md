@@ -8,7 +8,9 @@ the owner's subsequent "good continue" is taken as phone confirmation and
 authorization for Phase 7D. Phase 7D (regression tests and CI) is merged in PR #28.
 Phase 7E (cow/chicken/farmer locomotion prototype, `PHASE7E_LOCOMOTION.md`) is
 COMPLETE / OWNER APPROVED (PR #29). Phase 7F (locomotion rollout,
-`PHASE7F_LOCOMOTION.md`) is IN PROGRESS; stop for owner visual review before 7G.
+`PHASE7F_LOCOMOTION.md`) is MERGED (PR #30). The owner then requested true 3D
+characters before proceeding: first build one cow and stop for style and phone
+performance review. See `CHARACTERS3D_PROTOTYPE.md`. Phase 7G remains deferred.
 
 ## Rules for every phase
 
