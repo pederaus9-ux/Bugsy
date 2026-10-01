@@ -619,6 +619,7 @@ import {initFriends} from "./friends.js?v=4";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
+const Cow3D = qs.has("characters3d") ? await import("./cow3d.js?v=1") : null; // owner-reviewed prototype, opt-in for now
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
@@ -1564,10 +1565,12 @@ function emoteMat(e) {
 const rnd = rng(4242);
 class Beast {
   constructor(kind, name, pers, x, z, ref) {
-    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]);
+    const S = SPECIES[kind], prototype = Cow3D && kind === "cow";
+    const A = prototype ? Cow3D.createCow3D(S.h, x, z, name) : makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]);
     Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
       vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
       need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
+    this.rig3d = prototype ? A : null;
     this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0; this.ref = ref;
     // a steady bubble for "I have something for you" (eggs ready, a gift…), separate from passing moods
     this.status = new THREE.Sprite(emoteMat("🥚")); this.status.scale.setScalar(.7); this.status.position.y = S.h + .5; this.status.visible = false; this.g.add(this.status);
@@ -1634,6 +1637,7 @@ class Beast {
     this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
   }
   update(dt, t) {
+    const ox = this.g.position.x, oz = this.g.position.z;
     const N = this.need, P = this.P;
     N.hunger = Math.min(1, N.hunger + dt * .012 * (.5 + P.hunger)); N.tired = Math.min(1, N.tired + dt * .01 * (1.5 - P.energy)); N.lonely = Math.min(1, N.lonely + dt * .01 * (.3 + P.social));
     if (this.emoteT > 0) { this.emoteT -= dt; this.bubble.visible = this.emoteT > 0; this.bubble.material.opacity = Math.min(1, this.emoteT * 2); this.bubble.position.y = this.S.h + .35 + Math.sin(t * 3) * .04; }
@@ -1673,6 +1677,11 @@ class Beast {
           if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
       }
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
+    if (this.rig3d) {
+      if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
+      Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
+      return;
+    }
     // face the way it walks (the pictures face left), and animate the pose
     const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), v3 = new THREE.Vector3(this.vel.x, 0, this.vel.y);
     if (v3.lengthSq() > .02) { const d = v3.dot(right); if (Math.abs(d) > .05) this.facing = d > 0 ? -1 : 1; }
@@ -1713,6 +1722,7 @@ class Beast {
   flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
     this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
   pet() {
+    if (this.rig3d) this.rig3d.state.pet = 2.4;
     this.need.lonely = 0; this.hop = 1;
     if (this.pers === "Shy" && rnd() < .6) { this.flee(new THREE.Vector2(camera.position.x, camera.position.z), "Too shy for that!"); return "startled"; }
     if (this.pers === "Grumpy" && rnd() < .5) { this.emote("💢"); return "grumpy"; }
@@ -1739,7 +1749,7 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
@@ -1838,7 +1848,7 @@ function setPreset(name) {
   for (const m of Object.values(emoteMats)) m.color.setScalar(P.night ? .55 : 1); // bubbles don't glow like lamps after dark lamp.intensity = P.night ? 16 : 0;
   lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
   M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
-  for (const a of animals) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); }
+  for (const a of animals) if (!a.rig3d) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); } // 3D coats use scene lighting; picture glow would wash out their patches
   windU.uWind.value = wind;
   // sky reflections for glossy paint, glass and wet surfaces
   skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
