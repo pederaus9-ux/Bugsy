@@ -959,9 +959,10 @@ function makeFence(len, posts) {
 
 // ---------------- animals: the approved renders, standing in the world ----------------
 // They turn to face the camera; a separate invisible card faces the sun so their shadow keeps its shape.
-function makeAnimal(src, h, x, z) {
+function makeAnimal(src, h, x, z, rig) {
   const t = new THREE.TextureLoader().load(src, (tx) => {
     const a = tx.image.width / tx.image.height; card.scale.set(h * a, h, 1); shadowCard.scale.set(h * a, h, 1);
+    if (pup) pupLoad(pup, rig, tx.image.width, tx.image.height);
   });
   t.colorSpace = THREE.SRGBColorSpace;
   const g = new THREE.Group(); g.position.set(x, 0, z);
@@ -972,8 +973,111 @@ function makeAnimal(src, h, x, z) {
   shadowCard.castShadow = true; shadowCard.customDepthMaterial = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:t, alphaTest:.4});
   g.add(shadowCard);
   card.rotation.order = "YXZ";
-  return {g, card, shadowCard, h};
+  const pup = rig ? pupRig(rig, card.material, shadowCard.customDepthMaterial) : null;
+  return {g, card, shadowCard, h, pup};
 }
+
+// ---------------- walking legs for the painted animals (Phase 7E prototype: cow and chicken) ----------------
+// The painted legs are cut out of the same picture and stepped in its shader: each leg is a strip of the image
+// that shears about its hip (top fixed, hoof swinging) and lifts during its swing; far legs draw behind the body,
+// near legs in front, and a soft patch around the head can nod or thrust. Still one card, one draw call.
+// Pixel coordinates in the source art (y down). leg: r = [x0, x1, hipY, footY], ph = phase offset in the stride.
+// A pixel belongs to the first leg whose rectangle holds it (after any leg's "claim" rectangle), so overlapping toes stay with the right foot.
+const RIGS = {
+  cow:{L:.8, Lrun:1.45, beta:.62, betaRun:.45, lift:.05, bob:.012, maxShear:.42, head:[110, 105, 70, 125], nod:.012, thrust:0,
+    legs:[{r:[100, 182, 322, 505], near:0, ph:.5}, {r:[182, 262, 322, 505], near:1, ph:0},     // far front, near front
+          {r:[340, 420, 322, 458], near:0, ph:.08}, {r:[420, 487, 322, 458], near:1, ph:.58}]}, // far hind, near hind (the tail stays put)
+  chicken:{L:.26, Lrun:.42, beta:.56, betaRun:.45, lift:.035, bob:.02, maxShear:.62, head:[56, 80, 52, 96], nod:.006, thrust:.03,
+    legs:[{r:[60, 182, 396, 490], near:0, ph:.5}, {r:[60, 270, 398, 512], claim:[150, 270, 476, 512], near:1, ph:0}]}, // the near foot's back toe reaches under the far foot
+};
+const PUP_GLSL = `
+#ifdef USE_MAP
+uniform vec4 pupRect[PUP_LEGS]; uniform vec4 pupClaim[PUP_LEGS]; uniform vec4 pupMove[PUP_LEGS]; uniform vec4 pupHead; uniform vec4 pupHeadOff;
+bool pupIn(vec2 q, vec4 r) { return q.x >= r.x && q.x <= r.y && q.y <= r.z && q.y >= r.w; }
+int pupOwner(vec2 q) {
+  for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupClaim[i])) return i;
+  for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupRect[i])) return i;
+  return -1;
+}
+vec4 pupOver(vec4 dst, vec4 src) { float a = src.a + dst.a * (1.0 - src.a);
+  return a < 1e-4 ? vec4(0.0) : vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / a, a); }
+vec4 pupSample(vec2 p) {
+  vec2 dx = dFdx(p), dy = dFdy(p); // one gradient for every layer, so cut edges don't pick a blurry mip level
+  vec4 col = vec4(0.0), nearCol = vec4(0.0);
+  for (int i = 0; i < PUP_LEGS; i++) {
+    vec4 r = pupRect[i], m = pupMove[i];
+    if (p.y > r.z || r.z <= r.w) continue;
+    float d = clamp((r.z - p.y) / (r.z - r.w), 0.0, 1.0);
+    vec2 q = vec2(p.x + m.x * d, p.y - m.y * d);
+    if (pupOwner(q) != i) continue;
+    vec4 c = textureGrad(map, q, dx, dy);
+    if (m.z > 0.5) nearCol = pupOver(nearCol, c); else col = pupOver(col, c);
+  }
+  vec2 hp = (p - pupHead.xy) * pupHeadOff.zw;
+  float w = 1.0 - smoothstep(pupHead.z, pupHead.w, length(hp));
+  vec2 q = p - pupHeadOff.xy * w;
+  vec4 body = pupOwner(q) < 0 ? textureGrad(map, q, dx, dy) : vec4(0.0);
+  return pupOver(pupOver(col, body), nearCol);
+}
+#endif
+`;
+function pupRig(rig, mat, depth) {
+  const n = rig.legs.length, V4 = () => new THREE.Vector4();
+  const U = {pupRect:{value:rig.legs.map(V4)}, pupClaim:{value:rig.legs.map(V4)}, pupMove:{value:rig.legs.map(V4)}, pupHead:{value:V4()}, pupHeadOff:{value:V4()}};
+  for (const m of [mat, depth]) {
+    m.defines = {...(m.defines || {}), PUP_LEGS:n};
+    m.customProgramCacheKey = () => "pup" + n;
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, U);
+      sh.fragmentShader = sh.fragmentShader
+        .replace("#include <map_pars_fragment>", "#include <map_pars_fragment>\n" + PUP_GLSL)
+        .replace("#include <map_fragment>", "#ifdef USE_MAP\nvec4 pupCol = pupSample(vMapUv);\ndiffuseColor *= pupCol;\n#endif")
+        .replace("#include <emissivemap_fragment>", "#if defined( USE_EMISSIVEMAP ) && defined( USE_MAP )\ntotalEmissiveRadiance *= pupCol.rgb;\n#endif");
+    };
+  }
+  return {U, n, gait:Math.random(), env:0, spd:0, px:null, pz:0, ready:false, W:1, H:1};
+}
+// art size known: pixel rectangles become texture coordinates (v up)
+function pupLoad(P, rig, W, H) {
+  P.W = W; P.H = H;
+  rig.legs.forEach((l, i) => { const [x0, x1, y0, y1] = l.r; P.U.pupRect.value[i].set(x0 / W, x1 / W, 1 - y0 / H, 1 - y1 / H); P.U.pupMove.value[i].z = l.near;
+    if (l.claim) { const [a0, a1, b0, b1] = l.claim; P.U.pupClaim.value[i].set(a0 / W, a1 / W, 1 - b0 / H, 1 - b1 / H); } });
+  const [hx, hy, r0, r1] = rig.head; P.U.pupHead.value.set(hx / W, 1 - hy / H, r0, r1); P.U.pupHeadOff.value.set(0, 0, W, H);
+  P.ready = true;
+}
+// Step the legs from the distance this animal really covered this frame (fences and shoves included), not the clock:
+// standing still means no stepping, and the cadence follows the speed. Returns the body's bob in metres.
+function pupStep(b, dt) {
+  const P = b.pup, R = RIGS[b.kind], S = b.S, x = b.g.position.x, z = b.g.position.z;
+  let d = P.px === null ? 0 : Math.hypot(x - P.px, z - P.pz); P.px = x; P.pz = z;
+  if (d > 1.5) d = 0; // a spawn or a jump, not a step
+  const spd = d / Math.max(dt, 1e-3); P.spd += (spd - P.spd) * Math.min(1, dt * 8);
+  const run = THREE.MathUtils.clamp((P.spd - S.walk * 1.3) / (S.run - S.walk * 1.3), 0, 1);
+  const L = THREE.MathUtils.lerp(R.L, R.Lrun, run), beta = THREE.MathUtils.lerp(R.beta, R.betaRun, run);
+  P.gait = (P.gait + d / L) % 1;
+  const envTo = THREE.MathUtils.smoothstep(P.spd, S.walk * .08, S.walk * .45);
+  P.env += (envTo - P.env) * Math.min(1, dt * (envTo > P.env ? 9 : 6));
+  if (!P.ready) return 0;
+  // feet only slide across the picture as far as the walk runs across the screen; walking at you, they mostly lift
+  const right = _pupV.setFromMatrixColumn(camera.matrixWorld, 0), vl = Math.hypot(b.vel.x, b.vel.y);
+  const lateral = vl > 1e-3 ? Math.abs((b.vel.x * right.x + b.vel.y * right.z) / vl) : 1;
+  const wm = b.S.h * P.W / P.H, A = P.env * beta * L / 2 * Math.max(lateral, .35); // planted feet move back exactly as far as the body goes forward
+  const lift = P.env * R.lift * (1 + run * .6);
+  for (let i = 0; i < P.n; i++) {
+    const leg = R.legs[i], c = (P.gait + leg.ph) % 1, rect = P.U.pupRect.value[i], len = (rect.z - rect.w) * b.S.h;
+    let f, up = 0;
+    if (c < beta) f = A * (1 - 2 * c / beta);
+    else { const s = (c - beta) / (1 - beta), e = s * s * (3 - 2 * s); f = -A + 2 * A * e; up = Math.sin(s * Math.PI) * lift; }
+    f = THREE.MathUtils.clamp(f, -R.maxShear * len, R.maxShear * len);
+    P.U.pupMove.value[i].x = f / wm; P.U.pupMove.value[i].y = up / b.S.h;
+  }
+  // head: a hen holds her head still and then thrusts it forward each step; a cow nods into her front footfalls
+  const st = (P.gait * 2) % 1, hold = .72, th = R.thrust * P.env, hf = st < hold ? th * (1 - 2 * st / hold) : th * (-1 + 2 * (st - hold) / (1 - hold));
+  P.U.pupHeadOff.value.x = -hf / wm; // forward is -u: the art faces left P.U.pupHeadOff.value.y = -R.nod * P.env * (.5 + .5 * Math.cos(P.gait * Math.PI * 4)) / b.S.h;
+  // the body rides up as the legs pass under it, twice a stride
+  return P.env * R.bob * b.S.h * (.5 + .5 * Math.cos(P.gait * Math.PI * 4)) * (1 + run);
+}
+const _pupV = new THREE.Vector3();
 
 bootStep("making the ground");
 // ---------------- ground ----------------
@@ -1411,7 +1515,7 @@ function emoteMat(e) {
 const rnd = rng(4242);
 class Beast {
   constructor(kind, name, pers, x, z, ref) {
-    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".webp", S.h, x, z);
+    const S = SPECIES[kind], A = makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]);
     Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
       vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
       need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
@@ -1531,7 +1635,9 @@ class Beast {
     const spd = moving ? this.vel.length() : 0, k = Math.min(1, spd / this.S.run), acc = (spd - this.lastSpd) / Math.max(dt, 1e-3); this.lastSpd = spd;
     const leanTo = moving ? k * .09 + THREE.MathUtils.clamp(acc * .015, -.06, .06) : 0;
     this.lean += (leanTo - this.lean) * Math.min(1, dt * 6);
-    if (moving) {
+    const rigBob = this.pup ? pupStep(this, dt) : 0; // cow and hen: legs that step with the ground covered
+    if (moving && this.pup) { y = rigBob; tilt = this.lean; }
+    else if (moving) {
       // stride bob: two footfalls per stride; the body rides highest mid-stride and dips, with a slight squash, as each foot lands
       const s = Math.abs(Math.sin(this.phase));
       y = s * h * (.015 + .045 * k); sy = 1 - (1 - s) * (.01 + .03 * k); tilt = this.lean;
@@ -2251,8 +2357,14 @@ function updateWalk(dt) {
   const moved = Math.hypot(w.pos.x - ox, w.pos.y - oz); w.walked += moved;
   w.bob += ((G.PREFS.bob === false ? 0 : Math.sin(w.walked * 4.4) * .045) * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // a gentle step bob (Settings can turn it off)
   // footsteps: grass, dirt (fields and the path) or wood (the stall and the order board), faster when running
-  const speed = moved / Math.max(dt, 1e-3); w.stepAcc = (w.stepAcc || 0) + moved;
-  if (w.stepAcc > (speed > 4.5 ? 1.05 : .72)) { w.stepAcc = 0; G.step(surfaceAt(w.pos.x, w.pos.y), speed > 4.5); }
+  // The stride is driven by the ground really covered (walls stop it), and lengthens from a .72 m walking step to a
+  // 1.05 m running step; each footstep sound lands as a foot does.
+  const speed = moved / Math.max(dt, 1e-3); w.gspd = (w.gspd || 0) + (speed - (w.gspd || 0)) * Math.min(1, dt * 10); w.gdt = dt;
+  w.grun = THREE.MathUtils.clamp((w.gspd - 3.6) / 1.8, 0, 1);
+  const stepLen = THREE.MathUtils.lerp(.72, 1.05, w.grun), half = Math.floor((w.gait || 0) * 2);
+  w.gait = (w.gait || 0) + moved / (2 * stepLen);
+  if (Math.floor(w.gait * 2) !== half) G.step(surfaceAt(w.pos.x, w.pos.y), speed > 4.5);
+  w.gait %= 1;
   G.windRush(!thirdPerson && speed > 4.5 ? Math.min(1, (speed - 4.5) / 1.5) : 0); // air rushing past when you run
 }
 // push a walker (a circle on the ground) out of buildings, bushes, fences and decorations, and keep it on the farm
@@ -2292,16 +2404,21 @@ function buildFarmer(L = G.lookOf(GS())) {
   const skin = col(pick("skin")[1]), shirt = col(pick("shirt")[1]), hairC = col(pick("hairColor")[1]), boot = col(pick("boots")[1]);
   const over = pick("overalls")[1], denim = col(over ? pick("overallColor")[1] : 0x8b7355), dark = std({color:0x2a1c12, roughness:.6});
   const part = (geo, mat, x, y, z, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; };
-  const legs = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .11, .8, 0); g.add(p);
-    part(new THREE.CylinderGeometry(.085, .075, .7, 10), denim, 0, -.35, 0, p); part(new THREE.BoxGeometry(.16, .11, .28), boot, 0, -.74, -.05, p); return p; });
-  part(new THREE.CylinderGeometry(.2, .19, .5, 14), over ? denim : shirt, 0, 1.03, 0);   // overalls (or the shirt tucked into trousers)
-  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, 1.4, 0);                   // shirt
-  if (over) { part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, 1.33, -.19); for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, 1.42, 0); }
+  // legs bend at the knee (each leg: hip pivot › thigh, knee pivot › shin and boot)
+  const knees = [], legs = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .11, .8, 0); g.add(p);
+    part(new THREE.CylinderGeometry(.085, .08, .38, 10), denim, 0, -.19, 0, p);
+    const kn = new THREE.Group(); kn.position.y = -.36; p.add(kn); knees.push(kn);
+    part(new THREE.CylinderGeometry(.08, .075, .36, 10), denim, 0, -.17, 0, kn); part(new THREE.BoxGeometry(.16, .11, .28), boot, 0, -.38, -.05, kn); return p; });
+  // everything above the belt twists and leans as one, against the hips
+  const torso = new THREE.Group(); torso.position.y = .8; g.add(torso);
+  part(new THREE.CylinderGeometry(.2, .19, .5, 14), over ? denim : shirt, 0, .23, 0, torso);   // overalls (or the shirt tucked into trousers)
+  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, .6, 0, torso);                   // shirt
+  if (over) { part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, .53, -.19, torso); for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, .62, 0, torso); }
   else part(new THREE.CylinderGeometry(.205, .205, .06, 14), dark, 0, .8, 0);            // belt
-  const arms = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .26, 1.5, 0); g.add(p);
+  const arms = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .26, .7, 0); torso.add(p);
     part(new THREE.CylinderGeometry(.062, .056, .56, 8), shirt, 0, -.28, 0, p); part(new THREE.SphereGeometry(.068, 10, 8), skin, 0, -.58, 0, p); return p; });
-  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, 1.6, 0);                  // neck
-  const head = new THREE.Group(); head.position.set(0, 1.78, 0); g.add(head);
+  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, .8, 0, torso);                  // neck
+  const head = new THREE.Group(); head.position.set(0, .98, 0); torso.add(head);
   part(new THREE.SphereGeometry(.19, 18, 14), skin, 0, 0, 0, head);
   for (const sd of [-1, 1]) part(new THREE.SphereGeometry(.025, 8, 6), dark, sd * .07, .02, -.175, head); // eyes (the farmer faces -z)
   const smile = part(new THREE.TorusGeometry(.05, .01, 5, 12, Math.PI), dark, 0, -.06, -.178, head); smile.rotation.z = Math.PI;
@@ -2331,20 +2448,41 @@ function buildFarmer(L = G.lookOf(GS())) {
   // an invisible box to tap (the classic view: tap the farmer to open the wardrobe)
   const hb = hitProxy(.8, 2.1, .8, 0, 1.05, 0); g.add(hb);
   g.traverse(o => { if (o.isMesh && o !== hb) o.receiveShadow = true; });
-  farmer.userData.legs = legs; farmer.userData.arms = arms; farmer.userData.head = head; farmer.userData.body = g;
+  farmer.userData.legs = legs; farmer.userData.knees = knees; farmer.userData.torso = torso; farmer.userData.arms = arms; farmer.userData.head = head; farmer.userData.body = g;
   if (hands) hands.userData.sleeve.color.set(pick("shirt")[1]), hands.userData.skin.color.set(pick("skin")[1]);
 }
 let thirdPerson = true; try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {}
 document.getElementById("povBtn").addEventListener("click", () => { thirdPerson = !thirdPerson; try { localStorage.setItem("sa3d-pov", thirdPerson ? "farmer" : "eyes"); } catch (e) {} G.sfx("pop"); });
+// Walking and running poses from the stride (walk.gait, 0..1 per two steps): legs swing opposite the arms, the
+// swinging leg bends at the knee, the shoulders twist against the hips, and running leans in with bigger, bent strides.
+// Starts and stops ease through an envelope from the real speed, so nothing snaps or slides on the spot.
+function poseFarmerGait(w) {
+  const U = farmer.userData; if (!U.legs) return 0;
+  const env = w.genv = (w.genv || 0) + (THREE.MathUtils.smoothstep(w.gspd || 0, .15, 1.6) - (w.genv || 0)) * Math.min(1, (w.gdt || .016) * 12);
+  const run = w.grun || 0, c = (w.gait || 0) * Math.PI * 2, sn = Math.sin(c), cs = Math.cos(c);
+  const hip = THREE.MathUtils.lerp(.42, .72, run) * env, kneeBend = THREE.MathUtils.lerp(.55, 1.25, run) * env;
+  for (let i = 0; i < 2; i++) {
+    const sd = i ? -1 : 1, swing = sn * sd, fwd = cs * sd; // fwd > 0 while this leg travels forward (in the air)
+    U.legs[i].rotation.x = swing * hip + run * .12 * env;
+    U.knees[i].rotation.x = -(Math.max(0, fwd) * kneeBend + (.08 + .25 * run) * env);
+    U.arms[i].rotation.x = -swing * THREE.MathUtils.lerp(.5, .85, run) * env + run * .35 * env; // runners carry their arms forward
+    U.arms[i].rotation.z = (i ? 1 : -1) * run * .12 * env;
+  }
+  U.torso.rotation.y = sn * THREE.MathUtils.lerp(.1, .16, run) * env;
+  U.torso.rotation.x = -THREE.MathUtils.lerp(.04, .2, run) * env;
+  U.torso.rotation.z = sn * .025 * env * (1 - run);
+  U.head.rotation.y = -U.torso.rotation.y * .8; U.head.rotation.x = -U.torso.rotation.x * .6; // eyes stay on the road
+  // the body rises as each leg passes under it (twice a stride) and sits a touch lower when running
+  return (Math.abs(cs) * THREE.MathUtils.lerp(.035, .08, run) - run * .05) * env;
+}
 function placeWalkCamera() {
   const w = walk, gy = groundY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
   farmer.visible = thirdPerson;
   if (thirdPerson) {
     // turn the farmer toward where they're walking, and swing arms and legs with each step
-    const sp = w.vel.length(), k = Math.min(1, sp / 3.4), sw = Math.sin(w.walked * 4.4) * .7 * k;
+    const sp = w.vel.length();
     if (sp > .3) { const want = Math.atan2(-w.vel.x, -w.vel.y); let d = want - farmer.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); farmer.rotation.y += d * .2; }
-    const { legs, arms } = farmer.userData; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; arms[0].rotation.x = -sw * .8; arms[1].rotation.x = sw * .8;
-    farmer.position.set(w.pos.x, gy + Math.abs(Math.sin(w.walked * 4.4)) * .05 * k, w.pos.y);
+    farmer.position.set(w.pos.x, gy + poseFarmerGait(w), w.pos.y);
     const back = 4.3, up = 2.6 - w.pitch * 2.2; // tilting the view up or down swings the camera round the farmer's head
     camera.position.set(w.pos.x - fx * back * cp, gy + up, w.pos.y - fz * back * cp);
     camera.lookAt(w.pos.x + fx * 2, gy + 1.5 + w.pitch * 2, w.pos.y + fz * 2);
@@ -2653,8 +2791,8 @@ farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI * .85;
 function updateFarmerIdle(t) {
   if (walk) return;
   farmer.visible = !!GS() && !editMode;
-  const { legs, arms, head, body } = farmer.userData; if (!legs) return;
-  legs[0].rotation.x = legs[1].rotation.x = 0;
+  const { legs, knees, torso, arms, head, body } = farmer.userData; if (!legs) return;
+  legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = 0; arms[0].rotation.z = 0;
   const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
   arms[0].rotation.x = Math.sin(t * 1.3) * .04; arms[1].rotation.x = Math.sin(t * 1.3 + 1) * .04; arms[1].rotation.z = wave ? -2.3 + wave : 0;
   head.rotation.y = Math.sin(t * .4) * .5; body.scale.y = 1 + Math.sin(t * 1.8) * .006;
