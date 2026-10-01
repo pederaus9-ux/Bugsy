@@ -2,8 +2,10 @@
 
 This roadmap supersedes older Phase 7 labels. Work in order, using focused
 branches and PRs from current main. The owner reviews and merges each PR.
-Phase 7A is merged. Phase 7B is currently authorized; stop after its PR for owner
-review and merging. Phase 7C requires a separate go-ahead.
+Phases 7A and 7B are merged. The owner reports a successful Phase 7C performance
+session on an S26 Ultra; the shed-switching defect found in that session is being
+repaired. Stop after the repair PR for owner review and merging. Phase 7D requires
+a separate go-ahead.
 
 ## Rules for every phase
 

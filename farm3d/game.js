@@ -9,6 +9,7 @@
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
   fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; }, moveDecor(j) {},
+  openBuildingAt(x, y) { return false; }, // a shed-menu backdrop tap can select another visible shed
   refresh(what) {},               // "plots" | "herd" | "buildings" | "decor" | "stand" | "style" | "all"
   sparkle(key) {}, fly(kind, n) {}, // a gold burst over something; coins or gems flying into their counter
   freeDecorSpot(size) { return null; },
@@ -1635,7 +1636,9 @@ document.addEventListener("click", (e) => {
   if (el.classList.contains("scrim") && e.target !== el) return; // tapping inside a panel shouldn't close it
   const d = el.dataset, i = +d.i;
   switch (d.act) {
-    case "closePanel": closePanel(); break;
+    case "closePanel":
+      if (el.classList.contains("scrim") && panel?.type === "building" && view.openBuildingAt(e.clientX, e.clientY)) break;
+      closePanel(); break;
     case "backupFile": backupFile(); break;
     case "backupCode": showBackupCode(); break;
     case "copyCode": copyCode(); break;

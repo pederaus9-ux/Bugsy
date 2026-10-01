@@ -1,7 +1,7 @@
 // Keeps the 3D game on the phone so it opens quickly and plays offline.
 // (Named "sa3d-" so the 2D game's own clean-up never touches it.)
-const CACHE = "sa3d-v22";
-const SHELL = ["./", "index.html", "game.js", "perf.js?v=1", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js"];
+const CACHE = "sa3d-v23";
+const SHELL = ["./", "index.html", "game.js?v=22", "perf.js?v=1", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
