@@ -614,8 +614,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=21"; window.__gameVer = 21;
-import {initFriends} from "./friends.js?v=4"; // bump the number with every change to game.js, so phones never mix an old game.js with a new page
+import * as G from "./game.js?v=22"; window.__gameVer = 22; // bump this version whenever game.js changes
+import {initFriends} from "./friends.js?v=4";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -3041,6 +3041,15 @@ Object.assign(GV, {
   sparkle(key) { const v = keyPos(key); if (v) { bits(v.clone().setY(1), "rgba(255,210,60,1)", 16, 5.5); bits(v.clone().setY(1.2), "rgba(255,255,230,1)", 8, 6.5); } },
   fly:flyTo,
   fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
+  openBuildingAt(x, y) {
+    if (visiting || editMode || photoMode || wardrobeOn || inBarn) return false;
+    const h = hitAt(x, y);
+    if (h?.type !== "building") return false;
+    // A touch's generated click may land on the newly opened backdrop. The
+    // current shed is already selected; consuming it keeps that menu open.
+    if (G.panel?.arg !== h.bid) G.openPanel("building", h.bid);
+    return true;
+  },
   refresh(what) {
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }

@@ -43,7 +43,7 @@ It is written for the next developer or AI. Read it together with `farm3d/DESIGN
 | **Other folders** | `/farm` is the older 2D game. The repo root (`/index.html`, `/sw.js`, `/manifest.webmanifest`, `README.md`) is an **unrelated** app ("Bugsy Brain", a Gemini chat assistant): **don't touch it**. |
 | **Development branch** | `claude/hayday-style-game-currency-hq3vi4` |
 | **Branch HEAD** | `714a896` "3D farm: fix a crash when a seed drag is cancelled part-way (paintAlong on a null drag)" |
-| **origin/main** | `bd4669aa7e373fde7f6d90fab9ac398afab07808`, merged PR #24 on 2026-09-30 (Phase 7A baseline audit). |
+| **Verified main before this PR** | `3f06eae623a6d0dba04560c62812054fcaa2f9d6`, including merged Phase 7A/7B PRs #25/#26. |
 | **PR #24** | **Merged** on 2026-09-30. Main contains the entry and mid-loop `paintAlong()` guards and seed-tray cancellation cleanup. |
 | **Deploy** | GitHub Pages serves `main` from the repo root, so merging to `main` deploys within about 1–2 minutes. There is no CI. |
 
@@ -274,11 +274,11 @@ The details are in `DESIGN.md`.
 
 Every change to a module must bump its query in `index.html`:
 
-- `game.js?v=21` (also `window.__gameVer = 21`)
+- `game.js?v=22` (also `window.__gameVer = 22`)
 - `auth.js?v=12`
 - `friends.js?v=4`
 
-**and** the `CACHE` name in `sw.js` (currently `sa3d-v22`). Otherwise phones may mix an old module with a new page.
+**and** the `CACHE` name in `sw.js` (currently `sa3d-v23`). Otherwise phones may mix an old module with a new page.
 The optional diagnostics module is `perf.js?v=1`; it is also cached for offline use.
 
 ### Debug and test URL flags
@@ -323,8 +323,9 @@ No telemetry, saves, adaptive-quality decisions or visual settings are changed.
 Sampling uses fixed buffers; sorting/DOM work happens only at display updates.
 There is still measurement overhead, so compare with the flag off for real-device
 baselines. Desktop software-renderer checks establish functionality, not mobile
-FPS, GPU cost, thermal behavior or long-session stability. Phase 7C awaits owner
-approval after this PR.
+FPS, GPU cost, thermal behavior or long-session stability. The owner subsequently
+reported a successful S26 Ultra stress session; see `PHASE7C_BASELINE.md` for its
+evidence limits and the shed-switching repair. Other devices remain unmeasured.
 
 ---
 
