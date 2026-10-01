@@ -43,9 +43,9 @@ It is written for the next developer or AI. Read it together with `farm3d/DESIGN
 | **Other folders** | `/farm` is the older 2D game. The repo root (`/index.html`, `/sw.js`, `/manifest.webmanifest`, `README.md`) is an **unrelated** app ("Bugsy Brain", a Gemini chat assistant): **don't touch it**. |
 | **Development branch** | `claude/hayday-style-game-currency-hq3vi4` |
 | **Branch HEAD** | `714a896` "3D farm: fix a crash when a seed drag is cancelled part-way (paintAlong on a null drag)" |
-| **Verified main before this PR** | `3f06eae623a6d0dba04560c62812054fcaa2f9d6`, including merged Phase 7A/7B PRs #25/#26. |
+| **Verified main before Phase 7D** | `a26fb18292336a4d4b8bf370c28d658287939cb2`, including merged PRs #25/#26/#27. |
 | **PR #24** | **Merged** on 2026-09-30. Main contains the entry and mid-loop `paintAlong()` guards and seed-tray cancellation cleanup. |
-| **Deploy** | GitHub Pages serves `main` from the repo root, so merging to `main` deploys within about 1–2 minutes. There is no CI. |
+| **Deploy / CI** | GitHub Pages serves `main` from the repo root. Phase 7D adds `.github/workflows/farm3d-regression.yml`; see `farm3d/tests/README.md`. No branch-protection changes are included. |
 
 ---
 
