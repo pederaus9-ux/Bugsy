@@ -2241,7 +2241,7 @@ function updateWalk(dt) {
   if (keys.has("KeyA")) ix -= 1;
   if (keys.has("KeyD")) ix += 1;
   if (keys.has("ArrowLeft") || keys.has("KeyQ")) w.yaw += dt * 1.8;
-  if (keys.has("ArrowRight") || keys.has("KeyE")) w.yaw -= dt * 1.8;
+  if (keys.has("ArrowRight")) w.yaw -= dt * 1.8;
   const n = Math.hypot(ix, iy); if (n > 1) { ix /= n; iy /= n; }
   const running = keys.has("ShiftLeft") || keys.has("ShiftRight") || joy.run, sp = running ? 6 : 3.4;
   const sp_ = sp, s = Math.sin(w.yaw), c = Math.cos(w.yaw), k = Math.min(1, dt * 10);
