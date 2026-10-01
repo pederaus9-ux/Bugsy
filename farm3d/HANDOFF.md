@@ -43,8 +43,8 @@ It is written for the next developer or AI. Read it together with `farm3d/DESIGN
 | **Other folders** | `/farm` is the older 2D game. The repo root (`/index.html`, `/sw.js`, `/manifest.webmanifest`, `README.md`) is an **unrelated** app ("Bugsy Brain", a Gemini chat assistant): **don't touch it**. |
 | **Development branch** | `claude/hayday-style-game-currency-hq3vi4` |
 | **Branch HEAD** | `714a896` "3D farm: fix a crash when a seed drag is cancelled part-way (paintAlong on a null drag)" |
-| **origin/main** | `6a9ed48` "Merge pull request #23 …" |
-| **Open PR** | **#24**, the seed-drag crash fix. As of this writing it is **not merged**: main does not yet contain `714a896`. |
+| **origin/main** | `bd4669aa7e373fde7f6d90fab9ac398afab07808`, merged PR #24 on 2026-09-30 (Phase 7A baseline audit). |
+| **PR #24** | **Merged** on 2026-09-30. Main contains the entry and mid-loop `paintAlong()` guards and seed-tray cancellation cleanup. |
 | **Deploy** | GitHub Pages serves `main` from the repo root, so merging to `main` deploys within about 1–2 minutes. There is no CI. |
 
 ---
@@ -126,10 +126,10 @@ There is no player entity or health. The "player" is the farm owner, represented
 - **Mouse:** click taps, drag rotates, right-drag or Shift-drag pans, and the wheel zooms.
 - **Keyboard in walk mode:**
   - WASD or arrows move; Shift runs.
-  - Q/E and the Left/Right arrows turn.
+  - Q and ArrowLeft turn left; ArrowRight turns right. E and Enter interact only.
   - Space or F throws bait.
   - Esc exits walk, edit, panels and trays.
-- **BROKEN (minor): `KeyE` is bound twice.** It turns right (`updateWalk`, around line 2244) **and** triggers `interact()` (around line 2575). **Fix:** pick one; the suggestion is E = interact and Q/Z to turn.
+- **FIXED in Phase 7A:** `KeyE` no longer turns right in `updateWalk()`; E and Enter still trigger `interact()`. Touch controls are unchanged.
 - There is no key rebinding and no pointer-lock mouse-look in walk mode (mouse-drag is used instead).
 
 ### Controller / gamepad — PLANNED (not started)
@@ -240,7 +240,7 @@ The details are in `DESIGN.md`.
 | Error reporting | IMPLEMENTED | The safety-net script at the top of `index.html` posts 🐞 reports to Discord: at most 3 per visit and 10 per day, filtered, and only from github.io. |
 | Feedback box | IMPLEMENTED | 💬 posts to Discord, once per minute. |
 | Landscape-only + fullscreen | IMPLEMENTED | The first tap requests fullscreen and a landscape lock, and it re-requests after an exit. **iPhone Safari can't do fullscreen for pages** (a platform limit). |
-| Seed-drag crash (`paintAlong` null) | BROKEN on `main`, fixed on the branch | Fixed in PR #24 (`714a896`), which is **not yet merged**. |
+| Seed-drag crash (`paintAlong` null) | FIXED on `main` | PR #24 merged as `bd4669a`; cancellation guards verified during Phase 7A. |
 | Gem shop / gem sales | PLANNED | Phase 8. Gem-priced wardrobe items wait for it. Still no real money. |
 | Native store apps | PLANNED | Phase 9. |
 | Gamepad | PLANNED | — |
@@ -278,7 +278,7 @@ Every change to a module must bump its query in `index.html`:
 - `auth.js?v=12`
 - `friends.js?v=4`
 
-**and** the `CACHE` name in `sw.js` (currently `sa3d-v20`). Otherwise phones may mix an old module with a new page.
+**and** the `CACHE` name in `sw.js` (currently `sa3d-v21`). Otherwise phones may mix an old module with a new page.
 
 ### Debug and test URL flags
 
@@ -359,13 +359,13 @@ The webhook URL is in `index.html` (`window.__ERR_HOOK`); it's public by necessi
 
 ## 7. Known issues and immediate next steps
 
-1. **Merge PR #24** (the seed-drag crash fix, `paintAlong` null guard). Until then the 🐞 report can recur on the live site.
-2. **KeyE conflict** in walk mode: E both turns right and interacts. Make E interact only and move turning to Q/Z.
+1. **PR #24 merged:** the seed-drag cancellation guards are on main and verified in Phase 7A. Preserve them.
+2. **KeyE conflict fixed in Phase 7A:** E/Enter interact; Q/ArrowLeft turn left and ArrowRight turns right.
 3. **Real-device performance** of first-person walking (30 fps target) is unverified. Check on a mid-range Android; if it's too slow, lower grass density near the camera in walk mode or cap `PR_MIN` lower.
 4. **iPhone Safari fullscreen** is impossible from the browser. Only Add to Home Screen (PWA) or a store build solves it.
 5. **Closed-app push notifications** need Firebase Blaze plus Cloud Functions/FCM; not started.
 6. **Planned phases, from the user's builder brief numbering:**
-   - Phase 7: not yet specified.
+   - Phase 7: see `PHASE7_PLAN.md` for the authoritative 7A–7N roadmap and approval gates.
    - Phase 8: gem shop. Gems must remain earn-only; buying gems with real money is forbidden.
    - Phase 9: store launch (native wrapper).
    - Controller support: not requested yet.
