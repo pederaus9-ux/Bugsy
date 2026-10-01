@@ -39,12 +39,15 @@ select an external Playwright installation; neither is needed in CI.
 - Shed touch regression at all three sizes: immediate/repeated A-to-B switch,
   same-shed menu stability, finished goods preserved during switching, ordinary
   collection, explicit close, menu contents and other/non-building backdrops.
-- At all three sizes: opt-in cow integration measures final AI displacement,
+- At all three sizes: regular-link cow integration (no `characters3d` parameter)
+  measures final AI displacement,
   frozen gait at a blocked boundary, mesh picking, sandbox save preservation and
   scene-lit coats with existing picture glow preserved across five weather presets;
   standalone preview movement buttons/orbit/layout and geometry raycasts from
   front, flank and rear. Isolated rendered old-card/new-cow counts and stable
   renderer resources are checked with shadows on and off.
+- The optional `?characters2d` comparison restores painted cows without writing
+  a sandbox save.
 - Fail on page exceptions, console errors and failed/HTTP-error local resources.
 
 `regression.browser.cjs` keeps the animated 3D loop active. CSS viewports stay

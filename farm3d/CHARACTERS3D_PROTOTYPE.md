@@ -4,7 +4,11 @@ Owner request, 2026-10-01: replace painted animal cards with true 3D characters,
 including natural head turns and ear movement. Start with one cow for visual
 approval before extending to other species. This changes the roadmap order;
 Phase 7G is still deferred. Baseline: main `7ed0c9908ce97c03d5a5de1f6c855a7dcace4b69`
-(merged Phase 7F PR #30). This prototype is pending owner approval.
+(merged Phase 7F PR #30). PR #31 merged the prototype. The owner subsequently
+confirmed that it loads on the S26 Ultra through the preview link and requested
+the same cows on the main game link. This follow-up starts from `cafeee6` and
+enables 3D cows by default. Further style/species and sustained device performance
+review remain pending; this does not authorize other species or Phase 7G.
 
 ## Review
 
@@ -16,13 +20,14 @@ does not claim photorealism or final approved proportions.
 
 Then use **Try on the farm** (`?testfarm&characters3d&loco&perf`) for a throwaway
 farm with locomotion parade and performance readings. `?characters3d` alone also
-works with an ordinary farm. Only cows change; no saved flag or schema change.
-Default gameplay keeps the approved Phase 7F animals until the owner approves
-this style and device cost. Review images are in `docs/characters3d/`.
+works with an ordinary farm, but is no longer required. The regular link and
+installed-game launch now show the same 3D cows. `?characters2d` restores painted
+cows for comparison. Only cows change; no saved flag or schema change. Other
+animals retain Phase 7F artwork. Review images are in `docs/characters3d/`.
 
 On the S26 Ultra, check side/rear silhouettes, head/ear movement, hoof contact,
 starts/stops and turns; pet a cow and inspect normal menus. Compare the same
-loaded farm, quality, weather and camera with and without `characters3d` using
+loaded farm, quality, weather and camera with and without `characters2d` using
 `?perf`. Record FPS/frame time and renderer counts over a sustained session.
 The earlier Phase 7C 60-FPS result predates this geometry and is not a measurement
 of this prototype. Stop here for owner feedback; do not roll out other species.
@@ -32,7 +37,7 @@ of this prototype. Stop here for owner feedback; do not roll out other species.
 `cow3d.js?v=1` creates a real volume: one vertex-colored skinned mesh, 24 bones,
 shared geometry/material and independent skeleton/state per cow. Original
 procedural geometry requires no downloaded model, atlas or additional runtime
-dependency. It is lazy imported only when `characters3d` is present.
+dependency. It is imported for normal gameplay; `characters2d` skips it.
 
 The farm retains its existing AI, personality, routes, pens, needs, progression,
 collision, grass and adaptive quality. Animation receives actual displacement
@@ -73,6 +78,7 @@ draw calls do **not** establish lower total GPU cost: the additional geometry,
 shadow triangles and each skeleton need real-device review before rollout.
 
 Service-worker cache advances from `sa3d-v25` to `sa3d-v26`, precaching the module
-and standalone preview. Unchanged game/auth/friends module versions remain as-is.
+and standalone preview. The main-link follow-up bumps it again to `sa3d-v27`.
+Unchanged game/auth/friends module versions remain as-is.
 All changes are under `farm3d/`; no backend rules, money, save migration or
 repository settings change is included.

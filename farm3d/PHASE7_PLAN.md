@@ -10,7 +10,10 @@ Phase 7E (cow/chicken/farmer locomotion prototype, `PHASE7E_LOCOMOTION.md`) is
 COMPLETE / OWNER APPROVED (PR #29). Phase 7F (locomotion rollout,
 `PHASE7F_LOCOMOTION.md`) is MERGED (PR #30). The owner then requested true 3D
 characters before proceeding: first build one cow and stop for style and phone
-performance review. See `CHARACTERS3D_PROTOTYPE.md`. Phase 7G remains deferred.
+performance review. PR #31 is merged, and the owner confirmed the new cow loads
+on the phone through the preview, then requested it on the regular game link.
+Cows now use 3D by default; other species and Phase 7G remain deferred pending
+further owner feedback. See `CHARACTERS3D_PROTOTYPE.md`.
 
 ## Rules for every phase
 
