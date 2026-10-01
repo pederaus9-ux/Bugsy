@@ -1,11 +1,11 @@
-// Opt-in farm integration and the same 3D rig in the owner's standalone preview.
+// Regular-link farm integration and the same 3D rig in the owner's standalone preview.
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const {start,artifacts}=require('./browser-harness.cjs');
 (async()=>{const h=await start(),results=[];let failed=true;
  try{
   for(const viewport of [{width:740,height:360},{width:844,height:390},{width:1280,height:720}]){
    const s=await h.setup(viewport,true,'cow3d-'+viewport.width,viewport.width<1000),{page,errors}=s;
-   await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0&characters3d');
+   await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0');
    await page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
    const integration=await page.evaluate(()=>{
     const d=__dbg,before=localStorage.getItem('sunny-acres-3d-v1');d.G.opts.quiet=true;d.renderer.shadowMap.enabled=false;
@@ -69,6 +69,12 @@ const {start,artifacts}=require('./browser-harness.cjs');
    for(const c of cost){assert.ok(c.prototype.calls<=c.baseline.calls);assert.ok(c.prototype.triangles/(c.shadows?2:1)<15000);assert.ok(c.stable);}
    assert.deepEqual(errors,[]);results.push({viewport,integration,angles,cost});console.log('PASS 3D preview controls, orbit, geometry and cost',viewport.width,JSON.stringify(cost));await s.finish();
   }
+  const fallback=await h.setup({width:844,height:390},true,'cow2d-fallback');
+  await fallback.page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0&characters2d');
+  await fallback.page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
+  const old=await fallback.page.evaluate(()=>({cows:__dbg.animals.filter(a=>a.kind==='cow').map(a=>!!a.rig3d),other3d:__dbg.animals.some(a=>!!a.rig3d),save:localStorage.getItem('sunny-acres-3d-v1')}));
+  assert.ok(old.cows.length>0);assert.ok(old.cows.every(value=>!value));assert.equal(old.other3d,false);assert.equal(old.save,null);assert.deepEqual(fallback.errors,[]);
+  console.log('PASS optional painted-cow comparison and sandbox save');await fallback.finish();
   fs.writeFileSync(path.join(artifacts,'cow3d-results.json'),JSON.stringify(results,null,2));failed=false;
  }finally{await h.close(failed);}
 })().catch(e=>{console.error(e);process.exitCode=1;});

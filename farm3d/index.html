@@ -619,7 +619,7 @@ import {initFriends} from "./friends.js?v=4";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
-const Cow3D = qs.has("characters3d") ? await import("./cow3d.js?v=1") : null; // owner-reviewed prototype, opt-in for now
+const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=1"); // 3D cows on the regular link; optional artwork fallback for comparisons
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
