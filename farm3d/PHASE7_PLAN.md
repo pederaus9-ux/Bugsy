@@ -6,8 +6,9 @@ Phases 7A and 7B are merged. The owner reports a successful Phase 7C performance
 session on an S26 Ultra. Its shed-switching repair is merged in PR #27 and live;
 the owner's subsequent "good continue" is taken as phone confirmation and
 authorization for Phase 7D. Phase 7D (regression tests and CI) is merged in PR #28.
-Phase 7E (cow/chicken/farmer locomotion prototype) is recorded in
-`PHASE7E_LOCOMOTION.md`; stop for owner visual approval before starting Phase 7F.
+Phase 7E (cow/chicken/farmer locomotion prototype, `PHASE7E_LOCOMOTION.md`) is
+COMPLETE / OWNER APPROVED (PR #29). Phase 7F (locomotion rollout,
+`PHASE7F_LOCOMOTION.md`) is IN PROGRESS; stop for owner visual review before 7G.
 
 ## Rules for every phase
 
