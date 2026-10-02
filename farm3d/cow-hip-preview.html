@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Cow hip preview</title>
+<script type="module">
+import * as THREE from './lib/three.module.min.js';
+import {createCow3D,updateCow3D} from './cow3d.js';
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9ec7a8);
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,20);camera.position.set(2.2,1.2,2.4);
+const light=new THREE.DirectionalLight(0xffffff,1.2);light.position.set(2,4,2);scene.add(light,new THREE.AmbientLight(0xffffff,.45));
+const cow=createCow3D(1.8);scene.add(cow.g);scene.add(new THREE.Mesh(new THREE.CircleGeometry(3,32),new THREE.MeshStandardMaterial({color:0x6d8f55})));
+let mode=new URLSearchParams(location.search).get('mode')||'idle',t=0;
+addEventListener('keydown',e=>{if(e.key==='1')mode='idle';if(e.key==='2')mode='walk';if(e.key==='3')mode='run';});
+function frame(){
+  const speed=mode==='run'?2.6:mode==='walk'?.8:0,dt=1/60;t+=dt;
+  cow.g.position.z-=speed*dt;updateCow3D(cow,0,-speed*dt,dt,t);camera.lookAt(cow.g.position.x, .8, cow.g.position.z);
+  renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+frame();
+</script>

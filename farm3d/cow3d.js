@@ -12,9 +12,9 @@ function buildTemplate(){
   slots.neck=bone('neck',0,[0,1.12,-.59]);slots.head=bone('head',slots.neck,[0,.21,-.15]);
   slots.jaw=bone('jaw',slots.head,[0,-.09,-.08]);
   for(const side of [-1,1]){slots.ears.push(bone('ear'+side,slots.head,[side*.20,.15,.01]));slots.eyes.push(bone('eye'+side,slots.head,[side*.175,.065,-.153]));}
-  // Opposite diagonal pairs, front then hind. Knees/hocks and hooves really articulate.
+  // Hips are body children. The offset is body-local so the rest hip stays at the old root position.
   for(const [x,z,phase]of [[-.265,-.46,0],[.265,-.46,.5],[-.265,.48,.5],[.265,.48,0]]){
-    const hip=bone('hip'+slots.legs.length,0,[x,COW_GAIT.hip,z]);
+    const hip=bone('hip'+slots.legs.length,slots.body,[x,COW_GAIT.hip-1.03,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-COW_GAIT.upper,0]);
     const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase});
   }
@@ -68,6 +68,8 @@ function buildTemplate(){
   oval(pink,[0,.68,.30],[.19,.12,.23]);
   for(const x of [-.10,.10])for(const z of [.20,.39])rod(pink,[x,.55,z],.024,.013,.11);
   for(const [i,l]of slots.legs.entries()){
+    // Haunch overlaps the torso bottom and the thigh top so the hip swing does not open a gap.
+    oval(coat,[0,.08,0],[.16,.13,.15],l.hip,0,0,12);
     rod(cream,[0,-.16,0],.077,.052,.32,l.hip);
     oval(cream,[0,0,0],[.057,.061,.057],l.knee,0,0,12);
     rod(i<2?cream:0xdad5c7,[0,-.165,0],.045,.034,.33,l.knee);
@@ -100,8 +102,12 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
 }
 export function poseCowLeg(leg,tx,tz,lift,rig){
   const c=COW_GAIT;
-  leg.hip.position.y=Math.min(c.hip,c.hoof+lift+Math.sqrt(Math.max(.01,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
-  const y=leg.hip.position.y-c.hoof-lift;
+  // Body-local rest only. Cancels breath scale. The stride does not drop the hip.
+  leg.hip.scale.set(1/rig.body.scale.x,1/rig.body.scale.y,1/rig.body.scale.z);
+  const yReach=c.hoof+lift+Math.sqrt(Math.max(.01,(c.upper+c.lower-.001)**2-tx*tx-tz*tz));
+  const rootY=Math.min(c.hip,yReach);
+  leg.hip.position.set(leg.x,(rootY-1.03)/rig.body.scale.y,leg.z);
+  const y=rootY-c.hoof-lift;
   const distance=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
   let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
   const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi);
@@ -110,7 +116,6 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   const bend=Math.acos(clamp((distance*distance-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
   const sign=leg.z<0?1:-1;
   leg.hip.rotation.set(alpha-sign*delta,phi,0);leg.knee.rotation.x=sign*bend;
-  // The hoof lands flat even while the hip and knee bend.
   leg.foot.quaternion.copy(leg.hip.quaternion).multiply(leg.knee.quaternion).invert();
   if(leg.planted)leg.foot.quaternion.multiply(rig.q.setFromAxisAngle(UP,leg.ayaw-rig.model.rotation.y));
 }
@@ -124,13 +129,16 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   const stride=mix(c.stride,c.runStride,s.run),duty=mix(c.stance,c.runStance,s.run);
   s.phase=(s.phase+(distance>1.5?0:distance)/stride)%1;
   if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);}
+  const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
+  r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
+  r.body.rotation.z=Math.sin(s.phase*TAU)*.009*s.amount;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
   for(const l of r.legs){
-    const phase=(s.phase+l.phase)%1,reach=duty*stride/2;
+    const phase=(s.phase+l.phase)%1,step=duty*stride/2;
     let z,lift=0;
-    if(phase<duty){z=-reach+phase/duty*2*reach;
+    if(phase<duty){z=-step+phase/duty*2*step;
       if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}
-    }else{const u=(phase-duty)/(1-duty);z=reach*Math.cos(u*Math.PI);lift=Math.sin(u*Math.PI)*mix(.075,.13,s.run)*s.amount;l.planted=false;}
+    }else{const u=(phase-duty)/(1-duty);z=step*Math.cos(u*Math.PI);lift=Math.sin(u*Math.PI)*mix(.075,.13,s.run)*s.amount;l.planted=false;}
     let tx=0,tz=z*s.amount;
     if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=(wx*cos-wz*sin-l.x)*s.amount;tz=(wx*sin+wz*cos-l.z)*s.amount;}
     if(s.amount<.01){l.planted=false;tx=tz=lift=0;}
@@ -138,7 +146,6 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
     if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;l.planted=false;}
     poseCowLeg(l,tx,tz,lift,r);
   }
-  const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   s.nextLook-=dt;s.hold=Math.max(0,s.hold-dt);
   if(s.nextLook<=0){s.lookTo=Math.sin(s.seed*2.1+s.time*1.3)*.48;s.hold=1.6;s.nextLook=4.5+2*(.5+.5*Math.sin(s.time+s.seed));}
   s.look=mix(s.look,(s.pet>0?.28:s.hold>0?s.lookTo:0)*quiet*(1-s.amount*.6),ease(dt,3.5));
@@ -155,7 +162,5 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   if(s.nextBlink<=0){s.blinkTime=.20;s.nextBlink=3+2*(.5+.5*Math.sin(s.seed+s.time));}
   const shut=s.blinkTime>0?Math.sin((1-s.blinkTime/.20)*Math.PI):0;for(const eye of r.eyes)eye.scale.y=sleeping?.18:1-shut*.90;
   for(let i=0;i<3;i++){r.tail[i].rotation.z=Math.sin(s.time*.9+s.seed-i*.5)*(.12+i*.04)*quiet;r.tail[i].rotation.x=.08+Math.sin(s.time*.7-i*.3)*.04;}
-  r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
-  r.body.rotation.z=Math.sin(s.phase*TAU)*.009*s.amount;
   r.model.position.y=hop>0?Math.sin((1-hop)*Math.PI)*r.h*.18:0;
 }
