@@ -8,7 +8,10 @@ const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {act, EconomyError, OPS} = require("./economy");
 
 initializeApp();
-const db = getFirestore();
+// The game's Firestore database is NAMED "default" (auth.js: getFirestore(app, "default")); it is not the unnamed
+// "(default)" database the admin SDK would pick by itself. The economy must live in the same database the game reads.
+const DATABASE = "default";
+const db = getFirestore(DATABASE);
 
 exports.economyAct = onCall({region: "us-central1", enforceAppCheck: false}, async (request) => {
   const uid = request.auth && request.auth.uid;

@@ -130,6 +130,70 @@ wheat planting is permitted." Canonical accounts still start at 0 coins and no i
   - A refused provisional harvest is dropped.
   - The queue survives a restart and is per account.
 
+## 7I-C: function-created listings, inventory escrow, atomic buy, server coin transfer, collect removed
+
+**Built:**
+- `marketList`:
+  - Checks the canonical quantity, and holds (escrows) the goods out of the seller's verified items.
+  - Creates `market/{uid}-{requestId}` `{v:2, seller, sellerName, item, qty, price, at, state:"open"}`. The seller's
+    name comes from their own `players/` profile, never from the request.
+  - Allows at most 4 open listings and quantities of 1–10. Price bounds are the game's `marketPrice()` (half to double
+    the base price, per unit). Crops only, since canonical goods come only from harvests.
+- `marketBuy`, in ONE transaction:
+  - Refuses self-buy, a gone or sold listing, a 7G legacy listing, and not enough canonical coins.
+  - Debits the buyer, credits the seller AT ONCE, grants the goods, deletes the listing, and writes a `buy-` row
+    (buyer) and a `sale-` row (seller).
+  - Price, item and quantity always come from the stored listing.
+- `marketCancel`: the seller only; returns the escrowed goods. A sold listing is GONE.
+- Rules: `market/` can be read by signed-in players, and no client may write it. The old client list/buy/take-back/
+  collect writes are all now refused, and every old deny case is kept.
+- `friends.js` (trading post screen):
+  - List, buy and take back call `economyAct`. `collectSales` is removed.
+  - The screen shows the verified balance and offers only verified goods. Phone coins and barn are untouched by trading.
+- `auth.js`: `saAuth.fb.call(data)` loads the Functions SDK the first time it's used. Versions: auth.js v14,
+  friends.js v5, cache sa3d-v29.
+
+**Bug the browser flow test caught (fixed):**
+- The Cloud Function used the admin SDK's unnamed `(default)` database. The game's database is named `default`.
+- The server-side tests used the same wrong database, so they agreed with each other. Only the real-game flow showed
+  `NOT_ENOUGH_ITEMS` while the screen showed 3 verified wheat.
+- Now the function and the tests use `default`, and a regression test checks that the server writes there and not to
+  `(default)`.
+
+**Tests:**
+- Rules 22/22: 339 checks.
+- Economy 22/22. The 7 market tests:
+  - Server-created listing with escrow. Each refusal changes nothing. The 4-listing limit holds.
+  - Atomic buy: the seller is paid at once; a replayed buy charges nothing.
+  - Self-buy is refused. Legacy coins and barn are refused. 7G legacy listings can't be bought or taken back.
+  - 3 buyers at the same moment: one gets it, the seller is paid once, and the goods exist once.
+  - Take back works for the seller only; a sold listing is gone.
+  - End to end through the callable.
+  - The server writes to the `default` database.
+- Device reconciliation 8/8.
+- Real game flows 21/21:
+  - The trading post offers only verified goods (3), not the phone barn (5).
+  - The server creates the listing. The seller's verified wheat is held while the phone barn is untouched.
+  - The buyer pays with verified coins. The seller is paid while away, with no collect step.
+  - The sold listing is gone. Phone coins and barn are untouched on both sides.
+
+**Recovery observation (7H code, not changed; for ChatGPT):**
+- In one full-suite run, recovery scenario 3 failed: the game's first cloud read never answered and never errored
+  for over 60 s.
+- `linkFarm` awaits `cloud.get()` with no timeout. Its retry only runs when the read rejects, so recovery stayed
+  pending.
+- The invariant still held: recovery pending means uploads are refused, and the cloud was not touched.
+- The same suite run alone passed 10/10, and the 7I-B CI run passed.
+- Suggested 7H follow-up: a timeout (about 20 s) around `cloud.get()` in `linkFarm`, so a hung read falls into the
+  existing retry.
+- Evidence: `evidence/full-suite-7IC-run1-recovery3-hang.log`, `evidence/console-grandma-run1-recovery3-hang.log`,
+  `evidence/recovery-alone-rerun-PASS.log`.
+
+**Open for 7I-D (legacy UX):**
+- A player's own 7G listings (legacy-escrowed, client-written) can't be bought or taken back through the server.
+- 7I-D needs a legacy close-out: give the legacy goods or coins back to the phone farm only, never to the canonical
+  economy.
+
 ## Next
 
 - 7I-B (verified plots, online planting, server times, generations, offline maturity, harvest reconciliation) starts

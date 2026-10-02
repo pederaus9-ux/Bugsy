@@ -3,7 +3,23 @@
 // Run through `npm test` in farm3d/firebase (it starts the Firestore + Auth emulators first). Helpers: emu-harness.cjs.
 const fs = require('fs');
 const path = require('path');
-const {startEmu, readDoc, listDocs, signUp, resetEmulators, OWNER_EMAIL, artifacts} = require('./emu-harness.cjs');
+const {startEmu, readDoc, listDocs, signUp, resetEmulators, OWNER_EMAIL, artifacts, fsUrl} = require('./emu-harness.cjs');
+
+// Phase 7I: verified (canonical) coins and goods live in economy/{uid}, written only by the server. Here an account is
+// given verified goods directly (admin access), standing in for verified harvests, so the real trading post can run.
+const int = (n) => ({integerValue: String(n)});
+async function setEconomy(uid, coins, items) {
+  const fields = {v: int(1), coins: int(coins), rev: int(1), items: {mapValue: {fields: Object.fromEntries(Object.entries(items).map(([k, n]) => [k, int(n)]))}},
+    meta: {mapValue: {fields: {harvests: int(1), bootstrapUsed: {booleanValue: true}}}}};
+  const r = await fetch(fsUrl('economy/' + uid), {method: 'PATCH', headers: {Authorization: 'Bearer owner', 'Content-Type': 'application/json'}, body: JSON.stringify({fields})});
+  if (!r.ok) throw new Error('setEconomy ' + r.status);
+}
+async function economy(uid) {
+  const r = await fetch(fsUrl('economy/' + uid), {headers: {Authorization: 'Bearer owner'}});
+  if (r.status === 404) return null;
+  const f = (await r.json()).fields || {};
+  return {coins: +(f.coins?.integerValue || 0), items: Object.fromEntries(Object.entries(f.items?.mapValue?.fields || {}).map(([k, v]) => [k, +v.integerValue]))};
+}
 
 const results = [];
 const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
@@ -27,21 +43,25 @@ async function main() {
     await claimName(grandma, 'SunnyGrandma');
     let show = null; for (let i = 0; i < 20 && !show; i++) { await grandma.page.waitForTimeout(500); show = await readDoc('showcase/' + gUid); }
     check('showcase published', show && show.name === 'SunnyGrandma' && typeof show.save === 'string');
-    // grandma puts wheat up for sale, then closes the game
+    // grandma puts VERIFIED wheat up for sale through the server, then closes the game
     await P(grandma, () => { document.getElementById('friendsBox').hidden = true; });
-    await give(grandma, 'wheat', 5);
-    const gWheat0 = await barn(grandma, 'wheat');
+    await give(grandma, 'wheat', 5);                                  // farm-on-this-phone wheat: must NOT be tradable
+    const gWheat0 = await barn(grandma, 'wheat'), gCoinsLegacy0 = await coins(grandma);
+    await setEconomy(gUid, 0, {wheat: 3});
     await friends(grandma, 'market');
     await until(grandma, () => !!document.querySelector('#friendsBox [data-list]'));
+    check('trading post offers only verified goods', await P(grandma, () => [...document.querySelectorAll('#mItem option')].map(o => o.textContent).join('|')).then(t => t.includes('(3)') && !t.includes('(5)')),
+      'the select shows verified wheat (3), not the phone barn (5)');
     await P(grandma, () => { const s = document.getElementById('mItem'); if (s && s.value !== 'wheat') { s.value = 'wheat'; s.dispatchEvent(new Event('change', {bubbles: true})); } });
     await until(grandma, () => !!document.querySelector('#friendsBox [data-list]'));
     await P(grandma, () => document.querySelector('#friendsBox [data-list]').click());
     await until(grandma, () => document.getElementById('friendsBody').textContent.includes('Up for sale'));
     const listings = await listDocs('market');
-    check('listing created', listings.length === 1 && listings[0].fields.seller.stringValue === gUid, listings.length + ' listing(s)');
-    check('seller escrowed the goods', (await barn(grandma, 'wheat')) === gWheat0 - 1);
-    const price = listings.length ? +listings[0].fields.price.integerValue : 0;
-    const gCoins0 = await coins(grandma);
+    const L0 = listings[0] ? listings[0].fields : null;
+    check('listing created by the server', listings.length === 1 && L0.seller.stringValue === gUid && +L0.v.integerValue === 2 && L0.state.stringValue === 'open', listings.length + ' listing(s)');
+    check('seller\'s verified goods held by the server; phone barn untouched', (await economy(gUid)).items.wheat === 2 && (await barn(grandma, 'wheat')) === gWheat0,
+      JSON.stringify(await economy(gUid)) + ' phone wheat ' + (await barn(grandma, 'wheat')));
+    const price = L0 ? +L0.price.integerValue : 0;
     await sleep(grandma);
 
     // niece signs up on her own phone
@@ -68,21 +88,22 @@ async function main() {
     await until(niece, () => document.getElementById('friendsBody').textContent.includes('SunnyGrandma'));
     check('leaderboard shows the friend', (await bodyText(niece)).includes('SunnyGrandma'));
 
-    // ---- trading post: niece buys grandma's wheat
-    const nCoins0 = await coins(niece), nWheat0 = await barn(niece, 'wheat');
+    // ---- trading post: niece buys grandma's wheat with VERIFIED coins; grandma is paid at once (no collect)
+    await setEconomy(nUid, 20, {});
+    const nCoinsLegacy0 = await coins(niece), nWheatLegacy0 = await barn(niece, 'wheat');
     await friends(niece, 'market');
     await until(niece, () => !!document.querySelector('#friendsBox [data-buy]'));
     await P(niece, () => document.querySelector('#friendsBox [data-buy]').click());
     await until(niece, () => document.getElementById('friendsBody').textContent.includes('Bought'));
-    const sold = listings.length ? await readDoc('market/' + listings[0].id) : null;
-    check('buyer bought it (transaction)', sold && sold.buyer === nUid);
-    check('buyer paid and got the goods', (await coins(niece)) === nCoins0 - price && (await barn(niece, 'wheat')) === nWheat0 + 1);
+    const nE = await economy(nUid), gE = await economy(gUid);
+    check('buyer paid with verified coins and got verified goods (one server transaction)', nE.coins === 20 - price && nE.items.wheat === 1, JSON.stringify(nE));
+    check('seller paid at once while away (no collect step)', gE.coins === price, 'grandma verified coins ' + gE.coins + ', price ' + price);
+    check('the sold listing is gone', (await listDocs('market')).length === 0);
+    check('phone coins and barn untouched by trading', (await coins(niece)) === nCoinsLegacy0 && (await barn(niece, 'wheat')) === nWheatLegacy0);
 
     await sleep(niece);
     await wake(grandma);
-    await friends(grandma, 'market');
-    let gone = false; for (let i = 0; i < 20 && !gone; i++) { await grandma.page.waitForTimeout(500); gone = (await listDocs('market')).length === 0; }
-    check('seller collected the coins and the listing is gone', gone && (await coins(grandma)) === gCoins0 + price, `coins ${gCoins0} -> ${await coins(grandma)}, price ${price}`);
+    check('seller\'s phone farm was not paid in phone coins', (await coins(grandma)) === gCoinsLegacy0, 'legacy coins ' + gCoinsLegacy0 + ' -> ' + (await coins(grandma)));
 
     // ---- Phase 7H F1: this phone's copy of the farm can't be read: the cloud farm comes back, and is never overwritten
     let cloudBefore = null; for (let i = 0; i < 40; i++) { cloudBefore = await readDoc('farms/' + gUid); if (cloudBefore && JSON.parse(cloudBefore.save).coins === await coins(grandma)) break; await grandma.page.waitForTimeout(1000); }

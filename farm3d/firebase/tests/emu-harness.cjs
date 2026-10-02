@@ -13,7 +13,7 @@ const root = path.resolve(__dirname, '../../..');
 const sdk = path.resolve(__dirname, '../node_modules/firebase9');
 const artifacts = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(artifacts, {recursive: true});
-const PROJECT = 'demo-sunny-acres', FS = '127.0.0.1:8085', AUTH = '127.0.0.1:9099';
+const PROJECT = 'demo-sunny-acres', FS = '127.0.0.1:8085', AUTH = '127.0.0.1:9099', FN = '127.0.0.1:5001';
 const CDN = 'https://www.gstatic.com/firebasejs/9.23.0/';
 const OWNER_EMAIL = 'pederaus9@gmail.com';
 
@@ -29,10 +29,14 @@ export function getFirestore(app, ...a) { const db = _g(app, ...a); if (!done.ha
 import {getAuth as _g, connectAuthEmulator as _c} from "./real-firebase-auth.js";
 const done = new WeakSet();
 export function getAuth(app) { const a = _g(app); if (!done.has(a)) { done.add(a); _c(a, "http://127.0.0.1:9099", {disableWarnings: true}); } return a; }`,
+  'firebase-functions.js': `export * from "./real-firebase-functions.js";
+import {getFunctions as _g, connectFunctionsEmulator as _c} from "./real-firebase-functions.js";
+const done = new WeakSet();
+export function getFunctions(app, ...a) { const f = _g(app, ...a); if (!done.has(f)) { done.add(f); _c(f, "127.0.0.1", 5001); } return f; }`,
 };
 function cdnFile(name) {
   if (shims[name]) return shims[name];
-  const m = name.match(/^real-(firebase-(app|auth|firestore)\.js)$/);
+  const m = name.match(/^real-(firebase-(app|auth|firestore|functions)\.js)$/);
   let src = fs.readFileSync(path.join(sdk, m ? m[1] : name), 'utf8');
   // the real builds import firebase-app by its full URL: send them to the real one too, so there is one app module
   return src.split(CDN + 'firebase-app.js').join(CDN + 'real-firebase-app.js');
@@ -87,6 +91,9 @@ async function startEmu() {
     page.on('console', m => { const t = m.text(); if (!/WebGL|GPU stall|GL Driver/.test(t)) write(m.type() + ': ' + t); if (/permission|insufficient/i.test(t)) denials.push(name + ': ' + t); });
     page.on('pageerror', e => { write('pageerror: ' + e.message); if (/permission|insufficient/i.test(e.message)) denials.push(name + ': ' + e.message); });
     page.on('load', () => { loads[name] = (loads[name] || 0) + 1; write('--- page load #' + loads[name] + ' ' + page.url()); });
+    // every economy call (Phase 7I) and its answer
+    page.on('request', r => { if (r.url().startsWith('http://' + FN) && r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); });
+    page.on('response', async r => { if (!r.url().startsWith('http://' + FN) || r.request().method() !== 'POST') return; let t = ''; try { t = await r.text(); } catch (e) {} write('economy answer ' + r.status() + ' ' + t.slice(0, 300)); });
     page.on('request', r => {
       if (!r.url().startsWith('http://' + FS)) return;
       if (/documents\/farms\/|:commit|:beginTransaction|:batchGet/.test(r.url())) write('fs-request ' + r.method() + ' ' + r.url().split('/documents')[1]);
@@ -99,7 +106,7 @@ async function startEmu() {
     page.on('requestfailed', r => { if (r.url().startsWith('http://' + FS) || r.url().startsWith('http://' + AUTH)) write('request FAILED ' + r.url().slice(0, 120) + ' ' + (r.failure() && r.failure().errorText)); });
     await page.route('**/*', route => {
       const url = route.request().url();
-      if (p.offline && (url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH))) return route.abort('internetdisconnected');
+      if (p.offline && (url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH) || url.startsWith('http://' + FN))) return route.abort('internetdisconnected');
       // online, but reading ONE player's farm fails (the Listen request that asks for farms/<uid>); writes still go through,
       // so anything the page tries to upload would really reach the cloud
       if (p.blockFarmRead && url.startsWith('http://' + FS) && /\/Listen\//.test(url)) {
@@ -110,7 +117,7 @@ async function startEmu() {
       if (p.delayGame && /\/cow3d\.js/.test(url)) return new Promise(r => setTimeout(r, p.delayGame)).then(() => route.continue());
       // serve a different auth.js (e.g. an older revision) to show what a fix changes
       if (p.authFile && /\/farm3d\/auth\.js/.test(url)) return route.fulfill({contentType: 'text/javascript', body: fs.readFileSync(p.authFile, 'utf8')});
-      if (url.startsWith(base) || url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH)) return route.continue();
+      if (url.startsWith(base) || url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH) || url.startsWith('http://' + FN)) return route.continue();
       if (url.startsWith(CDN)) return route.fulfill({contentType: 'text/javascript', body: cdnFile(url.slice(CDN.length).split('?')[0])});
       return route.fulfill({contentType: 'application/json', body: '{}'}); // weather, error reports, fonts: never leave the machine
     });

@@ -12,7 +12,7 @@ const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const E = require("./economy.js");
 process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8085";
 initializeApp({projectId: "demo-sunny-acres"});
-const db = getFirestore();
+const db = getFirestore("default"); // the game's database is named "default" (same as functions/index.js and auth.js)
 const RUN = Date.now().toString(36);
 let t = 1_900_000_000_000;
 

@@ -265,31 +265,19 @@ test("help: no forged senders, self-help or oversized notes", async () => {
 });
 
 // ---------------------------------------------------------------- market
-test("market: list, buy, collect: the whole trading-post flow from friends.js", async () => {
-  const id = "alice-" + NOW, alice = as("alice"), bob = as("bob");
-  await ok(setDoc(doc(alice, "market", id), listing("alice")));
-  await ok(getDocs(query(collection(bob, "market"), limit(60))));
-  await ok(getDocs(query(collection(alice, "market"), where("seller", "==", "alice"))));
-  // bob buys it the way friends.js does: read in a transaction, write the whole listing back with buyer fields
-  await ok(runTransaction(bob, async (tx) => {
-    const ref = doc(bob, "market", id), d = await tx.get(ref);
-    if (!d.exists() || d.data().buyer) throw new Error("gone");
-    tx.set(ref, Object.assign({}, d.data(), {buyer: "bob", buyerName: "Bobby", soldAt: NOW + 5}));
-  }));
-  // alice collects her coins: the transaction deletes the sold listing
-  await ok(runTransaction(alice, async (tx) => { const ref = doc(alice, "market", id), x = await tx.get(ref); if (x.exists() && x.data().buyer) tx.delete(ref); }));
+// Phase 7I-C: the trading post is server-only. Every client write that 7G allowed (list, buy, take back, collect) is
+// now refused; the old deny cases stay as they were. The real flow is tested through economyAct in economy.test.mjs.
+test("market (7I-C): signed-in players can read listings; signed-out visitors can't", async () => {
+  await seed((db) => setDoc(doc(db, "market", "alice-r1"), listing("alice", {v: 2, state: "open"})));
+  await ok(getDocs(query(collection(as("bob"), "market"), limit(60))));
+  await ok(getDocs(query(collection(as("alice"), "market"), where("seller", "==", "alice"))));
+  await ok(getDoc(doc(as("bob"), "market", "alice-r1")));
+  await no(getDocs(collection(anon(), "market")));
 });
-test("market: the seller can take back an unsold listing; nobody else can delete one", async () => {
-  const id = "alice-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
-  await no(deleteDoc(doc(as("bob"), "market", id)));
-  await no(deleteDoc(doc(anon(), "market", id)));
-  await ok(deleteDoc(doc(as("alice"), "market", id)));
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
-  await no(deleteDoc(doc(as("bob"), "market", id)));       // the buyer can't delete the seller's sold listing either
-});
-test("market: listings must be your own and well-formed", async () => {
+test("market (7I-C): no client can create a listing, not even a well-formed one in their own name", async () => {
   const alice = as("alice"), id = "alice-" + NOW;
+  await no(setDoc(doc(alice, "market", id), listing("alice")));                                    // what friends.js used to do
+  await no(setDoc(doc(alice, "market", "alice-r2"), {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"}));
   await no(setDoc(doc(alice, "market", id), listing("bob")));                                    // in someone else's name
   await no(setDoc(doc(alice, "market", "bob-" + NOW), listing("alice")));                        // id not yours
   await no(setDoc(doc(anon(), "market", id), listing("alice")));
@@ -301,53 +289,34 @@ test("market: listings must be your own and well-formed", async () => {
   const missing = listing("alice"); delete missing.soldAt;
   await no(setDoc(doc(alice, "market", id), missing));
 });
-test("market: buyers can only mark an unsold listing as theirs, and change nothing else", async () => {
-  const id = "alice-" + NOW, bob = as("bob"), carol = as("carol");
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
+test("market (7I-C): no client can buy, take back, collect, reprice or delete a listing", async () => {
+  const id = "alice-" + NOW, bob = as("bob"), carol = as("carol"), alice = as("alice");
   const ref = (db) => doc(db, "market", id);
-  await no(updateDoc(ref(as("alice")), {buyer: "alice", buyerName: "Grandma", soldAt: NOW}));        // buying your own
-  await no(updateDoc(ref(bob), {buyer: "carol", buyerName: "Carol", soldAt: NOW}));                    // in someone else's name
-  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, price: 1}));            // and a discount
+  const fresh = () => seed((db) => setDoc(doc(db, "market", id), listing("alice")));
+  await fresh();
+  // the old friends.js buy (read in a transaction, write it back with buyer fields) and the plain update
+  await no(runTransaction(bob, async (tx) => { const d = await tx.get(ref(bob)); tx.set(ref(bob), Object.assign({}, d.data(), {buyer: "bob", buyerName: "Bobby", soldAt: NOW + 5})); }));
+  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW}));
+  await no(updateDoc(ref(alice), {buyer: "alice", buyerName: "Grandma", soldAt: NOW}));             // buying your own
+  await no(updateDoc(ref(bob), {buyer: "carol", buyerName: "Carol", soldAt: NOW}));                  // in someone else's name
+  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, price: 1}));          // and a discount
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, qty: 10}));
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, item: "cake"}));
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, seller: "bob"}));
-  await no(updateDoc(ref(bob), {price: 1}));                                                           // no sale at all
-  await no(updateDoc(ref(as("alice")), {price: 600}));                                                 // the seller can't reprice either
+  await no(updateDoc(ref(bob), {price: 1}));
+  await no(updateDoc(ref(alice), {price: 600}));                                                     // the seller can't reprice
   await no(updateDoc(ref(anon()), {buyer: "x", buyerName: "X", soldAt: NOW}));
-  await ok(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW}));
-  // sold: a second buyer can't take it over, and the first can't undo it
+  // take back (the seller deleting an unsold listing) and deletes by anyone else
+  await no(deleteDoc(ref(alice)));
+  await no(deleteDoc(ref(bob)));
+  await no(deleteDoc(ref(anon())));
+  // collect (the seller deleting a sold listing in a transaction) and anyone undoing or taking over a sale
+  await seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
+  await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists() && x.data().buyer) tx.delete(ref(alice)); }));
+  await no(deleteDoc(ref(bob)));
   await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
   await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
-  await no(updateDoc(ref(as("alice")), {buyer: null, buyerName: null, soldAt: null}));
-});
-
-test("market: two buyers at the same moment: exactly one gets it (game transaction, and blind writes stopped by the rules)", async () => {
-  const id = "alice-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
-  const buy = (uid, name) => { const db = as(uid); return runTransaction(db, async (tx) => {
-    const ref = doc(db, "market", id), d = await tx.get(ref);
-    if (!d.exists() || d.data().buyer) throw new Error("gone");
-    tx.set(ref, Object.assign({}, d.data(), {buyer: uid, buyerName: name, soldAt: NOW + 1}));
-  }); };
-  const out = await Promise.allSettled([buy("bob", "Bobby"), buy("carol", "Carol")]);
-  const won = out.filter(r => r.status === "fulfilled").length;
-  let final; await seed(async (db) => { final = (await getDoc(doc(db, "market", id))).data(); });
-  if (won !== 1) throw new Error("expected exactly one buyer, got " + won);
-  const winner = out[0].status === "fulfilled" ? "bob" : "carol";
-  if (final.buyer !== winner) throw new Error("listing says " + final.buyer + " but " + winner + " won");
-  counts.allow++; // (this part is the game's transaction doing its job; the rules part is below)
-  // a buyer that skips the game's check and writes blindly at the same moment: only the rules can stop the second one
-  const id2 = "alice-blind-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id2), listing("alice")));
-  const blind = (uid, name) => updateDoc(doc(as(uid), "market", id2), {buyer: uid, buyerName: name, soldAt: NOW + 2});
-  const out2 = await Promise.allSettled([blind("bob", "Bobby"), blind("carol", "Carol")]);
-  const won2 = out2.filter(r => r.status === "fulfilled").length;
-  counts.allow++; counts.deny++;
-  if (MUTATION) { if (won2 > 1) counts.openAllowed = (counts.openAllowed || 0) + 1; return; }
-  if (won2 !== 1) throw new Error("blind writes: expected exactly one buyer, got " + won2);
-  let final2; await seed(async (db) => { final2 = (await getDoc(doc(db, "market", id2))).data(); });
-  const winner2 = out2[0].status === "fulfilled" ? "bob" : "carol";
-  if (final2.buyer !== winner2) throw new Error("blind writes: listing says " + final2.buyer + " but " + winner2 + " won");
+  await no(updateDoc(ref(alice), {buyer: null, buyerName: null, soldAt: null}));
 });
 
 // ---------------------------------------------------------------- events

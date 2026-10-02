@@ -148,32 +148,13 @@ service cloud.firestore {
     }
 
     // ---------- market/{id}: the trading post ----------
-    // friends.js: id = "<sellerUid>-<millis>",
-    //   {seller, sellerName, item, qty, price, at, buyer:null, buyerName:null, soldAt:null}
-    // buying sets buyer/buyerName/soldAt in a transaction; the seller deletes the listing to take it back or to
-    // collect the coins after it sold. Rules cannot check coins or goods (those live in each player's own save).
+    // Phase 7I-C: {v:2, seller, sellerName, item, qty, price, at, state:"open"}, written only by economyAct.
+    // (7G listings, without v:2, were client-written against legacy coins; they can't be bought canonically.)
     match /market/{id} {
       allow read: if signedIn();
-      allow create: if signedIn()
-        && id.matches('^' + request.auth.uid + '-[0-9]+$')
-        && hasExactly(['seller', 'sellerName', 'item', 'qty', 'price', 'at', 'buyer', 'buyerName', 'soldAt'])
-        && data().seller == request.auth.uid
-        && display(data().sellerName)
-        && data().item is string && data().item.matches('^[a-z_]{2,24}$')
-        && int(data().qty, 1, 10)
-        && int(data().price, 1, 100000)
-        && millis(data().at)
-        && data().buyer == null && data().buyerName == null && data().soldAt == null;
-      // buy: only an unsold listing, never your own, and nothing but who bought it and when
-      allow update: if signedIn()
-        && resource.data.buyer == null
-        && resource.data.seller != request.auth.uid
-        && onlyChanged(['buyer', 'buyerName', 'soldAt'])
-        && data().buyer == request.auth.uid
-        && display(data().buyerName)
-        && millis(data().soldAt);
-      // take back (unsold) or collect (sold): the seller only
-      allow delete: if signedIn() && resource.data.seller == request.auth.uid;
+      // Phase 7I-C: listings are created, bought and taken back only by the server (economyAct marketList /
+      // marketBuy / marketCancel), which holds the goods and moves canonical coins in one transaction. No client write.
+      allow write: if false;
     }
 
     // ---------- events/{id}: anonymous milestone counts {e, d} ----------

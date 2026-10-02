@@ -57,7 +57,8 @@ function apply(econ, {coins = 0, items = {}} = {}) {
 // Run one action. ops[name] = {key(uid, req) -> string, run(ctx) -> {result, change?, meta?, writes?, rows?}}.
 // run() may read through ctx.tx (all reads happen before any write) and returns the effects; act() writes them:
 //   change: coins/items delta (apply() refuses negatives), meta: fields merged into economy.meta,
-//   writes: [{ref, data}] set in the same transaction, rows: [{key, data}] extra create-once ledger rows (markers).
+//   writes: [{ref, data}] set, creates: [{ref, data}] create-once, deletes: [ref], all in the same transaction
+//   (data may be a function of the server timestamp sentinel), rows: [{key, data}] extra create-once ledger rows.
 // opts.now: the server clock (ms). Tests pass a fake clock; the callable uses Date.now(). The client never sets time.
 async function act(db, FieldValue, uid, name, req, ops, opts = {}) {
   if (typeof uid !== "string" || !uid) throw new EconomyError("unauthenticated", "SIGN_IN");
@@ -76,7 +77,9 @@ async function act(db, FieldValue, uid, name, req, ops, opts = {}) {
     const next = out.change ? apply(econ, out.change) : econ;
     const meta = {...econ.meta, ...(out.meta || {})};
     tx.set(econRef(db, uid), {v: SCHEMA, coins: next.coins, items: next.items, meta, rev, createdAt: snap.exists && econ.createdAt ? econ.createdAt : stamp, updatedAt: stamp});
-    for (const w of out.writes || []) tx.set(w.ref, w.data);
+    for (const w of out.writes || []) tx.set(w.ref, typeof w.data === "function" ? w.data(stamp) : w.data);
+    for (const c of out.creates || []) tx.create(c.ref, typeof c.data === "function" ? c.data(stamp) : c.data);
+    for (const d of out.deletes || []) tx.delete(d);
     for (const r of out.rows || []) tx.create(rowRef(db, uid, r.key), {...r.data, key: r.key, rev, at: stamp});
     tx.create(rowRef(db, uid, key), {op: name, key, result: out.result, rev, at: stamp});
     return {...out.result, key, replay: false};
@@ -157,6 +160,83 @@ const OPS = {
     },
   },
 };
+// ---------- 7I-C: the trading post. Listings are created, bought and taken back ONLY here. ----------
+// market/{listingId}: {v:2, seller, sellerName, item, qty, price, at, state:"open"}. The goods are held (escrowed) out of
+// the seller's canonical items while listed. A buy is one transaction: buyer pays, seller is paid at once (there is no
+// "collect" any more), buyer gets the goods, the listing is deleted, and both accounts get a ledger row.
+const MAX_LISTINGS = 4, MAX_QTY = 10;
+const marketRef = (db, id) => db.collection("market").doc(id);
+const priceRange = (item, qty) => {
+  const p = CROPS[item].price; // same bounds as game.js marketPrice(): half to double the base price, per unit
+  return {min: Math.max(1, Math.floor(p * .5)) * qty, max: Math.ceil(p * 2) * qty};
+};
+const listingId = (v) => {
+  if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,140}$/.test(v)) throw new EconomyError("invalid-argument", "BAD_LISTING");
+  return v;
+};
+async function nameOf(tx, db, uid) {
+  const p = await tx.get(db.collection("players").doc(uid));
+  const n = p.exists ? p.data().name : null;
+  return typeof n === "string" && n.length >= 1 && n.length <= 16 ? n : "Farmer";
+}
+
+Object.assign(OPS, {
+  marketList: {
+    key: (uid, r) => "list-" + uid + "-" + keyPart(r.requestId, "requestId"),
+    run: async ({tx, db, uid, req, econ, now, key}) => {
+      const item = cropId(req.item), qty = req.qty, price = req.price;
+      if (!Number.isSafeInteger(qty) || qty < 1 || qty > MAX_QTY) throw new EconomyError("invalid-argument", "BAD_QTY");
+      const range = priceRange(item, qty);
+      if (!Number.isSafeInteger(price) || price < range.min || price > range.max) throw new EconomyError("invalid-argument", "BAD_PRICE");
+      const open = await tx.get(db.collection("market").where("seller", "==", uid).where("state", "==", "open"));
+      if (open.size >= MAX_LISTINGS) throw new EconomyError("failed-precondition", "TOO_MANY_LISTINGS");
+      if ((econ.items[item] || 0) < qty) throw new EconomyError("failed-precondition", "NOT_ENOUGH_ITEMS");
+      const sellerName = await nameOf(tx, db, uid);
+      const id = uid + "-" + req.requestId;
+      const listing = {v: 2, seller: uid, sellerName, item, qty, price, at: now, state: "open"};
+      return {result: {listingId: id, item, qty, price}, change: {items: {[item]: -qty}}, creates: [{ref: marketRef(db, id), data: listing}]};
+    },
+  },
+
+  marketBuy: {
+    key: (uid, r) => "buy-" + uid + "-" + listingId(r.listingId),
+    run: async ({tx, db, uid, req, econ, now}) => {
+      const id = listingId(req.listingId);
+      const snap = await tx.get(marketRef(db, id));
+      if (!snap.exists) throw new EconomyError("failed-precondition", "GONE");
+      const L = snap.data();
+      if (L.v !== 2 || L.state !== "open") throw new EconomyError("failed-precondition", L.v !== 2 ? "LEGACY_LISTING" : "GONE");
+      if (L.seller === uid) throw new EconomyError("failed-precondition", "SELF_BUY");
+      if (econ.coins < L.price) throw new EconomyError("failed-precondition", "NOT_ENOUGH_COINS");
+      const sellerSnap = await tx.get(econRef(db, L.seller));
+      if (!sellerSnap.exists) throw new EconomyError("failed-precondition", "GONE"); // a listing always has an escrowing seller
+      const buyerName = await nameOf(tx, db, uid);
+      const seller = sellerSnap.data(), sellerNext = apply({...fresh(), ...seller}, {coins: L.price});
+      const sale = {listingId: id, item: L.item, qty: L.qty, price: L.price};
+      return {
+        result: {...sale, seller: L.seller},
+        change: {coins: -L.price, items: {[L.item]: L.qty}},
+        writes: [{ref: econRef(db, L.seller), data: (stamp) => ({...seller, coins: sellerNext.coins, rev: (seller.rev || 0) + 1, updatedAt: stamp})}],
+        creates: [{ref: rowRef(db, L.seller, "sale-" + id), data: (stamp) => ({op: "sale", key: "sale-" + id, result: {...sale, buyer: uid, buyerName, soldAt: now}, rev: (seller.rev || 0) + 1, at: stamp})}],
+        deletes: [marketRef(db, id)],
+      };
+    },
+  },
+
+  marketCancel: {
+    key: (uid, r) => "cancel-" + uid + "-" + listingId(r.listingId),
+    run: async ({tx, db, uid, req}) => {
+      const id = listingId(req.listingId);
+      const snap = await tx.get(marketRef(db, id));
+      if (!snap.exists) throw new EconomyError("failed-precondition", "GONE"); // usually: it was just bought
+      const L = snap.data();
+      if (L.seller !== uid) throw new EconomyError("permission-denied", "NOT_YOURS");
+      if (L.v !== 2 || L.state !== "open") throw new EconomyError("failed-precondition", L.v !== 2 ? "LEGACY_LISTING" : "GONE");
+      return {result: {listingId: id, item: L.item, qty: L.qty}, change: {items: {[L.item]: L.qty}}, deletes: [marketRef(db, id)]};
+    },
+  },
+});
+
 function generationOf(v) {
   if (!Number.isSafeInteger(v) || v < 1) throw new EconomyError("invalid-argument", "BAD_GENERATION");
   return v;

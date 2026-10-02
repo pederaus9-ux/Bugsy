@@ -277,7 +277,14 @@ async function start() {
     const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
     const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default"); // this project's Firestore database is named "default"
     fb = {A, auth};
-    window.saAuth.fb = {F, db, auth}; // friends.js uses the same Firebase app
+    // Phase 7I: the verified farm economy runs on the server (Cloud Function economyAct). Its SDK loads the first time
+    // it is needed. call(data) resolves to the result, or rejects with error.details.reason for a refusal.
+    let fns = null;
+    const call = async (data) => {
+      if (!fns) { const Fn = await import(SDK + "firebase-functions.js"); fns = {Fn, f:Fn.getFunctions(app, "us-central1")}; }
+      return (await fns.Fn.httpsCallable(fns.f, "economyAct")(data)).data;
+    };
+    window.saAuth.fb = {F, db, auth, call}; // friends.js uses the same Firebase app
     flushStats();
     cloud = {uid:null,
       get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },

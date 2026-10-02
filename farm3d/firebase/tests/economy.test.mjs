@@ -19,7 +19,7 @@ const AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
 const FN = "http://127.0.0.1:5001/" + PROJECT + "/us-central1/economyAct";
 process.env.FIRESTORE_EMULATOR_HOST = FS;
 initializeApp({projectId: PROJECT});
-const db = getFirestore();
+const db = getFirestore("default"); // the game's database is named "default" (same as functions/index.js and auth.js)
 const RUN = Date.now().toString(36);
 
 async function signUp(name) {
@@ -270,4 +270,119 @@ test("callable: sign out and back in, a new device, or an edited legacy save can
   const again = await call(token2, {op: "plant", plotId: "p1", crop: "wheat", requestId: "dev2", bootstrap: true, bootstrapUsed: false});
   assert.equal(again.status, 400); assert.equal(again.error.details.reason, "NOT_ENOUGH_TO_PLANT");
   const e = await econ(uid); assert.equal(e.meta.bootstrapUsed, true); assert.equal(e.coins, 0); assert.deepEqual(e.items, {});
+});
+
+// ======================= Phase 7I-C: function-created listings, escrow, atomic buy, no collect =======================
+// Canonical goods only come from verified harvests; here two accounts are given canonical wheat/coins directly
+// (admin access, as a finished 7I-B harvest/sale would leave them) so the market can be exercised on its own.
+const give = (uid, coins, items) => db.doc("economy/" + uid).set({v: 1, coins, items, rev: 1, meta: {harvests: 1, bootstrapUsed: true}});
+const listingDoc = async (id) => { const s = await db.doc("market/" + id).get(); return s.exists ? s.data() : null; };
+const ledgerKeys = async (uid) => (await rows(uid)).map(r => r.key).sort();
+
+test("market: the server creates the listing and holds the goods; refusals change nothing", async () => {
+  const s = "sell-a-" + RUN;
+  await give(s, 0, {wheat: 5}); await db.doc("players/" + s).set({name: "Grandma", nameLower: "grandma"});
+  const L = await real(s, "marketList", {item: "wheat", qty: 3, price: 6, requestId: "l1"});
+  assert.equal(L.listingId, s + "-l1");
+  assert.deepEqual((await econ(s)).items, {wheat: 2}, "3 wheat held out of the seller's canonical items");
+  const doc1 = await listingDoc(L.listingId);
+  assert.deepEqual({...doc1}, {v: 2, seller: s, sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: t, state: "open"});
+  for (const [req, reason] of [
+    [{item: "wheat", qty: 3, price: 6}, "NOT_ENOUGH_ITEMS"],            // only 2 left
+    [{item: "wheat", qty: 0, price: 1}, "BAD_QTY"], [{item: "wheat", qty: 11, price: 22}, "BAD_QTY"], [{item: "wheat", qty: 1.5, price: 3}, "BAD_QTY"],
+    [{item: "wheat", qty: 1, price: 0}, "BAD_PRICE"], [{item: "wheat", qty: 1, price: 5}, "BAD_PRICE"], // wheat: 1..4 each
+    [{item: "wheat", qty: 1, price: "2"}, "BAD_PRICE"], [{item: "cake", qty: 1, price: 2}, "BAD_CROP"], [{item: "__proto__", qty: 1, price: 2}, "BAD_CROP"],
+  ]) await assert.rejects(real(s, "marketList", {...req, requestId: "bad-" + reason + Math.random().toString(36).slice(2, 6)}), refused(reason));
+  assert.deepEqual((await econ(s)).items, {wheat: 2}); assert.equal((await rows(s)).filter(r => r.op === "marketList").length, 1);
+  // at most 4 open listings
+  await give(s, 0, {wheat: 10});
+  for (const n of [2, 3, 4]) await real(s, "marketList", {item: "wheat", qty: 1, price: 2, requestId: "l" + n});
+  await assert.rejects(real(s, "marketList", {item: "wheat", qty: 1, price: 2, requestId: "l5"}), refused("TOO_MANY_LISTINGS"));
+});
+
+test("market: buying is one atomic step: buyer pays, seller is paid at once (no collect), goods move, listing is gone", async () => {
+  const s = "sell-b-" + RUN, b = "buy-b-" + RUN;
+  await give(s, 1, {wheat: 3}); await give(b, 10, {});
+  const L = await real(s, "marketList", {item: "wheat", qty: 3, price: 6, requestId: "x"});
+  const r = await real(b, "marketBuy", {listingId: L.listingId, price: 1, qty: 10, item: "pumpkin"}); // only the stored listing counts
+  assert.deepEqual({item: r.item, qty: r.qty, price: r.price, seller: r.seller}, {item: "wheat", qty: 3, price: 6, seller: s});
+  const eb = await econ(b), es = await econ(s);
+  assert.equal(eb.coins, 4); assert.deepEqual(eb.items, {wheat: 3});
+  assert.equal(es.coins, 7, "the seller has the coins straight away"); assert.deepEqual(es.items, {});
+  assert.equal(await listingDoc(L.listingId), null);
+  assert.ok((await ledgerKeys(b)).includes("buy-" + b + "-" + L.listingId));
+  assert.ok((await ledgerKeys(s)).includes("sale-" + L.listingId), "the seller's ledger records the sale");
+  const again = await real(b, "marketBuy", {listingId: L.listingId});
+  assert.equal(again.replay, true); assert.equal((await econ(b)).coins, 4, "a replayed buy charges nothing");
+});
+
+test("market: self-buy, not enough canonical coins, legacy wealth and legacy listings are refused without side effects", async () => {
+  const s = "sell-c-" + RUN, b = "buy-c-" + RUN;
+  await give(s, 0, {wheat: 4}); await give(b, 2, {});
+  const L = await real(s, "marketList", {item: "wheat", qty: 2, price: 8, requestId: "y"});
+  await assert.rejects(real(s, "marketBuy", {listingId: L.listingId}), refused("SELF_BUY"));
+  // the buyer's legacy save is rich; the canonical balance (2) is what counts
+  await db.doc("farms/" + b).set({save: JSON.stringify({v: 1, coins: 1e9, barn: {wheat: 999999}}), level: 50, coins: 1e9, rev: 1, updatedAt: Date.now()});
+  await assert.rejects(real(b, "marketBuy", {listingId: L.listingId}), refused("NOT_ENOUGH_COINS"));
+  await assert.rejects(real(b, "marketList", {item: "wheat", qty: 1, price: 2, requestId: "z"}), refused("NOT_ENOUGH_ITEMS"));
+  assert.equal((await econ(b)).coins, 2); assert.deepEqual((await econ(s)).items, {wheat: 2});
+  assert.equal((await listingDoc(L.listingId)).state, "open");
+  // a 7G listing (client-written against legacy coins) can't be bought or taken back canonically
+  await db.doc("market/" + s + "-" + NOW_LEGACY).set({seller: s, sellerName: "G", item: "wheat", qty: 3, price: 6, at: 1, buyer: null, buyerName: null, soldAt: null});
+  await give(b, 100, {});
+  await assert.rejects(real(b, "marketBuy", {listingId: s + "-" + NOW_LEGACY}), refused("LEGACY_LISTING"));
+  await assert.rejects(real(s, "marketCancel", {listingId: s + "-" + NOW_LEGACY}), refused("LEGACY_LISTING"));
+  assert.equal((await econ(b)).coins, 100); assert.equal((await econ(s)).coins, 0);
+});
+const NOW_LEGACY = 1790000000000;
+
+test("market: two buyers at the same moment: exactly one gets it; the seller is paid once", async () => {
+  const s = "sell-d-" + RUN, b1 = "buy-d1-" + RUN, b2 = "buy-d2-" + RUN, b3 = "buy-d3-" + RUN;
+  await give(s, 0, {corn: 2}); for (const b of [b1, b2, b3]) await give(b, 50, {});
+  const L = await real(s, "marketList", {item: "corn", qty: 2, price: 10, requestId: "c"});
+  const out = await Promise.allSettled([b1, b2, b3].map(b => real(b, "marketBuy", {listingId: L.listingId})));
+  assert.equal(out.filter(o => o.status === "fulfilled").length, 1);
+  for (const o of out.filter(o => o.status === "rejected")) assert.equal(o.reason.reason, "GONE");
+  const coinsAfter = await Promise.all([b1, b2, b3].map(async b => (await econ(b)).coins));
+  assert.deepEqual(coinsAfter.sort((x, y) => x - y), [40, 50, 50]);
+  assert.equal((await econ(s)).coins, 10, "paid exactly once");
+  const corn = await Promise.all([b1, b2, b3].map(async b => (await econ(b)).items.corn || 0));
+  assert.equal(corn.reduce((a, c) => a + c, 0), 2, "the goods exist exactly once");
+});
+
+test("market: the seller takes back an unsold listing (goods return); nobody else can; a sold one is gone", async () => {
+  const s = "sell-e-" + RUN, b = "buy-e-" + RUN;
+  await give(s, 0, {carrot: 3}); await give(b, 50, {});
+  const L1 = await real(s, "marketList", {item: "carrot", qty: 2, price: 12, requestId: "k1"});
+  await assert.rejects(real(b, "marketCancel", {listingId: L1.listingId}), refused("NOT_YOURS"));
+  const back = await real(s, "marketCancel", {listingId: L1.listingId});
+  assert.deepEqual({item: back.item, qty: back.qty}, {item: "carrot", qty: 2});
+  assert.deepEqual((await econ(s)).items, {carrot: 3}); assert.equal(await listingDoc(L1.listingId), null);
+  const L2 = await real(s, "marketList", {item: "carrot", qty: 1, price: 6, requestId: "k2"});
+  await real(b, "marketBuy", {listingId: L2.listingId});
+  await assert.rejects(real(s, "marketCancel", {listingId: L2.listingId}), refused("GONE"), "too late: it sold");
+  assert.deepEqual((await econ(s)).items, {carrot: 2}); assert.equal((await econ(s)).coins, 6);
+  await assert.rejects(real(b, "marketBuy", {listingId: "nope-1"}), refused("GONE"));
+  await assert.rejects(real(b, "marketBuy", {listingId: "bad id!"}), refused("BAD_LISTING"));
+});
+
+test("market end to end through the callable: one player lists canonical wheat, another buys it, self-buy refused", async () => {
+  const sell = await signUp("e2e-seller"), buyer = await signUp("e2e-buyer");
+  await give(sell.uid, 0, {wheat: 2}); await give(buyer.uid, 9, {});
+  const L = await call(sell.token, {op: "marketList", item: "wheat", qty: 2, price: 4, requestId: "e2e"});
+  assert.equal(L.status, 200, JSON.stringify(L));
+  const B = await call(buyer.token, {op: "marketBuy", listingId: L.result.listingId});
+  assert.equal(B.status, 200, JSON.stringify(B));
+  assert.equal((await econ(sell.uid)).coins, 4); assert.equal((await econ(buyer.uid)).coins, 5); assert.deepEqual((await econ(buyer.uid)).items, {wheat: 2});
+  const self = await call(sell.token, {op: "marketBuy", listingId: L.result.listingId});
+  assert.equal(self.status, 400);
+});
+
+test("the server writes to the game's database (named \"default\"), not to the admin SDK's unnamed \"(default)\" one", async () => {
+  // regression: the browser flow test caught the function using a different database from the one the game reads
+  const {uid, token} = await signUp("which-db");
+  const r = await call(token, {op: "open"});
+  assert.equal(r.status, 200, JSON.stringify(r));
+  assert.ok((await db.doc("economy/" + uid).get()).exists, "visible in \"default\", where auth.js and friends.js read");
+  assert.equal((await getFirestore().doc("economy/" + uid).get()).exists, false, "nothing in the unnamed \"(default)\" database");
 });
