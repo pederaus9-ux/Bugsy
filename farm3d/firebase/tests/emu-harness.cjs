@@ -75,9 +75,14 @@ async function resetEmulators() {
 
 const T0 = Date.now();
 const loads = {};
+// every request any page sent to the Functions emulator (economyAct): the Spark (production) mode must send none
+const economyCalls = [];
 
 // starts the static server + Chromium and returns the helpers both emulator browser tests use
-async function startEmu() {
+async function startEmu(opts = {}) {
+  // opts.economy: turn on the dormant Phase 7I economy (features.js) the only way it can be: a test-harness flag set
+  // before any game script runs, on this local test server
+  const economy = !!opts.economy;
   const server = http.createServer((req, res) => {
     let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
@@ -100,7 +105,7 @@ async function startEmu() {
     page.on('pageerror', e => { write('pageerror: ' + e.message); if (/permission|insufficient/i.test(e.message)) denials.push(name + ': ' + e.message); });
     page.on('load', () => { loads[name] = (loads[name] || 0) + 1; write('--- page load #' + loads[name] + ' ' + page.url()); });
     // every economy call (Phase 7I) and its answer
-    page.on('request', r => { if (r.url().startsWith('http://' + FN) && r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); });
+    page.on('request', r => { if (r.url().startsWith('http://' + FN)) { economyCalls.push({page: name, method: r.method(), url: r.url()}); if (r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); } });
     page.on('response', async r => { if (!r.url().startsWith('http://' + FN) || r.request().method() !== 'POST') return; let t = ''; try { t = await r.text(); } catch (e) {} write('economy answer ' + r.status() + ' ' + t.slice(0, 300)); });
     page.on('request', r => {
       if (!r.url().startsWith('http://' + FS)) return;
@@ -136,6 +141,7 @@ async function startEmu() {
     // a damaged save written "at rest": on the next page load, before any game script runs (see corruptOnNextLoad)
     await context.addInitScript(() => { try { const t = localStorage.getItem('__corrupt_once'); if (t !== null) { localStorage.setItem('sunny-acres-3d-v1', t); localStorage.removeItem('__corrupt_once'); } } catch (e) {} });
     // a slow cloud answer on the next load: auth.js delays its first farm read's answer by this many ms (see readCloud)
+    if (economy) await context.addInitScript(() => { window.__saTestEconomy = true; });
     await context.addInitScript(() => { try { const h = localStorage.getItem('__hold_cloud_once'); if (h !== null) { window.__saTestHoldCloudRead = +h; localStorage.removeItem('__hold_cloud_once'); } } catch (e) {} });
     const p = {name, context, page: null};
     await newPage(p); return p;
@@ -175,4 +181,4 @@ async function startEmu() {
   const close = async () => { await browser.close(); await new Promise(r => server.close(r)); };
   return {base, browser, denials, loads, newPage, phone, sleep, wake, P, until, register, friends, claimName, give, barn, coins, bodyText, close};
 }
-module.exports = {startEmu, readDoc, listDocs, signUp, createUser, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl, loads};
+module.exports = {startEmu, economyCalls, readDoc, listDocs, signUp, createUser, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl, loads};

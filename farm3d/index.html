@@ -630,8 +630,9 @@ import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=23"; window.__gameVer = 23; // bump this version whenever game.js changes
-import {initFriends} from "./friends.js?v=6";
+import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
+import {FEATURES} from "./features.js?v=1";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -2019,7 +2020,9 @@ function leaveVisit() {
 visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
 if (G.SANDBOX) { const b = document.createElement("div"); b.className = "testbadge"; b.textContent = "🧪 Test farm · nothing is saved"; document.body.appendChild(b); }
 const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && visiting.name}) || {}; if (window.__saLinked) setTimeout(linkedToast, 1200);
-const verifiedField = initVerified(G); // Phase 7I: the server-checked field (its own six plots; the normal farm is unchanged)
+// Phase 7I: the server-checked field (its own six plots; the normal farm is unchanged). Off on the public game: it needs
+// server code the free Firebase plan can't run (features.js); its ✅ button stays hidden.
+const verifiedField = FEATURES.verifiedEconomy ? initVerified(G) : null;
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows

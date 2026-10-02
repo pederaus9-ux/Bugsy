@@ -155,7 +155,11 @@ service cloud.firestore {
       allow read: if signedIn();
       // Phase 7I-C: listings are created, bought and taken back only by the server (economyAct marketList /
       // marketBuy / marketCancel), which holds the goods and moves canonical coins in one transaction. No client write.
-      allow write: if false;
+      allow create, update: if false;
+      // Spark release: the seller may delete their OWN listing from before the change (7G listings have no "v" field;
+      // every server-made listing has v:2). friends.js then gives the goods (or an old buyer's payment) back to the farm
+      // on that phone only. Nothing else about the market can be changed by a client.
+      allow delete: if signedIn() && resource.data.seller == request.auth.uid && !('v' in resource.data);
     }
 
     // ---------- events/{id}: anonymous milestone counts {e, d} ----------

@@ -313,18 +313,45 @@ test("market (7I-C): no client can buy, take back, collect, reprice or delete a 
   await no(updateDoc(ref(bob), {price: 1}));
   await no(updateDoc(ref(alice), {price: 600}));                                                     // the seller can't reprice
   await no(updateDoc(ref(anon()), {buyer: "x", buyerName: "X", soldAt: NOW}));
-  // take back (the seller deleting an unsold listing) and deletes by anyone else
-  await fresh(); await no(deleteDoc(ref(alice)));
+  // take back of a server-made (v2) listing, and deletes by anyone else (a seller's OWN pre-7I listing: see the next test)
+  const v2 = () => seed((db) => setDoc(doc(db, "market", id), {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"}));
+  await v2(); await no(deleteDoc(ref(alice)));
   await fresh(); await no(deleteDoc(ref(bob)));
   await fresh(); await no(deleteDoc(ref(anon())));
   // collect (the seller deleting a sold listing in a transaction) and anyone undoing or taking over a sale
   // (re-seeded before every attempt, so with wide-open rules each one really reaches an existing listing)
   const sold = () => seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
-  await sold(); await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists() && x.data().buyer) tx.delete(ref(alice)); }));
+  await v2(); await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists()) tx.delete(ref(alice)); }));
   await sold(); await no(deleteDoc(ref(bob)));
   await sold(); await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
   await sold(); await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
   await sold(); await no(updateDoc(ref(alice), {buyer: null, buyerName: null, soldAt: null}));
+});
+
+test("market (Spark): a seller may delete ONLY their own pre-7I listing; nothing else, and nothing canonical with it", async () => {
+  const L = (over) => listing("alice", over), legacy = "alice-1790000000001", v2id = "alice-req2";
+  const put = (id, data) => seed((db) => setDoc(doc(db, "market", id), data));
+  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as(OWNER_UID, OWNER_EMAIL);
+  // allowed: unsold and already-sold old listings, by their seller (plain delete, and the transaction friends.js uses)
+  await put(legacy, L()); await ok(deleteDoc(doc(alice, "market", legacy)));
+  await put(legacy, L({buyer: "bob", buyerName: "Bobby", soldAt: NOW})); await ok(runTransaction(alice, async (tx) => { const r = doc(alice, "market", legacy); if ((await tx.get(r)).exists()) tx.delete(r); }));
+  // denied: someone else's old listing, signed out, the game owner, and any server-made (v2) listing, even your own
+  for (const db of [bob, anon(), owner]) { await put(legacy, L()); await no(deleteDoc(doc(db, "market", legacy))); }
+  await put(v2id, {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"});
+  await no(deleteDoc(doc(alice, "market", v2id)));
+  await put(v2id, {v: 1, seller: "alice", sellerName: "G", item: "wheat", qty: 3, price: 6, at: NOW, buyer: null, buyerName: null, soldAt: null});
+  await no(deleteDoc(doc(alice, "market", v2id)));                                   // any "v" at all means it isn't an old listing
+  // still denied: creating or changing a listing, old or new
+  await no(setDoc(doc(alice, "market", "alice-1790000000002"), L()));
+  await put(legacy, L()); await no(updateDoc(doc(alice, "market", legacy), {qty: 10}));
+  await no(updateDoc(doc(alice, "market", legacy), {buyer: "alice", buyerName: "G", soldAt: NOW}));
+  // the delete can't carry anything canonical with it: a batch that also credits the verified economy is refused whole
+  const b = writeBatch(alice); b.delete(doc(alice, "market", legacy)); b.set(doc(alice, "economy", "alice"), {v: 1, coins: 6, items: {}, rev: 1});
+  await no(b.commit());
+  const b2 = writeBatch(alice); b2.delete(doc(alice, "market", legacy)); b2.set(doc(alice, "ledger/alice/rows/legacy-close"), {op: "legacyClose"});
+  await no(b2.commit());
+  let still; await seed(async (db) => { still = (await getDoc(doc(db, "market", legacy))).exists(); });
+  if (!still) throw new Error("the refused batches must not have deleted the listing");
 });
 
 // ---------------------------------------------------------------- events

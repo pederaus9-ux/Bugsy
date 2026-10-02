@@ -11,7 +11,9 @@
 //   economy/{uid}                 {coins, items, ...}         your VERIFIED coins and goods (read here; written only by the server)
 const NAME_OK = /^[A-Za-z0-9_]{3,16}$/;
 const SAVE_KEY = "sunny-acres-3d-v1";
+import {FEATURES} from "./features.js?v=1";
 const HELP_PER_DAY = 12, MAX_LISTINGS = 4;
+const ECONOMY = FEATURES.verifiedEconomy; // Phase 7I verified economy: off on the public game (see features.js)
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
 
 export function initFriends(G, hooks) {
@@ -147,7 +149,7 @@ export function initFriends(G, hooks) {
   let bg = setInterval(() => { if (fb()) { clearInterval(bg); receiveHelp(); setInterval(() => { receiveHelp(); }, 5 * 60e3); } }, 2000);
   // ---------- Phase 7I-D: the verified balance, shown next to the phone coins (which are labelled as not verified) ----------
   let econWatch = null, econFor = null;
-  setInterval(() => {
+  if (ECONOMY) setInterval(() => {
     const f = fb(), id = f ? uid() : null;
     if (id === econFor) return;
     if (econWatch) { econWatch(); econWatch = null; }
@@ -164,7 +166,7 @@ export function initFriends(G, hooks) {
 
   // ---------- the Friends window ----------
   const row = (inner) => `<div class="frow">${inner}</div>`;
-  const tabs = () => `<div class="ftabs">${[["friends", "👥 Friends"], ["board", "🏆 Leaderboard"], ["market", "🏪 Trading"]].map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-tab="${k}">${n}</button>`).join("")}</div>`;
+  const tabs = () => `<div class="ftabs">${[["friends", "👥 Friends"], ["board", "🏆 Leaderboard"], ...(ECONOMY ? [["market", "🏪 Trading"]] : [])].map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-tab="${k}">${n}</button>`).join("")}</div>`;
   async function render() {
     if (!fb()) { body.innerHTML = `<p class="fnote">Sign in to play with friends.</p>${window.saAuth && window.saAuth.guest ? `<p class="fnote"><button class="btn sm" data-f="account">☁️ Create an account</button></p>` : ""}`; return; }
     body.innerHTML = `<p class="fnote">Loading…</p>`;
@@ -177,13 +179,49 @@ export function initFriends(G, hooks) {
     }
     if (!published) { published = true; publishShowcase(localStorage.getItem(SAVE_KEY)).catch(() => {}); }
     if (tab === "board") return renderBoard();
-    if (tab === "market") return renderMarket();
+    if (tab === "market" && ECONOMY) return renderMarket();
+    if (tab === "market") tab = "friends";
     body.innerHTML = tabs() + `<p class="fnote">You are <b>@${esc(me.name)}</b></p>
       <form class="fform" data-f="search"><input id="fSearch" maxlength="16" placeholder="Search by username" autocomplete="off" autocapitalize="off" spellcheck="false">
       <button class="btn sm" type="submit">🔍</button></form>
       <div id="fResults"></div><h4>Your friends</h4><div id="fList"><p class="fnote">Loading…</p></div>
-      <p class="fnote" style="font-size:12px">👀 Visit a friend's farm and tap their growing crops to 💧 water them (+2 🪙 each).</p><p class="fmsg" id="fMsg"></p>`;
+      <p class="fnote" style="font-size:12px">👀 Visit a friend's farm and tap their growing crops to 💧 water them (+2 🪙 each).</p><div id="fOld"></div><p class="fmsg" id="fMsg"></p>`;
     renderList();
+    if (!ECONOMY) renderOldListings();
+  }
+  // ---------- things left at the old trading post (from before it closed) ----------
+  // Its listings took the goods out of this phone's barn. The trading post is closed now, so their seller can take them
+  // back (unsold: the goods return to the barn) or collect the price (an old buyer already paid). Only the farm on this
+  // phone changes; firestore.rules allow a seller to delete only their own listing from before the change (no "v"
+  // field). Anything that doesn't look exactly like an old listing is left alone.
+  const isOldListing = (L) => !!L && !("v" in L) && L.seller === uid() && typeof L.item === "string" && !!G.ITEMS[L.item]
+    && Number.isInteger(L.qty) && L.qty >= 1 && L.qty <= 10 && Number.isInteger(L.price) && L.price >= 1 && L.price <= 100000
+    && (L.buyer === null || typeof L.buyer === "string");
+  let oldListings = [];
+  async function renderOldListings() {
+    const el = $("fOld"); if (!el) return;
+    try {
+      const {F, db} = fb(), snap = await F.getDocs(F.query(F.collection(db, "market"), F.where("seller", "==", uid())));
+      const all = snap.docs.map(d => Object.assign({id:d.id}, d.data())).filter(L => !("v" in L));
+      oldListings = all.filter(isOldListing);
+      for (const L of all) if (!isOldListing(L)) console.warn("An old trading-post listing has an unexpected shape; left alone:", L.id);
+    } catch (e) { oldListings = []; }
+    el.innerHTML = oldListings.length ? `<h4>Left at the old trading post</h4><p class="fnote">The trading post is closed. Take back what you left there.</p>`
+      + oldListings.map(L => row(`<span class="e">${G.ITEMS[L.item].e}</span><span class="who">${L.qty}× ${G.ITEMS[L.item].n}<small>${L.buyer ? "sold for " + L.price + " 🪙" : "not sold"}</small></span><button class="btn sm" data-old-back="${L.id}">${L.buyer ? "Collect " + L.price + " 🪙" : "Take back"}</button>`)).join("") : "";
+  }
+  async function closeOldListing(id) {
+    const {F, db} = fb(), ref = F.doc(db, "market", id);
+    // one transaction: only the device whose delete lands gives anything back (a second device finds it gone)
+    const got = await F.runTransaction(db, async (tx) => {
+      const d = await tx.get(ref);
+      if (!d.exists()) return null;
+      const L = Object.assign({id}, d.data());
+      if (!isOldListing(L)) return null;
+      tx.delete(ref); return L;
+    });
+    if (!got) return false;
+    if (got.buyer) G.soldAtMarket(got.price, got.qty); else G.unEscrow(got.item, got.qty);
+    return true;
   }
   async function renderList() {
     const el = $("fList"); if (!el) return;
@@ -286,6 +324,7 @@ export function initFriends(G, hooks) {
     if (d.pr && sell) { const pr = G.marketPrice(sell.id); sell.price = Math.min(pr.max * sell.qty, Math.max(pr.min * sell.qty, sell.price + +d.pr * Math.max(1, Math.round(pr.base * sell.qty * .1)))); G.sfx("tick"); return renderMarket(); }
     if (d.list && sell) { b.disabled = true; try { await listForSale(sell.id, sell.qty, sell.price); G.sfx("place"); sell = null; renderMarket("Up for sale! The coins arrive the moment someone buys it."); } catch (err) { renderMarket(err.message); } }
     if (d.buy) { const L = market.all.find(x => x.id === d.buy); if (!L) return; b.disabled = true; try { if (await buyListing(L)) renderMarket("Bought! It's in your verified goods."); else b.disabled = false; } catch (err) { renderMarket(err.message || "Couldn't buy it."); } }
+    if (d.oldBack) { b.disabled = true; try { const ok = await closeOldListing(d.oldBack); say(ok ? "Back on your farm." : "That one is already taken care of."); } catch (err) { say("Couldn't reach the trading post. Check your internet."); } return renderOldListings(); }
     if (d.sellnow && sell) { b.disabled = true; try { const r = await sellNow(sell.id, sell.qty); G.sfx("coin"); sell = null; renderMarket("Sold for " + r.coins + " verified 🪙."); } catch (err) { renderMarket(err.message); } }
     if (d.legacyBack) { const L = (market.raw || []).find(x => x.id === d.legacyBack); if (!L) return; b.disabled = true; try { await legacyBack(L); renderMarket("Back on this phone."); } catch (err) { renderMarket(err.message); } }
     if (d.back) { const L = market.all.find(x => x.id === d.back); if (!L) return; b.disabled = true; try { await takeBack(L); renderMarket(); } catch (err) { renderMarket("Couldn't take it back. Check your internet."); } }
