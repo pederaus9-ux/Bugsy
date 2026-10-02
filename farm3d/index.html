@@ -2341,9 +2341,10 @@ function syncVisitor() {
   const v = GS().visitor, V = v && G.VILLAGERS[v.id];
   visitorCard.visible = !!V && !visiting;
   if (Live3D && V && visitorCard.userData.who !== v.id) {
-    if (visitorCard.userData.live) visitorCard.remove(visitorCard.userData.live.g);
-    const rig = Live3D.createLiveVillager(VILLAGER_COAT[v.id] || 0xcc6677); visitorCard.add(rig.g); visitorCard.userData.live = rig; visitorCard.userData.who = v.id;
-    visitorFace.visible = false; visitorBody.visible = false;
+    if (visitorCard.userData.who !== v.id) {
+      visitorCard.userData.live = Live3D.replaceRig(visitorCard, visitorCard.userData.live, Live3D.createLiveVillager(VILLAGER_COAT[v.id] || 0xcc6677));
+      visitorCard.userData.who = v.id; visitorFace.visible = false; visitorBody.visible = false;
+    }
   }
   if (V && visitorFace.userData.e !== V.e) { const t = emojiTexture(V.e); visitorFace.material.map = t; visitorFace.material.emissiveMap = t; visitorFace.material.needsUpdate = true; visitorFace.userData.e = V.e; visitorBody.material.color.set(VILLAGER_COAT[v.id] || 0xcc6677); }
   if (V) { const ok = G.hasAll ? G.hasAll(v.items) : false, e = ok ? "🎁" : "❗"; if (visitorBub.userData.e !== e) { visitorBub.material = emoteMat(e); visitorBub.userData.e = e; } }
@@ -2494,8 +2495,10 @@ const farmer = new THREE.Group(); farmer.visible = false; scene.add(farmer);
 farmer.userData.hit = {type:"farmer"};
 function buildFarmer(L = G.lookOf(GS())) {
   if (Live3D) {
-    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
-    const rig = Live3D.createLiveFarmer(); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
+    if (farmer.userData.live) farmer.userData.live.dispose();
+    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry && o.geometry !== farmer.userData.live?.card?.geometry) o.geometry.dispose(); }); }
+    const L = G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[L[cat]] || G.WARDROBE[cat].opts[0];
+    const rig = Live3D.createLiveFarmer({skin:opt('skin')[1], hair:opt('hair')[1], hairColor:opt('hairColor')[1], shirt:opt('shirt')[1], hat:opt('hat')[1], overalls:opt('overalls')[1], overallColor:opt('overallColor')[1], boots:opt('boots')[1]}); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
     farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g; return;
   }
   const W = G.WARDROBE, pick = (cat) => W[cat].opts[L[cat]] || W[cat].opts[0];
