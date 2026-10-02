@@ -364,9 +364,9 @@ evidence limits and the shed-switching repair. Other devices remain unmeasured.
 
 ### Rules
 
-The rules are published by the owner in the Firebase console; they are **not stored in the repo**. The current full set is the last one given in the conversation. It includes an `isOwner()` function, true when the email is `pederaus9@gmail.com`, and a block for every collection above. A copy is in the PR #18 and PR #20 descriptions.
+Since Phase 7G the rules live in the repo: **`farm3d/firebase/firestore.rules`** (see `farm3d/firebase/README.md`). They are still published by the owner in the Firebase console (database `default`), and nothing publishes them automatically. Before 7G they existed only in the console, with partial copies in the PR #18 and PR #20 descriptions; `isOwner()` is still true for the email `pederaus9@gmail.com`.
 
-**When adding a collection, write the rule, give it to the owner to publish, then verify it live.** The pattern used: create two throwaway accounts through Identity Toolkit `accounts:signUp` with the API key, run allowed and denied REST calls, then delete the accounts.
+**When adding or changing a collection:** edit `firestore.rules`, add allow + deny cases to `farm3d/firebase/tests/rules.test.mjs`, extend `tests/flows.browser.cjs` if the game flow changes, run `npm test` in `farm3d/firebase` (emulators, no credentials), then give the file to the owner to publish and run the smoke test in the README.
 
 ### Discord
 
@@ -420,4 +420,4 @@ The webhook URL is in `index.html` (`window.__ERR_HOOK`); it's public by necessi
    - Phase 8: gem shop. Gems must remain earn-only; buying gems with real money is forbidden.
    - Phase 9: store launch (native wrapper).
    - Controller support: not requested yet.
-7. **Firestore rules are not in version control.** Consider adding `farm3d/firestore.rules` as documentation.
+7. **Firestore rules are in version control** (`farm3d/firebase/firestore.rules`, Phase 7G) but are **published by hand** in the console. Whether the published copy matches the repo can only be checked in the console.
