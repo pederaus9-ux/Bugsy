@@ -1,0 +1,181 @@
+
+> sunny-acres-regression-tests@1.0.0 test
+> node --test perf.test.mjs cow3d.test.mjs versions.test.mjs && node --experimental-vm-modules regression.browser.cjs && node shed-switch.browser.cjs && node cow3d.browser.cjs
+
+TAP version 13
+# Subtest: actual joints reach hoof targets and keep hooves level in three dimensions
+ok 1 - actual joints reach hoof targets and keep hooves level in three dimensions
+  ---
+  duration_ms: 73.654895
+  type: 'test'
+  ...
+# Subtest: planted feet stay in place through real travel; stationary phase freezes and settles
+ok 2 - planted feet stay in place through real travel; stationary phase freezes and settles
+  ---
+  duration_ms: 68.181589
+  type: 'test'
+  ...
+# Subtest: head turns, independent ears flick, blinking/tail move; sleeping is quieter
+ok 3 - head turns, independent ears flick, blinking/tail move; sleeping is quieter
+  ---
+  duration_ms: 15.082577
+  type: 'test'
+  ...
+# Subtest: skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+ok 4 - skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+  ---
+  duration_ms: 0.88585
+  type: 'test'
+  ...
+# Subtest: equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+ok 5 - equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+  ---
+  duration_ms: 4.247228
+  type: 'test'
+  ...
+# Subtest: frame intervals: empty, median, nearest-rank p95 and foreground hitch
+ok 6 - frame intervals: empty, median, nearest-rank p95 and foreground hitch
+  ---
+  duration_ms: 2.166795
+  type: 'test'
+  ...
+# Subtest: rolling windows expire old frames and retain bounded ring data
+ok 7 - rolling windows expire old frames and retain bounded ring data
+  ---
+  duration_ms: 0.280286
+  type: 'test'
+  ...
+# Subtest: pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+ok 8 - pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+  ---
+  duration_ms: 0.171592
+  type: 'test'
+  ...
+# Subtest: p95 uses nearest rank across 20 distinct intervals
+ok 9 - p95 uses nearest rank across 20 distinct intervals
+  ---
+  duration_ms: 0.287816
+  type: 'test'
+  ...
+# Subtest: composer counters include every pass and restore reset policy
+ok 10 - composer counters include every pass and restore reset policy
+  ---
+  duration_ms: 0.502327
+  type: 'test'
+  ...
+# Subtest: display throttles updates, resets visibility gaps and remains collapsible
+ok 11 - display throttles updates, resets visibility gaps and remains collapsible
+  ---
+  duration_ms: 32.235601
+  type: 'test'
+  ...
+# Subtest: every versioned script is imported with one version only
+ok 12 - every versioned script is imported with one version only
+  ---
+  duration_ms: 0.94963
+  type: 'test'
+  ...
+# Subtest: window.__gameVer matches the game.js version it imports
+ok 13 - window.__gameVer matches the game.js version it imports
+  ---
+  duration_ms: 0.263278
+  type: 'test'
+  ...
+# Subtest: the offline shell caches the same versions the page imports
+ok 14 - the offline shell caches the same versions the page imports
+  ---
+  duration_ms: 0.442699
+  type: 'test'
+  ...
+# Subtest: the cache name is versioned and namespaced away from the 2D game
+ok 15 - the cache name is versioned and namespaced away from the 2D game
+  ---
+  duration_ms: 0.223589
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 543.821
+PASS All game modules and inline scripts parse 
+PASS PR #24 paintAlong guards Null entry and mid-loop cancellation during planting and harvesting
+(node:3103) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS 1280x720 testfarm boot 
+PASS KeyW movement 
+PASS KeyS movement 
+PASS KeyA movement 
+PASS KeyD movement 
+PASS KeyQ rotation 
+PASS ArrowLeft rotation 
+PASS ArrowRight rotation 
+PASS KeyE interacts without rotation 
+PASS Enter interacts without rotation 
+PASS 1280x720 planting through seed tray 
+PASS 1280x720 pointer harvest adds crops and XP 
+PASS 1280x720 cancelled seed drag Second-pointer cancellation followed by continued original pointer movement; ghost/tray cleanup
+PASS 1280x720 order delivery pays once and consumes inventory 
+PASS 1280x720 insufficient order inventory disables delivery 
+PASS 1280x720 orders/barn/shop/settings panels fit and close 
+PASS 1280x720 sandbox never writes a farm save 
+PASS 1280x720 no page/console/resource errors 
+PASS 1280x720 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+PASS 1280x720 local v1 save/reload retains crop, coins and guest 
+PASS Existing normal farm save survives sandbox play 
+PASS 1280x720 normal/reload no page/console/resource errors 
+PASS 740x360 testfarm boot 
+PASS 740x360 mobile joystick movement 
+PASS 740x360 mobile walk action button harvests ripe crop 
+PASS 740x360 planting through seed tray 
+PASS 740x360 pointer harvest adds crops and XP 
+PASS 740x360 order delivery pays once and consumes inventory 
+PASS 740x360 insufficient order inventory disables delivery 
+PASS 740x360 orders/barn/shop/settings panels fit and close 
+PASS 740x360 sandbox never writes a farm save 
+PASS 740x360 no page/console/resource errors 
+PASS 740x360 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+PASS 740x360 local v1 save/reload retains crop, coins and guest 
+PASS 740x360 normal/reload no page/console/resource errors 
+PASS 844x390 testfarm boot 
+PASS 844x390 mobile joystick movement 
+PASS 844x390 mobile walk action button harvests ripe crop 
+PASS 844x390 planting through seed tray 
+PASS 844x390 pointer harvest adds crops and XP 
+PASS 844x390 order delivery pays once and consumes inventory 
+PASS 844x390 insufficient order inventory disables delivery 
+PASS 844x390 orders/barn/shop/settings panels fit and close 
+PASS 844x390 sandbox never writes a farm save 
+PASS 844x390 no page/console/resource errors 
+PASS 844x390 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+PASS 844x390 local v1 save/reload retains crop, coins and guest 
+PASS 844x390 normal/reload no page/console/resource errors 
+PASS one-tap shed switch 740x360 {"a":{"bid":"feedmill","x":393.78700636702825,"y":159.60181650449113},"b":{"bid":"loom","x":694.4020422153583,"y":171.43886100633824},"cam":{"targetX":5,"targetZ":14,"yaw":-0.5,"dist":18}}
+PASS one-tap shed switch 844x390 {"a":{"bid":"feedmill","x":447.76925689761396,"y":172.9019678798654},"b":{"bid":"loom","x":773.4355457333048,"y":185.7254327568664},"cam":{"targetX":5,"targetZ":14,"yaw":-0.5,"dist":18}}
+PASS one-tap shed switch 1280x720 {"a":{"bid":"feedmill","x":714.2357582545444,"y":324.9486183643515},"b":{"bid":"bakery","x":1103.973489090902,"y":324.9486183643515},"cam":{"targetX":5,"targetZ":14,"yaw":0,"dist":12}}
+PASS 3D cow farm travel, blocking, picking and sandbox save 740
+PASS 3D preview controls, orbit, geometry and cost 740 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":9920},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.007600000000093132},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":19840},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.0056499999999068675}]
+PASS 3D cow farm travel, blocking, picking and sandbox save 844
+PASS 3D preview controls, orbit, geometry and cost 844 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":9920},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.006850000000093132},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":19840},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.005050000000279397}]
+PASS 3D cow farm travel, blocking, picking and sandbox save 1280
+PASS 3D preview controls, orbit, geometry and cost 1280 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":9920},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.011049999999813735},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":19840},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.005399999999906867}]
+PASS optional painted-cow comparison and sandbox save
+EXIT 0
+PASS 2d-v1.json opens, keeps progress and is stable level 6, 845 coins, 7 fields, 3247 bytes
+PASS 3d-v1-damaged.json opens, is repaired (F3) and is stable {"coins":"number","gems":"number","sprinklers":"number","orders":true,"streak":"object"}, coins 120
+PASS 3d-v1-first-release.json opens, keeps progress and is stable level 6, 845 coins, 7 fields, 3173 bytes
+PASS F1 unreadable save: a copy is kept and the player is told new farm at level 1, copy under sunny-acres-3d-v1-unreadable
+PASS F1 the first kept copy is never replaced 
+PASS F6 a save with an unknown item starts; the unknown item is removed, everything else kept 
+PASS F1 an unreadable account farm marks itself for cloud recovery 
+PASS F4 a newer save opens but is never written back by older code 
+PASS F2 storage full: save() fails visibly and recovers 
+PASS F4 migration ladder: ordered, once only, gaps are errors, newer left alone; upgrade is idempotent 2 fixtures
+PASS F2 quota failure does not trigger a cloud upload {"r":false,"saved":0,"dirty":null}
+PASS save measurements normal 1942 B (stringify 0.003 ms, setItem 0.025 ms, parse 0.013 ms); heavy 19291 B (stringify 0.193 ms, setItem 0.045 ms, parse 0.093 ms); idle saves/min 0
+PASS heaviest farm fits the cloud-save size limit 19291 of 900000 characters
+SAVES_EXIT 0

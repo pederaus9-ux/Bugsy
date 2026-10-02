@@ -224,11 +224,68 @@ wheat planting is permitted." Canonical accounts still start at 0 coins and no i
   back to the phone barn with nothing verified moving.
 - Save recovery 10/10.
 
-**Not built yet: needs ChatGPT's architecture ruling.** Verified farming in the 3D game itself: planting and harvesting
+**(Superseded: ChatGPT ruled option B, see "7I-D: Verified Field" below.)** Verified farming in the 3D game itself: planting and harvesting
 the server's plots p0–p5 from the farm screen.
 - The server side and device module (`canon.js`) are done and tested.
 - What's open is how verified plots appear in the game. Until then, real players have no way to produce verified goods
   in the UI.
+
+## 7I-D: Verified Field (ChatGPT ruling B), growth-time ruling, 7H cloud-read timeout
+
+**Verified Field** (`farm3d/verified.js`):
+- A separate panel, opened by the ✅ button (signed-in players only), with six server plots p0–p5.
+- Shows online/offline status, the verified balance and goods, and per plot: crop, time left with a progress bar,
+  Harvest when ready, and "Picked ✓ checking…" for offline picks.
+- Planting:
+  - Online only, through `economyAct`.
+  - The price label is "free (first planting)" for the bootstrap wheat, "1 🌾" when a verified crop is available,
+    otherwise the seed coins.
+- Harvests go only to verified goods. Offline picks queue in `canon.js` and are checked on reconnect (or by a 5 s
+  re-check while online).
+- The normal fields, barn, orders, feed and recipes are untouched. The flow test checks the phone barn and the normal
+  plots byte for byte before and after.
+- **Growth time ruling:** base crop time on the server clock. There is no watering, weather or perk effect in the
+  Verified Field: it simply has no such controls.
+
+**7H cloud-read timeout** (`auth.js` `readCloud()`):
+- After 20 s without an answer, the read counts as unavailable:
+  - not treated as missing
+  - no upload
+  - recovery protection kept
+  - the existing retry and backoff take over
+- Attempt identity: only the newest `linkFarm` attempt may act, and a late answer of an abandoned read is ignored.
+- Test seam: `__saTestHoldCloudRead`, set only by the harness, holds back the first real answer.
+  - A network-level hold could not reproduce the hang, because Firestore fails a read itself after 10 s without a
+    reply. The real hang had no reply and no error.
+  - The first version of the seam was used up by a read that failed on its own. Evidence:
+    `evidence/recovery-run-hold-on-failed-read-FAIL.log`. Fixed so it holds the first read that actually answers.
+- Recovery 12/12:
+  - 12a: a slow read past 20 s on a corrupt phone save. Timeout, no upload, and the retry restores the real farm.
+  - 12b: the late answer is ignored, sync keeps working, no reload.
+  - The missing-cloud, corrupt-phone and fast-read scenarios still pass.
+
+**Game flows 32/32**, including the Verified Field end to end with a brand-new account:
+- Six plots and online status.
+- Free first wheat, planted on the server with server times (`matureAt - plantedAt` = 20 s) and 0 cost.
+- Time left shown. The harvest goes to verified goods (wheat 2), with the phone farm unchanged.
+- The second planting is paid with 1 verified wheat.
+- Offline: planting is off, and a pick is kept as "checking" with nothing verified yet.
+- Back online: granted once, the queue is empty, and the phone farm is still unchanged.
+
+## Production deployment requirements (owner actions; NOT done)
+
+1. **Firebase Blaze plan** on `fir-config-18b64`. Cloud Functions can't be deployed on the free plan.
+2. **Deploy the function** from `farm3d/firebase`: `firebase deploy --only functions --project fir-config-18b64`
+   (`economyAct`, us-central1, Node 22). It writes to the Firestore database named `default`.
+3. **Publish the rules** (`firestore.rules`, 7I) only after:
+   - the owner-UID hardening (waiting for Austin's UID)
+   - a saved copy of the current production rules
+   - the phone smoke test being ready
+4. **Order matters.** The game is served from `main` by GitHub Pages, so merging PR #39 releases the new game at once.
+   Its trading post and Verified Field call `economyAct`, so the function must be deployed BEFORE the merge, or those
+   two screens will say they can't reach the farm server. The normal farm is unaffected either way.
+5. A composite index may be requested for `market` (`seller` == uid and `state` == "open"). If the deployed function
+   logs an index link, open it once.
 
 ## Next
 
