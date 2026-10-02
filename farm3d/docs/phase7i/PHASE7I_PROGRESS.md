@@ -4,7 +4,9 @@ Base: main `ed9a3453af893c922788611edfa39241e5a73dd5` (Phase 7H merged, PR #38).
 Design: `CLAUDE_HANDOFF_PHASE7I-3.md` (architecture closed). Firebase production: **not deployed, not published.**
 
 
-**Final numbers (head 3dec25c, CI run 37044971493):** rules 22/22 (79 allow + 267 deny = 346 checks; mutation 264/267), economy 25/25, reconciliation 9/9, real game flows 32/32, save recovery 15/15 in CI (12/12 locally with REPEAT=1), Farm3D regression green, old saves green.
+**SPARK RELEASE (current): Austin is staying on the free Firebase plan, so the 7I economy is built, tested and switched OFF in production (see "Spark release" below). Head 97f3a12, CI run 37051052574.**
+
+**7I numbers before the Spark change (head 3dec25c, CI run 37044971493):** rules 22/22 (79 allow + 267 deny = 346 checks; mutation 264/267), economy 25/25, reconciliation 9/9, real game flows 32/32, save recovery 15/15 in CI (12/12 locally with REPEAT=1), Farm3D regression green, old saves green.
 ## Reconciliation with merged 7H
 
 Nothing in 7H invalidates the 7I design. Four constraints carry forward:
@@ -293,6 +295,41 @@ the server's plots p0–p5 from the farm screen.
     after it.
 - Game flows: the dashboard flow creates the owner with that exact UID (Auth emulator admin endpoint). The owner sees
   the dashboard; another player is refused.
+
+## Spark release (ChatGPT ruling: plan approved with two changes)
+
+- `farm3d/features.js`: `verifiedEconomy` is false everywhere except a 127.0.0.1/localhost page where the test harness
+  set `window.__saTestEconomy === true` before load. URL parameters (`?debug&economy`), saved settings, or the flag
+  forced on a public host do nothing. It is frozen after load. Unit test: `farm3d/tests/features.test.mjs`.
+- When off:
+  - the Verified Field isn't started (✅ hidden)
+  - no Trading tab
+  - no verified counter or LEGACY_UNVERIFIED label
+  - zero `economyAct` requests (counted for the whole Spark flow run)
+- Old (pre-7I, client-written) listings: "Left at the old trading post" on the Friends tab.
+  - Unsold: the goods go back to the phone barn. Sold by an old buyer: the price goes to phone coins.
+  - Done in one transaction, so it happens once.
+  - Only listings of the exact old shape. Anything else is left alone and logged.
+- Rules: market create and update are denied. Delete is allowed only for the seller of their own listing WITHOUT a
+  `v` field (every server-made listing has `v:2`, which the economy tests assert).
+  - Boundary tests:
+    - the seller deletes their own old listing (unsold, and sold)
+    - refused: someone else's, signed out, the owner, any `v` listing, create, update
+    - a batch that deletes and also writes economy/ledger is refused whole
+  - Rules 23/23 (358 checks); mutation 274/277.
+- Flows run in both modes:
+  - Spark 19/19: no ✅/Trading/counter, `?debug&economy` can't enable it, old-listing close-out, roadside shop,
+    normal farm, friends, visiting, saves, recovery, owner dashboard, zero economyAct calls
+  - economy 33/33: the full 7I flows, kept working for later
+- The 7I backend (functions, verified plots, reconciliation) and its tests are kept and run in CI.
+- **Spark release order** (ChatGPT):
+  1. final authorization
+  2. merge PR #39 (GitHub Pages)
+  3. wait for the new release to reach the phone (service worker)
+  4. confirm on the phone: the new version loaded, Verified Field and Trading hidden, the normal farm works
+  5. THEN publish the 7I + owner-UID rules (console paste or `firebase deploy --only firestore:rules`)
+  6. phone smoke test again
+  No Blaze, no Functions deploy.
 
 ## Production deployment requirements (owner actions; NOT done)
 
