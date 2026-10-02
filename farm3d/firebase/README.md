@@ -51,7 +51,8 @@ npm test
 `npm test` starts the Firestore and Auth emulators (needs Java 21+) for the offline `demo-sunny-acres` project, then runs:
 
 1. `tests/rules.test.mjs`: allow + deny checks for every collection, including a get / list / count matrix for every
-   role, the server-only economy/ledger/plots/market collections, and the owner-UID check (22 tests, 346 checks).
+   role, the server-only economy/ledger/plots/market collections, and the owner-UID check and the Spark old-listing
+   delete boundary (23 tests, 358 checks).
 2. `tests/flows.browser.cjs`: the real game (`auth.js`, `friends.js`, `players.html`) in Chromium against the emulators.
    It covers sign-up, cloud save, presence, usernames, showcase, friends, leaderboard, selling, buying, collecting,
    visiting, guest milestones and the owner dashboard (owner allowed, other players refused).

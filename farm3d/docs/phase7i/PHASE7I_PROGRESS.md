@@ -331,7 +331,22 @@ the server's plots p0–p5 from the farm screen.
   6. phone smoke test again
   No Blaze, no Functions deploy.
 
-## Production deployment requirements (owner actions; NOT done)
+## Historical / future Blaze deployment path — NOT USED FOR CURRENT SPARK RELEASE
+
+> **NOT part of the current release.** This section is kept only as a record of the earlier plan and for a possible
+> future release. Do not follow it now.
+>
+> - **DO NOT upgrade to Blaze.**
+> - **DO NOT deploy `economyAct`** (no `firebase deploy --only functions`, no Cloud Functions deploy of any kind).
+> - The current production release uses **Spark** (the free Firebase plan).
+> - The canonical 7I economy remains **dormant**: `farm3d/features.js` keeps `verifiedEconomy` false in production, so
+>   the game makes no `economyAct` calls and the Verified Field and Trading tab stay hidden.
+> - The current release deploys **Firestore rules only**, and only **after** the new frontend is confirmed live on the
+>   phone (see "Spark release order" above).
+>
+> Only a new, separate ChatGPT ruling can bring the steps below back. Until then they are history.
+
+Former plan (superseded by the Spark release):
 
 1. **Firebase Blaze plan** on `fir-config-18b64`. Cloud Functions can't be deployed on the free plan.
 2. **Deploy the function** from `farm3d/firebase`: `firebase deploy --only functions --project fir-config-18b64`
@@ -343,15 +358,13 @@ the server's plots p0–p5 from the farm screen.
 4. **Order matters.** The game is served from `main` by GitHub Pages, so merging PR #39 releases the new game at once.
    Its trading post and Verified Field call `economyAct`, so the function must be deployed BEFORE the merge, or those
    two screens will say they can't reach the farm server. The normal farm is unaffected either way.
+   (Blaze path only. In the Spark release those screens are switched off, so the merge goes FIRST and the rules after.)
 5. A composite index may be requested for `market` (`seller` == uid and `state` == "open"). If the deployed function
    logs an index link, open it once.
 
 ## Next
 
-- 7I-B (verified plots, online planting, server times, generations, offline maturity, harvest reconciliation) starts
-  once ChatGPT answers the two questions above.
-- Still blocking any production publish:
-  - owner-UID hardening (waiting for Austin's UID)
-  - a saved copy of the current production rules
-  - the phone smoke test
-  - the Blaze plan, before Functions can ever be deployed
+- Current release: the Spark release above. Waiting for ChatGPT's final release authorization; then the Spark release
+  order (merge, phone check, THEN rules publish, phone smoke). No Blaze, no Functions deploy.
+- Done before this release: owner-UID hardening, the saved copy of the production rules (`farm3d/firebase/rollback/`).
+- Later, not in this release: Grok's live 3D integration; any switch-on of the 7I economy needs its own ruling.
