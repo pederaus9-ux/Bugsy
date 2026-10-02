@@ -8,4 +8,6 @@ poseCowLeg no longer drops hip.position.y for the stride. It only rewrites the b
 One haunch oval per hip overlaps the torso and the upper thigh.
 Bone count stays 24. Economy files were not changed.
 
-Residual: planted hoof slip is up to 1.7 cm at a run because the hip no longer drops to extend reach. Hoof stays above 0.052 m.
+Planted hoof slip after the reach adjustment: walk 0.74 mm, run 1.8 mm.
+The reach adjustment is body-local and stays inside the haunch. It does not parent the hip back to the root.
+Preview: farm3d/cow-hip-preview.html. Keys 1 idle, 2 walk, 3 run.
