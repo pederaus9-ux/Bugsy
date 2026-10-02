@@ -192,14 +192,32 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) uploa
 // Recovery: this account's farm on this phone can't be read (or game.js flagged it): bring the cloud copy back, never the
 // other way round. auth.js checks the phone copy itself, because it may get here before game.js has even read the save.
 const keepUnreadable = (raw) => { if (raw && !summary(raw) && !ls.get(SAVE_KEY + "-unreadable")) ls.set(SAVE_KEY + "-unreadable", raw); };
-let recoveryTry = 0;
+let recoveryTry = 0, linkAttempt = 0;
+// The first cloud read can hang without ever answering or failing (seen on a busy page). After this long it counts as
+// "unavailable": the farm is NOT treated as missing, nothing is uploaded, and the normal retry below takes over.
+const CLOUD_READ_MS = 20000;
+function readCloud(attempt) {
+  const ms = CLOUD_READ_MS;
+  // tests only: hold back the first ANSWER by this long (set before the page loads by the test harness; never set by the
+  // game). A read that fails on its own doesn't use it up, so the hold always lands on a real answer.
+  const get = cloud.get().then((v) => { const hold = window.__saTestHoldCloudRead; if (!hold) return v; window.__saTestHoldCloudRead = 0; return new Promise((r) => setTimeout(() => r(v), hold)); });
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const t = setTimeout(() => { done = true; console.warn("Cloud farm read #" + attempt + " got no answer in " + ms / 1000 + " s; giving up on it."); reject(Object.assign(new Error("cloud read timed out"), {code:"timeout"})); }, ms);
+    get.then(
+      (v) => { if (done) return console.warn("Cloud farm read #" + attempt + " answered after it was given up; ignored."); done = true; clearTimeout(t); resolve(v); },
+      (e) => { if (done) return; done = true; clearTimeout(t); reject(e); });
+  });
+}
 async function linkFarm(user) {
+  const attempt = ++linkAttempt; // only the newest attempt may act: an older one that answers late changes nothing
   const uid = user.uid, owner = ls.get(OWNER) || "", raw = ls.get(SAVE_KEY), here = raw && summary(raw), dirty = ls.get(DIRTY) === "1";
   const recovering = owner === uid && (!!ls.get(RECOVER) || (!!raw && !here));
   if (recovering) ls.set(RECOVER, "1"); // until it's done, nothing from this phone is uploaded (upload() checks this)
   let remote = null;
-  try { remote = await cloud.get(); }
+  try { remote = await readCloud(attempt); }
   catch (e) {
+    if (attempt !== linkAttempt) return; // a newer attempt has started: leave everything to it
     console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null;
     // A slow or busy phone often misses the first try (Firestore gives up after 10 s while the 3D farm is being built).
     // Without another try the whole visit never syncs, and a pending recovery never finishes. So keep trying, a little
@@ -211,6 +229,7 @@ async function linkFarm(user) {
     linkFarm.retry = setTimeout(() => { if (window.saAuth.user && window.saAuth.user.uid === uid && !cloud.uid) linkFarm(user); }, wait);
     return open(user);
   }
+  if (attempt !== linkAttempt) return console.warn("Cloud farm read #" + attempt + " was overtaken by a newer one; ignored.");
   recoveryTry = 0;
   cloud.uid = uid;
   if (owner !== uid) ls.del("sa3d-restored");

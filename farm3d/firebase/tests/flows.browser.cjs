@@ -160,6 +160,58 @@ async function main() {
   } catch (e) { failed = true; console.log('GUEST ERROR', e.message); }
   await sleep(guest);
 
+  // ---- Phase 7I-D: the VERIFIED FIELD, by a brand-new account (the real bootstrap path, nothing given by the test)
+  const farmer = await phone('farmer');
+  try {
+    const fUid = await register(farmer, 'farmer@example.com');
+    const vText = () => P(farmer, () => document.getElementById('vfieldBody').textContent);
+    const phoneFarm = () => P(farmer, () => JSON.stringify({barn: window.__dbg.G.S.barn, plots: window.__dbg.G.S.plots.map(p => [p.crop, p.end])}));
+    await until(farmer, () => !document.getElementById('verifiedBtn').hidden, null, 30000);
+    await P(farmer, () => document.getElementById('verifiedBtn').click());
+    await until(farmer, () => document.querySelectorAll('#vfieldBody [data-vplot]').length === 6);
+    check('verified field: a separate area with six plots, online status shown', /Online/.test(await vText()) && (await P(farmer, () => document.querySelectorAll('[data-vplant]').length)) === 6);
+    const farm0 = await phoneFarm();
+    await P(farmer, () => document.querySelector('[data-vplant="p0"]').click());
+    await until(farmer, () => !!document.querySelector('[data-vseed="wheat"]'));
+    const wheatLabel = await P(farmer, () => document.querySelector('[data-vseed="wheat"]').textContent);
+    await P(farmer, () => document.querySelector('[data-vseed="wheat"]').click());
+    await until(farmer, () => document.getElementById('vMsg').textContent.includes('Planted'));
+    let p0 = null; for (let i = 0; i < 20 && !(p0 && p0.state === 'growing'); i++) { await farmer.page.waitForTimeout(500); p0 = await readDoc(`plots/${fUid}/items/p0`); }
+    const e0 = await economy(fUid);
+    check('first wheat is free (server bootstrap), shown as such, planted on the SERVER with server times',
+      /free/.test(wheatLabel) && p0 && p0.state === 'growing' && p0.crop === 'wheat' && p0.generation === 1 && p0.matureAt - p0.plantedAt === 20000 && e0.coins === 0 && JSON.stringify(e0.items) === '{}',
+      `label "${wheatLabel.trim()}", plot ${JSON.stringify(p0 && {state: p0.state, gen: p0.generation})}, economy ${JSON.stringify(e0)}`);
+    await until(farmer, () => /\d+s/.test(document.querySelector('[data-vplot="p0"]').textContent));
+    check('a growing verified crop shows its time left', true);
+    await until(farmer, () => !!document.querySelector('[data-vharvest="p0"]'), null, 45000);
+    await P(farmer, () => document.querySelector('[data-vharvest="p0"]').click());
+    let e1 = null; for (let i = 0; i < 30; i++) { e1 = await economy(fUid); if ((e1.items.wheat || 0) === 2) break; await farmer.page.waitForTimeout(500); }
+    check('harvest goes to VERIFIED goods only; the phone barn and normal fields are unchanged', e1.items.wheat === 2 && (await phoneFarm()) === farm0, JSON.stringify(e1));
+    // replant: now it costs 1 verified wheat (no second free planting)
+    await P(farmer, () => document.querySelector('[data-vplant="p1"]').click());
+    await until(farmer, () => !!document.querySelector('[data-vseed="wheat"]'));
+    const paidLabel = await P(farmer, () => document.querySelector('[data-vseed="wheat"]').textContent);
+    await P(farmer, () => document.querySelector('[data-vseed="wheat"]').click());
+    await until(farmer, () => document.getElementById('vMsg').textContent.includes('Planted'));
+    let e2 = null; for (let i = 0; i < 20; i++) { e2 = await economy(fUid); if ((e2.items.wheat || 0) === 1) break; await farmer.page.waitForTimeout(500); }
+    check('the second planting is paid with 1 verified wheat', /1 🌾/.test(paidLabel) && !/free/.test(paidLabel) && e2.items.wheat === 1, `label "${paidLabel.trim()}", ${JSON.stringify(e2)}`);
+    // offline: planting is off; a ready crop can still be picked and is checked when the connection is back
+    await farmer.context.setOffline(true);
+    await until(farmer, () => /Offline/.test(document.getElementById('vfieldBody').textContent));
+    check('offline: the field says so and planting is switched off', await P(farmer, () => [...document.querySelectorAll('[data-vplant]')].every(b => b.disabled)));
+    await until(farmer, () => !!document.querySelector('[data-vharvest="p1"]'), null, 45000);
+    await P(farmer, () => document.querySelector('[data-vharvest="p1"]').click());
+    await until(farmer, () => document.getElementById('vMsg').textContent.includes('back online'));
+    const e3 = await economy(fUid);
+    check('offline harvest is kept on the phone as "checking", nothing verified yet', e3.items.wheat === 1 && /checking/.test(await vText()), JSON.stringify(e3));
+    await farmer.context.setOffline(false);
+    let e4 = null; for (let i = 0; i < 40; i++) { e4 = await economy(fUid); if ((e4.items.wheat || 0) === 3) break; await farmer.page.waitForTimeout(500); }
+    const left = await P(farmer, (u) => localStorage.getItem('sa3d-canon-harvests-' + u), fUid);
+    check('back online: the harvest is checked and granted once; the queue is empty; phone farm still untouched',
+      e4.items.wheat === 3 && (left === '[]' || left === null) && (await phoneFarm()) === farm0, JSON.stringify(e4) + ' queue ' + left);
+  } catch (e) { failed = true; console.log('VERIFIED FIELD ERROR', e.message); try { await farmer.page.screenshot({path: path.join(artifacts, 'flow-farmer-failure.png')}); } catch (_) {} }
+  await sleep(farmer);
+
   // ---- the owner dashboard: the owner sees it, other players are turned away
   await signUp(OWNER_EMAIL, 'ownerpass1');
   for (const [who, email, pw, want] of [['owner', OWNER_EMAIL, 'ownerpass1', 'stats'], ['player', 'grandma@example.com', 'hunter22', 'denied']]) {

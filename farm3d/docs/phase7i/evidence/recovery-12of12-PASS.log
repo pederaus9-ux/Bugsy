@@ -1,0 +1,51 @@
+(node:2537) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-sunny-acres", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400
+⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500
+⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  eventarc: Error when trying to check port 9299 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9299
+⚠  eventarc: Port 9299 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  eventarc: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  tasks: Error when trying to check port 9499 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9499
+⚠  tasks: Port 9499 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  tasks: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+(node:2537) MetadataLookupWarning: received unexpected error = Request failed with status code 502 code = UNKNOWN
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  functions: Watching "/home/claude/bugsy/farm3d/firebase/functions" for Cloud Functions...
+⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory.
+⚠  functions: Please note that there will be breaking changes when you upgrade.
+✔  functions: Using node@22 from host.
+Serving at port 8682
+
+✔  functions: Loaded functions definitions from source: economyAct.
+✔  functions[us-central1-economyAct]: http function initialized (http://127.0.0.1:5001/demo-sunny-acres/us-central1/economyAct).
+i  Running script: node tests/recovery.browser.cjs
+PASS 0 race (sign-in before the game reads the save): the cloud farm still comes back — restored true after 49s, page loads +2, recover null, cloud rev 1->1, bad samples 0, stand-in writes 0
+PASS 1.1 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload — restored true in 42.3s, same progress true, page loads +2, recover null
+PASS 1.1 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) — rev 2->2, bad samples 0, stand-in writes sent 0
+PASS 1.1 a normal save after recovery uploads the restored farm — rev 2->3
+PASS 2 good local + corrupt cloud: phone farm kept, one page load, cloud repaired with it — page loads +1, cloud rev 6 (corrupt was 5), cloud has sentinel true
+PASS 3 corrupt local + missing cloud: no recovery reload, copy kept, the farm starts a new cloud save — page loads +1, recover null, sync-rev 0, kept first copy true, new cloud rev 1
+PASS 11 cloud unreachable at start (no recovery): the same visit syncs when it comes back, no reload — recover null, cloud rev 2->3, page loads +1
+PASS 12a slow cloud read (held 30 s): gave up after 20 s, retried, real farm restored, nothing uploaded meanwhile — timeout logged true, restored true after 73s, page loads +2, bad samples 0, stand-in writes 0
+PASS 12b late answer of the timed-out read is ignored; the newer read stands; sync keeps working; no reload — {"timeout":true,"lateIgnored":true,"retried":true,"notRecovering":true,"synced":true,"sentinel":true,"oneLoad":true} cloud rev 5->7
+PASS 4/9/10/8 reload during recovery: still pending after a reload, same coins/different state, nothing uploaded through 25 s online (> 15 s delay) — pending 1/1/1, stand-in coins 75 = good 75, farm reads refused 4, bad samples 0, stand-in writes 0
+PASS 6 sign-out during recovery: nothing uploaded, recovery still pending — pending 1, bad samples 0, stand-in writes 0
+PASS 5 sign-in during recovery: cloud farm restored, cloud copy byte-identical — restored true, page loads +1, cloud rev 8
+
+RECOVERY: 12/12 passed (console logs: artifacts/console-*.log)
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  functions: Stopping Functions Emulator
+i  firestore: Stopping Firestore Emulator
+i  auth: Stopping Authentication Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

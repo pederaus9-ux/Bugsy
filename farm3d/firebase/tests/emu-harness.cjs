@@ -127,6 +127,8 @@ async function startEmu() {
     const context = await browser.newContext({viewport: {width: 640, height: 360}, deviceScaleFactor: .25, serviceWorkers: 'block'});
     // a damaged save written "at rest": on the next page load, before any game script runs (see corruptOnNextLoad)
     await context.addInitScript(() => { try { const t = localStorage.getItem('__corrupt_once'); if (t !== null) { localStorage.setItem('sunny-acres-3d-v1', t); localStorage.removeItem('__corrupt_once'); } } catch (e) {} });
+    // a slow cloud answer on the next load: auth.js delays its first farm read's answer by this many ms (see readCloud)
+    await context.addInitScript(() => { try { const h = localStorage.getItem('__hold_cloud_once'); if (h !== null) { window.__saTestHoldCloudRead = +h; localStorage.removeItem('__hold_cloud_once'); } } catch (e) {} });
     const p = {name, context, page: null};
     await newPage(p); return p;
   }

@@ -396,6 +396,14 @@ body:has(#infoTray:not([hidden])) .guestbar,body:has(#seedTray:not([hidden])) .g
   background:var(--parch);border:4px solid var(--wood);border-radius:20px;padding:10px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .14s ease-out}
 .fbbox[hidden]{display:none}
 .friendsbox{max-height:80vh;overflow:auto}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vplot{background:#fff;border:3px solid var(--parch2);border-radius:14px;padding:6px;min-height:84px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center}
+.vplot .ve{font-size:28px;line-height:1}.vplot small{font:700 12px var(--body);color:var(--wood-dk)}
+.vplot.ready{border-color:#f2b705}.vplot.picked{opacity:.75}
+.vplot .bar{height:6px;width:100%;background:var(--parch2);border-radius:3px;overflow:hidden}.vplot .bar i{display:block;height:100%;background:#6bbf3a}
+.vseeds{display:flex;flex-wrap:wrap;gap:6px}.vseeds small{font-weight:600;opacity:.8}
+.vstatus.off{color:#a33}
+#side #verifiedBtn[hidden],.side #verifiedBtn[hidden]{display:none}
 .friendsbox h4{margin:6px 0 2px;font:400 16px var(--fun);color:var(--wood-dk)}
 .fnote{margin:0;font-weight:800;font-size:14px;opacity:.8}
 .fmsg{margin:0;min-height:16px;font-weight:800;font-size:13px;color:#c0392b}
@@ -523,6 +531,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
   <button id="feedbackBtn" aria-label="Send feedback">💬</button>
   <button id="friendsBtn" aria-label="Friends">👥</button>
+  <button id="verifiedBtn" aria-label="Verified field" hidden>✅</button>
   <button id="questBtn" data-act="open" data-p="quests" aria-label="Quests">📜</button>
   <button id="photoBtn" aria-label="Photo mode">📷</button>
 </div>
@@ -573,6 +582,10 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   <h3><span>👥 Friends</span><button type="button" class="x" data-f="close" aria-label="Close">✕</button></h3>
   <div id="friendsBody"></div>
 </div>
+<div class="fbbox friendsbox vfield" id="vfieldBox" hidden>
+  <h3><span>✅ Verified field</span><button type="button" class="x" data-v="close" aria-label="Close">✕</button></h3>
+  <div id="vfieldBody"></div>
+</div>
 <div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>tap growing crops to 💧 water them</small><button data-mode="home">🏠 Home</button></div>
 <form class="fbbox" id="fbBox" hidden>
   <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
@@ -608,7 +621,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=14"></script>
+<script type="module" src="auth.js?v=15"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -618,6 +631,7 @@ import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=23"; window.__gameVer = 23; // bump this version whenever game.js changes
 import {initFriends} from "./friends.js?v=6";
+import {initVerified} from "./verified.js?v=1";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -2005,6 +2019,7 @@ function leaveVisit() {
 visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
 if (G.SANDBOX) { const b = document.createElement("div"); b.className = "testbadge"; b.textContent = "🧪 Test farm · nothing is saved"; document.body.appendChild(b); }
 const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && visiting.name}) || {}; if (window.__saLinked) setTimeout(linkedToast, 1200);
+const verifiedField = initVerified(G); // Phase 7I: the server-checked field (its own six plots; the normal farm is unchanged)
 
 // ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
 // Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
