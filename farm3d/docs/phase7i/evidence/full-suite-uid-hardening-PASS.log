@@ -1,0 +1,832 @@
+
+> sunny-acres-firestore-rules-tests@1.0.0 test
+> firebase emulators:exec --only firestore,auth,functions --project demo-sunny-acres "node --test tests/rules.test.mjs && node --test tests/economy.test.mjs && node --test tests/canon.test.mjs && node tests/flows.browser.cjs && node tests/recovery.browser.cjs"
+
+(node:875) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-sunny-acres", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400
+⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500
+⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  eventarc: Error when trying to check port 9299 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9299
+⚠  eventarc: Port 9299 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  eventarc: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  tasks: Error when trying to check port 9499 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9499
+⚠  tasks: Port 9499 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  tasks: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+(node:875) MetadataLookupWarning: received unexpected error = Request failed with status code 502 code = UNKNOWN
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  functions: Watching "/home/claude/bugsy/farm3d/firebase/functions" for Cloud Functions...
+⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory.
+⚠  functions: Please note that there will be breaking changes when you upgrade.
+✔  functions: Using node@22 from host.
+Serving at port 8599
+
+✔  functions: Loaded functions definitions from source: economyAct.
+✔  functions[us-central1-economyAct]: http function initialized (http://127.0.0.1:5001/demo-sunny-acres/us-central1/economyAct).
+i  Running script: node --test tests/rules.test.mjs && node --test tests/economy.test.mjs && node --test tests/canon.test.mjs && node tests/flows.browser.cjs && node tests/recovery.browser.cjs
+TAP version 13
+# Subtest: farms: owner saves, reads and updates with the revision transaction
+ok 1 - farms: owner saves, reads and updates with the revision transaction
+  ---
+  duration_ms: 2326.781318
+  type: 'test'
+  ...
+# Subtest: farms: a save from before revisions (no rev field) can still be updated
+ok 2 - farms: a save from before revisions (no rev field) can still be updated
+  ---
+  duration_ms: 175.191864
+  type: 'test'
+  ...
+# [2026-10-02T17:44:48.977Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a82 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.041Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a83 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.073Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a84 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L49
+# Subtest: farms: nobody else, and nobody signed out, can read or write
+ok 3 - farms: nobody else, and nobody signed out, can read or write
+  ---
+  duration_ms: 369.732478
+  type: 'test'
+  ...
+# [2026-10-02T17:44:49.276Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a87 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L43:32 for 'create' @ L43, evaluation error at L43:32 for 'update' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.327Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a88 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L43:32 for 'create' @ L43, evaluation error at L43:32 for 'update' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.357Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a89 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.376Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a8a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L43, false for 'update' @ L43
+# [2026-10-02T17:44:49.562Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060a8b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L43, false for 'update' @ L43
+# Subtest: farms: rev must move forward by exactly one; shape and size are checked
+ok 4 - farms: rev must move forward by exactly one; shape and size are checked
+  ---
+  duration_ms: 444.022969
+  type: 'test'
+  ...
+# Subtest: farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+ok 5 - farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+  ---
+  duration_ms: 188.074352
+  type: 'test'
+  ...
+# Subtest: authorization matrix: get, list and count for every collection and role
+ok 6 - authorization matrix: get, list and count for every collection and role
+  ---
+  duration_ms: 1395.83966
+  type: 'test'
+  ...
+# Subtest: owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+ok 7 - owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+  ---
+  duration_ms: 246.366093
+  type: 'test'
+  ...
+# [2026-10-02T17:44:51.572Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060ad4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L56, false for 'update' @ L56
+# [2026-10-02T17:44:51.602Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060ad5 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L56, false for 'update' @ L56
+# [2026-10-02T17:44:51.639Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060ad6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L56:32 for 'create' @ L56, evaluation error at L56:32 for 'update' @ L56, false for 'update' @ L56
+# [2026-10-02T17:44:51.676Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060ad7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L56:32 for 'create' @ L56, evaluation error at L56:32 for 'update' @ L56, false for 'update' @ L56
+# Subtest: presence: heartbeat by its own player; only the owner reads it
+ok 8 - presence: heartbeat by its own player; only the owner reads it
+  ---
+  duration_ms: 341.436045
+  type: 'test'
+  ...
+# Subtest: usernames: claim, re-save, and rename all work through the game's transaction
+ok 9 - usernames: claim, re-save, and rename all work through the game's transaction
+  ---
+  duration_ms: 244.46961
+  type: 'test'
+  ...
+# [2026-10-02T17:44:52.127Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060aee error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L88:24 for 'create' @ L88, evaluation error at L93:24 for 'update' @ L93, false for 'update' @ L93
+# [2026-10-02T17:44:52.146Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060aef error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L98:24 for 'delete' @ L98, false for 'delete' @ L98
+# [2026-10-02T17:44:52.169Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060af0 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L93:24 for 'update' @ L93, false for 'update' @ L93
+# [2026-10-02T17:44:52.210Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060af1 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L88, false for 'update' @ L93
+# [2026-10-02T17:44:52.247Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060af2 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L98:24 for 'delete' @ L98, false for 'delete' @ L98
+# Subtest: usernames: a name somebody else has can't be taken or deleted
+ok 10 - usernames: a name somebody else has can't be taken or deleted
+  ---
+  duration_ms: 231.683978
+  type: 'test'
+  ...
+# [2026-10-02T17:44:52.301Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060af3 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L88:24 for 'create' @ L88, evaluation error at L93:24 for 'update' @ L93, Service call error. Function: [getAfter], Argument: [path_value {
+#   segments {
+#     simple: "databases"
+#   }
+#   segments {
+#     simple: "(default)"
+#   }
+#   segments {
+#     simple: "documents"
+#   }
+#   segments {
+#     simple: "players"
+#   }
+#   segments {
+#     simple: "alice"
+#   }
+# }
+# ]. for 'create' @ L88
+# [2026-10-02T17:44:52.313Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060af4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L68:32 for 'create' @ L68, evaluation error at L68:32 for 'update' @ L68, Service call error. Function: [getAfter], Argument: [path_value {
+#   segments {
+#     simple: "databases"
+#   }
+#   segments {
+#     simple: "(default)"
+#   }
+#   segments {
+#     simple: "documents"
+#   }
+#   segments {
+#     simple: "usernames"
+#   }
+#   segments {
+#     simple: "ghost"
+#   }
+# }
+# ]. for 'create' @ L68
+# Subtest: usernames + players: both halves must agree, with a valid name
+ok 11 - usernames + players: both halves must agree, with a valid name
+  ---
+  duration_ms: 140.138606
+  type: 'test'
+  ...
+# [2026-10-02T17:44:52.557Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b00 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L68, false for 'update' @ L68
+# [2026-10-02T17:44:52.588Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b01 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L72
+# [2026-10-02T17:44:52.596Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b02 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L68
+# Subtest: players: profiles are readable and searchable by signed-in players only, writable by their owner only
+ok 12 - players: profiles are readable and searchable by signed-in players only, writable by their owner only
+  ---
+  duration_ms: 209.179078
+  type: 'test'
+  ...
+# [2026-10-02T17:44:52.673Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b06 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L77, false for 'update' @ L77
+# [2026-10-02T17:44:52.705Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b08 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L76
+# [2026-10-02T17:44:52.710Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b03 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L77, false for 'update' @ L77
+# [2026-10-02T17:44:52.719Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b09 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L77, false for 'update' @ L77
+# [2026-10-02T17:44:52.727Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b0a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L77, false for 'update' @ L77
+# Subtest: friends: your own list only
+ok 13 - friends: your own list only
+  ---
+  duration_ms: 130.652976
+  type: 'test'
+  ...
+# [2026-10-02T17:44:52.825Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b0e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# [2026-10-02T17:44:52.853Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b0f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L115
+# [2026-10-02T17:44:52.949Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b10 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# [2026-10-02T17:44:52.980Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b11 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# [2026-10-02T17:44:53.029Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b12 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# [2026-10-02T17:44:53.220Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b13 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# [2026-10-02T17:44:53.291Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b14 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L107, false for 'update' @ L107
+# Subtest: showcase: publish your own, friends can visit, nobody can overwrite yours
+ok 14 - showcase: publish your own, friends can visit, nobody can overwrite yours
+  ---
+  duration_ms: 564.584502
+  type: 'test'
+  ...
+# [2026-10-02T17:44:53.507Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L121
+# [2026-10-02T17:44:53.532Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L130
+# [2026-10-02T17:44:53.557Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# Subtest: help: a friend waters your crops; only you read and clear the notes
+ok 15 - help: a friend waters your crops; only you read and clear the notes
+  ---
+  duration_ms: 266.04295
+  type: 'test'
+  ...
+# [2026-10-02T17:44:53.592Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.603Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.626Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b1f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.639Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b20 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.650Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b21 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.669Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b22 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# [2026-10-02T17:44:53.682Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b23 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L122, false for 'update' @ L130
+# Subtest: help: no forged senders, self-help or oversized notes
+ok 16 - help: no forged senders, self-help or oversized notes
+  ---
+  duration_ms: 124.943966
+  type: 'test'
+  ...
+# Subtest: market (7I-C): signed-in players can read listings; signed-out visitors can't
+ok 17 - market (7I-C): signed-in players can read listings; signed-out visitors can't
+  ---
+  duration_ms: 144.100619
+  type: 'test'
+  ...
+# [2026-10-02T17:44:53.856Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b29 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.864Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.874Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.882Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.910Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.917Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.926Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b2f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.933Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b30 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.942Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b31 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.948Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b32 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.958Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b33 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.966Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b34 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.974Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b35 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.982Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b36 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.990Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b37 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:53.997Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b38 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:54.005Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b39 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:54.012Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b3a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# [2026-10-02T17:44:54.020Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b3b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L158, false for 'update' @ L158
+# Subtest: market (7I-C): no client can create a listing, not even a well-formed one in their own name
+ok 18 - market (7I-C): no client can create a listing, not even a well-formed one in their own name
+  ---
+  duration_ms: 193.345518
+  type: 'test'
+  ...
+# [2026-10-02T17:44:54.103Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b3f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.124Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b40 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.132Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b41 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.140Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b42 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.147Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b43 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.154Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b44 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.163Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b45 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.170Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b46 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.176Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b47 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.203Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b48 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.233Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b4a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L158
+# [2026-10-02T17:44:54.260Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b4c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L158
+# [2026-10-02T17:44:54.324Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b4e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L158
+# [2026-10-02T17:44:54.387Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b53 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L158
+# [2026-10-02T17:44:54.433Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b55 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.456Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b57 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# [2026-10-02T17:44:54.517Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b59 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L158
+# Subtest: market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+ok 19 - market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+  ---
+  duration_ms: 497.994278
+  type: 'test'
+  ...
+# [2026-10-02T17:44:54.586Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b5b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.595Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b5c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L138
+# [2026-10-02T17:44:54.602Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b5d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L138
+# [2026-10-02T17:44:54.613Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b5e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.628Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b5f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L143, false for 'update' @ L143
+# [2026-10-02T17:44:54.635Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b60 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L143
+# [2026-10-02T17:44:54.644Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b61 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:54.655Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b62 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L148
+# [2026-10-02T17:44:54.678Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b63 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L148, false for 'update' @ L148
+# [2026-10-02T17:44:54.685Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b64 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L148
+# [2026-10-02T17:44:54.724Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b66 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.732Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b67 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L138
+# [2026-10-02T17:44:54.737Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b68 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L138
+# [2026-10-02T17:44:54.747Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b69 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.755Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L143, false for 'update' @ L143
+# [2026-10-02T17:44:54.764Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L143
+# [2026-10-02T17:44:54.771Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6c error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:54.780Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L148
+# [2026-10-02T17:44:54.790Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L148, false for 'update' @ L148
+# [2026-10-02T17:44:54.808Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b6f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L148
+# [2026-10-02T17:44:54.884Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b71 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.894Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b72 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L138
+# [2026-10-02T17:44:54.903Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b73 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L138
+# [2026-10-02T17:44:54.918Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b74 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:54.926Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b75 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L143, false for 'update' @ L143
+# [2026-10-02T17:44:54.932Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b76 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L143
+# [2026-10-02T17:44:54.939Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b77 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:54.946Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b78 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L148
+# [2026-10-02T17:44:54.953Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b79 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L148, false for 'update' @ L148
+# [2026-10-02T17:44:54.958Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b7a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L148
+# [2026-10-02T17:44:55.008Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b7c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:55.016Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b7d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L138
+# [2026-10-02T17:44:55.021Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b7e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L138
+# [2026-10-02T17:44:55.029Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b7f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L138, false for 'update' @ L138
+# [2026-10-02T17:44:55.036Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b80 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L143, false for 'update' @ L143
+# [2026-10-02T17:44:55.044Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b81 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L143
+# [2026-10-02T17:44:55.053Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b82 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:55.059Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b83 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L148
+# [2026-10-02T17:44:55.065Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b84 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L148, false for 'update' @ L148
+# [2026-10-02T17:44:55.070Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b85 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L148
+# Subtest: economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+ok 20 - economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+  ---
+  duration_ms: 580.716171
+  type: 'test'
+  ...
+# [2026-10-02T17:44:55.213Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b8c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.234Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b8d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.251Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b8e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.276Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b8f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.293Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b90 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.311Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b91 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T17:44:55.401Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b95 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L168
+# [2026-10-02T17:44:55.425Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b96 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L168
+# Subtest: events: guests and players can add a milestone; nothing else, and only the owner reads
+ok 21 - events: guests and players can add a milestone; nothing else, and only the owner reads
+  ---
+  duration_ms: 360.695355
+  type: 'test'
+  ...
+# [2026-10-02T17:44:55.523Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b98 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:55.563Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b9a error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T17:44:55.586Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x8e060b9b error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# RULES CHECKS: 79 allow + 267 deny = 346
+# Subtest: unknown collections are closed
+ok 22 - unknown collections are closed
+  ---
+  duration_ms: 126.19678
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9764.399492
+TAP version 13
+# (node:980) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# (node:980) MetadataLookupWarning: received unexpected error = Request failed with status code 502 code = UNKNOWN
+# Subtest: core: an accepted action writes its effect and its ledger row together; a replay returns the stored result and changes nothing
+ok 1 - core: an accepted action writes its effect and its ledger row together; a replay returns the stored result and changes nothing
+  ---
+  duration_ms: 3878.497186
+  type: 'test'
+  ...
+# Subtest: core: a refused action (NOT_MATURE_YET) writes nothing and does NOT use up its key; the same key succeeds later
+ok 2 - core: a refused action (NOT_MATURE_YET) writes nothing and does NOT use up its key; the same key succeeds later
+  ---
+  duration_ms: 107.272006
+  type: 'test'
+  ...
+# Subtest: core: ten simultaneous calls with one key apply exactly once
+ok 3 - core: ten simultaneous calls with one key apply exactly once
+  ---
+  duration_ms: 3492.738756
+  type: 'test'
+  ...
+# Subtest: core: balances never go negative, fractional or unknown; a refused spend changes nothing
+ok 4 - core: balances never go negative, fractional or unknown; a refused spend changes nothing
+  ---
+  duration_ms: 83.97725
+  type: 'test'
+  ...
+>  (node:997) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+>  (Use `node --trace-deprecation ...` to show where the warning was created)
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"MISSING"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 13.30565ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 3.510356ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 6.627469ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 2.379476ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 3.062645ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 6.098553ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 4.473822ms
+# Subtest: callable economyAct: signed out is refused; unknown and test-only actions are refused
+ok 5 - callable economyAct: signed out is refused; unknown and test-only actions are refused
+  ---
+  duration_ms: 1075.088042
+  type: 'test'
+  ...
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 248.67446ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 24.24915ms
+# Subtest: cutover is zero: a hacked legacy save (1e9 coins, 999999 wheat) is not copied; nothing is granted; no starter document
+ok 6 - cutover is zero: a hacked legacy save (1e9 coins, 999999 wheat) is not copied; nothing is granted; no starter document
+  ---
+  duration_ms: 366.904939
+  type: 'test'
+  ...
+# Subtest: catalog: the server's crop rules match game.js exactly (grow time, seed price, sale price)
+ok 7 - catalog: the server's crop rules match game.js exactly (grow time, seed price, sale price)
+  ---
+  duration_ms: 3.011173
+  type: 'test'
+  ...
+# Subtest: bootstrap: a new canonical account plants ONE wheat free; it costs 0; a retry returns the original; a second is refused
+ok 8 - bootstrap: a new canonical account plants ONE wheat free; it costs 0; a retry returns the original; a second is refused
+  ---
+  duration_ms: 88.705114
+  type: 'test'
+  ...
+# Subtest: bootstrap: only wheat; a refused attempt (other crop, busy plot) does not use it up
+ok 9 - bootstrap: only wheat; a refused attempt (other crop, busy plot) does not use it up
+  ---
+  duration_ms: 153.366471
+  type: 'test'
+  ...
+# Subtest: bootstrap: two devices at the same moment (different requests, different plots): exactly one free planting
+ok 10 - bootstrap: two devices at the same moment (different requests, different plots): exactly one free planting
+  ---
+  duration_ms: 3035.673385
+  type: 'test'
+  ...
+# Subtest: economy bootstraps itself: free wheat -> harvest 2 -> replant with 1 wheat -> harvest -> 3 wheat, 0 coins, no more free plants
+ok 11 - economy bootstraps itself: free wheat -> harvest 2 -> replant with 1 wheat -> harvest -> 3 wheat, 0 coins, no more free plants
+  ---
+  duration_ms: 222.4389
+  type: 'test'
+  ...
+# Subtest: harvest: server time only; early, wrong crop, wrong or unknown generation are refused and use nothing up
+ok 12 - harvest: server time only; early, wrong crop, wrong or unknown generation are refused and use nothing up
+  ---
+  duration_ms: 105.357327
+  type: 'test'
+  ...
+# Subtest: harvest: replays and an old generation never grant twice; two devices harvesting one generation get one grant
+ok 13 - harvest: replays and an old generation never grant twice; two devices harvesting one generation get one grant
+  ---
+  duration_ms: 3572.681171
+  type: 'test'
+  ...
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 71.836654ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 45.486717ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 33.606355ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 18.39156ms
+# Subtest: callable, real time: plant online, wait offline past maturity (nothing sent), harvest later: granted once
+ok 14 - callable, real time: plant online, wait offline past maturity (nothing sent), harvest later: granted once
+  ---
+  duration_ms: 21624.301098
+  type: 'test'
+  ...
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 29.58963ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 28.43551ms
+# Subtest: callable: sign out and back in, a new device, or an edited legacy save cannot bring the bootstrap back
+ok 15 - callable: sign out and back in, a new device, or an edited legacy save cannot bring the bootstrap back
+  ---
+  duration_ms: 1219.816354
+  type: 'test'
+  ...
+# Subtest: market: the server creates the listing and holds the goods; refusals change nothing
+ok 16 - market: the server creates the listing and holds the goods; refusals change nothing
+  ---
+  duration_ms: 339.653383
+  type: 'test'
+  ...
+# Subtest: market: buying is one atomic step: buyer pays, seller is paid at once (no collect), goods move, listing is gone
+ok 17 - market: buying is one atomic step: buyer pays, seller is paid at once (no collect), goods move, listing is gone
+  ---
+  duration_ms: 123.69474
+  type: 'test'
+  ...
+# Subtest: market: self-buy, not enough canonical coins, legacy wealth and legacy listings are refused without side effects
+ok 18 - market: self-buy, not enough canonical coins, legacy wealth and legacy listings are refused without side effects
+  ---
+  duration_ms: 183.456671
+  type: 'test'
+  ...
+# Subtest: market: two buyers at the same moment: exactly one gets it; the seller is paid once
+ok 19 - market: two buyers at the same moment: exactly one gets it; the seller is paid once
+  ---
+  duration_ms: 3045.311985
+  type: 'test'
+  ...
+# Subtest: market: the seller takes back an unsold listing (goods return); nobody else can; a sold one is gone
+ok 20 - market: the seller takes back an unsold listing (goods return); nobody else can; a sold one is gone
+  ---
+  duration_ms: 194.922552
+  type: 'test'
+  ...
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 47.200068ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 43.804847ms
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 23.25441ms
+# Subtest: market end to end through the callable: one player lists canonical wheat, another buys it, self-buy refused
+ok 21 - market end to end through the callable: one player lists canonical wheat, another buys it, self-buy refused
+  ---
+  duration_ms: 167.696195
+  type: 'test'
+  ...
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 22.714339ms
+# (node:980) MetadataLookupWarning: received unexpected error = Request failed with status code 502 code = UNKNOWN
+# Subtest: the server writes to the game's database (named "default"), not to the admin SDK's unnamed "(default)" one
+ok 22 - the server writes to the game's database (named "default"), not to the admin SDK's unnamed "(default)" one
+  ---
+  duration_ms: 51.886246
+  type: 'test'
+  ...
+# Subtest: sell: verified crops sell at the base price for verified coins; legacy goods can't be sold; replays pay once
+ok 23 - sell: verified crops sell at the base price for verified coins; legacy goods can't be sold; replays pay once
+  ---
+  duration_ms: 109.132373
+  type: 'test'
+  ...
+# Subtest: the bootstrap path B: free wheat -> harvest 2 -> sell 2 (4 coins) -> buy a wheat seed (1 coin) -> 3 coins left
+ok 24 - the bootstrap path B: free wheat -> harvest 2 -> sell 2 (4 coins) -> buy a wheat seed (1 coin) -> 3 coins left
+  ---
+  duration_ms: 123.294828
+  type: 'test'
+  ...
+# Subtest: legacy close-out: a 7G listing goes back to the PHONE farm only; nothing canonical moves; it can't be closed twice
+ok 25 - legacy close-out: a 7G listing goes back to the PHONE farm only; nothing canonical moves; it can't be closed twice
+  ---
+  duration_ms: 150.614433
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43842.212144
+TAP version 13
+# (node:1011) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# (node:1011) MetadataLookupWarning: received unexpected error = Request failed with status code 502 code = UNKNOWN
+# Subtest: planting needs a connection: offline it is refused on the device and nothing reaches the server
+ok 1 - planting needs a connection: offline it is refused on the device and nothing reaches the server
+  ---
+  duration_ms: 3642.91221
+  type: 'test'
+  ...
+# Subtest: a planting whose answer was lost is re-sent with the same request id: one plot, one generation, one free bootstrap
+ok 2 - a planting whose answer was lost is re-sent with the same request id: one plot, one generation, one free bootstrap
+  ---
+  duration_ms: 55.735558
+  type: 'test'
+  ...
+# Subtest: offline harvest: queued and shown as provisional; confirmed once on reconnect; the queue empties
+ok 3 - offline harvest: queued and shown as provisional; confirmed once on reconnect; the queue empties
+  ---
+  duration_ms: 67.577141
+  type: 'test'
+  ...
+# Subtest: a harvest sent too early stays queued (NOT_MATURE_YET is temporary) and succeeds later
+ok 4 - a harvest sent too early stays queued (NOT_MATURE_YET is temporary) and succeeds later
+  ---
+  duration_ms: 90.860358
+  type: 'test'
+  ...
+# Subtest: two devices harvest the same crop offline: on reconnect there is ONE grant, and both queues clear
+ok 5 - two devices harvest the same crop offline: on reconnect there is ONE grant, and both queues clear
+  ---
+  duration_ms: 3235.850602
+  type: 'test'
+  ...
+# Subtest: a stale device: its old queued harvest replays after the crop was harvested and replanted elsewhere; no second grant
+ok 6 - a stale device: its old queued harvest replays after the crop was harvested and replanted elsewhere; no second grant
+  ---
+  duration_ms: 93.695326
+  type: 'test'
+  ...
+# Subtest: a provisional harvest the server refuses for good is dropped, and its provisional grant disappears
+ok 7 - a provisional harvest the server refuses for good is dropped, and its provisional grant disappears
+  ---
+  duration_ms: 47.797375
+  type: 'test'
+  ...
+# Subtest: the queue survives an app restart (it lives in storage) and is per account
+ok 8 - the queue survives an app restart (it lives in storage) and is per account
+  ---
+  duration_ms: 36.787428
+  type: 'test'
+  ...
+# Subtest: offline sale does nothing: refused on the device, nothing queued, no coins; a provisional harvest can't be sold
+ok 9 - offline sale does nothing: refused on the device, nothing queued, no coins; a provisional harvest can't be sold
+  ---
+  duration_ms: 74.297871
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7590.027413
+PASS cloud save written through the revision transaction — rev 1
+PASS presence heartbeat written — ["level","joined","seen"]
+PASS showcase published
+PASS trading post offers only verified goods — the select shows verified wheat (3), not the phone barn (5)
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 62.521869ms
+PASS HUD shows verified coins separately; phone coins labelled LEGACY_UNVERIFIED — {"v":true,"vc":"0","legacy":"LEGACY_UNVERIFIED"}
+PASS listing created by the server — 1 listing(s)
+PASS seller's verified goods held by the server; phone barn untouched — {"coins":0,"items":{"wheat":2}} phone wheat 8
+PASS sign up (two accounts)
+PASS usernames claimed
+PASS friend added to own list
+PASS leaderboard shows the friend
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 101.175406ms
+PASS buyer paid with verified coins and got verified goods (one server transaction) — {"coins":18,"items":{"wheat":1}}
+PASS seller paid at once while away (no collect step) — grandma verified coins 2, price 2
+PASS the sold listing is gone
+PASS phone coins and barn untouched by trading
+PASS seller's phone farm was not paid in phone coins — legacy coins 67 -> 67
+PASS seller sees the sale in the verified counter after waking
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 118.383816ms
+PASS a 7G listing goes back to the PHONE barn only (nothing verified moves) — phone wheat 8 -> 10
+PASS damaged phone save: the cloud farm comes back and is not overwritten — coins 67 -> 67, cloud rev 2 -> 2
+PASS visited the friend's farm
+PASS guest play still reports milestones (open, guest) — open,open,open,account,account,friend,guest
+PASS verified field: a separate area with six plots, online status shown
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 42.977618ms
+PASS first wheat is free (server bootstrap), shown as such, planted on the SERVER with server times — label "🌾 Wheat · free (first planting) · 20s", plot {"state":"growing","gen":1}, economy {"coins":0,"items":{}}
+PASS a growing verified crop shows its time left
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 54.156037ms
+PASS harvest goes to VERIFIED goods only; the phone barn and normal fields are unchanged — {"coins":0,"items":{"wheat":2}}
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 59.5682ms
+PASS the second planting is paid with 1 verified wheat — label "🌾 Wheat · 1 🌾 · 20s", {"coins":0,"items":{"wheat":1}}
+PASS offline: the field says so and planting is switched off
+PASS offline harvest is kept on the phone as "checking", nothing verified yet — {"coins":0,"items":{"wheat":1}}
+i  functions: Beginning execution of "us-central1-economyAct"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "us-central1-economyAct" in 90.64724ms
+PASS back online: the harvest is checked and granted once; the queue is empty; phone farm still untouched — {"coins":0,"items":{"wheat":3}} queue []
+PASS owner dashboard loads presence, farm count and funnel — total 3
+PASS dashboard refuses a non-owner
+PASS no permission errors in the game
+
+GAME FLOWS: 32/32 passed
+PASS 0 race (sign-in before the game reads the save): the cloud farm still comes back — restored true after 48s, page loads +2, recover null, cloud rev 1->1, bad samples 0, stand-in writes 0
+PASS 1.1 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload — restored true in 41.1s, same progress true, page loads +2, recover null
+PASS 1.1 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) — rev 2->2, bad samples 0, stand-in writes sent 0
+PASS 1.1 a normal save after recovery uploads the restored farm — rev 2->3
+PASS 2 good local + corrupt cloud: phone farm kept, one page load, cloud repaired with it — page loads +1, cloud rev 6 (corrupt was 5), cloud has sentinel true
+PASS 3 corrupt local + missing cloud: no recovery reload, copy kept, the farm starts a new cloud save — page loads +1, recover null, sync-rev 0, kept first copy true, new cloud rev 1
+PASS 11 cloud unreachable at start (no recovery): the same visit syncs when it comes back, no reload — recover null, cloud rev 2->3, page loads +1
+PASS 12a slow cloud read (held 30 s): gave up after 20 s, retried, real farm restored, nothing uploaded meanwhile — timeout logged true, restored true after 72s, page loads +2, bad samples 0, stand-in writes 0
+PASS 12b late answer of the timed-out read is ignored; the newer read stands; sync keeps working; no reload — {"timeout":true,"lateIgnored":true,"retried":true,"notRecovering":true,"synced":true,"sentinel":true,"oneLoad":true} cloud rev 5->7
+PASS 4/9/10/8 reload during recovery: still pending after a reload, same coins/different state, nothing uploaded through 25 s online (> 15 s delay) — pending 1/1/1, stand-in coins 75 = good 75, farm reads refused 4, bad samples 0, stand-in writes 0
+PASS 6 sign-out during recovery: nothing uploaded, recovery still pending — pending 1, bad samples 0, stand-in writes 0
+PASS 5 sign-in during recovery: cloud farm restored, cloud copy byte-identical — restored true, page loads +1, cloud rev 8
+
+RECOVERY: 12/12 passed (console logs: artifacts/console-*.log)
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  functions: Stopping Functions Emulator
+i  firestore: Stopping Firestore Emulator
+i  auth: Stopping Authentication Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

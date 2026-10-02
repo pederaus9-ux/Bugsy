@@ -135,6 +135,48 @@ async function main() {
         `recover ${s.recover}, cloud rev ${base.rev}->${c.rev}, page loads +${(loads.grandma || 0) - n0}`);
     }
 
+    // ---- 12. the first cloud read's answer is held back (no answer, no error) past 20 s: auth.js must give up on it
+    // (__hold_cloud_once: the harness makes auth.js delay its first farm read's real answer; a network hold doesn't do it,
+    // because Firestore itself fails a read after 10 s without a reply, while the hang seen in a real run had no reply
+    // and no error at all)
+    const logf = path.join(artifacts, 'console-grandma.log');
+    const logFrom = () => (fs.existsSync(logf) ? fs.statSync(logf).size : 0);
+    const logSince = (at) => (fs.existsSync(logf) ? fs.readFileSync(logf, 'utf8').slice(at) : '');
+    // 12a/5. corrupt phone + good cloud + slow cloud: timeout, no upload, recovery stays safe, the retry restores the real farm
+    {
+      const base = await establish(uid, 'twelve-a'), n0 = loads.grandma || 0; g.farmWrites = [];
+      await P(g, (k) => localStorage.removeItem(k), SAVE_KEY + '-unreadable');
+      await P(g, () => localStorage.setItem('__hold_cloud_once', '30000'));
+      await corruptOnNextLoad('{"v":1,"coins":12');
+      const mark = logFrom(), t0 = Date.now();
+      await g.page.reload({waitUntil: 'load'});
+      const sampling = watch(uid, 45000, (c) => c && c.save === base.save && c.rev === base.rev);
+      const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token, 150000);
+      const took = (Date.now() - t0) / 1000, bad = await sampling, log = logSince(mark), s = await st(), c = await cloud(uid);
+      check('12a slow cloud read (held 30 s): gave up after 20 s, retried, real farm restored, nothing uploaded meanwhile',
+        /got no answer in 20 s; giving up/.test(log) && /Farm recovery is waiting for the cloud/.test(log) && back && took > 20 &&
+        progress(s.raw) === progress(base.save) && c.save === base.save && bad.length === 0 && standInWrites(base.token) === 0 && s.recover === null,
+        `timeout logged ${/got no answer in 20 s/.test(log)}, restored ${back} after ${took.toFixed(0)}s, page loads +${(loads.grandma || 0) - n0}, bad samples ${bad.length}, stand-in writes ${standInWrites(base.token)}`);
+    }
+    // 12b/3/6. healthy farm + slow cloud: the timed-out read answers LATE, after the retry already linked: it is ignored
+    {
+      const base = await establish(uid, 'twelve-b'), n0 = loads.grandma || 0; g.farmWrites = [];
+      await P(g, () => localStorage.setItem('__hold_cloud_once', '32000'));
+      const mark = logFrom();
+      await g.page.reload({waitUntil: 'load'}); await gameUp();
+      // wait until the held read was let go and has answered (well after the retry linked)
+      let log = ''; for (let i = 0; i < 90 && !/answered after it was given up; ignored/.test(log); i++) { await g.page.waitForTimeout(1000); log = logSince(mark); }
+      await P(g, () => { const G = window.__dbg.G; G.S.coins += 9; G.commit(); });
+      // sync keeps working: the change reaches the cloud (the game may also re-save once after loading, so wait for THIS change)
+      const want = JSON.parse(base.save).coins + 9;
+      let c = null; for (let i = 0; i < 45; i++) { c = await cloud(uid); if (JSON.parse(c.save).coins === want) break; await g.page.waitForTimeout(1000); }
+      const s = await st(), cond = {timeout: /got no answer in 20 s/.test(log), lateIgnored: /answered after it was given up; ignored/.test(log),
+        retried: /Cloud sync is waiting/.test(log), notRecovering: s.recover === null, synced: JSON.parse(c.save).coins === want && c.rev > base.rev,
+        sentinel: has(c.save, base.token), oneLoad: (loads.grandma || 0) - n0 === 1};
+      check('12b late answer of the timed-out read is ignored; the newer read stands; sync keeps working; no reload',
+        Object.values(cond).every(Boolean), JSON.stringify(cond) + ` cloud rev ${base.rev}->${c.rev}`);
+    }
+
     // ---- 4/9/10/8. reload during recovery while the cloud can't be reached; same coins, different state; past the upload delay
     // ---- 6. sign-out during recovery; 5. sign-in during recovery
     {

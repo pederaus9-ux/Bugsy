@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Sunny Acres 3D: Firestore security rules (ruleset version 7G-2).
+// Sunny Acres 3D: Firestore security rules (ruleset version 7I-A, in development; production runs an older version).
 //
 // These rules are the version-controlled source of truth for the Firestore database used by farm3d
 // (Firebase project fir-config-18b64, database "default"). Publish them by pasting this whole file into
@@ -18,8 +18,9 @@ service cloud.firestore {
     // ---------- helpers ----------
     function signedIn() { return request.auth != null; }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
-    // the game owner (players.html dashboard)
-    function isOwner() { return signedIn() && request.auth.token.email == 'pederaus9@gmail.com'; }
+    // the game owner (players.html dashboard): Austin's Firebase Authentication account, by its UID (not by email:
+    // the game never verifies email addresses, so an email claim is not proof of who someone is)
+    function isOwner() { return signedIn() && request.auth.uid == 'wqPP4uUThWTmhqi9g5YdgyLfGQ93'; }
     function data() { return request.resource.data; }
     function hasExactly(keys) { return data().keys().hasAll(keys) && data().keys().hasOnly(keys); }
     function onlyChanged(keys) { return data().diff(resource.data).affectedKeys().hasOnly(keys); }
@@ -129,33 +130,36 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ---------- Phase 7I: the canonical farm economy. ONLY the server (Cloud Functions, admin access) writes these. ----------
+    // economy/{uid}: spendable coins and tradable items. Starts at 0 coins and nothing else; legacy save wealth is never copied.
+    match /economy/{uid} {
+      allow get: if isMe(uid);
+      allow list: if false;
+      allow write: if false;
+    }
+    // ledger/{uid}/rows/{key}: one create-once row per accepted action (the key is the idempotency key)
+    match /ledger/{uid}/rows/{key} {
+      allow get, list: if isMe(uid);
+      allow write: if false;
+    }
+    // plots/{uid}/items/{plotId}: verified plots (crop, generation, plantedAt, matureAt), written by the server only
+    match /plots/{uid}/items/{plotId} {
+      allow get, list: if isMe(uid);
+      allow write: if false;
+    }
+
     // ---------- market/{id}: the trading post ----------
-    // friends.js: id = "<sellerUid>-<millis>",
-    //   {seller, sellerName, item, qty, price, at, buyer:null, buyerName:null, soldAt:null}
-    // buying sets buyer/buyerName/soldAt in a transaction; the seller deletes the listing to take it back or to
-    // collect the coins after it sold. Rules cannot check coins or goods (those live in each player's own save).
+    // Phase 7I-C: {v:2, seller, sellerName, item, qty, price, at, state:"open"}, written only by economyAct.
+    // (7G listings, without v:2, were client-written against legacy coins; they can't be bought canonically.)
     match /market/{id} {
       allow read: if signedIn();
-      allow create: if signedIn()
-        && id.matches('^' + request.auth.uid + '-[0-9]+$')
-        && hasExactly(['seller', 'sellerName', 'item', 'qty', 'price', 'at', 'buyer', 'buyerName', 'soldAt'])
-        && data().seller == request.auth.uid
-        && display(data().sellerName)
-        && data().item is string && data().item.matches('^[a-z_]{2,24}$')
-        && int(data().qty, 1, 10)
-        && int(data().price, 1, 100000)
-        && millis(data().at)
-        && data().buyer == null && data().buyerName == null && data().soldAt == null;
-      // buy: only an unsold listing, never your own, and nothing but who bought it and when
-      allow update: if signedIn()
-        && resource.data.buyer == null
-        && resource.data.seller != request.auth.uid
-        && onlyChanged(['buyer', 'buyerName', 'soldAt'])
-        && data().buyer == request.auth.uid
-        && display(data().buyerName)
-        && millis(data().soldAt);
-      // take back (unsold) or collect (sold): the seller only
-      allow delete: if signedIn() && resource.data.seller == request.auth.uid;
+      // Phase 7I-C: listings are created, bought and taken back only by the server (economyAct marketList /
+      // marketBuy / marketCancel), which holds the goods and moves canonical coins in one transaction. No client write.
+      allow create, update: if false;
+      // Spark release: the seller may delete their OWN listing from before the change (7G listings have no "v" field;
+      // every server-made listing has v:2). friends.js then gives the goods (or an old buyer's payment) back to the farm
+      // on that phone only. Nothing else about the market can be changed by a client.
+      allow delete: if signedIn() && resource.data.seller == request.auth.uid && !('v' in resource.data);
     }
 
     // ---------- events/{id}: anonymous milestone counts {e, d} ----------

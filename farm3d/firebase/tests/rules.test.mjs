@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 
 const OWNER_EMAIL = "pederaus9@gmail.com";
+const OWNER_UID = "wqPP4uUThWTmhqi9g5YdgyLfGQ93"; // Austin's Firebase Authentication UID (firestore.rules isOwner)
 let env;
 const counts = {allow: 0, deny: 0};
 const ok = async (p) => { counts.allow++; return assertSucceeds(p); };
@@ -93,7 +94,7 @@ test("farms: rev must move forward by exactly one; shape and size are checked", 
 });
 test("farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)", async () => {
   await seed((db) => setDoc(doc(db, "farms", "alice"), {save: save(), level: 3, coins: 1, rev: 1, updatedAt: NOW}));
-  const owner = as("austin", OWNER_EMAIL);
+  const owner = as(OWNER_UID, OWNER_EMAIL);
   await no(getDocs(collection(owner, "farms")));                       // the read the old "count but not read" test never tried
   await no(getDocs(query(collection(owner, "farms"), limit(1))));
   await no(getCountFromServer(collection(owner, "farms")));
@@ -116,8 +117,11 @@ test("authorization matrix: get, list and count for every collection and role", 
     await setDoc(doc(db, "players/alice/friends/bob"), {name: "B", addedAt: NOW});
     await setDoc(doc(db, "market/alice-1"), listing("alice"));
     await setDoc(doc(db, "events/e1"), {e: "open", d: "2026-10-01"});
+    await setDoc(doc(db, "economy/alice"), {v: 1, coins: 0, items: {}, rev: 1});
+    await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
+    await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
   });
-  const R = {owner: as("austin", OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
+  const R = {owner: as(OWNER_UID, OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
   // [collection, one doc, {role: [get, list, count]}]  (A = allow, D = deny)
   const M = [
     ["farms", "farms/alice", {owner: "DDD", alice: "ADD", bob: "DDD", anon: "DDD"}],
@@ -129,6 +133,10 @@ test("authorization matrix: get, list and count for every collection and role", 
     ["players/alice/friends", "players/alice/friends/bob", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
     ["market", "market/alice-1", {owner: "AAA", alice: "AAA", bob: "AAA", anon: "DDD"}],
     ["events", "events/e1", {owner: "AAA", alice: "DDD", bob: "DDD", anon: "DDD"}],
+    // Phase 7I: the canonical economy. Your own only; the game owner gets nothing special.
+    ["economy", "economy/alice", {owner: "DDD", alice: "ADD", bob: "DDD", anon: "DDD"}],
+    ["ledger/alice/rows", "ledger/alice/rows/open-alice", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
+    ["plots/alice/items", "plots/alice/items/p0", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
   ];
   const run = {get: (db, c, d) => getDoc(doc(db, d)), list: (db, c) => getDocs(collection(db, c)), count: (db, c) => getCountFromServer(collection(db, c))};
   for (const [c, d, roles] of M) for (const [role, want] of Object.entries(roles)) for (const [i, op] of ["get", "list", "count"].entries()) {
@@ -137,14 +145,20 @@ test("authorization matrix: get, list and count for every collection and role", 
   }
 });
 
-// The owner is recognized by email. Firebase email/password sign-up never verifies the address and the game never asks
-// it to, so requiring email_verified would lock the owner out of players.html. Documented residual risk: the address is
-// already registered to the owner, so nobody else can sign up with it while that account exists.
-test("owner check: documents that an unverified owner-email token is accepted (residual risk, see README)", async () => {
+// The owner is recognized by account id (UID), never by the email claim: the game never verifies addresses.
+test("owner check: only the owner's UID; the owner email on any other account, verified or not, is refused", async () => {
   await seed((db) => setDoc(doc(db, "presence/alice"), {seen: NOW, level: 3}));
-  await ok(getDocs(collection(env.authenticatedContext("x", {email: OWNER_EMAIL, email_verified: false}).firestore(), "presence")));
-  await no(getDocs(collection(env.authenticatedContext("y", {email: "PEDERAUS9@gmail.com", email_verified: true}).firestore(), "presence"))); // exact address only
-  await no(getDocs(collection(env.authenticatedContext("z", {email_verified: true}).firestore(), "presence")));                           // no email claim at all
+  const ctx = (uid, token) => env.authenticatedContext(uid, token).firestore();
+  await ok(getDocs(collection(ctx(OWNER_UID, {email: OWNER_EMAIL}), "presence")));
+  await ok(getDocs(collection(ctx(OWNER_UID, {}), "presence")));                                                    // no email claim needed
+  await no(getDocs(collection(ctx("x", {email: OWNER_EMAIL, email_verified: false}), "presence")));               // the old residual risk: now refused
+  await no(getDocs(collection(ctx("x2", {email: OWNER_EMAIL, email_verified: true}), "presence")));                // even a verified owner email
+  await no(getDocs(collection(ctx("y", {email: "PEDERAUS9@gmail.com", email_verified: true}), "presence")));
+  await no(getDocs(collection(ctx(OWNER_UID.toLowerCase(), {email: OWNER_EMAIL}), "presence")));                   // the UID is exact
+  await no(getDocs(collection(ctx(OWNER_UID + "x", {}), "presence")));
+  await no(getDocs(collection(ctx("z", {email_verified: true}), "presence")));
+  await no(getDocs(collection(ctx("x", {email: OWNER_EMAIL}), "events")));
+  await ok(getDocs(collection(ctx(OWNER_UID, {}), "events")));
 });
 
 // ---------------------------------------------------------------- presence/{uid}
@@ -157,7 +171,7 @@ test("presence: heartbeat by its own player; only the owner reads it", async () 
   await no(beat(as("alice"), "alice", {seen: NOW}));            // must be the server's clock
   await no(beat(as("alice"), "alice", {coins: 1e9}));           // extra field
   await no(getDoc(doc(as("alice"), "presence", "alice")));
-  await ok(getDocs(collection(as("austin", OWNER_EMAIL), "presence")));
+  await ok(getDocs(collection(as(OWNER_UID, OWNER_EMAIL), "presence")));
   await no(getDocs(collection(as("bob", "bob@example.com"), "presence")));
 });
 
@@ -258,31 +272,19 @@ test("help: no forged senders, self-help or oversized notes", async () => {
 });
 
 // ---------------------------------------------------------------- market
-test("market: list, buy, collect: the whole trading-post flow from friends.js", async () => {
-  const id = "alice-" + NOW, alice = as("alice"), bob = as("bob");
-  await ok(setDoc(doc(alice, "market", id), listing("alice")));
-  await ok(getDocs(query(collection(bob, "market"), limit(60))));
-  await ok(getDocs(query(collection(alice, "market"), where("seller", "==", "alice"))));
-  // bob buys it the way friends.js does: read in a transaction, write the whole listing back with buyer fields
-  await ok(runTransaction(bob, async (tx) => {
-    const ref = doc(bob, "market", id), d = await tx.get(ref);
-    if (!d.exists() || d.data().buyer) throw new Error("gone");
-    tx.set(ref, Object.assign({}, d.data(), {buyer: "bob", buyerName: "Bobby", soldAt: NOW + 5}));
-  }));
-  // alice collects her coins: the transaction deletes the sold listing
-  await ok(runTransaction(alice, async (tx) => { const ref = doc(alice, "market", id), x = await tx.get(ref); if (x.exists() && x.data().buyer) tx.delete(ref); }));
+// Phase 7I-C: the trading post is server-only. Every client write that 7G allowed (list, buy, take back, collect) is
+// now refused; the old deny cases stay as they were. The real flow is tested through economyAct in economy.test.mjs.
+test("market (7I-C): signed-in players can read listings; signed-out visitors can't", async () => {
+  await seed((db) => setDoc(doc(db, "market", "alice-r1"), listing("alice", {v: 2, state: "open"})));
+  await ok(getDocs(query(collection(as("bob"), "market"), limit(60))));
+  await ok(getDocs(query(collection(as("alice"), "market"), where("seller", "==", "alice"))));
+  await ok(getDoc(doc(as("bob"), "market", "alice-r1")));
+  await no(getDocs(collection(anon(), "market")));
 });
-test("market: the seller can take back an unsold listing; nobody else can delete one", async () => {
-  const id = "alice-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
-  await no(deleteDoc(doc(as("bob"), "market", id)));
-  await no(deleteDoc(doc(anon(), "market", id)));
-  await ok(deleteDoc(doc(as("alice"), "market", id)));
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
-  await no(deleteDoc(doc(as("bob"), "market", id)));       // the buyer can't delete the seller's sold listing either
-});
-test("market: listings must be your own and well-formed", async () => {
+test("market (7I-C): no client can create a listing, not even a well-formed one in their own name", async () => {
   const alice = as("alice"), id = "alice-" + NOW;
+  await no(setDoc(doc(alice, "market", id), listing("alice")));                                    // what friends.js used to do
+  await no(setDoc(doc(alice, "market", "alice-r2"), {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"}));
   await no(setDoc(doc(alice, "market", id), listing("bob")));                                    // in someone else's name
   await no(setDoc(doc(alice, "market", "bob-" + NOW), listing("alice")));                        // id not yours
   await no(setDoc(doc(anon(), "market", id), listing("alice")));
@@ -294,56 +296,91 @@ test("market: listings must be your own and well-formed", async () => {
   const missing = listing("alice"); delete missing.soldAt;
   await no(setDoc(doc(alice, "market", id), missing));
 });
-test("market: buyers can only mark an unsold listing as theirs, and change nothing else", async () => {
-  const id = "alice-" + NOW, bob = as("bob"), carol = as("carol");
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
+test("market (7I-C): no client can buy, take back, collect, reprice or delete a listing", async () => {
+  const id = "alice-" + NOW, bob = as("bob"), carol = as("carol"), alice = as("alice");
   const ref = (db) => doc(db, "market", id);
-  await no(updateDoc(ref(as("alice")), {buyer: "alice", buyerName: "Grandma", soldAt: NOW}));        // buying your own
-  await no(updateDoc(ref(bob), {buyer: "carol", buyerName: "Carol", soldAt: NOW}));                    // in someone else's name
-  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, price: 1}));            // and a discount
+  const fresh = () => seed((db) => setDoc(doc(db, "market", id), listing("alice")));
+  await fresh();
+  // the old friends.js buy (read in a transaction, write it back with buyer fields) and the plain update
+  await no(runTransaction(bob, async (tx) => { const d = await tx.get(ref(bob)); tx.set(ref(bob), Object.assign({}, d.data(), {buyer: "bob", buyerName: "Bobby", soldAt: NOW + 5})); }));
+  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW}));
+  await no(updateDoc(ref(alice), {buyer: "alice", buyerName: "Grandma", soldAt: NOW}));             // buying your own
+  await no(updateDoc(ref(bob), {buyer: "carol", buyerName: "Carol", soldAt: NOW}));                  // in someone else's name
+  await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, price: 1}));          // and a discount
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, qty: 10}));
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, item: "cake"}));
   await no(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW, seller: "bob"}));
-  await no(updateDoc(ref(bob), {price: 1}));                                                           // no sale at all
-  await no(updateDoc(ref(as("alice")), {price: 600}));                                                 // the seller can't reprice either
+  await no(updateDoc(ref(bob), {price: 1}));
+  await no(updateDoc(ref(alice), {price: 600}));                                                     // the seller can't reprice
   await no(updateDoc(ref(anon()), {buyer: "x", buyerName: "X", soldAt: NOW}));
-  await ok(updateDoc(ref(bob), {buyer: "bob", buyerName: "Bobby", soldAt: NOW}));
-  // sold: a second buyer can't take it over, and the first can't undo it
-  await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
-  await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
-  await no(updateDoc(ref(as("alice")), {buyer: null, buyerName: null, soldAt: null}));
+  // take back of a server-made (v2) listing, and deletes by anyone else (a seller's OWN pre-7I listing: see the next test)
+  const v2 = () => seed((db) => setDoc(doc(db, "market", id), {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"}));
+  await v2(); await no(deleteDoc(ref(alice)));
+  await fresh(); await no(deleteDoc(ref(bob)));
+  await fresh(); await no(deleteDoc(ref(anon())));
+  // collect (the seller deleting a sold listing in a transaction) and anyone undoing or taking over a sale
+  // (re-seeded before every attempt, so with wide-open rules each one really reaches an existing listing)
+  const sold = () => seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
+  await v2(); await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists()) tx.delete(ref(alice)); }));
+  await sold(); await no(deleteDoc(ref(bob)));
+  await sold(); await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
+  await sold(); await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
+  await sold(); await no(updateDoc(ref(alice), {buyer: null, buyerName: null, soldAt: null}));
 });
 
-test("market: two buyers at the same moment: exactly one gets it (game transaction, and blind writes stopped by the rules)", async () => {
-  const id = "alice-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
-  const buy = (uid, name) => { const db = as(uid); return runTransaction(db, async (tx) => {
-    const ref = doc(db, "market", id), d = await tx.get(ref);
-    if (!d.exists() || d.data().buyer) throw new Error("gone");
-    tx.set(ref, Object.assign({}, d.data(), {buyer: uid, buyerName: name, soldAt: NOW + 1}));
-  }); };
-  const out = await Promise.allSettled([buy("bob", "Bobby"), buy("carol", "Carol")]);
-  const won = out.filter(r => r.status === "fulfilled").length;
-  let final; await seed(async (db) => { final = (await getDoc(doc(db, "market", id))).data(); });
-  if (won !== 1) throw new Error("expected exactly one buyer, got " + won);
-  const winner = out[0].status === "fulfilled" ? "bob" : "carol";
-  if (final.buyer !== winner) throw new Error("listing says " + final.buyer + " but " + winner + " won");
-  counts.allow++; // (this part is the game's transaction doing its job; the rules part is below)
-  // a buyer that skips the game's check and writes blindly at the same moment: only the rules can stop the second one
-  const id2 = "alice-blind-" + NOW;
-  await seed((db) => setDoc(doc(db, "market", id2), listing("alice")));
-  const blind = (uid, name) => updateDoc(doc(as(uid), "market", id2), {buyer: uid, buyerName: name, soldAt: NOW + 2});
-  const out2 = await Promise.allSettled([blind("bob", "Bobby"), blind("carol", "Carol")]);
-  const won2 = out2.filter(r => r.status === "fulfilled").length;
-  counts.allow++; counts.deny++;
-  if (MUTATION) { if (won2 > 1) counts.openAllowed = (counts.openAllowed || 0) + 1; return; }
-  if (won2 !== 1) throw new Error("blind writes: expected exactly one buyer, got " + won2);
-  let final2; await seed(async (db) => { final2 = (await getDoc(doc(db, "market", id2))).data(); });
-  const winner2 = out2[0].status === "fulfilled" ? "bob" : "carol";
-  if (final2.buyer !== winner2) throw new Error("blind writes: listing says " + final2.buyer + " but " + winner2 + " won");
+test("market (Spark): a seller may delete ONLY their own pre-7I listing; nothing else, and nothing canonical with it", async () => {
+  const L = (over) => listing("alice", over), legacy = "alice-1790000000001", v2id = "alice-req2";
+  const put = (id, data) => seed((db) => setDoc(doc(db, "market", id), data));
+  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as(OWNER_UID, OWNER_EMAIL);
+  // allowed: unsold and already-sold old listings, by their seller (plain delete, and the transaction friends.js uses)
+  await put(legacy, L()); await ok(deleteDoc(doc(alice, "market", legacy)));
+  await put(legacy, L({buyer: "bob", buyerName: "Bobby", soldAt: NOW})); await ok(runTransaction(alice, async (tx) => { const r = doc(alice, "market", legacy); if ((await tx.get(r)).exists()) tx.delete(r); }));
+  // denied: someone else's old listing, signed out, the game owner, and any server-made (v2) listing, even your own
+  for (const db of [bob, anon(), owner]) { await put(legacy, L()); await no(deleteDoc(doc(db, "market", legacy))); }
+  await put(v2id, {v: 2, seller: "alice", sellerName: "Grandma", item: "wheat", qty: 3, price: 6, at: NOW, state: "open"});
+  await no(deleteDoc(doc(alice, "market", v2id)));
+  await put(v2id, {v: 1, seller: "alice", sellerName: "G", item: "wheat", qty: 3, price: 6, at: NOW, buyer: null, buyerName: null, soldAt: null});
+  await no(deleteDoc(doc(alice, "market", v2id)));                                   // any "v" at all means it isn't an old listing
+  // still denied: creating or changing a listing, old or new
+  await no(setDoc(doc(alice, "market", "alice-1790000000002"), L()));
+  await put(legacy, L()); await no(updateDoc(doc(alice, "market", legacy), {qty: 10}));
+  await no(updateDoc(doc(alice, "market", legacy), {buyer: "alice", buyerName: "G", soldAt: NOW}));
+  // the delete can't carry anything canonical with it: a batch that also credits the verified economy is refused whole
+  const b = writeBatch(alice); b.delete(doc(alice, "market", legacy)); b.set(doc(alice, "economy", "alice"), {v: 1, coins: 6, items: {}, rev: 1});
+  await no(b.commit());
+  const b2 = writeBatch(alice); b2.delete(doc(alice, "market", legacy)); b2.set(doc(alice, "ledger/alice/rows/legacy-close"), {op: "legacyClose"});
+  await no(b2.commit());
+  let still; await seed(async (db) => { still = (await getDoc(doc(db, "market", legacy))).exists(); });
+  if (!still) throw new Error("the refused batches must not have deleted the listing");
 });
 
 // ---------------------------------------------------------------- events
+test("economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account", async () => {
+  const seedAll = () => seed(async (db) => {
+    await setDoc(doc(db, "economy/alice"), {v: 1, coins: 0, items: {}, rev: 1});
+    await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
+    await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
+  });
+  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as(OWNER_UID, OWNER_EMAIL);
+  for (const db of [alice, bob, owner, anon()]) {
+    await seedAll(); // fresh documents for every role (so with wide-open rules every deny below really gets through)
+    await no(setDoc(doc(db, "economy/alice"), {v: 1, coins: 1000000, items: {wheat: 999}, rev: 2}));
+    await no(updateDoc(doc(db, "economy/alice"), {coins: 1000000}));
+    await no(deleteDoc(doc(db, "economy/alice")));
+    await no(setDoc(doc(db, "economy/carol"), {v: 1, coins: 5, items: {}, rev: 1}));
+    await no(setDoc(doc(db, "ledger/alice/rows/harvest-alice-p0-1"), {op: "harvest", key: "harvest-alice-p0-1", result: {}, rev: 2}));
+    await no(deleteDoc(doc(db, "ledger/alice/rows/open-alice")));
+    await no(setDoc(doc(db, "ledger/alice"), {any: 1}));
+    await no(updateDoc(doc(db, "plots/alice/items/p0"), {matureAt: NOW}));
+    await no(setDoc(doc(db, "plots/alice/items/p1"), {crop: "pumpkin", generation: 1, plantedAt: NOW, matureAt: NOW}));
+    await no(deleteDoc(doc(db, "plots/alice/items/p0")));
+  }
+  // the owner of the data can read it (what the game shows); nobody else can
+  await ok(getDoc(doc(alice, "economy/alice")));
+  await no(getDoc(doc(bob, "economy/alice")));
+  await no(getDocs(collection(owner, "economy")));
+});
+
 test("events: guests and players can add a milestone; nothing else, and only the owner reads", async () => {
   await ok(addDoc(collection(anon(), "events"), {e: "open", d: "2026-10-01"}));
   await ok(addDoc(collection(as("alice"), "events"), {e: "lvl_5", d: "2026-10-01"}));
@@ -356,14 +393,14 @@ test("events: guests and players can add a milestone; nothing else, and only the
   await no(getDocs(collection(anon(), "events")));
   await no(getDocs(collection(as("alice", "alice@example.com"), "events")));
   await no(updateDoc(doc(anon(), "events", "e1"), {e: "lvl_20"}));
-  await no(deleteDoc(doc(as("austin", OWNER_EMAIL), "events", "e1")));
-  await ok(getCountFromServer(query(collection(as("austin", OWNER_EMAIL), "events"), where("e", "==", "open"))));
+  await no(deleteDoc(doc(as(OWNER_UID, OWNER_EMAIL), "events", "e1")));
+  await ok(getCountFromServer(query(collection(as(OWNER_UID, OWNER_EMAIL), "events"), where("e", "==", "open"))));
 });
 
 // ---------------------------------------------------------------- everything else
 test("unknown collections are closed", async () => {
   await no(setDoc(doc(as("alice"), "admin", "config"), {open: true}));
-  await no(getDoc(doc(as("austin", OWNER_EMAIL), "secrets", "x")));
+  await no(getDoc(doc(as(OWNER_UID, OWNER_EMAIL), "secrets", "x")));
   await no(setDoc(doc(anon(), "anything", "x"), {a: 1}));
   const a = as("alice"), b = writeBatch(a); b.set(doc(a, "farms", "alice", "sub", "x"), {a: 1});
   await no(b.commit());

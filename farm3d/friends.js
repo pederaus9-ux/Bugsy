@@ -6,10 +6,14 @@
 //   usernames/{nameLower}         {uid, name}                 makes every username unique
 //   showcase/{uid}                {save, name, level, earned, harvests, best, updatedAt}  the read-only copy of your farm friends can visit
 //   help/{uid}/items/{id}         {from, name, plots, at}     friends who watered your crops (anyone signed in can add; only you read and clear)
-//   market/{id}                   {seller, sellerName, item, qty, price, at, buyer, buyerName, soldAt}  the trading post
+//   market/{id}                   {v:2, seller, sellerName, item, qty, price, at, state}  the trading post (read here; written only by
+//                                 the economyAct Cloud Function: marketList / marketBuy / marketCancel)
+//   economy/{uid}                 {coins, items, ...}         your VERIFIED coins and goods (read here; written only by the server)
 const NAME_OK = /^[A-Za-z0-9_]{3,16}$/;
 const SAVE_KEY = "sunny-acres-3d-v1";
+import {FEATURES} from "./features.js?v=1";
 const HELP_PER_DAY = 12, MAX_LISTINGS = 4;
+const ECONOMY = FEATURES.verifiedEconomy; // Phase 7I verified economy: off on the public game (see features.js)
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
 
 export function initFriends(G, hooks) {
@@ -94,54 +98,75 @@ export function initFriends(G, hooks) {
   }
 
   // ---------- the trading post ----------
+  // ---------- trading post (Phase 7I-C): the server's canonical economy ----------
+  // Listing, buying and taking back all go through the economyAct Cloud Function. It holds the goods, moves VERIFIED
+  // coins in one transaction and pays the seller at once (there is no "collect"). The farm on this phone (its coins and
+  // barn) is not tradable: only verified coins and verified harvests are.
+  const REASON = {NOT_ENOUGH_ITEMS:"You don't have that many verified goods.", NOT_ENOUGH_COINS:"Not enough verified coins.",
+    TOO_MANY_LISTINGS:"You can have " + MAX_LISTINGS + " things for sale at once.", GONE:"Someone else just bought that.",
+    SELF_BUY:"That's your own listing.", NOT_YOURS:"That isn't yours.", LEGACY_LISTING:"That's an old listing from before verified trading.",
+    BAD_PRICE:"That price isn't allowed.", BAD_QTY:"That amount isn't allowed.", BAD_CROP:"That can't be traded yet."};
+  const why = (e, fallback) => REASON[e && e.details && e.details.reason] || fallback;
+  const reqId = () => (Date.now().toString(36) + Math.random().toString(36).slice(2, 10)).replace(/[^a-z0-9]/g, "");
+  const act = (data) => { const f = fb(); if (!f || !f.call) throw new Error("offline"); return f.call(data); };
+  let canonEcon = {coins:0, items:{}};
+  async function loadEconomy() {
+    const {F, db} = fb(), ref = F.doc(db, "economy", uid());
+    let d = await F.getDoc(ref);
+    if (!d.exists()) { await act({op:"open"}); d = await F.getDoc(ref); } // first visit: the verified account opens at 0
+    canonEcon = d.exists() ? {coins:d.data().coins || 0, items:d.data().items || {}} : {coins:0, items:{}};
+    return canonEcon;
+  }
+  const vHave = (id) => canonEcon.items[id] || 0;
   async function marketList() {
     const {F, db} = fb(), snap = await F.getDocs(F.query(F.collection(db, "market"), F.limit(60)));
-    return snap.docs.map(d => Object.assign({id:d.id}, d.data())).sort((a, b) => b.at - a.at);
+    return snap.docs.map(d => Object.assign({id:d.id}, d.data())).sort((a, b) => b.at - a.at); // v:2 = verified; others are 7G (phone farm)
   }
   async function listForSale(item, qty, price) {
-    const mine = (await marketList()).filter(l => l.seller === uid() && !l.buyer);
-    if (mine.length >= MAX_LISTINGS) throw new Error("You can have " + MAX_LISTINGS + " things for sale at once.");
-    if (!G.escrow(item, qty)) throw new Error("You don't have that many.");
-    const {F, db} = fb();
-    try { await F.setDoc(F.doc(db, "market", uid() + "-" + Date.now()), {seller:uid(), sellerName:me.name, item, qty, price, at:Date.now(), buyer:null, buyerName:null, soldAt:null}); }
-    catch (e) { G.unEscrow(item, qty); throw new Error("Couldn't put it up for sale. Check your internet."); }
+    try { await act({op:"marketList", item, qty, price, requestId:reqId()}); }
+    catch (e) { throw new Error(why(e, "Couldn't put it up for sale. Check your internet.")); }
   }
   async function buyListing(L) {
-    if (!G.canBuy(L.price, L.qty)) return false;
-    const {F, db} = fb(), ref = F.doc(db, "market", L.id);
-    await F.runTransaction(db, async (tx) => {
-      const d = await tx.get(ref);
-      if (!d.exists() || d.data().buyer) throw new Error("Someone else just bought that.");
-      tx.set(ref, Object.assign({}, d.data(), {buyer:uid(), buyerName:me.name, soldAt:Date.now()}));
-    });
-    G.bought(L.item, L.qty, L.price);
-    return true;
+    if (canonEcon.coins < L.price) { G.toast("Need " + L.price + " verified 🪙"); G.sfx("error"); return false; }
+    try { await act({op:"marketBuy", listingId:L.id}); }
+    catch (e) { throw new Error(why(e, "Couldn't buy it. Check your internet.")); }
+    G.sfx("coin"); return true;
+  }
+  // a 7G listing (from before verified trading): the server closes it and says what goes back to THIS PHONE's farm
+  async function legacyBack(L) {
+    let r; try { r = await act({op:"legacyClose", listingId:L.id}); } catch (e) { throw new Error(why(e, "Couldn't take it back. Check your internet.")); }
+    if (r.replay) return;
+    if (r.phone.coins) G.soldAtMarket(r.phone.coins, 1); else if (r.phone.item && G.ITEMS[r.phone.item] && r.phone.qty > 0) G.unEscrow(r.phone.item, r.phone.qty);
+  }
+  async function sellNow(item, qty) {
+    try { return await act({op:"sell", item, qty, requestId:reqId()}); } catch (e) { throw new Error(why(e, "Couldn't sell. Check your internet.")); }
   }
   async function takeBack(L) {
-    const {F, db} = fb(), ref = F.doc(db, "market", L.id);
-    let ok = false;
-    await F.runTransaction(db, async (tx) => { const d = await tx.get(ref); if (d.exists() && !d.data().buyer) { tx.delete(ref); ok = true; } });
-    if (ok) G.unEscrow(L.item, L.qty); else G.toast("Too late: it's already sold!");
-  }
-  // money for things that sold while you were away
-  async function collectSales() {
-    if (!fb() || G.isVisiting()) return;
-    const {F, db} = fb(), snap = await F.getDocs(F.query(F.collection(db, "market"), F.where("seller", "==", uid())));
-    let coins = 0, n = 0;
-    for (const d of snap.docs) {
-      if (!d.data().buyer) continue;
-      const ref = F.doc(db, "market", d.id); let price = 0;
-      await F.runTransaction(db, async (tx) => { const x = await tx.get(ref); if (x.exists() && x.data().buyer) { price = x.data().price; tx.delete(ref); } });
-      if (price) { coins += price; n++; }
-    }
-    if (coins) G.soldAtMarket(coins, n);
+    try { await act({op:"marketCancel", listingId:L.id}); }
+    catch (e) { if (e && e.details && e.details.reason === "GONE") return G.toast("Too late: it's already sold!"); throw e; }
   }
   // check for help and sales soon after signing in, then every few minutes
-  let bg = setInterval(() => { if (fb()) { clearInterval(bg); receiveHelp(); collectSales().catch(() => {}); setInterval(() => { receiveHelp(); collectSales().catch(() => {}); }, 5 * 60e3); } }, 2000);
+  let bg = setInterval(() => { if (fb()) { clearInterval(bg); receiveHelp(); setInterval(() => { receiveHelp(); }, 5 * 60e3); } }, 2000);
+  // ---------- Phase 7I-D: the verified balance, shown next to the phone coins (which are labelled as not verified) ----------
+  let econWatch = null, econFor = null;
+  if (ECONOMY) setInterval(() => {
+    const f = fb(), id = f ? uid() : null;
+    if (id === econFor) return;
+    if (econWatch) { econWatch(); econWatch = null; }
+    econFor = id;
+    const vbox = $("vcoinsBox"), cbox = $("coinsBox");
+    if (!id) { if (vbox) vbox.hidden = true; if (cbox) { cbox.title = "Coins"; delete cbox.dataset.legacy; } return; }
+    if (cbox) { cbox.title = "Coins on this phone: not verified, so they can't be traded"; cbox.dataset.legacy = "LEGACY_UNVERIFIED"; }
+    econWatch = f.F.onSnapshot(f.F.doc(f.db, "economy", id), (d) => {
+      const e = d.exists() ? d.data() : {coins:0, items:{}};
+      canonEcon = {coins:e.coins || 0, items:e.items || {}};
+      if (vbox) { vbox.hidden = false; $("vcoins").textContent = canonEcon.coins.toLocaleString(); }
+    }, () => {});
+  }, 2000);
 
   // ---------- the Friends window ----------
   const row = (inner) => `<div class="frow">${inner}</div>`;
-  const tabs = () => `<div class="ftabs">${[["friends", "👥 Friends"], ["board", "🏆 Leaderboard"], ["market", "🏪 Trading"]].map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-tab="${k}">${n}</button>`).join("")}</div>`;
+  const tabs = () => `<div class="ftabs">${[["friends", "👥 Friends"], ["board", "🏆 Leaderboard"], ...(ECONOMY ? [["market", "🏪 Trading"]] : [])].map(([k, n]) => `<button class="btn ${tab === k ? "" : "plain"} sm" data-tab="${k}">${n}</button>`).join("")}</div>`;
   async function render() {
     if (!fb()) { body.innerHTML = `<p class="fnote">Sign in to play with friends.</p>${window.saAuth && window.saAuth.guest ? `<p class="fnote"><button class="btn sm" data-f="account">☁️ Create an account</button></p>` : ""}`; return; }
     body.innerHTML = `<p class="fnote">Loading…</p>`;
@@ -154,13 +179,49 @@ export function initFriends(G, hooks) {
     }
     if (!published) { published = true; publishShowcase(localStorage.getItem(SAVE_KEY)).catch(() => {}); }
     if (tab === "board") return renderBoard();
-    if (tab === "market") return renderMarket();
+    if (tab === "market" && ECONOMY) return renderMarket();
+    if (tab === "market") tab = "friends";
     body.innerHTML = tabs() + `<p class="fnote">You are <b>@${esc(me.name)}</b></p>
       <form class="fform" data-f="search"><input id="fSearch" maxlength="16" placeholder="Search by username" autocomplete="off" autocapitalize="off" spellcheck="false">
       <button class="btn sm" type="submit">🔍</button></form>
       <div id="fResults"></div><h4>Your friends</h4><div id="fList"><p class="fnote">Loading…</p></div>
-      <p class="fnote" style="font-size:12px">👀 Visit a friend's farm and tap their growing crops to 💧 water them (+2 🪙 each).</p><p class="fmsg" id="fMsg"></p>`;
+      <p class="fnote" style="font-size:12px">👀 Visit a friend's farm and tap their growing crops to 💧 water them (+2 🪙 each).</p><div id="fOld"></div><p class="fmsg" id="fMsg"></p>`;
     renderList();
+    if (!ECONOMY) renderOldListings();
+  }
+  // ---------- things left at the old trading post (from before it closed) ----------
+  // Its listings took the goods out of this phone's barn. The trading post is closed now, so their seller can take them
+  // back (unsold: the goods return to the barn) or collect the price (an old buyer already paid). Only the farm on this
+  // phone changes; firestore.rules allow a seller to delete only their own listing from before the change (no "v"
+  // field). Anything that doesn't look exactly like an old listing is left alone.
+  const isOldListing = (L) => !!L && !("v" in L) && L.seller === uid() && typeof L.item === "string" && !!G.ITEMS[L.item]
+    && Number.isInteger(L.qty) && L.qty >= 1 && L.qty <= 10 && Number.isInteger(L.price) && L.price >= 1 && L.price <= 100000
+    && (L.buyer === null || typeof L.buyer === "string");
+  let oldListings = [];
+  async function renderOldListings() {
+    const el = $("fOld"); if (!el) return;
+    try {
+      const {F, db} = fb(), snap = await F.getDocs(F.query(F.collection(db, "market"), F.where("seller", "==", uid())));
+      const all = snap.docs.map(d => Object.assign({id:d.id}, d.data())).filter(L => !("v" in L));
+      oldListings = all.filter(isOldListing);
+      for (const L of all) if (!isOldListing(L)) console.warn("An old trading-post listing has an unexpected shape; left alone:", L.id);
+    } catch (e) { oldListings = []; }
+    el.innerHTML = oldListings.length ? `<h4>Left at the old trading post</h4><p class="fnote">The trading post is closed. Take back what you left there.</p>`
+      + oldListings.map(L => row(`<span class="e">${G.ITEMS[L.item].e}</span><span class="who">${L.qty}× ${G.ITEMS[L.item].n}<small>${L.buyer ? "sold for " + L.price + " 🪙" : "not sold"}</small></span><button class="btn sm" data-old-back="${L.id}">${L.buyer ? "Collect " + L.price + " 🪙" : "Take back"}</button>`)).join("") : "";
+  }
+  async function closeOldListing(id) {
+    const {F, db} = fb(), ref = F.doc(db, "market", id);
+    // one transaction: only the device whose delete lands gives anything back (a second device finds it gone)
+    const got = await F.runTransaction(db, async (tx) => {
+      const d = await tx.get(ref);
+      if (!d.exists()) return null;
+      const L = Object.assign({id}, d.data());
+      if (!isOldListing(L)) return null;
+      tx.delete(ref); return L;
+    });
+    if (!got) return false;
+    if (got.buyer) G.soldAtMarket(got.price, got.qty); else G.unEscrow(got.item, got.qty);
+    return true;
   }
   async function renderList() {
     const el = $("fList"); if (!el) return;
@@ -193,28 +254,34 @@ export function initFriends(G, hooks) {
   async function renderMarket(msg) {
     body.innerHTML = tabs() + `<p class="fnote">Loading…</p>`;
     let all;
-    try { collectSales().catch(() => {}); if (!friendIds.size) await listFriends(); all = await marketList(); }
+    let raw;
+    try { if (!friendIds.size) await listFriends(); [raw] = await Promise.all([marketList(), loadEconomy()]); }
     catch (e) { body.innerHTML = tabs() + `<p class="fnote">Couldn't reach the trading post. Check your internet.</p>`; return; }
-    const ITEMS = G.ITEMS, mine = all.filter(l => l.seller === uid() && !l.buyer);
-    const forSale = all.filter(l => l.seller !== uid() && !l.buyer && ITEMS[l.item]).sort((a, b) => (friendIds.has(b.seller) - friendIds.has(a.seller)) || b.at - a.at);
-    let h = tabs() + `<p class="fnote">Buy from other farmers, or sell your own goods at your price. Coins arrive when someone buys.</p>`;
+    all = raw.filter(l => l.v === 2 && l.state === "open");
+    const legacyMine = raw.filter(l => l.v !== 2 && l.seller === uid());
+    const ITEMS = G.ITEMS, mine = all.filter(l => l.seller === uid());
+    const forSale = all.filter(l => l.seller !== uid() && ITEMS[l.item]).sort((a, b) => (friendIds.has(b.seller) - friendIds.has(a.seller)) || b.at - a.at);
+    let h = tabs() + `<p class="fnote">Trade verified goods with other farmers. The coins arrive the moment someone buys.</p>`
+      + `<p class="fnote" id="mVerified">✅ Verified: <b>${canonEcon.coins} 🪙</b>${Object.keys(canonEcon.items).length ? " · " + Object.entries(canonEcon.items).map(([id, n]) => (ITEMS[id] ? ITEMS[id].e : id) + " " + n).join(" ") : ""}</p>`;
     h += `<h4>For sale</h4>` + (forSale.length ? forSale.slice(0, 20).map(L => row(`<span class="e">${ITEMS[L.item].e}</span><span class="who">${L.qty}× ${ITEMS[L.item].n}<small>${friendIds.has(L.seller) ? "👥 " : "👤 "}${esc(L.sellerName)}</small></span><button class="btn gold sm" data-buy="${L.id}">${L.price} 🪙</button>`)).join("")
       : `<p class="fnote">Nothing for sale right now.</p>`);
+    if (legacyMine.length) h += `<h4>From before verified trading</h4><p class="fnote">These used this phone's coins and barn. Take them back to this phone.</p>` + legacyMine.map(L => row(`<span class="e">${ITEMS[L.item] ? ITEMS[L.item].e : "📦"}</span><span class="who">${L.qty}× ${ITEMS[L.item] ? ITEMS[L.item].n : esc(L.item)}<small>${L.buyer ? "sold: " + L.price + " phone 🪙 to collect" : "unsold"}</small></span><button class="btn plain sm" data-legacy-back="${L.id}">${L.buyer ? "Collect" : "Take back"}</button>`)).join("");
     h += `<h4>Your stand (${mine.length}/${MAX_LISTINGS})</h4>` + mine.map(L => row(`<span class="e">${ITEMS[L.item].e}</span><span class="who">${L.qty}× ${ITEMS[L.item].n}<small>${L.price} 🪙 · waiting for a buyer</small></span><button class="frm" data-back="${L.id}" aria-label="Take it back">✕</button>`)).join("");
     if (mine.length < MAX_LISTINGS) {
-      const ids = Object.keys(ITEMS).filter(id => G.have(id) > 0);
-      if (!sell || !G.have(sell.id)) sell = ids.length ? {id:ids[0], qty:1} : null;
+      const ids = Object.keys(ITEMS).filter(id => vHave(id) > 0);
+      if (!sell || !vHave(sell.id)) sell = ids.length ? {id:ids[0], qty:1} : null;
       if (sell) {
-        const pr = G.marketPrice(sell.id), q = Math.min(sell.qty, G.have(sell.id), 10); sell.qty = q;
+        const pr = G.marketPrice(sell.id), q = Math.min(sell.qty, vHave(sell.id), 10); sell.qty = q;
         sell.price = Math.min(Math.max(sell.price || pr.base * q, pr.min * q), pr.max * q);
-        h += `<div class="sellform slot"><select id="mItem">${ids.map(id => `<option value="${id}" ${id === sell.id ? "selected" : ""}>${ITEMS[id].e} ${ITEMS[id].n} (${G.have(id)})</option>`).join("")}</select>
+        h += `<div class="sellform slot"><select id="mItem">${ids.map(id => `<option value="${id}" ${id === sell.id ? "selected" : ""}>${ITEMS[id].e} ${ITEMS[id].n} (${vHave(id)})</option>`).join("")}</select>
           <div class="frow"><span>Amount</span><button class="btn plain sm" data-q="-1">−</button><b>${q}</b><button class="btn plain sm" data-q="1">+</button></div>
           <div class="frow"><span>Price</span><button class="btn plain sm" data-pr="-1">−</button><b>${sell.price} 🪙</b><button class="btn plain sm" data-pr="1">+</button></div>
-          <button class="btn gold" data-list="1">Put up for sale</button></div>`;
-      } else h += `<p class="fnote">Your barn is empty. Harvest something to sell!</p>`;
+          <button class="btn gold" data-list="1">Put up for sale</button>
+          <button class="btn plain sm" data-sellnow="1">Or sell now to the market: ${ITEMS[sell.id].p * q} 🪙</button></div>`;
+      } else h += `<p class="fnote">No verified goods yet. Verified harvests can be sold here.</p>`;
     }
     body.innerHTML = h + `<p class="fmsg" id="fMsg">${msg ? esc(msg) : ""}</p>`;
-    market = {all};
+    market = {all, raw};
   }
   let market = {all:[]};
   const say = (t) => { const m = $("fMsg"); if (m) m.textContent = t || ""; };
@@ -253,15 +320,18 @@ export function initFriends(G, hooks) {
       } catch (err) { say("Couldn't load their farm. Check your internet."); b.disabled = false; b.textContent = "👀 Visit"; }
     }
     // trading post
-    if (d.q && sell) { sell.qty = Math.max(1, Math.min(10, G.have(sell.id), sell.qty + +d.q)); sell.price = null; G.sfx("tick"); return renderMarket(); }
+    if (d.q && sell) { sell.qty = Math.max(1, Math.min(10, vHave(sell.id), sell.qty + +d.q)); sell.price = null; G.sfx("tick"); return renderMarket(); }
     if (d.pr && sell) { const pr = G.marketPrice(sell.id); sell.price = Math.min(pr.max * sell.qty, Math.max(pr.min * sell.qty, sell.price + +d.pr * Math.max(1, Math.round(pr.base * sell.qty * .1)))); G.sfx("tick"); return renderMarket(); }
-    if (d.list && sell) { b.disabled = true; try { await listForSale(sell.id, sell.qty, sell.price); G.sfx("place"); sell = null; renderMarket("Up for sale! You'll get the coins when someone buys it."); } catch (err) { renderMarket(err.message); } }
-    if (d.buy) { const L = market.all.find(x => x.id === d.buy); if (!L) return; b.disabled = true; try { if (await buyListing(L)) renderMarket("Bought! It's in your barn."); else b.disabled = false; } catch (err) { renderMarket(err.message || "Couldn't buy it."); } }
+    if (d.list && sell) { b.disabled = true; try { await listForSale(sell.id, sell.qty, sell.price); G.sfx("place"); sell = null; renderMarket("Up for sale! The coins arrive the moment someone buys it."); } catch (err) { renderMarket(err.message); } }
+    if (d.buy) { const L = market.all.find(x => x.id === d.buy); if (!L) return; b.disabled = true; try { if (await buyListing(L)) renderMarket("Bought! It's in your verified goods."); else b.disabled = false; } catch (err) { renderMarket(err.message || "Couldn't buy it."); } }
+    if (d.oldBack) { b.disabled = true; try { const ok = await closeOldListing(d.oldBack); say(ok ? "Back on your farm." : "That one is already taken care of."); } catch (err) { say("Couldn't reach the trading post. Check your internet."); } return renderOldListings(); }
+    if (d.sellnow && sell) { b.disabled = true; try { const r = await sellNow(sell.id, sell.qty); G.sfx("coin"); sell = null; renderMarket("Sold for " + r.coins + " verified 🪙."); } catch (err) { renderMarket(err.message); } }
+    if (d.legacyBack) { const L = (market.raw || []).find(x => x.id === d.legacyBack); if (!L) return; b.disabled = true; try { await legacyBack(L); renderMarket("Back on this phone."); } catch (err) { renderMarket(err.message); } }
     if (d.back) { const L = market.all.find(x => x.id === d.back); if (!L) return; b.disabled = true; try { await takeBack(L); renderMarket(); } catch (err) { renderMarket("Couldn't take it back. Check your internet."); } }
   });
   function open(on) { box.hidden = !on; if (on) { G.close(); render(); } }
   $("friendsBtn").addEventListener("click", () => open(true));
   addEventListener("keydown", (e) => { if (e.code === "Escape" && !box.hidden) open(false); });
   addEventListener("sa3d:leftvisit", () => { visitingUid = null; });
-  return {open, searchPlayers, addFriend, listFriends, fetchFarm, claimUsername, publishShowcase, water:waterForFriend, receiveHelp, collectSales, marketList, buyListing};
+  return {open, searchPlayers, addFriend, listFriends, fetchFarm, claimUsername, publishShowcase, water:waterForFriend, receiveHelp, marketList, buyListing, loadEconomy};
 }
