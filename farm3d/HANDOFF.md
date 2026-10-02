@@ -2,7 +2,13 @@
 
 Original inspection 2026-09-30 at `714a896`; continuation updated 2026-10-01.
 
-Current baseline is main `cafeee6ef346175b5d9cde08a1346c5ec78f7ac7`, including
+**State as of 2026-10-02 (main `036bfb4`):** Phase 7G (Firebase hardening) is **MERGED** (PR #35): Firestore rules
+are versioned in `farm3d/firebase/firestore.rules` and tested in CI. The rules are **NOT yet published to production**
+(owner action in the Firebase console, see `farm3d/firebase/README.md`), and the phone smoke test has **not been run**.
+Phase 7H (save + update hardening) is the active phase; see `farm3d/docs/phase7h/`. The paragraph below is the
+pre-7G history.
+
+Earlier baseline was main `cafeee6ef346175b5d9cde08a1346c5ec78f7ac7`, including
 PR #29 (Phase 7E, owner approved), PR #30 (Phase 7F) and PR #31 (3D cow). The owner asked
 to replace painted animal cards with true 3D characters before Phase 7G.
 The owner confirmed the new cow loads on the phone through the preview link,
@@ -10,7 +16,7 @@ then requested it on the main game link. **Cows now use 3D by default** on both
 PC and phone; other species retain Phase 7F artwork. Further species/style and
 sustained S26 Ultra performance review remain pending. Read
 `CHARACTERS3D_PROTOTYPE.md` and `PHASE7_PLAN.md`
-before choosing the next task; do not advance to Firebase hardening yet.
+before choosing the next task. (At that time Firebase hardening was on hold; the owner later started it, and it merged as PR #35.)
 
 Use `characters3d.html` to review all angles; the regular farm link shows 3D cows.
 `?characters2d` restores painted cows for comparison. `cow3d.js?v=1` and

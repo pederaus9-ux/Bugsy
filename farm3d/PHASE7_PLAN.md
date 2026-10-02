@@ -12,8 +12,10 @@ COMPLETE / OWNER APPROVED (PR #29). Phase 7F (locomotion rollout,
 characters before proceeding: first build one cow and stop for style and phone
 performance review. PR #31 is merged, and the owner confirmed the new cow loads
 on the phone through the preview, then requested it on the regular game link.
-Cows now use 3D by default; other species and Phase 7G remain deferred pending
-further owner feedback. See `CHARACTERS3D_PROTOTYPE.md`.
+Cows now use 3D by default (PR #32); other species remain deferred pending further owner feedback.
+See `CHARACTERS3D_PROTOTYPE.md`. Phase 7G (Firebase hardening) is MERGED in the repo (PR #35, main `036bfb4`);
+production publication of the rules is a separate owner step and has not been done yet. Phase 7H (save + update
+hardening) is active.
 
 ## Rules for every phase
 
