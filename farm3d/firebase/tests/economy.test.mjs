@@ -1,5 +1,7 @@
 // Phase 7I-A: the canonical economy, ledger, idempotency and the zero cutover.
 // Runs under: firebase emulators:exec --only firestore,auth,functions (see package.json "test:economy").
+// Run it on its own (package.json runs it after rules.test.mjs, never alongside): rules.test.mjs wipes the whole
+// emulator database before every test, which would delete this file's data mid-test if both ran at the same time.
 // Two layers: the economy core (functions/economy.js) driven directly with admin access against the Firestore
 // emulator, and the real deployed-to-emulator callable economyAct over HTTP with Auth-emulator ID tokens.
 import {test} from "node:test";

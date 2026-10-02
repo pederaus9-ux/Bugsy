@@ -64,6 +64,11 @@ Nothing in 7H invalidates the 7I design. Four constraints carry forward:
 - Mutation check (wide-open rules): 253 of 256 denies get through. The other 3 are edits of documents an earlier
   allowed delete had already removed.
 - Economy: 6/6.
+- CI note: the first CI run failed 3 economy tests. `node --test` runs test files in parallel, one per spare CPU:
+  1 on this 2-CPU container, more on CI. `rules.test.mjs` wipes the emulator database before each test, which
+  deleted the economy tests' data mid-test.
+  - Reproduced locally with `--test-concurrency=2` (2 failures). Running the files in sequence passes.
+  - The scripts now run the two files one after the other.
 
 ## Next
 

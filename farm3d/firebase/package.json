@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore,auth,functions --project demo-sunny-acres \"node --test tests/rules.test.mjs tests/economy.test.mjs && node tests/flows.browser.cjs && node tests/recovery.browser.cjs\"",
+    "test": "firebase emulators:exec --only firestore,auth,functions --project demo-sunny-acres \"node --test tests/rules.test.mjs && node --test tests/economy.test.mjs && node tests/flows.browser.cjs && node tests/recovery.browser.cjs\"",
     "test:rules": "firebase emulators:exec --only firestore --project demo-sunny-acres \"node --test tests/rules.test.mjs\"",
     "test:recovery": "firebase emulators:exec --only firestore,auth --project demo-sunny-acres \"node tests/recovery.browser.cjs\"",
     "test:economy": "firebase emulators:exec --only firestore,auth,functions --project demo-sunny-acres \"node --test tests/economy.test.mjs\""
