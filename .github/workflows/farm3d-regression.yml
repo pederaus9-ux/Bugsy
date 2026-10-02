@@ -48,3 +48,42 @@ jobs:
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+  firestore-rules:
+    name: Firestore rules (emulator)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Cache the Firestore emulator download
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firestore-emulator-${{ hashFiles('farm3d/firebase/package-lock.json') }}
+      - name: Install isolated rules-test dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Run Firestore rules tests against the local emulator
+        working-directory: farm3d/firebase
+        run: npm test
+      - name: Save rules test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: firestore-rules-${{ github.run_attempt }}
+          path: |
+            farm3d/firebase/artifacts/
+            farm3d/firebase/firestore-debug.log
+          if-no-files-found: ignore
+          retention-days: 7
