@@ -69,11 +69,15 @@ async function checkKeys(page){
 }
 async function planting(page,size,cancel=true){
   await page.evaluate(()=>{const d=__dbg;d.G.close();d.G.S.tut=99;for(const p of d.G.S.plots)p.crop=null;d.G.view.refresh('plots');d.cam.target.set(-10,1,12);d.cam.yaw=0;d.cam.pitch=.8;d.cam.dist=18;});
-  await page.waitForTimeout(2000);
+  // Leaving walk mode eases the camera from the walker's eye to the farm view, and the farmer stays where the walk
+  // stopped (often on the plots). Wait until the eased view has actually arrived (a fixed 2 s was not enough on a slow
+  // CI machine: the spot was picked mid-ease and the next click hit the farmer, opening the wardrobe), and only pick a
+  // spot where the game's own hit test says "this plot", not the farmer standing on it.
+  await page.waitForFunction(()=>{const v=__dbg.view,c=__dbg.cam;return Math.abs(v.pitch-c.pitch)<.002&&Math.abs(v.dist-c.dist)<.02&&Math.abs(v.yaw-c.yaw)<.002&&v.target.distanceTo(c.target)<.02;},null,{timeout:30000});
   const spot=await page.evaluate(()=>{
     for(let i=0;i<__dbg.plots.length;i++){
-      const s=__dbg.G.view.screenPos('plot:'+i);
-      if(s&&s.x>120&&s.x<innerWidth-140&&s.y>55&&s.y<innerHeight-100&&__dbg.plotAt(s.x,s.y)===i&&document.elementFromPoint(s.x,s.y)===__dbg.renderer.domElement)return {...s,i};
+      const s=__dbg.G.view.screenPos('plot:'+i), h=s&&__dbg.hitAt(s.x,s.y);
+      if(s&&s.x>120&&s.x<innerWidth-140&&s.y>55&&s.y<innerHeight-100&&__dbg.plotAt(s.x,s.y)===i&&h&&h.type==='plot'&&h.i===i&&document.elementFromPoint(s.x,s.y)===__dbg.renderer.domElement)return {...s,i};
     }throw Error('No unobscured plot');
   });
   await page.mouse.click(spot.x,spot.y);
