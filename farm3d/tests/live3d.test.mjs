@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../lib/three.module.min.js';
-import {createLiveAnimal, updateLiveAnimal, createLiveFarmer, createLiveVillager, replaceRig} from '../live3d.js';
+import {createLiveAnimal, updateLiveAnimal, createLiveFarmer, createLiveVillager, replaceRig, updateLiveFarmer} from '../live3d.js';
 for (const kind of ['sheep','horse','dog','cat','chicken']) {
   test(kind + ' movement changes the gait', () => {
     const rig = createLiveAnimal(kind, 1, 0, 0);
@@ -29,6 +29,13 @@ test('two saved looks produce different farmer materials', () => {
   assert.notEqual(a.look.hat, b.look.hat);
   assert.notEqual(a.extras.length, b.extras.length);
   a.dispose(); b.dispose();
+});
+test('live farmer idle update stays finite', () => {
+  const rig = createLiveFarmer({hair:'bob', hat:'none', overalls:false});
+  for (let i = 0; i < 30; i++) updateLiveFarmer(rig, 0, 0, 1/60, 'idle');
+  assert.ok(Number.isFinite(rig.arms[0].rotation.x));
+  assert.equal(rig.disposed, false);
+  rig.dispose();
 });
 test('replacing a rig removes the old group and disposes it', () => {
   const scene = new THREE.Group();
