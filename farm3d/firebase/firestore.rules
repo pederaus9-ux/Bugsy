@@ -1,0 +1,169 @@
+rules_version = '2';
+
+// Sunny Acres 3D: Firestore security rules (ruleset version 7G-1).
+//
+// These rules are the version-controlled source of truth for the Firestore database used by farm3d
+// (Firebase project fir-config-18b64, database "default"). Publish them by pasting this whole file into
+// Firebase console > Firestore Database > (database "default") > Rules, then run the signed-in smoke test in
+// farm3d/firebase/README.md. Every rule here is exercised by farm3d/firebase/tests/rules.test.mjs.
+//
+// What these rules can and cannot do:
+//   They check WHO is writing, WHICH document they may touch, the SHAPE of what they write, and legal state changes.
+//   They cannot check that coins, inventory, levels or leaderboard numbers are honest: the browser calculates those.
+//   A determined player can still lie about their own farm. They cannot write to somebody else's.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+    // the game owner (players.html dashboard)
+    function isOwner() { return signedIn() && request.auth.token.email == 'pederaus9@gmail.com'; }
+    function data() { return request.resource.data; }
+    function hasExactly(keys) { return data().keys().hasAll(keys) && data().keys().hasOnly(keys); }
+    function onlyChanged(keys) { return data().diff(resource.data).affectedKeys().hasOnly(keys); }
+    function str(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
+    function num(v, lo, hi) { return v is number && v >= lo && v <= hi; }
+    function int(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function username(v) { return v is string && v.matches('^[A-Za-z0-9_]{3,16}$'); }
+    function display(v) { return str(v, 1, 16); }           // a username shown next to something (as the client had it)
+    function millis(v) { return int(v, 0, 9999999999999); }  // Date.now()
+    // a full farm save (JSON text). Firestore's own limit is 1 MiB per document; stay well under it.
+    function saveText(v) { return str(v, 2, 900000); }
+
+    // ---------- farms/{uid}: the cloud save. Only that account, never anyone else. ----------
+    // auth.js writes {save, level, coins, rev, updatedAt} in a transaction and always sets rev to the stored rev + 1.
+    match /farms/{uid} {
+      allow get: if isMe(uid);
+      allow list: if isOwner();                              // players.html counts farms
+      allow create, update: if isMe(uid)
+        && hasExactly(['save', 'level', 'coins', 'rev', 'updatedAt'])
+        && saveText(data().save)
+        && num(data().level, 1, 100000) && num(data().coins, -1000000000000000, 1000000000000000)
+        && data().rev == (resource == null ? 0 : resource.data.get('rev', 0)) + 1
+        && millis(data().updatedAt);
+      allow delete: if false;
+    }
+
+    // ---------- presence/{uid}: "seen" heartbeat for the owner's dashboard ----------
+    // auth.js: setDoc(presence/uid, {seen: serverTimestamp(), level, joined}, {merge: true})
+    match /presence/{uid} {
+      allow read: if isOwner();
+      allow create, update: if isMe(uid)
+        && data().keys().hasOnly(['seen', 'level', 'joined'])
+        && data().seen == request.time
+        && num(data().level, 1, 100000)
+        && (!('joined' in data()) || data().joined == null || millis(data().joined));
+      allow delete: if false;
+    }
+
+    // ---------- players/{uid}: public profile {name, nameLower} ----------
+    // Written only inside the username transaction, together with usernames/{nameLower}.
+    match /players/{uid} {
+      allow read: if signedIn();                             // search, friends, dashboard names
+      allow create, update: if isMe(uid)
+        && hasExactly(['name', 'nameLower'])
+        && username(data().name) && data().nameLower == data().name.lower()
+        && getAfter(/databases/$(database)/documents/usernames/$(data().nameLower)).data.uid == uid;
+      allow delete: if false;
+
+      // your own friends list {name, addedAt}: nobody else can see or change it
+      match /friends/{fid} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid) && fid != uid
+          && hasExactly(['name', 'addedAt'])
+          && display(data().name) && millis(data().addedAt);
+      }
+    }
+
+    // ---------- usernames/{nameLower}: makes every username unique {uid, name} ----------
+    match /usernames/{nameLower} {
+      allow read: if signedIn();
+      // claim a free name (or re-save your own), and the profile must point at it in the same transaction
+      allow create: if signedIn()
+        && hasExactly(['uid', 'name'])
+        && data().uid == request.auth.uid
+        && username(data().name) && data().name.lower() == nameLower
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.nameLower == nameLower;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && hasExactly(['uid', 'name'])
+        && data().uid == request.auth.uid
+        && username(data().name) && data().name.lower() == nameLower;
+      // give an old name back: only its owner, and only while switching to a different name
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.nameLower != nameLower;
+    }
+
+    // ---------- showcase/{uid}: the visitable copy of your farm + leaderboard numbers ----------
+    // These numbers are display/social data written by the player's own browser, not verified results.
+    match /showcase/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isMe(uid)
+        && hasExactly(['save', 'name', 'level', 'earned', 'harvests', 'best', 'orders', 'updatedAt'])
+        && saveText(data().save)
+        && username(data().name)
+        && num(data().level, 1, 100000)
+        && num(data().earned, 0, 1000000000000000) && num(data().harvests, 0, 1000000000000)
+        && num(data().best, 0, 1000000000) && num(data().orders, 0, 1000000000000)
+        && millis(data().updatedAt);
+      allow delete: if false;
+    }
+
+    // ---------- help/{owner}/items/{id}: a friend watered your crops ----------
+    // friends.js: id = "<helperUid>-<millis>-<plot>", {from, name, plots:[plot], at}
+    match /help/{owner}/items/{id} {
+      allow read, delete: if isMe(owner);
+      allow create: if signedIn() && owner != request.auth.uid
+        && id.matches('^' + request.auth.uid + '-[0-9]+-[0-9]+$')
+        && hasExactly(['from', 'name', 'plots', 'at'])
+        && data().from == request.auth.uid
+        && display(data().name)
+        && data().plots is list && data().plots.size() >= 1 && data().plots.size() <= 4
+        && int(data().plots[0], 0, 999)
+        && millis(data().at);
+      allow update: if false;
+    }
+
+    // ---------- market/{id}: the trading post ----------
+    // friends.js: id = "<sellerUid>-<millis>",
+    //   {seller, sellerName, item, qty, price, at, buyer:null, buyerName:null, soldAt:null}
+    // buying sets buyer/buyerName/soldAt in a transaction; the seller deletes the listing to take it back or to
+    // collect the coins after it sold. Rules cannot check coins or goods (those live in each player's own save).
+    match /market/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && id.matches('^' + request.auth.uid + '-[0-9]+$')
+        && hasExactly(['seller', 'sellerName', 'item', 'qty', 'price', 'at', 'buyer', 'buyerName', 'soldAt'])
+        && data().seller == request.auth.uid
+        && display(data().sellerName)
+        && data().item is string && data().item.matches('^[a-z_]{2,24}$')
+        && int(data().qty, 1, 10)
+        && int(data().price, 1, 100000)
+        && millis(data().at)
+        && data().buyer == null && data().buyerName == null && data().soldAt == null;
+      // buy: only an unsold listing, never your own, and nothing but who bought it and when
+      allow update: if signedIn()
+        && resource.data.buyer == null
+        && resource.data.seller != request.auth.uid
+        && onlyChanged(['buyer', 'buyerName', 'soldAt'])
+        && data().buyer == request.auth.uid
+        && display(data().buyerName)
+        && millis(data().soldAt);
+      // take back (unsold) or collect (sold): the seller only
+      allow delete: if signedIn() && resource.data.seller == request.auth.uid;
+    }
+
+    // ---------- events/{id}: anonymous milestone counts {e, d} ----------
+    // Guests are not signed in, so creating stays open, but the shape is exact and tiny. Only the owner reads.
+    match /events/{id} {
+      allow create: if hasExactly(['e', 'd'])
+        && data().e is string && data().e.matches('^[a-z0-9_]{1,24}$')
+        && data().d is string && data().d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+      allow read: if isOwner();
+      allow update, delete: if false;
+    }
+
+    // everything else: nobody
+  }
+}

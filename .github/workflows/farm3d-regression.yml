@@ -48,3 +48,38 @@ jobs:
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+  firebase-rules:
+    name: Firestore rules + game flows (emulator)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Install isolated rules-test dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Rules tests and real game flows against the Firestore + Auth emulators
+        working-directory: farm3d/firebase
+        run: npm test
+      - name: Save flow results and failure screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-firebase-${{ github.run_attempt }}
+          path: farm3d/firebase/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

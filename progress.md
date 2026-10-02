@@ -1,6 +1,6 @@
 # Sunny Acres: progress
 
-Last updated: 2026-09-26
+Last updated: 2026-10-02
 
 ## Where things live
 - **Live 2D game:** `farm/` (published at `https://pederaus9-ux.github.io/Bugsy/farm/`)
@@ -11,6 +11,12 @@ Last updated: 2026-09-26
 
 ## Test links
 - **3D game (phone):** https://claude.ai/artifact/1s6eqFAG4HAMnGvpSjjcfS (private to the account owner). The whole game. Weather lookups, the location button and backup *files* don't work on this test link (the page is locked down); backup *codes* do.
+
+## Phase 7G — Firebase hardening (2026-10-02)
+- [x] Firestore rules now in Git: `farm3d/firebase/firestore.rules` (every collection, default deny), with a publish + rollback procedure in `farm3d/firebase/README.md`
+- [x] Emulator tests: 143 rule checks (36 allow, 107 deny) and 17 real-game flows (sign-up, cloud save, usernames, friends, leaderboard, market, visits, guest stats, owner dashboard); added to GitHub Actions
+- [ ] Owner publishes the rules in the Firebase console and runs the phone smoke test
+- App Check: not enabled; monitoring-only later. Coins/levels/leaderboards remain computed on the phone (documented in `farm3d/PHASE7G_FIREBASE.md`).
 
 ## Done
 ### 2D game (live)
