@@ -41,6 +41,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .xpbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#9BE36E,#4FAE2E);transition:width .4s}
 .xpbar span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fun);font-size:13px;padding-left:10px}
 .money{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.cnt[hidden]{display:none}
 .cnt{display:flex;align-items:center;height:32px;min-width:112px;background:rgba(70,35,10,.6);border:3px solid #fff;border-radius:17px;padding-right:12px}
 .cnt .ic{font-size:28px;margin-left:-14px;margin-right:6px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3));line-height:1}
 .cnt b{font-family:var(--fun);font-weight:400;font-size:19px;margin-left:auto}
@@ -506,7 +507,8 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <div class="xpbar"><i id="xpBar" style="width:0"></i><span class="out" id="xpTxt">0/15</span></div>
   </div>
   <div class="money">
-    <div class="cnt" title="Coins"><span class="ic">🪙</span><b class="out" id="coins">0</b></div>
+    <div class="cnt" id="coinsBox" title="Coins"><span class="ic">🪙</span><b class="out" id="coins">0</b></div>
+    <div class="cnt" id="vcoinsBox" title="Verified coins: the ones you can trade" hidden><span class="ic">✅</span><b class="out" id="vcoins">0</b></div>
     <div class="cnt" title="Gems, earned only by playing"><span class="ic">💎</span><b class="out" id="gems">0</b></div>
   </div>
 </div>
@@ -615,7 +617,7 @@ import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=23"; window.__gameVer = 23; // bump this version whenever game.js changes
-import {initFriends} from "./friends.js?v=5";
+import {initFriends} from "./friends.js?v=6";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);

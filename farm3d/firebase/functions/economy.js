@@ -237,6 +237,39 @@ Object.assign(OPS, {
   },
 });
 
+// ---------- 7I-D: canonical sale to the game, and closing out 7G (legacy) listings ----------
+Object.assign(OPS, {
+  // Sell verified crops to the game at the base price (no perks: perks are phone-farm data). Online only, since it is a
+  // server call; a queued or offline sale cannot exist.
+  sell: {
+    key: (uid, r) => "sell-" + uid + "-" + keyPart(r.requestId, "requestId"),
+    run: async ({req, econ}) => {
+      const item = cropId(req.item), qty = req.qty;
+      if (!Number.isSafeInteger(qty) || qty < 1 || qty > 999) throw new EconomyError("invalid-argument", "BAD_QTY");
+      if ((econ.items[item] || 0) < qty) throw new EconomyError("failed-precondition", "NOT_ENOUGH_ITEMS");
+      const coins = CROPS[item].price * qty;
+      return {result: {item, qty, coins}, change: {coins, items: {[item]: -qty}}};
+    },
+  },
+  // A 7G listing (written by the client against PHONE-farm goods and coins) is closed by its seller here. Nothing
+  // canonical moves: the answer tells the device what to give back to the phone farm (the goods if unsold, the price
+  // if a 7G buyer had marked it sold). The listing is deleted so it can't be closed twice.
+  legacyClose: {
+    key: (uid, r) => "legacy-close-" + uid + "-" + listingId(r.listingId),
+    run: async ({tx, db, uid, req}) => {
+      const id = listingId(req.listingId);
+      const snap = await tx.get(marketRef(db, id));
+      if (!snap.exists) throw new EconomyError("failed-precondition", "GONE");
+      const L = snap.data();
+      if (L.v === 2) throw new EconomyError("failed-precondition", "NOT_LEGACY");
+      if (L.seller !== uid) throw new EconomyError("permission-denied", "NOT_YOURS");
+      const qty = Number.isSafeInteger(L.qty) ? L.qty : 0, price = Number.isSafeInteger(L.price) ? L.price : 0;
+      const phone = L.buyer ? {coins: price} : {item: String(L.item || ""), qty};
+      return {result: {listingId: id, legacy: true, phone}, deletes: [marketRef(db, id)]};
+    },
+  },
+});
+
 function generationOf(v) {
   if (!Number.isSafeInteger(v) || v < 1) throw new EconomyError("invalid-argument", "BAD_GENERATION");
   return v;

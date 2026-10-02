@@ -386,3 +386,45 @@ test("the server writes to the game's database (named \"default\"), not to the a
   assert.ok((await db.doc("economy/" + uid).get()).exists, "visible in \"default\", where auth.js and friends.js read");
   assert.equal((await getFirestore().doc("economy/" + uid).get()).exists, false, "nothing in the unnamed \"(default)\" database");
 });
+
+// ======================= Phase 7I-D: canonical sale, legacy close-out =======================
+test("sell: verified crops sell at the base price for verified coins; legacy goods can't be sold; replays pay once", async () => {
+  const uid = "sale-a-" + RUN;
+  await give(uid, 0, {wheat: 2});
+  await db.doc("farms/" + uid).set({save: JSON.stringify({v: 1, coins: 5, barn: {wheat: 999999}, perks: {sell: 9}}), level: 9, coins: 5, rev: 1, updatedAt: Date.now()});
+  const r = await real(uid, "sell", {item: "wheat", qty: 2, requestId: "s1"});
+  assert.deepEqual({item: r.item, qty: r.qty, coins: r.coins}, {item: "wheat", qty: 2, coins: 4}, "base price 2 each; phone-farm perks don't count");
+  assert.equal((await econ(uid)).coins, 4); assert.deepEqual((await econ(uid)).items, {});
+  assert.equal((await real(uid, "sell", {item: "wheat", qty: 2, requestId: "s1"})).replay, true);
+  assert.equal((await econ(uid)).coins, 4, "a replayed sale pays once");
+  await assert.rejects(real(uid, "sell", {item: "wheat", qty: 1, requestId: "s2"}), refused("NOT_ENOUGH_ITEMS"), "the phone barn's 999999 wheat is not sellable");
+  for (const [req, reason] of [[{item: "wheat", qty: 0}, "BAD_QTY"], [{item: "wheat", qty: 1.5}, "BAD_QTY"], [{item: "egg", qty: 1}, "BAD_CROP"]])
+    await assert.rejects(real(uid, "sell", {...req, requestId: "b" + reason}), refused(reason));
+});
+
+test("the bootstrap path B: free wheat -> harvest 2 -> sell 2 (4 coins) -> buy a wheat seed (1 coin) -> 3 coins left", async () => {
+  const uid = "boot-sell-" + RUN;
+  await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "a"});
+  t += 20_000; await real(uid, "harvest", {plotId: "p0", generation: 1});
+  await real(uid, "sell", {item: "wheat", qty: 2, requestId: "s"});
+  assert.equal((await econ(uid)).coins, 4);
+  const p = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "b"});
+  assert.deepEqual(p.paid, {coins: 1}); assert.equal((await econ(uid)).coins, 3);
+});
+
+test("legacy close-out: a 7G listing goes back to the PHONE farm only; nothing canonical moves; it can't be closed twice", async () => {
+  const s = "legacy-a-" + RUN, other = "legacy-b-" + RUN;
+  await give(s, 0, {}); await give(other, 0, {});
+  await db.doc(`market/${s}-1`).set({seller: s, sellerName: "G", item: "wheat", qty: 3, price: 6, at: 1, buyer: null, buyerName: null, soldAt: null});
+  await db.doc(`market/${s}-2`).set({seller: s, sellerName: "G", item: "corn", qty: 2, price: 8, at: 2, buyer: other, buyerName: "B", soldAt: 3});
+  await assert.rejects(real(other, "legacyClose", {listingId: s + "-1"}), refused("NOT_YOURS"));
+  const unsold = await real(s, "legacyClose", {listingId: s + "-1"});
+  assert.deepEqual(unsold.phone, {item: "wheat", qty: 3}, "unsold: the goods go back to the phone barn");
+  const sold = await real(s, "legacyClose", {listingId: s + "-2"});
+  assert.deepEqual(sold.phone, {coins: 8}, "sold by a 7G buyer: the phone farm gets the 7G price");
+  assert.equal((await econ(s)).coins, 0); assert.deepEqual((await econ(s)).items, {}, "no canonical coins or goods");
+  assert.equal(await listingDoc(s + "-1"), null); assert.equal(await listingDoc(s + "-2"), null);
+  assert.equal((await real(s, "legacyClose", {listingId: s + "-1"})).replay, true, "closing again replays the first answer: no second payout");
+  const v2 = await (async () => { await give(s, 0, {wheat: 1}); return real(s, "marketList", {item: "wheat", qty: 1, price: 2, requestId: "v2"}); })();
+  await assert.rejects(real(s, "legacyClose", {listingId: v2.listingId}), refused("NOT_LEGACY"));
+});

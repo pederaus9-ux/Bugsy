@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const {startEmu, readDoc, listDocs, signUp, resetEmulators, OWNER_EMAIL, artifacts, fsUrl} = require('./emu-harness.cjs');
+const fsUrlFor = fsUrl;
 
 // Phase 7I: verified (canonical) coins and goods live in economy/{uid}, written only by the server. Here an account is
 // given verified goods directly (admin access), standing in for verified harvests, so the real trading post can run.
@@ -56,6 +57,8 @@ async function main() {
     await until(grandma, () => !!document.querySelector('#friendsBox [data-list]'));
     await P(grandma, () => document.querySelector('#friendsBox [data-list]').click());
     await until(grandma, () => document.getElementById('friendsBody').textContent.includes('Up for sale'));
+    const hud = await P(grandma, () => ({v: !document.getElementById('vcoinsBox').hidden, vc: document.getElementById('vcoins').textContent, legacy: document.getElementById('coinsBox').dataset.legacy}));
+    check('HUD shows verified coins separately; phone coins labelled LEGACY_UNVERIFIED', hud.v && hud.vc === '0' && hud.legacy === 'LEGACY_UNVERIFIED', JSON.stringify(hud));
     const listings = await listDocs('market');
     const L0 = listings[0] ? listings[0].fields : null;
     check('listing created by the server', listings.length === 1 && L0.seller.stringValue === gUid && +L0.v.integerValue === 2 && L0.state.stringValue === 'open', listings.length + ' listing(s)');
@@ -104,6 +107,19 @@ async function main() {
     await sleep(niece);
     await wake(grandma);
     check('seller\'s phone farm was not paid in phone coins', (await coins(grandma)) === gCoinsLegacy0, 'legacy coins ' + gCoinsLegacy0 + ' -> ' + (await coins(grandma)));
+    await until(grandma, (p) => document.getElementById('vcoins').textContent === String(p), price, 30000).catch(() => {});
+    check('seller sees the sale in the verified counter after waking', await P(grandma, () => document.getElementById('vcoins').textContent) === String(price));
+    // a 7G listing of grandma's (phone-farm wheat, from before verified trading) goes back to the phone only
+    await fetch(fsUrlFor('market/' + gUid + '-1790000000000'), {method: 'PATCH', headers: {Authorization: 'Bearer owner', 'Content-Type': 'application/json'}, body: JSON.stringify({fields: {
+      seller: {stringValue: gUid}, sellerName: {stringValue: 'SunnyGrandma'}, item: {stringValue: 'wheat'}, qty: int(2), price: int(4), at: int(1), buyer: {nullValue: null}, buyerName: {nullValue: null}, soldAt: {nullValue: null}}})});
+    const gPhoneWheat = await barn(grandma, 'wheat'), gVerified = await economy(gUid);
+    await friends(grandma, 'market');
+    await until(grandma, () => !!document.querySelector('#friendsBox [data-legacy-back]'));
+    await P(grandma, () => document.querySelector('#friendsBox [data-legacy-back]').click());
+    await until(grandma, () => document.getElementById('friendsBody').textContent.includes('Back on this phone'));
+    check('a 7G listing goes back to the PHONE barn only (nothing verified moves)', (await barn(grandma, 'wheat')) === gPhoneWheat + 2 && JSON.stringify(await economy(gUid)) === JSON.stringify(gVerified),
+      'phone wheat ' + gPhoneWheat + ' -> ' + (await barn(grandma, 'wheat')));
+    await P(grandma, () => { document.getElementById('friendsBox').hidden = true; });
 
     // ---- Phase 7H F1: this phone's copy of the farm can't be read: the cloud farm comes back, and is never overwritten
     let cloudBefore = null; for (let i = 0; i < 40; i++) { cloudBefore = await readDoc('farms/' + gUid); if (cloudBefore && JSON.parse(cloudBefore.save).coins === await coins(grandma)) break; await grandma.page.waitForTimeout(1000); }

@@ -10,6 +10,7 @@
 //   canon.harvest("p0", 1, "wheat")              -> queues it; the grant is PROVISIONAL until the server accepts it
 //   await canon.flush()                          -> sends the queue: accepted/replayed -> confirmed, refused -> dropped
 //   canon.provisional()                          -> {wheat: 2, ...} still waiting for the server (shown, never spendable)
+//   await canon.sell("wheat", 2)                 -> online only; offline it does nothing and nothing is queued
 //
 // call(data) must perform the callable (httpsCallable(functions, "economyAct")) and resolve to its result, or reject
 // with {details: {reason}} for a refusal, or with any other error when the network is down.
@@ -46,6 +47,13 @@ export function createCanon({call, storage, uid, online = () => true, onChange =
     }
   }
 
+  // Selling verified goods to the game needs a connection and is never queued (a provisional harvest can't be sold).
+  async function sell(item, qty) {
+    if (!online()) return {ok: false, reason: "OFFLINE"};
+    try { const r = await call({op: "sell", item, qty, requestId: newId()}); onChange(); return {ok: true, sale: r}; }
+    catch (e) { return {ok: false, reason: reasonOf(e) || "NETWORK"}; }
+  }
+
   function harvest(plotId, generation, crop) {
     const q = read(QUEUE, []);
     if (!q.some(h => h.plotId === plotId && h.generation === generation)) q.push({plotId, generation, crop, at: Date.now()});
@@ -79,5 +87,5 @@ export function createCanon({call, storage, uid, online = () => true, onChange =
     return flushing;
   }
 
-  return {plant, harvest, flush, provisional, queue: () => read(QUEUE, [])};
+  return {plant, harvest, sell, flush, provisional, queue: () => read(QUEUE, [])};
 }

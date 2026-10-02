@@ -194,6 +194,42 @@ wheat planting is permitted." Canonical accounts still start at 0 coins and no i
 - 7I-D needs a legacy close-out: give the legacy goods or coins back to the phone farm only, never to the canonical
   economy.
 
+## 7I-D (in progress): legacy UX, sale, offline, multi-device, 7H compatibility
+
+**Built:**
+- `sell`: verified crops sell to the game at the BASE price for verified coins (phone-farm perks don't count). Online
+  only. A replay pays once. Proves bootstrap path B: free wheat → harvest 2 → sell for 4 → seed 1 → 3 coins.
+- `legacyClose`: the seller closes a 7G listing. Nothing canonical moves. The answer tells the device to give the goods
+  back to the PHONE barn (unsold) or pay the 7G price in PHONE coins (marked sold by a 7G buyer). The listing is
+  deleted, and closing again replays the first answer (no second payout).
+- HUD:
+  - A separate ✅ verified-coins counter, live from `economy/{uid}`. It starts at 0.
+  - The phone coins are labelled LEGACY_UNVERIFIED: `data-legacy`, plus the title "not verified, so they can't be
+    traded".
+- Trading post:
+  - "Or sell now to the market" for verified goods.
+  - "From before verified trading": the player's own 7G listings, with Take back / Collect to the phone only.
+- `canon.js`: `sell()` is online only. Offline it does nothing and nothing is queued.
+- Versions: friends.js v6, cache sa3d-v30.
+
+**Tests (local, full suite):**
+- Rules 22/22.
+- Economy 25/25:
+  - sale and base price
+  - legacy barn not sellable
+  - bootstrap path B
+  - legacy close-out: phone only, no canonical movement, no second payout, a v2 listing refused
+- Reconciliation 9/9: offline sale does nothing; a provisional harvest can't be sold until confirmed.
+- Real game flows 24/24: HUD verified counter and legacy label; the seller sees the sale on waking; a 7G listing goes
+  back to the phone barn with nothing verified moving.
+- Save recovery 10/10.
+
+**Not built yet: needs ChatGPT's architecture ruling.** Verified farming in the 3D game itself: planting and harvesting
+the server's plots p0–p5 from the farm screen.
+- The server side and device module (`canon.js`) are done and tested.
+- What's open is how verified plots appear in the game. Until then, real players have no way to produce verified goods
+  in the UI.
+
 ## Next
 
 - 7I-B (verified plots, online planting, server times, generations, offline maturity, harvest reconciliation) starts

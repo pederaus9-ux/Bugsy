@@ -133,3 +133,21 @@ test("the queue survives an app restart (it lives in storage) and is per account
   assert.equal((await restarted.canon.flush()).confirmed.length, 1);
   assert.deepEqual((await econ(uid)).items, {wheat: 2});
 });
+
+test("offline sale does nothing: refused on the device, nothing queued, no coins; a provisional harvest can't be sold", async () => {
+  const uid = "dev-i-" + RUN, d = device(uid);
+  const {plot} = await d.canon.plant("p0", "wheat");
+  t += 20_000; d.net.offline = true;
+  await d.canon.harvest("p0", plot.generation, "wheat");                 // provisional: 2 wheat waiting
+  const calls = d.net.calls;
+  assert.deepEqual(await d.canon.sell("wheat", 2), {ok: false, reason: "OFFLINE"});
+  assert.equal(d.net.calls, calls, "no request was even attempted");
+  d.net.offline = false;
+  // online but before the harvest is confirmed: the server has no verified wheat yet, so the sale is refused
+  const early = await d.canon.sell("wheat", 2);
+  assert.deepEqual(early, {ok: false, reason: "NOT_ENOUGH_ITEMS"});
+  await d.canon.flush();
+  const ok = await d.canon.sell("wheat", 2);
+  assert.equal(ok.ok, true); assert.equal(ok.sale.coins, 4);
+  assert.equal((await econ(uid)).coins, 4);
+});
