@@ -1,0 +1,211 @@
+rules_version = '2';
+
+// Sunny Acres 3D: Firestore security rules (Phase 7G, ruleset version 7G.1).
+//
+// The Firebase project is fir-config-18b64 and its Firestore database is named "default" (not "(default)").
+// These rules are tested against the emulator by farm3d/firebase/tests/rules.test.mjs; see farm3d/firebase/README.md
+// for how to run the tests and how the owner publishes them. Nothing here is deployed automatically.
+//
+// What these rules can and cannot do:
+// - They check WHO is writing (the signed-in Firebase account), WHICH documents that account may touch, the SHAPE
+//   of what is written (field names, types, sizes, ranges) and LEGAL CHANGES (a listing can be bought once, a cloud
+//   save's version only goes up by one).
+// - They cannot check that the numbers are honest. Coins, inventory, levels, leaderboard stats and the goods held
+//   back for a market listing are all worked out in the player's browser. A modified browser can still lie about
+//   them within the limits below. This is a family game, not a cheat-proof economy.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function isUser(uid) { return signedIn() && request.auth.uid == uid; }
+    // the game's owner (Austin): only this account can read the players page numbers (players.html)
+    function isOwner() { return signedIn() && request.auth.token.email == 'pederaus9@gmail.com'; }
+    function data() { return request.resource.data; }
+    function nowMs() { return request.time.toMillis(); }
+    // a client clock reading (Date.now()) that is roughly now; phones' clocks drift, so allow two days either way
+    function aboutNow(t) { return t is int && t > nowMs() - 2 * 86400000 && t < nowMs() + 2 * 86400000; }
+    // usernames: 3 to 16 letters, numbers or _ (the same rule as NAME_OK in friends.js)
+    function validName(n) { return n is string && n.matches('^[A-Za-z0-9_]{3,16}$'); }
+    // the signed-in player's own username, from their profile (so nobody can sign a note or listing as someone else)
+    function myName() { return get(/databases/$(database)/documents/players/$(request.auth.uid)).data.name; }
+    // a whole farm, as JSON text: Firestore's own limit is 1 MiB per document, so this is just under it
+    function validSave(s) { return s is string && s.size() > 1 && s.size() <= 1000000; }
+    function smallInt(n, lo, hi) { return n is int && n >= lo && n <= hi; }
+
+    // The barn price of everything that can be sold at the trading post. This mirrors ITEMS[id].p in game.js
+    // (a test fails if they ever differ). The game lets a listing ask between half and double that price per item.
+    function basePrices() {
+      return {
+        'wheat': 2, 'corn': 4, 'carrot': 6, 'soybean': 7, 'sugarcane': 9, 'tomato': 11, 'strawberry': 14, 'pumpkin': 20,
+        'chicken_feed': 3, 'cow_feed': 5, 'sheep_feed': 7, 'fertilizer': 4, 'flour': 5,
+        'egg': 10, 'milk': 18, 'wool': 28,
+        'bread': 18, 'cornbread': 32, 'sugar': 16, 'butter': 45, 'cookie': 45, 'tomato_soup': 55, 'cheese': 65,
+        'carrot_pie': 70, 'strawberry_jam': 70, 'pumpkin_pie': 85, 'sweater': 90, 'cake': 130, 'pizza': 140
+      };
+    }
+    // the same band as marketPrice() in game.js: min = max(1, floor(p/2)), max = ceil(p*2), times the amount
+    function minPrice(p) { return math.floor(p * 0.5) < 1 ? 1 : math.floor(p * 0.5); }
+    function legalPrice(item, qty, price) {
+      return price is int
+        && price >= minPrice(basePrices()[item]) * qty
+        && price <= math.ceil(basePrices()[item] * 2) * qty;
+    }
+
+    // ---------- farms/{uid}: each account's cloud save (auth.js) ----------
+    // {save, level, coins, rev, updatedAt}. Written only inside auth.js's transaction, which sets rev to the old rev + 1;
+    // the rule enforces that, so two phones can never both write the same version.
+    match /farms/{uid} {
+      allow get: if isUser(uid);
+      // the players page counts farms (a count query is a "list"); nobody else can list them
+      allow list: if isOwner();
+      allow create, update: if isUser(uid)
+        && data().keys().hasOnly(['save', 'level', 'coins', 'rev', 'updatedAt'])
+        && data().keys().hasAll(['save', 'level', 'coins', 'rev', 'updatedAt'])
+        && validSave(data().save)
+        && smallInt(data().level, 1, 9999)
+        && data().coins is number && data().coins >= 0
+        && data().rev == (resource == null ? 0 : resource.data.get('rev', 0)) + 1
+        && data().updatedAt is int;
+      allow delete: if false;
+    }
+
+    // ---------- presence/{uid}: "I'm playing" heartbeat for the players page (auth.js) ----------
+    // {seen: server time, level, joined}, written with merge every minute while the game is on screen.
+    match /presence/{uid} {
+      allow read: if isOwner();
+      allow create, update: if isUser(uid)
+        && (resource == null
+            ? data().keys().hasOnly(['seen', 'level', 'joined'])
+            : data().diff(resource.data).affectedKeys().hasOnly(['seen', 'level', 'joined']))
+        && data().seen == request.time
+        && smallInt(data().level, 1, 9999)
+        && (data().get('joined', null) == null || data().joined is int);
+      allow delete: if false;
+    }
+
+    // ---------- players/{uid}: public profile {name, nameLower} (friends.js) ----------
+    // Any signed-in player can read profiles (username search). A profile can only be written together with the
+    // usernames/ entry that reserves its name for this account (see claimUsername in friends.js).
+    match /players/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isUser(uid)
+        && data().keys().hasOnly(['name', 'nameLower'])
+        && validName(data().name)
+        && data().nameLower == data().name.lower()
+        && getAfter(/databases/$(database)/documents/usernames/$(data().nameLower)).data.uid == uid;
+      allow delete: if false;
+
+      // ---------- players/{uid}/friends/{fid}: your own friends list {name, addedAt} ----------
+      match /friends/{fid} {
+        allow read, delete: if isUser(uid);
+        allow create, update: if isUser(uid) && fid != uid
+          && data().keys().hasOnly(['name', 'addedAt'])
+          && validName(data().name)
+          && data().addedAt is int;
+      }
+    }
+
+    // ---------- usernames/{nameLower}: makes every username unique {uid, name} (friends.js) ----------
+    // Created in the same transaction as the profile that uses it; given back (deleted) only by its owner when they
+    // move to a different name. Nobody can take or delete a name another account holds.
+    match /usernames/{nameLower} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && data().keys().hasOnly(['uid', 'name'])
+        && data().uid == request.auth.uid
+        && validName(data().name)
+        && data().name.lower() == nameLower
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.nameLower == nameLower;
+      // re-saving your own name (for example with different capital letters)
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && data().keys().hasOnly(['uid', 'name'])
+        && data().uid == request.auth.uid
+        && validName(data().name)
+        && data().name.lower() == nameLower;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.nameLower != nameLower;
+    }
+
+    // ---------- showcase/{uid}: the read-only copy of your farm friends visit, plus leaderboard numbers ----------
+    // {save, name, level, earned, harvests, best, orders, updatedAt} (friends.js publishShowcase). These numbers come
+    // from the player's own browser: they are for fun between friends, not verified competitive results.
+    match /showcase/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isUser(uid)
+        && data().keys().hasOnly(['save', 'name', 'level', 'earned', 'harvests', 'best', 'orders', 'updatedAt'])
+        && data().keys().hasAll(['save', 'name', 'level', 'updatedAt'])
+        && validSave(data().save)
+        && data().name == myName()
+        && smallInt(data().level, 1, 9999)
+        && data().get('earned', 0) is number && data().get('earned', 0) >= 0
+        && data().get('harvests', 0) is number && data().get('harvests', 0) >= 0
+        && data().get('best', 0) is number && data().get('best', 0) >= 0
+        && data().get('orders', 0) is number && data().get('orders', 0) >= 0
+        && data().updatedAt is int;
+      allow delete: if isUser(uid);
+    }
+
+    // ---------- help/{owner}/items/{id}: a friend watered one of your fields {from, name, plots, at} ----------
+    // Any signed-in player can leave a note for someone else (friends lists are one-way); only the farm's owner reads
+    // and clears them. The 12-a-day limit is kept by the helper's own phone, so it is not a security boundary.
+    match /help/{owner}/items/{id} {
+      allow read, delete: if isUser(owner);
+      allow create: if signedIn() && owner != request.auth.uid
+        && data().keys().hasOnly(['from', 'name', 'plots', 'at'])
+        && data().keys().hasAll(['from', 'name', 'plots', 'at'])
+        && data().from == request.auth.uid
+        && id.matches('^' + request.auth.uid + '-[0-9]{1,16}-[0-9]{1,2}$')
+        && data().name == myName()
+        && data().plots is list && data().plots.size() == 1 && smallInt(data().plots[0], 0, 63)
+        && aboutNow(data().at);
+      allow update: if false;
+    }
+
+    // ---------- market/{id}: the trading post (friends.js) ----------
+    // {seller, sellerName, item, qty, price, at, buyer, buyerName, soldAt}. Life of a listing:
+    //   1. the seller puts it up (unsold, at a legal price, under their own name)
+    //   2. one other player buys it: only buyer, buyerName and soldAt change, once
+    //   3. the seller takes it back while unsold, or collects the coins once sold: both delete it
+    // Rules cannot see whether the buyer really had the coins or the seller really had the goods (both live in the
+    // players' own saves), and the 4-listings limit is counted by the seller's phone.
+    match /market/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && data().keys().hasOnly(['seller', 'sellerName', 'item', 'qty', 'price', 'at', 'buyer', 'buyerName', 'soldAt'])
+        && data().keys().hasAll(['seller', 'sellerName', 'item', 'qty', 'price', 'at', 'buyer', 'buyerName', 'soldAt'])
+        && data().seller == request.auth.uid
+        && id.matches('^' + request.auth.uid + '-[0-9]{1,16}$')
+        && data().sellerName == myName()
+        && data().item is string && data().item in basePrices()
+        && smallInt(data().qty, 1, 10)
+        && legalPrice(data().item, data().qty, data().price)
+        && aboutNow(data().at)
+        && data().buyer == null && data().buyerName == null && data().soldAt == null;
+      allow update: if signedIn()
+        && resource.data.buyer == null
+        && resource.data.seller != request.auth.uid
+        && data().diff(resource.data).affectedKeys().hasOnly(['buyer', 'buyerName', 'soldAt'])
+        && data().buyer == request.auth.uid
+        && data().buyerName == myName()
+        && aboutNow(data().soldAt);
+      allow delete: if signedIn() && resource.data.seller == request.auth.uid;
+    }
+
+    // ---------- events/{id}: anonymous milestone counts {e, d} (auth.js saStats) ----------
+    // Guests aren't signed in, so creating an event needs no account; the shape is fixed to a milestone name and a
+    // date, nothing else. Only the owner can read (count) them on the players page.
+    match /events/{id} {
+      allow create: if data().keys().hasOnly(['e', 'd'])
+        && data().keys().hasAll(['e', 'd'])
+        && data().e is string
+        && data().e.matches('^(open|guest|account|friend|tut_[0-9]{1,2}|tut_done|lvl_[0-9]{1,4}|back_d[0-9]{1,3})$')
+        && data().d is string && data().d.matches('^20[0-9]{2}-[01][0-9]-[0-3][0-9]$');
+      allow read: if isOwner();
+      allow update, delete: if false;
+    }
+
+    // everything else: no access
+  }
+}

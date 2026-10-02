@@ -364,9 +364,9 @@ evidence limits and the shed-switching repair. Other devices remain unmeasured.
 
 ### Rules
 
-The rules are published by the owner in the Firebase console; they are **not stored in the repo**. The current full set is the last one given in the conversation. It includes an `isOwner()` function, true when the email is `pederaus9@gmail.com`, and a block for every collection above. A copy is in the PR #18 and PR #20 descriptions.
+Phase 7G versions the rules in **`farm3d/firebase/firestore.rules`**, with emulator tests in `farm3d/firebase/tests/` (CI job `Firestore rules (emulator)`). See `farm3d/firebase/README.md` for the per-collection policy, how to run the tests, and the owner-only publishing steps. The owner still publishes rules by hand; the repo file is not deployed automatically, and what is live in the console was not inspected by Phase 7G (earlier pieces are in the PR #18 and PR #20 descriptions). The owner account for `isOwner()` is `pederaus9@gmail.com`.
 
-**When adding a collection, write the rule, give it to the owner to publish, then verify it live.** The pattern used: create two throwaway accounts through Identity Toolkit `accounts:signUp` with the API key, run allowed and denied REST calls, then delete the accounts.
+**When adding a collection or changing a Firestore call:** update `firestore.rules`, add allow/deny tests and update the copied client call in `tests/rules.test.mjs`, then give the rules to the owner to publish. A market price change in `game.js` must also update `basePrices()` in the rules (a test enforces this).
 
 ### Discord
 
@@ -420,4 +420,4 @@ The webhook URL is in `index.html` (`window.__ERR_HOOK`); it's public by necessi
    - Phase 8: gem shop. Gems must remain earn-only; buying gems with real money is forbidden.
    - Phase 9: store launch (native wrapper).
    - Controller support: not requested yet.
-7. **Firestore rules are not in version control.** Consider adding `farm3d/firestore.rules` as documentation.
+7. **Firestore rules are versioned** in `farm3d/firebase/firestore.rules` (Phase 7G) but are only live once the owner publishes them; see `farm3d/firebase/README.md`.

@@ -184,3 +184,18 @@ Phase 7G passes only when:
 - current full Sunny Acres regression/CI remains green
 
 After a clean Phase 7G merge, proceed automatically to **Phase 7H — Save + update hardening**.
+
+---
+
+## Phase 7G implementation evidence (Claude, 2026-10-02)
+
+Status: **rules versioned and emulator-tested; NOT published to production.** Publishing is a manual owner step (`farm3d/firebase/README.md`).
+
+- Rules: `farm3d/firebase/firestore.rules` (ruleset 7G.1). Tests: `farm3d/firebase/tests/rules.test.mjs` with `@firebase/rules-unit-testing` 5.0.2 and the official Firestore emulator (firebase-tools 15.32.1), demo project, no credentials. CI job: `Firestore rules (emulator)` in `farm3d-regression.yml`.
+- Collections covered (from a search of every Firestore call in `auth.js`, `friends.js`, `players.html`; `game.js`, `index.html`, `cow3d.js`, `perf.js`, `sw.js` make none): `farms`, `presence`, `players`, `players/*/friends`, `usernames`, `showcase`, `help/*/items`, `market`, `events`; everything else denied.
+- Result: 48 tests, **51 allow + 151 deny assertions, all passing**. Against an allow-everything ruleset, all 36 deny-bearing tests fail, so the denials are real.
+- Client flows replayed and allowed: cloud-save transaction (first save, increments, forced save, stale-revision conflict returns null, legacy doc without `rev`), presence merge heartbeat, guest + signed-in milestone events, username claim / re-case / rename / give-back, friend search/add/list/remove, showcase publish/visit, help write + owner apply/clear, market list/browse/buy/collect/take-back/second-buyer refusal, players page presence/count reads.
+- Production rules: not accessible from this workstream; current published rules and hash were **not** inspected. Owner must capture them before publishing.
+- Full game regression: unchanged game code; 11 unit tests + 60 browser checkpoints PASS locally.
+- App Check: deferred (see README); monitoring before any enforcement.
+- Client-authoritative limits remaining: save contents (coins/inventory/XP/level), showcase/leaderboard stats, buyer coin balance and seller escrow, 4-listing and 12-help/day limits, milestone event honesty.
