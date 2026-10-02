@@ -3,6 +3,8 @@
 Base: main `ed9a3453af893c922788611edfa39241e5a73dd5` (Phase 7H merged, PR #38). Branch: `claude/sunny-acres-phase7i`.
 Design: `CLAUDE_HANDOFF_PHASE7I-3.md` (architecture closed). Firebase production: **not deployed, not published.**
 
+
+**Final numbers (head 3dec25c, CI run 37044971493):** rules 22/22 (79 allow + 267 deny = 346 checks; mutation 264/267), economy 25/25, reconciliation 9/9, real game flows 32/32, save recovery 15/15 in CI (12/12 locally with REPEAT=1), Farm3D regression green, old saves green.
 ## Reconciliation with merged 7H
 
 Nothing in 7H invalidates the 7I design. Four constraints carry forward:
@@ -60,7 +62,7 @@ Nothing in 7H invalidates the 7I design. Four constraints carry forward:
 | Idempotency | Replay returns the stored result. 10 simultaneous calls with one key apply once. A refusal writes nothing and the same key succeeds later |
 
 **Test results:**
-- Rules: 24/24 tests, 83 allows + 256 denies = 339 checks.
+- Rules: 24/24 tests, 83 allows + 256 denies = 339 checks (at 7I-A; final after the owner-UID hardening: 22/22, 346 checks).
 - Mutation check (wide-open rules): 253 of 256 denies get through. The other 3 are edits of documents an earlier
   allowed delete had already removed.
 - Economy: 6/6.
@@ -161,7 +163,7 @@ wheat planting is permitted." Canonical accounts still start at 0 coins and no i
   `(default)`.
 
 **Tests:**
-- Rules 22/22: 339 checks.
+- Rules 22/22: 339 checks (at 7I-C; final after the owner-UID hardening: 22/22, 346 checks).
 - Economy 22/22. The 7 market tests:
   - Server-created listing with escrow. Each refusal changes nothing. The 4-listing limit holds.
   - Atomic buy: the seller is paid at once; a replayed buy charges nothing.

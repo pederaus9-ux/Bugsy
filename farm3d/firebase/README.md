@@ -1,7 +1,7 @@
 # Sunny Acres 3D — Firestore rules
 
 `firestore.rules` is the source of truth for who may read and write what in the game's Firestore database
-(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7G-2** (not yet published; production still runs whatever was published before).
+(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7I** with the owner-UID check (not yet published; production still runs whatever was published before).
 
 ## What the rules protect (and what they can't)
 
@@ -14,14 +14,17 @@ those, so a determined player can still edit **their own** farm. What the rules 
 | Path | Who can read | Who can write |
 |---|---|---|
 | `farms/{uid}` | that player only (nobody can list or count farms) | that player; `rev` must go up by exactly 1 |
-| `presence/{uid}` | owner dashboard | that player; `seen` must be the server clock |
+| `presence/{uid}` | owner dashboard (the owner's UID only) | that player; `seen` must be the server clock |
 | `players/{uid}` | any signed-in player | that player, only together with their `usernames` entry |
 | `players/{uid}/friends/{fid}` | that player | that player |
 | `usernames/{nameLower}` | any signed-in player, one name at a time (no listing) | claim a free name, re-save or give back your own |
 | `showcase/{uid}` | any signed-in player, one farm at a time (no listing) | that player, fixed fields and sizes |
 | `help/{owner}/items/{id}` | the owner of that inbox | any other signed-in player, as themselves, small fixed note |
-| `market/{id}` | any signed-in player | seller creates/deletes; a different player can mark it bought, once |
-| `events/{id}` | owner dashboard | anyone (guests aren't signed in), exactly `{e, d}` |
+| `market/{id}` | any signed-in player | nobody: only the server (`economyAct` marketList / marketBuy / marketCancel / legacyClose) |
+| `economy/{uid}` | that player (one document, no listing) | nobody: only the server (verified coins and goods) |
+| `ledger/{uid}/rows/{key}` | that player | nobody: only the server (one create-once row per accepted action) |
+| `plots/{uid}/items/{plotId}` | that player | nobody: only the server (the Verified Field's six plots) |
+| `events/{id}` | owner dashboard (the owner's UID only) | anyone (guests aren't signed in), exactly `{e, d}` |
 | anything else | nobody | nobody |
 
 **Reading one document vs. listing a collection.** Firestore checks these separately: `get` is one document,
@@ -48,7 +51,7 @@ npm test
 `npm test` starts the Firestore and Auth emulators (needs Java 21+) for the offline `demo-sunny-acres` project, then runs:
 
 1. `tests/rules.test.mjs`: allow + deny checks for every collection, including a get / list / count matrix for every
-   role, two buyers racing for one listing, and the owner-email limit (23 tests, 260 checks).
+   role, the server-only economy/ledger/plots/market collections, and the owner-UID check (22 tests, 346 checks).
 2. `tests/flows.browser.cjs`: the real game (`auth.js`, `friends.js`, `players.html`) in Chromium against the emulators.
    It covers sign-up, cloud save, presence, usernames, showcase, friends, leaderboard, selling, buying, collecting,
    visiting, guest milestones and the owner dashboard (owner allowed, other players refused).
