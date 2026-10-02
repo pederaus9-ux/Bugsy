@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Sunny Acres 3D: Firestore security rules (ruleset version 7G-1).
+// Sunny Acres 3D: Firestore security rules (ruleset version 7G-2).
 //
 // These rules are the version-controlled source of truth for the Firestore database used by farm3d
 // (Firebase project fir-config-18b64, database "default"). Publish them by pasting this whole file into
@@ -36,7 +36,9 @@ service cloud.firestore {
     // auth.js writes {save, level, coins, rev, updatedAt} in a transaction and always sets rev to the stored rev + 1.
     match /farms/{uid} {
       allow get: if isMe(uid);
-      allow list: if isOwner();                              // players.html counts farms
+      // no list, not even for the owner: a count needs list permission, and list returns every player's whole save
+      // (players.html's farm count then falls back to the presence count)
+      allow list: if false;
       allow create, update: if isMe(uid)
         && hasExactly(['save', 'level', 'coins', 'rev', 'updatedAt'])
         && saveText(data().save)
@@ -79,7 +81,8 @@ service cloud.firestore {
 
     // ---------- usernames/{nameLower}: makes every username unique {uid, name} ----------
     match /usernames/{nameLower} {
-      allow read: if signedIn();
+      allow get: if signedIn();                              // the claim transaction looks up one name
+      allow list: if false;                                  // no dumping the whole name -> account table
       // claim a free name (or re-save your own), and the profile must point at it in the same transaction
       allow create: if signedIn()
         && hasExactly(['uid', 'name'])
@@ -98,7 +101,8 @@ service cloud.firestore {
     // ---------- showcase/{uid}: the visitable copy of your farm + leaderboard numbers ----------
     // These numbers are display/social data written by the player's own browser, not verified results.
     match /showcase/{uid} {
-      allow read: if signedIn();
+      allow get: if signedIn();                              // visit / leaderboard: one friend's farm by id
+      allow list: if false;                                  // never "download everyone's farm"
       allow create, update: if isMe(uid)
         && hasExactly(['save', 'name', 'level', 'earned', 'harvests', 'best', 'orders', 'updatedAt'])
         && saveText(data().save)

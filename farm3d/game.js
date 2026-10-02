@@ -222,10 +222,28 @@ function fresh() {
     layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)
   };
 }
+// ---------- save versions ----------
+// SAVE_VERSION is the shape this game writes. MIGRATIONS[n] turns a version-n save into version n + 1, for changes that
+// "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
+// MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
+// item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
+export const SAVE_VERSION = 1;
+export const MIGRATIONS = {};
+// (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
+export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
+  let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+  let v = Number.isInteger(s.v) && s.v >= 1 ? s.v : 1;
+  while (v < target) {
+    if (!table[v]) throw new Error("no save migration from version " + v); // a gap is a bug: load() keeps the save unread instead of guessing
+    s = table[v](s); v++;
+  }
+  s.v = v;
+  return s;
+}
 // fill in anything a save from an older version (or from the 2D game) is missing
-function upgrade(saved) {
+export function upgrade(saved) {
   // compare against a separate fresh farm: the one being filled in can't also be the reference
-  const def = fresh(), s = Object.assign(fresh(), saved);
+  const def = fresh(), s = Object.assign(fresh(), migrate(saved));
   s.buildings = s.buildings || {}; s.pens = s.pens || {};
   for (const k in def.buildings) { const b = s.buildings[k] = s.buildings[k] || def.buildings[k]; b.jobs = Array.isArray(b.jobs) ? b.jobs : []; }
   for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }
@@ -248,6 +266,24 @@ function upgrade(saved) {
   s.decor.placed = (s.decor.placed || []).filter(d => DECOR[d.id]);
   s.style = s.style || {};
   s.layout = s.layout && typeof s.layout === "object" ? s.layout : {}; s.layout.b = s.layout.b || {}; s.layout.t = s.layout.t || {};
+  // repair: numbers that came back as text or nothing, and ids this game doesn't know (one unknown item used to stop the
+  // game from starting). Damaged or hand-edited saves only; a normal save passes through unchanged.
+  const num = (v, d, lo = -Infinity) => { const n = typeof v === "string" && v.trim() !== "" ? +v : v; return typeof n === "number" && Number.isFinite(n) && n >= lo ? n : d; };
+  for (const k of ["coins", "gems", "xp", "barnCap", "barnUps", "nextEventAt", "lastSeen"]) s[k] = num(s[k], def[k]);
+  s.level = Math.floor(num(s.level, 1, 1));
+  for (const k in def.stats) s.stats[k] = num(s.stats[k], 0);
+  s.barnCap = Math.max(s.barnCap, 1);
+  for (const k of Object.keys(s.barn)) { const n = num(s.barn[k], 0); if (ITEMS[k] && n > 0) s.barn[k] = n; else delete s.barn[k]; }
+  for (const k of Object.keys(s.gold)) if (!ITEMS[k]) delete s.gold[k];
+  s.stand.list = s.stand.list.map(L => L && ITEMS[L.id] ? L : null);
+  const known = (items) => !!items && typeof items === "object" && Object.keys(items).length > 0 && Object.keys(items).every(id => ITEMS[id]);
+  s.orders = s.orders.filter(o => o && typeof o === "object" && (o.wait || known(o.items)));
+  if (s.rush && !known(s.rush.items)) s.rush = null;
+  if (s.visitor && (!VILLAGERS[s.visitor.id] || !known(s.visitor.items))) s.visitor = null;
+  if (s.quests && !(Array.isArray(s.quests.list) && s.quests.list.every(q => q && questDef(q.m)))) s.quests = null;
+  for (const k in s.buildings) s.buildings[k].jobs = s.buildings[k].jobs.filter(j => j && RECIPES[j.r]);
+  for (const p of s.plots) if (p.crop && !CROPS[p.crop]) { p.crop = null; p.end = 0; }
+  if (!CROPS[s.lastCrop]) s.lastCrop = "wheat";
   return s;
 }
 // ?testfarm: a ready-made farm for testing (animals, pets, buildings, crops at every stage). It is never saved and never touches your own farm.
@@ -264,9 +300,24 @@ function sandboxFarm() {
   s.plots.forEach((p, i) => { if (i >= 24) return; const c = crops[i % crops.length], dur = CROPS[c].time * 1000; p.crop = c; p.dur = dur; p.end = t + dur * [-.1, .2, .5, .8][i % 4]; }); // ripe, and three growth stages
   return s;
 }
+// A save that can't be read is never thrown away: it's kept under UNREADABLE (the first one is never overwritten), and if
+// the farm belonged to an account, RECOVER tells auth.js to bring the cloud farm back instead of uploading the new one.
+export const UNREADABLE_KEY = SAVE_KEY + "-unreadable";
+const RECOVER = "sa3d-recover";
+let newerSave = false; // saved by a newer version of the game than this one: play it, but don't write it back older
 export function load() {
   if (SANDBOX) { S = sandboxFarm(); return "sandbox"; }
-  try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { S = upgrade(JSON.parse(raw)); return "3d"; } } catch (e) {}
+  let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}
+  if (raw) {
+    try { const saved = JSON.parse(raw); newerSave = !!saved && Number.isInteger(saved.v) && saved.v > SAVE_VERSION; S = upgrade(saved); return "3d"; }
+    catch (e) {
+      try {
+        if (!localStorage.getItem(UNREADABLE_KEY)) localStorage.setItem(UNREADABLE_KEY, raw);
+        if (localStorage.getItem("sa3d-save-owner")) localStorage.setItem(RECOVER, "1");
+      } catch (err) {}
+      S = fresh(); return "unreadable";
+    }
+  }
   S = fresh();
   try { if (localStorage.getItem(SAVE_2D)) return "has2d"; } catch (e) {} // the 2D game lives on the same site: offer to bring it over
   return "new";
@@ -283,12 +334,26 @@ export function leaveVisit() {
   if (helpOwed) { const n = helpOwed; helpOwed = 0; helpedFriend(n); toast("💧 Thanks for helping! +" + 2 * n + " 🪙"); }
 }
 export const isVisiting = () => !!homeS;
+let saveWarned = false;
+// an important message: shown once the loading screen is gone, and long enough to read
+function notice(msg) { const show = () => (document.getElementById("loading") ? setTimeout(show, 500) : toast(msg, 12000)); show(); }
+// true when the farm is safely on the phone
 export function save() {
-  if (SANDBOX) return;
-  if (restoring || window.__saHold || homeS) return; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (SANDBOX) return true;
+  if (restoring || window.__saHold || homeS) return false; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (newerSave) { // an older copy of the game (still cached) mustn't write a newer farm back in an older shape
+    if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
+    return false;
+  }
   if (!document.hidden) S.lastSeen = now();
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
+  catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves
+    if (!saveWarned) { saveWarned = true; notice("⚠️ Your farm isn't saving: this phone's storage is full. Free up some space, or make a backup in ⚙️ Settings."); }
+    return false;
+  }
+  saveWarned = false;
   window.dispatchEvent(new Event("sa3d:saved")); // accounts back the farm up to the cloud
+  return true;
 }
 
 // ---------- inventory ----------
@@ -1204,11 +1269,11 @@ export function lookNow() {
 /* ============================================================
    HUD, PANELS, TOASTS
    ============================================================ */
-export function toast(msg) {
+export function toast(msg, ms = 2400) {
   const el = document.createElement("div");
   el.className = "toast"; el.textContent = msg;
   $("#toasts").appendChild(el);
-  setTimeout(() => el.remove(), 2400);
+  setTimeout(() => el.remove(), ms);
   while ($("#toasts").children.length > 3) $("#toasts").firstChild.remove();
 }
 export function barnFull() { toast("📦 Barn is full! Sell items or upgrade it."); sfx("error"); }
@@ -1975,6 +2040,7 @@ export function start() {
   renderHud(); applySound();
   if (how === "has2d") openPanel("import2d");
   else if (how === "new") openPanel("welcome");
+  else if (how === "unreadable") { openPanel("welcome"); notice("😟 Your farm on this phone couldn't be read, so a copy was kept. Signed in? Your cloud farm comes back by itself. If not, restore a backup in ⚙️ Settings."); }
   else if (S.tut == null) S.tut = TUT.length;
   setInterval(tick, 1000);
   if (!WX.cur || Date.now() - WX.cur.t > 10 * 60e3) fetchWeather();

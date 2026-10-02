@@ -19,6 +19,7 @@ const OWNER = "sa3d-save-owner";      // which account the farm on this phone be
 const SYNC_REV = "sa3d-sync-rev";     // the cloud version this phone's farm was last in step with
 const DIRTY = "sa3d-dirty";           // "1" when this phone's farm has changed since then
 const GUEST = "sa3d-guest";           // "1": playing without an account (the farm is saved on this phone only)
+const RECOVER = "sa3d-recover";       // "1": game.js couldn't read this account's farm on this phone; get it back from the cloud
 
 const $ = (id) => document.getElementById(id);
 const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo"), note = $("authNote");
@@ -164,6 +165,7 @@ async function upload(force) {
   clearTimeout(upload.t);
   const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
   if (!cloud || !cloud.uid || !s || ls.get(OWNER) !== cloud.uid) return false;
+  if (ls.get(RECOVER)) return false; // the farm here is a stand-in for one that couldn't be read: never send it over the cloud copy
   if (!force && ls.get(DIRTY) !== "1") return true; // nothing new
   try {
     const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);
@@ -187,13 +189,55 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) uploa
 // - a farm from before accounts moves into the brand-new account (or, if the account already has one, the player picks)
 // - someone else's farm on this phone is put aside for them (they get it back when they sign in again)
 // - a new phone gets the account's farm from the cloud
+// Recovery: this account's farm on this phone can't be read (or game.js flagged it): bring the cloud copy back, never the
+// other way round. auth.js checks the phone copy itself, because it may get here before game.js has even read the save.
+const keepUnreadable = (raw) => { if (raw && !summary(raw) && !ls.get(SAVE_KEY + "-unreadable")) ls.set(SAVE_KEY + "-unreadable", raw); };
+let recoveryTry = 0;
 async function linkFarm(user) {
   const uid = user.uid, owner = ls.get(OWNER) || "", raw = ls.get(SAVE_KEY), here = raw && summary(raw), dirty = ls.get(DIRTY) === "1";
+  const recovering = owner === uid && (!!ls.get(RECOVER) || (!!raw && !here));
+  if (recovering) ls.set(RECOVER, "1"); // until it's done, nothing from this phone is uploaded (upload() checks this)
   let remote = null;
-  try { remote = await cloud.get(); } catch (e) { console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null; return open(user); }
+  try { remote = await cloud.get(); }
+  catch (e) {
+    console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null;
+    // A slow or busy phone often misses the first try (Firestore gives up after 10 s while the 3D farm is being built).
+    // Without another try the whole visit never syncs, and a pending recovery never finishes. So keep trying, a little
+    // slower each time, while this same account stays signed in and isn't linked yet. Each try makes exactly the same
+    // decisions as opening the game again; until one succeeds nothing is uploaded (cloud.uid stays null).
+    const wait = Math.min(60e3, 5e3 * ++recoveryTry);
+    console.warn((recovering ? "Farm recovery is waiting for the cloud" : "Cloud sync is waiting") + "; trying again in " + wait / 1000 + " s.");
+    clearTimeout(linkFarm.retry);
+    linkFarm.retry = setTimeout(() => { if (window.saAuth.user && window.saAuth.user.uid === uid && !cloud.uid) linkFarm(user); }, wait);
+    return open(user);
+  }
+  recoveryTry = 0;
   cloud.uid = uid;
   if (owner !== uid) ls.del("sa3d-restored");
-  const rrev = remote ? remote.rev || 0 : 0;
+  let rrev = remote ? remote.rev || 0 : 0;
+  // a cloud copy that can't be read is never brought to this phone: it would replace a good farm here, or make an
+  // unreadable phone copy "recover" into another unreadable one, again and again
+  if (remote && !summary(remote.save)) {
+    console.warn("The cloud farm can't be read; keeping the farm on this phone.");
+    if (recovering) { // neither copy can be read: keep playing here (the phone's unreadable copy is kept);
+      keepUnreadable(raw); ls.del(RECOVER); ls.set(SYNC_REV, String(rrev)); return open(user); // the next real change replaces the unreadable cloud copy
+    }
+    if (owner === uid && here) { await upload(true); return open(user); } // this phone's good farm repairs the cloud copy
+    remote = null; rrev = 0;
+  }
+  if (recovering) {
+    keepUnreadable(raw);
+    if (remote) {
+      window.__saHold = true; ls.set(SAVE_KEY, remote.save); // (ls.set swallows errors: check the farm really landed)
+      if (ls.get(SAVE_KEY) !== remote.save) { // storage full: reloading would only find the unreadable state again
+        window.__saHold = false; console.warn("Couldn't put the cloud farm on this phone (storage full?). It will be tried again next time.");
+        return open(user); // recovery stays pending, so nothing is uploaded over the cloud copy meanwhile
+      }
+      console.warn("This phone's farm couldn't be read: bringing back the cloud farm.");
+      ls.del(RECOVER); return useFarm(remote.save, uid, rrev);
+    }
+    ls.del(RECOVER); ls.set(SYNC_REV, "0"); // nothing in the cloud to protect: this farm may start the account's cloud save
+  } else if (ls.get(RECOVER)) ls.del(RECOVER); // a leftover from another account's farm on this phone: never acts for this one
   if (owner === uid && ls.get("sa3d-restored")) { ls.del("sa3d-restored"); await upload(true); return open(user); } // just restored from a backup: that's the farm now, here and in the cloud
   if (owner === uid) { // this account's own farm
     if (remote && rrev > (+ls.get(SYNC_REV) || 0)) { // it was saved from another phone since this one last synced

@@ -1,0 +1,37 @@
+[
+ {
+  "name": "0 race (sign-in before the game reads the save): the cloud farm still comes back",
+  "ok": true,
+  "detail": "restored true after 49s, page loads +2, recover null, cloud rev 1->1, bad samples 0, stand-in writes 0"
+ },
+ {
+  "name": "1.1 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload",
+  "ok": false,
+  "detail": "restored true in 44.0s, same progress true, page loads +2, recover null"
+ },
+ {
+  "name": "1.1 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay)",
+  "ok": true,
+  "detail": "rev 2->2, bad samples 0, stand-in writes sent 0"
+ },
+ {
+  "name": "1.1 a normal save after recovery uploads the restored farm",
+  "ok": true,
+  "detail": "rev 2->3"
+ },
+ {
+  "name": "1.2 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload",
+  "ok": false,
+  "detail": "restored true in 40.4s, same progress true, page loads +2, recover null"
+ },
+ {
+  "name": "1.2 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay)",
+  "ok": true,
+  "detail": "rev 4->4, bad samples 0, stand-in writes sent 0"
+ },
+ {
+  "name": "1.2 a normal save after recovery uploads the restored farm",
+  "ok": false,
+  "detail": "rev 4->4"
+ }
+]
