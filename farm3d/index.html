@@ -637,6 +637,7 @@ const GV = G.view; // what the game rules (game.js) use to show things in the 3D
 
 const qs = new URLSearchParams(location.search);
 const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=1"); // 3D cows on the regular link; optional artwork fallback for comparisons
+const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=1");
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
@@ -1582,12 +1583,12 @@ function emoteMat(e) {
 const rnd = rng(4242);
 class Beast {
   constructor(kind, name, pers, x, z, ref) {
-    const S = SPECIES[kind], prototype = Cow3D && kind === "cow";
-    const A = prototype ? Cow3D.createCow3D(S.h, x, z, name) : makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]);
+    const S = SPECIES[kind], live = Live3D && Live3D.createLiveAnimal(kind, S.h, x, z);
+    const A = live || (Cow3D && kind === "cow" ? Cow3D.createCow3D(S.h, x, z, name) : makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]));
     Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
       vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
       need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
-    this.rig3d = prototype ? A : null;
+    this.rig3d = live || (Cow3D && kind === "cow" ? A : null);
     this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0; this.ref = ref;
     // a steady bubble for "I have something for you" (eggs ready, a gift…), separate from passing moods
     this.status = new THREE.Sprite(emoteMat("🥚")); this.status.scale.setScalar(.7); this.status.position.y = S.h + .5; this.status.visible = false; this.g.add(this.status);
@@ -1696,7 +1697,8 @@ class Beast {
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
     if (this.rig3d) {
       if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
-      Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
+      if (this.kind === "cow") Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
+      else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act);
       return;
     }
     // face the way it walks (the pictures face left), and animate the pose
@@ -2338,6 +2340,12 @@ const VILLAGER_COAT = {rosa:0xd9788f, joe:0x8a6a48, mia:0xf2c14e, sam:0x4f8a4a, 
 function syncVisitor() {
   const v = GS().visitor, V = v && G.VILLAGERS[v.id];
   visitorCard.visible = !!V && !visiting;
+  if (Live3D && V && visitorCard.userData.who !== v.id) {
+    if (visitorCard.userData.who !== v.id) {
+      visitorCard.userData.live = Live3D.replaceRig(visitorCard, visitorCard.userData.live, Live3D.createLiveVillager(VILLAGER_COAT[v.id] || 0xcc6677));
+      visitorCard.userData.who = v.id; visitorFace.visible = false; visitorBody.visible = false;
+    }
+  }
   if (V && visitorFace.userData.e !== V.e) { const t = emojiTexture(V.e); visitorFace.material.map = t; visitorFace.material.emissiveMap = t; visitorFace.material.needsUpdate = true; visitorFace.userData.e = V.e; visitorBody.material.color.set(VILLAGER_COAT[v.id] || 0xcc6677); }
   if (V) { const ok = G.hasAll ? G.hasAll(v.items) : false, e = ok ? "🎁" : "❗"; if (visitorBub.userData.e !== e) { visitorBub.material = emoteMat(e); visitorBub.userData.e = e; } }
 }
@@ -2486,6 +2494,13 @@ let hands = null; // first-person mitten hands (made further down)
 const farmer = new THREE.Group(); farmer.visible = false; scene.add(farmer);
 farmer.userData.hit = {type:"farmer"};
 function buildFarmer(L = G.lookOf(GS())) {
+  if (Live3D) {
+    if (farmer.userData.live) farmer.userData.live.dispose();
+    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry && o.geometry !== farmer.userData.live?.card?.geometry) o.geometry.dispose(); }); }
+    const lookState = L || G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[lookState[cat]] || G.WARDROBE[cat].opts[0];
+    const rig = Live3D.createLiveFarmer({skin:opt('skin')[1], hair:opt('hair')[1], hairColor:opt('hairColor')[1], shirt:opt('shirt')[1], hat:opt('hat')[1], overalls:opt('overalls')[1], overallColor:opt('overallColor')[1], boots:opt('boots')[1]}); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
+    farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g; return;
+  }
   const W = G.WARDROBE, pick = (cat) => W[cat].opts[L[cat]] || W[cat].opts[0];
   for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
   const g = new THREE.Group(); farmer.add(g);
@@ -2546,7 +2561,8 @@ document.getElementById("povBtn").addEventListener("click", () => { thirdPerson 
 // swinging leg bends at the knee, the shoulders twist against the hips, and running leans in with bigger, bent strides.
 // Starts and stops ease through an envelope from the real speed, so nothing snaps or slides on the spot.
 function poseFarmerGait(w) {
-  const U = farmer.userData; if (!U.legs) return 0;
+  const U = farmer.userData; if (U.live) { Live3D.updateLiveFarmer(U.live, 0, -(w.gspd || 0) * (w.gdt || .016), w.gdt || .016, (w.gspd || 0) > .2 ? 'walk' : 'idle'); return 0; }
+  if (!U.legs) return 0;
   const env = w.genv = (w.genv || 0) + (THREE.MathUtils.smoothstep(w.gspd || 0, .15, 1.6) - (w.genv || 0)) * Math.min(1, (w.gdt || .016) * 12);
   const run = w.grun || 0, c = (w.gait || 0) * Math.PI * 2, sn = Math.sin(c), cs = Math.cos(c);
   const hip = THREE.MathUtils.lerp(.42, .72, run) * env, kneeBend = THREE.MathUtils.lerp(.55, 1.25, run) * env;
@@ -2884,7 +2900,9 @@ farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI * .85;
 function updateFarmerIdle(t) {
   if (walk) return;
   farmer.visible = !!GS() && !editMode;
-  const { legs, knees, torso, arms, head, body } = farmer.userData; if (!legs) return;
+  const U = farmer.userData;
+  if (U.live) { Live3D.updateLiveFarmer(U.live, 0, 0, 1/60, 'idle'); return; }
+  const { legs, knees, torso, arms, head, body } = U; if (!legs) return;
   legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = head.rotation.z = 0; body.position.x = 0; arms[0].rotation.z = 0;
   const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
   arms[0].rotation.x = Math.sin(t * 1.3) * .04; arms[1].rotation.x = Math.sin(t * 1.3 + 1) * .04; arms[1].rotation.z = wave ? -2.3 + wave : 0;
