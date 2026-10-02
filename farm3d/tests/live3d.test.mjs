@@ -14,6 +14,14 @@ for (const kind of ['sheep','horse','dog','cat','chicken']) {
     rig.dispose();
   });
 }
+test('two saved hair styles produce different hair meshes', () => {
+  const a = createLiveFarmer({hair:'buzz', hairColor:0x1f1a17, hat:'none', overalls:false});
+  const b = createLiveFarmer({hair:'braids', hairColor:0x1f1a17, hat:'none', overalls:false});
+  assert.equal(a.hair, 'buzz');
+  assert.equal(b.hair, 'braids');
+  assert.notEqual(a.extras.length, b.extras.length);
+  a.dispose(); b.dispose();
+});
 test('two saved looks produce different farmer materials', () => {
   const a = createLiveFarmer({shirt:0xd24d3f, hat:'straw', overalls:true, boots:0x4a3222, skin:0xf6d7c3, hairColor:0x1f1a17});
   const b = createLiveFarmer({shirt:0x5ea64a, hat:'none', overalls:false, boots:0xa8322a, skin:0x5b3822, hairColor:0xb4552a});

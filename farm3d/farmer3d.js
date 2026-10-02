@@ -25,13 +25,21 @@ export function createFarmer3D(options={}){
   const extras=[];
   const add=(geo,color,parent,pos)=>{const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color,roughness:.86}));mesh.position.set(...pos);parent.add(mesh);extras.push(mesh);return mesh;};
   add(new THREE.SphereGeometry(.12,8,6),look.skin??0xd7b08a,bones[t.slots.head],[0,.02,0]);
-  add(new THREE.SphereGeometry(.08,8,6),look.hairColor??0x6b4127,bones[t.slots.head],[0,.12,.02]);
+  const hair=look.hair||'short', hairColor=look.hairColor??0x6b4127;
+  if(hair==='buzz') add(new THREE.SphereGeometry(.07,8,6),hairColor,bones[t.slots.head],[0,.14,0]);
+  else if(hair==='long') add(new THREE.BoxGeometry(.16,.28,.06),hairColor,bones[t.slots.head],[0,-.02,.1]);
+  else if(hair==='pony') add(new THREE.CylinderGeometry(.03,.02,.22,6),hairColor,bones[t.slots.head],[0,-.02,.12]);
+  else if(hair==='bun') add(new THREE.SphereGeometry(.06,8,6),hairColor,bones[t.slots.head],[0,.18,.04]);
+  else if(hair==='curly') add(new THREE.SphereGeometry(.1,8,6),hairColor,bones[t.slots.head],[0,.14,0]);
+  else if(hair==='bob') add(new THREE.CylinderGeometry(.1,.11,.12,8),hairColor,bones[t.slots.head],[0,.04,.02]);
+  else if(hair==='braids') { add(new THREE.CylinderGeometry(.02,.015,.24,6),hairColor,bones[t.slots.head],[-.06,-.04,.04]); add(new THREE.CylinderGeometry(.02,.015,.24,6),hairColor,bones[t.slots.head],[.06,-.04,.04]); }
+  else add(new THREE.SphereGeometry(.08,8,6),hairColor,bones[t.slots.head],[0,.12,.02]);
   add(new THREE.BoxGeometry(.28,.16,.14),look.shirt??0x4d7c4a,bones[t.slots.body],[0,.08,0]);
   if(look.overalls!==false)add(new THREE.BoxGeometry(.24,.2,.08),look.overallColor??0x3d6fa8,bones[t.slots.body],[0,-.02,.08]);
   if(look.hat&&look.hat!=='none')add(new THREE.CylinderGeometry(.16,.18,.06,8),look.hatColor??0xe8c86a,bones[t.slots.head],[0,.18,0]);
   for(const leg of t.slots.legs)add(new THREE.BoxGeometry(.08,.06,.12),look.boots??0x4a3222,bones[leg],[0,-.38,.02]);
   const g=new THREE.Group(),model=new THREE.Group();g.add(model);model.add(card);model.scale.setScalar(options.scale||1);
-  const rig={g,model,card,body:bones[t.slots.body],head:bones[t.slots.head],arms:t.slots.arms.map(i=>bones[i]),legs:t.slots.legs.map(i=>bones[i]),look,extras,state:{phase:0,amount:0},disposed:false};
+  const rig={g,model,card,body:bones[t.slots.body],head:bones[t.slots.head],arms:t.slots.arms.map(i=>bones[i]),legs:t.slots.legs.map(i=>bones[i]),look,hair,extras,state:{phase:0,amount:0},disposed:false};
   rig.dispose=()=>{if(rig.disposed)return;for(const m of extras){m.geometry.dispose();m.material.dispose();}card.skeleton.dispose();rig.disposed=true;};
   updateFarmer3D(rig,0,0,1/60);return rig;
 }

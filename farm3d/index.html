@@ -2497,7 +2497,7 @@ function buildFarmer(L = G.lookOf(GS())) {
   if (Live3D) {
     if (farmer.userData.live) farmer.userData.live.dispose();
     for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry && o.geometry !== farmer.userData.live?.card?.geometry) o.geometry.dispose(); }); }
-    const L = G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[L[cat]] || G.WARDROBE[cat].opts[0];
+    const lookState = L || G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[lookState[cat]] || G.WARDROBE[cat].opts[0];
     const rig = Live3D.createLiveFarmer({skin:opt('skin')[1], hair:opt('hair')[1], hairColor:opt('hairColor')[1], shirt:opt('shirt')[1], hat:opt('hat')[1], overalls:opt('overalls')[1], overallColor:opt('overallColor')[1], boots:opt('boots')[1]}); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
     farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g; return;
   }
