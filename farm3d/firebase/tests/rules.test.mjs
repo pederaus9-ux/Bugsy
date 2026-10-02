@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 
 const OWNER_EMAIL = "pederaus9@gmail.com";
+const OWNER_UID = "wqPP4uUThWTmhqi9g5YdgyLfGQ93"; // Austin's Firebase Authentication UID (firestore.rules isOwner)
 let env;
 const counts = {allow: 0, deny: 0};
 const ok = async (p) => { counts.allow++; return assertSucceeds(p); };
@@ -93,7 +94,7 @@ test("farms: rev must move forward by exactly one; shape and size are checked", 
 });
 test("farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)", async () => {
   await seed((db) => setDoc(doc(db, "farms", "alice"), {save: save(), level: 3, coins: 1, rev: 1, updatedAt: NOW}));
-  const owner = as("austin", OWNER_EMAIL);
+  const owner = as(OWNER_UID, OWNER_EMAIL);
   await no(getDocs(collection(owner, "farms")));                       // the read the old "count but not read" test never tried
   await no(getDocs(query(collection(owner, "farms"), limit(1))));
   await no(getCountFromServer(collection(owner, "farms")));
@@ -120,7 +121,7 @@ test("authorization matrix: get, list and count for every collection and role", 
     await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
     await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
   });
-  const R = {owner: as("austin", OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
+  const R = {owner: as(OWNER_UID, OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
   // [collection, one doc, {role: [get, list, count]}]  (A = allow, D = deny)
   const M = [
     ["farms", "farms/alice", {owner: "DDD", alice: "ADD", bob: "DDD", anon: "DDD"}],
@@ -144,14 +145,20 @@ test("authorization matrix: get, list and count for every collection and role", 
   }
 });
 
-// The owner is recognized by email. Firebase email/password sign-up never verifies the address and the game never asks
-// it to, so requiring email_verified would lock the owner out of players.html. Documented residual risk: the address is
-// already registered to the owner, so nobody else can sign up with it while that account exists.
-test("owner check: documents that an unverified owner-email token is accepted (residual risk, see README)", async () => {
+// The owner is recognized by account id (UID), never by the email claim: the game never verifies addresses.
+test("owner check: only the owner's UID; the owner email on any other account, verified or not, is refused", async () => {
   await seed((db) => setDoc(doc(db, "presence/alice"), {seen: NOW, level: 3}));
-  await ok(getDocs(collection(env.authenticatedContext("x", {email: OWNER_EMAIL, email_verified: false}).firestore(), "presence")));
-  await no(getDocs(collection(env.authenticatedContext("y", {email: "PEDERAUS9@gmail.com", email_verified: true}).firestore(), "presence"))); // exact address only
-  await no(getDocs(collection(env.authenticatedContext("z", {email_verified: true}).firestore(), "presence")));                           // no email claim at all
+  const ctx = (uid, token) => env.authenticatedContext(uid, token).firestore();
+  await ok(getDocs(collection(ctx(OWNER_UID, {email: OWNER_EMAIL}), "presence")));
+  await ok(getDocs(collection(ctx(OWNER_UID, {}), "presence")));                                                    // no email claim needed
+  await no(getDocs(collection(ctx("x", {email: OWNER_EMAIL, email_verified: false}), "presence")));               // the old residual risk: now refused
+  await no(getDocs(collection(ctx("x2", {email: OWNER_EMAIL, email_verified: true}), "presence")));                // even a verified owner email
+  await no(getDocs(collection(ctx("y", {email: "PEDERAUS9@gmail.com", email_verified: true}), "presence")));
+  await no(getDocs(collection(ctx(OWNER_UID.toLowerCase(), {email: OWNER_EMAIL}), "presence")));                   // the UID is exact
+  await no(getDocs(collection(ctx(OWNER_UID + "x", {}), "presence")));
+  await no(getDocs(collection(ctx("z", {email_verified: true}), "presence")));
+  await no(getDocs(collection(ctx("x", {email: OWNER_EMAIL}), "events")));
+  await ok(getDocs(collection(ctx(OWNER_UID, {}), "events")));
 });
 
 // ---------------------------------------------------------------- presence/{uid}
@@ -164,7 +171,7 @@ test("presence: heartbeat by its own player; only the owner reads it", async () 
   await no(beat(as("alice"), "alice", {seen: NOW}));            // must be the server's clock
   await no(beat(as("alice"), "alice", {coins: 1e9}));           // extra field
   await no(getDoc(doc(as("alice"), "presence", "alice")));
-  await ok(getDocs(collection(as("austin", OWNER_EMAIL), "presence")));
+  await ok(getDocs(collection(as(OWNER_UID, OWNER_EMAIL), "presence")));
   await no(getDocs(collection(as("bob", "bob@example.com"), "presence")));
 });
 
@@ -307,16 +314,17 @@ test("market (7I-C): no client can buy, take back, collect, reprice or delete a 
   await no(updateDoc(ref(alice), {price: 600}));                                                     // the seller can't reprice
   await no(updateDoc(ref(anon()), {buyer: "x", buyerName: "X", soldAt: NOW}));
   // take back (the seller deleting an unsold listing) and deletes by anyone else
-  await no(deleteDoc(ref(alice)));
-  await no(deleteDoc(ref(bob)));
-  await no(deleteDoc(ref(anon())));
+  await fresh(); await no(deleteDoc(ref(alice)));
+  await fresh(); await no(deleteDoc(ref(bob)));
+  await fresh(); await no(deleteDoc(ref(anon())));
   // collect (the seller deleting a sold listing in a transaction) and anyone undoing or taking over a sale
-  await seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
-  await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists() && x.data().buyer) tx.delete(ref(alice)); }));
-  await no(deleteDoc(ref(bob)));
-  await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
-  await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
-  await no(updateDoc(ref(alice), {buyer: null, buyerName: null, soldAt: null}));
+  // (re-seeded before every attempt, so with wide-open rules each one really reaches an existing listing)
+  const sold = () => seed((db) => setDoc(doc(db, "market", id), listing("alice", {buyer: "bob", buyerName: "Bobby", soldAt: NOW})));
+  await sold(); await no(runTransaction(alice, async (tx) => { const x = await tx.get(ref(alice)); if (x.exists() && x.data().buyer) tx.delete(ref(alice)); }));
+  await sold(); await no(deleteDoc(ref(bob)));
+  await sold(); await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
+  await sold(); await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
+  await sold(); await no(updateDoc(ref(alice), {buyer: null, buyerName: null, soldAt: null}));
 });
 
 // ---------------------------------------------------------------- events
@@ -326,7 +334,7 @@ test("economy, ledger, plots (7I): no client can create, change or delete them, 
     await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
     await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
   });
-  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as("austin", OWNER_EMAIL);
+  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as(OWNER_UID, OWNER_EMAIL);
   for (const db of [alice, bob, owner, anon()]) {
     await seedAll(); // fresh documents for every role (so with wide-open rules every deny below really gets through)
     await no(setDoc(doc(db, "economy/alice"), {v: 1, coins: 1000000, items: {wheat: 999}, rev: 2}));
@@ -358,14 +366,14 @@ test("events: guests and players can add a milestone; nothing else, and only the
   await no(getDocs(collection(anon(), "events")));
   await no(getDocs(collection(as("alice", "alice@example.com"), "events")));
   await no(updateDoc(doc(anon(), "events", "e1"), {e: "lvl_20"}));
-  await no(deleteDoc(doc(as("austin", OWNER_EMAIL), "events", "e1")));
-  await ok(getCountFromServer(query(collection(as("austin", OWNER_EMAIL), "events"), where("e", "==", "open"))));
+  await no(deleteDoc(doc(as(OWNER_UID, OWNER_EMAIL), "events", "e1")));
+  await ok(getCountFromServer(query(collection(as(OWNER_UID, OWNER_EMAIL), "events"), where("e", "==", "open"))));
 });
 
 // ---------------------------------------------------------------- everything else
 test("unknown collections are closed", async () => {
   await no(setDoc(doc(as("alice"), "admin", "config"), {open: true}));
-  await no(getDoc(doc(as("austin", OWNER_EMAIL), "secrets", "x")));
+  await no(getDoc(doc(as(OWNER_UID, OWNER_EMAIL), "secrets", "x")));
   await no(setDoc(doc(anon(), "anything", "x"), {a: 1}));
   const a = as("alice"), b = writeBatch(a); b.set(doc(a, "farms", "alice", "sub", "x"), {a: 1});
   await no(b.commit());

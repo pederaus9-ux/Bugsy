@@ -31,11 +31,10 @@ player's whole save; it also let any signed-in player list every showcase and us
 turns listing off there. The dashboard's "total players" now comes from `presence` (everyone who has opened the game
 signed in), and `rules.test.mjs` checks get / list / count separately for every collection and role.
 
-**Known limit: the owner check trusts the sign-in email.** The owner is recognised by the email in the sign-in token,
-compared exactly. The token says whether that email was ever verified, but the game never sends verification emails, so
-requiring it would lock the owner out of the dashboard. Pinning the owner by account id (uid) instead is the
-recommended fix (not made yet: it needs the owner's decision); until then a test documents the current behaviour (an unverified owner email is accepted; a different-case email or
-a missing email is refused).
+**The owner check is pinned to the owner's account id (UID).** The dashboard data (`presence/`, `events/`) can be read
+only by the Firebase Authentication account whose UID is in `isOwner()`. Austin supplied it from the Firebase console.
+The email claim is no longer trusted: the game never verifies addresses, so an email is not proof of identity. The
+rules tests check that the owner email on any other account is refused, whether verified or not.
 
 ## Tests
 

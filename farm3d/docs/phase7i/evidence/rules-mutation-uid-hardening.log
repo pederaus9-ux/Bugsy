@@ -1,0 +1,189 @@
+(node:655) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  emulators: Starting emulators: firestore
+i  emulators: Detected demo project ID "demo-sunny-acres", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400
+⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500
+⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  Running script: node --test tests/rules.test.mjs
+TAP version 13
+# Subtest: farms: owner saves, reads and updates with the revision transaction
+ok 1 - farms: owner saves, reads and updates with the revision transaction
+  ---
+  duration_ms: 2142.379452
+  type: 'test'
+  ...
+# Subtest: farms: a save from before revisions (no rev field) can still be updated
+ok 2 - farms: a save from before revisions (no rev field) can still be updated
+  ---
+  duration_ms: 158.190456
+  type: 'test'
+  ...
+# Subtest: farms: nobody else, and nobody signed out, can read or write
+ok 3 - farms: nobody else, and nobody signed out, can read or write
+  ---
+  duration_ms: 492.462863
+  type: 'test'
+  ...
+# Subtest: farms: rev must move forward by exactly one; shape and size are checked
+ok 4 - farms: rev must move forward by exactly one; shape and size are checked
+  ---
+  duration_ms: 306.450338
+  type: 'test'
+  ...
+# Subtest: farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+ok 5 - farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+  ---
+  duration_ms: 232.537624
+  type: 'test'
+  ...
+# Subtest: authorization matrix: get, list and count for every collection and role
+ok 6 - authorization matrix: get, list and count for every collection and role
+  ---
+  duration_ms: 1630.17508
+  type: 'test'
+  ...
+# Subtest: owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+ok 7 - owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+  ---
+  duration_ms: 311.991543
+  type: 'test'
+  ...
+# Subtest: presence: heartbeat by its own player; only the owner reads it
+ok 8 - presence: heartbeat by its own player; only the owner reads it
+  ---
+  duration_ms: 309.248685
+  type: 'test'
+  ...
+# Subtest: usernames: claim, re-save, and rename all work through the game's transaction
+ok 9 - usernames: claim, re-save, and rename all work through the game's transaction
+  ---
+  duration_ms: 209.112475
+  type: 'test'
+  ...
+# [2026-10-02T17:43:59.370Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x47dd52e9 error. Code: 5 Message: 5 NOT_FOUND: no entity to update: app: "dev~demo-sunny-acres"
+# path <
+#   Element {
+#     type: "usernames"
+#     name: "sunnygrandma"
+#   }
+# >
+# MUTATION-SURVIVOR not-found     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+# Subtest: usernames: a name somebody else has can't be taken or deleted
+ok 10 - usernames: a name somebody else has can't be taken or deleted
+  ---
+  duration_ms: 141.545397
+  type: 'test'
+  ...
+# Subtest: usernames + players: both halves must agree, with a valid name
+ok 11 - usernames + players: both halves must agree, with a valid name
+  ---
+  duration_ms: 117.113423
+  type: 'test'
+  ...
+# [2026-10-02T17:43:59.706Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x47dd52f8 error. Code: 5 Message: 5 NOT_FOUND: no entity to update: app: "dev~demo-sunny-acres"
+# path <
+#   Element {
+#     type: "players"
+#     name: "alice"
+#   }
+# >
+# MUTATION-SURVIVOR not-found     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+# Subtest: players: profiles are readable and searchable by signed-in players only, writable by their owner only
+ok 12 - players: profiles are readable and searchable by signed-in players only, writable by their owner only
+  ---
+  duration_ms: 172.275228
+  type: 'test'
+  ...
+# Subtest: friends: your own list only
+ok 13 - friends: your own list only
+  ---
+  duration_ms: 155.863727
+  type: 'test'
+  ...
+# Subtest: showcase: publish your own, friends can visit, nobody can overwrite yours
+ok 14 - showcase: publish your own, friends can visit, nobody can overwrite yours
+  ---
+  duration_ms: 593.666222
+  type: 'test'
+  ...
+# [2026-10-02T17:44:00.641Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x47dd530f error. Code: 5 Message: 5 NOT_FOUND: no entity to update: app: "dev~demo-sunny-acres"
+# path <
+#   Element {
+#     type: "help"
+#     name: "alice"
+#   }
+#   Element {
+#     type: "items"
+#     name: "bob-1790000000000-3"
+#   }
+# >
+# MUTATION-SURVIVOR not-found     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+# Subtest: help: a friend waters your crops; only you read and clear the notes
+ok 15 - help: a friend waters your crops; only you read and clear the notes
+  ---
+  duration_ms: 213.355102
+  type: 'test'
+  ...
+# Subtest: help: no forged senders, self-help or oversized notes
+ok 16 - help: no forged senders, self-help or oversized notes
+  ---
+  duration_ms: 80.917476
+  type: 'test'
+  ...
+# Subtest: market (7I-C): signed-in players can read listings; signed-out visitors can't
+ok 17 - market (7I-C): signed-in players can read listings; signed-out visitors can't
+  ---
+  duration_ms: 195.424869
+  type: 'test'
+  ...
+# Subtest: market (7I-C): no client can create a listing, not even a well-formed one in their own name
+ok 18 - market (7I-C): no client can create a listing, not even a well-formed one in their own name
+  ---
+  duration_ms: 193.084684
+  type: 'test'
+  ...
+# Subtest: market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+ok 19 - market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+  ---
+  duration_ms: 464.053383
+  type: 'test'
+  ...
+# Subtest: economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+ok 20 - economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+  ---
+  duration_ms: 415.257593
+  type: 'test'
+  ...
+# Subtest: events: guests and players can add a milestone; nothing else, and only the owner reads
+ok 21 - events: guests and players can add a milestone; nothing else, and only the owner reads
+  ---
+  duration_ms: 413.575117
+  type: 'test'
+  ...
+# RULES CHECKS: 79 allow + 267 deny = 346 | open rules let 264 of 267 deny cases through
+# Subtest: unknown collections are closed
+ok 22 - unknown collections are closed
+  ---
+  duration_ms: 127.341804
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9506.574715
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  firestore: Stopping Firestore Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

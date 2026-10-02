@@ -272,13 +272,33 @@ the server's plots p0–p5 from the farm screen.
 - Offline: planting is off, and a pick is kept as "checking" with nothing verified yet.
 - Back online: granted once, the queue is empty, and the phone farm is still unchanged.
 
+## Owner-UID hardening (in PR #39, per ChatGPT)
+
+- Austin supplied his Firebase Authentication UID from the console (Authentication › Users). It is not a secret: it's an
+  account identifier.
+- `firestore.rules` `isOwner()` is now `request.auth.uid == '<that UID>'`. The email claim is no longer used.
+- Rules tests:
+  - The owner's UID is allowed, with or without an email claim.
+  - The owner email on any other account, verified or not, is refused. So are a different-case email, a lowercased
+    UID, a UID with an extra character, and no email at all.
+  - The authorization matrix runs with the owner as that UID.
+  - Rules 22/22, 346 checks.
+- Mutation check: 264/267 denies get through wide-open rules; the other 3 are the known not-found edits.
+  - While doing this I found that my 7I-C market test had 3 deny checks that were hollow under mutation: a delete
+    earlier in the test removed the listing.
+  - They now re-seed before each attempt.
+  - Correction: the earlier "253/256" figure was measured before the 7I-C market rewrite and was not re-measured
+    after it.
+- Game flows: the dashboard flow creates the owner with that exact UID (Auth emulator admin endpoint). The owner sees
+  the dashboard; another player is refused.
+
 ## Production deployment requirements (owner actions; NOT done)
 
 1. **Firebase Blaze plan** on `fir-config-18b64`. Cloud Functions can't be deployed on the free plan.
 2. **Deploy the function** from `farm3d/firebase`: `firebase deploy --only functions --project fir-config-18b64`
    (`economyAct`, us-central1, Node 22). It writes to the Firestore database named `default`.
 3. **Publish the rules** (`firestore.rules`, 7I) only after:
-   - the owner-UID hardening (waiting for Austin's UID)
+   - the owner-UID hardening (DONE in PR #39)
    - a saved copy of the current production rules
    - the phone smoke test being ready
 4. **Order matters.** The game is served from `main` by GitHub Pages, so merging PR #39 releases the new game at once.

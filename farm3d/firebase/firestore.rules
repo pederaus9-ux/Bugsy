@@ -18,8 +18,9 @@ service cloud.firestore {
     // ---------- helpers ----------
     function signedIn() { return request.auth != null; }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
-    // the game owner (players.html dashboard)
-    function isOwner() { return signedIn() && request.auth.token.email == 'pederaus9@gmail.com'; }
+    // the game owner (players.html dashboard): Austin's Firebase Authentication account, by its UID (not by email:
+    // the game never verifies email addresses, so an email claim is not proof of who someone is)
+    function isOwner() { return signedIn() && request.auth.uid == 'wqPP4uUThWTmhqi9g5YdgyLfGQ93'; }
     function data() { return request.resource.data; }
     function hasExactly(keys) { return data().keys().hasAll(keys) && data().keys().hasOnly(keys); }
     function onlyChanged(keys) { return data().diff(resource.data).affectedKeys().hasOnly(keys); }

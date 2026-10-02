@@ -3,7 +3,7 @@
 // Run through `npm test` in farm3d/firebase (it starts the Firestore + Auth emulators first). Helpers: emu-harness.cjs.
 const fs = require('fs');
 const path = require('path');
-const {startEmu, readDoc, listDocs, signUp, resetEmulators, OWNER_EMAIL, artifacts, fsUrl} = require('./emu-harness.cjs');
+const {startEmu, readDoc, listDocs, signUp, createUser, resetEmulators, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl} = require('./emu-harness.cjs');
 const fsUrlFor = fsUrl;
 
 // Phase 7I: verified (canonical) coins and goods live in economy/{uid}, written only by the server. Here an account is
@@ -213,7 +213,7 @@ async function main() {
   await sleep(farmer);
 
   // ---- the owner dashboard: the owner sees it, other players are turned away
-  await signUp(OWNER_EMAIL, 'ownerpass1');
+  await createUser(OWNER_UID, OWNER_EMAIL, 'ownerpass1'); // the owner is recognized by this exact UID (firestore.rules)
   for (const [who, email, pw, want] of [['owner', OWNER_EMAIL, 'ownerpass1', 'stats'], ['player', 'grandma@example.com', 'hunter22', 'denied']]) {
     const d = await phone('dash-' + who);
     try {

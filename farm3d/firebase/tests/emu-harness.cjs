@@ -16,6 +16,7 @@ fs.mkdirSync(artifacts, {recursive: true});
 const PROJECT = 'demo-sunny-acres', FS = '127.0.0.1:8085', AUTH = '127.0.0.1:9099', FN = '127.0.0.1:5001';
 const CDN = 'https://www.gstatic.com/firebasejs/9.23.0/';
 const OWNER_EMAIL = 'pederaus9@gmail.com';
+const OWNER_UID = 'wqPP4uUThWTmhqi9g5YdgyLfGQ93'; // firestore.rules isOwner(): the owner is this exact account
 
 const shims = {
   'firebase-app.js': `export * from "./real-firebase-app.js";
@@ -54,6 +55,13 @@ async function readDoc(p) {
 async function listDocs(p) {
   const r = await fetch(fsUrl(p) + '?pageSize=300', {headers: {Authorization: 'Bearer owner'}});
   return ((await r.json()).documents || []).map(d => ({id: d.name.split('/').pop(), fields: d.fields}));
+}
+// an account with a chosen UID (the Auth emulator's admin endpoint), e.g. the owner's real UID for the dashboard tests
+async function createUser(uid, email, password) {
+  const r = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts`, {method: 'POST',
+    headers: {'Content-Type': 'application/json', Authorization: 'Bearer owner'}, body: JSON.stringify({localId: uid, email, password})});
+  const j = await r.json(); if (j.localId !== uid) throw new Error('createUser failed: ' + JSON.stringify(j));
+  return j.localId;
 }
 async function signUp(email, password) {
   const r = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake`, {method: 'POST',
@@ -167,4 +175,4 @@ async function startEmu() {
   const close = async () => { await browser.close(); await new Promise(r => server.close(r)); };
   return {base, browser, denials, loads, newPage, phone, sleep, wake, P, until, register, friends, claimName, give, barn, coins, bodyText, close};
 }
-module.exports = {startEmu, readDoc, listDocs, signUp, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, artifacts, fsUrl, loads};
+module.exports = {startEmu, readDoc, listDocs, signUp, createUser, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl, loads};
