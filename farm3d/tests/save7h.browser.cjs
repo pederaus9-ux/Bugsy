@@ -86,10 +86,10 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
         assert.equal(first.owed, 1, 'level 6 farm from before perks gets one pick');
         pass(f + ' opens, keeps progress and is stable', `level ${first.level}, ${first.coins} coins, ${first.plots} fields, ${raw.length} bytes`);
       } else {
-        pass(f + ' opens without errors and is stable', JSON.stringify(first.types));
-        if (first.types.coins !== 'number') note('damaged save: coins stay a ' + first.types.coins, 'upgrade() does not coerce numbers; adding coins would concatenate text');
-        if (first.types.gems !== 'number') note('damaged save: gems stay ' + first.types.gems, 'same as coins');
-        if (first.types.streak !== 'object') note('damaged save: streak not repaired', '');
+        assert.equal(first.coins, 120, 'coins "120" repaired to the number 120');
+        assert.equal(first.types.gems, 'number', 'gems repaired to a number');
+        assert.equal(first.types.streak, 'object', 'streak repaired');
+        pass(f + ' opens, is repaired (F3) and is stable', JSON.stringify(first.types) + ', coins ' + first.coins);
       }
       await session.finish();
     }
@@ -101,13 +101,17 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       const broken = JSON.stringify(load('3d-v1-first-release.json').save).slice(0, 900); // a save cut off part way
       await seed(page, {[SAVE_KEY]: broken, 'sa3d-guest': '1', 'sa3d-seen': '1'});
       await boot(page, harness.base);
-      const after = await page.evaluate((k) => { __dbg.G.save(); const keys = []; for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-        return {level: __dbg.G.S.level, coins: __dbg.G.S.coins, sameRaw: localStorage.getItem(k), keys}; }, SAVE_KEY);
-      const copy = after.keys.filter(k => k.startsWith(SAVE_KEY) && k !== SAVE_KEY);
-      out.probes = out.probes || {};
-      out.probes.unreadable = {levelAfterBoot: after.level, coinsAfterBoot: after.coins, originalStillThere: after.sameRaw === broken, otherCopies: copy};
-      if (after.sameRaw !== broken && !copy.length) note('F1 confirmed: an unreadable save is replaced by a brand-new farm with no copy kept', `boots as level ${after.level} with ${after.coins} coins; the old text is gone`);
-      else pass('unreadable save is kept', JSON.stringify(out.probes.unreadable));
+      await page.waitForFunction(() => document.body.textContent.includes("couldn't be read"), {}, {timeout: 10000});
+      const after = await page.evaluate((k) => { __dbg.G.save(); return {level: __dbg.G.S.level, copy: localStorage.getItem(k + '-unreadable'), recover: localStorage.getItem('sa3d-recover')}; }, SAVE_KEY);
+      out.probes.unreadable = {level: after.level, copyKept: after.copy === broken, recoverFlag: after.recover};
+      assert.equal(after.copy, broken, 'the unreadable save is kept, byte for byte');
+      assert.equal(after.recover, null, 'a guest farm (no account) does not ask for cloud recovery');
+      pass('F1 unreadable save: a copy is kept and the player is told', 'new farm at level ' + after.level + ', copy under ' + SAVE_KEY + '-unreadable');
+      // and the copy is never overwritten by a second bad save
+      await page.evaluate((k) => localStorage.setItem(k, '{also broken'), SAVE_KEY);
+      await page.reload({waitUntil: 'load'}); await page.waitForFunction(() => window.__dbg && !document.getElementById('loading'), {}, {timeout: 120000});
+      assert.equal(await page.evaluate((k) => localStorage.getItem(k + '-unreadable'), SAVE_KEY), broken, 'the first kept copy is not replaced');
+      pass('F1 the first kept copy is never replaced');
       await session.finish();
     }
     {
@@ -118,9 +122,55 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       await page.goto(harness.base + 'farm3d/?debug', {waitUntil: 'load'});
       const started = await page.waitForFunction(() => window.__dbg && !document.getElementById('loading'), {}, {timeout: 60000}).then(() => true, () => false);
       out.probes.unknownItem = {started, errors: session.errors.slice(0, 2)};
-      if (!started) note('F6 confirmed: one unknown item id in the save stops the game from starting', (session.errors[0] || '').slice(0, 160));
-      else pass('a save with an unknown item still starts');
-      await session.finish(started);
+      assert.ok(started, 'a save with an unknown item still starts: ' + (session.errors[0] || ''));
+      const left = await page.evaluate(() => { const S = __dbg.G.S; return {barn: 'old_item' in S.barn, stand: S.stand.list.some(L => L && L.id === 'old_item'), orders: S.orders.some(o => o.items && 'old_item' in o.items), bread: S.stand.list[0] && S.stand.list[0].id}; });
+      assert.deepEqual([left.barn, left.stand, left.orders], [false, false, false], 'unknown item removed from barn, stand and orders');
+      assert.equal(left.bread, 'bread', 'known stand item kept');
+      assert.deepEqual(errorsOf(session), [], 'no page errors');
+      pass('F6 a save with an unknown item starts; the unknown item is removed, everything else kept');
+      await session.finish();
+    }
+    {
+      // F1 for an account: the stand-in farm must never be uploaded; auth.js brings the cloud farm back (emulator flow covers the cloud side)
+      const session = await harness.setup({width: 844, height: 390}, false, 'save7h-probe-unreadable-account'), page = session.page;
+      await seed(page, {[SAVE_KEY]: '{"v":1,"coins":5', 'sa3d-save-owner': 'acct123', 'sa3d-seen': '1', 'sa3d-guest': '1'});
+      await boot(page, harness.base);
+      assert.equal(await page.evaluate(() => localStorage.getItem('sa3d-recover')), '1', 'an account farm asks for cloud recovery');
+      pass('F1 an unreadable account farm marks itself for cloud recovery');
+      await session.finish();
+    }
+    {
+      // F4: a farm saved by a newer game version (opened by an older cached copy) is played but never written back older
+      const session = await harness.setup({width: 844, height: 390}, false, 'save7h-probe-newer'), page = session.page;
+      const fx = load('3d-v1-first-release.json').save; fx.v = 99;
+      const raw = JSON.stringify(fx);
+      await seed(page, {[SAVE_KEY]: raw, 'sa3d-guest': '1', 'sa3d-seen': '1'});
+      await boot(page, harness.base);
+      const r = await page.evaluate(() => { const G = __dbg.G; G.S.coins += 1; return {ok: G.save(), level: G.S.level}; });
+      assert.equal(r.ok, false, 'save() refuses'); assert.equal(r.level, 6, 'the newer farm still opens');
+      assert.equal(await page.evaluate((k) => localStorage.getItem(k), SAVE_KEY), raw, 'the newer save is left exactly as it was');
+      await page.waitForFunction(() => document.body.textContent.includes('newer version'), {}, {timeout: 10000});
+      pass('F4 a newer save opens but is never written back by older code');
+      await session.finish();
+    }
+    {
+      // F2: storage full: save() reports it once, and saving works again when space is back
+      const session = await harness.setup({width: 844, height: 390}, false, 'save7h-probe-quota'), page = session.page;
+      await seed(page, {'sa3d-guest': '1', 'sa3d-seen': '1'});
+      await boot(page, harness.base);
+      const q = await page.evaluate(async () => {
+        const G = __dbg.G, orig = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (k, v) { if (k === 'sunny-acres-3d-v1') throw new DOMException('full', 'QuotaExceededError'); return orig.call(this, k, v); };
+        const a = G.save(), b = G.save();
+        await new Promise(r => setTimeout(r, 300));
+        const warned = document.body.textContent.includes("isn't saving");
+        Storage.prototype.setItem = orig;
+        return {a, b, warned, c: G.save()};
+      });
+      assert.deepEqual([q.a, q.b, q.warned, q.c], [false, false, true, true]);
+      assert.deepEqual(errorsOf(session), [], 'no page errors');
+      pass('F2 storage full: save() fails visibly and recovers');
+      await session.finish();
     }
 
     // ---------------- 2. measurements

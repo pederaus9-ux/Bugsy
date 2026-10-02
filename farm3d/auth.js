@@ -19,6 +19,7 @@ const OWNER = "sa3d-save-owner";      // which account the farm on this phone be
 const SYNC_REV = "sa3d-sync-rev";     // the cloud version this phone's farm was last in step with
 const DIRTY = "sa3d-dirty";           // "1" when this phone's farm has changed since then
 const GUEST = "sa3d-guest";           // "1": playing without an account (the farm is saved on this phone only)
+const RECOVER = "sa3d-recover";       // "1": game.js couldn't read this account's farm on this phone; get it back from the cloud
 
 const $ = (id) => document.getElementById(id);
 const gate = $("authGate"), form = $("authForm"), title = $("authTitle"), sub = $("authSub"), msg = $("authMsg"), go = $("authGo"), note = $("authNote");
@@ -164,6 +165,7 @@ async function upload(force) {
   clearTimeout(upload.t);
   const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
   if (!cloud || !cloud.uid || !s || ls.get(OWNER) !== cloud.uid) return false;
+  if (ls.get(RECOVER)) return false; // the farm here is a stand-in for one that couldn't be read: never send it over the cloud copy
   if (!force && ls.get(DIRTY) !== "1") return true; // nothing new
   try {
     const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);
@@ -194,6 +196,10 @@ async function linkFarm(user) {
   cloud.uid = uid;
   if (owner !== uid) ls.del("sa3d-restored");
   const rrev = remote ? remote.rev || 0 : 0;
+  if (ls.get(RECOVER)) { // this phone's copy of the farm couldn't be read (a copy is kept): the cloud one comes back
+    ls.del(RECOVER);
+    if (remote && (!owner || owner === uid)) return useFarm(remote.save, uid, rrev);
+  }
   if (owner === uid && ls.get("sa3d-restored")) { ls.del("sa3d-restored"); await upload(true); return open(user); } // just restored from a backup: that's the farm now, here and in the cloud
   if (owner === uid) { // this account's own farm
     if (remote && rrev > (+ls.get(SYNC_REV) || 0)) { // it was saved from another phone since this one last synced

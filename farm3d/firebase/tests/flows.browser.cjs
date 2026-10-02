@@ -201,6 +201,19 @@ async function main() {
     let gone = false; for (let i = 0; i < 20 && !gone; i++) { await grandma.page.waitForTimeout(500); gone = (await listDocs('market')).length === 0; }
     check('seller collected the coins and the listing is gone', gone && (await coins(grandma)) === gCoins0 + price, `coins ${gCoins0} -> ${await coins(grandma)}, price ${price}`);
 
+    // ---- Phase 7H F1: this phone's copy of the farm can't be read: the cloud farm comes back, and is never overwritten
+    let cloudBefore = null; for (let i = 0; i < 40; i++) { cloudBefore = await readDoc('farms/' + gUid); if (cloudBefore && JSON.parse(cloudBefore.save).coins === await coins(grandma)) break; await grandma.page.waitForTimeout(1000); }
+    const cb = JSON.parse(cloudBefore.save);
+    await P(grandma, () => { window.__saHold = true; localStorage.setItem('sunny-acres-3d-v1', '{"v":1,"coins":12'); }); // damaged, and the page mustn't save over it on the way out
+    await grandma.page.reload({waitUntil: 'load'});
+    const back = await grandma.page.waitForFunction((c) => window.saAuth && window.saAuth.user && window.__ready && window.__dbg && window.__dbg.G.S && window.__dbg.G.S.coins === c, cb.coins, {timeout: 120000, polling: 500}).then(() => true, () => false);
+    if (!back) console.log('RECOVERY DEBUG', JSON.stringify(await P(grandma, () => ({coins: window.__dbg && window.__dbg.G.S.coins, level: window.__dbg && window.__dbg.G.S.level, recover: localStorage.getItem('sa3d-recover'), owner: localStorage.getItem('sa3d-save-owner'), rev: localStorage.getItem('sa3d-sync-rev'), dirty: localStorage.getItem('sa3d-dirty'), kept: localStorage.getItem('sunny-acres-3d-v1-unreadable'), raw: (localStorage.getItem('sunny-acres-3d-v1') || '').slice(0, 80)}))), 'cloud coins', cb.coins, 'cloud rev', cloudBefore.rev);
+    await grandma.page.waitForTimeout(3000);
+    const cloudAfter = await readDoc('farms/' + gUid), kept = await P(grandma, () => localStorage.getItem('sunny-acres-3d-v1-unreadable'));
+    check('damaged phone save: the cloud farm comes back and is not overwritten',
+      cloudAfter && JSON.parse(cloudAfter.save).coins === cb.coins && cloudAfter.rev >= cloudBefore.rev && kept === '{"v":1,"coins":12',
+      `coins ${cb.coins} -> ${await coins(grandma)}, cloud rev ${cloudBefore.rev} -> ${cloudAfter && cloudAfter.rev}`);
+
     await sleep(grandma);
     // ---- visit a friend's farm (reads their showcase)
     await wake(niece);
