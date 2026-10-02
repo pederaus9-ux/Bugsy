@@ -174,8 +174,8 @@ function watch(user) {
     rows = snap.docs.map(d => { const x = d.data(); return {uid:d.id, seen:x.seen ? x.seen.toMillis() : 0, level:x.level, joined:x.joined}; });
     show(["stats", "funnel", "recent", "out"]); render(); lookUpNames();
   }, (e) => { if (e.code === "permission-denied") denied(user); else { $("load").textContent = "Couldn't load the numbers. Check your internet."; show(["load", "out"]); } });
-  // everyone with a saved farm, including players who haven't opened the game since this page was added
-  F.getCountFromServer(F.collection(db, "farms")).then((c) => { total = c.data().count; render(); }).catch(() => {});
+  // (the farm count is gone: Firestore can only count what it may also list, and listing farms would expose every save.
+  // "Total players" counts everyone who has opened the game since presence was added.)
   loadFunnel(); setInterval(loadFunnel, 120e3);
   clearInterval(tick); tick = setInterval(render, 30e3); // keep "min ago" and "playing now" current
 }

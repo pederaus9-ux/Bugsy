@@ -4,6 +4,13 @@ Branch `claude/sunny-acres-phase7h-saves`. This part adds **tests and documentat
 protected file changed. The fixes below touch `game.js` (save/load), and F1 also touches the cloud-save hand-off in
 `auth.js`. Those are protected systems, so they wait for a ChatGPT 7H handoff.
 
+
+> **Status (part 2, branch `claude/sunny-acres-phase7h-fixes`):** the fixes proposed below are implemented there with
+> owner authorization, and tested by `farm3d/tests/save7h.browser.cjs` and `farm3d/firebase/tests/recovery.browser.cjs`.
+> Evidence: [`GATE_F1_F2_EVIDENCE.md`](GATE_F1_F2_EVIDENCE.md). Naming: the findings in *this* file are save findings
+> F1–F6. The gate ruling's "F1" (Firestore get/list/count) and "F2" (recovery test) are separate items, from the
+> red-team review.
+
 ## What was added
 
 | File | What it does |

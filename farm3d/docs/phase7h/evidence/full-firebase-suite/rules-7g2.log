@@ -1,0 +1,374 @@
+(node:4740) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  emulators: Starting emulators: firestore
+i  emulators: Detected demo project ID "demo-sunny-acres", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400
+⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500
+⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients.
+⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  Running script: node --test tests/rules.test.mjs
+TAP version 13
+# Subtest: farms: owner saves, reads and updates with the revision transaction
+ok 1 - farms: owner saves, reads and updates with the revision transaction
+  ---
+  duration_ms: 2615.267852
+  type: 'test'
+  ...
+# Subtest: farms: a save from before revisions (no rev field) can still be updated
+ok 2 - farms: a save from before revisions (no rev field) can still be updated
+  ---
+  duration_ms: 196.415131
+  type: 'test'
+  ...
+# [2026-10-02T07:25:46.781Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d51 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:46.851Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d52 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:46.893Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d53 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L48
+# Subtest: farms: nobody else, and nobody signed out, can read or write
+ok 3 - farms: nobody else, and nobody signed out, can read or write
+  ---
+  duration_ms: 419.350659
+  type: 'test'
+  ...
+# [2026-10-02T07:25:47.057Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d56 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L42:32 for 'create' @ L42, evaluation error at L42:32 for 'update' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:47.083Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d57 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L42:32 for 'create' @ L42, evaluation error at L42:32 for 'update' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:47.097Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d58 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:47.118Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d59 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L42, false for 'update' @ L42
+# [2026-10-02T07:25:47.287Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d5a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L42, false for 'update' @ L42
+# Subtest: farms: rev must move forward by exactly one; shape and size are checked
+ok 4 - farms: rev must move forward by exactly one; shape and size are checked
+  ---
+  duration_ms: 347.357752
+  type: 'test'
+  ...
+# Subtest: farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+ok 5 - farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+  ---
+  duration_ms: 194.805569
+  type: 'test'
+  ...
+# Subtest: authorization matrix: get, list and count for every collection and role
+ok 6 - authorization matrix: get, list and count for every collection and role
+  ---
+  duration_ms: 1039.937077
+  type: 'test'
+  ...
+# Subtest: owner check: documents that an unverified owner-email token is accepted (residual risk, see README)
+ok 7 - owner check: documents that an unverified owner-email token is accepted (residual risk, see README)
+  ---
+  duration_ms: 178.706301
+  type: 'test'
+  ...
+# [2026-10-02T07:25:48.875Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d90 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L55, false for 'update' @ L55
+# [2026-10-02T07:25:48.904Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d91 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L55, false for 'update' @ L55
+# [2026-10-02T07:25:48.932Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d92 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L55:32 for 'create' @ L55, evaluation error at L55:32 for 'update' @ L55, false for 'update' @ L55
+# [2026-10-02T07:25:48.965Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314d93 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L55:32 for 'create' @ L55, evaluation error at L55:32 for 'update' @ L55, false for 'update' @ L55
+# Subtest: presence: heartbeat by its own player; only the owner reads it
+ok 8 - presence: heartbeat by its own player; only the owner reads it
+  ---
+  duration_ms: 297.269539
+  type: 'test'
+  ...
+# Subtest: usernames: claim, re-save, and rename all work through the game's transaction
+ok 9 - usernames: claim, re-save, and rename all work through the game's transaction
+  ---
+  duration_ms: 259.161619
+  type: 'test'
+  ...
+# [2026-10-02T07:25:49.376Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314daa error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L87:24 for 'create' @ L87, evaluation error at L92:24 for 'update' @ L92, false for 'update' @ L92
+# [2026-10-02T07:25:49.384Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dab error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L97:24 for 'delete' @ L97, false for 'delete' @ L97
+# [2026-10-02T07:25:49.394Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dac error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L92:24 for 'update' @ L92, false for 'update' @ L92
+# [2026-10-02T07:25:49.424Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dad error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L87, false for 'update' @ L92
+# [2026-10-02T07:25:49.454Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dae error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L97:24 for 'delete' @ L97, false for 'delete' @ L97
+# Subtest: usernames: a name somebody else has can't be taken or deleted
+ok 10 - usernames: a name somebody else has can't be taken or deleted
+  ---
+  duration_ms: 163.411286
+  type: 'test'
+  ...
+# [2026-10-02T07:25:49.501Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314daf error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L87:24 for 'create' @ L87, evaluation error at L92:24 for 'update' @ L92, Service call error. Function: [getAfter], Argument: [path_value {
+#   segments {
+#     simple: "databases"
+#   }
+#   segments {
+#     simple: "(default)"
+#   }
+#   segments {
+#     simple: "documents"
+#   }
+#   segments {
+#     simple: "players"
+#   }
+#   segments {
+#     simple: "alice"
+#   }
+# }
+# ]. for 'create' @ L87
+# [2026-10-02T07:25:49.523Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314db0 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L67:32 for 'create' @ L67, evaluation error at L67:32 for 'update' @ L67, Service call error. Function: [getAfter], Argument: [path_value {
+#   segments {
+#     simple: "databases"
+#   }
+#   segments {
+#     simple: "(default)"
+#   }
+#   segments {
+#     simple: "documents"
+#   }
+#   segments {
+#     simple: "usernames"
+#   }
+#   segments {
+#     simple: "ghost"
+#   }
+# }
+# ]. for 'create' @ L67
+# Subtest: usernames + players: both halves must agree, with a valid name
+ok 11 - usernames + players: both halves must agree, with a valid name
+  ---
+  duration_ms: 145.569051
+  type: 'test'
+  ...
+# [2026-10-02T07:25:49.741Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dbc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L67, false for 'update' @ L67
+# [2026-10-02T07:25:49.773Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dbd error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L71
+# [2026-10-02T07:25:49.786Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dbe error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L67
+# Subtest: players: profiles are readable and searchable by signed-in players only, writable by their owner only
+ok 12 - players: profiles are readable and searchable by signed-in players only, writable by their owner only
+  ---
+  duration_ms: 186.23
+  type: 'test'
+  ...
+# [2026-10-02T07:25:49.876Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dc2 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L76, false for 'update' @ L76
+# [2026-10-02T07:25:49.910Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dc4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L75
+# [2026-10-02T07:25:49.917Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dbf error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L76, false for 'update' @ L76
+# [2026-10-02T07:25:49.930Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dc5 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L76, false for 'update' @ L76
+# [2026-10-02T07:25:49.943Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dc6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L76, false for 'update' @ L76
+# Subtest: friends: your own list only
+ok 13 - friends: your own list only
+  ---
+  duration_ms: 156.387685
+  type: 'test'
+  ...
+# [2026-10-02T07:25:50.053Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dca error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# [2026-10-02T07:25:50.090Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dcb error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L114
+# [2026-10-02T07:25:50.118Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dcc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# [2026-10-02T07:25:50.140Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dcd error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# [2026-10-02T07:25:50.165Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dce error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# [2026-10-02T07:25:50.258Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dcf error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# [2026-10-02T07:25:50.279Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dd0 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L106, false for 'update' @ L106
+# Subtest: showcase: publish your own, friends can visit, nobody can overwrite yours
+ok 14 - showcase: publish your own, friends can visit, nobody can overwrite yours
+  ---
+  duration_ms: 335.943101
+  type: 'test'
+  ...
+# [2026-10-02T07:25:50.532Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dd6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L120
+# [2026-10-02T07:25:50.554Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dd7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L129
+# [2026-10-02T07:25:50.588Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dd8 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# Subtest: help: a friend waters your crops; only you read and clear the notes
+ok 15 - help: a friend waters your crops; only you read and clear the notes
+  ---
+  duration_ms: 308.986442
+  type: 'test'
+  ...
+# [2026-10-02T07:25:50.613Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dd9 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.621Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dda error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.640Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314ddb error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.649Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314ddc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.656Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314ddd error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.681Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dde error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# [2026-10-02T07:25:50.689Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314ddf error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L121, false for 'update' @ L129
+# Subtest: help: no forged senders, self-help or oversized notes
+ok 16 - help: no forged senders, self-help or oversized notes
+  ---
+  duration_ms: 100.705891
+  type: 'test'
+  ...
+# Subtest: market: list, buy, collect: the whole trading-post flow from friends.js
+ok 17 - market: list, buy, collect: the whole trading-post flow from friends.js
+  ---
+  duration_ms: 137.379816
+  type: 'test'
+  ...
+# [2026-10-02T07:25:50.872Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314de8 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L158:24 for 'delete' @ L158, false for 'delete' @ L158
+# [2026-10-02T07:25:50.897Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314de9 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L158
+# [2026-10-02T07:25:50.962Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dec error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L158:24 for 'delete' @ L158, false for 'delete' @ L158
+# Subtest: market: the seller can take back an unsold listing; nobody else can delete one
+ok 18 - market: the seller can take back an unsold listing; nobody else can delete one
+  ---
+  duration_ms: 135.597594
+  type: 'test'
+  ...
+# [2026-10-02T07:25:51.000Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314ded error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.009Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dee error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.031Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314def error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.042Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df0 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, evaluation error at L150:24 for 'update' @ L150, false for 'create' @ L139
+# [2026-10-02T07:25:51.050Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df1 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.059Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df2 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.067Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df3 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.076Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.084Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df5 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.091Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.099Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.109Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df8 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.117Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314df9 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.125Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dfa error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.133Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dfb error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.141Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dfc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# [2026-10-02T07:25:51.148Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dfd error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L139, false for 'update' @ L150
+# Subtest: market: listings must be your own and well-formed
+ok 19 - market: listings must be your own and well-formed
+  ---
+  duration_ms: 186.057044
+  type: 'test'
+  ...
+# [2026-10-02T07:25:51.204Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314dff error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.229Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e00 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.240Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e01 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.250Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e02 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.263Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e03 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.276Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e04 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.288Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e05 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.318Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e06 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.337Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e07 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L150
+# [2026-10-02T07:25:51.374Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e09 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.383Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e08 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# [2026-10-02T07:25:51.410Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e0a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# Subtest: market: buyers can only mark an unsold listing as theirs, and change nothing else
+ok 20 - market: buyers can only mark an unsold listing as theirs, and change nothing else
+  ---
+  duration_ms: 264.44642
+  type: 'test'
+  ...
+# [2026-10-02T07:25:51.597Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e12 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# evaluation error at L150:24 for 'update' @ L150, false for 'update' @ L150
+# Subtest: market: two buyers at the same moment: exactly one gets it (game transaction, and blind writes stopped by the rules)
+ok 21 - market: two buyers at the same moment: exactly one gets it (game transaction, and blind writes stopped by the rules)
+  ---
+  duration_ms: 211.987319
+  type: 'test'
+  ...
+# [2026-10-02T07:25:51.732Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e18 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.751Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e19 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.771Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e1a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.793Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e1b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.812Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e1c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.829Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e1d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'create' @ L164
+# [2026-10-02T07:25:51.904Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e21 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'update' @ L168
+# [2026-10-02T07:25:51.921Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e22 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+# false for 'delete' @ L168
+# Subtest: events: guests and players can add a milestone; nothing else, and only the owner reads
+ok 22 - events: guests and players can add a milestone; nothing else, and only the owner reads
+  ---
+  duration_ms: 320.738038
+  type: 'test'
+  ...
+# [2026-10-02T07:25:51.977Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e24 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T07:25:52.011Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e26 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# [2026-10-02T07:25:52.044Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x5f314e27 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+# RULES CHECKS: 75 allow + 185 deny = 260
+# Subtest: unknown collections are closed
+ok 23 - unknown collections are closed
+  ---
+  duration_ms: 98.910147
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8706.492632
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  firestore: Stopping Firestore Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

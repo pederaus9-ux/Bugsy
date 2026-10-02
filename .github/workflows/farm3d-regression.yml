@@ -81,9 +81,9 @@ jobs:
           retention-days: 7
 
   firebase-rules:
-    name: Firestore rules + game flows (emulator)
+    name: Firestore rules + game flows + save recovery (emulator)
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
         with:
@@ -103,7 +103,7 @@ jobs:
       - name: Install Chromium and system dependencies
         working-directory: farm3d/firebase
         run: npx playwright install --with-deps chromium
-      - name: Rules tests and real game flows against the Firestore + Auth emulators
+      - name: Rules tests, real game flows and save-recovery scenarios against the Firestore + Auth emulators
         working-directory: farm3d/firebase
         run: npm test
       - name: Save flow results and failure screenshots

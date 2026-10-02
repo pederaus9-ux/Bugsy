@@ -228,16 +228,20 @@ function fresh() {
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
 export const SAVE_VERSION = 1;
-const MIGRATIONS = {};
-function migrate(saved) {
+export const MIGRATIONS = {};
+// (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
+export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
   let v = Number.isInteger(s.v) && s.v >= 1 ? s.v : 1;
-  while (v < SAVE_VERSION && MIGRATIONS[v]) { s = MIGRATIONS[v](s); v++; }
+  while (v < target) {
+    if (!table[v]) throw new Error("no save migration from version " + v); // a gap is a bug: load() keeps the save unread instead of guessing
+    s = table[v](s); v++;
+  }
   s.v = v;
   return s;
 }
 // fill in anything a save from an older version (or from the 2D game) is missing
-function upgrade(saved) {
+export function upgrade(saved) {
   // compare against a separate fresh farm: the one being filled in can't also be the reference
   const def = fresh(), s = Object.assign(fresh(), migrate(saved));
   s.buildings = s.buildings || {}; s.pens = s.pens || {};

@@ -91,12 +91,60 @@ test("farms: rev must move forward by exactly one; shape and size are checked", 
   await no(setDoc(doc(db, "farms", "alice"), {save: "x".repeat(900001), level: 3, coins: 1, rev: 6, updatedAt: NOW}));
   await ok(setDoc(doc(db, "farms", "alice"), {save: save(), level: 3, coins: 1, rev: 6, updatedAt: NOW}));
 });
-test("farms: the owner dashboard can count farms but not read them", async () => {
+test("farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)", async () => {
   await seed((db) => setDoc(doc(db, "farms", "alice"), {save: save(), level: 3, coins: 1, rev: 1, updatedAt: NOW}));
   const owner = as("austin", OWNER_EMAIL);
-  await ok(getCountFromServer(collection(owner, "farms")));
+  await no(getDocs(collection(owner, "farms")));                       // the read the old "count but not read" test never tried
+  await no(getDocs(query(collection(owner, "farms"), limit(1))));
+  await no(getCountFromServer(collection(owner, "farms")));
   await no(getDoc(doc(owner, "farms", "alice")));
   await no(getCountFromServer(collection(as("bob", "bob@example.com"), "farms")));
+  await no(getDocs(collection(as("alice"), "farms")));                   // not even the farm's own player can list
+});
+
+// ---------------------------------------------------------------- authorization matrix: get / list / count separately
+// Each operation is checked on its own: allowing (or denying) one never proves anything about the others.
+test("authorization matrix: get, list and count for every collection and role", async () => {
+  const sv = save();
+  await seed(async (db) => {
+    await setDoc(doc(db, "farms/alice"), {save: sv, level: 3, coins: 5, rev: 1, updatedAt: NOW});
+    await setDoc(doc(db, "showcase/alice"), {save: sv, name: "Al", level: 3, earned: 1, harvests: 1, best: 1, orders: 1, updatedAt: NOW});
+    await setDoc(doc(db, "usernames/al"), {uid: "alice", name: "Al"});
+    await setDoc(doc(db, "players/alice"), {name: "Al", nameLower: "al"});
+    await setDoc(doc(db, "presence/alice"), {seen: NOW, level: 3});
+    await setDoc(doc(db, "help/alice/items/bob-1-1"), {from: "bob", name: "B", plots: [1], at: NOW});
+    await setDoc(doc(db, "players/alice/friends/bob"), {name: "B", addedAt: NOW});
+    await setDoc(doc(db, "market/alice-1"), listing("alice"));
+    await setDoc(doc(db, "events/e1"), {e: "open", d: "2026-10-01"});
+  });
+  const R = {owner: as("austin", OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
+  // [collection, one doc, {role: [get, list, count]}]  (A = allow, D = deny)
+  const M = [
+    ["farms", "farms/alice", {owner: "DDD", alice: "ADD", bob: "DDD", anon: "DDD"}],
+    ["showcase", "showcase/alice", {owner: "ADD", alice: "ADD", bob: "ADD", anon: "DDD"}],
+    ["usernames", "usernames/al", {owner: "ADD", alice: "ADD", bob: "ADD", anon: "DDD"}],
+    ["players", "players/alice", {owner: "AAA", alice: "AAA", bob: "AAA", anon: "DDD"}],           // search needs list
+    ["presence", "presence/alice", {owner: "AAA", alice: "DDD", bob: "DDD", anon: "DDD"}],          // owner dashboard
+    ["help/alice/items", "help/alice/items/bob-1-1", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
+    ["players/alice/friends", "players/alice/friends/bob", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
+    ["market", "market/alice-1", {owner: "AAA", alice: "AAA", bob: "AAA", anon: "DDD"}],
+    ["events", "events/e1", {owner: "AAA", alice: "DDD", bob: "DDD", anon: "DDD"}],
+  ];
+  const run = {get: (db, c, d) => getDoc(doc(db, d)), list: (db, c) => getDocs(collection(db, c)), count: (db, c) => getCountFromServer(collection(db, c))};
+  for (const [c, d, roles] of M) for (const [role, want] of Object.entries(roles)) for (const [i, op] of ["get", "list", "count"].entries()) {
+    const p = run[op](R[role], c, d);
+    try { await (want[i] === "A" ? ok(p) : no(p)); } catch (e) { throw new Error(`${c} ${op} as ${role}: expected ${want[i] === "A" ? "allow" : "deny"} (${e.message})`); }
+  }
+});
+
+// The owner is recognized by email. Firebase email/password sign-up never verifies the address and the game never asks
+// it to, so requiring email_verified would lock the owner out of players.html. Documented residual risk: the address is
+// already registered to the owner, so nobody else can sign up with it while that account exists.
+test("owner check: documents that an unverified owner-email token is accepted (residual risk, see README)", async () => {
+  await seed((db) => setDoc(doc(db, "presence/alice"), {seen: NOW, level: 3}));
+  await ok(getDocs(collection(env.authenticatedContext("x", {email: OWNER_EMAIL, email_verified: false}).firestore(), "presence")));
+  await no(getDocs(collection(env.authenticatedContext("y", {email: "PEDERAUS9@gmail.com", email_verified: true}).firestore(), "presence"))); // exact address only
+  await no(getDocs(collection(env.authenticatedContext("z", {email_verified: true}).firestore(), "presence")));                           // no email claim at all
 });
 
 // ---------------------------------------------------------------- presence/{uid}
@@ -264,6 +312,35 @@ test("market: buyers can only mark an unsold listing as theirs, and change nothi
   await no(updateDoc(ref(carol), {buyer: "carol", buyerName: "Carol", soldAt: NOW + 1}));
   await no(updateDoc(ref(bob), {buyer: null, buyerName: null, soldAt: null}));
   await no(updateDoc(ref(as("alice")), {buyer: null, buyerName: null, soldAt: null}));
+});
+
+test("market: two buyers at the same moment: exactly one gets it (game transaction, and blind writes stopped by the rules)", async () => {
+  const id = "alice-" + NOW;
+  await seed((db) => setDoc(doc(db, "market", id), listing("alice")));
+  const buy = (uid, name) => { const db = as(uid); return runTransaction(db, async (tx) => {
+    const ref = doc(db, "market", id), d = await tx.get(ref);
+    if (!d.exists() || d.data().buyer) throw new Error("gone");
+    tx.set(ref, Object.assign({}, d.data(), {buyer: uid, buyerName: name, soldAt: NOW + 1}));
+  }); };
+  const out = await Promise.allSettled([buy("bob", "Bobby"), buy("carol", "Carol")]);
+  const won = out.filter(r => r.status === "fulfilled").length;
+  let final; await seed(async (db) => { final = (await getDoc(doc(db, "market", id))).data(); });
+  if (won !== 1) throw new Error("expected exactly one buyer, got " + won);
+  const winner = out[0].status === "fulfilled" ? "bob" : "carol";
+  if (final.buyer !== winner) throw new Error("listing says " + final.buyer + " but " + winner + " won");
+  counts.allow++; // (this part is the game's transaction doing its job; the rules part is below)
+  // a buyer that skips the game's check and writes blindly at the same moment: only the rules can stop the second one
+  const id2 = "alice-blind-" + NOW;
+  await seed((db) => setDoc(doc(db, "market", id2), listing("alice")));
+  const blind = (uid, name) => updateDoc(doc(as(uid), "market", id2), {buyer: uid, buyerName: name, soldAt: NOW + 2});
+  const out2 = await Promise.allSettled([blind("bob", "Bobby"), blind("carol", "Carol")]);
+  const won2 = out2.filter(r => r.status === "fulfilled").length;
+  counts.allow++; counts.deny++;
+  if (MUTATION) { if (won2 > 1) counts.openAllowed = (counts.openAllowed || 0) + 1; return; }
+  if (won2 !== 1) throw new Error("blind writes: expected exactly one buyer, got " + won2);
+  let final2; await seed(async (db) => { final2 = (await getDoc(doc(db, "market", id2))).data(); });
+  const winner2 = out2[0].status === "fulfilled" ? "bob" : "carol";
+  if (final2.buyer !== winner2) throw new Error("blind writes: listing says " + final2.buyer + " but " + winner2 + " won");
 });
 
 // ---------------------------------------------------------------- events

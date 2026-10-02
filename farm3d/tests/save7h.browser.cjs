@@ -173,6 +173,42 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       await session.finish();
     }
 
+    {
+      // F4: the migration ladder (run against test tables: there is no real migration yet) and idempotence
+      const session = await harness.setup({width: 844, height: 390}, false, 'save7h-migrations'), page = session.page;
+      await seed(page, {'sa3d-guest': '1', 'sa3d-seen': '1'});
+      await boot(page, harness.base);
+      const fixtureSaves = fs.readdirSync(fixtures).filter(f => f.startsWith('3d')).map(f => load(f).save);
+      const m = await page.evaluate((saves) => {
+        const G = __dbg.G, T = {1: (s) => Object.assign({}, s, {a: (s.a || 0) + 1}), 2: (s) => Object.assign({}, s, {b: 'two'})};
+        const once = G.migrate({v: 1, a: 0}, 3, T), twice = G.migrate(JSON.parse(JSON.stringify(once)), 3, T);
+        let gap = null; try { G.migrate({v: 1}, 3, {1: T[1]}); } catch (e) { gap = e.message; }
+        const complete = Array.from({length: G.SAVE_VERSION - 1}, (_, i) => typeof G.MIGRATIONS[i + 1] === 'function').every(Boolean);
+        const noV = G.migrate({coins: 1}, 1, {}).v, textV = G.migrate({v: '2'}, 1, {}).v, newer = G.migrate({v: 7}, 3, T).v;
+        const idem = saves.map(x => { const a = G.upgrade(JSON.parse(JSON.stringify(x))), b = G.upgrade(JSON.parse(JSON.stringify(a))); return JSON.stringify(a) === JSON.stringify(b); });
+        const inputUntouched = saves.every(x => { const c = JSON.stringify(x); G.upgrade(JSON.parse(c)); return c === JSON.stringify(x); });
+        return {once, twice, gap, complete, noV, textV, newer, idem, inputUntouched};
+      }, fixtureSaves);
+      assert.deepEqual([m.once.v, m.once.a, m.once.b], [3, 1, 'two'], 'steps run once each, in order');
+      assert.deepEqual(m.twice, m.once, 'running the ladder again changes nothing');
+      assert.match(m.gap || '', /no save migration from version 2/, 'a missing step is an error, not a silent skip');
+      assert.ok(m.complete, 'every version below SAVE_VERSION has a migration');
+      assert.deepEqual([m.noV, m.textV, m.newer], [1, 1, 7], 'no or bad version counts as 1; a newer version is left alone');
+      assert.ok(m.idem.every(Boolean), 'upgrade(upgrade(save)) equals upgrade(save) for every fixture');
+      pass('F4 migration ladder: ordered, once only, gaps are errors, newer left alone; upgrade is idempotent', `${m.idem.length} fixtures`);
+      // quota failure must not tell auth.js there is something new to upload
+      const q = await page.evaluate(() => {
+        const G = __dbg.G, orig = Storage.prototype.setItem; let saved = 0; const on = () => saved++;
+        addEventListener('sa3d:saved', on);
+        Storage.prototype.setItem = function (k, v) { if (k === 'sunny-acres-3d-v1') throw new DOMException('full', 'QuotaExceededError'); return orig.call(this, k, v); };
+        G.S.coins += 1; const r = G.save(); Storage.prototype.setItem = orig; removeEventListener('sa3d:saved', on);
+        return {r, saved, dirty: localStorage.getItem('sa3d-dirty')};
+      });
+      assert.deepEqual([q.r, q.saved], [false, 0], 'a failed save announces nothing, so no cloud upload is scheduled');
+      pass('F2 quota failure does not trigger a cloud upload', JSON.stringify(q));
+      await session.finish();
+    }
+
     // ---------------- 2. measurements
     const session = await harness.setup({width: 844, height: 390}, false, 'save7h-measure'), page = session.page;
     await seed(page, {'sa3d-guest': '1', 'sa3d-seen': '1'});

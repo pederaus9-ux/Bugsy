@@ -1,0 +1,13 @@
+PASS 2d-v1.json opens, keeps progress and is stable level 6, 845 coins, 7 fields, 3260 bytes
+PASS 3d-v1-damaged.json opens, is repaired (F3) and is stable {"coins":"number","gems":"number","sprinklers":"number","orders":true,"streak":"object"}, coins 120
+PASS 3d-v1-first-release.json opens, keeps progress and is stable level 6, 845 coins, 7 fields, 3177 bytes
+PASS F1 unreadable save: a copy is kept and the player is told new farm at level 1, copy under sunny-acres-3d-v1-unreadable
+PASS F1 the first kept copy is never replaced 
+PASS F6 a save with an unknown item starts; the unknown item is removed, everything else kept 
+PASS F1 an unreadable account farm marks itself for cloud recovery 
+PASS F4 a newer save opens but is never written back by older code 
+PASS F2 storage full: save() fails visibly and recovers 
+PASS F4 migration ladder: ordered, once only, gaps are errors, newer left alone; upgrade is idempotent 2 fixtures
+PASS F2 quota failure does not trigger a cloud upload {"r":false,"saved":0,"dirty":null}
+PASS save measurements normal 1943 B (stringify 0.005 ms, setItem 0.09 ms, parse 0.01 ms); heavy 19292 B (stringify 0.043 ms, setItem 0.075 ms, parse 0.09 ms); idle saves/min 0
+PASS heaviest farm fits the cloud-save size limit 19292 of 900000 characters

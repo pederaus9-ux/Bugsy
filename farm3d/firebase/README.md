@@ -1,7 +1,7 @@
 # Sunny Acres 3D — Firestore rules
 
 `firestore.rules` is the source of truth for who may read and write what in the game's Firestore database
-(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7G-1**.
+(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7G-2** (not yet published; production still runs whatever was published before).
 
 ## What the rules protect (and what they can't)
 
@@ -13,16 +13,29 @@ those, so a determined player can still edit **their own** farm. What the rules 
 
 | Path | Who can read | Who can write |
 |---|---|---|
-| `farms/{uid}` | that player (the owner dashboard can only count them) | that player; `rev` must go up by exactly 1 |
+| `farms/{uid}` | that player only (nobody can list or count farms) | that player; `rev` must go up by exactly 1 |
 | `presence/{uid}` | owner dashboard | that player; `seen` must be the server clock |
 | `players/{uid}` | any signed-in player | that player, only together with their `usernames` entry |
 | `players/{uid}/friends/{fid}` | that player | that player |
-| `usernames/{nameLower}` | any signed-in player | claim a free name, re-save or give back your own |
-| `showcase/{uid}` | any signed-in player | that player, fixed fields and sizes |
+| `usernames/{nameLower}` | any signed-in player, one name at a time (no listing) | claim a free name, re-save or give back your own |
+| `showcase/{uid}` | any signed-in player, one farm at a time (no listing) | that player, fixed fields and sizes |
 | `help/{owner}/items/{id}` | the owner of that inbox | any other signed-in player, as themselves, small fixed note |
 | `market/{id}` | any signed-in player | seller creates/deletes; a different player can mark it bought, once |
 | `events/{id}` | owner dashboard | anyone (guests aren't signed in), exactly `{e, d}` |
 | anything else | nobody | nobody |
+
+**Reading one document vs. listing a collection.** Firestore checks these separately: `get` is one document,
+`list` is a query, and a **count is a list** (it needs list permission, and list permission returns whole documents).
+7G-1 allowed the owner to list `farms` so the dashboard could count them, which also let the owner download every
+player's whole save; it also let any signed-in player list every showcase and username. 7G-2 (Phase 7H finding F1)
+turns listing off there. The dashboard's "total players" now comes from `presence` (everyone who has opened the game
+signed in), and `rules.test.mjs` checks get / list / count separately for every collection and role.
+
+**Known limit: the owner check trusts the sign-in email.** The owner is recognised by the email in the sign-in token,
+compared exactly. The token says whether that email was ever verified, but the game never sends verification emails, so
+requiring it would lock the owner out of the dashboard. Pinning the owner by account id (uid) instead is the
+recommended fix (not made yet: it needs the owner's decision); until then a test documents the current behaviour (an unverified owner email is accepted; a different-case email or
+a missing email is refused).
 
 ## Tests
 
@@ -35,10 +48,17 @@ npm test
 
 `npm test` starts the Firestore and Auth emulators (needs Java 21+) for the offline `demo-sunny-acres` project, then runs:
 
-1. `tests/rules.test.mjs`: allow + deny checks for every collection (143 checks).
+1. `tests/rules.test.mjs`: allow + deny checks for every collection, including a get / list / count matrix for every
+   role, two buyers racing for one listing, and the owner-email limit (23 tests, 260 checks).
 2. `tests/flows.browser.cjs`: the real game (`auth.js`, `friends.js`, `players.html`) in Chromium against the emulators.
    It covers sign-up, cloud save, presence, usernames, showcase, friends, leaderboard, selling, buying, collecting,
    visiting, guest milestones and the owner dashboard (owner allowed, other players refused).
+3. `tests/recovery.browser.cjs`: the save-recovery promise, *an unreadable phone save never overwrites a good cloud
+   save*. Each scenario marks the good farm with a unique sentinel, then samples the cloud copy every second for longer
+   than the 15 s upload delay and records every farm write the page sends. Scenarios: sign-in racing the game's first
+   read, corrupt phone + good cloud (twice), good phone + corrupt cloud, corrupt phone + no cloud, cloud unreachable at
+   start, reload during recovery with same-coins/different-state, sign-out and sign-in during recovery. Console logs
+   per page go to `artifacts/console-*.log`. `npm run test:recovery` runs only this part; `REPEAT=n` repeats scenario 1.
 
 `npm run test:rules` runs only the first part. The same tests run in GitHub Actions (`firebase-rules` job).
 
