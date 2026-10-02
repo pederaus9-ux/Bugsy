@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Sunny Acres 3D: Firestore security rules (ruleset version 7G-2).
+// Sunny Acres 3D: Firestore security rules (ruleset version 7I-A, in development; production runs an older version).
 //
 // These rules are the version-controlled source of truth for the Firestore database used by farm3d
 // (Firebase project fir-config-18b64, database "default"). Publish them by pasting this whole file into
@@ -127,6 +127,24 @@ service cloud.firestore {
         && int(data().plots[0], 0, 999)
         && millis(data().at);
       allow update: if false;
+    }
+
+    // ---------- Phase 7I: the canonical farm economy. ONLY the server (Cloud Functions, admin access) writes these. ----------
+    // economy/{uid}: spendable coins and tradable items. Starts at 0 coins and nothing else; legacy save wealth is never copied.
+    match /economy/{uid} {
+      allow get: if isMe(uid);
+      allow list: if false;
+      allow write: if false;
+    }
+    // ledger/{uid}/rows/{key}: one create-once row per accepted action (the key is the idempotency key)
+    match /ledger/{uid}/rows/{key} {
+      allow get, list: if isMe(uid);
+      allow write: if false;
+    }
+    // plots/{uid}/items/{plotId}: verified plots (crop, generation, plantedAt, matureAt), written by the server only
+    match /plots/{uid}/items/{plotId} {
+      allow get, list: if isMe(uid);
+      allow write: if false;
     }
 
     // ---------- market/{id}: the trading post ----------

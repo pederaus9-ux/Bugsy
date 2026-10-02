@@ -116,6 +116,9 @@ test("authorization matrix: get, list and count for every collection and role", 
     await setDoc(doc(db, "players/alice/friends/bob"), {name: "B", addedAt: NOW});
     await setDoc(doc(db, "market/alice-1"), listing("alice"));
     await setDoc(doc(db, "events/e1"), {e: "open", d: "2026-10-01"});
+    await setDoc(doc(db, "economy/alice"), {v: 1, coins: 0, items: {}, rev: 1});
+    await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
+    await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
   });
   const R = {owner: as("austin", OWNER_EMAIL), alice: as("alice", "alice@example.com"), bob: as("bob", "bob@example.com"), anon: anon()};
   // [collection, one doc, {role: [get, list, count]}]  (A = allow, D = deny)
@@ -129,6 +132,10 @@ test("authorization matrix: get, list and count for every collection and role", 
     ["players/alice/friends", "players/alice/friends/bob", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
     ["market", "market/alice-1", {owner: "AAA", alice: "AAA", bob: "AAA", anon: "DDD"}],
     ["events", "events/e1", {owner: "AAA", alice: "DDD", bob: "DDD", anon: "DDD"}],
+    // Phase 7I: the canonical economy. Your own only; the game owner gets nothing special.
+    ["economy", "economy/alice", {owner: "DDD", alice: "ADD", bob: "DDD", anon: "DDD"}],
+    ["ledger/alice/rows", "ledger/alice/rows/open-alice", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
+    ["plots/alice/items", "plots/alice/items/p0", {owner: "DDD", alice: "AAA", bob: "DDD", anon: "DDD"}],
   ];
   const run = {get: (db, c, d) => getDoc(doc(db, d)), list: (db, c) => getDocs(collection(db, c)), count: (db, c) => getCountFromServer(collection(db, c))};
   for (const [c, d, roles] of M) for (const [role, want] of Object.entries(roles)) for (const [i, op] of ["get", "list", "count"].entries()) {
@@ -344,6 +351,32 @@ test("market: two buyers at the same moment: exactly one gets it (game transacti
 });
 
 // ---------------------------------------------------------------- events
+test("economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account", async () => {
+  const seedAll = () => seed(async (db) => {
+    await setDoc(doc(db, "economy/alice"), {v: 1, coins: 0, items: {}, rev: 1});
+    await setDoc(doc(db, "ledger/alice/rows/open-alice"), {op: "open", key: "open-alice", result: {}, rev: 1});
+    await setDoc(doc(db, "plots/alice/items/p0"), {crop: "wheat", generation: 1, plantedAt: NOW, matureAt: NOW + 20000});
+  });
+  const alice = as("alice", "alice@example.com"), bob = as("bob", "bob@example.com"), owner = as("austin", OWNER_EMAIL);
+  for (const db of [alice, bob, owner, anon()]) {
+    await seedAll(); // fresh documents for every role (so with wide-open rules every deny below really gets through)
+    await no(setDoc(doc(db, "economy/alice"), {v: 1, coins: 1000000, items: {wheat: 999}, rev: 2}));
+    await no(updateDoc(doc(db, "economy/alice"), {coins: 1000000}));
+    await no(deleteDoc(doc(db, "economy/alice")));
+    await no(setDoc(doc(db, "economy/carol"), {v: 1, coins: 5, items: {}, rev: 1}));
+    await no(setDoc(doc(db, "ledger/alice/rows/harvest-alice-p0-1"), {op: "harvest", key: "harvest-alice-p0-1", result: {}, rev: 2}));
+    await no(deleteDoc(doc(db, "ledger/alice/rows/open-alice")));
+    await no(setDoc(doc(db, "ledger/alice"), {any: 1}));
+    await no(updateDoc(doc(db, "plots/alice/items/p0"), {matureAt: NOW}));
+    await no(setDoc(doc(db, "plots/alice/items/p1"), {crop: "pumpkin", generation: 1, plantedAt: NOW, matureAt: NOW}));
+    await no(deleteDoc(doc(db, "plots/alice/items/p0")));
+  }
+  // the owner of the data can read it (what the game shows); nobody else can
+  await ok(getDoc(doc(alice, "economy/alice")));
+  await no(getDoc(doc(bob, "economy/alice")));
+  await no(getDocs(collection(owner, "economy")));
+});
+
 test("events: guests and players can add a milestone; nothing else, and only the owner reads", async () => {
   await ok(addDoc(collection(anon(), "events"), {e: "open", d: "2026-10-01"}));
   await ok(addDoc(collection(as("alice"), "events"), {e: "lvl_5", d: "2026-10-01"}));
