@@ -169,6 +169,43 @@ as a bad sample appears.
 
 ---
 
+## Full suites and CI
+
+All of these are on draft PR #38, marked do not merge.
+
+| Suite | Local | CI run 36984236000 (head `c6f4519`) |
+|---|---|---|
+| Firebase rules (`rules.test.mjs`) | 23/23, 260 checks | 23/23, 260 checks |
+| Firebase game flows (`flows.browser.cjs`) | 18/18 | 18/18 |
+| Save recovery (`recovery.browser.cjs`) | 13/13 | 13/13 |
+| Old saves + measurements (`save7h.browser.cjs`) | 13/13 | success |
+| Full Farm3D regression | run 1: exit 0 (60 + 15) · run 2: see below | success: 60 PASS, 0 FAIL |
+
+**First CI run (36980947290, head `11cab6d`): the Farm3D regression failed, and it was investigated rather than
+re-run.**
+- Failing check: "1280x720 pointer harvest". The plot was still planted after the click, and the failure screenshot
+  shows the Wardrobe open.
+- The trace's screencast shows the spot was picked while the camera was **still easing out of first-person walk mode**.
+  The test waited a fixed 2 s, which wasn't enough on the CI machine.
+- In the settled view the **farmer stands on that plot**: after a walk, the farmer stays where the walk ended, by
+  design. The second click therefore hit the farmer, and tapping the farmer opens the wardrobe.
+- This is a timing gap in the test, not a 7H change: 7H changes only the version numbers in `index.html`.
+- Fix (`c6f4519`, test only): wait until the eased view reaches the camera target, and pick only a spot that the
+  game's own hit test reports as that plot. The assertions are unchanged.
+- Evidence: `evidence/ci-run-36980947290/` (the job log, the failure screenshot, and the first-vs-second-click
+  frames).
+
+**Local regression run 2:** every check passed, including the fixed 1280 harvest, except the last stage
+(`cow3d.browser.cjs`). There, at the third viewport, navigating from the 1280 farm page to `characters3d.html` timed out
+after 30 s. Running that stage alone reproduced it.
+- A probe showed the page itself loads in about 1.5 s, and in 4.7 s straight after one farm page. The time goes on
+  *unloading* the heavy farm page, which gets slower after the two earlier viewports in the same browser on this 2-CPU,
+  software-graphics container.
+- No 7H file is involved, service workers are blocked in that harness, and the same stage passes in CI.
+- Recorded as an environment-only observation (`evidence/full-farm3d-regression-run2-cow3d-timeout.log`), not hidden.
+
+---
+
 ## Residual risks
 
 1. **The owner check trusts the email claim.** Requiring `email_verified` would lock the owner out, because the game
@@ -181,3 +218,6 @@ as a bad sample appears.
    save on the same phone is not kept, by design, so the oldest evidence survives.
 5. **Clients that never update.** Any client already in the field that never reloads keeps the old `auth.js` until the
    service worker updates it (`sa3d-v28`, `auth.js?v=13`).
+6. **The local container can time out in the last regression stage.** The cow3d stage's navigation off a heavy 3D page
+   can exceed 30 s here; CI passes it. If it ever shows up in CI, the fix belongs in that test's navigation (close the
+   farm context before opening the preview), not in a longer timeout.
