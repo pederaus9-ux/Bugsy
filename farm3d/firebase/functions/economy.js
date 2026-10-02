@@ -26,10 +26,12 @@ class EconomyError extends Error {
   constructor(code, reason, message) { super(message || reason); this.code = code; this.reason = reason; }
 }
 
-const fresh = () => ({v: SCHEMA, coins: 0, items: {}, rev: 0});
+// meta.harvests: verified harvests ever; meta.bootstrapUsed: the one free bootstrap wheat planting has been used
+const fresh = () => ({v: SCHEMA, coins: 0, items: {}, rev: 0, meta: {harvests: 0, bootstrapUsed: false}});
 
 const econRef = (db, uid) => db.collection("economy").doc(uid);
 const rowRef = (db, uid, key) => db.collection("ledger").doc(uid).collection("rows").doc(key);
+const plotRef = (db, uid, plotId) => db.collection("plots").doc(uid).collection("items").doc(plotId);
 
 function keyPart(v, what) {
   if (typeof v !== "string" || !KEY_PART.test(v)) throw new EconomyError("invalid-argument", "BAD_" + what.toUpperCase(), what + " must be 1-64 letters, digits, _ or -");
@@ -52,36 +54,112 @@ function apply(econ, {coins = 0, items = {}} = {}) {
   return next;
 }
 
-// Run one action. ops[name] = {key(uid, req) -> string, run(ctx) -> {result, change?, writes?}}.
-// run() may read through ctx.tx (all reads happen before any write) and returns the effects; act() writes them.
-async function act(db, FieldValue, uid, name, req, ops) {
+// Run one action. ops[name] = {key(uid, req) -> string, run(ctx) -> {result, change?, meta?, writes?, rows?}}.
+// run() may read through ctx.tx (all reads happen before any write) and returns the effects; act() writes them:
+//   change: coins/items delta (apply() refuses negatives), meta: fields merged into economy.meta,
+//   writes: [{ref, data}] set in the same transaction, rows: [{key, data}] extra create-once ledger rows (markers).
+// opts.now: the server clock (ms). Tests pass a fake clock; the callable uses Date.now(). The client never sets time.
+async function act(db, FieldValue, uid, name, req, ops, opts = {}) {
   if (typeof uid !== "string" || !uid) throw new EconomyError("unauthenticated", "SIGN_IN");
   const op = Object.prototype.hasOwnProperty.call(ops, name) ? ops[name] : null;
   if (!op) throw new EconomyError("invalid-argument", "UNKNOWN_OP");
   const key = op.key(uid, req || {});
+  const clock = opts.now || (() => Date.now());
   return db.runTransaction(async (tx) => {
     const row = await tx.get(rowRef(db, uid, key));
     if (row.exists) return {...row.data().result, key, replay: true};
     const snap = await tx.get(econRef(db, uid));
-    const econ = snap.exists ? snap.data() : fresh();
-    const out = await op.run({tx, db, uid, req: req || {}, econ, key, apply});
+    const econ = snap.exists ? {...fresh(), ...snap.data(), meta: {...fresh().meta, ...(snap.data().meta || {})}} : fresh();
+    const out = await op.run({tx, db, uid, req: req || {}, econ, key, apply, now: clock()});
     const rev = (econ.rev || 0) + 1;
-    const now = FieldValue.serverTimestamp();
+    const stamp = FieldValue.serverTimestamp();
     const next = out.change ? apply(econ, out.change) : econ;
-    tx.set(econRef(db, uid), {v: SCHEMA, coins: next.coins, items: next.items, rev, createdAt: snap.exists ? econ.createdAt : now, updatedAt: now});
+    const meta = {...econ.meta, ...(out.meta || {})};
+    tx.set(econRef(db, uid), {v: SCHEMA, coins: next.coins, items: next.items, meta, rev, createdAt: snap.exists && econ.createdAt ? econ.createdAt : stamp, updatedAt: stamp});
     for (const w of out.writes || []) tx.set(w.ref, w.data);
-    tx.create(rowRef(db, uid, key), {op: name, key, result: out.result, rev, at: now});
+    for (const r of out.rows || []) tx.create(rowRef(db, uid, r.key), {...r.data, key: r.key, rev, at: stamp});
+    tx.create(rowRef(db, uid, key), {op: name, key, result: out.result, rev, at: stamp});
     return {...out.result, key, replay: false};
   });
 }
 
-// ---------- the actions (7I-A: opening the account only; 7I-B adds plant/harvest, 7I-C the market) ----------
+// ---------- the actions (7I-A: open; 7I-B: plant, harvest; 7I-C: the market) ----------
+const {CROPS, YIELD, BOOTSTRAP_CROP, PLOTS} = require("./catalog");
+
+function plotId(v) {
+  if (!PLOTS.includes(v)) throw new EconomyError("invalid-argument", "BAD_PLOT");
+  return v;
+}
+function cropId(v) {
+  if (typeof v !== "string" || !Object.prototype.hasOwnProperty.call(CROPS, v)) throw new EconomyError("invalid-argument", "BAD_CROP");
+  return v;
+}
+const bootstrapKey = (uid) => "bootstrap-plant-" + uid;
+
 const OPS = {
   // Creates the canonical account at zero. Nothing is granted and the legacy save is not looked at.
   open: {
     key: (uid) => "open-" + uid,
     run: async ({econ}) => ({result: {coins: econ.coins, items: econ.items}}),
   },
-};
 
-module.exports = {act, apply, fresh, keyPart, econRef, rowRef, EconomyError, OPS, SCHEMA};
+  // Verified planting (online only: it is a server call). The plot must be empty. It is paid with 1 canonical crop of
+  // that kind if the player has one, otherwise with the seed price in canonical coins. Exception: a brand-new canonical
+  // account (never harvested, bootstrap never used) plants its first WHEAT free, exactly once ever. That is proven by
+  // meta.bootstrapUsed AND by a create-once ledger marker, both written in the same transaction as the planting.
+  // The key includes the client's request id: a retry returns the original result and does not add a generation.
+  plant: {
+    key: (uid, r) => "plant-" + uid + "-" + plotId(r.plotId) + "-" + keyPart(r.requestId, "requestId"),
+    run: async ({tx, db, uid, req, econ, now}) => {
+      const id = plotId(req.plotId), crop = cropId(req.crop), c = CROPS[crop];
+      const plotSnap = await tx.get(plotRef(db, uid, id));
+      const marker = await tx.get(rowRef(db, uid, bootstrapKey(uid)));
+      const plot = plotSnap.exists ? plotSnap.data() : {generation: 0, state: "empty"};
+      if (plot.state === "growing") throw new EconomyError("failed-precondition", "PLOT_NOT_EMPTY");
+      const bootstrap = crop === BOOTSTRAP_CROP && !econ.meta.bootstrapUsed && !marker.exists && (econ.meta.harvests || 0) === 0;
+      let paid, change = null;
+      if (bootstrap) paid = {bootstrap: true};
+      else if ((econ.items[crop] || 0) >= 1) { paid = {item: crop}; change = {items: {[crop]: -1}}; }
+      else if (econ.coins >= c.seed) { paid = {coins: c.seed}; change = {coins: -c.seed}; }
+      else throw new EconomyError("failed-precondition", "NOT_ENOUGH_TO_PLANT");
+      const generation = (plot.generation || 0) + 1, plantedAt = now, matureAt = now + c.time * 1000;
+      const result = {plotId: id, crop, generation, plantedAt, matureAt, paid};
+      return {
+        result, change,
+        meta: bootstrap ? {bootstrapUsed: true, bootstrapAt: now} : {},
+        rows: bootstrap ? [{key: bootstrapKey(uid), data: {op: "bootstrap", result: {plotId: id, crop, generation}}}] : [],
+        writes: [{ref: plotRef(db, uid, id), data: {state: "growing", crop, generation, plantedAt, matureAt, harvestedAt: null}}],
+      };
+    },
+  },
+
+  // Verified harvest. Names the plot AND the generation it was planted as. Accepted only if that generation is the
+  // one growing there, the crop matches and SERVER time has reached matureAt. A refusal (NOT_MATURE_YET, ...) writes
+  // nothing, so the same harvest can be tried again later. Once accepted, the key harvest-{uid}-{plot}-{generation}
+  // exists for ever: any replay (another device, an old queued request, a re-sent request) returns that first result.
+  harvest: {
+    key: (uid, r) => "harvest-" + uid + "-" + plotId(r.plotId) + "-" + generationOf(r.generation),
+    run: async ({tx, db, uid, req, econ, now}) => {
+      const id = plotId(req.plotId), generation = generationOf(req.generation);
+      const snap = await tx.get(plotRef(db, uid, id));
+      const plot = snap.exists ? snap.data() : null;
+      if (!plot || plot.generation !== generation) throw new EconomyError("failed-precondition", "NO_SUCH_GENERATION");
+      if (plot.state !== "growing") throw new EconomyError("failed-precondition", "ALREADY_HARVESTED");
+      if (req.crop != null && req.crop !== plot.crop) throw new EconomyError("failed-precondition", "WRONG_CROP");
+      if (now < plot.matureAt) throw new EconomyError("failed-precondition", "NOT_MATURE_YET");
+      const result = {plotId: id, crop: plot.crop, generation, granted: {[plot.crop]: YIELD}};
+      return {
+        result,
+        change: {items: {[plot.crop]: YIELD}},
+        meta: {harvests: (econ.meta.harvests || 0) + 1},
+        writes: [{ref: plotRef(db, uid, id), data: {...plot, state: "empty", crop: null, harvestedAt: now, lastCrop: plot.crop}}],
+      };
+    },
+  },
+};
+function generationOf(v) {
+  if (!Number.isSafeInteger(v) || v < 1) throw new EconomyError("invalid-argument", "BAD_GENERATION");
+  return v;
+}
+
+module.exports = {act, apply, fresh, keyPart, econRef, rowRef, plotRef, bootstrapKey, EconomyError, OPS, SCHEMA};

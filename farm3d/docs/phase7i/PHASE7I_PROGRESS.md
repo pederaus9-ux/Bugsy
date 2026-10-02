@@ -70,6 +70,66 @@ Nothing in 7H invalidates the 7I design. Four constraints carry forward:
   - Reproduced locally with `--test-concurrency=2` (2 failures). Running the files in sequence passes.
   - The scripts now run the two files one after the other.
 
+## 7I-B: verified plots, online planting, server time, generations, offline maturity, harvest reconciliation
+
+**ChatGPT ruling, Q1 (bootstrap):** option C, one server-authorized free WHEAT planting per account, ever. The
+architecture statement is now: "no transferable starter balance or inventory grant; one server-authorized bootstrap
+wheat planting is permitted." Canonical accounts still start at 0 coins and no items.
+
+**Q2 (growth time): no ruling received.** Built with the conservative proposal: canonical `matureAt` = server
+`plantedAt` + the crop's base time. Watering, soil, perks and weather affect only local crops. Flagged for ChatGPT.
+
+**Self-sustaining proof (from the real game numbers):**
+- A harvest always yields 2. Golden harvests are random on the device, so they are never canonical.
+- Wheat sells for 2 and its seed costs 1.
+- Keeping wheat: free wheat → harvest 2 → replant with 1 wheat → harvest 2 → 3 wheat. That is +1 wheat per cycle,
+  with no coins needed.
+- Selling (7I-C): 2 wheat → 4 coins, seed 1 → +3 coins per cycle.
+- The test "economy bootstraps itself" runs the keep-wheat loop end to end.
+
+**Built:**
+- `functions/catalog.js`: the server's crop table (time, seed, price), YIELD 2, six canonical plots p0–p5. A test
+  reads `game.js` and fails if the two ever disagree. It caught 5 wrong sale prices in my first draft.
+- `plant`:
+  - The plot must be empty. It is paid with 1 canonical crop of that kind, otherwise with the seed price in coins.
+  - Bootstrap: wheat only, only if the account was never harvested and never bootstrapped. It is recorded as
+    `meta.bootstrapUsed` plus a create-once ledger marker `bootstrap-plant-{uid}` in the same transaction.
+  - Generation +1; `plantedAt`/`matureAt` come from the server clock. Key `plant-{uid}-{plot}-{requestId}`.
+- `harvest`:
+  - Names the plot and the generation, and needs server time ≥ `matureAt`. Yield 2. Key
+    `harvest-{uid}-{plot}-{generation}`.
+  - Refusals (NOT_MATURE_YET, WRONG_CROP, NO_SUCH_GENERATION, …) write nothing.
+- `farm3d/canon.js`: the device side.
+  - Planting needs a connection. A planting whose answer was lost is re-sent with the same request id.
+  - Harvests are queued in storage, shown as provisional, and flushed on reconnect.
+    - Accepted or replayed: confirmed.
+    - Refused for good: dropped, and its provisional grant disappears.
+    - Not mature yet, or no connection: kept for the next flush.
+  - Not wired into the game's screens yet (7I-D).
+
+**Tests:**
+- Economy 15/15 (7I-A 6 + 7I-B 9). Bootstrap:
+  - It works and costs 0. A retry returns the original. A second free plant is refused.
+  - Wheat only. Refusals (other crop, busy plot) don't use it up.
+  - 3 devices at once get exactly 1 free plant.
+  - Sign out and back in, a new token, a "reinstalled" client, or an edited legacy save can't bring it back.
+  - Later wheat is paid normally (1 wheat, then coins). Other crops are never waived.
+- Economy, harvest:
+  - Server time only: a client-sent time or matureAt is ignored.
+  - Early, wrong crop, and wrong or unknown generation are refused without using anything up.
+  - 4 devices harvesting one generation get 1 grant.
+  - An old generation replays and never grants again.
+  - Real time over the callable: plant, wait past maturity with no calls, harvest; granted once.
+- Device reconciliation 8/8:
+  - Offline planting is refused.
+  - A lost answer is retried with the same id.
+  - Offline harvest is provisional, then confirmed once.
+  - An early harvest waits.
+  - Two devices get one grant.
+  - A stale device's old harvest replays with no grant and doesn't touch generation 2.
+  - A refused provisional harvest is dropped.
+  - The queue survives a restart and is per account.
+
 ## Next
 
 - 7I-B (verified plots, online planting, server times, generations, offline maturity, harvest reconciliation) starts

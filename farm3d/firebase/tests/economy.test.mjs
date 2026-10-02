@@ -121,3 +121,153 @@ test("cutover is zero: a hacked legacy save (1e9 coins, 999999 wheat) is not cop
   const again = await call(token, {op: "open"});
   assert.equal(again.result.replay, true); assert.equal((await econ(uid)).rev, 1, "opening twice changes nothing");
 });
+
+// ======================= Phase 7I-B: verified plots, bootstrap, server time, generations =======================
+// The core runs with a fake SERVER clock (t) so maturity can be tested without waiting; one test below uses the real
+// callable and real time. Nothing the client sends (a time, a matureAt, a flag) can change server time.
+let t = 1_800_000_000_000;
+const real = (uid, op, req) => E.act(db, FieldValue, uid, op, req, E.OPS, {now: () => t});
+const plot = async (uid, id) => { const s = await db.doc(`plots/${uid}/items/${id}`).get(); return s.exists ? s.data() : null; };
+const refused = (reason) => (e) => { assert.equal(e.reason, reason); return true; };
+const WHEAT_MS = 20_000;
+
+test("catalog: the server's crop rules match game.js exactly (grow time, seed price, sale price)", async () => {
+  const {readFileSync} = await import("node:fs");
+  const game = readFileSync(new URL("../../game.js", import.meta.url), "utf8");
+  const {CROPS} = require("./catalog.js");
+  const crops = Function("return " + game.match(/export const CROPS = (\{[\s\S]*?\n\});/)[1])();
+  for (const [id, c] of Object.entries(CROPS)) {
+    assert.ok(crops[id], id + " is a game crop");
+    assert.equal(c.time, crops[id].time, id + " time"); assert.equal(c.seed, crops[id].seed, id + " seed");
+    const p = game.match(new RegExp("\\b" + id + ":\\{n:\"[^\"]+\",e:\"[^\"]+\",p:(\\d+)"));
+    assert.equal(c.price, +p[1], id + " sale price");
+  }
+  assert.deepEqual(Object.keys(CROPS).sort(), Object.keys(crops).sort(), "every game crop is known to the server");
+  assert.match(game, /add\(crop, 2\)/, "the game's harvest yield is still 2 (the server's YIELD)");
+});
+
+test("bootstrap: a new canonical account plants ONE wheat free; it costs 0; a retry returns the original; a second is refused", async () => {
+  const uid = "boot-a-" + RUN;
+  const r = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "first"});
+  assert.deepEqual(r.paid, {bootstrap: true}); assert.equal(r.generation, 1); assert.equal(r.plantedAt, t); assert.equal(r.matureAt, t + WHEAT_MS);
+  let e = await econ(uid); assert.equal(e.coins, 0); assert.deepEqual(e.items, {}); assert.equal(e.meta.bootstrapUsed, true);
+  assert.ok((await db.doc(`ledger/${uid}/rows/bootstrap-plant-${uid}`).get()).exists, "permanent bootstrap marker in the ledger");
+  const again = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "first"});
+  assert.equal(again.replay, true); assert.equal(again.generation, 1, "retry does not add a generation");
+  assert.equal((await plot(uid, "p0")).generation, 1);
+  await assert.rejects(real(uid, "plant", {plotId: "p1", crop: "wheat", requestId: "second"}), refused("NOT_ENOUGH_TO_PLANT"));
+  e = await econ(uid); assert.equal(e.coins, 0); assert.deepEqual(e.items, {});
+  assert.equal(await plot(uid, "p1"), null, "the refused planting left no plot");
+});
+
+test("bootstrap: only wheat; a refused attempt (other crop, busy plot) does not use it up", async () => {
+  const uid = "boot-b-" + RUN;
+  for (const crop of ["corn", "pumpkin", "carrot"]) await assert.rejects(real(uid, "plant", {plotId: "p0", crop, requestId: "c-" + crop}), refused("NOT_ENOUGH_TO_PLANT"));
+  await db.doc(`plots/${uid}/items/p1`).set({state: "growing", crop: "wheat", generation: 4, plantedAt: t, matureAt: t + 1});
+  await assert.rejects(real(uid, "plant", {plotId: "p1", crop: "wheat", requestId: "busy"}), refused("PLOT_NOT_EMPTY"));
+  assert.equal((await econ(uid)), null, "no refusal wrote anything");
+  const ok = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "w"});
+  assert.deepEqual(ok.paid, {bootstrap: true}, "the entitlement survived every refusal");
+});
+
+test("bootstrap: two devices at the same moment (different requests, different plots): exactly one free planting", async () => {
+  const uid = "boot-c-" + RUN;
+  const out = await Promise.allSettled([
+    real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "phone"}),
+    real(uid, "plant", {plotId: "p1", crop: "wheat", requestId: "tablet"}),
+    real(uid, "plant", {plotId: "p2", crop: "wheat", requestId: "laptop"}),
+  ]);
+  const won = out.filter(o => o.status === "fulfilled");
+  assert.equal(won.length, 1, JSON.stringify(out.map(o => o.status === "fulfilled" ? "ok" : o.reason.reason)));
+  for (const o of out.filter(o => o.status === "rejected")) assert.equal(o.reason.reason, "NOT_ENOUGH_TO_PLANT");
+  const plots = await Promise.all(["p0", "p1", "p2"].map(id => plot(uid, id)));
+  assert.equal(plots.filter(Boolean).length, 1, "exactly one plot is growing");
+});
+
+test("economy bootstraps itself: free wheat -> harvest 2 -> replant with 1 wheat -> harvest -> 3 wheat, 0 coins, no more free plants", async () => {
+  const uid = "boot-d-" + RUN;
+  const p1 = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "a"});
+  t += WHEAT_MS;
+  const h1 = await real(uid, "harvest", {plotId: "p0", generation: p1.generation});
+  assert.deepEqual(h1.granted, {wheat: 2}); assert.deepEqual((await econ(uid)).items, {wheat: 2});
+  const p2 = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "b"});
+  assert.deepEqual(p2.paid, {item: "wheat"}, "later wheat uses the normal cost: one canonical wheat");
+  assert.equal(p2.generation, 2);
+  assert.deepEqual((await econ(uid)).items, {wheat: 1});
+  t += WHEAT_MS;
+  await real(uid, "harvest", {plotId: "p0", generation: 2, crop: "wheat"});
+  const e = await econ(uid); assert.deepEqual(e.items, {wheat: 3}); assert.equal(e.coins, 0); assert.equal(e.meta.harvests, 2);
+  // with no wheat and no coins, a planting is refused (nothing free after the bootstrap)
+  await db.doc(`economy/${uid}`).update({items: {}});
+  await assert.rejects(real(uid, "plant", {plotId: "p1", crop: "wheat", requestId: "c"}), refused("NOT_ENOUGH_TO_PLANT"));
+  // with coins, the seed price is charged
+  await db.doc(`economy/${uid}`).update({coins: 3});
+  const p3 = await real(uid, "plant", {plotId: "p1", crop: "corn", requestId: "d"});
+  assert.deepEqual(p3.paid, {coins: 2}); assert.equal((await econ(uid)).coins, 1);
+});
+
+test("harvest: server time only; early, wrong crop, wrong or unknown generation are refused and use nothing up", async () => {
+  const uid = "harv-a-" + RUN;
+  const p = await real(uid, "plant", {plotId: "p3", crop: "wheat", requestId: "a"});
+  t += WHEAT_MS - 1;
+  await assert.rejects(real(uid, "harvest", {plotId: "p3", generation: 1, now: t + 1e9, matureAt: 0, clientTime: 9e15}), refused("NOT_MATURE_YET"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p3", generation: 1, crop: "pumpkin"}), refused("WRONG_CROP"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p3", generation: 2}), refused("NO_SUCH_GENERATION"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p4", generation: 1}), refused("NO_SUCH_GENERATION"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p9", generation: 1}), refused("BAD_PLOT"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p3", generation: 0}), refused("BAD_GENERATION"));
+  await assert.rejects(real(uid, "harvest", {plotId: "p3", generation: "1"}), refused("BAD_GENERATION"));
+  assert.equal((await db.doc(`ledger/${uid}/rows/harvest-${uid}-p3-1`).get()).exists, false, "NOT_MATURE_YET did not use up the harvest key");
+  t += 1;
+  const h = await real(uid, "harvest", {plotId: "p3", generation: p.generation});
+  assert.equal(h.replay, false); assert.deepEqual((await econ(uid)).items, {wheat: 2});
+});
+
+test("harvest: replays and an old generation never grant twice; two devices harvesting one generation get one grant", async () => {
+  const uid = "harv-b-" + RUN;
+  await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "g1"});
+  t += WHEAT_MS;
+  const out = await Promise.all([1, 2, 3, 4].map(() => real(uid, "harvest", {plotId: "p0", generation: 1})));
+  assert.equal(out.filter(o => !o.replay).length, 1, "one accepted, the others are replays");
+  for (const o of out) assert.deepEqual(o.granted, {wheat: 2}, "every device learns the same, single result");
+  assert.deepEqual((await econ(uid)).items, {wheat: 2});
+  const g2 = await real(uid, "plant", {plotId: "p0", crop: "wheat", requestId: "g2"});
+  assert.equal(g2.generation, 2);
+  const old = await real(uid, "harvest", {plotId: "p0", generation: 1});
+  assert.equal(old.replay, true, "an old queued harvest of generation 1 replays the stored result");
+  assert.deepEqual((await econ(uid)).items, {wheat: 1}, "and grants nothing (2 harvested - 1 replanted)");
+  await assert.rejects(real(uid, "harvest", {plotId: "p0", generation: 2}), refused("NOT_MATURE_YET"));
+  assert.equal((await rows(uid)).filter(r => r.op === "harvest").length, 1);
+});
+
+test("callable, real time: plant online, wait offline past maturity (nothing sent), harvest later: granted once", async () => {
+  const {uid, token} = await signUp("realtime");
+  const p = await call(token, {op: "plant", plotId: "p0", crop: "wheat", requestId: "rt1", plantedAt: 0, matureAt: 0});
+  assert.equal(p.status, 200, JSON.stringify(p));
+  assert.deepEqual(p.result.paid, {bootstrap: true});
+  assert.ok(Math.abs(p.result.plantedAt - Date.now()) < 10_000, "plantedAt is server receipt time, not the client's");
+  assert.equal(p.result.matureAt - p.result.plantedAt, WHEAT_MS, "base grow time; the client's matureAt is ignored");
+  const early = await call(token, {op: "harvest", plotId: "p0", generation: p.result.generation});
+  assert.equal(early.status, 400); assert.equal(early.error.details.reason, "NOT_MATURE_YET");
+  await new Promise(r => setTimeout(r, Math.max(0, p.result.matureAt - Date.now()) + 1500)); // the device is "offline": no calls at all
+  const h = await call(token, {op: "harvest", plotId: "p0", generation: p.result.generation});
+  assert.equal(h.status, 200, JSON.stringify(h)); assert.deepEqual(h.result.granted, {wheat: 2});
+  const dup = await call(token, {op: "harvest", plotId: "p0", generation: p.result.generation});
+  assert.equal(dup.result.replay, true);
+  assert.deepEqual((await econ(uid)).items, {wheat: 2});
+});
+
+test("callable: sign out and back in, a new device, or an edited legacy save cannot bring the bootstrap back", async () => {
+  const {uid, token} = await signUp("reinstall");
+  const first = await call(token, {op: "plant", plotId: "p0", crop: "wheat", requestId: "dev1"});
+  assert.deepEqual(first.result.paid, {bootstrap: true});
+  // the "reinstalled" client: a fresh sign-in (new ID token), no local state at all, and a legacy save claiming a fresh farm
+  await new Promise(r => setTimeout(r, 1100)); // the Auth emulator issues an identical token within the same second
+  const r = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake`, {method: "POST",
+    headers: {"Content-Type": "application/json"}, body: JSON.stringify({email: `reinstall-${RUN}@example.com`, password: "hunter22", returnSecureToken: true})});
+  const token2 = (await r.json()).idToken; assert.ok(token2 && token2 !== token);
+  await db.doc("farms/" + uid).set({save: JSON.stringify({v: 1, coins: 0, barn: {}, bootstrapUsed: false, harvests: 0}), level: 1, coins: 0, rev: 1, updatedAt: Date.now()});
+  const again = await call(token2, {op: "plant", plotId: "p1", crop: "wheat", requestId: "dev2", bootstrap: true, bootstrapUsed: false});
+  assert.equal(again.status, 400); assert.equal(again.error.details.reason, "NOT_ENOUGH_TO_PLANT");
+  const e = await econ(uid); assert.equal(e.meta.bootstrapUsed, true); assert.equal(e.coins, 0); assert.deepEqual(e.items, {});
+});
