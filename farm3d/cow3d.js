@@ -12,9 +12,9 @@ function buildTemplate(){
   slots.neck=bone('neck',0,[0,1.12,-.59]);slots.head=bone('head',slots.neck,[0,.21,-.15]);
   slots.jaw=bone('jaw',slots.head,[0,-.09,-.08]);
   for(const side of [-1,1]){slots.ears.push(bone('ear'+side,slots.head,[side*.20,.15,.01]));slots.eyes.push(bone('eye'+side,slots.head,[side*.175,.065,-.153]));}
-  // Opposite diagonal pairs, front then hind. Knees/hocks and hooves really articulate.
+  // Hips are body children. The offset is body-local so the rest hip stays at the old root position.
   for(const [x,z,phase]of [[-.265,-.46,0],[.265,-.46,.5],[-.265,.48,.5],[.265,.48,0]]){
-    const hip=bone('hip'+slots.legs.length,0,[x,COW_GAIT.hip,z]);
+    const hip=bone('hip'+slots.legs.length,slots.body,[x,COW_GAIT.hip-1.03,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-COW_GAIT.upper,0]);
     const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase});
   }
@@ -68,6 +68,8 @@ function buildTemplate(){
   oval(pink,[0,.68,.30],[.19,.12,.23]);
   for(const x of [-.10,.10])for(const z of [.20,.39])rod(pink,[x,.55,z],.024,.013,.11);
   for(const [i,l]of slots.legs.entries()){
+    // Haunch overlaps the torso bottom and the thigh top so the hip swing does not open a gap.
+    oval(coat,[0,.08,0],[.16,.13,.15],l.hip,0,0,12);
     rod(cream,[0,-.16,0],.077,.052,.32,l.hip);
     oval(cream,[0,0,0],[.057,.061,.057],l.knee,0,0,12);
     rod(i<2?cream:0xdad5c7,[0,-.165,0],.045,.034,.33,l.knee);
@@ -100,8 +102,10 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
 }
 export function poseCowLeg(leg,tx,tz,lift,rig){
   const c=COW_GAIT;
-  leg.hip.position.y=Math.min(c.hip,c.hoof+lift+Math.sqrt(Math.max(.01,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
-  const y=leg.hip.position.y-c.hoof-lift;
+  // Body-local rest only. Cancels breath scale. The stride does not drop the hip.
+  leg.hip.position.set(leg.x,(c.hip-1.03)/rig.body.scale.y,leg.z);
+  leg.hip.scale.set(1/rig.body.scale.x,1/rig.body.scale.y,1/rig.body.scale.z);
+  const y=c.hip-c.hoof-lift;
   const distance=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
   let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
   const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi);
@@ -110,7 +114,6 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   const bend=Math.acos(clamp((distance*distance-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
   const sign=leg.z<0?1:-1;
   leg.hip.rotation.set(alpha-sign*delta,phi,0);leg.knee.rotation.x=sign*bend;
-  // The hoof lands flat even while the hip and knee bend.
   leg.foot.quaternion.copy(leg.hip.quaternion).multiply(leg.knee.quaternion).invert();
   if(leg.planted)leg.foot.quaternion.multiply(rig.q.setFromAxisAngle(UP,leg.ayaw-rig.model.rotation.y));
 }
