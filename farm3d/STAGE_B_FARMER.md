@@ -90,4 +90,6 @@ Recovery PR #43 fixes a startup race independently reproduced on main: a missing
 
 The additional `tests/farmer-depth.browser.cjs` uses the actual fitting/closing integration and reads rendered pixels with a foreground red blocker. Fitting renders the farmer above the blocker; after closing, the blocker occludes the farmer normally (open [11,38,94,255], closed [255,0,0,255] locally). The same fixture captures all five real in-game visitors. These close the two browser evidence gaps recorded by Muse; physical S26 Ultra acceptance is still not claimed.
 
+Combined local validation also exposed a sampling error in the existing active-walk fixture: it required both knees to bend in one arbitrary frame, although a planted leg can be nearly straight. The fixture now records more than 15 distinct rendered poses over at least 1.2 metres of real travel, verifies phase agreement on every pose, and requires each knee/elbow to bend and articulate over the stride. Production gait, unit thresholds and test timeouts are unchanged; the failed local run is retained in the task evidence.
+
 [Depth pixels](evidence/stage-b/farmer-depth-result.json) · [Rosa](evidence/stage-b/visitor-rosa.png) · [Joe](evidence/stage-b/visitor-joe.png) · [Mia](evidence/stage-b/visitor-mia.png) · [Sam](evidence/stage-b/visitor-sam.png) · [Lily](evidence/stage-b/visitor-lily.png)

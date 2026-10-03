@@ -11,9 +11,24 @@ const {start,artifacts}=require('./browser-harness.cjs');
  await page.waitForFunction(()=>{let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});return f?.visible;});
  await page.evaluate(()=>{const w=__dbg.walk;w.pos.set(-1.4,22);w.vel.set(0,0);w.yaw=0;w.pitch=-.1;});
  const frame=await page.evaluate(()=>__dbg.renderer.info.render.frame);await page.keyboard.down('KeyW');
- await page.waitForFunction(f=>__dbg.renderer.info.render.frame>f+15,frame,{timeout:60000});
+ // A planted leg may be nearly straight in any one frame. Audit both limbs across
+ // real rendered travel instead of requiring both knees to bend at the same instant.
+ await page.waitForFunction(f=>{
+  let farmer;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')farmer=o;});
+  const r=farmer.userData.live,n=__dbg.renderer.info.render.frame;
+  const samples=window.__farmerStrideSamples||(window.__farmerStrideSamples=[]);
+  if(n>f&&samples.at(-1)?.frame!==n)samples.push({frame:n,phase:r.state.phase,walkPhase:__dbg.walk.gait,knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x)});
+  return samples.length>15&&__dbg.walk.pos.y<20.8;
+ },frame,{timeout:60000});
  const gait=await page.evaluate(()=>{let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});const r=f.userData.live;return {visible:f.visible,phase:r.state.phase,walkPhase:__dbg.walk.gait,knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x),pos:__dbg.walk.pos.toArray()};});
- await page.keyboard.up('KeyW');assert.equal(gait.visible,true);assert.ok(Math.abs(gait.phase-gait.walkPhase)<1e-9);assert.ok(gait.knees.every(x=>x<-.05));assert.ok(gait.elbows.every(x=>x<-.05));assert.ok(gait.pos[1]<21.9);
+ const stride=await page.evaluate(()=>window.__farmerStrideSamples);
+ await page.keyboard.up('KeyW');assert.equal(gait.visible,true);assert.ok(Math.abs(gait.phase-gait.walkPhase)<1e-9);assert.ok(gait.pos[1]<20.8);
+ assert.ok(stride.every(s=>Math.abs(s.phase-s.walkPhase)<1e-9),'every rendered pose honors actual walking phase');
+ for(const part of ['knees','elbows'])for(let leg=0;leg<2;leg++){
+  const values=stride.map(s=>s[part][leg]);
+  assert.ok(Math.min(...values)<-.05,part+' '+leg+' bends during travel');
+  assert.ok(Math.max(...values)-Math.min(...values)>(part==='knees'?.1:.01),part+' '+leg+' articulates across the stride');
+ }
  await page.screenshot({path:path.join(artifacts,'farmer-walk.png'),scale:'css'});
  await page.locator('#povBtn').click();await page.waitForFunction(()=>__dbg.camera.children.some(g=>g.userData.skin&&g.visible),null,{timeout:60000});
  const hands=await page.evaluate(()=>{__dbg.G.wear('skin',5);__dbg.G.wear('shirt',2);const h=__dbg.camera.children.find(g=>g.userData.skin);let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});return {visible:h.visible,skin:h.userData.skin.color.getHex(),shirt:h.userData.sleeve.color.getHex(),farmer:f.visible};});
@@ -29,5 +44,5 @@ const {start,artifacts}=require('./browser-harness.cjs');
  const target=await page.evaluate(()=>{const h=__dbg.hitAt(innerWidth/2,innerHeight/2);return {type:h?.type,kind:h?.an?.kind,same:h?.an===__testPet,ref:h?.an?.ref,meta:__dbg.G.meta('cow',__testPet.ref.i)};});
  await page.keyboard.press('KeyE');const pet=await page.evaluate(()=>({lonely:__testPet.need.lonely,act:__testPet.act}));console.log('pet fixture',JSON.stringify({target,animal,pet}));assert.ok(pet.lonely<animal.lonely,'pet action reaches animal');
  await page.keyboard.press('Escape');await page.waitForFunction(()=>!__dbg.walk);assert.deepEqual(errors,[]);
- fs.writeFileSync(path.join(artifacts,'farmer-walk-results.json'),JSON.stringify({gait,hands,animal,pet,errors},null,2));console.log('PASS live farmer gait / mitten colors / pet action',JSON.stringify({gait,hands,pet}));failed=false;
+ fs.writeFileSync(path.join(artifacts,'farmer-walk-results.json'),JSON.stringify({gait,stride,hands,animal,pet,errors},null,2));console.log('PASS live farmer gait / mitten colors / pet action',JSON.stringify({gait,strideFrames:stride.length,hands,pet}));failed=false;
  }finally{await h.close(failed);}})().catch(e=>{console.error(e);process.exit(1);});
