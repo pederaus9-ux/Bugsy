@@ -115,6 +115,15 @@ name for the deliberate gallery capture, overwriting the gallery with the
 performance view. Farm overviews had the same naming issue. Session screenshot
 names now differ from review capture names; final evidence was regenerated.
 
+Hosted run `37154026046` at `dbcd843` completed all 43 units, all existing
+browser checkpoints and the isolated six-species gallery, then reached the
+existing 20-minute job limit during live-farm captures. The cancelled job log
+is retained in task evidence. CI now gives animal visual capture a separate
+20-minute job while the existing regression job runs `test:core`; `npm test`
+still runs both sequentially locally. All four hosted jobs must pass before
+merge. No assertion, viewport, sample or timeout is removed or relaxed; this
+is a relevant workflow change, with application files unchanged by the split.
+
 ## Validation status
 
 - Current complete unit list: **43/43 PASS**, including all four new tests.

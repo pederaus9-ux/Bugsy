@@ -18,6 +18,15 @@ machine, `CHROME_PATH` can select installed Chrome and `PLAYWRIGHT_MODULE` can
 select an external Playwright installation; neither is needed in CI.
 `TEST_ARTIFACTS` overrides the ignored `artifacts/` output directory.
 
+`npm test` still runs the complete suite: `test:core` (43 units plus the existing
+game/browser checks), followed by `test:animals` (all six visual galleries and
+both live-farm layouts). CI runs these two commands in separate jobs, each with
+the existing 20-minute limit. Both jobs must pass, together with old saves and
+the Firebase emulator suite. No coverage or assertions are skipped. The first
+combined hosted run completed all existing browser checks and the isolated
+animal gallery, but expired while taking the new live-farm captures; its log is
+retained in task evidence and run 37154026046.
+
 ## Coverage
 
 - Six performance-monitor unit tests: statistics, bounded windows, resume reset,
