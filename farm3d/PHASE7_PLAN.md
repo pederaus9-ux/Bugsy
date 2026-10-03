@@ -12,8 +12,15 @@ COMPLETE / OWNER APPROVED (PR #29). Phase 7F (locomotion rollout,
 characters before proceeding: first build one cow and stop for style and phone
 performance review. PR #31 is merged, and the owner confirmed the new cow loads
 on the phone through the preview, then requested it on the regular game link.
-Cows now use 3D by default; other species and Phase 7G remain deferred pending
-further owner feedback. See `CHARACTERS3D_PROTOTYPE.md`.
+Cows now use 3D by default. That initial prototype status is historical:
+PR #40 subsequently integrated all six animal species and characters, PR #41
+added their browser smoke coverage, and PR #42 rebuilt the farmer/villagers.
+PR #43 separately repaired cloud recovery. Current continuation starts from
+merged main `92113b07` (2026-10-03). The owner reported a headless-looking horse
+and requested visual verification of every species in the phone chat, then
+authorized the next workstream here. The focused animal visual repair and its
+six-species evidence are documented in `ANIMAL_VISUAL_POLISH.md`.
+See `CHARACTERS3D_PROTOTYPE.md` for the original cow prototype.
 
 ## Rules for every phase
 

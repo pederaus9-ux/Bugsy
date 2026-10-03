@@ -41,10 +41,10 @@ function inspect(kind) {
       await page.waitForFunction(() => window.__done && window.__dbg && !document.getElementById('loading'), null, {timeout:90000});
       const shell = await page.evaluate(async () => {
         const sw = await (await fetch('sw.js')).text();
-        const live = await (await fetch('live3d.js?v=1')).text();
-        return {cache: /sa3d-v33/.test(sw), live: live.includes('createLiveAnimal'), modules: ['sheep3d.js','horse3d.js','dog3d.js','cat3d.js','chicken3d.js','farmer3d.js'].every(name => sw.includes(name))};
+        const live = await (await fetch('live3d.js?v=2')).text();
+        return {cache: /sa3d-v34/.test(sw), live: live.includes('createLiveAnimal'), modules: ['sheep3d.js','horse3d.js','dog3d.js','cat3d.js','chicken3d.js','farmer3d.js'].every(name => sw.includes(name))};
       });
-      assert.equal(shell.cache, true, 'sa3d-v33');
+      assert.equal(shell.cache, true, 'sa3d-v34');
       assert.equal(shell.live, true);
       assert.equal(shell.modules, true);
       const animals = {};
@@ -73,7 +73,7 @@ function inspect(kind) {
       assert.equal(picked.kind, 'cow');
       const farmer = await page.evaluate(async () => {
         const d = window.__dbg;
-        const {updateLiveFarmer} = await import('./live3d.js?v=1');
+        const {updateLiveFarmer} = await import('./live3d.js?v=2');
         let node = null;
         d.scene.traverse(o => { if (o.userData && o.userData.hit && o.userData.hit.type === 'farmer') node = o; });
         if (!node || !node.userData.live) return {ok:false};
@@ -114,7 +114,7 @@ function inspect(kind) {
       assert.equal(visitor.picture, 0);
       const replaced = await page.evaluate(async () => {
         const d = window.__dbg;
-        const {replaceRig, createLiveVillager} = await import('./live3d.js?v=1');
+        const {replaceRig, createLiveVillager} = await import('./live3d.js?v=2');
         let node = null;
         d.scene.traverse(o => { if (o.userData && o.userData.hit && o.userData.hit.type === 'visitor') node = o; });
         const previous = node.userData.live;

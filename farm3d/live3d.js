@@ -9,9 +9,9 @@ export function createLiveAnimal(kind, height, x, z) {
   const pair = makers[kind]; if (!pair) return null;
   const rig = pair[0](height, x, z); rig.liveKind = kind; rig.card.castShadow = rig.card.receiveShadow = true; return rig;
 }
-export function updateLiveAnimal(rig, dx, dz, dt, act) {
+export function updateLiveAnimal(rig, dx, dz, dt, act, running) {
   const pair = makers[rig.liveKind]; if (!pair) return;
-  const mode = act === 'moving' || act === 'fleeing' ? 'run' : 'walk';
+  const mode = running === undefined ? (act === 'moving' || act === 'fleeing' || act === 'run' ? 'run' : 'walk') : (running ? 'run' : 'walk');
   pair[1](rig, dx, dz, dt, mode);
 }
 export function createLiveFarmer(look) { const rig = createFarmer3D({look: look || {}}); rig.look = rig.look; return rig; }

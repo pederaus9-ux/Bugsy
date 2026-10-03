@@ -72,7 +72,7 @@ function buildTemplate(){
     oval(coat,[0,.08,0],[.16,.13,.15],l.hip,0,0,12);
     rod(cream,[0,-.16,0],.077,.052,.32,l.hip);
     oval(cream,[0,0,0],[.057,.061,.057],l.knee,0,0,12);
-    rod(i<2?cream:0xdad5c7,[0,-.165,0],.045,.034,.33,l.knee);
+    rod(i<2?cream:0xdad5c7,[0,-COW_GAIT.lower/2,0],.045,.034,COW_GAIT.lower,l.knee);
     for(const side of [-1,1])oval(0x423d32,[side*.029,-.012,-.025],[.033,.043,.079],l.foot,0,0,12);
   }
   for(const b of slots.tail)rod(cream,[0,-.10,.01],.021,.016,.22,b);
@@ -96,7 +96,7 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0}));
   for(const l of legs)l.hip.rotation.order='YXZ';
   const rig={g,model,card,h:height,legs,head:bones[t.slots.head],neck:bones[t.slots.neck],jaw:bones[t.slots.jaw],body:bones[t.slots.body],ears:t.slots.ears.map(i=>bones[i]),eyes:t.slots.eyes.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),
-    state:{phase:0,distance:0,speed:0,amount:0,run:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0},q:new THREE.Quaternion(),disposed:false};
+    state:{phase:0,distance:0,speed:0,amount:0,run:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateCow3D(rig,0,0,1/60,0);return rig;
 }
@@ -106,7 +106,9 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   leg.hip.scale.set(1/rig.body.scale.x,1/rig.body.scale.y,1/rig.body.scale.z);
   const yReach=c.hoof+lift+Math.sqrt(Math.max(.01,(c.upper+c.lower-.001)**2-tx*tx-tz*tz));
   const rootY=Math.min(c.hip,yReach);
-  leg.hip.position.set(leg.x,(rootY-1.03)/rig.body.scale.y,leg.z);
+  // Keep the leg target in root space while the torso breathes and rocks.
+  const roll=rig.body.rotation.z,cos=Math.cos(roll),sin=Math.sin(roll),dy=rootY-1.03;
+  leg.hip.position.set((leg.x*cos+dy*sin)/rig.body.scale.x,(-leg.x*sin+dy*cos)/rig.body.scale.y,leg.z/rig.body.scale.z);
   const y=rootY-c.hoof-lift;
   const distance=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
   let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
@@ -116,7 +118,8 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   const bend=Math.acos(clamp((distance*distance-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
   const sign=leg.z<0?1:-1;
   leg.hip.rotation.set(alpha-sign*delta,phi,0);leg.knee.rotation.x=sign*bend;
-  leg.foot.quaternion.copy(leg.hip.quaternion).multiply(leg.knee.quaternion).invert();
+  leg.hip.quaternion.premultiply(rig.bodyInverse.copy(rig.body.quaternion).invert());
+  leg.foot.quaternion.copy(rig.body.quaternion).multiply(leg.hip.quaternion).multiply(leg.knee.quaternion).invert();
   if(leg.planted)leg.foot.quaternion.multiply(rig.q.setFromAxisAngle(UP,leg.ayaw-rig.model.rotation.y));
 }
 export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
