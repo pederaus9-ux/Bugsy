@@ -1,5 +1,8 @@
 # Claude Handoff — Sunny Acres 3D Phase 7G
 
+> **Status (2026-10-02):** completed and merged as PR #35 (main `036bfb4`). Production rules not yet published by the
+> owner. This file is kept as the historical handoff; current state lives in `PHASE7G_FIREBASE.md` and `docs/phase7h/GATE_STATE.md`.
+
 PROJECT: Sunny Acres 3D
 WORKSTREAM: SunnyAcres/FirebaseHardening
 OWNER TO ASSIGN: Claude

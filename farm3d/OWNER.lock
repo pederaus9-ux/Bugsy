@@ -28,7 +28,7 @@ locks:
   - scope: SunnyAcres/FirebaseHardening
     owner: Claude
     branch: claude/sunny-acres-phase7g-firebase
-    status: rules + emulator tests green; production publish pending owner (Firebase console)
+    status: MERGED (PR #35, 036bfb4); production publish NOT done (owner, Firebase console); phone smoke test NOT RUN
     baseline_commit: 97cb54055e3284d5ec2a063a48d7991658075c73
     activation: after Phase 7G entry documentation is merged
     purpose: Firestore rules inventory, emulator/rules tests, market/shared-write hardening, App Check evaluation, and full regressions
@@ -46,6 +46,17 @@ locks:
       - older /farm game
       - unrelated root Bugsy app
       - GitHub Pages hosting structure
+
+  - scope: SunnyAcres/SaveHardening
+    owner: Claude
+    branch: claude/sunny-acres-phase7h-saves (PR #36, tests/docs) then claude/sunny-acres-phase7h-fixes
+    baseline_commit: 036bfb4f027cf223d6e2a208e146523c63bbfa68
+    activation: Phase 7G merged; owner authorized Claude to audit and change protected save code (2026-10-02, ChatGPT out of credits)
+    purpose: Phase 7H save + update hardening
+    touches_protected:
+      - farm3d/game.js (load/save/upgrade only)
+      - farm3d/auth.js (cloud upload guard + recovery on sign-in only)
+      - farm3d/index.html, farm3d/sw.js (version bumps only)
 
 handoff_required_when:
   - a protected system must change

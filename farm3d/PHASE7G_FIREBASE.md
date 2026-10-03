@@ -1,6 +1,6 @@
 # Sunny Acres 3D — Phase 7G Firebase hardening
 
-Status: IMPLEMENTED IN REPO — rules + emulator tests green; **production publish pending (owner, Firebase console)**. Evidence below.
+Status: **MERGED IN REPO** (PR #35, merge commit `036bfb4`, 2026-10-02; main CI green). **Production publish NOT done** (owner, Firebase console); phone smoke test NOT RUN. Evidence below.
 
 Baseline main: `97cb54055e3284d5ec2a063a48d7991658075c73` (PR #32 merged; 3D cows are default on the normal game link).
 
