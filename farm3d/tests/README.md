@@ -48,6 +48,10 @@ select an external Playwright installation; neither is needed in CI.
   renderer resources are checked with shadows on and off.
 - The optional `?characters2d` comparison restores painted cows without writing
   a sandbox save.
+- Missing-cloud recovery with account linking before game startup, game startup
+  before the cloud answer, and sign-out during startup. The real game/auth code
+  runs against a deterministic SDK boundary; the hosted emulator suite separately
+  verifies real Firestore behavior, including delayed-startup recovery.
 - Fail on page exceptions, console errors and failed/HTTP-error local resources.
 
 `regression.browser.cjs` keeps the animated 3D loop active. CSS viewports stay
@@ -64,7 +68,8 @@ Debug hooks prepare deterministic inventory, ripe crops and unobstructed camera
 positions; planting, harvest, orders and interactions still use the actual UI.
 
 All external endpoints are isolated, including Firebase, weather, analytics and
-feedback. Firebase SDK isolation deliberately exercises the offline guest path.
+feedback. The general fixtures exercise the offline guest path; the focused
+startup fixture supplies an in-memory SDK boundary for ordering and cancellation.
 Service workers are blocked in browser contexts. This suite does **not** establish
 cloud/account behavior, real service-worker updates, Safari/iPhone support or
 thermal/performance results; those remain separate manual/integration work.
