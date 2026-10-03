@@ -42,9 +42,9 @@ function inspect(kind) {
       const shell = await page.evaluate(async () => {
         const sw = await (await fetch('sw.js')).text();
         const live = await (await fetch('live3d.js?v=2')).text();
-        return {cache: /sa3d-v34/.test(sw), live: live.includes('createLiveAnimal'), modules: ['sheep3d.js','horse3d.js','dog3d.js','cat3d.js','chicken3d.js','farmer3d.js'].every(name => sw.includes(name))};
+        return {cache: /sa3d-v35/.test(sw), live: live.includes('createLiveAnimal'), modules: ['sheep3d.js','horse3d.js','dog3d.js','cat3d.js','chicken3d.js','farmer3d.js'].every(name => sw.includes(name))};
       });
-      assert.equal(shell.cache, true, 'sa3d-v34');
+      assert.equal(shell.cache, true, 'sa3d-v35');
       assert.equal(shell.live, true);
       assert.equal(shell.modules, true);
       const animals = {};

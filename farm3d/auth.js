@@ -1,4 +1,4 @@
-// Sunny Acres 3D: player accounts with Firebase Authentication (v9 modular Web SDK), email and password,
+// Sunny Acres 3D: player accounts with Firebase Authentication (modular Web SDK), email and password,
 // and cloud saves in Firestore so a farm belongs to its account and follows it to any phone.
 // Until the config below is filled in (it still says YOUR_…), accounts stay switched off and the game plays as before.
 // To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here;
@@ -12,7 +12,7 @@ const firebaseConfig = {
   messagingSenderId: "899020605923",
   appId: "1:899020605923:web:d7e1d51888451d991eb8d6",
 };
-const SDK = "https://www.gstatic.com/firebasejs/9.23.0/";
+const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";
 const REMEMBER = "sa3d-account";      // this phone has signed in before, so it can keep playing without internet
 const SAVE_KEY = "sunny-acres-3d-v1"; // the farm, as game.js saves it
 const OWNER = "sa3d-save-owner";      // which account the farm on this phone belongs to ("" = a farm from before accounts)

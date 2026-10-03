@@ -3,7 +3,9 @@ const assert=require('assert/strict'),fs=require('fs'),path=require('path');
 const {start,artifacts}=require('./browser-harness.cjs');
 (async()=>{const h=await start();let failed=true;try{
  const {page,errors}=await h.setup({width:1280,height:720},false,'farmer-walk');
- await page.goto(h.base+'farm3d/?testfarm&debug&portrait');await page.waitForFunction(()=>window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
+ // Hold the intended fair-weather pet scene: updateGame otherwise overwrites setPreset
+ // from the live calendar/weather and resets the cow's idle hold into a roaming target.
+ await page.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon');await page.waitForFunction(()=>window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await page.evaluate(()=>{__dbg.renderer.shadowMap.enabled=false;__dbg.G.opts.quiet=true;__dbg.G.close();__dbg.G.S.nextEventAt=__dbg.G.S.nextVisitorAt=__dbg.G.S.nextRushAt=9e15;});
  await page.locator('#walkBtn').click();await page.waitForFunction(()=>__dbg.walk);await page.waitForTimeout(1500);
  // Walk intentionally enters first person; switch with the real POV control before auditing the body gait.
@@ -42,6 +44,8 @@ const {start,artifacts}=require('./browser-harness.cjs');
  });
  await page.waitForFunction(()=>__dbg.hitAt(innerWidth/2,innerHeight/2)?.an===__testPet&&!document.getElementById('actBtn').hidden&&document.getElementById('actBtn').innerText.includes('Pet'),null,{timeout:60000}).catch(async e=>{console.log('pet aim failure',await page.evaluate(()=>{const h=__dbg.hitAt(innerWidth/2,innerHeight/2);return {walk:__dbg.walk.pos.toArray(),camera:__dbg.camera.position.toArray(),cow:__testPet.g.position.toArray(),act:document.getElementById('actBtn').innerText,hidden:document.getElementById('actBtn').hidden,hit:h?.type,kind:h?.an?.kind,ref:h?.an?.ref};}));throw e;});
  const target=await page.evaluate(()=>{const h=__dbg.hitAt(innerWidth/2,innerHeight/2);return {type:h?.type,kind:h?.an?.kind,same:h?.an===__testPet,ref:h?.an?.ref,meta:__dbg.G.meta('cow',__testPet.ref.i)};});
+ const held=await page.evaluate(()=>__testPet.g.position.toArray());
+ assert.ok(Math.abs(held[0]+1.4)<1e-6&&Math.abs(held[2]-18)<1e-6,'idle cow stays at the intended pet target');
  await page.keyboard.press('KeyE');const pet=await page.evaluate(()=>({lonely:__testPet.need.lonely,act:__testPet.act}));console.log('pet fixture',JSON.stringify({target,animal,pet}));assert.ok(pet.lonely<animal.lonely,'pet action reaches animal');
  await page.keyboard.press('Escape');await page.waitForFunction(()=>!__dbg.walk);assert.deepEqual(errors,[]);
  fs.writeFileSync(path.join(artifacts,'farmer-walk-results.json'),JSON.stringify({gait,stride,hands,animal,pet,errors},null,2));console.log('PASS live farmer gait / mitten colors / pet action',JSON.stringify({gait,strideFrames:stride.length,hands,pet}));failed=false;
