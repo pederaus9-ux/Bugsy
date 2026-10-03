@@ -3,6 +3,17 @@
 const assert = require('assert/strict');
 const {start} = require('./browser-harness.cjs');
 
+function unexpectedErrors(errors) {
+  const icon = 'farm/icon-192.png';
+  const iconHttp = errors.filter(e => e.startsWith('HTTP 404:') && e.includes(icon));
+  const otherHttp = errors.filter(e => e.startsWith('HTTP ') && !e.includes(icon));
+  return errors.filter(e => {
+    if (e.includes(icon)) return false;
+    if (iconHttp.length && !otherHttp.length && e === 'console: Failed to load resource: the server responded with a status of 404 (Not Found)') return false;
+    return true;
+  });
+}
+
 function inspect(kind) {
   return `(function () {
     const d = window.__dbg;
@@ -114,7 +125,7 @@ function inspect(kind) {
       assert.equal(replaced.disposed, true);
       assert.equal(replaced.same, true);
       assert.equal(replaced.children, 1);
-      const unexpected = errors.filter(e => !e.includes('farm/icon-192.png') && !e.includes('Failed to load resource: the server responded with a status of 404'));
+      const unexpected = unexpectedErrors(errors);
       assert.deepEqual(unexpected, [], viewport.width + ' errors ' + unexpected.join(' | '));
       console.log('PASS stage A viewport', viewport.width, Object.keys(animals).join(','));
     }
@@ -134,7 +145,7 @@ function inspect(kind) {
     assert.equal(look.hair, 5);
     assert.equal(look.style, 'buzz');
     assert.equal(look.saved, true);
-    const unexpectedWardrobe = w.errors.filter(e => !e.includes('farm/icon-192.png') && !e.includes('Failed to load resource: the server responded with a status of 404'));
+    const unexpectedWardrobe = unexpectedErrors(w.errors);
     assert.deepEqual(unexpectedWardrobe, []);
     console.log('PASS wardrobe reload', look);
     failed = false;
