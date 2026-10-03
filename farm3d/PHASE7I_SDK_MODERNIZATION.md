@@ -81,3 +81,12 @@ the owner's S26 account/cloud smoke test. The prepared analytics PR #46 stays in
 draft until this step is accepted; rebase it on fresh main and deliberately use
 the next cache/auth version before rerunning all five checks. The owner has asked
 for continuing through the remaining roadmap after each specifically approved merge.
+
+The parallel analytics CI run at `866ad2c` exposed a pre-existing pet-fixture race:
+the test set noon once, but the active game calendar/weather overwrote it, reset
+the cow's idle hold and sent it roaming out of the aimed target. Failure log and
+artifact 11286673239 are preserved. The walk fixture now uses the existing
+`preset=noon` override throughout and asserts the held cow position as well as
+the original raycast/visible Pet action/actual E interaction and affection checks.
+No production AI, assertion, timeout or threshold is relaxed. The exact SDK head
+must be retested after this fixture repair.
