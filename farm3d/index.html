@@ -636,8 +636,8 @@ import {FEATURES} from "./features.js?v=1";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
-const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=1"); // 3D cows on the regular link; optional artwork fallback for comparisons
-const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=1");
+const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=2"); // 3D cows on the regular link; optional artwork fallback for comparisons
+const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=2");
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
@@ -1698,7 +1698,7 @@ class Beast {
     if (this.rig3d) {
       if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
       if (this.kind === "cow") Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
-      else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act);
+      else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act, this.running);
       return;
     }
     // face the way it walks (the pictures face left), and animate the pose

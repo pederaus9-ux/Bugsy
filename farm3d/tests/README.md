@@ -102,3 +102,13 @@ and [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workfl
 rendered 48-combination evidence/performance fixture. See `../STAGE_B_FARMER.md`
 for contracts, artifact names and limitations. The PR #41 farmer snapshot in
 `fixtures/farmer-stage-a.js` is solely an isolated performance baseline.
+
+## Six-species visual coverage
+
+`animal-visual.test.mjs` checks actual visible neck/head geometry, rendered soles
+and planted drift at 30/60 Hz, distance cadence, turning and teleport release.
+`animal-visual.browser.cjs` captures all six species in idle/walk/run from front,
+side and rear, both isolated and in the actual farm at phone/desktop widths.
+It checks movement, head picking, sandbox saves and 30 actor replacements.
+See `../ANIMAL_VISUAL_POLISH.md` for evidence names, manual visual verdicts and
+fixture limitations. Capturing a screenshot alone is not a visual PASS.
