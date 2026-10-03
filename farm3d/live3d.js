@@ -15,7 +15,7 @@ export function updateLiveAnimal(rig, dx, dz, dt, act) {
   pair[1](rig, dx, dz, dt, mode);
 }
 export function createLiveFarmer(look) { const rig = createFarmer3D({look: look || {}}); rig.look = rig.look; return rig; }
-export function updateLiveFarmer(rig, dx, dz, dt, act) { updateFarmer3D(rig, dx, dz, dt, act || 'idle'); }
+export function updateLiveFarmer(rig, dx, dz, dt, act, motion) { updateFarmer3D(rig, dx, dz, dt, act || 'idle', motion); }
 export function createLiveVillager(tint) { const rig = createVillager3D({tint, look:{shirt:tint, overalls:false, hat:'none'}}); rig.liveKind = 'villager'; return rig; }
 export function replaceRig(parent, previous, next) {
   if (previous) { parent.remove(previous.g); previous.dispose(); }
