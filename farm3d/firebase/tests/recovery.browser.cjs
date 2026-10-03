@@ -122,6 +122,23 @@ async function main() {
         `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, sync-rev ${s.sync}, kept first copy ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
     }
 
+    // ---- 3b. the same missing-cloud case with game startup deliberately delayed.
+    // Account linking must not clear RECOVER before load() can set it again.
+    {
+      await restDelete(uid); const n0 = loads.grandma || 0;
+      g.delayGame = 25000;
+      try {
+        await corruptOnNextLoad('{"early missing cloud');
+        await g.page.reload({waitUntil: 'load'}); await gameUp();
+      } finally { g.delayGame = 0; }
+      const s = await st();
+      await P(g, () => { const G = window.__dbg.G; G.S.coins += 1; G.commit(); });
+      let c = null; for (let i = 0; i < 30 && !c; i++) { await g.page.waitForTimeout(1000); c = await cloud(uid); }
+      check('3b missing cloud + delayed game startup: recovery clears after load, first copy kept, new cloud save starts',
+        (loads.grandma || 0) - n0 === 1 && s.recover === null && s.kept === '{"v":1,"coins":12' && c && c.rev === 1,
+        `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, first copy kept ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
+    }
+
     // ---- 11. no recovery, but the cloud can't be reached when the game opens: the same visit still syncs once it's back
     {
       const base = await establish(uid, 'eleven'), n0 = loads.grandma || 0; g.farmWrites = [];

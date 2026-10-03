@@ -2,7 +2,7 @@
 
 Base: PR #41, `019b9710568a05d45c8c60faecf8bbb030eea94b`.
 Branch: `chatgpt/stage-b-farmer-recovery`. Owner: Build chat under the supplied Stage B handoff.
-**Do not merge until Muse Order 002 has an independent verdict.**
+Muse Order 002 independently passed the farmer scope. The owner subsequently authorized full implementation ownership and continued work without the Muse approval gate on 2026-10-03. Merge remains conditional on required automated checks.
 
 ## Change and contracts
 
@@ -83,3 +83,11 @@ The checked-in `evidence/stage-b/` snapshot lets independent reviewers inspect t
 [Active walk](evidence/stage-b/farmer-walk.png) · [First-person hands](evidence/stage-b/farmer-first-person.png)
 
 [Wardrobe/save results](evidence/stage-b/farmer3d-results.json) · [Active walk/pet results](evidence/stage-b/farmer-walk-results.json) · [Measured rendering comparison](evidence/stage-b/farmer-performance.json)
+
+## Continuation and additional rendered evidence
+
+Recovery PR #43 fixes a startup race independently reproduced on main: a missing-cloud answer could clear recovery before the game read a damaged save, which then marked recovery again. This branch includes that fix for combined validation; PR #43 must merge first so the final farmer diff remains scoped. Both original failed CI attempts remain recorded in PR #42. No farmer production code changed after Muse's audit.
+
+The additional `tests/farmer-depth.browser.cjs` uses the actual fitting/closing integration and reads rendered pixels with a foreground red blocker. Fitting renders the farmer above the blocker; after closing, the blocker occludes the farmer normally (open [11,38,94,255], closed [255,0,0,255] locally). The same fixture captures all five real in-game visitors. These close the two browser evidence gaps recorded by Muse; physical S26 Ultra acceptance is still not claimed.
+
+[Depth pixels](evidence/stage-b/farmer-depth-result.json) · [Rosa](evidence/stage-b/visitor-rosa.png) · [Joe](evidence/stage-b/visitor-joe.png) · [Mia](evidence/stage-b/visitor-mia.png) · [Sam](evidence/stage-b/visitor-sam.png) · [Lily](evidence/stage-b/visitor-lily.png)

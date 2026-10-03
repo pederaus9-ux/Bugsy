@@ -255,6 +255,14 @@ async function linkFarm(user) {
       console.warn("This phone's farm couldn't be read: bringing back the cloud farm.");
       ls.del(RECOVER); return useFarm(remote.save, uid, rrev);
     }
+    // A missing-cloud answer can arrive before game.js reads the damaged local save.
+    // Let startup mark it for recovery first; otherwise load() sets RECOVER again after
+    // we clear it here, leaving this visit permanently unable to upload its fresh farm.
+    while (!window.__ready) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (attempt !== linkAttempt || window.saAuth.fb.auth.currentUser?.uid !== uid) return;
+    }
+    if (attempt !== linkAttempt || window.saAuth.fb.auth.currentUser?.uid !== uid) return;
     ls.del(RECOVER); ls.set(SYNC_REV, "0"); // nothing in the cloud to protect: this farm may start the account's cloud save
   } else if (ls.get(RECOVER)) ls.del(RECOVER); // a leftover from another account's farm on this phone: never acts for this one
   if (owner === uid && ls.get("sa3d-restored")) { ls.del("sa3d-restored"); await upload(true); return open(user); } // just restored from a backup: that's the farm now, here and in the cloud
