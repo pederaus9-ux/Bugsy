@@ -2495,11 +2495,15 @@ const farmer = new THREE.Group(); farmer.visible = false; scene.add(farmer);
 farmer.userData.hit = {type:"farmer"};
 function buildFarmer(L = G.lookOf(GS())) {
   if (Live3D) {
-    if (farmer.userData.live) farmer.userData.live.dispose();
-    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry && o.geometry !== farmer.userData.live?.card?.geometry) o.geometry.dispose(); }); }
+    const previous = farmer.userData.live;
+    if (previous) { farmer.remove(previous.g); previous.dispose(); }
+    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
     const lookState = L || G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[lookState[cat]] || G.WARDROBE[cat].opts[0];
     const rig = Live3D.createLiveFarmer({skin:opt('skin')[1], hair:opt('hair')[1], hairColor:opt('hairColor')[1], shirt:opt('shirt')[1], hat:opt('hat')[1], overalls:opt('overalls')[1], overallColor:opt('overallColor')[1], boots:opt('boots')[1]}); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
-    farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g; return;
+    farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g;
+    rig.setWardrobe(!!wardrobeOn);
+    if (hands) { hands.userData.sleeve.color.set(opt('shirt')[1]); hands.userData.skin.color.set(opt('skin')[1]); }
+    return;
   }
   const W = G.WARDROBE, pick = (cat) => W[cat].opts[L[cat]] || W[cat].opts[0];
   for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
@@ -2561,7 +2565,7 @@ document.getElementById("povBtn").addEventListener("click", () => { thirdPerson 
 // swinging leg bends at the knee, the shoulders twist against the hips, and running leans in with bigger, bent strides.
 // Starts and stops ease through an envelope from the real speed, so nothing snaps or slides on the spot.
 function poseFarmerGait(w) {
-  const U = farmer.userData; if (U.live) { Live3D.updateLiveFarmer(U.live, 0, -(w.gspd || 0) * (w.gdt || .016), w.gdt || .016, (w.gspd || 0) > .2 ? 'walk' : 'idle'); return 0; }
+  const U = farmer.userData; if (U.live) { Live3D.updateLiveFarmer(U.live, 0, -(w.gspd || 0) * (w.gdt || .016), w.gdt || .016, punch ? 'interact' : (w.gspd || 0) > .2 ? 'walk' : 'idle', {phase:w.gait, run:w.grun, reach:punch ? Math.sin(punch.t / .45 * Math.PI) : 0}); return 0; }
   if (!U.legs) return 0;
   const env = w.genv = (w.genv || 0) + (THREE.MathUtils.smoothstep(w.gspd || 0, .15, 1.6) - (w.genv || 0)) * Math.min(1, (w.gdt || .016) * 12);
   const run = w.grun || 0, c = (w.gait || 0) * Math.PI * 2, sn = Math.sin(c), cs = Math.cos(c);
@@ -2881,10 +2885,10 @@ hands = (() => {
 let punch = null;
 function handPunch(kind) { punch = {kind, t:0}; }
 function updateHands(dt, t, tweenK) {
+  if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
   const on = !!walk && !thirdPerson && !inBarn && tweenK > .75 && !photoMode;
   hands.visible = on; if (!on) return;
   const w = walk, sp = w.vel.length(), sway = Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
-  if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
   const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
   for (const h of hands.children) {
     const b = h.userData.base, sd = h.userData.side;
@@ -2897,11 +2901,11 @@ function updateHands(dt, t, tweenK) {
 // ---------- the farmer, standing about in the classic view (tap them to open the wardrobe) ----------
 const FARMER_HOME = new THREE.Vector3(-1.8, 0, 8.4);
 farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI * .85;
-function updateFarmerIdle(t) {
+function updateFarmerIdle(t, dt) {
   if (walk) return;
   farmer.visible = !!GS() && !editMode;
   const U = farmer.userData;
-  if (U.live) { Live3D.updateLiveFarmer(U.live, 0, 0, 1/60, 'idle'); return; }
+  if (U.live) { Live3D.updateLiveFarmer(U.live, 0, 0, dt, 'idle'); return; }
   const { legs, knees, torso, arms, head, body } = U; if (!legs) return;
   legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = head.rotation.z = 0; body.position.x = 0; arms[0].rotation.z = 0;
   const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
@@ -2918,6 +2922,7 @@ function setWardrobe(on) {
     if (walk) exitFP(); if (editMode) setEdit(false); if (photoMode) setPhoto(false);
     closeTrays(); G.close();
     wardrobeOn = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone(), tilt:tiltH.enabled, fpos:farmer.position.clone(), frot:farmer.rotation.y};
+    farmer.userData.live?.setWardrobe(true);
     farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI; tiltH.enabled = tiltV.enabled = false; // facing out, away from the barn
     if (isLand()) { // the closet is on the right: aim to the right of the farmer, so they stand in the left half
       cam.yaw = .15; cam.pitch = .1; cam.dist = 5.6; cam.target.set(FARMER_HOME.x + Math.cos(cam.yaw) * 1.5, 1.0, FARMER_HOME.z - Math.sin(cam.yaw) * 1.5);
@@ -2925,6 +2930,7 @@ function setWardrobe(on) {
     document.body.classList.add("dressing"); wardUI.hidden = false; renderWardrobe(); G.sfx("pop");
   } else {
     const W = wardrobeOn; wardrobeOn = null;
+    farmer.userData.live?.setWardrobe(false);
     Object.assign(cam, {yaw:W.yaw, pitch:W.pitch, dist:W.dist}); cam.target.copy(W.target); tiltH.enabled = tiltV.enabled = W.tilt;
     farmer.position.copy(W.fpos); farmer.rotation.y = W.frot;
     document.body.classList.remove("dressing"); wardUI.hidden = true; G.sfx("pop");
@@ -3727,7 +3733,8 @@ function updateGame(t, dt) {
   const n = G.readyOrders(), rush = GS().rush && GS().rush.end > T, be = rush ? "⏰" : "🚚";
   boardBub.visible = n > 0 || rush; boardBub.position.y = 3.4 + Math.sin(t * (rush ? 5 : 2.5)) * .08;
   if (boardBub.userData.e !== be) { boardBub.material = emoteMat(be); boardBub.userData.e = be; }
-  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06;
+  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z) + (visitorCard.userData.live ? Math.PI : 0); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06;
+    if (visitorCard.userData.live) Live3D.updateLiveFarmer(visitorCard.userData.live, 0, 0, dt, 'idle');
     // idle life while they wait: weight shifting foot to foot, breathing, a tilt and a glance of the head, and now and then a happy wiggle
     const wig = Math.max(0, Math.sin(t * .8)) > .97 ? Math.sin(t * 16) * .14 : 0;
     visitorBody.rotation.z = Math.sin(t * .9) * .045; visitorBody.scale.y = 1 + Math.sin(t * 1.7) * .018;
@@ -3804,7 +3811,7 @@ function frame() {
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   if (LOCO) locoParade(t);
   for (const a of animals) a.update(dt, t);
-  updateGame(t, dt); updateAim(t); updateFarmerIdle(t);
+  updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
   for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }

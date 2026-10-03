@@ -94,3 +94,11 @@ branch protection.
 
 Workflow setup follows [Playwright CI guidance](https://playwright.dev/docs/ci)
 and [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax).
+
+## Stage B farmer coverage
+
+`npm test` also runs six farmer unit cases, actual wardrobe tests at 1280x720,
+844x390 and 390x844, an active third/first-person walk and pet check, and the
+rendered 48-combination evidence/performance fixture. See `../STAGE_B_FARMER.md`
+for contracts, artifact names and limitations. The PR #41 farmer snapshot in
+`fixtures/farmer-stage-a.js` is solely an isolated performance baseline.
