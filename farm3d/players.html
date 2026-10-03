@@ -47,6 +47,13 @@ button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999
 .link{background:none;border:0;box-shadow:none;color:var(--wood);text-decoration:underline;padding:4px;font-size:14px;justify-self:center}
 .msg{margin:0;color:#A8321F;font-weight:800;font-size:14px;min-height:1em}
 [hidden]{display:none!important}
+.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.filters label{font-size:13px;font-weight:800;min-width:0}
+select{display:block;width:100%;min-height:44px;font:inherit;color:var(--ink);background:#fff8e4;border:2px solid var(--wood);border-radius:10px;padding:6px}
+.reportTable{margin:6px 0 14px}.reportTable div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--parch2);padding:5px 0}
+.reportTable dd{margin:0;font-weight:800;font-variant-numeric:tabular-nums}.reportNote{margin-top:12px}
+h3{font-size:16px;margin:16px 0 6px}#reportMore{min-height:44px;margin-top:10px;line-height:1.3}
+@media(max-width:430px){.filters{grid-template-columns:1fr}.fr{grid-template-columns:120px 1fr 64px}}
 </style>
 </head>
 <body>
@@ -78,9 +85,11 @@ button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999
     </div>
   </div>
 
+  <section class="card" id="reports" hidden></section>
+
   <section class="card" id="funnel" hidden>
-    <h2>Where players stop</h2>
-    <p class="note">How many phones reached each step (each phone counts once). The biggest drop is marked 🔻: that's the step to make easier.</p>
+    <h2>Earlier milestone counts</h2>
+    <p class="note">Lifetime reports from the earlier counter, once per browser with local storage. The new panel's filters apply only to its progress and performance reports.</p>
     <div class="fun" id="fun"></div>
   </section>
 
@@ -95,6 +104,7 @@ button{font:800 16px/1 Nunito,sans-serif;border:3px solid #fff;border-radius:999
 </main>
 
 <script type="module">
+import {mountReports} from './analytics-dashboard.js?v=1';
 const firebaseConfig = { // the same Firebase project as the game (auth.js)
   apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
   authDomain: "fir-config-18b64.firebaseapp.com",
@@ -107,12 +117,12 @@ const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";
 const NOW = 3 * 60e3, DAY = 864e5; // the game checks in every minute while it's open on screen
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
-const show = (ids) => { for (const id of ["signin", "denied", "stats", "funnel", "recent", "out", "load"]) $(id).hidden = !ids.includes(id); };
+const show = (ids) => { for (const id of ["signin", "denied", "stats", "funnel", "reports", "recent", "out", "load"]) $(id).hidden = !ids.includes(id); };
 
 const [{initializeApp}, A, F] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-auth.js"), import(SDK + "firebase-firestore.js")]);
 const app = initializeApp(firebaseConfig), auth = A.getAuth(app), db = F.getFirestore(app, "default");
 
-let rows = [], total = null, stop = null, tick = 0;
+let rows = [], total = null, stop = null, tick = 0, funnelTick=0, reports=null, authEpoch=0;
 const names = new Map(); // uid -> username (players/{uid}), looked up once
 
 function ago(t) {
@@ -141,13 +151,14 @@ function render() {
   $("sub").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
 }
 async function lookUpNames() {
+  const request=authEpoch;
   const missing = rows.filter(r => !names.has(r.uid));
   await Promise.all(missing.map(async (r) => {
-    try { const d = await F.getDoc(F.doc(db, "players", r.uid)); names.set(r.uid, d.exists() ? d.data().name : ""); } catch (e) { names.set(r.uid, ""); }
+    try { const d = await F.getDoc(F.doc(db, "players", r.uid)); if(request===authEpoch)names.set(r.uid, d.exists() ? d.data().name : ""); } catch (e) { if(request===authEpoch)names.set(r.uid, ""); }
   }));
-  if (missing.length) render();
+  if (missing.length && request===authEpoch) render();
 }
-function denied(user) { $("who").textContent = user.email; show(["denied", "out"]); }
+function denied(user) { reports?.destroy();reports=null;clearInterval(funnelTick);clearInterval(tick);$("who").textContent = user.email; show(["denied", "out"]); }
 
 // the milestones the game reports (auth.js / game.js), in the order players reach them
 const STEPS = [["open", "Opened the game"], ["guest", "Played as a guest"], ["account", "Made an account"],
@@ -155,7 +166,9 @@ const STEPS = [["open", "Opened the game"], ["guest", "Played as a guest"], ["ac
   ["lvl_2", "Level 2"], ["lvl_3", "Level 3"], ["lvl_5", "Level 5"], ["lvl_8", "Level 8"], ["lvl_10", "Level 10"], ["lvl_15", "Level 15"], ["lvl_20", "Level 20"],
   ["back_d1", "Came back another day"], ["back_d7", "Still playing a week later"], ["friend", "Added a friend"]];
 async function loadFunnel() {
+  const request=authEpoch;
   const counts = await Promise.all(STEPS.map(([e]) => F.getCountFromServer(F.query(F.collection(db, "events"), F.where("e", "==", e))).then(c => c.data().count).catch(() => null)));
+  if(request!==authEpoch)return;
   const top = Math.max(1, counts[0] || 0);
   // the biggest drop between two steps in the main path (tutorial and levels), not the side branches
   const path = STEPS.map((s, k) => k).filter(k => !["guest", "account", "friend", "back_d1", "back_d7"].includes(STEPS[k][0]));
@@ -168,19 +181,22 @@ async function loadFunnel() {
 }
 
 function watch(user) {
+  const request=authEpoch;
   show(["load"]);
   // live: the list updates by itself as players come and go
   stop = F.onSnapshot(F.collection(db, "presence"), (snap) => {
+    if(request!==authEpoch)return;
     rows = snap.docs.map(d => { const x = d.data(); return {uid:d.id, seen:x.seen ? x.seen.toMillis() : 0, level:x.level, joined:x.joined}; });
-    show(["stats", "funnel", "recent", "out"]); render(); lookUpNames();
-  }, (e) => { if (e.code === "permission-denied") denied(user); else { $("load").textContent = "Couldn't load the numbers. Check your internet."; show(["load", "out"]); } });
+    show(["stats", "funnel", "reports", "recent", "out"]); render(); lookUpNames();
+    if(!reports){reports=mountReports($("reports"),{F,db});loadFunnel();funnelTick=setInterval(loadFunnel,120e3);}
+  }, (e) => { if(request!==authEpoch)return; if (e.code === "permission-denied") denied(user); else { $("load").textContent = "Couldn't load the numbers. Check your internet."; show(["load", "out"]); } });
   // (the farm count is gone: Firestore can only count what it may also list, and listing farms would expose every save.
   // "Total players" counts everyone who has opened the game since presence was added.)
-  loadFunnel(); setInterval(loadFunnel, 120e3);
   clearInterval(tick); tick = setInterval(render, 30e3); // keep "min ago" and "playing now" current
 }
 
 A.onAuthStateChanged(auth, (user) => {
+  authEpoch++;reports?.destroy();reports=null;clearInterval(funnelTick);clearInterval(tick);rows=[];names.clear();$("fun").replaceChildren();$("list").replaceChildren();
   if (stop) { stop(); stop = null; }
   if (user) watch(user); else show(["signin"]);
 });

@@ -621,7 +621,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=16"></script>
+<script type="module" src="auth.js?v=17"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -629,7 +629,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=23"; window.__gameVer = 23; // bump this version whenever game.js changes
+import * as G from "./game.js?v=24"; window.__gameVer = 24; // bump this version whenever game.js changes
+import {ANALYTICS_RELEASE} from './analytics.js?v=1'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
 import {FEATURES} from "./features.js?v=1";
@@ -3800,7 +3801,7 @@ if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 
 const clock = new THREE.Timer(); let shotFrames = 0;
 frame.drawn = 0;
 function frame() {
-  if (rotatePaused && frame.okAt) { perf?.pause(); requestAnimationFrame(frame); return; } // portrait: nothing to draw behind the rotate screen
+  if (rotatePaused && frame.okAt) { perf?.pause(); window.saMetrics?.pause(); requestAnimationFrame(frame); return; } // portrait: nothing to draw behind the rotate screen
   if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
   // the animals live their lives
@@ -3819,6 +3820,7 @@ function frame() {
   if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
   if (perf) perf.render(); else composer.render();
   perf?.record(performance.now());
+  try { window.saMetrics?.frame(performance.now()); } catch {}
   perf?.update(performance.now());
   if (photoWant) takePhoto();
   if (!frame.okAt && ++frame.drawn >= 3) { frame.okAt = true; bootStep("ok"); }

@@ -168,6 +168,7 @@ export const HOLIDAYS = {
 
 // anonymous milestones for the players page (auth.js sends each one once per phone; nothing personal)
 const stat = (name) => { if (!SANDBOX && !homeS && window.saStats) try { window.saStats(name); } catch (e) {} };
+const metric = name => { if (!SANDBOX && !homeS) try { window.saMetrics?.milestone(name); } catch {} };
 const STAT_LEVELS = [2, 3, 5, 8, 10, 15, 20];
 // ---------- helpers ----------
 const $ = (s) => document.querySelector(s);
@@ -463,6 +464,7 @@ export function harvest(i, quiet) {
   // crop rotation: the same crop again wears the soil out, a different one freshens it up
   p.soil = clamp(p.soil + (p.last === crop ? -15 : 10), 0, 100); p.soilAt = now(); p.last = crop;
   p.crop = null; p.end = 0; p.water = 0; p.fert = 0; p.hot = 0;
+  metric('harvest');
   return true;
 }
 export function speedPlot(i) {
@@ -656,6 +658,7 @@ function deliver(i) {
   sfx("truck"); sfx("coin");
   gainXP(o.xp);
   tutEvent("deliver");
+  metric('order');
   commit();
 }
 function discard(i) {
@@ -873,6 +876,7 @@ function deliverRush() {
   view.fx("board", "+" + o.coins + " 🪙"); sfx("truck"); sfx("coin");
   S.rush = null; S.nextRushAt = now() + rand(30, 90) * 60e3;
   eventProgress("orders", 1); track("rush", 1); gainXP(o.xp); commit();
+  metric('order');
 }
 
 // ---------- visitors ----------

@@ -4,11 +4,12 @@
 //
 // Each test mirrors what the real game code does (auth.js, friends.js, players.html) and then tries the abuse cases.
 import {readFileSync} from "node:fs";
+import {encodeReport} from '../../analytics.js';
 import {test, before, after, beforeEach} from "node:test";
 import {initializeTestEnvironment, assertSucceeds, assertFails} from "@firebase/rules-unit-testing";
 import {
   doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, query, where, limit,
-  runTransaction, serverTimestamp, getCountFromServer, writeBatch,
+  runTransaction, serverTimestamp, getCountFromServer, writeBatch, orderBy, startAfter,
 } from "firebase/firestore";
 
 const OWNER_EMAIL = "pederaus9@gmail.com";
@@ -398,6 +399,21 @@ test("events: guests and players can add a milestone; nothing else, and only the
 });
 
 // ---------------------------------------------------------------- everything else
+test('analytics v2: existing rules accept compact reports, refuse identifiers and retries, owner can page by date',async()=>{
+  const row={e:encodeReport({version:'36',platform:'android',screen:'phone',mode:'guest'},'sess','00a'),d:'2026-10-03'};
+  const guest=anon(), player=as('alice'), owner=as(OWNER_UID,OWNER_EMAIL);
+  await ok(setDoc(doc(guest,'events','anonymous-report-1'),row));
+  await ok(setDoc(doc(player,'events','anonymous-report-2'),{...row,e:encodeReport({version:'9999',platform:'ios',screen:'tablet',mode:'account'},'ret7')}));
+  await no(setDoc(doc(guest,'events','anonymous-report-1'),row));
+  await no(setDoc(doc(guest,'events','anonymous-report-3'),{...row,uid:'alice'}));
+  await no(setDoc(doc(player,'events','anonymous-report-3'),{...row,platform:'android'}));
+  await no(getDoc(doc(guest,'events','anonymous-report-1')));
+  await no(getDocs(query(collection(player,'events'),orderBy('d','desc'),limit(1))));
+  const first=await ok(getDocs(query(collection(owner,'events'),where('d','>=','2026-09-27'),orderBy('d','desc'),limit(1))));
+  const next=await ok(getDocs(query(collection(owner,'events'),where('d','>=','2026-09-27'),orderBy('d','desc'),startAfter(first.docs[0]),limit(1))));
+  if(first.size!==1 || next.size!==1 || first.docs[0].id===next.docs[0].id)throw Error('date cursor must page equal-date documents without duplication');
+});
+
 test("unknown collections are closed", async () => {
   await no(setDoc(doc(as("alice"), "admin", "config"), {open: true}));
   await no(getDoc(doc(as(OWNER_UID, OWNER_EMAIL), "secrets", "x")));
