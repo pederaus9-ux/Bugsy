@@ -8,9 +8,9 @@ Branch: `chatgpt/phase7i-firebase-sdk`
 
 ## Why this phase is next
 
-Current production browser code still loads Firebase JavaScript SDK `9.23.0` from gstatic in `auth.js` and `players.html`. The current roadmap orders Firebase SDK modernization after the completed 7G/7H hardening work and before Analytics v2.
+At phase start, production loaded Firebase JavaScript SDK `9.23.0` from gstatic in `auth.js` and `players.html`. This branch now pins `12.19.0` in both. The current roadmap orders Firebase SDK modernization after the completed 7G/7H hardening work and before Analytics v2.
 
-Firebase's official release notes list JavaScript SDK `12.19.0` as the current release (2026-09-09). The upgrade target for this phase is therefore `12.19.0`, unless exact-head compatibility testing identifies a blocking regression that requires an explicitly documented intermediate version.
+Firebase's [official release notes](https://firebase.google.com/support/release-notes/js) list JavaScript SDK `12.19.0` (2026-09-09), verified 2026-10-03. This is the pinned target. Relevant fixes include Auth persistence reconnection after pagehide and storage-inaccessible fallback. This game uses the modular API already, so no compat layer or gameplay rewrite is required.
 
 ## Scope
 
@@ -55,6 +55,29 @@ Out of scope:
 
 At phase start, `auth.js` and `players.html` still reference `https://www.gstatic.com/firebasejs/9.23.0/`. The emulator harness also intentionally serves the 9.23.0 npm/browser files, so changing production alone would create false confidence. Production and emulator versions must move together.
 
-## Next exact step
+## Implementation and validation
 
-Update the production SDK references and the emulator harness/package lock together, then run the complete local test matrix before opening this draft for merge review.
+The browser URLs and emulator alias/lock move together. The alias is now
+`firebase-browser: npm:firebase@12.19.0`; the harness checks its installed version
+against both production files before running and refuses mismatches. Node rules
+test dependencies and Firebase CLI remain separate and unchanged in scope.
+
+Release/cache 35 and auth query 16 invalidate old phone code. The service-worker
+fetch policy is unchanged. No auth/recovery/save behavior, schemas, economy flags,
+friends implementation or animal/gameplay code is rewritten.
+
+Local 44/44 units pass, including exact production/harness/package-lock parity.
+The actual npm browser builds were loaded in Chromium through the real owner page:
+App/Auth/Firestore/Functions share one app and expected modular APIs; owner sign-in
+boot passes both normally and with IndexedDB/local storage blocked. No mock SDK
+exports or production backend requests were used by this focused check.
+Results/screenshots are under `tests/evidence/sdk/`. The same check runs in CI
+alongside the full hosted emulator suite, whose real auth/save/social transactions
+remain the integration authority. Current-head CI must pass before merge approval;
+older green runs on the scope-only commit do not validate this migration.
+
+After approval/merge, verify Pages and exact live SDK/query/cache files, then request
+the owner's S26 account/cloud smoke test. The prepared analytics PR #46 stays in
+draft until this step is accepted; rebase it on fresh main and deliberately use
+the next cache/auth version before rerunning all five checks. The owner has asked
+for continuing through the remaining roadmap after each specifically approved merge.

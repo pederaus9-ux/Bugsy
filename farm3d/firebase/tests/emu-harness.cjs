@@ -2,19 +2,26 @@
 // with farm3d/firebase/firestore.rules loaded. This proves the rules allow everything the game actually does.
 // Run through `npm test` in farm3d/firebase (it starts the Firestore + Auth emulators first).
 //
-// The game loads the Firebase 9.23.0 browser builds from gstatic. Here those exact files come from the npm package
-// (node_modules/firebase9), wrapped so the game talks to the emulators and to the offline demo project.
+// The exact production browser SDK comes from the pinned npm alias firebase-browser,
+// wrapped only for emulator/demo-project routing. Refuse an SDK mismatch before any test starts.
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const root = path.resolve(__dirname, '../../..');
-const sdk = path.resolve(__dirname, '../node_modules/firebase9');
+const sdk = path.resolve(__dirname, '../node_modules/firebase-browser');
 const artifacts = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(artifacts, {recursive: true});
 const PROJECT = 'demo-sunny-acres', FS = '127.0.0.1:8085', AUTH = '127.0.0.1:9099', FN = '127.0.0.1:5001';
-const CDN = 'https://www.gstatic.com/firebasejs/9.23.0/';
+const CDN = 'https://www.gstatic.com/firebasejs/12.19.0/';
+const sdkVersion=JSON.parse(fs.readFileSync(path.join(sdk,'package.json'),'utf8')).version;
+for(const file of ['auth.js','players.html']) {
+  const source=fs.readFileSync(path.join(root,'farm3d',file),'utf8');
+  if(!source.includes(`const SDK = "${CDN}";`) || CDN!==`https://www.gstatic.com/firebasejs/${sdkVersion}/`)
+    throw new Error(`Production/emulator SDK mismatch: ${file}, installed ${sdkVersion}, harness ${CDN}`);
+}
+console.log('Emulator browser SDK pinned to production:',sdkVersion);
 const OWNER_EMAIL = 'pederaus9@gmail.com';
 const OWNER_UID = 'wqPP4uUThWTmhqi9g5YdgyLfGQ93'; // firestore.rules isOwner(): the owner is this exact account
 

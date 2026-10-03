@@ -140,11 +140,18 @@ jobs:
       - name: Rules, economy functions, real game flows and save recovery against the Firestore + Auth + Functions emulators
         working-directory: farm3d/firebase
         run: npm test
+      - name: Exact production SDK browser modules and blocked-storage sign-in boot
+        working-directory: farm3d/tests
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/farm3d/firebase/node_modules/playwright
+        run: node --test sdk.test.mjs && node sdk.browser.cjs
       - name: Save flow results and failure screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-firebase-${{ github.run_attempt }}
-          path: farm3d/firebase/artifacts/
+          path: |
+            farm3d/firebase/artifacts/
+            farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7
