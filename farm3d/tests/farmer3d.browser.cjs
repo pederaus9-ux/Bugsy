@@ -44,7 +44,7 @@ const boot=async(page,base,test=true)=>{
    assert.equal(await page.evaluate(()=>__oldFarmer.disposed),true);assert.equal(await page.evaluate(()=>__disposeCount()),1);
    await page.locator('[data-wd]').click();assert.equal(await page.locator('#wardrobe').isHidden(),true);
    const villagers=await page.evaluate(async()=>{
-    const d=__dbg,{createLiveVillager,replaceRig}=await import('./live3d.js?v=1');
+    const d=__dbg,{createLiveVillager,replaceRig}=await import('./live3d.js?v=2');
     const colors={rosa:0xd9788f,joe:0x8a6a48,mia:0xf2c14e,sam:0x4f8a4a,lily:0x8e6bc2};
     return Object.keys(d.G.VILLAGERS).map(id=>{const rig=createLiveVillager(colors[id]||0x9987bd);let meshes=0;rig.g.traverse(o=>{if(o.isMesh)meshes++;});const out={id,meshes,bones:rig.card.skeleton.bones.length,triangles:rig.card.geometry.attributes.position.count/3};rig.dispose();return out;});
    });assert.equal(villagers.length,5);assert.ok(villagers.every(v=>v.meshes===1&&v.bones===15),JSON.stringify(villagers));

@@ -18,6 +18,15 @@ machine, `CHROME_PATH` can select installed Chrome and `PLAYWRIGHT_MODULE` can
 select an external Playwright installation; neither is needed in CI.
 `TEST_ARTIFACTS` overrides the ignored `artifacts/` output directory.
 
+`npm test` still runs the complete suite: `test:core` (43 units plus the existing
+game/browser checks), followed by `test:animals` (all six visual galleries and
+both live-farm layouts). CI runs these two commands in separate jobs, each with
+the existing 20-minute limit. Both jobs must pass, together with old saves and
+the Firebase emulator suite. No coverage or assertions are skipped. The first
+combined hosted run completed all existing browser checks and the isolated
+animal gallery, but expired while taking the new live-farm captures; its log is
+retained in task evidence and run 37154026046.
+
 ## Coverage
 
 - Six performance-monitor unit tests: statistics, bounded windows, resume reset,
@@ -102,3 +111,13 @@ and [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workfl
 rendered 48-combination evidence/performance fixture. See `../STAGE_B_FARMER.md`
 for contracts, artifact names and limitations. The PR #41 farmer snapshot in
 `fixtures/farmer-stage-a.js` is solely an isolated performance baseline.
+
+## Six-species visual coverage
+
+`animal-visual.test.mjs` checks actual visible neck/head geometry, rendered soles
+and planted drift at 30/60 Hz, distance cadence, turning and teleport release.
+`animal-visual.browser.cjs` captures all six species in idle/walk/run from front,
+side and rear, both isolated and in the actual farm at phone/desktop widths.
+It checks movement, head picking, sandbox saves and 30 actor replacements.
+See `../ANIMAL_VISUAL_POLISH.md` for evidence names, manual visual verdicts and
+fixture limitations. Capturing a screenshot alone is not a visual PASS.

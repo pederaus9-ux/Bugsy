@@ -39,12 +39,43 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run regression suite
         working-directory: farm3d/tests
-        run: npm test
+        run: npm run test:core
       - name: Save screenshots, failure traces and results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-regression-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  animal-visuals:
+    name: Six-species animal visual review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Review all six species, poses, live layouts and rendering budget
+        working-directory: farm3d/tests
+        run: npm run test:animals
+      - name: Save animal screenshots, failure traces and measurements
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-animal-visuals-${{ github.run_attempt }}
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7
