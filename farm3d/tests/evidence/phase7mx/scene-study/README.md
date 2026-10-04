@@ -62,5 +62,11 @@ waiting for the GPU fence after entering Walk. That log and those partial images
 are also preserved. The later repair gates rendering throughout boot and Walk,
 not just while reading back a screenshot. These capture-only GPU waits make its
 frame cadence unsuitable for benchmarking; no performance inference is made.
+The subsequent `a201fa2` hosted art run passed all 24 captures and exact cleanup.
+Inspection found a third-person rain Walk pair: the helper had mistaken hands
+hidden during the camera transition for the wrong view and toggled perspective.
+The helper now relies on the actual first-person entry button and asserts visible
+first-person hands in every Walk capture. The mixed-perspective evidence is
+preserved; it does not satisfy the strengthened first-person capture check.
 
 This is a revised candidate, not accepted final art or a finished 7M-X program.

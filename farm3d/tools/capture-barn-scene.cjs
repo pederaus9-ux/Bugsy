@@ -45,15 +45,16 @@ for(const preset of process.env.POLISH_QUICK?['noon']:['noon','golden','rain']){
  for(const mode of ['overview','walk']){
   if(mode==='walk'){
    await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);await page.waitForTimeout(1500);
-   const pov=await page.evaluate(()=>!!__dbg.camera.children.find(o=>o.userData.skin)?.visible);
-   if(!pov)await page.locator('#povBtn').click();
+   // walkBtn calls enterFP explicitly. Hands can still be hidden during the
+   // camera transition; that is not a reason to toggle into third person.
    await page.evaluate(()=>{__dbg.walk.pos.set(1.3,9.5);__dbg.walk.vel.set(0,0);__dbg.walk.yaw=.2;__dbg.walk.pitch=.06;});
   }
   for(const candidate of [false,true]){
    await page.evaluate(on=>{__art.setVisible(on);__dbg.barn.visible=!on;__dbg.sun.shadow.normalBias=on?.12:__oldBias;},candidate);
    const capture=await holdCompletedFrame(page);
    await page.screenshot({path:path.join(out,`${width}-${preset}-${mode}-${candidate?'after':'before'}.png`)});
-   const result=await page.evaluate(({preset,mode,candidate})=>{const d=__dbg;return {preset,mode,candidate,viewport:[innerWidth,innerHeight],buffer:[d.renderer.domElement.width,d.renderer.domElement.height],quality:{...d.QUALITY},counts:{...d.renderer.info.render,...d.renderer.info.memory},save:localStorage.getItem('sunny-acres-3d-v1')};},{preset,mode,candidate});
+   const result=await page.evaluate(({preset,mode,candidate})=>{const d=__dbg;return {preset,mode,candidate,firstPersonHands:!!d.camera.children.find(o=>o.userData.skin)?.visible,viewport:[innerWidth,innerHeight],buffer:[d.renderer.domElement.width,d.renderer.domElement.height],quality:{...d.QUALITY},counts:{...d.renderer.info.render,...d.renderer.info.memory},save:localStorage.getItem('sunny-acres-3d-v1')};},{preset,mode,candidate});
+   if(mode==='walk')assert.equal(result.firstPersonHands,true,'Walk captures stay in first person');
    assert.deepEqual(result.buffer,result.viewport,'full CSS drawing resolution');assert.equal(result.quality.cut,0,'no automatic rendering cuts');results.push({...result,capture});
    await page.evaluate(()=>{window.__captureHold=false;});
   }
