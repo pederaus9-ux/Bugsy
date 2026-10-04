@@ -1329,11 +1329,12 @@ export const ART_PATH = { p:"art/" };
 const artImg = (k, fallback) => `<img src="${ART_PATH.p}${k}.webp" alt="" onerror="this.replaceWith(document.createTextNode('${fallback}'))">`;
 
 export let panel = null;
-let lastPanelSig = "", selItem = null;
-export function openPanel(type, arg) { view.closeTrays(); if (!panel) sfx("pop"); panel = {type, arg}; renderPanel(); tutEvent("open:" + type + (type === "building" ? ":" + arg : "")); }
+let lastPanelSig = "", selItem = null, panelReturnFocus = null;
+export function openPanel(type, arg) { view.closeTrays(); if (!panel) { panelReturnFocus = document.activeElement; sfx("pop"); } panel = {type, arg}; renderPanel(); tutEvent("open:" + type + (type === "building" ? ":" + arg : "")); }
 export function closePanel() {
   panel = null; standUI = null; $("#panelRoot").innerHTML = "";
   if (popups.length && !view.busy()) openPanel(...popups.shift());
+  else { if (panelReturnFocus?.isConnected) panelReturnFocus.focus({preventScroll:true}); panelReturnFocus = null; }
 }
 
 function panelBuilding(bid) {
@@ -1536,14 +1537,19 @@ const promise = () => `<div class="promise"><b>💎 No real money. Ever.</b><div
   <ul><li>+2 💎 every level up</li><li>+1 💎 from the daily gift 🎁</li><li>+1 💎 every 10th order, and some orders pay 💎</li></ul></div>`;
 
 // Settings: sound, graphics, how the farm looks, the barn's colours, backup and the tutorial
-export const PREFS = {quality:"auto", bob:true};
+export const PREFS = {quality:"auto", bob:true, motion:"system"};
 try { Object.assign(PREFS, JSON.parse(localStorage.getItem(SAVE_KEY + "-prefs") || "{}")); } catch (e) {}
+if (!["system", "reduce", "full"].includes(PREFS.motion)) PREFS.motion = "system";
+const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+export const reducedMotion = () => PREFS.motion === "reduce" || (PREFS.motion !== "full" && !!motionQuery?.matches);
+const syncMotion = () => document.documentElement?.setAttribute?.("data-motion", reducedMotion() ? "reduce" : "full");
+motionQuery?.addEventListener?.("change", syncMotion); syncMotion();
 const savePrefs = () => { try { localStorage.setItem(SAVE_KEY + "-prefs", JSON.stringify(PREFS)); } catch (e) {} };
 function panelSettings() {
   const Q = [["auto", "✨ Auto"], ["high", "💎 Best"], ["balanced", "⚖️ Balanced"], ["battery", "🔋 Battery saver"]];
   const P = view.paintOptions;
   const sw = Object.keys(P).map(part => `<div class="prow" style="flex-wrap:wrap"><span>${part}</span><div class="swatches">${P[part].map(([name, css], i) =>
-    `<button class="sw ${(S.style[part] || 0) === i ? "on" : ""}" style="background:${css}" data-act="paint" data-k="${part}" data-i="${i}" title="${name}" aria-label="${part}: ${name}"></button>`).join("")}</div></div>`).join("");
+    `<button class="sw ${(S.style[part] || 0) === i ? "on" : ""}" style="background:${css}" data-act="paint" data-k="${part}" data-i="${i}" title="${name}" aria-label="${part}: ${name}" aria-pressed="${(S.style[part] || 0) === i}"></button>`).join("")}</div></div>`).join("");
   const acct = window.saAuth && window.saAuth.user; // player accounts (auth.js)
   return {title:"Settings", body:`${acct ? `<h4>Account</h4><div class="toggles"><span style="font-weight:800;align-self:center">👤 ${esc(acct.email || "")}</span>
       <button class="btn plain sm" data-act="signOut">🚪 Sign out</button></div>` : window.saAuth && window.saAuth.guest ? `<h4>Account</h4><div class="toggles"><span style="font-weight:800;align-self:center">🌱 Playing as a guest: this farm is saved on this phone only</span>
@@ -1559,9 +1565,11 @@ function panelSettings() {
       <button class="btn ${snd.buzz ? "" : "plain"} sm" data-act="buzz">${snd.buzz ? "📳 Vibration on" : "📳 Vibration off"}</button>
       ${"Notification" in window ? `<button class="btn ${PREFS.notify ? "" : "plain"} sm" data-act="notify">${PREFS.notify ? "🔔 Reminders on" : "🔕 Reminders off"}</button>` : ""}</div>
     ${"Notification" in window ? `<p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Reminders tell you when crops, animals or goods are ready, while the game is still open in the background.</p>` : ""}
-    <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}">${n}</button>`).join("")}</div>
+    <h4>Graphics</h4><div class="toggles">${Q.map(([k, n]) => `<button class="btn ${PREFS.quality === k ? "" : "plain"} sm" data-act="quality" data-k="${k}" aria-pressed="${PREFS.quality === k}">${n}</button>`).join("")}</div>
     <p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Auto adjusts the sharpness by itself to keep the game smooth${PREFS.quality === "auto" || !PREFS.quality ? ` (drawing at ${view.resolution()}% right now)` : ""}. Battery saver is gentlest on the battery.</p>
     <h4>Your farmer</h4><div class="toggles"><button class="btn sm" data-act="wardrobe">👕 Wardrobe</button></div>
+    <h4>Motion</h4><div class="toggles" aria-label="Motion preference">${[["system","Use device setting"],["reduce","Reduced motion"],["full","Full motion"]].map(([k,n]) => `<button class="btn ${PREFS.motion === k ? "" : "plain"} sm" data-act="motion" data-k="${k}" aria-pressed="${PREFS.motion === k}">${n}</button>`).join("")}</div>
+    <p class="muted" style="font-size:13px">Reduced motion removes camera sweeps, head bob, shaking and flying rewards. Your animals and weather keep moving.</p>
     <h4>Walking</h4>
     <div class="toggles" style="margin-top:6px"><button class="btn ${PREFS.bob !== false ? "" : "plain"} sm" data-act="bob">${PREFS.bob !== false ? "🚶 Head bob on" : "🚶 Head bob off (gentler)"}</button></div>
     <h4>Weather & time of day</h4><div class="toggles"><button class="btn sm" data-act="open" data-p="weather">🌤️ Weather settings</button></div>
@@ -1643,10 +1651,16 @@ export function renderPanel() {
     orders:panelOrders, barn:panelBarn, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D,
     quests:panelQuests, perk:panelPerk, visitor:panelVisitor, daily:panelDaily, away:panelAway}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
+  const focused = document.activeElement;
+  const focusKey = old?.parentElement.contains(focused) ? {id:focused.id, tag:focused.tagName, data:{...focused.dataset}} : null;
   $("#panelRoot").innerHTML = `<div class="scrim" data-act="closePanel"><div class="panel" role="dialog" aria-modal="true" aria-label="${v.title}">
     <div class="ribbon out">${v.title}</div><button class="xbtn" data-act="closePanel" aria-label="Close">✕</button>
     <div class="pbody">${v.body}</div></div></div>`;
   if (old) document.querySelector(".pbody").scrollTop = scroll;
+  if (focusKey) {
+    const replacement = [...document.querySelectorAll(".panel button,.panel input,.panel textarea,.panel select")].find(el => focusKey.id ? el.id === focusKey.id : el.tagName === focusKey.tag && Object.keys(focusKey.data).length && Object.entries(focusKey.data).every(([k,v]) => el.dataset[k] === v));
+    replacement?.focus({preventScroll:true});
+  } else if (!old) document.querySelector(".panel .xbtn").focus({preventScroll:true});
   lastPanelSig = panelSig();
   if (panel.type === "rename") { const b = $("#nameBox"); if (b) { b.focus(); b.select(); } }
 }
@@ -1759,6 +1773,7 @@ document.addEventListener("click", (e) => {
     case "notify": setReminders(!PREFS.notify); break;
     case "wardrobe": closePanel(); view.wardrobe(true); break;
     case "bob": PREFS.bob = PREFS.bob === false; savePrefs(); renderPanel(); break;
+    case "motion": if (["system","reduce","full"].includes(d.k)) { PREFS.motion = d.k; savePrefs(); syncMotion(); renderPanel(); } break;
     case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
     case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;
@@ -1793,6 +1808,12 @@ document.addEventListener("click", (e) => {
   }
 });
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && panel) { e.preventDefault(); e.stopPropagation(); closePanel(); view.closeTrays(); return; }
+  if (e.key === "Tab" && panel) {
+    const controls = [...document.querySelectorAll(".panel button,.panel input,.panel textarea,.panel select,.panel a[href]")].filter(el => !el.disabled && el.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (first && ((!document.querySelector(".panel").contains(document.activeElement)) || (e.shiftKey && document.activeElement === first) || (!e.shiftKey && document.activeElement === last))) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+  }
   if (e.key === "Escape") { closePanel(); view.closeTrays(); }
   if (e.key === "Enter" && e.target.id === "wxCity") useCity(e.target.value);
   if (e.key === "Enter" && e.target.id === "nameBox") document.querySelector('[data-act="nameOk"]').click();
@@ -2046,7 +2067,7 @@ export function start() {
   else if (how === "new") openPanel("welcome");
   else if (how === "unreadable") { openPanel("welcome"); notice("😟 Your farm on this phone couldn't be read, so a copy was kept. Signed in? Your cloud farm comes back by itself. If not, restore a backup in ⚙️ Settings."); }
   else if (S.tut == null) S.tut = TUT.length;
-  setInterval(tick, 1000);
+  setInterval(() => { if (!document.hidden) tick(); }, 1000);
   if (!WX.cur || Date.now() - WX.cur.t > 10 * 60e3) fetchWeather();
   setInterval(fetchWeather, 15 * 60e3);
   if (how === "3d") setTimeout(eventTick, 1500);

@@ -4,7 +4,7 @@
 // To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here;
 // Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
 //   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
-import {installAnalytics} from './analytics.js?v=1';
+import {installAnalytics} from './analytics.js?v=2';
 const firebaseConfig = {
   apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
   authDomain: "fir-config-18b64.firebaseapp.com",
@@ -45,7 +45,16 @@ function flushStats() {
     fb.F.addDoc(fb.F.collection(fb.db, "events"), {e, d:new Date().toLocaleDateString("en-CA")}).catch(() => { // offline: try again next time the game opens
       let done = {}; try { done = JSON.parse(ls.get(STATS_DONE) || "{}"); } catch (err) {} delete done[e]; ls.set(STATS_DONE, JSON.stringify(done)); }); }
 }
-let mode = "signin", fb = null, cloud = null;
+let mode = "signin", fb = null, cloud = null, focusTimer = 0;
+// A delayed default focus must never override a field or control already chosen.
+const cancelFocus = () => { clearTimeout(focusTimer); focusTimer = 0; };
+for (const event of ["focusin", "pointerdown", "keydown"]) gate.addEventListener(event, cancelFocus, true);
+document.addEventListener("keydown", (e) => {
+  if (gate.hidden || e.key !== "Tab") return;
+  const controls = [...gate.querySelectorAll("button,input")].filter(el => !el.disabled && el.getClientRects().length);
+  const first = controls[0], last = controls[controls.length - 1];
+  if (first && (!gate.contains(document.activeElement) || (e.shiftKey && document.activeElement === first) || (!e.shiftKey && document.activeElement === last))) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+});
 
 const ls = {
   get:(k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -70,6 +79,7 @@ const ERR = {
 const say = (text, ok) => { msg.textContent = text || ""; msg.classList.toggle("ok", !!ok); };
 
 function show(m) {
+  cancelFocus();
   try { window.saMetrics?.end(performance.now()); } catch {}
   mode = m; gate.hidden = false; say("");
   const t = {
@@ -86,6 +96,7 @@ function show(m) {
   const fields = m === "signin" || m === "register" || m === "reset";
   tabs.hidden = !(m === "signin" || m === "register");
   for (const b of tabs.querySelectorAll("button")) b.classList.toggle("on", b.dataset.mode === m);
+  for (const b of tabs.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.mode === m));
   $("fEmail").hidden = !fields; $("fPass").hidden = !(m === "signin" || m === "register"); $("fPass2").hidden = m !== "register";
   pass.autocomplete = m === "register" ? "new-password" : "current-password";
   choose.hidden = m !== "choose";
@@ -94,7 +105,9 @@ function show(m) {
   forgot.hidden = !(m === "signin" || m === "reset"); forgot.textContent = m === "reset" ? "← Back to sign in" : "Forgot your password?";
   guestBtn.hidden = !(m === "signin" || m === "register" || m === "offline");
   guestBtn.textContent = ls.get(GUEST) ? "🌱 Keep playing as a guest" : "🌱 Play as a guest";
-  if (fields) setTimeout(() => (email.value ? pass : email).focus(), 50);
+  if (fields && !window.matchMedia?.("(pointer: coarse)").matches) {
+    focusTimer = setTimeout(() => { focusTimer = 0; if (!gate.hidden && mode === m) (email.value ? pass : email).focus(); }, 50);
+  }
 }
 // "Welcome back!" is only for people who have played on this phone before
 const SEEN = "sa3d-seen";
