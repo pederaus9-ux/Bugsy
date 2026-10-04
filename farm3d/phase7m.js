@@ -136,7 +136,10 @@ function addFlowerMeadow(root) {
   const stemGeo=new THREE.CylinderGeometry(.018,.026,.42,5); stemGeo.translate(0,.21,0);
   const headGeo=new THREE.IcosahedronGeometry(.075,1);
   const stems=new THREE.InstancedMesh(stemGeo,new THREE.MeshStandardMaterial({color:0x3d8a32,roughness:.9}),count);
-  const heads=new THREE.InstancedMesh(headGeo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.75,vertexColors:true}),count);
+  // Instance colors are enabled by setColorAt; this geometry has no vertex colors.
+  // Enabling vertexColors as well reads a missing attribute and renders black.
+  const heads=new THREE.InstancedMesh(headGeo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.75}),count);
+  heads.name="Phase7M flower heads";
   const palette=[0xffd34c,0xffffff,0xf2a3c7,0xd7a6ff,0xff8f62,0xffef9b].map(x=>new THREE.Color(x));
   let i=0;
   while(i<count){
@@ -153,13 +156,16 @@ function addFlowerMeadow(root) {
 
 function addBarnIvy(root) {
   const R=seeded(177), n=58, geo=new THREE.SphereGeometry(.10,6,4);
-  const leaves=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({color:0x4b913a,roughness:.86,vertexColors:true}),n);
+  const leaves=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.86}),n);
+  leaves.name="Phase7M barn ivy";
   const greens=[0x39772f,0x4f9637,0x6aaa42,0x7eaa43].map(v=>new THREE.Color(v));
   for(let i=0;i<n;i++){
-    const side=i%2?1:-1, y=.8+R()*6.1;
-    const x=side*(3.72+R()*.22), z=5.54+(R()-.5)*.12;
+    // Two connected trails on the front wall, clear of doors, corner trim and roof.
+    // A fixed climb replaces scattered leaves suspended beyond the eaves.
+    const side=i%2?1:-1, climb=Math.floor(i/2), y=.82+climb*.092;
+    const x=side*(3.48+Math.sin(climb*.6)*.10+(R()-.5)*.05), z=5.71+(R()-.5)*.02;
     const s=.65+R()*.9;
-    setInst(leaves,i,x,y,z,s,s*.55,s*.35,R()*6.28,(R()-.5)*1.2,greens[Math.floor(R()*greens.length)]);
+    setInst(leaves,i,x,y,z,s,s*.55,s*.35,(R()-.5)*.3,(R()-.5)*1.2,greens[Math.floor(R()*greens.length)]);
   }
   leaves.castShadow=true; leaves.receiveShadow=true; root.add(leaves);
 }
