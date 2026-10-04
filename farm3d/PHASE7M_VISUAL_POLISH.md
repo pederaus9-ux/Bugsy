@@ -42,6 +42,9 @@ Preserve every failed attempt and do not weaken tests or thresholds.
 Require all existing hosted jobs at the final head, a specific owner merge
 approval, deployed source verification and actual S26 visual acceptance before
 closing this phase. Release-candidate stress remains Phase 7N.
+The expanded browser chain is partitioned across two independent core runners,
+with every original command preserved and both 20-minute job limits intact.
+All seven current-head jobs must pass, including the character/scene group.
 
 ## Local results and limits
 
