@@ -27,11 +27,21 @@ enable paid/verified economy as a side effect of subsequent work.
 
 ## Current work and next steps
 
-Phase 7J: anonymous bounded progress/performance reports and owner filters,
-documented in `PHASE7J_ANALYTICS.md`; branch `chatgpt/phase7j-player-summaries`
-rebased on the main above after SDK phone acceptance. Release/cache 36, auth query 17.
-Finish all five exact-head CI jobs, specific owner approval and merge/deploy
-verification before advancing to the next implementation PR.
+Phase 7J PR #46 is merged at `c1c88c34784971baf5a0807ba7a34a357646d293`.
+All five checks passed at head `a95a72f2d13eb6a4b8b158d9b044d569ac62c780`;
+tested and merged trees match, Pages passed and seven live files matched source.
+The owner directly confirmed Game and Dashboard: Both passed on the S26 Ultra.
+
+Phase 7K is active in the existing draft PR #47, branch
+`chatgpt/phase7k-measured-performance`, based on the merged main above.
+The optional local benchmark instruments a served copy, leaving production code
+unchanged. It separates CPU stages, full composer counters and actual asynchronous
+GPU timing where available. Desktop headless dispatch is uncapped and must never
+be presented as physical phone FPS, thermals or sustained battery acceptance.
+All 25 PC benchmark scenarios and current S26 short-session baseline are complete.
+No demonstrated constraint justifies production changes; rendering stays unchanged.
+Exact-head CI, merge approval and post-deploy phone acceptance remain pending.
+No specific PR #47 merge approval has been requested or received.
 
 Remaining program work:
 
