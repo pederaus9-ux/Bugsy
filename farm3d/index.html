@@ -2851,7 +2851,7 @@ function updateAim(t) {
 }
 function interact() {
   const h = aim; if (!h) return false;
-  handPunch(h.label === "Pet" ? "pat" : "reach");
+  handPunch(h.label === "Pet" ? "pat" : "reach", {Harvest:'harvest',Plant:'plant',Water:'water',Pet:'pet'}[h.label] || 'harvest');
   if (h.type === "plot" && h.label === "Harvest") { const crop = GS().plots[h.i].crop; if (harvestAt(h.i) === true) fpBurst(h.i, crop); return true; }
   if (h.type === "plot" && h.label === "Water") { if (G.waterPlot(h.i)) { squish(plots[h.i].g, .25); syncSoil(); } return true; }
   if (h.type === "animal" && h.label === "Pet") { petFacing(h.an); return true; }
@@ -2906,13 +2906,25 @@ function updateDoors(dt) {
 // ---------- sculpted first-person hands, sharing the farmer's skin/shirt colours ----------
 scene.add(camera);
 hands = createHands(std({color:0xd24d3f, roughness:.8}), std({color:0xf0c6a0, roughness:.7})); camera.add(hands);
+// Player farms load the authored rig with procedural hands during load/failure.
+// Keep the isolated control farm and visuallegacy comparison procedural unless
+// the explicit artHands review is selected.
+let authoredHands = null;
+const handParams = new URLSearchParams(location.search);
+if (!handParams.has('visuallegacy') && (!handParams.has('testfarm') || handParams.has('artHands'))) {
+  import('./art/authored-hands.js?v=2').then(m => { authoredHands = m.installAuthoredHands(camera, hands); })
+    .catch(error => { hands.userData.authoredLoadError = String(error.message || error); });
+}
 let punch = null;
-function handPunch(kind) { punch = {kind, t:0}; }
+function handPunch(kind, authoredKind) { punch = {kind, authoredKind, t:0}; }
 function updateHands(dt, t, tweenK) {
   if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
   const on = !!walk && !thirdPerson && !inBarn && tweenK > .75 && !photoMode;
-  hands.visible = on; if (!on) return;
+  hands.visible = on;
+  if (!on) { authoredHands?.update({visible:false}); return; }
   const w = walk, sp = w.vel.length(), sway = G.reducedMotion() ? 0 : Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
+  if (authoredHands?.update({visible:on, kind:punch?.authoredKind, phase:punch ? punch.t/.45 : 0,
+    time:t, sway, bob:w.bob*.6, reducedMotion:G.reducedMotion()})) { hands.visible=false; return; }
   const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
   poseHands(hands, pk, punch?.kind);
   for (const h of hands.children) {
@@ -3233,6 +3245,7 @@ let baitAt = 0;
 const baitMat = emojiMat("🌾");
 function throwBait() {
   if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;
+  if (authoredHands?.state.status === 'ready') handPunch('reach', 'feed');
   const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = groundY(walk.pos.x, walk.pos.y) + EYE - .35;
   const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);
   spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});

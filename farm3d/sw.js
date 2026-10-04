@@ -1,7 +1,7 @@
 // Keeps the 3D game on the phone so it opens quickly and plays offline.
 // (Named "sa3d-" so the 2D game's own clean-up never touches it.)
-const CACHE = "sa3d-v39";
-const SHELL = ["./", "index.html", "scene-polish.js?v=1", "features.js?v=1", "phase7m.js?v=3", "game.js?v=25", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=2", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js"];
+const CACHE = "sa3d-v40";
+const SHELL = ["./", "index.html", "scene-polish.js?v=1", "features.js?v=1", "phase7m.js?v=3", "game.js?v=25", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=2", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js", "art/authored-hands.js?v=2", "assets/hands/hands-candidate.glb?v=2", "lib/addons/loaders/GLTFLoader.js", "lib/addons/utils/BufferGeometryUtils.js", "lib/addons/utils/SkeletonUtils.js"];
 
 
 self.addEventListener("install", (e) => {
@@ -16,7 +16,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== self.location.origin) return;
-  const heavy = /\/(lib|art|tex)\//.test(url.pathname);
+  const heavy = /\/(lib|art|tex|assets)\//.test(url.pathname);
   const fromNet = () => fetch(e.request).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return res; });
   e.respondWith(heavy
     ? caches.match(e.request).then((hit) => { const net = fromNet().catch(() => hit); return hit || net; })

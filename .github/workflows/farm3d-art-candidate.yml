@@ -4,14 +4,23 @@ on:
     paths:
       - 'farm3d/assets/**'
       - 'farm3d/tools/build-barn.mjs'
+      - 'farm3d/tools/build-hands.py'
+      - 'farm3d/tools/capture-hands-study.cjs'
+      - 'farm3d/tools/capture-hands-game.cjs'
       - 'farm3d/tools/capture-barn-scene.cjs'
       - 'farm3d/lib/addons/loaders/**'
       - 'farm3d/lib/addons/utils/**'
       - 'farm3d/tests/barn-candidate.browser.cjs'
       - 'farm3d/tests/barn-scene.browser.cjs'
       - 'farm3d/tests/barn-validator.cjs'
+      - 'farm3d/tests/hands-validator.cjs'
+      - 'farm3d/tests/authored-hands.browser.cjs'
+      - 'farm3d/tests/hands-production.browser.cjs'
+      - 'farm3d/index.html'
+      - 'farm3d/sw.js'
       - 'farm3d/tests/package*.json'
       - 'farm3d/art/barn-scene-candidate.js'
+      - 'farm3d/art/authored-hands.js'
       - '.github/workflows/farm3d-art-candidate.yml'
   workflow_dispatch:
 permissions:
@@ -49,5 +58,44 @@ jobs:
         if: always()
         with:
           name: barn-candidate-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/barn*
+          path: |
+            farm3d/tests/artifacts/barn*
+          retention-days: 14
+  authored-hands:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Validate the actual authored hand export and bone clips
+        run: |
+          node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+          node farm3d/tests/hands-validator.cjs
+      - name: Capture all hand clips and verify clone ownership and cleanup
+        run: node farm3d/tools/capture-hands-study.cjs
+      - name: Verify the authored hand adapter in the isolated game
+        run: node farm3d/tests/authored-hands.browser.cjs
+      - name: Verify normal farms, load failures and actual offline cache migration
+        run: node farm3d/tests/hands-production.browser.cjs
+      - name: Capture full-resolution authored hands in the real farm
+        run: node farm3d/tools/capture-hands-game.cjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: authored-hands-${{ github.run_attempt }}
+          path: |
+            farm3d/tests/artifacts/hands-study/
+            farm3d/tests/artifacts/hands-game-captures/
+            farm3d/tests/artifacts/authored-hands*
+            farm3d/tests/artifacts/hands-production*
           retention-days: 14
