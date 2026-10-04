@@ -45,19 +45,24 @@ The merged cloud job's first registration failure was preserved. Its unchanged
 rerun passed every flow, recovery and actual SDK test. The owner directly replied
 Pass to the agreed S26 post-deployment check on 2026-10-03.
 
-Phase 7L is now active on `chatgpt/phase7l-mobile-accessibility`, based on that
-merged main. Focused repairs cover touch targets, side insets, panel/keyboard
-focus, reduced motion and hidden/foreground recovery. See
-`PHASE7L_MOBILE_ACCESSIBILITY.md`. Exact-head checks, specific merge approval,
-deployment and physical acceptance remain required.
+Phase 7L PR #48 is merged at `60021c47cf307f73764e11875a459720917bbc89`.
+All six exact-head and all six merged-main jobs passed, including complete
+emulator game flows, recovery and the actual production SDK. Tested and merged
+trees match; Pages passed and eight live files matched source. The owner supplied
+post-deployment S26 screenshots and directly clarified that the phone check was
+already provided. This closes 7L; individual motion/auth subchecks were not
+separately reported, and long battery/thermal stress remains 7N.
+
+Phase 7M is active on `chatgpt/phase7m-visual-polish`, based on that merged main.
+Both owner screenshots (overview and first person) are visual baselines. The first
+focused pass addresses sculpted first-person hands, cultivated earth and the path.
+Review actual game captures and measured costs before expanding scope.
 
 Remaining program work:
 
-1. 7L: mobile accessibility/UX checks, targets, safe areas, reduced motion and
-   foreground/background battery behavior, with focused repairs where needed.
-2. 7M: audit remaining visual/animation gaps after the merged animal and farmer
+1. 7M: audit remaining visual/animation gaps after the merged animal and farmer
    work; improve concrete remaining issues without replacing working systems.
-3. 7N: release-candidate stress suite, including real device long sessions,
+2. 7N: release-candidate stress suite, including real device long sessions,
    multiple-device cloud conflicts, offline/reconnect, PWA updates and thermal
    acceptance. Request the human-only tests in the phone chat when ready.
 
