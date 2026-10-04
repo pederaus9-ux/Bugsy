@@ -16,10 +16,12 @@ Cows now use 3D by default. That initial prototype status is historical:
 PR #40 subsequently integrated all six animal species and characters, PR #41
 added their browser smoke coverage, and PR #42 rebuilt the farmer/villagers.
 PR #43 separately repaired cloud recovery. Current continuation starts from
-merged main `92113b07` (2026-10-03). The owner reported a headless-looking horse
+merged main `9f8dd5b2` (2026-10-03, PR #44). The owner reported a headless-looking horse
 and requested visual verification of every species in the phone chat, then
 authorized the next workstream here. The focused animal visual repair and its
-six-species evidence are documented in `ANIMAL_VISUAL_POLISH.md`.
+six-species evidence are documented in `ANIMAL_VISUAL_POLISH.md` and merged in
+PR #44. Phase 7J analytics is now in progress. See `PROGRAM_STATUS.md` for the
+current delivery record, original SDK-label discrepancy and remaining gates.
 See `CHARACTERS3D_PROTOTYPE.md` for the original cow prototype.
 
 ## Rules for every phase

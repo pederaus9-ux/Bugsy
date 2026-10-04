@@ -4,6 +4,7 @@
 // To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here;
 // Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
 //   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
+import {installAnalytics} from './analytics.js?v=1';
 const firebaseConfig = {
   apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
   authDomain: "fir-config-18b64.firebaseapp.com",
@@ -32,11 +33,13 @@ const STATS_DONE = "sa3d-stats";
 const statQueue = [];
 window.saStats = (name) => {
   if (/[?&](testfarm|shot)\b/.test(location.search)) return; // the test farm and picture-taking don't count
+  try { window.saMetrics?.milestone(name); } catch {}
   let done = {}; try { done = JSON.parse(ls.get(STATS_DONE) || "{}"); } catch (e) {}
   if (done[name]) return; done[name] = 1; ls.set(STATS_DONE, JSON.stringify(done));
   statQueue.push(name); flushStats();
 };
 function flushStats() {
+  void window.saMetrics?.flush();
   const fb = window.saAuth.fb; if (!fb) return; // Firebase isn't loaded yet: they're sent once it is
   while (statQueue.length) { const e = statQueue.shift();
     fb.F.addDoc(fb.F.collection(fb.db, "events"), {e, d:new Date().toLocaleDateString("en-CA")}).catch(() => { // offline: try again next time the game opens
@@ -49,6 +52,7 @@ const ls = {
   set:(k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
   del:(k) => { try { localStorage.removeItem(k); } catch (e) {} },
 };
+window.saMetrics = installAnalytics();
 const ERR = {
   "auth/invalid-email":"That email address doesn't look right.",
   "auth/missing-email":"Type your email address.",
@@ -66,6 +70,7 @@ const ERR = {
 const say = (text, ok) => { msg.textContent = text || ""; msg.classList.toggle("ok", !!ok); };
 
 function show(m) {
+  try { window.saMetrics?.end(performance.now()); } catch {}
   mode = m; gate.hidden = false; say("");
   const t = {
     checking:["🌻 Sunny Acres", "Checking your account…"],
@@ -102,6 +107,7 @@ function farmNote() {
   return "🌻 Played before? Your farm is safe. Sign in or make an account and it will be waiting for you.";
 }
 function open(user) {
+  try { window.saMetrics?.end(performance.now()); } catch {}
   window.saAuth.user = {email:user.email, uid:user.uid};
   ls.set(REMEMBER, JSON.stringify(window.saAuth.user)); ls.set(SEEN, "1");
   ls.del(GUEST); window.saAuth.guest = false; banner(false); window.saStats("account");
@@ -112,6 +118,7 @@ function open(user) {
 // No account: the farm is saved on this phone only. It is a farm "from before accounts" (no owner), so if the guest makes an
 // account later, linkFarm moves it into the new account like any other (or lets them choose, if the account has a farm already).
 function playAsGuest() {
+  try { window.saMetrics?.end(performance.now()); } catch {}
   const owner = ls.get(OWNER) || "";
   ls.set(GUEST, "1"); ls.set(SEEN, "1"); window.saStats("guest");
   if (owner) { // the farm on this phone belongs to an account: keep it safe for them and start the guest on a new farm
