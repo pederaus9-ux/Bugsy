@@ -17,11 +17,13 @@
   --fun:"Lilita One","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
   --body:"Nunito","Segoe UI",system-ui,sans-serif;
   color-scheme:light;
+  --safe-left:env(safe-area-inset-left,0px); --safe-right:env(safe-area-inset-right,0px);
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#9cc3e6;font-family:var(--body);color:var(--ink);
   -webkit-user-select:none;user-select:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
-button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;min-width:44px;min-height:44px}
 [hidden]{display:none!important}
 canvas{display:block;width:100vw;height:100vh;touch-action:none}
 .out{color:#fff;text-shadow:0 2px 0 var(--wood-dk),2px 0 0 var(--wood-dk),-2px 0 0 var(--wood-dk),0 -2px 0 var(--wood-dk),1.5px 1.5px 0 var(--wood-dk),-1.5px 1.5px 0 var(--wood-dk),1.5px -1.5px 0 var(--wood-dk),-1.5px -1.5px 0 var(--wood-dk)}
@@ -450,6 +452,28 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
   .wsheet{position:absolute;right:0;top:0;bottom:0;width:min(440px,56vw);max-height:none;border-top:0;border-left:4px solid var(--wood);border-radius:22px 0 0 22px;padding-top:12px}
   .wtabs{flex-wrap:wrap;overflow:visible}
 }
+/* Keep controls clear of side notches as well as the home indicator. */
+.hud{padding-left:calc(12px + var(--safe-left));padding-right:calc(12px + var(--safe-right))}
+.side{left:calc(12px + var(--safe-left))}.dock{right:calc(10px + var(--safe-right))}
+.walkbtns{right:calc(12px + var(--safe-right))}.stick{left:calc(16px + var(--safe-left))}
+.tray{left:calc(10px + var(--safe-left));right:calc(10px + var(--safe-right))}
+.scrim{padding:calc(36px + var(--safe-top)) calc(18px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(18px + var(--safe-left))}
+.panel{max-height:100%}.pbody{min-height:0}
+.authgate{padding:calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left))}
+.authpw input{padding-right:56px}.authpw button{right:4px}
+.fbbox{left:calc(12px + var(--safe-left));right:calc(12px + var(--safe-right));max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px);overflow:auto}
+.wsheet{padding-right:calc(12px + var(--safe-right));padding-bottom:calc(10px + var(--safe-bottom))}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #123b50;outline-offset:3px}
+@media (orientation:landscape) and (max-height:560px){
+  .side{grid-template-rows:repeat(4,44px)}.dock button{transform:none}
+  .tray{left:calc(116px + var(--safe-left));right:calc(170px + var(--safe-right))}
+  .wtop{padding-left:calc(14px + var(--safe-left))}
+}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html[data-motion="reduce"] button:active{transform:none!important}
+@media(prefers-reduced-motion:reduce){
+  html:not([data-motion="full"]) *,html:not([data-motion="full"]) *::before,html:not([data-motion="full"]) *::after{animation:none!important;transition:none!important}
+}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
 </head>
@@ -600,7 +624,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
 <div id="panelRoot"></div>
 <input type="file" id="restoreInput" accept=".json,.txt,application/json,text/plain" hidden>
 <!-- accounts: this window covers the game until the player signs in (only once auth.js has a real Firebase config) -->
-<div class="authgate" id="authGate" hidden>
+<div class="authgate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
   <form class="authcard" id="authForm" novalidate>
     <div class="authlogo" aria-hidden="true">🌻</div>
     <h2 id="authTitle">Welcome!</h2>
@@ -621,7 +645,7 @@ body.visiting .side,body.visiting .dock,body.visiting .chips,body.visiting .mone
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=17"></script>
+<script type="module" src="auth.js?v=18"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -629,8 +653,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=24"; window.__gameVer = 24; // bump this version whenever game.js changes
-import {ANALYTICS_RELEASE} from './analytics.js?v=1'; window.__saRelease = ANALYTICS_RELEASE;
+import * as G from "./game.js?v=25"; window.__gameVer = 25; // bump this version whenever game.js changes
+import {ANALYTICS_RELEASE} from './analytics.js?v=2'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
 import {FEATURES} from "./features.js?v=1";
@@ -647,6 +671,7 @@ const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/"
 // ---------------- renderer ----------------
 bootStep("starting the graphics");
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+renderer.domElement.tabIndex = 0; renderer.domElement.setAttribute("aria-label", "Farm view");
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
@@ -2424,6 +2449,7 @@ function setWalk(on, startAt, fp) {
     { const hn = document.getElementById("walkHint"); hn.classList.remove("fade"); hn.hidden = false; clearTimeout(hn.t1); clearTimeout(hn.t2);
       hn.t1 = setTimeout(() => hn.classList.add("fade"), 3500); hn.t2 = setTimeout(() => { hn.hidden = true; }, 4400); }
     document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
+    renderer.domElement.focus({preventScroll:true});
     ultra(true);
   } else {
     const w = walk; walk = null;
@@ -2453,7 +2479,7 @@ function updateWalk(dt) {
   const ox = w.pos.x, oz = w.pos.y;
   w.pos.x += w.vel.x * dt; w.pos.y += w.vel.y * dt; collideWalker(w.pos);
   const moved = Math.hypot(w.pos.x - ox, w.pos.y - oz); w.walked += moved;
-  w.bob += ((G.PREFS.bob === false ? 0 : Math.sin(w.walked * 4.4) * .045) * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // a gentle step bob (Settings can turn it off)
+  w.bob += ((G.PREFS.bob === false || G.reducedMotion() ? 0 : Math.sin(w.walked * 4.4) * .045) * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // Settings or device reduced motion can turn it off
   // footsteps: grass, dirt (fields and the path) or wood (the stall and the order board), faster when running
   // The stride is driven by the ground really covered (walls stop it), and lengthens from a .72 m walking step to a
   // 1.05 m running step; each footstep sound lands as a foot does.
@@ -2660,7 +2686,7 @@ stick.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) moveJo
 const endJoy = (e) => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ""; };
 stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
 addEventListener("keydown", (e) => {
-  if (e.target.closest && e.target.closest("input,textarea")) return;
+  if (G.panel || (e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (["Enter","Space"].includes(e.code) && e.target.closest("button"))))) return;
   if (e.code === "Escape") { setWalk(false); setEdit(false); }
   if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); if ((e.code === "Space" || e.code === "KeyF") && !e.repeat) throwBait(); }
 });
@@ -2681,6 +2707,7 @@ function surfaceAt(x, z) {
 let camTween = null;
 function startTween(dur = 1.2) { camTween = {t0:null, dur:dur * 1000, p:camera.position.clone(), q:camera.quaternion.clone(), fov:camera.fov}; }
 function applyTween() { // after the new view has placed the camera: blend from where it was
+  if (G.reducedMotion()) { camTween = null; return 1; }
   if (!camTween) return 1;
   if (camTween.t0 == null) camTween.t0 = performance.now(); // the clock starts on the first frame drawn (switching modes can take a moment)
   const k = Math.min(1, (performance.now() - camTween.t0) / camTween.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
@@ -2824,7 +2851,7 @@ function interact() {
   return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view
 }
 actBtn.addEventListener("click", (e) => { e.stopPropagation(); interact(); });
-addEventListener("keydown", (e) => { if (!rotatePaused && walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && e.target.closest("input,textarea"))) interact(); });
+addEventListener("keydown", (e) => { if (!rotatePaused && !G.panel && walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (e.code === "Enter" && e.target.closest("button"))))) interact(); });
 // the harvest, up close: juice and leaves fly past your face
 function fpBurst(i, crop) {
   const at = plots[i].g.position.clone().setY(.9), cp = camera.position;
@@ -2889,11 +2916,11 @@ function updateHands(dt, t, tweenK) {
   if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
   const on = !!walk && !thirdPerson && !inBarn && tweenK > .75 && !photoMode;
   hands.visible = on; if (!on) return;
-  const w = walk, sp = w.vel.length(), sway = Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
+  const w = walk, sp = w.vel.length(), sway = G.reducedMotion() ? 0 : Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
   const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
   for (const h of hands.children) {
     const b = h.userData.base, sd = h.userData.side;
-    h.position.set(b.x + sd * sway, b.y + w.bob * .6 + Math.sin(t * 1.6 + sd) * .004 + Math.abs(sway) * .5, b.z);
+    h.position.set(b.x + sd * sway, b.y + w.bob * .6 + (G.reducedMotion() ? 0 : Math.sin(t * 1.6 + sd) * .004) + Math.abs(sway) * .5, b.z);
     if (punch && sd === 1) { if (punch.kind === "pat") { h.position.y += pk * .12; h.position.z -= pk * .12; h.rotation.x = -.2 - pk * .6; } else { h.position.z -= pk * .22; h.position.y += pk * .06; } }
     else h.rotation.x = -.2;
   }
@@ -3281,6 +3308,7 @@ function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v
 let lastTap = {x:innerWidth / 2, y:innerHeight / 2, t:0};
 addEventListener("pointerdown", (e) => { lastTap = {x:e.clientX, y:e.clientY, t:performance.now()}; if (e.target.closest && e.target.closest("button")) G.buzz(6); }, true);
 function flyTo(kind, n, at) {
+  if (G.reducedMotion()) return; // counters and reward text still update
   const target = document.getElementById(kind === "coin" ? "coins" : kind === "xp" ? "lvl" : "gems"); if (!target || document.hidden || visiting) return;
   const r = target.closest(".cnt, .star").getBoundingClientRect(), tx = r.left + (kind === "xp" ? r.width / 2 : 18), ty = r.top + r.height / 2;
   const from = at || (performance.now() - lastTap.t < 4000 ? lastTap : {x:innerWidth / 2, y:innerHeight * .55});
@@ -3685,7 +3713,7 @@ addEventListener("keydown", (e) => { if (e.key === "Escape" && photoMode) setPho
 let intro = null;
 function playIntro() {
   let seen = false; try { seen = !!localStorage.getItem("sa3d-intro"); localStorage.setItem("sa3d-intro", "1"); } catch (e) {}
-  if (seen || (qs.has("debug") && !qs.has("intro")) || qs.has("shot")) return;
+  if (seen || G.reducedMotion() || (qs.has("debug") && !qs.has("intro")) || qs.has("shot")) return;
   const el = document.getElementById("intro"); el.hidden = false; document.body.classList.add("introing");
   const to = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
   const done = () => { if (el.hidden) return; el.classList.add("out-go"); setTimeout(() => { el.hidden = true; el.classList.remove("out-go"); document.body.classList.remove("introing"); }, 800); };
@@ -3695,6 +3723,7 @@ function playIntro() {
 }
 function updateIntro() {
   if (!intro) return;
+  if (G.reducedMotion()) { const b = intro.to; Object.assign(cam, {yaw:b.yaw, pitch:b.pitch, dist:b.dist}); cam.target.copy(b.target); Object.assign(view, {yaw:b.yaw, pitch:b.pitch, dist:b.dist}); view.target.copy(b.target); intro.done(); intro = null; return; }
   if (intro.t0 == null) { intro.t0 = performance.now(); setTimeout(intro.done, intro.dur); } // the clock starts once the farm is actually on screen
   const k = Math.min(1, (performance.now() - intro.t0) / intro.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, a = intro.from, b = intro.to;
   cam.yaw = a.yaw + (b.yaw - a.yaw) * e; cam.pitch = a.pitch + (b.pitch - a.pitch) * e; cam.dist = a.dist + (b.dist - a.dist) * e; cam.target.lerpVectors(a.target, b.target, e);
@@ -3746,19 +3775,26 @@ function updateGame(t, dt) {
   for (const o of decorObjs) if (o.userData.card) o.userData.card.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   updatePointer();
 }
-setInterval(() => { syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
-setInterval(() => { GV.applyWeather(); syncHoliday(); }, 60000);
+setInterval(() => { if (document.hidden) return; syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);
 // the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
 setInterval(() => {
+  if (document.hidden) return;
   const rainy = !!(PRESET.rain), night = !!PRESET.night;
   G.ambience(wind, rainy);
-  if (document.hidden || photoMode) return;
+  if (photoMode) return;
   if (!rainy && Math.random() < (night ? .45 : .3)) G.sfxAt(night ? "cricket" : "bird", Math.random() * 2 - 1, .4 + Math.random() * .6);
   if (animals.length && Math.random() < .1) { const a = animals[Math.floor(Math.random() * animals.length)], sc = toScreen(a.g.position);
     if (sc && a.act !== "sleeping") G.sfxAt(a.kind, THREE.MathUtils.clamp(sc.x / innerWidth * 2 - 1, -1, 1), Math.min(1, 12 / camera.position.distanceTo(a.g.position)) * .7); }
 }, 1000);
 
 bootStep("loading your farm");
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) return;
+  keys.clear(); joyF = lookF = joyId = null; joy.x = joy.y = 0; joy.run = false; if (walk) walk.vel.set(0,0);
+  knob.style.transform = ""; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = "";
+  ptr.clear(); clearTimeout(pressTimer); pressTimer = 0; farmDrag = null; seedTray.classList.remove("away");
+});
 // ---------------- start the game ----------------
 G.ART_PATH.p = ART;
 if (qs.has("shot") && !qs.has("loud")) G.opts.quiet = true;
@@ -3801,6 +3837,7 @@ if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 
 const clock = new THREE.Timer(); let shotFrames = 0;
 frame.drawn = 0;
 function frame() {
+  if (document.hidden) { perf?.pause(); window.saMetrics?.pause(); frame.lastT = undefined; requestAnimationFrame(frame); return; }
   if (rotatePaused && frame.okAt) { perf?.pause(); window.saMetrics?.pause(); requestAnimationFrame(frame); return; } // portrait: nothing to draw behind the rotate screen
   if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
   clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
@@ -3809,6 +3846,7 @@ function frame() {
   if (walk) updateWalk(dt);
   updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); updateDoors(dt); updateSquish(performance.now());
   updateDrops(dt); updateBaits(); drawTrail();
+  if (G.reducedMotion()) shake = 0;
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   if (LOCO) locoParade(t);
   for (const a of animals) a.update(dt, t);

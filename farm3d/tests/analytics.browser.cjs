@@ -30,7 +30,7 @@ async function mock(page){await page.route('**/*',route=>{const u=route.request(
    const s=await h.setup(viewport,false,`analytics-dashboard-${viewport.width}`),p=s.page;await mock(p);
    await p.addInitScript(()=>{window.__owner=true;const date=n=>new Date(Date.now()-n*864e5).toISOString().slice(0,10);window.__eventDocs=[];
     const put=(n,e,d)=>{for(let i=0;i<n;i++)window.__eventDocs.push({id:String(window.__eventDocs.length).padStart(6,'0'),data:{e,d}});};
-    put(270,'a2_36_apg_sess_00a',date(0));put(20,'a2_36_ipa_sess_21c',date(2));put(10,'a2_34_ddg_open_0',date(3));put(10,'open',date(0));put(10,'a2_36_apg_ord_0',date(15));put(10,'a2_36_apg_harv_0',date(60));
+    put(270,'a2_37_apg_sess_00a',date(0));put(20,'a2_37_ipa_sess_21c',date(2));put(10,'a2_34_ddg_open_0',date(3));put(10,'open',date(0));put(10,'a2_37_apg_ord_0',date(15));put(10,'a2_37_apg_harv_0',date(60));
    });
    await p.goto(h.base+'farm3d/players.html');await p.waitForFunction(()=>document.querySelector('#reportStatus')?.textContent.includes('Partial results'));
    assert.equal((await p.evaluate(()=>__queries.length)),1);await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('All available'));
@@ -41,7 +41,7 @@ async function mock(page){await page.route('**/*',route=>{const u=route.request(
    assert.equal(await p.evaluate(()=>__queries.length),2,'local filters issue no queries');
    await p.locator('#reportPeriod').selectOption('30');await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('310 matching reports'));
    await p.locator('#reportPeriod').selectOption('all');await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('320 matching reports'));
-   await p.locator('#reportVersion').selectOption('36');await p.locator('#reportPlatform').selectOption('android');assert.match(await p.locator('#reportStatus').textContent(),/290 matching reports/);
+   await p.locator('#reportVersion').selectOption('37');await p.locator('#reportPlatform').selectOption('android');assert.match(await p.locator('#reportStatus').textContent(),/290 matching reports/);
    const fit=await p.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('#reports select')].map(e=>({height:e.getBoundingClientRect().height,width:e.getBoundingClientRect().width}))}));assert.equal(fit.overflow,false);assert.ok(fit.controls.every(c=>c.height>=44&&c.width>0));
    await p.locator('#reports').scrollIntoViewIfNeeded();await p.screenshot({path:path.join(artifacts,`analytics-dashboard-${viewport.width}-full.png`),fullPage:true});
    // A superseded response must not overwrite the newly selected period.

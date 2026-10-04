@@ -1,4 +1,4 @@
-import {ANALYTICS_RELEASE, decodeReport, summarizeReports, MILESTONES, FPS_LABELS, DURATIONS, utcDay} from './analytics.js?v=1';
+import {ANALYTICS_RELEASE, decodeReport, summarizeReports, MILESTONES, FPS_LABELS, DURATIONS, utcDay} from './analytics.js?v=2';
 export const PAGE_SIZE=250, READ_LIMIT=2000;
 export function dateCutoff(period, now=Date.now()) { return period === 'all' ? null : utcDay(now-(Number(period)-1)*864e5); }
 

@@ -142,6 +142,37 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  accessibility:
+    name: Mobile accessibility + motion + focus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Phone targets, panel fit, motion, auth focus and hidden rendering
+        working-directory: farm3d/tests
+        run: npm run test:accessibility
+      - name: Save accessibility screenshots and failure evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-accessibility-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
   firebase-rules:
     name: Firestore rules + economy functions + game flows + save recovery (emulator)
     runs-on: ubuntu-24.04

@@ -8,7 +8,7 @@ approval requests and physical phone tests go to phone chat
 
 ## Verified delivered work
 
-Main `8c711efcc3a9e39e1453ac3bb4d140c66fda4184` contains PR #44's six-species
+Main `1bb571bd7d6ec5cd89baf7d2c4aecd81bf4786a8` contains PR #44's six-species
 anatomy repair and visual coverage. All four checks passed at its exact PR head;
 Pages deployed the merge and normal game source matched the tested files.
 The owner physically accepted PR #44 on the S26 Ultra (phone reply: All good).
@@ -32,26 +32,32 @@ All five checks passed at head `a95a72f2d13eb6a4b8b158d9b044d569ac62c780`;
 tested and merged trees match, Pages passed and seven live files matched source.
 The owner directly confirmed Game and Dashboard: Both passed on the S26 Ultra.
 
-Phase 7K is active in the existing draft PR #47, branch
-`chatgpt/phase7k-measured-performance`, based on the merged main above.
+Phase 7K PR #47 is merged at `1bb571bd7d6ec5cd89baf7d2c4aecd81bf4786a8`.
 The optional local benchmark instruments a served copy, leaving production code
 unchanged. It separates CPU stages, full composer counters and actual asynchronous
 GPU timing where available. Desktop headless dispatch is uncapped and must never
 be presented as physical phone FPS, thermals or sustained battery acceptance.
 All 25 PC benchmark scenarios and current S26 short-session baseline are complete.
 No demonstrated constraint justifies production changes; rendering stays unchanged.
-Exact-head CI, merge approval and post-deploy phone acceptance remain pending.
-No specific PR #47 merge approval has been requested or received.
+All five exact-head checks passed. The owner specifically approved the merge;
+tested and merged trees match, Pages passed and eight live files matched source.
+The merged cloud job's first registration failure was preserved. Its unchanged
+rerun passed every flow, recovery and actual SDK test. The owner directly replied
+Pass to the agreed S26 post-deployment check on 2026-10-03.
+
+Phase 7L is now active on `chatgpt/phase7l-mobile-accessibility`, based on that
+merged main. Focused repairs cover touch targets, side insets, panel/keyboard
+focus, reduced motion and hidden/foreground recovery. See
+`PHASE7L_MOBILE_ACCESSIBILITY.md`. Exact-head checks, specific merge approval,
+deployment and physical acceptance remain required.
 
 Remaining program work:
 
-1. 7K: measure current performance; optimize only a demonstrated constraint.
-   The S26 baseline was strong. An evidence-based no-change result is valid.
-2. 7L: mobile accessibility/UX checks, targets, safe areas, reduced motion and
+1. 7L: mobile accessibility/UX checks, targets, safe areas, reduced motion and
    foreground/background battery behavior, with focused repairs where needed.
-3. 7M: audit remaining visual/animation gaps after the merged animal and farmer
+2. 7M: audit remaining visual/animation gaps after the merged animal and farmer
    work; improve concrete remaining issues without replacing working systems.
-4. 7N: release-candidate stress suite, including real device long sessions,
+3. 7N: release-candidate stress suite, including real device long sessions,
    multiple-device cloud conflicts, offline/reconnect, PWA updates and thermal
    acceptance. Request the human-only tests in the phone chat when ready.
 
