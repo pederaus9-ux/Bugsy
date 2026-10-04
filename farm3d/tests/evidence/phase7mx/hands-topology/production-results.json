@@ -1,0 +1,392 @@
+{
+  "cacheName": "sa3d-v40",
+  "assetHash": "18bbcefd808131e7d8040c8f6126e6a18bd3ed0fc5b76c7a6cbd10c70a99e503",
+  "results": [
+    {
+      "name": "normal farm keeps procedural hands visible during actual pending model request"
+    },
+    {
+      "name": "normal save, wardrobe, controlled cache migration and offline authored reload",
+      "before": {
+        "coins": 60,
+        "crop": "wheat",
+        "guest": true
+      },
+      "migration": {
+        "keys": [
+          "foreign-farm-cache",
+          "sa3d-v40"
+        ],
+        "foreign": "preserve",
+        "controlled": true
+      },
+      "cached": {
+        "entries": [
+          {
+            "item": "./",
+            "status": 200
+          },
+          {
+            "item": "index.html",
+            "status": 200
+          },
+          {
+            "item": "scene-polish.js?v=1",
+            "status": 200
+          },
+          {
+            "item": "features.js?v=1",
+            "status": 200
+          },
+          {
+            "item": "phase7m.js?v=3",
+            "status": 200
+          },
+          {
+            "item": "game.js?v=25",
+            "status": 200
+          },
+          {
+            "item": "analytics.js?v=3",
+            "status": 200
+          },
+          {
+            "item": "perf.js?v=1",
+            "status": 200
+          },
+          {
+            "item": "cow3d.js?v=2",
+            "status": 200
+          },
+          {
+            "item": "live3d.js?v=2",
+            "status": 200
+          },
+          {
+            "item": "sheep3d.js",
+            "status": 200
+          },
+          {
+            "item": "horse3d.js",
+            "status": 200
+          },
+          {
+            "item": "dog3d.js",
+            "status": 200
+          },
+          {
+            "item": "cat3d.js",
+            "status": 200
+          },
+          {
+            "item": "chicken3d.js",
+            "status": 200
+          },
+          {
+            "item": "farmer3d.js",
+            "status": 200
+          },
+          {
+            "item": "quadruped3d.js",
+            "status": 200
+          },
+          {
+            "item": "characters3d.html",
+            "status": 200
+          },
+          {
+            "item": "manifest.webmanifest",
+            "status": 200
+          },
+          {
+            "item": "lib/three.module.min.js",
+            "status": 200
+          },
+          {
+            "item": "lib/three.core.min.js",
+            "status": 200
+          },
+          {
+            "item": "art/authored-hands.js?v=2",
+            "status": 200
+          },
+          {
+            "item": "assets/hands/hands-candidate.glb?v=2",
+            "status": 200
+          },
+          {
+            "item": "lib/addons/loaders/GLTFLoader.js",
+            "status": 200
+          },
+          {
+            "item": "lib/addons/utils/BufferGeometryUtils.js",
+            "status": 200
+          },
+          {
+            "item": "lib/addons/utils/SkeletonUtils.js",
+            "status": 200
+          }
+        ],
+        "assetHash": "18bbcefd808131e7d8040c8f6126e6a18bd3ed0fc5b76c7a6cbd10c70a99e503",
+        "keys": [
+          "http://127.0.0.1:58590/farm3d/",
+          "http://127.0.0.1:58590/farm3d/index.html",
+          "http://127.0.0.1:58590/farm3d/scene-polish.js?v=1",
+          "http://127.0.0.1:58590/farm3d/features.js?v=1",
+          "http://127.0.0.1:58590/farm3d/phase7m.js?v=3",
+          "http://127.0.0.1:58590/farm3d/game.js?v=25",
+          "http://127.0.0.1:58590/farm3d/analytics.js?v=3",
+          "http://127.0.0.1:58590/farm3d/perf.js?v=1",
+          "http://127.0.0.1:58590/farm3d/cow3d.js?v=2",
+          "http://127.0.0.1:58590/farm3d/live3d.js?v=2",
+          "http://127.0.0.1:58590/farm3d/sheep3d.js",
+          "http://127.0.0.1:58590/farm3d/horse3d.js",
+          "http://127.0.0.1:58590/farm3d/dog3d.js",
+          "http://127.0.0.1:58590/farm3d/cat3d.js",
+          "http://127.0.0.1:58590/farm3d/chicken3d.js",
+          "http://127.0.0.1:58590/farm3d/farmer3d.js",
+          "http://127.0.0.1:58590/farm3d/quadruped3d.js",
+          "http://127.0.0.1:58590/farm3d/characters3d.html",
+          "http://127.0.0.1:58590/farm3d/manifest.webmanifest",
+          "http://127.0.0.1:58590/farm3d/lib/three.module.min.js",
+          "http://127.0.0.1:58590/farm3d/lib/three.core.min.js",
+          "http://127.0.0.1:58590/farm3d/art/authored-hands.js?v=2",
+          "http://127.0.0.1:58590/farm3d/assets/hands/hands-candidate.glb?v=2",
+          "http://127.0.0.1:58590/farm3d/lib/addons/loaders/GLTFLoader.js",
+          "http://127.0.0.1:58590/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+          "http://127.0.0.1:58590/farm3d/lib/addons/utils/SkeletonUtils.js"
+        ]
+      }
+    },
+    {
+      "name": "normal game remains playable after real missing asset",
+      "expectedErrors": [
+        "HTTP 404: http://127.0.0.1:58590/farm3d/assets/hands/hands-candidate.glb?v=2"
+      ]
+    },
+    {
+      "name": "normal game remains playable after real missing module",
+      "expectedErrors": [
+        "HTTP 404: http://127.0.0.1:58590/farm3d/art/authored-hands.js?v=2"
+      ]
+    }
+  ],
+  "requests": [
+    "/farm3d/?debug&portrait",
+    "/farm3d/auth.js?v=19",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/lib/addons/postprocessing/ShaderPass.js",
+    "/farm3d/lib/addons/postprocessing/EffectComposer.js",
+    "/farm3d/lib/addons/postprocessing/RenderPass.js",
+    "/farm3d/lib/addons/postprocessing/UnrealBloomPass.js",
+    "/farm3d/lib/addons/postprocessing/OutputPass.js",
+    "/farm3d/game.js?v=25",
+    "/farm3d/friends.js?v=7",
+    "/farm3d/verified.js?v=1",
+    "/farm3d/features.js?v=1",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/lib/addons/postprocessing/Pass.js",
+    "/farm3d/lib/addons/shaders/CopyShader.js",
+    "/farm3d/lib/addons/postprocessing/MaskPass.js",
+    "/farm3d/lib/addons/shaders/LuminosityHighPassShader.js",
+    "/farm3d/lib/addons/shaders/OutputShader.js",
+    "/farm3d/canon.js?v=1",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/cow3d.js?v=2",
+    "/farm3d/live3d.js?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/sheep3d.js",
+    "/farm3d/horse3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/farmer3d.js",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/tex/leaves.webp",
+    "/farm3d/tex/bark.jpg",
+    "/farm3d/tex/grass.jpg",
+    "/farm3d/lib/addons/loaders/GLTFLoader.js",
+    "/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+    "/farm3d/lib/addons/utils/SkeletonUtils.js",
+    "/farm3d/assets/hands/hands-candidate.glb?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/sw.js",
+    "/farm3d/",
+    "/farm3d/index.html",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/features.js?v=1",
+    "/farm3d/",
+    "/farm3d/index.html",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/game.js?v=25",
+    "/farm3d/features.js?v=1",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/perf.js?v=1",
+    "/farm3d/game.js?v=25",
+    "/farm3d/cow3d.js?v=2",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/live3d.js?v=2",
+    "/farm3d/sheep3d.js",
+    "/farm3d/perf.js?v=1",
+    "/farm3d/cow3d.js?v=2",
+    "/farm3d/horse3d.js",
+    "/farm3d/live3d.js?v=2",
+    "/farm3d/sheep3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/farmer3d.js",
+    "/farm3d/horse3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/characters3d.html",
+    "/farm3d/farmer3d.js",
+    "/farm3d/manifest.webmanifest",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/characters3d.html",
+    "/farm3d/manifest.webmanifest",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/assets/hands/hands-candidate.glb?v=2",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/lib/addons/loaders/GLTFLoader.js",
+    "/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+    "/farm3d/assets/hands/hands-candidate.glb?v=2",
+    "/farm3d/lib/addons/utils/SkeletonUtils.js",
+    "/farm3d/lib/addons/loaders/GLTFLoader.js",
+    "/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+    "/farm3d/lib/addons/utils/SkeletonUtils.js",
+    "/farm3d/?debug&portrait",
+    "/farm3d/auth.js?v=19",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/lib/addons/postprocessing/EffectComposer.js",
+    "/farm3d/game.js?v=25",
+    "/farm3d/lib/addons/postprocessing/RenderPass.js",
+    "/farm3d/lib/addons/postprocessing/UnrealBloomPass.js",
+    "/farm3d/lib/addons/postprocessing/OutputPass.js",
+    "/farm3d/lib/addons/postprocessing/ShaderPass.js",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/friends.js?v=7",
+    "/farm3d/verified.js?v=1",
+    "/farm3d/features.js?v=1",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/lib/addons/shaders/CopyShader.js",
+    "/farm3d/canon.js?v=1",
+    "/farm3d/lib/addons/postprocessing/MaskPass.js",
+    "/farm3d/lib/addons/postprocessing/Pass.js",
+    "/farm3d/lib/addons/shaders/LuminosityHighPassShader.js",
+    "/farm3d/lib/addons/shaders/OutputShader.js",
+    "/farm3d/cow3d.js?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/live3d.js?v=2",
+    "/farm3d/sheep3d.js",
+    "/farm3d/horse3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/farmer3d.js",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/tex/leaves.webp",
+    "/farm3d/tex/bark.jpg",
+    "/farm3d/tex/grass.jpg",
+    "/farm3d/lib/addons/loaders/GLTFLoader.js",
+    "/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+    "/farm3d/lib/addons/utils/SkeletonUtils.js",
+    "/farm3d/assets/hands/hands-candidate.glb?v=2",
+    "/farm3d/sw.js",
+    "/farm/icon-192.png",
+    "/farm3d/sw.js",
+    "/farm3d/?debug&portrait",
+    "/farm3d/auth.js?v=19",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/lib/addons/postprocessing/EffectComposer.js",
+    "/farm3d/lib/addons/postprocessing/RenderPass.js",
+    "/farm3d/lib/addons/postprocessing/UnrealBloomPass.js",
+    "/farm3d/lib/addons/postprocessing/OutputPass.js",
+    "/farm3d/lib/addons/postprocessing/ShaderPass.js",
+    "/farm3d/game.js?v=25",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/friends.js?v=7",
+    "/farm3d/verified.js?v=1",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/features.js?v=1",
+    "/farm3d/lib/addons/postprocessing/Pass.js",
+    "/farm3d/lib/addons/shaders/CopyShader.js",
+    "/farm3d/lib/addons/postprocessing/MaskPass.js",
+    "/farm3d/lib/addons/shaders/LuminosityHighPassShader.js",
+    "/farm3d/lib/addons/shaders/OutputShader.js",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/canon.js?v=1",
+    "/farm3d/cow3d.js?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/live3d.js?v=2",
+    "/farm3d/sheep3d.js",
+    "/farm3d/horse3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/farmer3d.js",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/tex/leaves.webp",
+    "/farm3d/tex/bark.jpg",
+    "/farm3d/tex/grass.jpg",
+    "/farm3d/lib/addons/loaders/GLTFLoader.js",
+    "/farm3d/lib/addons/utils/BufferGeometryUtils.js",
+    "/farm3d/lib/addons/utils/SkeletonUtils.js",
+    "/farm3d/assets/hands/hands-candidate.glb?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/?debug&portrait",
+    "/farm3d/auth.js?v=19",
+    "/farm3d/lib/three.module.min.js",
+    "/farm3d/lib/addons/postprocessing/EffectComposer.js",
+    "/farm3d/lib/addons/postprocessing/RenderPass.js",
+    "/farm3d/lib/addons/postprocessing/UnrealBloomPass.js",
+    "/farm3d/lib/addons/postprocessing/OutputPass.js",
+    "/farm3d/lib/addons/postprocessing/ShaderPass.js",
+    "/farm3d/game.js?v=25",
+    "/farm3d/analytics.js?v=3",
+    "/farm3d/friends.js?v=7",
+    "/farm3d/verified.js?v=1",
+    "/farm3d/features.js?v=1",
+    "/farm3d/scene-polish.js?v=1",
+    "/farm3d/phase7m.js?v=3",
+    "/farm3d/lib/addons/shaders/CopyShader.js",
+    "/farm3d/lib/addons/postprocessing/MaskPass.js",
+    "/farm3d/lib/addons/postprocessing/Pass.js",
+    "/farm3d/lib/addons/shaders/LuminosityHighPassShader.js",
+    "/farm3d/lib/addons/shaders/OutputShader.js",
+    "/farm3d/lib/three.core.min.js",
+    "/farm3d/canon.js?v=1",
+    "/farm3d/cow3d.js?v=2",
+    "/farm3d/live3d.js?v=2",
+    "/farm/icon-192.png",
+    "/farm3d/sheep3d.js",
+    "/farm3d/horse3d.js",
+    "/farm3d/dog3d.js",
+    "/farm3d/cat3d.js",
+    "/farm3d/chicken3d.js",
+    "/farm3d/farmer3d.js",
+    "/farm3d/quadruped3d.js",
+    "/farm3d/art/authored-hands.js?v=2",
+    "/farm3d/tex/leaves.webp",
+    "/farm3d/tex/bark.jpg",
+    "/farm3d/tex/grass.jpg",
+    "/farm/icon-192.png"
+  ],
+  "failed": false
+}

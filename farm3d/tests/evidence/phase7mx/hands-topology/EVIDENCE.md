@@ -82,3 +82,43 @@ repository-root HTTP server and timed out before loading. Its log/failure is
 retained in hands-polish-runtime1 and hands-preparation/polish-runtime1.log.
 Serving the same asset from its repository path passes (hands-polish-runtime2);
 the server boundary and default timeout were not changed.
+Production integration revision:
+Normal player farms now request authored-hands.js?v=2 and the same polished GLB
+with ?v=2. Testfarm without artHands and visuallegacy keep the existing procedural
+comparison; all original assertions remain. sa3d-v40 pre-caches the entire actual
+loader/module/GLB graph. Cache consistency additionally recognizes nested module
+paths, so a stale nested version cannot bypass the existing checks.
+
+The new production browser fixture passes a normal level-1 guest farm, pending
+HTTP model/legacy visibility, ready authored/legacy hiding, shared wardrobe
+materials, skin and crop/coins save reload. It registers the actual production
+worker explicitly on secure-context localhost (deployed auto-registration is
+HTTPS-only), removes old sa3d-v39 while preserving a foreign cache, verifies every
+shell response and the exact cached GLB SHA256, then reopens offline with both
+browser offline and server responses disabled. Missing GLB and missing module
+HTTP requests both retain playable procedural hands and planting/saving.
+
+production-results.json and production-normal/offline.png are from the successful
+local normal-farm test. These two pictures use the normal reduced software-GPU
+test buffer (DPR 0.5), not the full-buffer art comparison or a physical phone.
+All 53 core units, the unchanged scene-polish 844/1280/visuallegacy tests and the
+authored adapter at both sizes pass locally on this production revision.
+
+Failure records are retained in workspace outputs/phase7m. The first offline
+fixture assumed Chrome would make no worker-update request; Chrome still probed
+sw.js. The revised proof cuts off the local server and asserts zero served
+responses instead. Attempt 2 passed offline and missing-GLB behavior but timed
+out before the final missing-module boot; its trace also captured the new init
+script accessing about:blank storage. The fixture now guards the origin and
+closes each completed game context before starting the next case. Attempt 3
+passes every case with the same boot/assertion limits and unchanged game code.
+
+Hosted d65da3f: all seven regression jobs pass. Combined art run 37233910105
+completed all hand stages and barn ownership/disposal, then exceeded the existing
+20-minute job limit during the final full-buffer barn captures. Full logs,
+available artifacts and the explicit timeout annotation remain preserved under
+pr52-d65da3f-*. Hand and barn checks now run as separate jobs, each with the same
+20-minute limit; no checks, assertions or captures were removed. The production
+fixture is added to the hand job. This revision requires all nine exact-head
+hosted checks. Owner artwork/merge approval and physical device acceptance remain
+open; nothing is merged/live and no match to the unseen reference is claimed.

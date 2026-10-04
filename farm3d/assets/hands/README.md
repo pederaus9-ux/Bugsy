@@ -7,10 +7,12 @@ The external reference-image rights and bytes are not represented by this study.
 Blender and the glTF exporter are tools, not incorporated model assets; the
 runtime loader retains the existing Three.js license in `lib/THREE-LICENSE.txt`.
 
-This is a technical candidate, available only in the isolated test farm, not accepted by the
-owner. The original reference sheet has not reached the PC for comparison.
-The sandbox adapter shares wardrobe colors, maps actual actions and retains the legacy load-failure fallback. Production promotion/cache integration, final real-game regression,
-hosted exact-head checks and physical S26 acceptance remain required.
+This draft proposes the authored hands in normal player farms. It is not accepted
+or deployed. The original reference sheet has not reached the PC for comparison.
+The adapter shares wardrobe colors, maps actual actions and retains the legacy
+hands during loading or failure. Versioned module/GLB and the loader graph are
+pre-cached by sa3d-v40. Hosted exact-head checks, owner artwork/merge approval
+and physical S26 acceptance remain required.
 
 `hands-source.blend` contains a connected palm/wrist/thumb/finger surface per
 hand, tapered sleeves/cuffs, independent left/right joint chains and six clips.
@@ -41,7 +43,20 @@ GLTFLoader/SkeletonUtils, checks all six clips and neutral reset, independent
 cloned bones, four draws, fewer than 6,000 triangles, shared-resource ownership
 and cleanup. The studio captures are not the actual farm or phone acceptance.
 
-Review `?testfarm&debug&artHands&portrait` and choose Walk. Normal player farms never load this candidate. `art/authored-hands.js` owns the entire exported scene and its skin/geometry resources, borrows wardrobe materials without disposing them, and samples bone channels absolutely to prevent paused action/offset accumulation. `tests/authored-hands.browser.cjs` verifies real harvest, all six poses, all skin colors, thirty real wardrobe rebuilds, failure fallback and idempotent cleanup. `tools/capture-hands-game.cjs` captures the actual farm composer at 844x390/1280x720 with no quality cuts. Sandbox-only review does not close owner approval, production/offline or physical-device gates.
+Normal farms load the candidate by default. Review the isolated farm with
+`?testfarm&debug&artHands&portrait` and choose Walk. `testfarm` without `artHands`
+and `visuallegacy` retain the procedural comparison. `art/authored-hands.js` owns
+the exported scene, borrows wardrobe materials without disposing them and samples
+bone channels absolutely. `tests/authored-hands.browser.cjs` verifies real harvest,
+six poses, six skins, thirty wardrobe rebuilds, fallback and idempotent cleanup.
+`tests/hands-production.browser.cjs` uses a normal guest farm and the actual
+service worker: saved crop/coins/clothing, old-cache migration, foreign-cache
+preservation, exact cached GLB hash, offline reload with zero server responses,
+and real missing-module/model fallback. Its localhost worker registration is
+explicit because deployed auto-registration requires HTTPS. Account/cloud tests
+remain in the separate Firebase emulator job. `tools/capture-hands-game.cjs`
+captures the actual farm composer at full 844x390/1280x720 buffers with no quality
+cuts. Browser results are not owner approval or physical-device acceptance.
 
 Earlier attempts and failures are retained in workspace `outputs/phase7m`:
 finger/thumb socket twists, four parent-transform validator warnings, initial

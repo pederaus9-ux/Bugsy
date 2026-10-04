@@ -62,7 +62,7 @@ try{for(const width of [844,1280]){
  assert(poses.find(p=>p.kind==='pet').wrist.some((n,i)=>Math.abs(n-poses[0].wrist[i])>.01));
  await p.evaluate(()=>{__handController.update({visible:true,kind:'harvest',phase:.5});__dbg.renderer.render(__dbg.scene,__dbg.camera);});
  await p.screenshot({path:path.join(artifacts,'authored-hands-'+width+'-harvest.png')});
- const ownership=await p.evaluate(async()=>{const d=__dbg,root=__handRoot,legacy=d.camera.children.find(o=>o.userData.skin),mod=await import('./art/authored-hands.js?v=1');
+ const ownership=await p.evaluate(async()=>{const d=__dbg,root=__handRoot,legacy=d.camera.children.find(o=>o.userData.skin),mod=await import('./art/authored-hands.js?v=2');
    const T=await import('./lib/three.module.min.js');
    const {GLTFLoader}=await import('./lib/addons/loaders/GLTFLoader.js');
    const late=await new GLTFLoader().loadAsync('./assets/hands/hands-candidate.glb');

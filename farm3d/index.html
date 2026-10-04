@@ -2906,10 +2906,13 @@ function updateDoors(dt) {
 // ---------- sculpted first-person hands, sharing the farmer's skin/shirt colours ----------
 scene.add(camera);
 hands = createHands(std({color:0xd24d3f, roughness:.8}), std({color:0xf0c6a0, roughness:.7})); camera.add(hands);
-// Review the authored asset in the isolated farm before promoting the artwork.
+// Player farms load the authored rig with procedural hands during load/failure.
+// Keep the isolated control farm and visuallegacy comparison procedural unless
+// the explicit artHands review is selected.
 let authoredHands = null;
-if (new URLSearchParams(location.search).has('testfarm') && new URLSearchParams(location.search).has('artHands')) {
-  import('./art/authored-hands.js?v=1').then(m => { authoredHands = m.installAuthoredHands(camera, hands); })
+const handParams = new URLSearchParams(location.search);
+if (!handParams.has('visuallegacy') && (!handParams.has('testfarm') || handParams.has('artHands'))) {
+  import('./art/authored-hands.js?v=2').then(m => { authoredHands = m.installAuthoredHands(camera, hands); })
     .catch(error => { hands.userData.authoredLoadError = String(error.message || error); });
 }
 let punch = null;

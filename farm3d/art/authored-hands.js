@@ -2,7 +2,7 @@ import * as THREE from '../lib/three.module.min.js';
 import {GLTFLoader} from '../lib/addons/loaders/GLTFLoader.js';
 
 const names=['idle','harvest','plant','water','pet','feed'];
-const asset=new URL('../assets/hands/hands-candidate.glb',import.meta.url);
+const asset=new URL('../assets/hands/hands-candidate.glb?v=2',import.meta.url);
 
 function release(scene) {
   const geometries=new Set(),materials=new Set(),skeletons=new Set();
@@ -13,7 +13,7 @@ function release(scene) {
   skeletons.forEach(o=>o.dispose());scene.removeFromParent();
 }
 
-// A review adapter owns the complete exported scene and borrows the existing
+// The adapter owns the complete exported scene and borrows the existing
 // wardrobe materials. The legacy hands remain available during load/failure.
 export function installAuthoredHands(camera, fallback, {load=()=>new GLTFLoader().loadAsync(asset.href)}={}) {
   let scene=null,clips=null,arms=null,disposed=false;

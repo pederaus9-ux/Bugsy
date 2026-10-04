@@ -80,10 +80,26 @@ topology/rig study on branch `chatgpt/phase7mx-authored-hands`: editable source,
 32 bones, six real clips, 5,952 triangles, four surfaces and two material slots.
 Pinned Khronos and policy pass locally, as do real GLTFLoader clip/reset/clone
 checks at 844/1280 and thirty rendered clone lifetimes without resource growth.
-A sandbox-only adapter (`?testfarm&artHands`) now loads the complete rig, shares wardrobe materials, maps the six visual actions and keeps the current hands as a load-failure fallback. Normal player farms retain their current hands. Original reference bytes are still
+A draft adapter now loads the complete rig in normal farms, shares wardrobe
+materials, maps six visual actions and keeps the current hands during loading
+or failure. `?testfarm&artHands` provides isolated review; testfarm without
+artHands and visuallegacy preserve the procedural comparison. The live game
+still has its previous hands until approval and deployment. Original reference bytes are still
 unavailable here despite the phone assistant's Library/file-ID claims.
-Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer captures pass. All eight hosted checks passed the preceding PR52 head 013db7b. An independently reviewed second visual study now reduces/lowers the arms, rounds the palm/fingertips, emphasizes cuffs and staggers the harvest grip while preserving the rig/material slots. Its local checks pass; fresh hosted validation and direct owner artwork review remain open. Final design comparison and production promotion/cache
-integration, exact-head hosted checks, specific merge approval and physical
+Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer
+captures pass. All eight hosted checks passed preceding PR52 head 013db7b.
+The second study reduces/lowers the arms, rounds palm/fingertips, emphasizes cuffs
+and staggers harvest while preserving the rig/material slots. Its seven hosted
+regression jobs passed at d65da3f; the combined art job exceeded its unchanged
+20-minute limit during final barn captures after all hand checks passed.
+The same tests now run in separate hand/barn jobs with the same limits.
+Normal-game/offline integration is prepared in this draft: sa3d-v40 pre-caches
+the complete hand graph; local normal-farm save/wardrobe, old-cache migration,
+foreign-cache preservation, exact cached GLB hash, zero-server-response offline
+reload and actual missing-module/model fallback pass. All 53 core units and
+unchanged adapter/comparison browser tests pass. Failure evidence is preserved.
+Fresh hosted validation and direct owner artwork review remain open. Final design
+comparison, exact-head hosted checks, specific merge approval and physical
 acceptance remain required. Broader visual work and 7N remain unfinished.
 Both owner screenshots (overview and first person) are visual baselines. Direct
 phone replies approved broader art direction. The combined pass includes hands,

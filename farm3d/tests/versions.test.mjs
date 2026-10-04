@@ -8,7 +8,15 @@ const dir = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, dir), "utf8");
 const html = read("index.html"), sw = read("sw.js");
 const shell = JSON.parse(sw.match(/const SHELL = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
-const imports = [...html.matchAll(/["'(]\.?\/?([a-z0-9-]+\.js)\?v=(\d+)["')]/gi)].map(m => ({file: m[1], v: +m[2]}));
+const versionedImports = source => [...source.matchAll(/["'(](?:\.\/)?((?:[a-z0-9-]+\/)*[a-z0-9-]+\.js)\?v=(\d+)["')]/gi)].map(m => ({file: m[1], v: +m[2]}));
+const imports = versionedImports(html);
+
+test("nested authored module versions cannot evade the cache consistency check", () => {
+  const nested = versionedImports("import('./art/authored-hands.js?v=2'); import './game.js?v=25';");
+  assert.deepEqual(nested, [{file:'art/authored-hands.js',v:2},{file:'game.js',v:25}]);
+  const cached = 'art/authored-hands.js?v=1', [file,v] = cached.split('?v=');
+  assert.notEqual(nested.find(i=>i.file===file).v,+v,'a nested stale cached version is detected');
+});
 
 test("every versioned script is imported with one version only", () => {
   const seen = {};

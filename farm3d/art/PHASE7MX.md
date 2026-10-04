@@ -8,15 +8,19 @@ program passes. Accepted source baseline: e080aee5b1d3ca714bb4baa642634353f43352
 
 MX-01 first art specification: implemented here; actual asset review remains open.
 MX-02 policy/preflight plus original code-authored barn GLB and sandbox GLTFLoader
-now exist in draft PR51, rebased onto main after PR50 merged. Pinned Khronos validation and an experimental
+now exist from merged PR51. Pinned Khronos validation and an experimental
 material/yard study are being reviewed. Blender source, baked/KTX2 maps, optimizer,
 decoders, LODs, production integration and physical acceptance remain pending.
 MX-04/05/06 have an initial barn/ground/planting proof slice; all remain unaccepted.
 PR51 also contains a bounded production vegetation repair: the real ivy/flower
 materials no longer request missing vertex colors, and ivy stays on the front wall
 below the eaves. A GPU readback regression verifies actual colors and placement.
-The module/cache release is phase7m v3 / sa3d-v39; deployment awaits approval.
-MX-03 hands and the remaining production gates remain pending. The replacement
+The module/cache release phase7m v3 / sa3d-v39 is deployed; the short owner
+phone refresh check remains pending. MX-03 authored hands exist in draft PR52:
+connected Blender surfaces, 32 joints, six clips and normal-game/offline
+integration proposed with sa3d-v40. Local production/fallback/save/cache checks
+pass; fresh hosted checks, direct owner art/merge and device acceptance remain.
+The remaining production gates stay open. The replacement
 barn/yard is still sandbox-only; this repair does not integrate it into gameplay.
 
 ## Art direction
