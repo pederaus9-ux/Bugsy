@@ -56,7 +56,10 @@ def point(side, x, y, z, bend=False):
         theta = .7*min(1,max(0,y/.025))
         y = dy*math.cos(theta)-dz*math.sin(theta)
         z = .07+dy*math.sin(theta)+dz*math.cos(theta)
-    return (side * (.22 + x), .44 + y, -.23 + z)
+    # Reduce each arm around its own lateral anchor, keeping the center view
+    # open without pulling the left/right hands together. Apply the same map
+    # to skin and joints so the exported bind pose remains coherent.
+    return (side * (.22 + x*.89), .44 + y*.89, -.27 + z*.89)
 
 for side, label in [(-1, 'L'), (1, 'R')]:
     bone(label + '_arm', point(side, 0, -.20, .03), point(side, 0, 0, .07))
@@ -137,18 +140,18 @@ for side, label in [(-1, 'L'), (1, 'R')]:
         verts.append(point(side, *p, bend=bend_skin)); weights.append(mapping)
         return len(verts)-1
     # Two continuous palm surfaces, connected wrist and branched finger tubes.
-    rows = [(-.045, .025, .063, .014), (0, .026, .071, .014),
-            (.025, .035, .086, .015), (.050, .041, .096, .015),
-            (.070, .043, .100, .015), (.093, .041, .100, .014),
-            (.115, .040, .098, .012)]
+    rows = [(-.045, .025, .063, .015), (0, .026, .071, .016),
+            (.025, .034, .086, .018), (.050, .040, .096, .018),
+            (.070, .042, .100, .018), (.093, .041, .100, .017),
+            (.115, .040, .098, .013)]
     top, bottom = [], []
     for row, (y, width, z, thick) in enumerate(rows):
         upper, lower = [], []
         for col in range(12):
             x = width * (col/11*2-1)
-            arch = .003*(1-(x/width)**2)
+            arch = .007*(1-(x/width)**2)
             upper.append(vertex((x, y, z+thick+arch), {label+'_wrist': 1}))
-            lower.append(vertex((x, y, z-thick), {label+'_wrist': 1}))
+            lower.append(vertex((x, y, z-thick-arch*.35), {label+'_wrist': 1}))
         top.append(upper); bottom.append(lower)
     for row in range(6):
         for col in range(11):
@@ -165,9 +168,10 @@ for side, label in [(-1, 'L'), (1, 'R')]:
     for f, length in enumerate([.064, .073, .068, .051]):
         col = f*3
         old = top[-1][col:col+3] + list(reversed(bottom[-1][col:col+3]))
-        cx = sum(verts[i][0]/side-.22 for i in old)/6
+        # Socket center in authoring coordinates, before the common size map.
+        cx = rows[-1][1]*((col+1)/11*2-1)
         for r, t in enumerate([.12, .32, .52, .76, .97]):
-            taper = 1-.31*t
+            taper = 1-.18*t
             # All digits are volumetric tubes sharing the palm's actual vertices.
             ring = []
             for k in range(6):
@@ -203,9 +207,10 @@ for side, label in [(-1, 'L'), (1, 'R')]:
     # Connected tapered sleeve with rolled cuff; one surface/material per arm.
     rings = []
     for y, rx, rz, z in [(-.21,.044,.042,.029),(-.16,.042,.040,.04),
-                         (-.065,.037,.036,.063),(-.037,.036,.034,.071),
-                         (-.027,.041,.038,.074),(-.008,.040,.037,.079),
-                         (.001,.034,.029,.080)]:
+                         (-.065,.037,.036,.063),(-.037,.035,.032,.071),
+                         (-.027,.046,.042,.074),(-.014,.046,.042,.078),
+                         (-.010,.034,.030,.080),(-.005,.034,.030,.080),
+                         (.001,.030,.027,.080)]:
         ring = []
         for k in range(8):
             angle = math.tau*k/8
@@ -227,13 +232,21 @@ for name in ['idle','harvest','plant','water','pet','feed']:
             pb.location = (0,0,0)
             if '_finger' in pb.name:
                 f = int(pb.name.split('_finger')[1].split('_')[0])
+                joint = int(pb.name.rsplit('_',1)[1])
                 curl = {'idle':.025,'harvest':.68,'plant':.48,'water':.26,'pet':.04,'feed':.39}[name]
+                if name=='harvest':
+                    # Offset digit closure and emphasize the middle joints:
+                    # a rounded grab rather than one uniformly bent plate.
+                    curl *= [1.08,1,.89,.81][f]*[.75,1.12,.76][joint]
                 if pb.name.startswith('L') and name in ['harvest','plant','pet']:
                     curl *= .18
                 pb.rotation_euler.x = -phase*curl
                 pb.rotation_euler.z = phase*(f-1.5)*(.04 if name=='pet' else .01)
             elif '_thumb' in pb.name:
                 pb.rotation_euler.y = phase*({'harvest':.34,'plant':.21,'feed':.23}.get(name,.04))
+                if name=='harvest' and pb.name.startswith('R'):
+                    pb.rotation_euler.y = phase*(.5 if pb.name.endswith('0') else .38)
+                    pb.rotation_euler.x = -phase*(.16 if pb.name.endswith('0') else .06)
             elif '_wrist' in pb.name:
                 pb.rotation_euler.x = phase*({'water':-.16,'feed':-.12,'pet':.08}.get(name,.025))
             pb.keyframe_insert('rotation_euler',frame=frame,group=pb.name)

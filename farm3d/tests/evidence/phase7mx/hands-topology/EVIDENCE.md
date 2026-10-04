@@ -5,15 +5,15 @@ phone-chat reference sheet was unavailable on this PC; no visual match to that
 unseen image is claimed. Normal player farms still use their existing hands.
 
 Two independent local Blender 4.5.14 exports produced identical GLB bytes:
-`e5123c2d08842326efe1d6d94612399f07ae7c9d88d294a001518cfbcd9f3b69`.
+`18bbcefd808131e7d8040c8f6126e6a18bd3ed0fc5b76c7a6cbd10c70a99e503`.
 Source `.blend` and modeling recipe are included with the asset.
 
 | Measurement | Legacy hands | Candidate |
 | --- | ---: | ---: |
 | Draws | 6 | 4 |
-| Triangles | 3,888 | 5,696 |
+| Triangles | 3,888 | 5,952 |
 | Geometry resources | 6 | 4 |
-| Export size | procedural | 287,492 bytes |
+| Export size | procedural | 294,160 bytes |
 | Asset image textures | 0 | 0 |
 | Skeleton joints | 0 | 32 |
 
@@ -56,3 +56,29 @@ capture now wait for the actual visible authored hands/hidden fallback state,
 using the existing default wait timeout and identical visibility assertions.
 The full-resolution art inspector selects the game's supported High preference
 in its isolated browser and asserts full buffers, zero cuts and empty cut steps.
+
+All eight hosted jobs passed the preceding 013db7b version (regression run
+37230769629 and expanded art run 37230769651). Complete logs/artifacts are
+retained under outputs/phase7m/pr52-013db7b-*. This is historical validation,
+not approval or exact-head evidence for the revised model.
+
+The current local revision reduces each arm by 11% around its lateral anchor,
+lowers the rest presentation, rounds the palm/fingertips, gives the rolled cuff
+two additional support loops, and offsets the four harvest fingers with stronger
+thumb opposition. Cost grows by 256 triangles to 5,952, still below the unchanged
+6,000 limit. Draw/geometry/material/bone counts are unchanged. Two exports are
+byte-identical at the hash above; strict Khronos has zero findings. Actual
+GLTFLoader six-clip/reset/clone/30-lifetime checks, the unchanged game adapter
+at both sizes, all eight full CSS farm captures, and 52 original core units pass
+locally. Fresh hosted validation is required before readiness.
+
+This pass follows independently inspected captures and advisory phone-assistant
+observations. There is no new direct human design or merge approval. Normal-game
+promotion remains pending. The original generated reference bytes remain unseen;
+older phone farm screenshots are baselines, not that missing reference.
+
+The first polished studio invocation incorrectly supplied an export outside its
+repository-root HTTP server and timed out before loading. Its log/failure is
+retained in hands-polish-runtime1 and hands-preparation/polish-runtime1.log.
+Serving the same asset from its repository path passes (hands-polish-runtime2);
+the server boundary and default timeout were not changed.

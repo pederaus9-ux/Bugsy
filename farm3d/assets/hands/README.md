@@ -14,7 +14,7 @@ hosted exact-head checks and physical S26 acceptance remain required.
 
 `hands-source.blend` contains a connected palm/wrist/thumb/finger surface per
 hand, tapered sleeves/cuffs, independent left/right joint chains and six clips.
-Thirty-two bones; 5,696 triangles; four surfaces; two material slots; 287,492-byte
+Thirty-two bones; 5,952 triangles; four surfaces; two material slots; 294,160-byte
 untextured GLB. Max three normalized vertex influences in the skin surfaces.
 Base topology checks: one connected component per mesh, zero boundary edges,
 zero non-manifold edges. Model is a starting topology study, not final art.
@@ -48,3 +48,12 @@ finger/thumb socket twists, four parent-transform validator warnings, initial
 edge-on rest pose, and a false zero-texture cleanup assertion. r186's lazy shared
 DFG lookup is warmed before resource baselining; zero asset-owned resource growth
 remains required. No production test threshold or timeout was weakened.
+
+The second visual study reduces each arm 11% around its own lateral anchor and
+lowers the presentation, rounds the palm/fingertips, adds two cuff support loops,
+and staggers harvest finger joints with stronger thumb opposition. The 32-bone
+rig, four surfaces, two wardrobe material slots and six clips are preserved.
+This is an independently reviewed polish pass under the existing art-work scope;
+the phone assistant's critique is advisory, not direct owner design approval.
+No match to the unseen original reference is claimed. All eight hosted checks
+passed the preceding 013db7b version; the revised bytes require fresh hosted checks.

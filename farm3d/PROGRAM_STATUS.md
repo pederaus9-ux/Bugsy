@@ -77,12 +77,12 @@ All seven merged-main checks and Pages passed, and eighteen live files match
 source. The short S26 refresh question remains pending; earlier phone images
 do not verify the new module/cache. Authored hands now have an original Blender
 topology/rig study on branch `chatgpt/phase7mx-authored-hands`: editable source,
-32 bones, six real clips, 5,696 triangles, four surfaces and two material slots.
+32 bones, six real clips, 5,952 triangles, four surfaces and two material slots.
 Pinned Khronos and policy pass locally, as do real GLTFLoader clip/reset/clone
 checks at 844/1280 and thirty rendered clone lifetimes without resource growth.
 A sandbox-only adapter (`?testfarm&artHands`) now loads the complete rig, shares wardrobe materials, maps the six visual actions and keeps the current hands as a load-failure fallback. Normal player farms retain their current hands. Original reference bytes are still
 unavailable here despite the phone assistant's Library/file-ID claims.
-Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer captures pass. Final design comparison and production promotion/cache
+Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer captures pass. All eight hosted checks passed the preceding PR52 head 013db7b. An independently reviewed second visual study now reduces/lowers the arms, rounds the palm/fingertips, emphasizes cuffs and staggers the harvest grip while preserving the rig/material slots. Its local checks pass; fresh hosted validation and direct owner artwork review remain open. Final design comparison and production promotion/cache
 integration, exact-head hosted checks, specific merge approval and physical
 acceptance remain required. Broader visual work and 7N remain unfinished.
 Both owner screenshots (overview and first person) are visual baselines. Direct
