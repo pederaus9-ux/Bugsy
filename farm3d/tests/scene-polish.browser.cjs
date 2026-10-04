@@ -10,7 +10,16 @@ try{for(const width of [844,1280]){
   m.installWorld(d.scene,d.renderer);m.installWorld(d.scene,d.renderer);
   const butterfly=root.getObjectByName('Phase7M butterflies');window.__butterfly=butterfly;
   d.setPreset('noon');const exposure=d.renderer.toneMappingExposure,fog=d.scene.fog.density;
-  for(let i=0;i<20;i++)d.setPreset('noon');
+  // A preset rebuilds the PMREM environment. Drain each actual GPU rebuild rather
+  // than queueing twenty back-to-back before an unrelated pointer interaction.
+  const gl=d.renderer.getContext();
+  for(let i=0;i<20;i++){
+   d.setPreset('noon');const fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
+   await new Promise((resolve,reject)=>{const poll=()=>{const result=gl.clientWaitSync(fence,0,0);
+    if(result===gl.WAIT_FAILED){gl.deleteSync(fence);reject(new Error('weather GPU fence failed'));}
+    else if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED){gl.deleteSync(fence);resolve();}
+    else requestAnimationFrame(poll);};requestAnimationFrame(poll);});
+  }
   return {installed:state.installed,roots:counts(),draws:state.extraDrawCalls,flowers:state.flowers,lanterns:state.lanterns,butterflies:state.butterflies,
    stableExposure:d.renderer.toneMappingExposure===exposure,stableFog:d.scene.fog.density===fog,
    fogExamples:[m.visualFog(.004),m.visualFog(.008)],exposureExamples:[m.visualExposure(1),m.visualExposure(1.2)],
