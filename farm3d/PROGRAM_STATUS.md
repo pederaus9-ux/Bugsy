@@ -53,7 +53,15 @@ post-deployment S26 screenshots and directly clarified that the phone check was
 already provided. This closes 7L; individual motion/auth subchecks were not
 separately reported, and long battery/thermal stress remains 7N.
 
-Phase 7M is active in existing PR #49, `chatgpt/phase7m-max-wow`, based on that main.
+Phase 7M PR #49 is merged at `e080aee`; exact tested tree, Pages and live source
+were verified. Seven merged-main successful results include an unchanged repeat
+of the character job; its original failure remains documented and preserved.
+Direct short S26 acceptance is still pending. Broader owner-requested art work is
+active in draft PR #50 (contract) and stacked draft PR #51 (barn/yard study).
+The first barn candidate was rejected as too subtle. A revised sandbox adds
+materials, canopy, planted entry, stone/hay and ground transitions with matching
+full CSS-resolution Classic/Walk captures. No production integration or visible
+live update is made by those drafts; owner visual acceptance remains required.
 Both owner screenshots (overview and first person) are visual baselines. Direct
 phone replies approved broader art direction. The combined pass includes hands,
 earth/path relief, close-up indicators, HUD treatment and bounded environment

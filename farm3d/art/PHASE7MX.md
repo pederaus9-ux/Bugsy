@@ -7,9 +7,12 @@ program passes. Accepted source baseline: e080aee5b1d3ca714bb4baa642634353f43352
 ## Status
 
 MX-01 first art specification: implemented here; actual asset review remains open.
-MX-02 asset policy/preflight: implemented here; exporter, optimizer, runtime loader,
-texture decoders, offline integration and actual GLB assets remain pending.
-MX-03 through MX-20: pending. This commit makes no visible runtime changes.
+MX-02 policy/preflight plus original code-authored barn GLB and sandbox GLTFLoader
+now exist in stacked draft PR51. Pinned Khronos validation and an experimental
+material/yard study are being reviewed. Blender source, baked/KTX2 maps, optimizer,
+decoders, LODs, production integration and physical acceptance remain pending.
+MX-04/05/06 have an initial barn/ground/planting proof slice; all remain unaccepted.
+MX-03 and remaining production gates remain pending. The live game is unchanged.
 
 ## Art direction
 
