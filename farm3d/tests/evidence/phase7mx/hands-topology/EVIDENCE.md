@@ -46,3 +46,13 @@ and an initial event-listener assumption for Skeleton. The model/exporter and
 new harness were repaired; original tests, timeouts and budgets were untouched.
 Final art/reference comparison, production/offline promotion, hosted checks,
 specific merge approval and physical acceptance remain open.
+
+Hosted first head `4d99c4a`, art run `37230016991`, passed the actual GLB/policy,
+strict Khronos, all studio clips and full 844px game adapter checks. At 1280px,
+the fixed 1.5-second post-click delay sampled the hand visibility before the Walk
+transition completed. The assertion, trace and later failure screenshot are kept
+in `outputs/phase7m/pr52-4d99c4a-art-failure-*`. The adapter test and full-resolution
+capture now wait for the actual visible authored hands/hidden fallback state,
+using the existing default wait timeout and identical visibility assertions.
+The full-resolution art inspector selects the game's supported High preference
+in its isolated browser and asserts full buffers, zero cuts and empty cut steps.

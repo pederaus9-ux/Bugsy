@@ -30,10 +30,13 @@ async function hold(page){
 }
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;const results=[];
 try{browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,
- args:process.platform==='win32'?['--use-angle=d3d11']:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ args:process.platform==='win32'&&!process.env.CAPTURE_SOFTWARE?['--use-angle=d3d11']:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const base='http://127.0.0.1:'+server.address().port+'/';
 for(const width of [844,1280]){
  const height=width===844?390:720,context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,hasTouch:width===844,serviceWorkers:'block'});
+ // A visual comparison uses the game's supported High preference. Automatic
+ // resolution adaptation is exercised separately, not in art evidence captures.
+ await context.addInitScript(()=>localStorage.setItem('sunny-acres-3d-v1-prefs',JSON.stringify({quality:'high'})));
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.fulfill({contentType:r.request().url().includes('firebasejs')?'text/javascript':'application/json',body:r.request().url().includes('firebasejs')?'export {};':'{}'}));
  await page.goto(base+'farm3d/?testfarm&debug&portrait&artHands&preset=noon');
@@ -44,7 +47,9 @@ for(const width of [844,1280]){
  results.push({width,height,pose:'overview-hidden',proof:overview});
  await page.screenshot({path:path.join(out,width+'-overview-hidden.png')});
  await page.evaluate(()=>window.__handsHold=false);await page.locator('#walkBtn').click();
- await page.waitForFunction(()=>!!__dbg.walk);await page.waitForTimeout(1500);
+ await page.waitForFunction(()=>!!__dbg.walk);
+ await page.waitForFunction(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
+   return root.visible&&!d.camera.children.find(o=>o.userData.skin).visible;});
  for(const pose of ['idle','harvest','pet']){
   await page.evaluate(pose=>{window.__handsPose=pose;window.__handsHold=false;},pose);
   const proof=await hold(page);assert.equal(proof.visible,true);assert.deepEqual(proof.buffer,[width,height]);

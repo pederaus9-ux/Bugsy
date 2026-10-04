@@ -11,7 +11,9 @@ try{for(const width of [844,1280]){
  await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await p.waitForFunction(()=>__dbg.camera.getObjectByName('Authored first-person hands')?.userData.authoredHands.state.status==='ready');
  await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet=true;d.G.close();d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;});
- await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);await p.waitForTimeout(1500);
+ await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
+ await p.waitForFunction(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
+   const legacy=d.camera.children.find(o=>o.userData.skin);return root.visible&&!legacy.visible;});
  const wardrobe=await p.evaluate(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
    const legacy=d.camera.children.find(o=>o.userData.skin),colors=[];let meshes=0,bones=0;
    root.traverse(o=>{if(o.isSkinnedMesh){meshes++;if(![legacy.userData.skin,legacy.userData.sleeve].includes(o.material))throw Error('wardrobe material mismatch');}if(o.isBone)bones++;});
