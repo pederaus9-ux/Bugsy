@@ -1,0 +1,43 @@
+name: Sunny Acres art candidate
+on:
+  pull_request:
+    paths:
+      - 'farm3d/assets/**'
+      - 'farm3d/tools/build-barn.mjs'
+      - 'farm3d/lib/addons/loaders/**'
+      - 'farm3d/lib/addons/utils/**'
+      - 'farm3d/tests/barn-candidate.browser.cjs'
+      - '.github/workflows/farm3d-art-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  barn-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Verify deterministic export and asset policy
+        run: |
+          node farm3d/tools/build-barn.mjs
+          git diff --exit-code -- farm3d/assets/barn/barn-candidate.glb
+          node farm3d/tools/validate-asset.mjs farm3d/assets/barn/barn-candidate.glb farm3d/art/asset-contract.json barn-lod0
+      - name: Capture real scene and verify load/disposal
+        run: node farm3d/tests/barn-candidate.browser.cjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: barn-candidate-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/barn*
+          retention-days: 14
