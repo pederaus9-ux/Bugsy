@@ -12,6 +12,15 @@ are preserved in workspace outputs. Reproduce with
 `node farm3d/tools/capture-barn-scene.cjs`; optional `POLISH_QUICK=1` is a local
 preview only and is not used by the hosted workflow.
 
+Capture instruments a served copy of the animation loop, waits for three real
+composer frames and a completed GPU fence, then holds that frame only during
+screenshot readback. The drawing buffer must exactly match the CSS viewport;
+quality and the 30-second screenshot limit are unchanged. `CAPTURE_SOFTWARE=1`
+also exercises this path with SwiftShader on Windows. This is capture preparation,
+not a production frame-rate change or a performance result. The checked-in
+representative images were captured at the preceding scene revision `e94b6d4`;
+the capture repair changes no model, materials, camera or production source.
+
 The proof adds a canopy/corbels, UV-based canvas wood/stone studies, sculpted entry
 flowers/leaves, stone edging, hay and an irregular apron. It hides misplaced old
 ivy and temporarily masks grass instances within the yard, then restores both
@@ -37,5 +46,14 @@ initially cleared only matrix diagonals; all rotated basis entries now collapse.
 The dark roof/air spots were old ivy above the wall, not resolved by roof shadow
 tweaks; those tweaks were removed and the obsolete ivy is restored in controls.
 Earlier rejected captures/validator evidence remain historical, not current proof.
+Two hosted full-resolution capture attempts at `e94b6d4` failed on the first
+30-second screenshot readback; all seven regression jobs passed at that head.
+Both failed logs/artifacts remain preserved. A local SwiftShader diagnostic
+captured all four quick-preview images but exposed unrelated texture allocations
+between aggregate disposal samples. The capture tool now samples exact resource
+release while holding the completed frame; the separate browser suite still
+checks thirty toggles and ten rebuilds with actual rendering after disposal.
+The hosted timeout's underlying cause remains unverified until the repaired
+capture is exercised there; continuous queued rendering is a working hypothesis.
 
 This is a revised candidate, not accepted final art or a finished 7M-X program.
