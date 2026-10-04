@@ -9,6 +9,10 @@
 // player action can turn it on, on the public site or anywhere else.
 const LOCAL_TEST_HOST = ["127.0.0.1", "localhost", "[::1]"].includes(location.hostname);
 
+// Phase 7M is presentation-only and must install before the main scene starts rendering.
+// Unit tests run this module without a DOM, so they deliberately skip the browser visual layer.
+if (typeof document !== "undefined") await import("./phase7m.js?v=1");
+
 export const FEATURES = Object.freeze({
   verifiedEconomy: LOCAL_TEST_HOST && window.__saTestEconomy === true,
 });
