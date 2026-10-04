@@ -4,14 +4,20 @@ on:
     paths:
       - 'farm3d/assets/**'
       - 'farm3d/tools/build-barn.mjs'
+      - 'farm3d/tools/build-hands.py'
+      - 'farm3d/tools/capture-hands-study.cjs'
+      - 'farm3d/tools/capture-hands-game.cjs'
       - 'farm3d/tools/capture-barn-scene.cjs'
       - 'farm3d/lib/addons/loaders/**'
       - 'farm3d/lib/addons/utils/**'
       - 'farm3d/tests/barn-candidate.browser.cjs'
       - 'farm3d/tests/barn-scene.browser.cjs'
       - 'farm3d/tests/barn-validator.cjs'
+      - 'farm3d/tests/hands-validator.cjs'
+      - 'farm3d/tests/authored-hands.browser.cjs'
       - 'farm3d/tests/package*.json'
       - 'farm3d/art/barn-scene-candidate.js'
+      - 'farm3d/art/authored-hands.js'
       - '.github/workflows/farm3d-art-candidate.yml'
   workflow_dispatch:
 permissions:
@@ -39,6 +45,16 @@ jobs:
           git diff --exit-code -- farm3d/assets/barn/barn-candidate.glb
           node farm3d/tools/validate-asset.mjs farm3d/assets/barn/barn-candidate.glb farm3d/art/asset-contract.json barn-lod0
           node farm3d/tests/barn-validator.cjs
+      - name: Validate the actual authored hand export and bone clips
+        run: |
+          node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+          node farm3d/tests/hands-validator.cjs
+      - name: Capture all hand clips and verify clone ownership and cleanup
+        run: node farm3d/tools/capture-hands-study.cjs
+      - name: Verify the authored hand adapter in the isolated game
+        run: node farm3d/tests/authored-hands.browser.cjs
+      - name: Capture full-resolution authored hands in the real farm
+        run: node farm3d/tools/capture-hands-game.cjs
       - name: Capture real scene and verify load/disposal
         run: node farm3d/tests/barn-candidate.browser.cjs
       - name: Verify scene ownership, grass restoration and repeated disposal
@@ -49,5 +65,9 @@ jobs:
         if: always()
         with:
           name: barn-candidate-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/barn*
+          path: |
+            farm3d/tests/artifacts/barn*
+            farm3d/tests/artifacts/hands-study/
+            farm3d/tests/artifacts/hands-game-captures/
+            farm3d/tests/artifacts/authored-hands*
           retention-days: 14

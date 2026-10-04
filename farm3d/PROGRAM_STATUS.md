@@ -1,4 +1,4 @@
-# Sunny Acres continuation status — 2026-10-03
+# Sunny Acres continuation status — 2026-10-04
 
 The owner requests continuous completion in focused PRs, advancing after each
 merge. Provide each merge link. A specific human approval is still required to
@@ -57,8 +57,8 @@ Phase 7M PR #49 is merged at `e080aee`; exact tested tree, Pages and live source
 were verified. Seven merged-main successful results include an unchanged repeat
 of the character job; its original failure remains documented and preserved.
 Direct short S26 acceptance is still pending. Broader owner-requested art work is
-active: PR #50 (contract) merged at d1074ff; draft PR #51 (barn/yard study)
-is based on that main. Its preceding f9b2e73 revision passed all seven regression
+active: PR #50 (contract) merged at d1074ff; PR #51 merged at 2a7dfc0 after
+specific direct owner approval. Its preceding f9b2e73 revision passed all seven regression
 jobs and the full art job. The owner then acknowledged the priority order:
 black-artifact cleanup, authored hands, ground/path materials, grass/contact.
 The first barn candidate was rejected as too subtle. A revised sandbox adds
@@ -72,8 +72,19 @@ below the eaves. Geometry/instance/draw counts are unchanged. Index/SW only bump
 the presentation module to v3 and cache to sa3d-v39; saves, AI, auth and economy
 remain untouched. Local GPU color checks at 844/1280 and the unchanged scene
 checks pass, as do 52 core units and 24 full-resolution weather/view captures.
-Fresh hosted validation and specific merge approval are still required for this
-new revision. Authored hands and the broader visual/device gates remain pending.
+All eight exact-head checks passed at 9880039; the tested/merged trees match.
+All seven merged-main checks and Pages passed, and eighteen live files match
+source. The short S26 refresh question remains pending; earlier phone images
+do not verify the new module/cache. Authored hands now have an original Blender
+topology/rig study on branch `chatgpt/phase7mx-authored-hands`: editable source,
+32 bones, six real clips, 5,696 triangles, four surfaces and two material slots.
+Pinned Khronos and policy pass locally, as do real GLTFLoader clip/reset/clone
+checks at 844/1280 and thirty rendered clone lifetimes without resource growth.
+A sandbox-only adapter (`?testfarm&artHands`) now loads the complete rig, shares wardrobe materials, maps the six visual actions and keeps the current hands as a load-failure fallback. Normal player farms retain their current hands. Original reference bytes are still
+unavailable here despite the phone assistant's Library/file-ID claims.
+Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer captures pass. Final design comparison and production promotion/cache
+integration, exact-head hosted checks, specific merge approval and physical
+acceptance remain required. Broader visual work and 7N remain unfinished.
 Both owner screenshots (overview and first person) are visual baselines. Direct
 phone replies approved broader art direction. The combined pass includes hands,
 earth/path relief, close-up indicators, HUD treatment and bounded environment
