@@ -14,7 +14,9 @@ preview only and is not used by the hosted workflow.
 
 Capture instruments a served copy of the animation loop, waits for three real
 composer frames and a completed GPU fence, then holds that frame only during
-screenshot readback. The drawing buffer must exactly match the CSS viewport;
+screenshot readback. Each frame from boot onward waits for its predecessor's
+GPU fence before submitting more rendering, including mode transitions. The
+drawing buffer must exactly match the CSS viewport and automatic cuts stay zero;
 quality and the 30-second screenshot limit are unchanged. `CAPTURE_SOFTWARE=1`
 also exercises this path with SwiftShader on Windows. This is capture preparation,
 not a production frame-rate change or a performance result. The checked-in
@@ -55,5 +57,10 @@ release while holding the completed frame; the separate browser suite still
 checks thirty toggles and ten rebuilds with actual rendering after disposal.
 The hosted timeout's underlying cause remains unverified until the repaired
 capture is exercised there; continuous queued rendering is a working hypothesis.
+At `e41d4ea`, hosted capture produced both noon overview images, then timed out
+waiting for the GPU fence after entering Walk. That log and those partial images
+are also preserved. The later repair gates rendering throughout boot and Walk,
+not just while reading back a screenshot. These capture-only GPU waits make its
+frame cadence unsuitable for benchmarking; no performance inference is made.
 
 This is a revised candidate, not accepted final art or a finished 7M-X program.

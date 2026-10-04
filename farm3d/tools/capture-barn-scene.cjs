@@ -3,11 +3,21 @@ const repo=path.resolve(__dirname,'../..');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE || path.join(repo,'farm3d/tests/node_modules/playwright'));
 const out=process.env.TEST_ARTIFACTS || path.join(repo,'farm3d/tests/artifacts/barn-scene-captures');fs.mkdirSync(out,{recursive:true});
 // Instrument only this served copy. Hold an actual completed composer frame for
-// readback, so software rendering cannot enqueue more GPU work during capture.
+// readback. Gate each submitted frame on GPU completion, including boot and Walk
+// transitions, so software rendering cannot accumulate a queue before capture.
 let captureSource=fs.readFileSync(path.join(repo,'farm3d/index.html'),'utf8');
 for(const [anchor,replacement] of [
- ['function frame() {','function frame() { if (window.__captureHold) { requestAnimationFrame(frame); return; }'],
- ['if (perf) perf.render(); else composer.render();','if (perf) perf.render(); else composer.render(); window.__captureFrames=(window.__captureFrames||0)+1;']
+ ['function frame() {',`function frame() {
+  if (window.__captureFrameFence) {
+   const gl=renderer.getContext(),status=gl.clientWaitSync(window.__captureFrameFence,0,0);
+   if(status===gl.WAIT_FAILED)throw new Error('capture frame GPU fence failed');
+   if(status!==gl.ALREADY_SIGNALED&&status!==gl.CONDITION_SATISFIED){requestAnimationFrame(frame);return;}
+   gl.deleteSync(window.__captureFrameFence);window.__captureFrameFence=null;
+   window.__captureFrames=(window.__captureFrames||0)+1;
+  }
+  if(window.__captureHold){requestAnimationFrame(frame);return;}`],
+ ['if (perf) perf.render(); else composer.render();',`if (perf) perf.render(); else composer.render();
+  {const gl=renderer.getContext();window.__captureFrameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();}`]
 ]){assert.equal(captureSource.split(anchor).length,2,'unique capture anchor');captureSource=captureSource.replace(anchor,replacement);}
 const server=http.createServer((req,res)=>{const file=path.resolve(repo,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname)+(req.url.split('?')[0].endsWith('/')?'index.html':''));if(!file.startsWith(repo+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(file===path.join(repo,'farm3d/index.html')?captureSource:fs.readFileSync(file));});
 async function holdCompletedFrame(page){
@@ -44,7 +54,7 @@ for(const preset of process.env.POLISH_QUICK?['noon']:['noon','golden','rain']){
    const capture=await holdCompletedFrame(page);
    await page.screenshot({path:path.join(out,`${width}-${preset}-${mode}-${candidate?'after':'before'}.png`)});
    const result=await page.evaluate(({preset,mode,candidate})=>{const d=__dbg;return {preset,mode,candidate,viewport:[innerWidth,innerHeight],buffer:[d.renderer.domElement.width,d.renderer.domElement.height],quality:{...d.QUALITY},counts:{...d.renderer.info.render,...d.renderer.info.memory},save:localStorage.getItem('sunny-acres-3d-v1')};},{preset,mode,candidate});
-   assert.deepEqual(result.buffer,result.viewport,'full CSS drawing resolution');results.push({...result,capture});
+   assert.deepEqual(result.buffer,result.viewport,'full CSS drawing resolution');assert.equal(result.quality.cut,0,'no automatic rendering cuts');results.push({...result,capture});
    await page.evaluate(()=>{window.__captureHold=false;});
   }
  }
