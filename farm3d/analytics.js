@@ -1,6 +1,6 @@
 // Anonymous, bounded reports. The existing Firestore event shape stays exactly {e, d}.
 // No account/device identifier, raw UA, screen dimensions, farm, URL, error text or stack is sent.
-export const ANALYTICS_RELEASE = '37';
+export const ANALYTICS_RELEASE = '38';
 export const ANALYTICS_KEY = 'sa3d-metrics-v2';
 export const MAX_QUEUE = 48, DAILY_LIMIT = 40;
 const DAY = 864e5, KEEP_DAYS = 14;

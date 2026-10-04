@@ -645,7 +645,7 @@ html[data-motion="reduce"] button:active{transform:none!important}
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=18"></script>
+<script type="module" src="auth.js?v=19"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -654,10 +654,12 @@ import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=25"; window.__gameVer = 25; // bump this version whenever game.js changes
-import {ANALYTICS_RELEASE} from './analytics.js?v=2'; window.__saRelease = ANALYTICS_RELEASE;
+import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
 import {FEATURES} from "./features.js?v=1";
+import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=1";
+import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=2";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1190,13 +1192,13 @@ const groundTex = photo(TEX + "grass.jpg", [40, 40]);
 const ground = new THREE.Mesh(groundGeo, std({map:groundTex, roughness:.95, vertexColors:true, color:0xd4dcc4}));
 ground.receiveShadow = true; scene.add(ground);
 // dirt path to the barn doors, with soft edges
-{ const dt = tex(dirt(4), 1, [1.5, 6]);
+{ const pathCanvas = soilCanvas(4, true), dt = tex(pathCanvas, 1, [1, 6]), pathNormal = tex(normalFrom(pathCanvas, 1.5), 0, [1, 6]);
   const [ac, ax] = canvas(256), R = rng(8); // soft ragged edges along the sides and the far end
   const g = ax.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, "#000"); g.addColorStop(.22, "#fff"); g.addColorStop(.78, "#fff"); g.addColorStop(1, "#000");
   ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? "rgba(0,0,0,.35)" : "rgba(255,255,255,.3)"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }
   const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, "rgba(0,0,0,1)"); fadeEnd.addColorStop(.25, "rgba(0,0,0,0)"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);
-  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, normalMap:pathNormal, normalScale:new THREE.Vector2(.13,.13), alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
   pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
 
 bootStep("growing the grass");
@@ -1886,7 +1888,7 @@ function setPreset(name) {
   skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
   skyU.uCover.value = P.cover; skyU.cloudCol.value.set(P.cloud); skyU.cloudShade.value.set(P.shade); skyU.uNight.value = P.night ? 1 : 0;
   LIT.uSunDir.value.copy(dir); LIT.uSunCol.value.set(P.sunCol).multiplyScalar(P.sunI * (P.night ? .15 : .32));
-  scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp; grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
+  scene.fog.color.set(P.hor); scene.fog.density = visualFog(P.fog); renderer.toneMappingExposure = visualExposure(P.exp); grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
   WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
   rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
   M.glass.emissiveIntensity = P.night ? 2.2 : 0;
@@ -2140,8 +2142,14 @@ const FIELD_SLOTS = (() => {
     return new THREE.Vector2(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), FIELD_C.y - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); });
 })();
 BLOCKS.push([-10, 17.5, 6.6, 8]); // the whole field area: pets walk around it, decorations don't go on it
-M.tilled = std({map:tex(dirt(21), 1, [2, 2]), roughness:.97, color:0x6e5440});
-const furrowGeo = new THREE.CylinderGeometry(.19, .19, 2.0, 10, 1, false, 0, Math.PI); furrowGeo.rotateZ(Math.PI / 2); furrowGeo.scale(1, .55, 1); // lies along x, domed side up
+const soilArt = soilCanvas(21);
+M.tilled = std({map:tex(soilArt, 1, [2, 2]), normalMap:tex(normalFrom(soilArt, 1.5), 0, [2, 2]), normalScale:new THREE.Vector2(.18,.18), roughness:.97});
+// Gently irregular earth mounds, with world-scaled grain instead of smooth tubes.
+const furrowGeo = new THREE.PlaneGeometry(2, .38, 12, 4); furrowGeo.rotateX(-Math.PI / 2);
+{ const p = furrowGeo.attributes.position, uv = furrowGeo.attributes.uv;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), ridge = Math.max(0, Math.cos(z / .19 * Math.PI / 2));
+    p.setY(i, ridge * (.078 + Math.sin(x * 29 + z * 73) * .004 + Math.sin(x * 5) * .004)); uv.setXY(i, x * .5, z * .5); }
+  furrowGeo.computeVertexNormals(); }
 const fruitMats = {};
 const fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + ".webp"), alphaTest:.3}));
 const plots = [];
@@ -2155,7 +2163,7 @@ const twinkleMat = new THREE.SpriteMaterial({map:(() => { const [c, x] = canvas(
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
 function twinkle(P, t, on) {
   if (!P.stars) { if (!on) return; P.stars = [0, 1, 2].map(k => { const s = new THREE.Sprite(twinkleMat.clone()); s.position.set((k - 1) * .6 + (Math.random() - .5) * .3, 1 + Math.random() * .5, (Math.random() - .5) * 1.2); s.userData.ph = Math.random() * 6; P.g.add(s); return s; }); }
-  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b; s.scale.setScalar(.2 + .65 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
+  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b * .55; s.scale.setScalar(.08 + .18 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
 }
 function syncSoil() { // called every second
   plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;
@@ -2655,7 +2663,7 @@ function ultra(on) {
     setQuality(G.PREFS.quality || "auto"); // also resizes the screen buffers
   }
 }
-function walkLook() { if (scene.fog && P) scene.fog.density = walk ? Math.max(P.fog * 2.2, .007) : P.fog; }
+function walkLook() { if (scene.fog && P) scene.fog.density = visualFog(walk ? Math.max(P.fog * 2.2, .007) : P.fog); }
 function maxAnisotropy() {
   const a = renderer.capabilities.getMaxAnisotropy();
   scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k of ["map", "normalMap", "roughnessMap", "emissiveMap", "alphaMap"]) {
@@ -2895,21 +2903,9 @@ function updateDoors(dt) {
   if (inBarn && inBarn.phase === "inside" && !G.panel && performance.now() - inBarn.t > 2500) leaveBarn();
 }
 
-// ---------- first-person hands: simple mittens at the bottom of the screen, sleeves in your shirt colour ----------
+// ---------- sculpted first-person hands, sharing the farmer's skin/shirt colours ----------
 scene.add(camera);
-hands = (() => {
-  const g = new THREE.Group(), sleeve = std({color:0xd24d3f, roughness:.8}), skin = std({color:0xf0c6a0, roughness:.7});
-  for (const sd of [-1, 1]) {
-    const h = new THREE.Group(); h.position.set(sd * .22, -.19, -.44); h.rotation.set(-.2, sd * -.3, sd * .2); g.add(h);
-    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.036, .044, .24, 12), sleeve); sl.rotation.x = Math.PI / 2; sl.position.z = .15; h.add(sl);
-    const mit = new THREE.Mesh(new THREE.SphereGeometry(.05, 14, 10), skin); mit.scale.set(1, .8, 1.3); mit.position.z = -.02; h.add(mit);
-    const th = new THREE.Mesh(new THREE.SphereGeometry(.024, 8, 6), skin); th.position.set(-sd * .045, .02, 0); h.add(th);
-    h.userData.base = h.position.clone(); h.userData.side = sd;
-  }
-  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.renderOrder = 10; } });
-  g.visible = false; camera.add(g); g.userData = {sleeve, skin};
-  return g;
-})();
+hands = createHands(std({color:0xd24d3f, roughness:.8}), std({color:0xf0c6a0, roughness:.7})); camera.add(hands);
 let punch = null;
 function handPunch(kind) { punch = {kind, t:0}; }
 function updateHands(dt, t, tweenK) {
@@ -2918,6 +2914,7 @@ function updateHands(dt, t, tweenK) {
   hands.visible = on; if (!on) return;
   const w = walk, sp = w.vel.length(), sway = G.reducedMotion() ? 0 : Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
   const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
+  poseHands(hands, pk, punch?.kind);
   for (const h of hands.children) {
     const b = h.userData.base, sd = h.userData.side;
     h.position.set(b.x + sd * sway, b.y + w.bob * .6 + (G.reducedMotion() ? 0 : Math.sin(t * 1.6 + sd) * .004) + Math.abs(sway) * .5, b.z);
@@ -3753,12 +3750,14 @@ function updatePointer() {
 function updateGame(t, dt) {
   updatePlots(t); updateBuildings(t, dt);
   const T = nowMs();
+  if (walk && !thirdPerson) camera.updateMatrixWorld();
   for (const a of animals) {
     let e = null;
     if (a.ref.type === "pen") { const end = GS().pens[a.kind].list[a.ref.i]; if (end && end <= T) e = G.ANIMALS[a.kind].out ? G.ITEMS[G.ANIMALS[a.kind].out].e : "🪙"; }
     else { const p = GS().pets[a.ref.j]; if (p && G.giftReady(p)) e = "🎁"; }
     a.status.visible = !!e && a.act !== "sleeping"; if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
     if (e) a.status.position.y = a.S.h + .5 + Math.sin(t * 3 + a.phase) * .06;
+    fitMarker(a.status, .7, camera, innerHeight, !!walk && !thirdPerson); fitMarker(a.bubble, .55, camera, innerHeight, !!walk && !thirdPerson);
   }
   const n = G.readyOrders(), rush = GS().rush && GS().rush.end > T, be = rush ? "⏰" : "🚚";
   boardBub.visible = n > 0 || rush; boardBub.position.y = 3.4 + Math.sin(t * (rush ? 5 : 2.5)) * .08;
@@ -3820,6 +3819,7 @@ if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
 bootStep("setting the weather and time of day");
+installWorld(scene, renderer);
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }

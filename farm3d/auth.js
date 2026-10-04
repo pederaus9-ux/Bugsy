@@ -4,7 +4,7 @@
 // To switch them on: Firebase console › Project settings › Your apps › Web app › copy the config here;
 // Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
 //   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
-import {installAnalytics} from './analytics.js?v=2';
+import {installAnalytics} from './analytics.js?v=3';
 const firebaseConfig = {
   apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
   authDomain: "fir-config-18b64.firebaseapp.com",

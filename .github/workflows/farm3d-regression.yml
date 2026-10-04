@@ -39,12 +39,43 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run regression suite
         working-directory: farm3d/tests
-        run: npm run test:core
+        run: npm run test:core:game
       - name: Save screenshots, failure traces and results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-regression-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  characters-polish:
+    name: Farmer + first-person + visual polish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Run unchanged character checks and new scene checks
+        working-directory: farm3d/tests
+        run: npm run test:core:characters
+      - name: Save screenshots, failure traces and results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-characters-polish-${{ github.run_attempt }}
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7

@@ -8,7 +8,7 @@ const dir = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, dir), "utf8");
 const html = read("index.html"), sw = read("sw.js");
 const shell = JSON.parse(sw.match(/const SHELL = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
-const imports = [...html.matchAll(/["'(]\.?\/?([a-z0-9]+\.js)\?v=(\d+)["')]/gi)].map(m => ({file: m[1], v: +m[2]}));
+const imports = [...html.matchAll(/["'(]\.?\/?([a-z0-9-]+\.js)\?v=(\d+)["')]/gi)].map(m => ({file: m[1], v: +m[2]}));
 
 test("every versioned script is imported with one version only", () => {
   const seen = {};

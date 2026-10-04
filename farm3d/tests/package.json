@@ -4,13 +4,15 @@
   "private": true,
   "scripts": {
     "test": "npm run test:core && npm run test:animals",
-    "test:core": "node --test perf.test.mjs cow3d.test.mjs versions.test.mjs animal-modules.test.mjs sheep3d.test.mjs live3d.test.mjs farmer3d.test.mjs animal-visual.test.mjs features.test.mjs sdk.test.mjs && node --experimental-vm-modules regression.browser.cjs && node shed-switch.browser.cjs && node cow3d.browser.cjs && node farmer3d.browser.cjs && node farmer3d-walk.browser.cjs && node farmer3d-evidence.browser.cjs && node recovery-startup.browser.cjs && node farmer-depth.browser.cjs",
+    "test:core": "npm run test:core:game && npm run test:core:characters",
     "test:sdk": "node --test sdk.test.mjs && node sdk.browser.cjs",
     "test:animals": "node animal-visual.browser.cjs",
     "test:saves": "node save7h.browser.cjs",
     "test:analytics": "node --test analytics.test.mjs && node analytics.browser.cjs",
     "test:accessibility": "node accessibility.browser.cjs",
-    "measure:performance": "node performance7k.browser.cjs"
+    "measure:performance": "node performance7k.browser.cjs",
+    "test:core:game": "node --test perf.test.mjs cow3d.test.mjs versions.test.mjs animal-modules.test.mjs sheep3d.test.mjs live3d.test.mjs farmer3d.test.mjs animal-visual.test.mjs features.test.mjs sdk.test.mjs scene-polish.test.mjs && node --experimental-vm-modules regression.browser.cjs && node shed-switch.browser.cjs && node cow3d.browser.cjs",
+    "test:core:characters": "node farmer3d.browser.cjs && node farmer3d-walk.browser.cjs && node farmer3d-evidence.browser.cjs && node recovery-startup.browser.cjs && node farmer-depth.browser.cjs && node scene-polish.browser.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
