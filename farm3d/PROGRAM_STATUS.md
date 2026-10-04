@@ -53,10 +53,12 @@ post-deployment S26 screenshots and directly clarified that the phone check was
 already provided. This closes 7L; individual motion/auth subchecks were not
 separately reported, and long battery/thermal stress remains 7N.
 
-Phase 7M is active on `chatgpt/phase7m-visual-polish`, based on that merged main.
-Both owner screenshots (overview and first person) are visual baselines. The first
-focused pass addresses sculpted first-person hands, cultivated earth and the path.
-Review actual game captures and measured costs before expanding scope.
+Phase 7M is active in existing PR #49, `chatgpt/phase7m-max-wow`, based on that main.
+Both owner screenshots (overview and first person) are visual baselines. Direct
+phone replies approved broader art direction. The combined pass includes hands,
+earth/path relief, close-up indicators, HUD treatment and bounded environment
+details. Original cache-test failure evidence is preserved and repaired. Review
+actual game captures and measured costs; generated art is a style ceiling only.
 
 Remaining program work:
 

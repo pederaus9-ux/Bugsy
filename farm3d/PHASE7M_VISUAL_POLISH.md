@@ -52,16 +52,23 @@ skin tones, shirt colors, six hand draws, actual harvest closure/reset, the near
 marker cap, deterministic soil and 30 wardrobe rebuilds without resource growth.
 Nine analytics units/eight browser scenarios and all 11 accessibility groups pass.
 Final general game regression passes all 50 checkpoints. Exact-head hosted checks remain the release gate.
+The combined environment/HUD pass also passes the final general regression and
+all 11 accessibility groups. Its real-game checks cover idempotent installation,
+weather/exposure without drift, disabled layer, ambient motion stop/resume,
+unobstructed overlay input and the original hands/soil/reach/resource assertions.
 
 All 25 loaded-farm hardware scenarios completed before and after, with identical
-quality settings and no rejected GPU queries. Worst scenario CPU p95 was 5.90 ms
-before and 5.80 ms after; worst GPU p95 was 4.919 ms and 4.956 ms. This single short
-paired run supports similar renderer cost, not a performance improvement or phone
-FPS claim. Samples are 2 seconds per scenario, with a 10-second rain window.
+quality settings and no rejected GPU queries. For the combined PR #49 pass,
+worst scenario CPU p95 was 5.90 ms before and 6.20 ms after; worst GPU p95 was
+4.919 ms and 5.155 ms. This single short paired run records a modest cost increase,
+not a performance improvement or phone FPS claim. Samples are 2 seconds per
+scenario, with a 10-second rain window. The earlier hands-only result (5.80 ms CPU,
+4.956 ms GPU) remains locally preserved, but is not the combined PR release gate.
 No sampled CPU frame exceeded 50 ms.
 
-No geometry grew within an after measurement window. Two after windows each
-loaded one additional texture; three baseline windows did so too. Existing lazy
+No geometry grew within an after measurement window. One combined after window
+(desktop Walk noon) loaded one additional texture; three baseline windows did
+so too. Existing lazy
 emoji texture caching is the likely explanation, but individual allocations were
 not traced. Do not label every window resource-stable: the comparison explicitly
 records the exceptions. Repeated wardrobe rebuilds and both rain windows were
@@ -72,6 +79,9 @@ All 12 final after images were captured; the phone/desktop noon, golden and rain
 close-up/overview views were inspected. The accepted base is served from Git for
 the before captures, rather than removing local work. Live animals can change
 pose between captures. Local source hashes identify the measured implementation.
+The committed after images and comparison cover the combined pass; earlier
+hands-only captures remain in local outputs. The accidental contended benchmark
+start was stopped and preserved separately, and is excluded from these results.
 
 Rejected hand framings and failed test/version-edit attempts remain in the local
 outputs. A version-edit error was caught, restored from accepted source and

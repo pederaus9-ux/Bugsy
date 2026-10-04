@@ -5,6 +5,24 @@ try{for(const width of [844,1280]){
  const s=await h.setup({width,height:width===844?390:720},width===844,'polish-'+width),p=s.page;
  await p.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet=true;d.G.close();d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;});
+ const environment=await p.evaluate(async()=>{const d=__dbg,m=await import('./phase7m.js?v=2'),state=window.__sa7m;
+  const root=d.scene.getObjectByName('Phase7M-MaxWow'),counts=()=>{let n=0;d.scene.traverse(o=>{if(o.name==='Phase7M-MaxWow')n++;});return n;};
+  m.installWorld(d.scene,d.renderer);m.installWorld(d.scene,d.renderer);
+  const butterfly=root.getObjectByName('Phase7M butterflies');window.__butterfly=butterfly;
+  d.setPreset('noon');const exposure=d.renderer.toneMappingExposure,fog=d.scene.fog.density;
+  for(let i=0;i<20;i++)d.setPreset('noon');
+  return {installed:state.installed,roots:counts(),draws:state.extraDrawCalls,flowers:state.flowers,lanterns:state.lanterns,butterflies:state.butterflies,
+   stableExposure:d.renderer.toneMappingExposure===exposure,stableFog:d.scene.fog.density===fog,
+   fogExamples:[m.visualFog(.004),m.visualFog(.008)],exposureExamples:[m.visualExposure(1),m.visualExposure(1.2)],
+   shadowLights:root.children.filter(o=>o.isLight&&o.castShadow).length,overlays:[...document.querySelectorAll('#sa7m-vignette,#sa7m-sunwash')].map(o=>getComputedStyle(o).pointerEvents)};});
+ assert.equal(environment.installed,true);assert.equal(environment.roots,1);assert.equal(environment.draws,9);
+ assert.equal(environment.flowers,132);assert.equal(environment.lanterns,7);assert.equal(environment.butterflies,18);
+ assert.equal(environment.stableExposure,true);assert.equal(environment.stableFog,true);assert.equal(environment.shadowLights,0);
+ assert.deepEqual(environment.overlays,['none','none']);assert.deepEqual(environment.fogExamples,[.004*.78,.008*.9]);assert.deepEqual(environment.exposureExamples,[1*1.055,1.2*1.025]);
+ await p.evaluate(()=>{document.documentElement.dataset.motion='reduce';window.__butterflyBefore=Array.from(__butterfly.geometry.attributes.position.array);});
+ await p.waitForTimeout(700);assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)===JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'new ambient motion stops');
+ await p.evaluate(()=>document.documentElement.dataset.motion='full');await p.waitForTimeout(700);
+ assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)!==JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'ambient motion resumes');
  await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);await p.waitForTimeout(1500);
  const material=await p.evaluate(async()=>{const d=__dbg,mod=await import('./scene-polish.js?v=1'),a=mod.soilCanvas(21),b=mod.soilCanvas(21),c=mod.soilCanvas(22);
   const bytes=canvas=>canvas.getContext('2d').getImageData(0,0,512,512).data;const hash=v=>{let n=2166136261;for(const b of v)n=Math.imul(n^b,16777619);return n>>>0;};
@@ -29,5 +47,10 @@ try{for(const width of [844,1280]){
  await p.evaluate(()=>{for(let i=0;i<30;i++){__dbg.G.wear('skin',i%6);__dbg.G.wear('shirt',i%3);}});await p.waitForTimeout(1000);
  const memoryAfter=await p.evaluate(()=>({...__dbg.renderer.info.memory}));assert.deepEqual(memoryAfter,memoryBefore,'wardrobe rebuilds do not leak geometry/textures');
  assert.equal(await p.evaluate(()=>localStorage.getItem('sunny-acres-3d-v1')),null,'sandbox preserves player save');assert.deepEqual(s.errors,[]);
- results.push({width,material,wardrobe,action,marker,memoryBefore,memoryAfter});await s.finish();console.log('PASS sculpted hands, soil, real reach/reset, nearby marker and 30 rebuilds',width);
- }failed=false;}finally{fs.writeFileSync(path.join(artifacts,'scene-polish-results.json'),JSON.stringify(results,null,2));await h.close(failed);}})().catch(e=>{console.error(e);process.exitCode=1;});
+ results.push({width,environment,material,wardrobe,action,marker,memoryBefore,memoryAfter});await s.finish();console.log('PASS hands/soil/reach/markers, idempotent environment, weather and reduced motion',width);
+ }
+ const legacy=await h.setup({width:844,height:390},true,'polish-legacy');await legacy.page.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon&visuallegacy');
+ await legacy.page.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
+ const off=await legacy.page.evaluate(async()=>{const m=await import('./phase7m.js?v=2');return {installed:__sa7m.installed,root:!!__dbg.scene.getObjectByName('Phase7M-MaxWow'),overlay:!!document.getElementById('sa7m-skin'),fog:m.visualFog(.008),exposure:m.visualExposure(1.2)};});
+ assert.deepEqual(off,{installed:false,root:false,overlay:false,fog:.008,exposure:1.2});assert.deepEqual(legacy.errors,[]);await legacy.finish();console.log('PASS visuallegacy disables environment only');
+ failed=false;}finally{fs.writeFileSync(path.join(artifacts,'scene-polish-results.json'),JSON.stringify(results,null,2));await h.close(failed);}})().catch(e=>{console.error(e);process.exitCode=1;});

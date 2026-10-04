@@ -659,6 +659,7 @@ import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
 import {FEATURES} from "./features.js?v=1";
 import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=1";
+import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=2";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1887,7 +1888,7 @@ function setPreset(name) {
   skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
   skyU.uCover.value = P.cover; skyU.cloudCol.value.set(P.cloud); skyU.cloudShade.value.set(P.shade); skyU.uNight.value = P.night ? 1 : 0;
   LIT.uSunDir.value.copy(dir); LIT.uSunCol.value.set(P.sunCol).multiplyScalar(P.sunI * (P.night ? .15 : .32));
-  scene.fog.color.set(P.hor); scene.fog.density = P.fog; renderer.toneMappingExposure = P.exp; grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
+  scene.fog.color.set(P.hor); scene.fog.density = visualFog(P.fog); renderer.toneMappingExposure = visualExposure(P.exp); grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
   WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
   rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
   M.glass.emissiveIntensity = P.night ? 2.2 : 0;
@@ -2662,7 +2663,7 @@ function ultra(on) {
     setQuality(G.PREFS.quality || "auto"); // also resizes the screen buffers
   }
 }
-function walkLook() { if (scene.fog && P) scene.fog.density = walk ? Math.max(P.fog * 2.2, .007) : P.fog; }
+function walkLook() { if (scene.fog && P) scene.fog.density = visualFog(walk ? Math.max(P.fog * 2.2, .007) : P.fog); }
 function maxAnisotropy() {
   const a = renderer.capabilities.getMaxAnisotropy();
   scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k of ["map", "normalMap", "roughnessMap", "emissiveMap", "alphaMap"]) {
@@ -3818,6 +3819,7 @@ if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
 bootStep("setting the weather and time of day");
+installWorld(scene, renderer);
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
