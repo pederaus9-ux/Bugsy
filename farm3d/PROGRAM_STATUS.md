@@ -57,11 +57,23 @@ Phase 7M PR #49 is merged at `e080aee`; exact tested tree, Pages and live source
 were verified. Seven merged-main successful results include an unchanged repeat
 of the character job; its original failure remains documented and preserved.
 Direct short S26 acceptance is still pending. Broader owner-requested art work is
-active in draft PR #50 (contract) and stacked draft PR #51 (barn/yard study).
+active: PR #50 (contract) merged at d1074ff; draft PR #51 (barn/yard study)
+is based on that main. Its preceding f9b2e73 revision passed all seven regression
+jobs and the full art job. The owner then acknowledged the priority order:
+black-artifact cleanup, authored hands, ground/path materials, grass/contact.
 The first barn candidate was rejected as too subtle. A revised sandbox adds
 materials, canopy, planted entry, stone/hay and ground transitions with matching
 full CSS-resolution Classic/Walk captures. No production integration or visible
-live update is made by those drafts; owner visual acceptance remains required.
+live barn replacement is made by the study; owner visual acceptance remains required.
+PR #51 now additionally fixes a reproduced production shader defect: missing
+geometry vertex colors turned all 58 ivy leaves and 132 flower heads black.
+Their real instance palettes now render correctly; ivy remains on the front wall
+below the eaves. Geometry/instance/draw counts are unchanged. Index/SW only bump
+the presentation module to v3 and cache to sa3d-v39; saves, AI, auth and economy
+remain untouched. Local GPU color checks at 844/1280 and the unchanged scene
+checks pass, as do 52 core units and 24 full-resolution weather/view captures.
+Fresh hosted validation and specific merge approval are still required for this
+new revision. Authored hands and the broader visual/device gates remain pending.
 Both owner screenshots (overview and first person) are visual baselines. Direct
 phone replies approved broader art direction. The combined pass includes hands,
 earth/path relief, close-up indicators, HUD treatment and bounded environment

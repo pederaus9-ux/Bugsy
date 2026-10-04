@@ -5,7 +5,7 @@ try{for(const width of [844,1280]){
  const s=await h.setup({width,height:width===844?390:720},width===844,'polish-'+width),p=s.page;
  await p.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet=true;d.G.close();d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;});
- const environment=await p.evaluate(async()=>{const d=__dbg,m=await import('./phase7m.js?v=2'),state=window.__sa7m;
+ const environment=await p.evaluate(async()=>{const d=__dbg,m=await import('./phase7m.js?v=3'),state=window.__sa7m;
   const root=d.scene.getObjectByName('Phase7M-MaxWow'),counts=()=>{let n=0;d.scene.traverse(o=>{if(o.name==='Phase7M-MaxWow')n++;});return n;};
   m.installWorld(d.scene,d.renderer);m.installWorld(d.scene,d.renderer);
   const butterfly=root.getObjectByName('Phase7M butterflies');window.__butterfly=butterfly;
@@ -60,6 +60,6 @@ try{for(const width of [844,1280]){
  }
  const legacy=await h.setup({width:844,height:390},true,'polish-legacy');await legacy.page.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon&visuallegacy');
  await legacy.page.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
- const off=await legacy.page.evaluate(async()=>{const m=await import('./phase7m.js?v=2');return {installed:__sa7m.installed,root:!!__dbg.scene.getObjectByName('Phase7M-MaxWow'),overlay:!!document.getElementById('sa7m-skin'),fog:m.visualFog(.008),exposure:m.visualExposure(1.2)};});
+ const off=await legacy.page.evaluate(async()=>{const m=await import('./phase7m.js?v=3');return {installed:__sa7m.installed,root:!!__dbg.scene.getObjectByName('Phase7M-MaxWow'),overlay:!!document.getElementById('sa7m-skin'),fog:m.visualFog(.008),exposure:m.visualExposure(1.2)};});
  assert.deepEqual(off,{installed:false,root:false,overlay:false,fog:.008,exposure:1.2});assert.deepEqual(legacy.errors,[]);await legacy.finish();console.log('PASS visuallegacy disables environment only');
  failed=false;}finally{fs.writeFileSync(path.join(artifacts,'scene-polish-results.json'),JSON.stringify(results,null,2));await h.close(failed);}})().catch(e=>{console.error(e);process.exitCode=1;});
