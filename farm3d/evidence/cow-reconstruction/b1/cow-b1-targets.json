@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "phase": "B1",
+  "units": "metres unless noted",
+  "coordinateSystem": {
+    "x": "lateral; +right",
+    "y": "up; ground plane y=0",
+    "z": "longitudinal; -forward/head, +rear"
+  },
+  "baseline": {
+    "commit": "75baac10fc3e4294062b67d44dee7c9e1325f94c",
+    "cowBlob": "866bb94666a58fd2f5402b440789255ce8264dee",
+    "actorEnvelope": {
+      "x": [-0.7556, 0.7556],
+      "y": [-0.1417, 1.9833],
+      "z": [-1.4167, 1.1806]
+    },
+    "speciesHeight": 1.7,
+    "collisionRadius": 0.9
+  },
+  "biologicalAnchors": {
+    "idealHipHeight": 1.524,
+    "breedAverageHipHeight": 1.52908,
+    "rumpDropHooksToPins": 0.0254,
+    "pinBoneSpacing": 0.16256,
+    "footAngleDegrees": 45,
+    "rearUdderHeight": 0.23876,
+    "rearUdderAttachmentWidth": 0.16256,
+    "udderFloorAboveHock": 0.04826,
+    "rearTeatSpacing": 0.03556,
+    "teatLength": 0.05334,
+    "sources": [
+      "https://www.holsteinusa.com/news/press_release2026.html",
+      "https://www.holsteinusa.com/genetic_evaluations/ss_interpret_linear.html",
+      "https://www.holsteinusa.com/pdf/print_material/linear_traits.pdf"
+    ]
+  },
+  "targetEnvelope": {
+    "x": [-0.42, 0.42],
+    "y": [0.0, 1.78],
+    "z": [-1.30, 1.06]
+  },
+  "targetDimensions": {
+    "hookHeight": 1.524,
+    "pinHeight": 1.4986,
+    "withersHeight": 1.50,
+    "earTopHeight": 1.78,
+    "brisketHeight": 0.66,
+    "bellyLowHeight": 0.72,
+    "bodyDepthAtHeart": 0.84,
+    "bodyLengthWithersToPins": 1.48,
+    "pelvisLengthHooksToPins": 0.41,
+    "barrelOuterWidth": 0.68,
+    "hookOuterWidth": 0.60,
+    "earTipWidth": 0.84,
+    "headLengthPollToMuzzle": 0.43,
+    "muzzleWidth": 0.32,
+    "udderOuterWidthStylized": 0.38,
+    "hoofPairWidth": 0.11,
+    "hoofLength": 0.14
+  },
+  "landmarks": {
+    "withers": [0.0, 1.50, -0.62],
+    "hookL": [-0.30, 1.524, 0.45],
+    "hookR": [0.30, 1.524, 0.45],
+    "pinL": [-0.08128, 1.4986, 0.86],
+    "pinR": [0.08128, 1.4986, 0.86],
+    "poll": [0.0, 1.58, -0.87],
+    "muzzleTip": [0.0, 1.12, -1.30],
+    "earTipL": [-0.42, 1.74, -0.86],
+    "earTipR": [0.42, 1.74, -0.86],
+    "brisket": [0.0, 0.66, -0.49],
+    "bellyLow": [0.0, 0.72, 0.12],
+    "tailRoot": [0.0, 1.45, 0.89],
+    "tailSwitch": [0.0, 0.58, 1.06],
+    "foreKneeL": [-0.20, 0.49, -0.43],
+    "foreKneeR": [0.20, 0.49, -0.43],
+    "foreFetlockL": [-0.20, 0.16, -0.43],
+    "foreFetlockR": [0.20, 0.16, -0.43],
+    "foreHoofL": [-0.20, 0.0, -0.43],
+    "foreHoofR": [0.20, 0.0, -0.43],
+    "hindHockL": [-0.23, 0.56, 0.67],
+    "hindHockR": [0.23, 0.56, 0.67],
+    "hindFetlockL": [-0.23, 0.16, 0.61],
+    "hindFetlockR": [0.23, 0.16, 0.61],
+    "hindHoofL": [-0.23, 0.0, 0.64],
+    "hindHoofR": [0.23, 0.0, 0.64],
+    "udderRearTop": [0.0, 1.02, 0.57],
+    "udderFloor": [0.0, 0.6083, 0.48]
+  },
+  "tolerances": {
+    "majorHeightOrLengthFraction": 0.05,
+    "majorWidthFraction": 0.06,
+    "jointLandmarkMetres": 0.04,
+    "rumpDropMetres": 0.01,
+    "footAngleDegrees": 5,
+    "leftRightMajorSymmetryMetres": 0.015,
+    "leftRightFineSymmetryMetres": 0.008,
+    "staticSoleHeightMetres": 0.002,
+    "surfaceJoinGapMetres": 0.002,
+    "udderFloorAboveHockMetres": 0.025,
+    "featureReadabilityRule": "Features below 0.06 m may be enlarged up to 1.35x only when their center/attachment landmarks remain biologically anchored and the B0 envelope is still respected."
+  },
+  "envelopeSafetyMargins": {
+    "xEachSide": 0.3356,
+    "yBelow": 0.1417,
+    "yAbove": 0.2033,
+    "zFront": 0.1167,
+    "zRear": 0.1206
+  },
+  "gate": {
+    "b2AllowedOnlyIf": [
+      "all target extents are inside the B0 actor envelope",
+      "all mandatory landmarks are inside the B0 actor envelope",
+      "official Holstein anchor dimensions are represented or explicitly tagged as readability-scaled",
+      "front/side/rear target SVGs are generated from this specification",
+      "the deterministic B1 proportion test passes"
+    ]
+  }
+}
