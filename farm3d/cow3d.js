@@ -56,10 +56,11 @@ function buildTemplate(){
   })));
   // Authored sections are [axis, transverse center1/2, radius1/2].
   // Closed, smooth section surfaces define anatomy instead of stacked spheres.
-  function loft(col,axis,sections,b=0,blend=null,sides=20){
+  function loft(col,axis,sections,b=0,blend=null,sides=20,warp=null){
     const vertices=[],indices=[];
     for(const [along,u,v,ru,rv,lower=rv] of sections)for(let j=0;j<sides;j++){
-      const a=j/sides*TAU,s=Math.sin(a),pu=u+Math.cos(a)*ru,pv=v+s*(s<0?lower:rv);
+      const a=j/sides*TAU,s=Math.sin(a);let pu=u+Math.cos(a)*ru,pv=v+s*(s<0?lower:rv);
+      if(warp)[pu,pv]=warp(pu,pv,along,a,s);
       if(axis==='z')vertices.push(pu,pv,along);
       else if(axis==='y')vertices.push(pu,along,pv);
       else vertices.push(along,pv,pu);
@@ -80,8 +81,8 @@ function buildTemplate(){
   }
   const bodyY=rest[slots.body].y;
   // Independently shaped dorsal/ventral radii: brisket, deep ribs, rising flank,
-  // loin and pelvic hooks. Smooth longitudinal sections avoid a uniform barrel.
-  const torso=[[-.64,1.13,.075,.22,.20],[-.58,1.14,.20,.265,.28],[-.50,1.13,.275,.30,.33],[-.42,1.12,.315,.335,.335],[-.30,1.11,.32,.34,.335],[-.16,1.11,.335,.34,.365],[.03,1.10,.343,.345,.395],[.20,1.13,.33,.325,.345],[.32,1.17,.27,.29,.28],[.43,1.20,.305,.28,.27],[.53,1.185,.292,.285,.255],[.62,1.175,.255,.26,.25],[.695,1.16,.175,.225,.205],[.735,1.155,.08,.17,.16],[.755,1.155,.015,.13,.13]];
+  // loin and angular dairy pelvis. Rear stations expose hooks, pins and rump slope.
+  const torso=[[-.64,1.13,.075,.22,.20],[-.58,1.14,.20,.265,.28],[-.50,1.13,.275,.30,.33],[-.42,1.12,.315,.335,.335],[-.30,1.11,.32,.34,.335],[-.16,1.11,.335,.34,.365],[.03,1.10,.343,.345,.395],[.20,1.13,.33,.325,.345],[.32,1.17,.27,.29,.28],[.43,1.205,.315,.29,.265],[.53,1.185,.275,.265,.245],[.62,1.155,.225,.225,.215],[.695,1.135,.145,.175,.17],[.735,1.13,.065,.13,.125],[.755,1.13,.015,.10,.10]];
   loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,null,32);
   // Neck overlaps the chest internally; dominant neck weights retain its hit contract.
   loft(coat,'z',subdivide([
@@ -97,7 +98,8 @@ function buildTemplate(){
     [-.14,0,-.015,.155,.19],[-.23,0,-.07,.12,.135],[-.31,0,-.11,.135,.105],[-.37,0,-.12,.143,.083]
   ],2),slots.head,(x,y,z)=>[[slots.head,1-clamp((z+.70)/.11,0,1)*.22],[slots.neck,clamp((z+.70)/.11,0,1)*.22]],24);
   loft(cream,'z',[[.015,0,-.025,.09,.08],[-.06,0,-.03,.13,.087],[-.14,0,-.06,.12,.07],[-.26,0,-.055,.135,.065]],slots.jaw,null,20);
-  loft(pink,'z',[[-.20,0,-.045,.13,.095],[-.26,0,-.055,.157,.095],[-.30,0,-.055,.16,.086],[-.33,0,-.05,.135,.064]],slots.jaw,null,24);
+  // Wider, flatter bovine muzzle plane; fuller below the lip than above it.
+  loft(pink,'z',[[-.20,0,-.045,.138,.076,.098],[-.26,0,-.055,.168,.073,.098],[-.30,0,-.055,.172,.068,.09],[-.33,0,-.05,.148,.055,.068]],slots.jaw,null,24);
   for(const side of [-1,1]){
     oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,12);
     const ear=slots.ears[side===-1?0:1];
@@ -116,14 +118,21 @@ function buildTemplate(){
   }
   // A small forelock follows the refined poll rather than a round hair helmet.
   for(let i=0;i<3;i++)oval(0xe7dfc8,[(i-1)*.035,.251,-.085],[.030,.026,.035],slots.head,0,0,8);
-  const udder=(x,y,z)=>{const centerGroove=Math.exp(-x*x/.0005)*.045;matCol.setHex(pink).lerp(white,clamp((y-.81)/.13,0,1)*.55).multiplyScalar(1-centerGroove);return matCol;};
-  // The broad upper attachment penetrates the belly and rear flank; the lower
-  // quarters stay compact and carry four attached teats rather than a hung orb.
-  loft(udder,'z',[[.08,0,.785,.065,.11,.045],[.15,0,.745,.14,.14,.09],[.26,0,.735,.185,.15,.125],[.37,0,.76,.17,.17,.15],[.47,0,.82,.135,.155,.17],[.53,0,.88,.065,.08,.08]],0,(x,y,z)=>[[slots.body,.85],[0,.15]],24);
+  const udder=(x,y,z)=>{const centerGroove=Math.exp(-x*x/.0005)*.06;matCol.setHex(pink).lerp(white,clamp((y-.81)/.13,0,1)*.55).multiplyScalar(1-centerGroove);return matCol;};
+  const quarterUdder=(x,y,z)=>{
+    const rear=clamp((z-.22)/.28,0,1),underside=clamp((.86-y)/.18,0,1);
+    const cleft=Math.exp(-(x*x)/.0011)*rear*underside;
+    const lobe=Math.exp(-((Math.abs(x)-.085)**2)/.0016)*rear*underside;
+    const outward=x===0?0:Math.sign(x)*.006*lobe;
+    return [x+outward,y+.034*cleft-.005*lobe];
+  };
+  // Broad attachment stays inside the belly while a real geometric cleft separates
+  // the rear quarters instead of relying on color alone.
+  loft(udder,'z',[[.08,0,.785,.065,.11,.045],[.15,0,.745,.14,.14,.09],[.26,0,.735,.185,.15,.125],[.37,0,.76,.17,.17,.15],[.47,0,.82,.135,.155,.17],[.53,0,.88,.065,.08,.08]],0,(x,y,z)=>[[slots.body,.85],[0,.15]],24,quarterUdder);
   for(const x of [-.085,.085])for(const z of [.23,.39])loft(pink,'y',[[.50,x,z,.010,.010],[.52,x,z,.014,.014],[.59,x,z,.019,.019],[.65,x,z,.023,.023]],0,()=>[[slots.body,.85],[0,.15]],10);
   for(const [i,l]of slots.legs.entries()){
-    const rear=i>=2,base=rest[l.hip];
-    const upper=[[-.38,0,0,.044,.048],[-.32,0,rear?.025:0,.052,.058],[-.23,0,rear?.035:-.005,.065,.076],[-.10,0,rear?.028:-.015,.083,.10],[.03,0,0,rear?.105:.095,rear?.12:.11],[.14,0,-.008,rear?.085:.080,rear?.10:.095],[.27,0,-.01,.047,.053],[.40,0,-.01,.012,.022]];
+    const rear=i>=2,base=rest[l.hip],rearOut=rear?Math.sign(l.x)*.012:0;
+    const upper=[[-.38,rearOut*.25,0,.044,.048],[-.32,rearOut*.45,rear?.025:0,.052,.058],[-.23,rearOut*.70,rear?.035:-.005,.065,.076],[-.10,rearOut,rear?.028:-.015,.083,.10],[.03,rearOut,0,rear?.105:.095,rear?.12:.11],[.14,rearOut*.85,-.008,rear?.085:.080,rear?.10:.095],[.27,rearOut*.55,-.01,.047,.053],[.40,rearOut*.25,-.01,.012,.022]];
     loft(coat,'y',upper,l.hip,(x,y,z)=>{
       const local=y-base.y,body=clamp((local-.02)/.20,0,1)*.45,knee=clamp((-local-.25)/.13,0,1)*.3;
       return [[l.hip,1-body-knee],[slots.body,body],[l.knee,knee]];
@@ -148,7 +157,7 @@ function buildTemplate(){
     }
   }
   for(const [i,b]of slots.tail.entries())loft(cream,'y',[
-    [-.235,0,.024,.011,.012],[-.14,0,.015,.014,.016],[-.04,0,.005,.018,.020],[i===0?.16:.02,0,i===0?-.018:0,i===0?.025:.019,i===0?.026:.020]
+    [-.235,0,.024,.011,.012],[-.14,0,.015,.014,.016],[-.04,0,.005,.018,.020],[i===0?.135:.02,0,i===0?-.028:0,i===0?.020:.019,i===0?.021:.020]
   ],b,i===0?(x,y,z)=>[[b,1-clamp((y-1.18)/.15,0,1)*.3],[slots.body,clamp((y-1.18)/.15,0,1)*.3]]:null,12);
   loft(ink,'y',[[-.285,0,.02,.009,.011],[-.245,0,.018,.030,.036],[-.19,0,.015,.038,.043],[-.12,0,.01,.020,.025]],slots.tail[2],null,14);
   const geometry=new THREE.BufferGeometry();
