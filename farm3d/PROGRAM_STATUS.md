@@ -1,4 +1,4 @@
-# Sunny Acres continuation status — 2026-10-04
+# Sunny Acres continuation status — 2026-10-05
 
 The owner requests continuous completion in focused PRs, advancing after each
 merge. Provide each merge link. A specific human approval is still required to
@@ -75,32 +75,45 @@ checks pass, as do 52 core units and 24 full-resolution weather/view captures.
 All eight exact-head checks passed at 9880039; the tested/merged trees match.
 All seven merged-main checks and Pages passed, and eighteen live files match
 source. The short S26 refresh question remains pending; earlier phone images
-do not verify the new module/cache. Authored hands now have an original Blender
-topology/rig study on branch `chatgpt/phase7mx-authored-hands`: editable source,
-32 bones, six real clips, 5,952 triangles, four surfaces and two material slots.
-Pinned Khronos and policy pass locally, as do real GLTFLoader clip/reset/clone
-checks at 844/1280 and thirty rendered clone lifetimes without resource growth.
-A draft adapter now loads the complete rig in normal farms, shares wardrobe
-materials, maps six visual actions and keeps the current hands during loading
-or failure. `?testfarm&artHands` provides isolated review; testfarm without
-artHands and visuallegacy preserve the procedural comparison. The live game
-still has its previous hands until approval and deployment. Original reference bytes are still
-unavailable here despite the phone assistant's Library/file-ID claims.
-Local real-harvest/reset, wardrobe/disposal and full CSS-resolution composer
-captures pass. All eight hosted checks passed preceding PR52 head 013db7b.
-The second study reduces/lowers the arms, rounds palm/fingertips, emphasizes cuffs
-and staggers harvest while preserving the rig/material slots. Its seven hosted
-regression jobs passed at d65da3f; the combined art job exceeded its unchanged
-20-minute limit during final barn captures after all hand checks passed.
-The same tests now run in separate hand/barn jobs with the same limits.
-Normal-game/offline integration is prepared in this draft: sa3d-v40 pre-caches
-the complete hand graph; local normal-farm save/wardrobe, old-cache migration,
-foreign-cache preservation, exact cached GLB hash, zero-server-response offline
-reload and actual missing-module/model fallback pass. All 53 core units and
-unchanged adapter/comparison browser tests pass. Failure evidence is preserved.
-Fresh hosted validation and direct owner artwork review remain open. Final design
-comparison, exact-head hosted checks, specific merge approval and physical
-acceptance remain required. Broader visual work and 7N remain unfinished.
+do not verify that module/cache.
+
+PR #52 is specifically approved and merged at `75baac1`. Authored hands are live:
+editable original Blender source, 32 bones, six clips, 5,952 triangles, wardrobe
+material sharing and procedural fallback during loading or failure. All nine
+exact-head checks and all seven merged-main jobs passed. Tested and merged
+trees match, Pages passed and twenty live files matched source. Normal farms,
+save/wardrobe, cache migration, foreign-cache preservation, exact cached GLB,
+offline reload and real missing-model/module fallback passed. The final cache
+is sa3d-v40. Prior failed attempts and the combined art-job timeout are retained;
+hand and barn tests now have separate jobs with their original limits. The one
+post-deployment S26 hands request remains pending. Original generated reference
+bytes were unavailable, so no exact match to an unseen reference is asserted.
+
+Cow B0/B1 PR #53 is merged by the owner at `18763e21889177dadd72f4469c75716d32a3f677`.
+Its tested/merged tree matches; all ten exact-head checks and Pages passed, and
+twenty-five live game/evidence files match source. The merged-main regression
+is still running. It freezes actual skinned bounds and known stop/recovery and
+run-start cadence gaps, specifies measurable proportions, and supplies matched
+front/side/rear renderer comparisons. The proposal fits the old neutral envelope
+with the original .002 numerical tolerance at height1.7, 24 bones and one cow
+draw, using10,472 versus10,592 triangles. These are game coordinates, not
+calibrated physical meters. PR53 changes no live cow geometry or gameplay.
+
+The single preserved anatomy branch is rebased onto that owner merge. This
+B2–B8 candidate shapes torso, skull/neck, limbs, cloven soles, ears, udder and
+tail, with selective transition weights and rigid hoof soles. Public creation,
+update, gait and visual behavior code stays unchanged; the existing AI, movement
+speeds, collision, saves, picking and shared-resource ownership remain protected.
+The candidate imports cow v3 and caches sa3d-v41 deliberately; it is not live
+until its own specifically approved merge and verified deployment. The preserved
+prototype and fresh rebased candidate passed56 local core units, normal game
+integration/save/picking checks and sixteen full-resolution anatomy/grazing
+views. All16views were inspected; exact published-head hosted checks remain
+required. Reviewable captures and measurements are in evidence/cow-b2-b8.
+B8 anatomy must pass before B9 gait tuning. B0's stop/recovery and run-start
+failures are preserved for B9–B12; no tolerance or old test is weakened.
+B13–B18 behavior, long simulation, full regression and final owner/device
+acceptance remain outstanding. The complete cow program and7N are unfinished.
 Both owner screenshots (overview and first person) are visual baselines. Direct
 phone replies approved broader art direction. The combined pass includes hands,
 earth/path relief, close-up indicators, HUD treatment and bounded environment

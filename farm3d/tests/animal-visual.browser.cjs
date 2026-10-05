@@ -13,7 +13,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
     const metrics = await s.page.evaluate(async () => {
       const T = await import('/farm3d/lib/three.module.min.js');
       const L = await import('/farm3d/live3d.js?v=2');
-      const C = await import('/farm3d/cow3d.js?v=2');
+      const C = await import('/farm3d/cow3d.js?v=3');
       const kinds = ['cow','sheep','horse','dog','cat','chicken'];
       const heights = [1.7,.9,1.6,.55,.4,.35];
       const renderer = new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -100,7 +100,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
         assert.ok(travel.distance>.01,kind+' actual farm movement');assert.ok(Number.isFinite(travel.phase));assert.ok(travel.saveUnchanged);
         for(const mode of ['idle','walk','run']){
           const pose=await page.evaluate(async({kind,mode})=>{
-            const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2'),C=await import('./cow3d.js?v=2');
+            const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2'),C=await import('./cow3d.js?v=3');
             const d=__dbg,a=d.animals.find(a=>a.kind===kind),r=a.rig3d;
             // The existing flat dirt path keeps grass/other animals from hiding anatomy.
             // This is test-only positioning; overview captures retain normal scene placement.

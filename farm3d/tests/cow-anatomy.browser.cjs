@@ -9,7 +9,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    await page.goto(h.base+'farm3d/tests/fixtures/farmer-stage-a.js');
    await page.setContent('<style>html,body{margin:0;background:#e5dfd2}canvas{display:block}#label{position:absolute;top:12px;left:16px;font:18px Arial;color:#352f28}</style><div id="label"></div>');
    await page.evaluate(async()=>{
-    const T=await import('/farm3d/lib/three.module.min.js'),C=await import('/farm3d/cow3d.js?v=2');
+    const T=await import('/farm3d/lib/three.module.min.js'),C=await import('/farm3d/cow3d.js?v=3');
     const renderer=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=T.ACESFilmicToneMapping;
     document.body.appendChild(renderer.domElement);const scene=new T.Scene();scene.background=new T.Color(0xe5dfd2);
     scene.add(new T.HemisphereLight(0xffffff,0x726651,2));const sun=new T.DirectionalLight(0xffffff,2.3);sun.position.set(-3,5,-4);scene.add(sun);
