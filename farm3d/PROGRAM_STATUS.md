@@ -92,7 +92,7 @@ bytes were unavailable, so no exact match to an unseen reference is asserted.
 Cow B0/B1 PR #53 is merged by the owner at `18763e21889177dadd72f4469c75716d32a3f677`.
 Its tested/merged tree matches; all ten exact-head checks and Pages passed, and
 twenty-five live game/evidence files match source. The merged-main regression
-is still running. It freezes actual skinned bounds and known stop/recovery and
+passes all seven jobs. It freezes actual skinned bounds and known stop/recovery and
 run-start cadence gaps, specifies measurable proportions, and supplies matched
 front/side/rear renderer comparisons. The proposal fits the old neutral envelope
 with the original .002 numerical tolerance at height1.7, 24 bones and one cow
@@ -105,11 +105,28 @@ tail, with selective transition weights and rigid hoof soles. Public creation,
 update, gait and visual behavior code stays unchanged; the existing AI, movement
 speeds, collision, saves, picking and shared-resource ownership remain protected.
 The candidate imports cow v3 and caches sa3d-v41 deliberately; it is not live
-until its own specifically approved merge and verified deployment. The preserved
-prototype and fresh rebased candidate passed56 local core units, normal game
-integration/save/picking checks and sixteen full-resolution anatomy/grazing
-views. All16views were inspected; exact published-head hosted checks remain
-required. Reviewable captures and measurements are in evidence/cow-b2-b8.
+until its own specifically approved merge and verified deployment. PR55's first
+head ac8a73b passed all ten hosted jobs and its full artifacts were inspected,
+but the owner rated its side view86/100 and withheld B8 approval. The newer
+direct human gate confirms B8 refinement inside the same PR55: roughly90/100
+static anatomy plus unchanged full exact-head CI, then specifically approved
+merge before B9. Earlier torso-only scope was superseded by that B8 direction.
+
+The refinement shapes deep ribs, rising flank, shoulder/chest and pelvis;
+rounded tapered cloven claws, lower limbs and a broad overlapping udder
+attachment. It passes57 local core units and16 full-resolution stationary/
+grazing views with30 rebuilds per view; all16 images were inspected. The
+geometry costs10,576triangles versus frozen10,592,24bones/one cow draw, with
+rigid original sole planes. New actual surface rays test udder/teat/tail
+attachment, and the full public/motion/disposal suffix plus gait constants
+must equal the immutable B1 text. Existing tests/budgets remain intact. Fresh
+full core game/normal-save/reload/shed/cow integration passed at740/844/1280;
+actual preview and normal game captures were inspected. All ten new exact-head
+hosted checks remain required before readiness. Owner visual/merge approval is
+still pending; no score is assigned to the refinement by these tests.
+Reviewable captures and measurements are in evidence/cow-b2-b8. The old86/100
+source/16images/measurements remain recoverable at its pinned head; local
+refinement seam failures are also preserved outside the repository.
 B8 anatomy must pass before B9 gait tuning. B0's stop/recovery and run-start
 failures are preserved for B9–B12; no tolerance or old test is weakened.
 B13–B18 behavior, long simulation, full regression and final owner/device

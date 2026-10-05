@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import * as T from '../lib/three.module.min.js';
 import {createCow3D,updateCow3D} from '../cow3d.js';
 
@@ -87,4 +87,30 @@ test('head/neck transitions remain finite and independent; motion algorithm stay
  }
  assert.ok(b.neck.quaternion.equals(before));assert.equal(a.state.distance,0);assert.equal(a.state.phase,0);
  a.dispose();a.dispose();b.dispose();
+});
+
+test('udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source',()=>{
+ const r=createCow3D(1.8,0,0,'Bessie');r.g.updateMatrixWorld(true);
+ const a=r.card.geometry.attributes,body=r.card.skeleton.bones.indexOf(r.body),ray=new T.Raycaster();
+ const torsoHit=hit=>a.skinIndex.getX(hit.face.a)===body&&a.skinWeight.getX(hit.face.a)===1;
+ const udderHit=hit=>a.skinIndex.getX(hit.face.a)===body&&Math.abs(a.skinWeight.getX(hit.face.a)-.85)<1e-6;
+ for(const z of [.15,.26,.37,.47]){
+  ray.set(new T.Vector3(0,0,z),new T.Vector3(0,1,0));const belly=ray.intersectObject(r.card).find(torsoHit);
+  ray.set(new T.Vector3(0,2,z),new T.Vector3(0,-1,0));const attachment=ray.intersectObject(r.card).find(udderHit);
+  assert.ok(belly&&attachment,'real torso/udder surfaces at each longitudinal station');
+  assert.ok(attachment.point.y>=belly.point.y-.002,'udder upper attachment penetrates the belly');
+ }
+ for(const x of [-.085,.085])for(const z of [.23,.39]){
+  ray.set(new T.Vector3(x,0,z),new T.Vector3(0,1,0));
+  assert.ok(ray.intersectObject(r.card).some(hit=>udderHit(hit)&&hit.point.y>=.60&&hit.point.y<=.65),'each teat overlaps a real udder quarter');
+ }
+ const tail=r.tail[0].getWorldPosition(new T.Vector3());
+ ray.set(tail.clone().add(new T.Vector3(3,0,0)),new T.Vector3(-1,0,0));
+ const attachment=ray.intersectObject(r.card).find(torsoHit);
+ assert.ok(attachment&&attachment.point.x>=Math.abs(tail.x),'tail root lies inside the actual rump surface');
+ const source=readFileSync(new URL('../cow3d.js',import.meta.url),'utf8').replace(/\r\n/g,'\n');
+ const reference=readFileSync(new URL('../evidence/cow-b1/proposed-reference-source.txt',import.meta.url),'utf8').replace(/\r\n/g,'\n');
+ assert.equal(source.slice(source.indexOf('export function createCow3D')),reference.slice(reference.indexOf('export function createCow3D')),'B8 does not retune any public/motion/disposal code');
+ assert.equal(source.match(/export const COW_GAIT=.*?;/)[0],reference.match(/export const COW_GAIT=.*?;/)[0],'existing gait constants remain exact');
+ r.dispose();
 });
