@@ -8,6 +8,9 @@ on:
       - 'farm3d/tools/capture-hands-study.cjs'
       - 'farm3d/tools/capture-hands-game.cjs'
       - 'farm3d/tools/capture-barn-scene.cjs'
+      - 'farm3d/tools/capture-cow-b1.cjs'
+      - 'farm3d/evidence/cow-b1/**'
+      - 'farm3d/art/COW_RECONSTRUCTION.md'
       - 'farm3d/lib/addons/loaders/**'
       - 'farm3d/lib/addons/utils/**'
       - 'farm3d/tests/barn-candidate.browser.cjs'
@@ -26,6 +29,31 @@ on:
 permissions:
   contents: read
 jobs:
+  cow-b1-reference:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Verify proposed B1 envelope against frozen cow and capture matched references
+        run: node farm3d/tools/capture-cow-b1.cjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: cow-b1-reference-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/cow-b1/
+          retention-days: 14
   barn-candidate:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

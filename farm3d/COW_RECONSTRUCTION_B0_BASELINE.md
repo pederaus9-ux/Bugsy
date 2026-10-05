@@ -101,24 +101,69 @@ Current six-animal isolated fixture:
 - measured CPU update for six actors: `0.015300000011920929 ms`
 - fixture: 640x360 SwiftShader, shadows off; CPU number excludes GPU cost and is not device FPS
 
-Cow measured bounds in the committed visual metrics are approximately:
+The bounds in the older committed visual metrics are conservative **culling
+bounds**, not the actual skinned anatomical envelope:
 
 - X: `-0.7556` to `+0.7556`
 - Y: `-0.1417` to `+1.9833`
 - Z: `-1.4167` to `+1.1806`
 
-The reconstruction may change the internal silhouette and anatomical distribution, but unexpected gameplay envelope/collision changes must be treated as explicit regressions rather than hidden art changes.
+Those padded values must not be presented as body width, physical dimensions or
+hoof penetration. A repeated PC B0 scan of all 31,776 actual skinned vertices at
+height1.7, origin and initial idle pose (Bessie) records the true envelope:
+
+| Axis | Minimum | Maximum | Extent |
+| --- | ---: | ---: | ---: |
+| X | -.41795846 | .41795846 | .83591692 |
+| Y | .00017913 | 1.62794591 | 1.62776679 |
+| Z | -1.09560484 | .73146194 | 1.82706678 |
+
+These are game coordinates. Physical meter calibration has not been established.
+The immutable PC freeze is `outputs/cow-reconstruction-B0.zip`, 15,553,799 bytes,
+in the parent workspace; its manifest preserves source and measurement hashes.
+It includes the exact-head hosted 18 cow views plus two farm overviews and the
+expanded local diagnostics below. The existing committed CPU result above and
+newer hosted results are separate runs, not an improvement comparison.
+The reconstruction may change internal shape while preserving the existing
+height/radius and neutral skin envelope. Unexpected expansion is a regression.
 
 ## 6. Frozen hoof/contact baseline
 
-Committed cow contact measurements:
+Committed cow contact measurements (artifact labels use `m`, but these are game
+coordinates; do not infer a verified physical meter conversion):
 
 - 30 Hz walk: worst slip `0.000646934 m`; min sole `-0.000300241 m`; max planted sole `0.000016366 m`
 - 30 Hz run: worst slip `0.001015441 m`; min sole `-0.000287190 m`; max planted sole `0.000078624 m`
 - 60 Hz walk: worst slip `0.000361098 m`; min sole `-0.000288491 m`; max planted sole `0.000135295 m`
 - 60 Hz run: worst slip `0.000664262 m`; min sole `-0.000304367 m`; max planted sole `0.000077103 m`
 
-Existing acceptance tolerance remains <= 2 mm for planted contact/drift. B10 must at least preserve this standard and additionally extend verification to the B0/B9/B11 reconstruction conditions defined by the program.
+The existing numerical contact tolerance remains .002 game coordinates. The
+historical two-millimetre wording is not a physical calibration. The committed
+rows use normalized speeds1.105/2.38; new PC diagnostics below use actual gameplay
+speeds .8/2.6 and must not be compared as if the scenarios were identical.
+
+PC B0 deterministically repeated eighteen six-second straight/turn/stop/teleport
+cases at 30/60/120 Hz, scanning individual actual skinned hoof soles. The same
+planted world anchor is compared across consecutive frames, excluding acquisition,
+replant and teleport frames. Known pre-existing gaps are preserved:
+
+| Case | 30 Hz drift | 60 Hz drift | 120 Hz drift | .002 tolerance |
+| --- | ---: | ---: | ---: | --- |
+| Straight walk | .00053989 | .00030702 | .00016837 | Within |
+| Straight run | .00120508 | .00076033 | .00044555 | Within |
+| Wide turn | .00159874 | .00163883 | .00167321 | Within |
+| Tight turn | .00110319 | .00150301 | .00187522 | Within, small 120 Hz margin |
+| Stop, still marked planted | .00837286 | .00446701 | .00237948 | **Outside at all three rates** |
+| Stable frames after teleport | .00541784 | .00181766 | .00053465 | **Outside at 30 Hz** |
+
+Sole minima remain above -.000311 and individual planted sole maxima below.000306.
+The horizontal stop/recovery slide is still a defect: planted offsets are
+multiplied by easing movement amount and move toward neutral while still planted.
+Equal six-second running distance varies only5.68e-14 across rates, but startup
+phase spread is .0067887102 cycles; the old cadence unit covers walking only.
+B9/B12 must address running cadence and B10/B12 the stop/recovery contact. No fix,
+timeout increase or threshold reduction is part of B0. This is not whole Beast,
+terrain, GPU, S26 or physical-device acceptance.
 
 ## 7. Frozen behavior baseline
 
@@ -162,10 +207,13 @@ The target is better anatomy and motion, not realism that breaks the game's cozy
 
 ## 9. B0 gate result
 
-PASS.
+COMPLETE AS A BASELINE FREEZE, WITH KNOWN EXISTING FAILURES.
 
 The baseline source commit, cow implementation, rendering path, protected gameplay interfaces, visual evidence, geometry cost, CPU fixture and hoof/contact measurements are now explicitly frozen.
 
 No cow production geometry, gait, AI, behavior, save, collision, economy or gameplay code is changed by B0.
 
-Next permitted phase after review of this baseline commit: B1 — corrected Holstein proportion specification.
+The B1 specification and controlled **proposed reference targets** accompany this
+planning PR in [art/COW_RECONSTRUCTION.md](art/COW_RECONSTRUCTION.md) and
+evidence/cow-b1. They do not replace the production cow. B2 production geometry
+promotion remains held for owner review of this baseline/proportion plan.
