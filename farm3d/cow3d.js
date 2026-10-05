@@ -123,8 +123,7 @@ function buildTemplate(){
     const rear=clamp((z-.22)/.28,0,1),underside=clamp((.86-y)/.18,0,1);
     const cleft=Math.exp(-(x*x)/.0011)*rear*underside;
     const lobe=Math.exp(-((Math.abs(x)-.085)**2)/.0016)*rear*underside;
-    const outward=x===0?0:Math.sign(x)*.006*lobe;
-    return [x+outward,y+.034*cleft-.005*lobe];
+    return [x,y+.034*cleft-.005*lobe];
   };
   // Broad attachment stays inside the belly while a real geometric cleft separates
   // the rear quarters instead of relying on color alone.
