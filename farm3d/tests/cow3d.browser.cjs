@@ -57,7 +57,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    });
    assert.ok(angles.every(a=>a.hits>0));
    const replaced=await page.evaluate(async()=>{
-    const THREE=await import('./lib/three.module.min.js'),{createCow3D}=await import('./cow3d.js?v=2'),{replaceRig}=await import('./live3d.js?v=2');
+    const THREE=await import('./lib/three.module.min.js'),{createCow3D}=await import('./cow3d.js?v=3'),{replaceRig}=await import('./live3d.js?v=2');
     const parent=new THREE.Group(),first=createCow3D(1.7,0,0,'A'),next=createCow3D(1.7,1,1,'B');
     parent.add(first.g); const out=replaceRig(parent,first,next);
     const meshes=[]; next.g.traverse(o=>{ if(o.isMesh) meshes.push(o.isSkinnedMesh?'skinned':o.geometry.type); });
@@ -70,7 +70,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    const after=await page.evaluate(()=>cowPreview.camera.position.toArray());assert.notDeepEqual(after,before);
    const fit=await page.locator('header,footer,button,a').evaluateAll(nodes=>nodes.every(n=>{const r=n.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;}));assert.ok(fit);
    const cost=await page.evaluate(async()=>{
-    const THREE=await import('./lib/three.module.min.js'),{updateCow3D}=await import('./cow3d.js?v=2'),v=cowPreview,r=v.renderer,c=v.cow;
+    const THREE=await import('./lib/three.module.min.js'),{updateCow3D}=await import('./cow3d.js?v=3'),v=cowPreview,r=v.renderer,c=v.cow;
     const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x707050,1));const sun=new THREE.DirectionalLight(0xffffff,3);sun.position.set(2,5,-4);sun.castShadow=true;sc.add(sun);
     c.g.position.set(0,0,0);c.model.rotation.set(0,0,0);v.camera.position.set(3,2,-4);v.camera.lookAt(0,.85,0);
     const tex=await new THREE.TextureLoader().loadAsync('art/cow.webp');tex.colorSpace=THREE.SRGBColorSpace;
