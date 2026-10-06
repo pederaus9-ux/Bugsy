@@ -195,13 +195,8 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
 }
 export function poseCowLeg(leg,tx,tz,lift,rig){
   const c=COW_GAIT;
-  // Body-local rest only. Cancels breath scale. The stride does not drop the hip.
-  leg.hip.scale.set(1/rig.body.scale.x,1/rig.body.scale.y,1/rig.body.scale.z);
   const yReach=c.hoof+lift+Math.sqrt(Math.max(.01,(c.upper+c.lower-.001)**2-tx*tx-tz*tz));
   const rootY=Math.min(c.hip,yReach);
-  // Keep the leg target in root space while the torso breathes and rocks.
-  const roll=rig.body.rotation.z,cos=Math.cos(roll),sin=Math.sin(roll),dy=rootY-1.03;
-  leg.hip.position.set((leg.x*cos+dy*sin)/rig.body.scale.x,(-leg.x*sin+dy*cos)/rig.body.scale.y,leg.z/rig.body.scale.z);
   const y=rootY-c.hoof-lift;
   const distance=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
   let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
@@ -210,10 +205,34 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   const delta=Math.acos(clamp((c.upper*c.upper+distance*distance-c.lower*c.lower)/(2*c.upper*distance),-1,1));
   const bend=Math.acos(clamp((distance*distance-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
   const sign=leg.z<0?1:-1;
-  leg.hip.rotation.set(alpha-sign*delta,phi,0);leg.knee.rotation.x=sign*bend;
-  leg.hip.quaternion.premultiply(rig.bodyInverse.copy(rig.body.quaternion).invert());
-  leg.foot.quaternion.copy(rig.body.quaternion).multiply(leg.hip.quaternion).multiply(leg.knee.quaternion).invert();
-  if(leg.planted)leg.foot.quaternion.multiply(rig.q.setFromAxisAngle(UP,leg.ayaw-rig.model.rotation.y));
+
+  // Ensure body matrix is updated before we invert it
+  rig.body.updateMatrix();
+
+  leg.hip.matrixAutoUpdate = false;
+  const rootMatrix = new THREE.Matrix4().compose(
+    new THREE.Vector3(leg.x, rootY, leg.z),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(alpha-sign*delta, phi, 0, 'YXZ')),
+    new THREE.Vector3(1,1,1)
+  );
+  leg.hip.matrix.copy(rig.body.matrix).invert().multiply(rootMatrix);
+
+  leg.knee.matrixAutoUpdate = false;
+  leg.knee.matrix.compose(
+    new THREE.Vector3(0, -c.upper, 0),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(sign*bend, 0, 0, 'YXZ')),
+    new THREE.Vector3(1,1,1)
+  );
+
+  leg.foot.matrixAutoUpdate = false;
+  const footQ = leg.planted ? new THREE.Quaternion().setFromAxisAngle(UP, leg.ayaw-rig.model.rotation.y) : new THREE.Quaternion();
+  // To keep foot aligned in root space, foot's local rotation must cancel hip and knee!
+  const hipKneeRot = new THREE.Quaternion().setFromRotationMatrix(rootMatrix).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(sign*bend, 0, 0, 'YXZ')));
+  leg.foot.matrix.compose(
+    new THREE.Vector3(0, -c.lower, 0),
+    hipKneeRot.invert().multiply(footQ),
+    new THREE.Vector3(1,1,1)
+  );
 }
 export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   if(!(dt>0)||!Number.isFinite(dt))return;
@@ -237,7 +256,7 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
       if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}
     }else{const u=(phase-duty)/(1-duty);z=step*Math.cos(u*Math.PI);lift=Math.sin(u*Math.PI)*mix(.075,.13,s.run)*s.amount;l.planted=false;}
     let tx=0,tz=z*s.amount;
-    if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=(wx*cos-wz*sin-l.x)*s.amount;tz=(wx*sin+wz*cos-l.z)*s.amount;}
+    if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=(wx*cos-wz*sin-l.x);tz=(wx*sin+wz*cos-l.z);}
     if(s.amount<.01){l.planted=false;tx=tz=lift=0;}
     // A very tight turn can pull a planted foot beyond its reach; release rather than stretch a leg.
     if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;l.planted=false;}
