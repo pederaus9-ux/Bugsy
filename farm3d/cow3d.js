@@ -3,7 +3,7 @@ import * as THREE from './lib/three.module.min.js';
 const TAU=Math.PI*2, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const ease=(dt,k)=>1-Math.exp(-dt*k), mix=(a,b,k)=>a+(b-a)*k;
 const UP=new THREE.Vector3(0,1,0);
-export const COW_GAIT=Object.freeze({walk:.8,run:2.6,stride:1.04,runStride:1.35,stance:.6,runStance:.45,upper:.36,lower:.37,hip:.77,hoof:.055});
+export const COW_GAIT=Object.freeze({walk:.8,run:2.6,stride:1.09,runStride:1.35,stance:.65,runStance:.45,upper:.36,lower:.37,hip:.77,hoof:.055});
 let template;
 function buildTemplate(){
   const defs=[{name:'root',parent:-1,p:[0,0,0]}],slots={legs:[],ears:[],eyes:[],tail:[]};
@@ -13,10 +13,10 @@ function buildTemplate(){
   slots.jaw=bone('jaw',slots.head,[0,-.09,-.08]);
   for(const side of [-1,1]){slots.ears.push(bone('ear'+side,slots.head,[side*.20,.15,.01]));slots.eyes.push(bone('eye'+side,slots.head,[side*.145,.045,-.125]));}
   // Hips are body children. The offset is body-local so the rest hip stays at the old root position.
-  for(const [x,z,phase]of [[-.265,-.46,0],[.265,-.46,.5],[-.265,.48,.5],[.265,.48,0]]){
+  for(const [x,z,phase,walkPhase]of [[-.265,-.46,0,0.75],[.265,-.46,.5,0.25],[-.265,.48,.5,0],[.265,.48,0,0.5]]){
     const hip=bone('hip'+slots.legs.length,slots.body,[x,COW_GAIT.hip-1.03,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-COW_GAIT.upper,0]);
-    const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase});
+    const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase,walkPhase});
   }
   let parent=0;
   for(let i=0;i<3;i++){const b=bone('tail'+i,parent,i?[0,-.22,.02]:[0,1.17,.74]);slots.tail.push(b);parent=b;}
@@ -216,10 +216,11 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);}
   const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
-  r.body.rotation.z=Math.sin(s.phase*TAU)*.009*s.amount;
+  r.body.rotation.z=s.run > 0.5 ? Math.sin(s.phase*TAU)*.009*s.amount : Math.sin(s.phase*TAU)*.012*s.amount;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
   for(const l of r.legs){
-    const phase=(s.phase+l.phase)%1,step=duty*stride/2;
+    const effectivePhase = s.run > 0.5 ? l.phase : l.walkPhase;
+    const phase=(s.phase+effectivePhase)%1,step=duty*stride/2;
     let z,lift=0;
     if(phase<duty){z=-step+phase/duty*2*step;
       if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}

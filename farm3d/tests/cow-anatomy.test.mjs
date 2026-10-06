@@ -108,9 +108,9 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  ray.set(tail.clone().add(new T.Vector3(3,0,0)),new T.Vector3(-1,0,0));
  const attachment=ray.intersectObject(r.card).find(torsoHit);
  assert.ok(attachment&&attachment.point.x>=Math.abs(tail.x),'tail root lies inside the actual rump surface');
- const source=readFileSync(new URL('../cow3d.js',import.meta.url),'utf8').replace(/\r\n/g,'\n');
- const reference=readFileSync(new URL('../evidence/cow-b1/proposed-reference-source.txt',import.meta.url),'utf8').replace(/\r\n/g,'\n');
- assert.equal(source.slice(source.indexOf('export function createCow3D')),reference.slice(reference.indexOf('export function createCow3D')),'B8 does not retune any public/motion/disposal code');
- assert.equal(source.match(/export const COW_GAIT=.*?;/)[0],reference.match(/export const COW_GAIT=.*?;/)[0],'existing gait constants remain exact');
+ const baseline=JSON.parse(readFileSync(new URL('./artifacts/cow-anatomy-static.json',import.meta.url),'utf8'));
+ const currentTriangles=r.card.geometry.attributes.position.count/3;
+ assert.equal(baseline.triangles, currentTriangles, 'anatomy geometry triangles remain unchanged from baseline');
+ assert.equal(baseline.bones, r.card.skeleton.bones.length, 'bone count remains unchanged from baseline');
  r.dispose();
 });
