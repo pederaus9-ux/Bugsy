@@ -83,7 +83,17 @@ function buildTemplate(){
   // Independently shaped dorsal/ventral radii: brisket, deep ribs, rising flank,
   // loin and angular dairy pelvis. Rear stations expose hooks, pins and rump slope.
   const torso=[[-.64,1.13,.075,.22,.20],[-.58,1.14,.20,.265,.28],[-.50,1.13,.275,.30,.33],[-.42,1.12,.315,.335,.335],[-.30,1.11,.32,.34,.335],[-.16,1.11,.335,.34,.365],[.03,1.10,.343,.345,.395],[.20,1.13,.33,.325,.345],[.32,1.17,.27,.29,.28],[.43,1.205,.315,.29,.265],[.53,1.185,.275,.265,.245],[.62,1.155,.225,.225,.215],[.695,1.135,.145,.175,.17],[.735,1.13,.065,.13,.125],[.755,1.13,.015,.10,.10]];
-  loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,null,32);
+  const torsoBlend = (x,y,z) => {
+    let influences = [[slots.body, 1]];
+    for (const l of slots.legs) {
+      const h = rest[l.hip];
+      const dist = Math.hypot(x - h.x, y - h.y, z - h.z);
+      const w = clamp((.30 - dist) / .30, 0, 1) * 0.45;
+      if (w > 0) influences.push([l.hip, w]);
+    }
+    return influences;
+  };
+  loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,torsoBlend,32);
   // Neck overlaps the chest internally; dominant neck weights retain its hit contract.
   loft(coat,'z',subdivide([
     [.14,0,.01,.215,.23],[.07,0,.04,.205,.22],[-.01,0,.08,.195,.205],

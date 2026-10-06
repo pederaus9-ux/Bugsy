@@ -119,8 +119,20 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  assert.equal(baseline.positionHash, hashBuffer(geo.attributes.position), 'position hash');
  assert.equal(baseline.normalHash, hashBuffer(geo.attributes.normal), 'normal hash');
  assert.equal(baseline.colorHash, hashBuffer(geo.attributes.color), 'color hash');
- assert.equal(baseline.skinIndexHash, hashBuffer(geo.attributes.skinIndex), 'skinIndex hash');
- assert.equal(baseline.skinWeightHash, hashBuffer(geo.attributes.skinWeight), 'skinWeight hash');
+ 
+ // B9 intentionally mutates skin weights to fix proximal clipping (continuous anatomical deformation)
+ const b9SkinIndexHash = 1332834688;
+ const b9SkinWeightHash = 511482976;
+ assert.equal(b9SkinIndexHash, hashBuffer(geo.attributes.skinIndex), 'b9 skinIndex hash');
+ assert.equal(b9SkinWeightHash, hashBuffer(geo.attributes.skinWeight), 'b9 skinWeight hash');
+ 
+ let blendedCount = 0;
+ for(let i=0; i<geo.attributes.skinWeight.count; i++) {
+   const w = geo.attributes.skinWeight.getX(i);
+   if (w > 0 && w < 1) blendedCount++;
+ }
+ assert.ok(blendedCount > 9000, 'Torso correctly blends with hips/shoulders for continuous anatomical deformation');
+ 
  assert.equal(baseline.boneInfo.count, r.card.skeleton.bones.length, 'bone count');
  assert.deepEqual(baseline.boneInfo.names, r.card.skeleton.bones.map(b => b.name), 'bone names');
  r.dispose();
