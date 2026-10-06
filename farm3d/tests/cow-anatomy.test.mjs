@@ -108,9 +108,20 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  ray.set(tail.clone().add(new T.Vector3(3,0,0)),new T.Vector3(-1,0,0));
  const attachment=ray.intersectObject(r.card).find(torsoHit);
  assert.ok(attachment&&attachment.point.x>=Math.abs(tail.x),'tail root lies inside the actual rump surface');
- const baseline=JSON.parse(readFileSync(new URL('./artifacts/cow-anatomy-static.json',import.meta.url),'utf8'));
- const currentTriangles=r.card.geometry.attributes.position.count/3;
- assert.equal(baseline.triangles, currentTriangles, 'anatomy geometry triangles remain unchanged from baseline');
- assert.equal(baseline.bones, r.card.skeleton.bones.length, 'bone count remains unchanged from baseline');
+ const baseline=JSON.parse(readFileSync(new URL('../evidence/cow-b9/pre-b9-baseline.json',import.meta.url),'utf8')).staticAnatomyHashes;
+ function hashBuffer(attr) {
+  let hash = 0; if (!attr) return hash;
+  for (let i = 0; i < attr.count * attr.itemSize; i++) hash = Math.imul(31, hash) + Math.round(attr.array[i] * 1e5) | 0;
+  return hash;
+ }
+ const geo = r.card.geometry;
+ assert.equal(baseline.triangles, geo.attributes.position.count/3, 'triangle count');
+ assert.equal(baseline.positionHash, hashBuffer(geo.attributes.position), 'position hash');
+ assert.equal(baseline.normalHash, hashBuffer(geo.attributes.normal), 'normal hash');
+ assert.equal(baseline.colorHash, hashBuffer(geo.attributes.color), 'color hash');
+ assert.equal(baseline.skinIndexHash, hashBuffer(geo.attributes.skinIndex), 'skinIndex hash');
+ assert.equal(baseline.skinWeightHash, hashBuffer(geo.attributes.skinWeight), 'skinWeight hash');
+ assert.equal(baseline.boneInfo.count, r.card.skeleton.bones.length, 'bone count');
+ assert.deepEqual(baseline.boneInfo.names, r.card.skeleton.bones.map(b => b.name), 'bone names');
  r.dispose();
 });

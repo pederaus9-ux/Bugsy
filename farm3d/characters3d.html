@@ -9,7 +9,7 @@
 <footer><nav aria-label="Cow movement"><button data-mode="idle" aria-pressed="true">Stand</button><button data-mode="walk" aria-pressed="false">Walk</button><button data-mode="run" aria-pressed="false">Run</button><button data-mode="eat" aria-pressed="false">Graze</button></nav><a href="./?testfarm&amp;characters3d&amp;loco&amp;perf">Try on the farm</a></footer>
 <script type="module">
 import * as THREE from './lib/three.module.min.js';
-import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=3';
+import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=4';
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.prepend(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xd0e8ee);scene.fog=new THREE.Fog(0xd0e8ee,20,45);
