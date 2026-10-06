@@ -87,8 +87,9 @@ function buildTemplate(){
     let influences = [[slots.body, 1]];
     for (const l of slots.legs) {
       const h = rest[l.hip];
-      const dist = Math.hypot(x - h.x, y - h.y, z - h.z);
-      const w = clamp((.30 - dist) / .30, 0, 1) * 0.45;
+      // Localized deformation zone: shift center up to mesh intersection, tighter radius, lower max weight
+      const dist = Math.hypot(x - h.x, (y - (h.y + 0.10)) * 0.8, z - h.z);
+      const w = clamp((.18 - dist) / .18, 0, 1) * 0.35;
       if (w > 0) influences.push([l.hip, w]);
     }
     return influences;
@@ -143,7 +144,7 @@ function buildTemplate(){
     const rear=i>=2,base=rest[l.hip],rearOut=rear?Math.sign(l.x)*.012:0;
     const upper=[[-.38,rearOut*.25,0,.044,.048],[-.32,rearOut*.45,rear?.025:0,.052,.058],[-.23,rearOut*.70,rear?.035:-.005,.065,.076],[-.10,rearOut,rear?.028:-.015,.083,.10],[.03,rearOut,0,rear?.105:.095,rear?.12:.11],[.14,rearOut*.85,-.008,rear?.085:.080,rear?.10:.095],[.27,rearOut*.55,-.01,.047,.053],[.40,rearOut*.25,-.01,.012,.022]];
     loft(coat,'y',upper,l.hip,(x,y,z)=>{
-      const local=y-base.y,body=clamp((local-.02)/.20,0,1)*.45,knee=clamp((-local-.25)/.13,0,1)*.3;
+      const local=y-base.y,body=clamp((local+.02)/.18,0,1),knee=clamp((-local-.25)/.13,0,1)*.3;
       return [[l.hip,1-body-knee],[slots.body,body],[l.knee,knee]];
     },16);
     const shin=[[-.39,0,-.006,.032,.035],[-.35,0,-.002,.045,.047],[-.31,0,rear?.005:0,.037,.040],[-.24,0,rear?.014:0,.029,.034],[-.14,0,rear?.026:0,.028,.036],[-.07,0,rear?.033:0,.036,.045],[.0,0,rear?.041:.003,.057,.070],[.045,0,rear?.025:0,.050,.060],[.075,0,.005,.040,.045]];

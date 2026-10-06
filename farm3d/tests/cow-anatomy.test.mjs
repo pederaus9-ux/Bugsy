@@ -121,8 +121,8 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  assert.equal(baseline.colorHash, hashBuffer(geo.attributes.color), 'color hash');
  
  // B9 intentionally mutates skin weights to fix proximal clipping (continuous anatomical deformation)
- const b9SkinIndexHash = 1332834688;
- const b9SkinWeightHash = 511482976;
+ const b9SkinIndexHash = 801445376;
+ const b9SkinWeightHash = -1735604992;
  assert.equal(b9SkinIndexHash, hashBuffer(geo.attributes.skinIndex), 'b9 skinIndex hash');
  assert.equal(b9SkinWeightHash, hashBuffer(geo.attributes.skinWeight), 'b9 skinWeight hash');
  
@@ -131,7 +131,7 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
    const w = geo.attributes.skinWeight.getX(i);
    if (w > 0 && w < 1) blendedCount++;
  }
- assert.ok(blendedCount > 9000, 'Torso correctly blends with hips/shoulders for continuous anatomical deformation');
+ assert.ok(blendedCount > 6000 && blendedCount < 9000, 'Torso has a localized attachment zone (not rigid, but not rubbery)');
  
  assert.equal(baseline.boneInfo.count, r.card.skeleton.bones.length, 'bone count');
  assert.deepEqual(baseline.boneInfo.names, r.card.skeleton.bones.map(b => b.name), 'bone names');
