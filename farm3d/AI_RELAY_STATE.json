@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "project": "Sunny Acres 3D",
+  "repository": "pederaus9-ux/Bugsy",
+  "sourceOfTruth": "GitHub main",
+  "protocol": "farm3d/AI_RELAY.md",
+  "lastUpdatedUtc": "2026-10-05T22:20:00Z",
+  "codeBaseline": {
+    "description": "PR #55 merged cow B2-B8 static anatomy",
+    "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
+    "pr": 55
+  },
+  "currentProgram": "cow realism program",
+  "completedThrough": "B8",
+  "currentPhase": "B9",
+  "currentPhaseTitle": "Cow gait retiming",
+  "phaseStatus": "READY_TO_START",
+  "activePullRequest": null,
+  "nextPhases": [
+    "B10 hoof/contact validation",
+    "B11 turning reconstruction",
+    "B12 transitions",
+    "B13-B15 renderer micro-behavior and recent-action suppression",
+    "B16 long deterministic behavior test",
+    "B17 full regression/performance",
+    "B18 controlled owner/device acceptance"
+  ],
+  "b9Scope": {
+    "allowed": [
+      "diagnose current gait timing",
+      "retime visual stride",
+      "improve stance/swing timing",
+      "improve body weight transfer",
+      "add deterministic gait tests at 30/60/120 Hz",
+      "capture before/after gait evidence"
+    ],
+    "mustPreserve": [
+      "approved B8 anatomy",
+      "24-bone hierarchy",
+      "public cow renderer APIs",
+      "gameplay movement speed",
+      "collision behavior",
+      "Beast high-level decisions",
+      "save compatibility",
+      "economy/progression",
+      "Firebase/auth/cloud behavior",
+      "other animals",
+      "frozen evidence"
+    ],
+    "notAuthorized": [
+      "B10 hoof/contact reconstruction",
+      "B11 turning reconstruction",
+      "B12 transition work",
+      "anatomy redesign",
+      "save schema changes",
+      "economy changes",
+      "Firebase/auth changes",
+      "unrelated cleanup"
+    ]
+  },
+  "knownEvidence": {
+    "pr55Engineering": "exact-head regression and art workflows passed before merge",
+    "knownHistoricalIssues": [
+      "B0 stop/recovery/run-start failures remain documented for B9-B12"
+    ]
+  },
+  "ownerGates": {
+    "visualAcceptanceRequired": true,
+    "deviceAcceptanceDeferredTo": "B18",
+    "directMergeApprovalRequiredWhenGateSaysSo": true
+  },
+  "relayRules": {
+    "updateThisFileInEveryPhasePR": true,
+    "recordExactBaseAndHeadShas": true,
+    "doNotAdvancePastUnresolvedGate": true,
+    "doNotTreatLocalWorkspaceAsAuthoritative": true,
+    "stopOnProtectedSystemExpansion": true
+  },
+  "specialNotes": [
+    "PR #54 is an older separate B1 planning proposal and remains untouched unless explicitly authorized.",
+    "farm3d/HANDOFF.md contains useful historical context but may be stale; AI_RELAY.md and this state file take precedence on current phase/state."
+  ]
+}
