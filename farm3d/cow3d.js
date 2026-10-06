@@ -3,7 +3,7 @@ import * as THREE from './lib/three.module.min.js';
 const TAU=Math.PI*2, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const ease=(dt,k)=>1-Math.exp(-dt*k), mix=(a,b,k)=>a+(b-a)*k;
 const UP=new THREE.Vector3(0,1,0);
-export const COW_GAIT=Object.freeze({walk:.8,run:2.6,stride:1.04,runStride:1.35,stance:.6,runStance:.45,upper:.36,lower:.37,hip:.77,hoof:.055});
+export const COW_GAIT=Object.freeze({walk:.8,run:2.6,stride:1.09,runStride:1.35,stance:.65,runStance:.45,upper:.36,lower:.37,hip:.77,hoof:.055});
 let template;
 function buildTemplate(){
   const defs=[{name:'root',parent:-1,p:[0,0,0]}],slots={legs:[],ears:[],eyes:[],tail:[]};
@@ -13,10 +13,10 @@ function buildTemplate(){
   slots.jaw=bone('jaw',slots.head,[0,-.09,-.08]);
   for(const side of [-1,1]){slots.ears.push(bone('ear'+side,slots.head,[side*.20,.15,.01]));slots.eyes.push(bone('eye'+side,slots.head,[side*.145,.045,-.125]));}
   // Hips are body children. The offset is body-local so the rest hip stays at the old root position.
-  for(const [x,z,phase]of [[-.265,-.46,0],[.265,-.46,.5],[-.265,.48,.5],[.265,.48,0]]){
+  for(const [x,z,phase,walkPhase]of [[-.265,-.46,0,0.75],[.265,-.46,.5,0.25],[-.265,.48,.5,0],[.265,.48,0,0.5]]){
     const hip=bone('hip'+slots.legs.length,slots.body,[x,COW_GAIT.hip-1.03,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-COW_GAIT.upper,0]);
-    const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase});
+    const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase,walkPhase});
   }
   let parent=0;
   for(let i=0;i<3;i++){const b=bone('tail'+i,parent,i?[0,-.22,.02]:[0,1.17,.74]);slots.tail.push(b);parent=b;}
@@ -83,7 +83,18 @@ function buildTemplate(){
   // Independently shaped dorsal/ventral radii: brisket, deep ribs, rising flank,
   // loin and angular dairy pelvis. Rear stations expose hooks, pins and rump slope.
   const torso=[[-.64,1.13,.075,.22,.20],[-.58,1.14,.20,.265,.28],[-.50,1.13,.275,.30,.33],[-.42,1.12,.315,.335,.335],[-.30,1.11,.32,.34,.335],[-.16,1.11,.335,.34,.365],[.03,1.10,.343,.345,.395],[.20,1.13,.33,.325,.345],[.32,1.17,.27,.29,.28],[.43,1.205,.315,.29,.265],[.53,1.185,.275,.265,.245],[.62,1.155,.225,.225,.215],[.695,1.135,.145,.175,.17],[.735,1.13,.065,.13,.125],[.755,1.13,.015,.10,.10]];
-  loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,null,32);
+  const torsoBlend = (x,y,z) => {
+    let influences = [[slots.body, 1]];
+    for (const l of slots.legs) {
+      const h = rest[l.hip];
+      // Localized deformation zone: shift center up to mesh intersection, tighter radius, lower max weight
+      const dist = Math.hypot(x - h.x, (y - (h.y + 0.10)) * 0.8, z - h.z);
+      const w = clamp((.18 - dist) / .18, 0, 1) * 0.35;
+      if (w > 0) influences.push([l.hip, w]);
+    }
+    return influences;
+  };
+  loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,torsoBlend,32);
   // Neck overlaps the chest internally; dominant neck weights retain its hit contract.
   loft(coat,'z',subdivide([
     [.14,0,.01,.215,.23],[.07,0,.04,.205,.22],[-.01,0,.08,.195,.205],
@@ -133,7 +144,7 @@ function buildTemplate(){
     const rear=i>=2,base=rest[l.hip],rearOut=rear?Math.sign(l.x)*.012:0;
     const upper=[[-.38,rearOut*.25,0,.044,.048],[-.32,rearOut*.45,rear?.025:0,.052,.058],[-.23,rearOut*.70,rear?.035:-.005,.065,.076],[-.10,rearOut,rear?.028:-.015,.083,.10],[.03,rearOut,0,rear?.105:.095,rear?.12:.11],[.14,rearOut*.85,-.008,rear?.085:.080,rear?.10:.095],[.27,rearOut*.55,-.01,.047,.053],[.40,rearOut*.25,-.01,.012,.022]];
     loft(coat,'y',upper,l.hip,(x,y,z)=>{
-      const local=y-base.y,body=clamp((local-.02)/.20,0,1)*.45,knee=clamp((-local-.25)/.13,0,1)*.3;
+      const local=y-base.y,body=clamp((local+.02)/.18,0,1),knee=clamp((-local-.25)/.13,0,1)*.3;
       return [[l.hip,1-body-knee],[slots.body,body],[l.knee,knee]];
     },16);
     const shin=[[-.39,0,-.006,.032,.035],[-.35,0,-.002,.045,.047],[-.31,0,rear?.005:0,.037,.040],[-.24,0,rear?.014:0,.029,.034],[-.14,0,rear?.026:0,.028,.036],[-.07,0,rear?.033:0,.036,.045],[.0,0,rear?.041:.003,.057,.070],[.045,0,rear?.025:0,.050,.060],[.075,0,.005,.040,.045]];
@@ -216,10 +227,11 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);}
   const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
-  r.body.rotation.z=Math.sin(s.phase*TAU)*.009*s.amount;
+  r.body.rotation.z=s.run > 0.5 ? Math.sin(s.phase*TAU)*.009*s.amount : Math.sin(s.phase*TAU)*.012*s.amount;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
   for(const l of r.legs){
-    const phase=(s.phase+l.phase)%1,step=duty*stride/2;
+    const effectivePhase = s.run > 0.5 ? l.phase : l.walkPhase;
+    const phase=(s.phase+effectivePhase)%1,step=duty*stride/2;
     let z,lift=0;
     if(phase<duty){z=-step+phase/duty*2*step;
       if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}

@@ -1,7 +1,7 @@
 // Keeps the 3D game on the phone so it opens quickly and plays offline.
 // (Named "sa3d-" so the 2D game's own clean-up never touches it.)
-const CACHE = "sa3d-v41";
-const SHELL = ["./", "index.html", "scene-polish.js?v=1", "features.js?v=1", "phase7m.js?v=3", "game.js?v=25", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=3", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js", "art/authored-hands.js?v=2", "assets/hands/hands-candidate.glb?v=2", "lib/addons/loaders/GLTFLoader.js", "lib/addons/utils/BufferGeometryUtils.js", "lib/addons/utils/SkeletonUtils.js"];
+const CACHE = "sa3d-v42";
+const SHELL = ["./", "index.html", "scene-polish.js?v=1", "features.js?v=1", "phase7m.js?v=3", "game.js?v=25", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=4", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js", "art/authored-hands.js?v=2", "assets/hands/hands-candidate.glb?v=2", "lib/addons/loaders/GLTFLoader.js", "lib/addons/utils/BufferGeometryUtils.js", "lib/addons/utils/SkeletonUtils.js"];
 
 
 self.addEventListener("install", (e) => {

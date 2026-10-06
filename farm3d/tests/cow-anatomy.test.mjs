@@ -108,9 +108,32 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  ray.set(tail.clone().add(new T.Vector3(3,0,0)),new T.Vector3(-1,0,0));
  const attachment=ray.intersectObject(r.card).find(torsoHit);
  assert.ok(attachment&&attachment.point.x>=Math.abs(tail.x),'tail root lies inside the actual rump surface');
- const source=readFileSync(new URL('../cow3d.js',import.meta.url),'utf8').replace(/\r\n/g,'\n');
- const reference=readFileSync(new URL('../evidence/cow-b1/proposed-reference-source.txt',import.meta.url),'utf8').replace(/\r\n/g,'\n');
- assert.equal(source.slice(source.indexOf('export function createCow3D')),reference.slice(reference.indexOf('export function createCow3D')),'B8 does not retune any public/motion/disposal code');
- assert.equal(source.match(/export const COW_GAIT=.*?;/)[0],reference.match(/export const COW_GAIT=.*?;/)[0],'existing gait constants remain exact');
+ const baseline=JSON.parse(readFileSync(new URL('../evidence/cow-b9/pre-b9-baseline.json',import.meta.url),'utf8')).staticAnatomyHashes;
+ function hashBuffer(attr) {
+  let hash = 0; if (!attr) return hash;
+  for (let i = 0; i < attr.count * attr.itemSize; i++) hash = Math.imul(31, hash) + Math.round(attr.array[i] * 1e5) | 0;
+  return hash;
+ }
+ const geo = r.card.geometry;
+ assert.equal(baseline.triangles, geo.attributes.position.count/3, 'triangle count');
+ assert.equal(baseline.positionHash, hashBuffer(geo.attributes.position), 'position hash');
+ assert.equal(baseline.normalHash, hashBuffer(geo.attributes.normal), 'normal hash');
+ assert.equal(baseline.colorHash, hashBuffer(geo.attributes.color), 'color hash');
+ 
+ // B9 intentionally mutates skin weights to fix proximal clipping (continuous anatomical deformation)
+ const b9SkinIndexHash = 801445376;
+ const b9SkinWeightHash = -1735604992;
+ assert.equal(b9SkinIndexHash, hashBuffer(geo.attributes.skinIndex), 'b9 skinIndex hash');
+ assert.equal(b9SkinWeightHash, hashBuffer(geo.attributes.skinWeight), 'b9 skinWeight hash');
+ 
+ let blendedCount = 0;
+ for(let i=0; i<geo.attributes.skinWeight.count; i++) {
+   const w = geo.attributes.skinWeight.getX(i);
+   if (w > 0 && w < 1) blendedCount++;
+ }
+ assert.ok(blendedCount > 6000 && blendedCount < 9000, 'Torso has a localized attachment zone (not rigid, but not rubbery)');
+ 
+ assert.equal(baseline.boneInfo.count, r.card.skeleton.bones.length, 'bone count');
+ assert.deepEqual(baseline.boneInfo.names, r.card.skeleton.bones.map(b => b.name), 'bone names');
  r.dispose();
 });

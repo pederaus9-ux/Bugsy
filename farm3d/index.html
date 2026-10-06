@@ -663,7 +663,7 @@ import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=3";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
-const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=3"); // 3D cows on the regular link; optional artwork fallback for comparisons
+const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=4"); // 3D cows on the regular link; optional artwork fallback for comparisons
 const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=2");
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
