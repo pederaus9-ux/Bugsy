@@ -243,14 +243,18 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   s.amount=mix(s.amount,clamp(speed/.06,0,1),ease(dt,12));
   const stride=mix(c.stride,c.runStride,s.run),duty=mix(c.stance,c.runStance,s.run);
   s.phase=(s.phase+(distance>1.5?0:distance)/stride)%1;
-  if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);}
+  let yawDelta = 0;
+  if(speed>.02){const targetYaw=Math.atan2(-dx,-dz),d=targetYaw-r.model.rotation.y;yawDelta=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);r.model.rotation.y+=yawDelta;}
+  s.turnRatio = mix(s.turnRatio || 0, speed > 0.01 ? clamp((yawDelta/dt)/Math.max(speed, 0.5), -2, 2) : 0, ease(dt, 8));
   const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
+  r.body.rotation.y=s.turnRatio * 0.15 * s.amount;
   r.body.rotation.z=s.run > 0.5 ? Math.sin(s.phase*TAU)*.009*s.amount : Math.sin(s.phase*TAU)*.012*s.amount;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
   for(const l of r.legs){
     const effectivePhase = s.run > 0.5 ? l.phase : l.walkPhase;
-    const phase=(s.phase+effectivePhase)%1,step=duty*stride/2;
+    const legStride = stride * clamp(1 + l.x * s.turnRatio, 0.4, 1.6);
+    const phase=(s.phase+effectivePhase)%1,step=duty*legStride/2;
     let z,lift=0;
     if(phase<duty){z=-step+phase/duty*2*step;
       if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}
