@@ -189,7 +189,7 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0,slip:false,rx:0,rz:0,r0:0,rt:1,blendDelta:(((l.phase-l.walkPhase)%1)+1)%1}));
   for(const l of legs)l.hip.rotation.order='YXZ';
   const rig={g,model,card,h:height,legs,head:bones[t.slots.head],neck:bones[t.slots.neck],jaw:bones[t.slots.jaw],body:bones[t.slots.body],ears:t.slots.ears.map(i=>bones[i]),eyes:t.slots.eyes.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),
-    state:{phase:0,distance:0,speed:0,amount:0,run:0,blend:0,cad:0,amountV:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0,chewPhase:seed%TAU,chewAmount:0,tailAlert:0,attention:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
+    state:{phase:0,distance:0,speed:0,amount:0,run:0,blend:0,cad:0,amountV:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0,chewPhase:seed%TAU,chewAmount:0,chewDrive:0,tailAlert:0,attention:0,earFocus:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateCow3D(rig,0,0,1/60,0);return rig;
 }
@@ -293,8 +293,11 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   const active=clamp(s.amount,0,1),feeding=act==='eating',alertTarget=s.pet>0?1:s.hold>0?.55:0;
   s.attention=mix(s.attention,alertTarget,ease(dt,feeding?2.2:3.2));
   s.tailAlert=mix(s.tailAlert,clamp(s.attention*(1-active*.65),0,1),ease(dt,2.6));
-  s.chewAmount=mix(s.chewAmount,feeding?1:0,ease(dt,feeding?4.5:3));
-  s.chewPhase=(s.chewPhase+dt*(3.1+.35*Math.sin(s.seed*1.7)))%TAU;
+  // B14: feeding no longer reads as a metronome. A deterministic low-frequency drive creates short rumination pauses without runtime randomness.
+  const chewDrive=feeding?clamp(.72+.38*Math.sin(s.time*.43+s.seed*2.3)+.18*Math.sin(s.time*.17+s.seed*.9),0,1):0;
+  s.chewDrive=mix(s.chewDrive,chewDrive,ease(dt,1.8));
+  s.chewAmount=mix(s.chewAmount,s.chewDrive,ease(dt,feeding?3.2:3));
+  s.chewPhase=(s.chewPhase+dt*(2.8+.45*Math.sin(s.seed*1.7)+.25*Math.sin(s.time*.31+s.seed)))%TAU;
   s.nextLook-=dt;s.hold=Math.max(0,s.hold-dt);
   if(s.nextLook<=0){s.lookTo=Math.sin(s.seed*2.1+s.time*1.3)*.48;s.hold=1.6;s.nextLook=4.5+2*(.5+.5*Math.sin(s.time+s.seed));}
   s.look=mix(s.look,(s.pet>0?.28:s.hold>0?s.lookTo:0)*quiet*(1-s.amount*.6),ease(dt,3.5));
@@ -309,7 +312,9 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   s.nextEar-=dt;s.earTime=Math.max(0,s.earTime-dt);
   if(s.nextEar<=0){s.earSide=++s.earEvent%2;s.earTime=.65;s.nextEar=2.5+3*(.5+.5*Math.sin(s.seed*1.7+s.time));}
   const flick=s.earTime>0?Math.sin((1-s.earTime/.65)*Math.PI)**2*.42*quiet:0;
-  for(let i=0;i<2;i++){const side=i===0?-1:1;r.ears[i].rotation.z=mix(r.ears[i].rotation.z,(i===s.earSide?side*flick:-side*flick*.15),ease(dt,22));r.ears[i].rotation.y=-side*s.look*.18;}
+  // B14: ears share the attention target but retain asymmetry, so head/ear orientation reads as one animal reacting rather than independent loops.
+  s.earFocus=mix(s.earFocus,s.attention*quiet,ease(dt,4));
+  for(let i=0;i<2;i++){const side=i===0?-1:1,focus=side*s.look*(.18+.12*s.earFocus);r.ears[i].rotation.z=mix(r.ears[i].rotation.z,(i===s.earSide?side*flick:-side*flick*.15),ease(dt,22));r.ears[i].rotation.y=-focus+side*s.earFocus*.045;}
   s.nextBlink-=dt;s.blinkTime=Math.max(0,s.blinkTime-dt);
   if(s.nextBlink<=0){s.blinkTime=.20;s.nextBlink=3+2*(.5+.5*Math.sin(s.seed+s.time));}
   const shut=s.blinkTime>0?Math.sin((1-s.blinkTime/.20)*Math.PI):0;for(const eye of r.eyes)eye.scale.y=sleeping?.18:1-shut*.90;
