@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const src=fs.readFileSync(new URL('../cow3d.js',import.meta.url),'utf8');
+assert.match(src,/blinkAlert:0/);
+assert.match(src,/s\.blinkAlert=mix\(s\.blinkAlert,s\.attention,ease\(dt,5\)\)/);
+assert.match(src,/s\.blinkAlert<\.62\|\|sleeping/);
+assert.match(src,/const lookTarget=/);
+assert.match(src,/feedCalm=feeding\?mix\(1,\.72,s\.chewAmount\):1/);
+const update=src.slice(src.indexOf('export function updateCow3D'));
+assert.ok(!/Math\.random\s*\(/.test(update),'runtime randomness forbidden');
+assert.ok(!/new THREE\.(?:BufferGeometry|MeshStandardMaterial|SphereGeometry)\s*\(/.test(update),'per-frame allocation detected');
+console.log('cow-b15-final-microbehavior: PASS');
