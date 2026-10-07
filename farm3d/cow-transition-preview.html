@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sunny Acres · Cow B12 Transition Preview</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#dce9cb;color:#29442e;font:14px system-ui;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+header,footer{position:absolute;z-index:2;left:0;right:0;background:#fffaf0ed;padding:8px max(12px,env(safe-area-inset-right));display:flex;align-items:center;justify-content:space-between;gap:8px}
+header{top:0}footer{bottom:0;flex-direction:column;align-items:stretch;max-height:45vh;overflow-y:auto}
+h1{margin:0;font-size:16px}p{margin:0;font-size:12px}
+nav{display:flex;flex-wrap:wrap;gap:6px}
+button{min-height:36px;font:inherit;border:1px solid #8ea384;border-radius:10px;padding:6px 12px;background:#fffaf0;color:#29442e;cursor:pointer}
+button[aria-pressed=true]{background:#486d44;color:white}
+#info{font-family:monospace;font-size:12px;display:flex;gap:12px;flex-wrap:wrap;background:#f3ecdb;padding:4px 8px;border-radius:6px}
+#status{position:absolute;top:45%;text-align:center;width:100%;pointer-events:none}
+</style></head><body>
+<header>
+  <div><h1>B12 Cow Transition Visual Inspector</h1><p>Drag to orbit camera. Click scripted transition buttons below.</p></div>
+  <button id="reset">Reset Camera</button>
+</header>
+<div id="status" role="status">Getting Bessie ready…</div>
+<footer>
+  <div id="info">Mode: <span id="mMode">idle</span> | Spd: <span id="mSpd">0.00</span> | Run: <span id="mRun">0.00</span> | Phase: <span id="mPh">0.00</span> | Turn: <span id="mTurn">0.00</span></div>
+  <nav aria-label="Transitions">
+    <button data-act="idle->walk">1. Idle → Walk</button>
+    <button data-act="walk->stop">2. Walk → Stop</button>
+    <button data-act="walk->run">3. Walk → Run</button>
+    <button data-act="run->walk">4. Run → Walk</button>
+    <button data-act="straight->turn">5. Straight → Turn</button>
+    <button data-act="turn->straight">6. Turn → Straight</button>
+    <button data-act="left->right">7. Left → Right</button>
+    <button data-act="repeated start/stop">8. Start / Stop Repeat</button>
+    <button data-act="accel-turn">9. Accel in Turn</button>
+    <button data-act="decel-turn">10. Decel in Turn</button>
+    <button data-act="circle-walk">Circle Walk</button>
+    <button data-act="circle-run">Circle Run</button>
+  </nav>
+</footer>
+<script type="module">
+import * as THREE from './lib/three.module.min.js';
+import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=5';
+
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.prepend(renderer.domElement);
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xd0e8ee);scene.fog=new THREE.Fog(0xd0e8ee,20,45);
+scene.add(new THREE.HemisphereLight(0xeaf6ff,0x687448,2));
+const sun=new THREE.DirectionalLight(0xfff4df,3);sun.position.set(-5,8,-6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.normalBias=.018;Object.assign(sun.shadow.camera,{left:-10,right:10,top:10,bottom:-10});scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x91ac72,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+
+const markers=new THREE.InstancedMesh(new THREE.CircleGeometry(.065,8),new THREE.MeshStandardMaterial({color:0xc3bc8c,roughness:1}),441),matrix=new THREE.Matrix4();
+let idx=0;for(let x=-20;x<=20;x+=2)for(let z=-20;z<=20;z+=2){matrix.makeRotationX(-Math.PI/2);matrix.setPosition(x,.004,z);markers.setMatrixAt(idx++,matrix);}markers.receiveShadow=true;scene.add(markers);
+
+const cow=createCow3D(1.7,0,0,3.4);scene.add(cow.g);
+const camera=new THREE.PerspectiveCamera(40,1,.05,60);
+let time=0,last=0,yaw=.6,pitch=.25,dist=4.6,drag=null;
+let targetSpeed=0,targetTurn=0,currentSpeed=0,simHeading=0;
+let scriptTimer=0,scriptPlan=null;
+
+function setAction(name){
+  document.querySelectorAll('[data-act]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.act===name)));
+  document.getElementById('mMode').textContent=name;
+  scriptTimer=0;
+  if(name==='idle->walk'){
+    targetSpeed=COW_GAIT.walk;targetTurn=0;scriptPlan=null;
+  }else if(name==='walk->stop'){
+    targetSpeed=0;targetTurn=0;scriptPlan=null;
+  }else if(name==='walk->run'){
+    targetSpeed=COW_GAIT.run;targetTurn=0;scriptPlan=null;
+  }else if(name==='run->walk'){
+    targetSpeed=COW_GAIT.walk;targetTurn=0;scriptPlan=null;
+  }else if(name==='straight->turn'){
+    targetSpeed=COW_GAIT.walk;targetTurn=0.4;scriptPlan=null;
+  }else if(name==='turn->straight'){
+    targetSpeed=COW_GAIT.walk;targetTurn=0;scriptPlan=null;
+  }else if(name==='left->right'){
+    scriptPlan=[{dur:2,spd:COW_GAIT.walk,turn:0.5},{dur:2,spd:COW_GAIT.walk,turn:-0.5}];
+  }else if(name==='repeated start/stop'){
+    scriptPlan=[{dur:1.2,spd:COW_GAIT.walk,turn:0},{dur:1,spd:0,turn:0},{dur:1.2,spd:COW_GAIT.walk,turn:0},{dur:1,spd:0,turn:0}];
+  }else if(name==='accel-turn'){
+    scriptPlan=[{dur:1.5,spd:COW_GAIT.walk,turn:0.35},{dur:2.5,spd:COW_GAIT.run,turn:0.35}];
+  }else if(name==='decel-turn'){
+    scriptPlan=[{dur:1.5,spd:COW_GAIT.run,turn:0.35},{dur:2.5,spd:COW_GAIT.walk,turn:0.35}];
+  }else if(name==='circle-walk'){
+    targetSpeed=COW_GAIT.walk;targetTurn=0.35;scriptPlan=null;
+  }else if(name==='circle-run'){
+    targetSpeed=COW_GAIT.run;targetTurn=0.35;scriptPlan=null;
+  }
+}
+
+document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>setAction(b.dataset.act));
+document.querySelector('#reset').onclick=()=>{yaw=.6;pitch=.25;dist=4.6;draw();};
+
+function draw(){
+  const p=cow.g.position,cp=Math.cos(pitch);
+  camera.position.set(p.x+Math.sin(yaw)*dist*cp,.85+Math.sin(pitch)*dist,p.z-Math.cos(yaw)*dist*cp);
+  camera.lookAt(p.x,.85,p.z);
+  renderer.render(scene,camera);
+}
+
+function step(dt){
+  time+=dt;
+  if(scriptPlan){
+    scriptTimer+=dt;
+    let acc=0,curStep=scriptPlan[scriptPlan.length-1];
+    for(const step of scriptPlan){
+      acc+=step.dur;
+      if(scriptTimer<=acc){curStep=step;break;}
+    }
+    targetSpeed=curStep.spd;targetTurn=curStep.turn;
+    if(scriptTimer>acc)scriptTimer=0; // loop script
+  }
+  currentSpeed+=(targetSpeed-currentSpeed)*(1-Math.exp(-dt*8));
+  simHeading+=targetTurn*dt;
+  const dx=-Math.sin(simHeading)*currentSpeed*dt;
+  const dz=-Math.cos(simHeading)*currentSpeed*dt;
+  cow.g.position.x+=dx;
+  cow.g.position.z+=dz;
+  updateCow3D(cow,dx,dz,dt,time,'idle');
+  draw();
+  document.getElementById('mSpd').textContent=currentSpeed.toFixed(2);
+  document.getElementById('mRun').textContent=cow.state.run.toFixed(2);
+  document.getElementById('mPh').textContent=cow.state.phase.toFixed(2);
+  document.getElementById('mTurn').textContent=(cow.state.turnRatio||0).toFixed(2);
+}
+
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();draw();}
+addEventListener('resize',resize);
+const canvas=renderer.domElement;
+canvas.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;yaw-=(e.clientX-drag.x)*.009;pitch=Math.max(-.08,Math.min(.9,pitch+(e.clientY-drag.y)*.007));drag.x=e.clientX;drag.y=e.clientY;draw();});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>drag=null);
+canvas.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(2.7,Math.min(10,dist+e.deltaY*.004));draw();},{passive:false});
+
+function loop(now){
+  step(Math.min(.05,last?(now-last)/1000:1/60));
+  last=now;
+  requestAnimationFrame(loop);
+}
+resize();
+document.querySelector('#status').hidden=true;
+setAction('circle-walk');
+requestAnimationFrame(loop);
+</script></body></html>
