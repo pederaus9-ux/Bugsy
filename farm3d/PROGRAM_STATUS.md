@@ -1,5 +1,25 @@
 # Sunny Acres continuation status — 2026-10-05
 
+Current resync on 2026-10-07: the owner merged PR55's final anatomy head34938ba
+at b0a9dea, then PR57 gait, PR58 contact and PR59 turning. Current main is
+3fb7eff9f2a9d2da0c4384342fd85e6fd1a448c3. Each final PR head/merge tree matches;
+latest main's seven hosted jobs and Pages pass, and21 live files match source.
+The main artifacts show actual production SDK12.19.0 with normal/blocked storage,
+33 successful cloud flows and16 recovery cases. All16 current full-resolution
+idle/eating cow captures were inspected. These are engineering checks; final
+controlled owner/device acceptance remains B18. The sections below preserve
+historical evidence and may describe earlier unmerged heads.
+
+A confirmed validation gap is being repaired before B12: the hosted core command
+ran57 older units but omitted the existing B9 gait and B10 contact tests. Both
+pass directly on current main. B11 had a measurement script but no hosted turning
+assertions. The repair adds both existing tests and clockwise/counterclockwise
+turning gates at30/60/120 Hz to the original command, retaining every old check,
+budget and timeout. The pre-B11 negative control fails the new turning gates.
+Runtime/appearance, saves, AI, auth/economy and cache are unchanged. New exact-head
+hosted checks and specific human merge approval are required; B12 is not started.
+See AI_RELAY_STATE.json and evidence/cow-motion-ci/README.md for current gates.
+
 The owner requests continuous completion in focused PRs, advancing after each
 merge. Provide each merge link. A specific human approval is still required to
 merge each new PR. The owner removed Muse from the process. Questions, merge
