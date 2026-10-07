@@ -186,10 +186,10 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
   card.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,.9,0),1.7);
   card.boundingBox=new THREE.Box3(new THREE.Vector3(-.8,-.15,-1.5),new THREE.Vector3(.8,2.1,1.25));
   const g=new THREE.Group(),model=new THREE.Group();g.position.set(x,0,z);g.add(model);model.add(card);model.scale.setScalar(height/1.8);
-  const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0}));
+  const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0,slip:false,rx:0,rz:0,r0:0,rt:1,blendDelta:(((l.phase-l.walkPhase)%1)+1)%1}));
   for(const l of legs)l.hip.rotation.order='YXZ';
   const rig={g,model,card,h:height,legs,head:bones[t.slots.head],neck:bones[t.slots.neck],jaw:bones[t.slots.jaw],body:bones[t.slots.body],ears:t.slots.ears.map(i=>bones[i]),eyes:t.slots.eyes.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),
-    state:{phase:0,distance:0,speed:0,amount:0,run:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
+    state:{phase:0,distance:0,speed:0,amount:0,run:0,blend:0,cad:0,amountV:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateCow3D(rig,0,0,1/60,0);return rig;
 }
@@ -199,9 +199,14 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   const rootY=Math.min(c.hip,yReach);
   const y=rootY-c.hoof-lift;
   const distance=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
-  let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
-  const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi);
-  const alpha=Math.atan2(horizontal,y);
+  // Hinge axis = world X projected perpendicular to the hip->hoof direction. It is continuous everywhere the foot is
+  // below the hip (the old azimuth fold flipped the whole thigh ~180deg when a laterally offset hoof crossed the hip).
+  // With tx=0 this is exactly the previous sagittal pose.
+  const tl=Math.sqrt(tx*tx+y*y+tz*tz)||1,Tx=tx/tl,Ty=-y/tl,Tz=tz/tl,an=Math.sqrt(Math.max(1e-12,1-Tx*Tx));
+  const hx=(1-Tx*Tx)/an,hy=-Tx*Ty/an,hz=-Tx*Tz/an;
+  const dh=-hy,ex=-dh*hx,ey=-1-dh*hy,ez=-dh*hz,en=Math.hypot(ex,ey,ez)||1,e0x=ex/en,e0y=ey/en,e0z=ez/en;
+  const alpha=Math.atan2((e0y*Tz-e0z*Ty)*hx+(e0z*Tx-e0x*Tz)*hy+(e0x*Ty-e0y*Tx)*hz,e0x*Tx+e0y*Ty+e0z*Tz);
+  const baseQ=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(hx,hy,hz),new THREE.Vector3(-e0x,-e0y,-e0z),new THREE.Vector3(hy*-e0z-hz*-e0y,hz*-e0x-hx*-e0z,hx*-e0y-hy*-e0x)));
   const delta=Math.acos(clamp((c.upper*c.upper+distance*distance-c.lower*c.lower)/(2*c.upper*distance),-1,1));
   const bend=Math.acos(clamp((distance*distance-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
   const sign=leg.z<0?1:-1;
@@ -212,7 +217,7 @@ export function poseCowLeg(leg,tx,tz,lift,rig){
   leg.hip.matrixAutoUpdate = false;
   const rootMatrix = new THREE.Matrix4().compose(
     new THREE.Vector3(leg.x, rootY, leg.z),
-    new THREE.Quaternion().setFromEuler(new THREE.Euler(alpha-sign*delta, phi, 0, 'YXZ')),
+    baseQ.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),alpha-sign*delta)),
     new THREE.Vector3(1,1,1)
   );
   leg.hip.matrix.copy(rig.body.matrix).invert().multiply(rootMatrix);
@@ -238,32 +243,50 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   if(!(dt>0)||!Number.isFinite(dt))return;
   const s=r.state,c=COW_GAIT;s.time+=dt;s.pet=Math.max(0,s.pet-dt);
   const distance=Math.hypot(dx,dz),speed=distance>1.5?0:distance/dt;s.distance+=distance>1.5?0:distance;
-  if (distance > 1.5) for (const l of r.legs) l.planted=false;
+  if (distance > 1.5) for (const l of r.legs) {l.planted=false;l.slip=false;l.rx=l.rz=l.r0=0;l.rt=1;}
   s.speed=mix(s.speed,speed,ease(dt,10));s.run=mix(s.run,clamp((speed-1.1)/(c.run-1.1),0,1),ease(dt,6));
-  s.amount=mix(s.amount,clamp(speed/.06,0,1),ease(dt,12));
-  const stride=mix(c.stride,c.runStride,s.run),duty=mix(c.stance,c.runStance,s.run);
-  s.phase=(s.phase+(distance>1.5?0:distance)/stride)%1;
+  // B12: gait amplitude is critically damped (exact per-step solution, frame-rate independent) so strides fade in/out with
+  // continuous velocity instead of an instantaneous 12/s hoof-speed jump on the first frame.
+  {const w=18,e=Math.exp(-w*dt),x0=s.amount-clamp(speed/.06,0,1),b=s.amountV+w*x0;s.amount=clamp(clamp(speed/.06,0,1)+(x0+b*dt)*e,0,1);s.amountV=(s.amountV-w*b*dt)*e;}
+  // Cadence follows the filtered speed, not this frame's raw distance: a step change in input speed used to multiply the phase rate
+  // instantly (3.25x for walk->run), whipping any swinging leg. Planted hooves stay world-anchored, so contact is unaffected.
+  const dphase=(distance>1.5?0:distance)/mix(c.stride,c.runStride,s.blend);s.phase=(s.phase+dphase)%1;
+  // B12: the walk (lateral) and run (diagonal) leg-phase offsets used to switch at s.run=.5, instantly re-phasing every leg.
+  // s.blend now follows s.run no faster than one gait cycle per full change (no leg phase runs faster than 1.5x or slower than .5x) and
+  // drives the offsets plus stride/stance/lift mixing, so all gait-shape changes are paced by the gait itself rather than by input timing.
+  s.blend=s.amount<.01?s.run:s.blend+clamp(s.run-s.blend,-dphase,dphase);
+  const stride=mix(c.stride,c.runStride,s.blend),duty=mix(c.stance,c.runStance,s.blend);
   let yawDelta = 0;
   if(speed>.02){const targetYaw=Math.atan2(-dx,-dz),d=targetYaw-r.model.rotation.y;yawDelta=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);r.model.rotation.y+=yawDelta;}
   s.turnRatio = mix(s.turnRatio || 0, speed > 0.01 ? clamp((yawDelta/dt)/Math.max(speed, 0.5), -2, 2) : 0, ease(dt, 8));
   const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
   r.body.rotation.y=s.turnRatio * 0.15 * s.amount;
-  r.body.rotation.z=s.run > 0.5 ? Math.sin(s.phase*TAU)*.009*s.amount : Math.sin(s.phase*TAU)*.012*s.amount;
+  r.body.rotation.z=Math.sin(s.phase*TAU)*mix(.012,.009,s.blend)*s.amount;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
   for(const l of r.legs){
-    const effectivePhase = s.run > 0.5 ? l.phase : l.walkPhase;
     const legStride = stride * clamp(1 + l.x * s.turnRatio, 0.4, 1.6);
-    const phase=(s.phase+effectivePhase)%1,step=duty*legStride/2;
-    let z,lift=0;
-    if(phase<duty){z=-step+phase/duty*2*step;
-      if(!l.planted&&s.amount>.05){const rz=l.z+z*s.amount;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}
-    }else{const u=(phase-duty)/(1-duty);z=step*Math.cos(u*Math.PI);lift=Math.sin(u*Math.PI)*mix(.075,.13,s.run)*s.amount;l.planted=false;}
-    let tx=0,tz=z*s.amount;
+    const phase=(s.phase+l.walkPhase+s.blend*l.blendDelta)%1,step=duty*legStride/2,idle=s.amount<.01,swing=phase>=duty;
+    // Offset of an anchored hoof from its hip, taken before this frame's stance/swing decision.
+    let tx=0,tz=0;
     if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=(wx*cos-wz*sin-l.x);tz=(wx*sin+wz*cos-l.z);}
-    if(s.amount<.01){l.planted=false;tx=tz=lift=0;}
-    // A very tight turn can pull a planted foot beyond its reach; release rather than stretch a leg.
-    if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;l.planted=false;}
+    let z=0,lift=0;
+    if(swing){const u=(phase-duty)/(1-duty);z=step*Math.cos(u*Math.PI);lift=Math.sin(u*Math.PI)*mix(.075,.13,s.blend)*s.amount;}else z=-step+phase/duty*2*step;
+    const nz=idle?0:z*s.amount;if(idle)lift=0;
+    // A hoof that leaves the ground for any reason (liftoff, standing still, reach limit) keeps its current position and
+    // eases toward the nominal gait pose via a decaying residual, instead of snapping to it.
+    const release=()=>{l.planted=false;l.rx=tx;l.rz=tz-nz;l.r0=Math.hypot(l.rx,l.rz);l.rt=0;};
+    if(idle||swing){l.slip=false;if(l.planted)release();}
+    else if(!l.planted&&!l.slip&&s.amount>.05&&Math.hypot(l.rx*(1-l.rt*l.rt*(3-2*l.rt)),nz+l.rz*(1-l.rt*l.rt*(3-2*l.rt)))<=.34){const w0=1-l.rt*l.rt*(3-2*l.rt),rx=l.x+l.rx*w0,rz=l.z+nz+l.rz*w0;l.ax=r.g.position.x+(rx*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-rx*sin)*scale;l.ayaw=yaw;l.planted=true;l.rx=l.rz=l.r0=0;l.rt=1;tx=rx-l.x;tz=rz-l.z;}
+    if(!l.planted){
+      // Residual eases out on a fixed time scale (smoothstep: zero start velocity), with a small step arch while a hoof recovers.
+      const w=1-l.rt*l.rt*(3-2*l.rt);tx=l.rx*w;tz=nz+l.rz*w;
+      if(l.r0>1e-4&&l.rt<1)lift=Math.max(lift,Math.sin(Math.PI*l.rt)**2*Math.min(.08,l.r0*.25));
+      l.rt=Math.min(1,l.rt+dt/.25);
+    }
+    // A very tight turn can pull a planted foot beyond its reach: lift it early, but keep it where it is and do not re-plant
+    // until its next swing (releasing and re-planting every frame teleported the hoof).
+    if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;if(l.planted){release();l.slip=true;}}
     poseCowLeg(l,tx,tz,lift,r);
   }
   s.nextLook-=dt;s.hold=Math.max(0,s.hold-dt);
