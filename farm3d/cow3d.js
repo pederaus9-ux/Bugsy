@@ -189,7 +189,7 @@ export function createCow3D(height=1.7,x=0,z=0,seed=0){
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0,slip:false,rx:0,rz:0,r0:0,rt:1,blendDelta:(((l.phase-l.walkPhase)%1)+1)%1}));
   for(const l of legs)l.hip.rotation.order='YXZ';
   const rig={g,model,card,h:height,legs,head:bones[t.slots.head],neck:bones[t.slots.neck],jaw:bones[t.slots.jaw],body:bones[t.slots.body],ears:t.slots.ears.map(i=>bones[i]),eyes:t.slots.eyes.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),
-    state:{phase:0,distance:0,speed:0,amount:0,run:0,blend:0,cad:0,amountV:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
+    state:{phase:0,distance:0,speed:0,amount:0,run:0,blend:0,cad:0,amountV:0,time:0,seed,look:0,lookTo:0,nextLook:1.3+seed%2,hold:0,earTime:0,nextEar:1+seed%2,earSide:0,earEvent:0,blinkTime:0,nextBlink:2.3+seed%3,pet:0,chewPhase:seed%TAU,chewAmount:0,tailAlert:0,attention:0},q:new THREE.Quaternion(),bodyInverse:new THREE.Quaternion(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateCow3D(rig,0,0,1/60,0);return rig;
 }
@@ -289,6 +289,12 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
     if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;if(l.planted){release();l.slip=true;}}
     poseCowLeg(l,tx,tz,lift,r);
   }
+  // B13: one deterministic attention signal coordinates the existing face/ear/tail channels instead of letting each read as an unrelated timer.
+  const active=clamp(s.amount,0,1),feeding=act==='eating',alertTarget=s.pet>0?1:s.hold>0?.55:0;
+  s.attention=mix(s.attention,alertTarget,ease(dt,feeding?2.2:3.2));
+  s.tailAlert=mix(s.tailAlert,clamp(s.attention*(1-active*.65),0,1),ease(dt,2.6));
+  s.chewAmount=mix(s.chewAmount,feeding?1:0,ease(dt,feeding?4.5:3));
+  s.chewPhase=(s.chewPhase+dt*(3.1+.35*Math.sin(s.seed*1.7)))%TAU;
   s.nextLook-=dt;s.hold=Math.max(0,s.hold-dt);
   if(s.nextLook<=0){s.lookTo=Math.sin(s.seed*2.1+s.time*1.3)*.48;s.hold=1.6;s.nextLook=4.5+2*(.5+.5*Math.sin(s.time+s.seed));}
   s.look=mix(s.look,(s.pet>0?.28:s.hold>0?s.lookTo:0)*quiet*(1-s.amount*.6),ease(dt,3.5));
@@ -296,7 +302,10 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   r.neck.rotation.x=mix(r.neck.rotation.x,act==='eating'?-.95: sleeping?.11:.012*Math.sin(s.phase*TAU*2)*s.amount,ease(dt,5));
   r.neck.position.y=mix(r.neck.position.y,act==='eating'?.80:1.12,ease(dt,5));
   r.head.rotation.z=mix(r.head.rotation.z,s.pet>0?.08:s.look*.06,ease(dt,5));
-  r.jaw.rotation.x=act==='eating'?(.03+.025*Math.sin(s.time*4)):0;
+  // Chewing uses a slow asymmetric cycle with a small lateral component; both fade cleanly outside feeding.
+  const chew=Math.sin(s.chewPhase),grind=Math.sin(s.chewPhase*.5+1.1);
+  r.jaw.rotation.x=.025*s.chewAmount+Math.max(0,chew)*.022*s.chewAmount;
+  r.jaw.rotation.y=.018*grind*s.chewAmount;
   s.nextEar-=dt;s.earTime=Math.max(0,s.earTime-dt);
   if(s.nextEar<=0){s.earSide=++s.earEvent%2;s.earTime=.65;s.nextEar=2.5+3*(.5+.5*Math.sin(s.seed*1.7+s.time));}
   const flick=s.earTime>0?Math.sin((1-s.earTime/.65)*Math.PI)**2*.42*quiet:0;
@@ -304,6 +313,6 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   s.nextBlink-=dt;s.blinkTime=Math.max(0,s.blinkTime-dt);
   if(s.nextBlink<=0){s.blinkTime=.20;s.nextBlink=3+2*(.5+.5*Math.sin(s.seed+s.time));}
   const shut=s.blinkTime>0?Math.sin((1-s.blinkTime/.20)*Math.PI):0;for(const eye of r.eyes)eye.scale.y=sleeping?.18:1-shut*.90;
-  for(let i=0;i<3;i++){r.tail[i].rotation.z=Math.sin(s.time*.9+s.seed-i*.5)*(.12+i*.04)*quiet;r.tail[i].rotation.x=.08+Math.sin(s.time*.7-i*.3)*.04;}
+  for(let i=0;i<3;i++){const alert=s.tailAlert*(.035+i*.025);r.tail[i].rotation.z=(Math.sin(s.time*.9+s.seed-i*.5)*(.12+i*.04)+Math.sin(s.time*2.1+s.seed+i)*alert)*quiet;r.tail[i].rotation.x=.08+Math.sin(s.time*.7-i*.3)*.04;}
   r.model.position.y=hop>0?Math.sin((1-hop)*Math.PI)*r.h*.18:0;
 }
