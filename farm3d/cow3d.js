@@ -300,7 +300,8 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   s.chewPhase=(s.chewPhase+dt*(2.8+.45*Math.sin(s.seed*1.7)+.25*Math.sin(s.time*.31+s.seed)))%TAU;
   s.nextLook-=dt;s.hold=Math.max(0,s.hold-dt);
   if(s.nextLook<=0){s.lookTo=Math.sin(s.seed*2.1+s.time*1.3)*.48;s.hold=1.6;s.nextLook=4.5+2*(.5+.5*Math.sin(s.time+s.seed));}
-  const lookTarget=(s.pet>0?.28:s.hold>0?s.lookTo:0)*quiet*(1-s.amount*.6);\n  s.look=mix(s.look,lookTarget,ease(dt,3.5));
+  const lookTarget=(s.pet>0?.28:s.hold>0?s.lookTo:0)*quiet*(1-s.amount*.6);
+  s.look=mix(s.look,lookTarget,ease(dt,3.5));
   r.neck.rotation.y=s.look*.65;r.head.rotation.y=s.look*.35;
   r.neck.rotation.x=mix(r.neck.rotation.x,act==='eating'?-.95: sleeping?.11:.012*Math.sin(s.phase*TAU*2)*s.amount,ease(dt,5));
   r.neck.position.y=mix(r.neck.position.y,act==='eating'?.80:1.12,ease(dt,5));
