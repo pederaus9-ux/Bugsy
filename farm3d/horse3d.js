@@ -67,7 +67,8 @@ function buildTemplate(){
     oval(HORSE.coat,[0,0,0],[.065,.060,.070],l.knee,8,6);
     rod(HORSE.coat,[0,-HORSE.lower*.43,0],.038,HORSE.lower*.78,l.knee);
     oval(HORSE.coat,[0,-HORSE.lower*.82,-.008],[.050,.070,.055],l.knee,8,6);
-    oval(HORSE.face,[0,-.025,-.018],[.070,.050,.105],l.foot,10,6);
+    // Keep the lowest hoof vertices above the 2 mm contact floor across scaled rigs.
+    oval(HORSE.face,[0,-.0245,-.018],[.070,.04975,.105],l.foot,10,6);
   }
   for(let i=0;i<slots.tail.length;i++){const b=slots.tail[i];link(HORSE.face,[0,0,0],[0,-.17,.075],.032,b);if(i===2)oval(HORSE.face,[0,-.18,.08],[.065,.16,.060],b,10,7);}
 
