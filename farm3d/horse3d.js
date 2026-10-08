@@ -39,7 +39,9 @@ function buildTemplate(){
 
   // Torso: separate rib cage, shoulder/withers and hindquarter masses produce a horse silhouette.
   oval(HORSE.coat,[0,.00,.03],[.31,.34,.54],slots.body,16,10);
-  oval(HORSE.coat,[0,.04,-.42],[.30,.36,.31],slots.body,14,9);
+  // Keep the muscular shoulder below the raised neck's visible bridge.
+  // Its previous high, round cap occluded the neck surface during picking.
+  oval(HORSE.coat,[0,-.01,-.42],[.30,.31,.31],slots.body,14,9);
   oval(HORSE.coat,[0,.03,.43],[.33,.35,.34],slots.body,14,9);
   oval(HORSE.coat,[0,.27,-.30],[.20,.16,.22],slots.body,12,8);
 
