@@ -102,15 +102,23 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           const pose=await page.evaluate(async({kind,mode})=>{
             const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2'),C=await import('./cow3d.js?v=3');
             const d=__dbg,a=d.animals.find(a=>a.kind===kind),r=a.rig3d;
+            const E=kind==='horse'?await import('./tests/horse-evidence-placement.mjs'):null;
             // The existing flat dirt path keeps grass/other animals from hiding anatomy.
             // This is test-only positioning; overview captures retain normal scene placement.
             d.animals.forEach(other=>{other.g.visible=other===a;});
-            a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;
+            if(E)E.resetHorseEvidencePose(r,0,0,14);
+            else {a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;}
             for(let n=0;n<24;n++){
               const dz=mode==='idle'?0:-a.S.h*(mode==='run'?1.4:.65)/60;a.g.position.z+=dz;
               if(kind==='cow')C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode,mode==='run');
             }
-            a.g.position.set(0,0,14);a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
+            if(E)E.translateHorseEvidencePose(r,0,0,14);else a.g.position.set(0,0,14);
+            a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
+            if(E)for(const l of r.legs){
+              const foot=l.foot.getWorldPosition(new T.Vector3());
+              const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));
+              if(error>.002)throw new Error('horse capture world contact error '+error);
+            }
             const head=r.head.getWorldPosition(new T.Vector3());
             d.camera.position.set(0,a.S.h*.9,14-a.S.h*2.8);d.camera.lookAt(0,a.S.h*.52,14);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
             const projected=head.clone().project(d.camera),hit=d.hitAt((projected.x+1)*innerWidth/2,(1-projected.y)*innerHeight/2);
