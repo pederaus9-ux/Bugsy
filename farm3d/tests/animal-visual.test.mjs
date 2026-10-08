@@ -65,7 +65,7 @@ test('six species keep flat feet above ground and planted feet steady at 30/60Hz
         }
         // Two millimetres is the contact tolerance; a running gait can have a flight phase.
         minSole=Math.min(minSole,sole);
-        assert.ok(sole>=-.002,kind+' rendered sole contact '+sole);
+        assert.ok(sole>=-.002,`${kind} rendered sole contact ${sole}; hz=${hz}; mode=${run?'run':'walk'}; frame=${n}; phase=${r.state.phase}; torsoPitch=${r.body.rotation.x}`);
         if(r.legs.some(l=>l.planted)){maxPlantedSole=Math.max(maxPlantedSole,sole);assert.ok(sole<.002,kind+' planted rendered sole touches ground '+sole);}
       }
     }
