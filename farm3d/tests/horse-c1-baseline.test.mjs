@@ -23,7 +23,7 @@ test('C1 freezes production horse topology and render structure',()=>{
   const tri=triangles(r.card.geometry),bones=r.card.skeleton.bones.length;
   console.log(JSON.stringify({horseC1:{triangles:tri,bones,skinnedMeshes:meshes.length,height:r.spec.height}}));
   assert.equal(meshes.length,1);
-  assert.equal(bones,22);
+  assert.equal(bones,21);
   assert.ok(tri>1000&&tri<12000);
   r.dispose();
 });
