@@ -46,3 +46,30 @@ test('replacing a rig removes the old group and disposes it', () => {
   current.dispose();
   assert.equal(current.disposed, true);
 });
+test('every wardrobe hat and hairstyle builds its own shape', () => {
+  const shape = (look) => { const r = createLiveFarmer(look); const sig = r.extras.map(m => m.geometry.type + ':' + m.position.toArray().map(v => v.toFixed(2)).join(',')).sort().join('|'); r.dispose(); return sig; };
+  const hats = ['straw','cap','beanie','cowboy','flowers','none'].map(hat => shape({hat, hair:'short'}));
+  assert.equal(new Set(hats).size, hats.length, 'six hats, six different farmers');
+  const hairs = ['short','long','pony','bun','curly','buzz','bob','braids'].map(hair => shape({hair, hat:'none'}));
+  assert.equal(new Set(hairs).size, hairs.length, 'eight hairstyles, eight different farmers');
+});
+test('skin, shirt and overall colours reach the farmer', () => {
+  const r = createLiveFarmer({skin:0x5b3822, shirt:0x9c7cd4, overalls:true, overallColor:0x7a5334});
+  assert.equal(r.card.material.color.getHex(), 0x5b3822, 'skinned body wears the skin tone');
+  const colours = new Set(r.extras.map(m => m.material.color.getHex()));
+  assert.ok(colours.has(0x9c7cd4) && colours.has(0x7a5334));
+  const plain = createLiveFarmer({shirt:0x9c7cd4, overalls:false});
+  assert.ok(!new Set(plain.extras.map(m => m.material.color.getHex())).has(0x3d6fa8), 'no overalls, no denim');
+  r.dispose(); plain.dispose();
+});
+test('walking bends the knees and stopping eases back to standing', () => {
+  const r = createLiveFarmer({});
+  let bent = 0;
+  for (let i = 0; i < 90; i++) { updateLiveFarmer(r, 0, -1.4 / 60, 1 / 60, 'walk'); bent = Math.min(bent, r.knees[0].rotation.x, r.knees[1].rotation.x); }
+  assert.ok(bent < -.3, 'a swinging leg bends at the knee');
+  for (let i = 0; i < 120; i++) updateLiveFarmer(r, 0, 0, 1 / 60, 'idle');
+  assert.ok(Math.abs(r.legs[0].rotation.x) < .02 && Math.abs(r.knees[0].rotation.x) < .02, 'legs settle when standing');
+  updateLiveFarmer(r, 0, -30, 1 / 60, 'walk'); // a teleport is not a stride
+  assert.ok(Number.isFinite(r.body.position.y));
+  r.dispose();
+});
