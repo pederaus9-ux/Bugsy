@@ -119,9 +119,12 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
     const targetYaw=Math.atan2(-dx,-dz),delta=targetYaw-r.model.rotation.y;
     r.model.rotation.y+=Math.atan2(Math.sin(delta),Math.cos(delta))*(1-Math.exp(-dt*10));
   }
-  // Stable hip roots. A full body-support solver may animate body height later,
-  // but it must never translate individual hips independently of the skeleton.
-  r.body.position.y=HORSE.bodyY-.09;
+  // Body-level spring motion is solved BEFORE the legs. A small downward-only
+  // stance compression gives the moving horse a real change of joint pose,
+  // while fixed hip roots remain attached to the torso and the world-space
+  // foot targets remain authoritative. There is no post-IK hip translation.
+  const stanceCompression=.012*(1-Math.cos(s.phase*Math.PI*2))*.5*s.amount;
+  r.body.position.y=HORSE.bodyY-.09-stanceCompression;
   r.body.rotation.x=0;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);
   const soleY=r.g.position.y+(.07425*scale)+.0005;
