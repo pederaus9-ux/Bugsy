@@ -57,3 +57,17 @@ test('stopping midway through a fast swing lands vertically without a hoof telep
   near(t.x,x);near(t.z,z);near(t.y,.09);near(t.yaw,angle);
   assert.equal(t.mode,'stance');
 });
+
+test('high-speed turning footstep respects bounded swing velocity instead of teleporting',()=>{
+  const t=createHoofTrack(0,.1,0,0),speedLimit=9,duration=.24;
+  beginHoofSwing(t,{x:3,y:.1,z:3,yaw:Math.PI/2},duration,.08,speedLimit);
+  assert.ok(Math.hypot(t.landX,t.landZ)<=speedLimit*duration/1.875+1e-9);
+  let previousX=t.x,previousZ=t.z,worst=0;
+  for(let n=0;n<30;n++){
+    updateHoofTrack(t,1/120);
+    worst=Math.max(worst,Math.hypot(t.x-previousX,t.z-previousZ));
+    previousX=t.x;previousZ=t.z;
+  }
+  assert.ok(worst<=speedLimit/120+1e-9,'swing displacement '+worst);
+  assert.equal(t.mode,'stance');
+});

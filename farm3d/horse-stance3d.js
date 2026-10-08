@@ -13,12 +13,18 @@ export function createHoofTrack(x,y,z,yaw=0){
     landX:x,landY:y,landZ:z,landYaw:yaw,
     swingElapsed:0,swingDuration:0,swingLift:0,cycle:0};
 }
-export function beginHoofSwing(t,landing,duration,lift){
+export function beginHoofSwing(t,landing,duration,lift,maxFootSpeed=Infinity){
   if(t.mode==='swing')return false;
   if(!(duration>0)||!Number.isFinite(duration))throw new Error('positive swing duration required');
   // Capture the ACTUAL current world-space hoof pose at the lift event.
   t.startX=t.x;t.startY=t.y;t.startZ=t.z;t.startYaw=t.yaw;
-  t.landX=landing.x;t.landY=landing.y;t.landZ=landing.z;t.landYaw=landing.yaw;
+  // The quintic curve has a maximum horizontal time derivative of 1.875.
+  // Bound the distance requested for a single swing using a physical foot-speed
+  // budget, rather than forcing an implausible leap during a sharp turn.
+  const dx=landing.x-t.x,dz=landing.z-t.z,span=Math.hypot(dx,dz);
+  const maxSpan=Number.isFinite(maxFootSpeed)?Math.max(0,maxFootSpeed)*duration/1.875:Infinity;
+  const ratio=span>0?Math.min(1,maxSpan/span):1;
+  t.landX=t.x+dx*ratio;t.landY=landing.y;t.landZ=t.z+dz*ratio;t.landYaw=landing.yaw;
   t.swingDuration=duration;t.swingElapsed=0;t.swingLift=Math.max(0,lift);
   t.mode='swing';
   return true;

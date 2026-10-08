@@ -161,12 +161,15 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
         // at the EXACT current foot target, not a new gait-relative position.
         const futureX=r.g.position.x+(dx/dt)*swingDuration;
         const futureZ=r.g.position.z+(dz/dt)*swingDuration;
+        // Keep the quintic foot trajectory inside a plausible swing-speed envelope.
+        // An instantaneous 90-degree turn must not demand a multi-metre hoof dash.
+        const maxFootSpeed=Math.max(2.75,2.1*speed);
         beginHoofSwing(t,{
           x:futureX+(l.x*cos+l.z*sin)*scale,
           y:soleY,
           z:futureZ+(l.z*cos-l.x*sin)*scale,
           yaw
-        },swingDuration,HORSE.lift*scale);
+        },swingDuration,HORSE.lift*scale,maxFootSpeed);
         l.lastSwingCycle=legCycle;
       }
       updateHoofTrack(t,dt);
