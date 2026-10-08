@@ -46,6 +46,19 @@ async function run(name,args){
  console.log('[CI-ISOLATION] END '+name+' code='+result.code+' signal='+result.signal+' elapsed='+((Date.now()-t0)/1000).toFixed(1)+'s');
  if(result.code!==0 || result.signal)process.exit(result.code||1);
 }
-for(const f of nodeFiles)await run(f,['--test','--test-concurrency=1',f]);
+// Run each heavyweight animal-visual assertion as an isolated process. Preserve all four checks.
+const visualNames=[
+ 'all six have an exposed',
+ 'six species keep flat feet',
+ 'new rigs preserve distance cadence',
+ 'actual shin geometry reaches'
+];
+for(const f of nodeFiles){
+ if(f==='animal-visual.test.mjs'){
+  for(const name of visualNames){
+   await run(f+' :: '+name,['--max-old-space-size=2048','--test','--test-concurrency=1','--test-name-pattern='+name,f]);
+  }
+ }else await run(f,['--test','--test-concurrency=1',f]);
+}
 for(const f of browserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
 console.log('[CI-ISOLATION] ALL 16 Node test files and 4 browser suites passed.');
