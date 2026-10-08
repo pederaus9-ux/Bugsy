@@ -1,5 +1,5 @@
 import * as THREE from './lib/three.module.min.js';
-import {createHoofTrack,beginHoofSwing,updateHoofTrack,resetHoofTrack} from './horse-stance3d.js';
+import {createHoofTrack,beginHoofSwing,updateHoofTrack,resetHoofTrack,settleHoofOnStop} from './horse-stance3d.js';
 import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -98,7 +98,7 @@ export function createHorse3D(h=1.6,x=0,z=0){
 
 export function updateHorse3D(r,dx,dz,dt,mode='walk'){
   if(!(dt>0)||!Number.isFinite(dt))return;
-  const s=r.state,distance=Math.hypot(dx,dz),teleport=distance>1.5;
+  const s=r.state,previousGait=s.gait,distance=Math.hypot(dx,dz),teleport=distance>1.5;
   const speed=teleport?0:distance/dt,scale=r.model.scale.x;
   s.time+=dt;
   s.amount=mode==='idle'||teleport?0:clamp(speed/.04,0,1);
@@ -138,6 +138,11 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
       l.lastSwingCycle=-1;
     }
     const t=l.track;
+    // A stop must not finish an old high-speed stride toward a now-stale
+    // landing target. Land vertically from the current WORLD pose instead.
+    if(gait==='idle'&&previousGait!=='idle'&&t.mode==='swing'&&!teleport){
+      settleHoofOnStop(t,soleY);
+    }
     if(teleport){
       resetHoofTrack(t,defaultX,soleY,defaultZ,yaw);
       l.planted=false;

@@ -23,7 +23,7 @@ export function beginHoofSwing(t,landing,duration,lift){
   t.mode='swing';
   return true;
 }
-export function retargetSwing(t,landing){
+export function retargetSwing(t,landing,duration=null,lift=null){
   if(t.mode!=='swing')return false;
   // A replan does not reset elapsed or move the current hoof. The next step
   // proceeds smoothly toward the new landing pose from the current position.
@@ -31,8 +31,15 @@ export function retargetSwing(t,landing){
   if(remaining<=0)return false;
   t.startX=t.x;t.startY=t.y;t.startZ=t.z;t.startYaw=t.yaw;
   t.landX=landing.x;t.landY=landing.y;t.landZ=landing.z;t.landYaw=landing.yaw;
-  t.swingElapsed=0;t.swingDuration=remaining;
+  t.swingElapsed=0;t.swingDuration=duration===null?remaining:Math.max(duration,1e-4);
+  if(lift!==null)t.swingLift=Math.max(0,lift);
   return true;
+}
+export function settleHoofOnStop(t,soleHeight){
+  if(t.mode!=='swing')return false;
+  // Only the initial stop event calls this: preserve current world XZ/yaw,
+  // smoothly lower the suspended hoof instead of finishing a long run step.
+  return retargetSwing(t,{x:t.x,y:soleHeight,z:t.z,yaw:t.yaw},.24,0);
 }
 export function updateHoofTrack(t,dt){
   if(!(dt>0)||!Number.isFinite(dt))return t;
