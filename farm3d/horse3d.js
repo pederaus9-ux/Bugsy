@@ -89,7 +89,7 @@ export function createHorse3D(h=1.6,x=0,z=0){
   const g=new THREE.Group(),model=new THREE.Group();g.position.set(x,0,z);g.add(model);model.add(card);model.scale.setScalar(h/HORSE.height);
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0}));
   for(const l of legs)l.hip.rotation.order='YXZ';
-  const rig={g,model,card,body:bones[t.slots.body],neck:bones[t.slots.neck],head:bones[t.slots.head],ears:t.slots.ears.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),legs,spec:HORSE,state:{phase:0,amount:0,time:0,gait:'idle'},q:new THREE.Quaternion(),disposed:false};
+  const rig={g,model,card,body:bones[t.slots.body],neck:bones[t.slots.neck],head:bones[t.slots.head],ears:t.slots.ears.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),legs,spec:HORSE,state:{phase:0,amount:0,time:0,gait:'idle'},q:new THREE.Quaternion(),footWorld:new THREE.Vector3(),targetWorld:new THREE.Vector3(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateHorse3D(rig,0,0,1/60,'idle');return rig;
 }
@@ -113,12 +113,28 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
     let tx=0,tz=z*s.amount;if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=wx*cos-wz*sin-l.x;tz=wx*sin+wz*cos-l.z;}if(s.amount<.01){l.planted=false;tx=tz=0;}
     const reach=(HORSE.upper+HORSE.lower)*.82,len=Math.hypot(tx,tz);if(len>reach){tx*=reach/len;tz*=reach/len;l.planted=false;}
     const rootY=Math.min(HORSE.hip,HORSE.hoof+lift+Math.sqrt(Math.max(0,(HORSE.upper+HORSE.lower-.001)**2-tx*tx-tz*tz)));
-    // Counter-translate the leg root as the torso pitches to stabilize hoof height.
-    const torsoPitch=r.body.rotation.x;
-    l.hip.position.y=rootY-HORSE.bodyY+(l.z+tz)*Math.tan(torsoPitch);
+    // Reset the root each frame. World-space correction below must never accumulate.
+    l.hip.position.set(l.x,rootY-HORSE.bodyY,l.z);
     const y=rootY-HORSE.hoof-lift,dist=Math.min(HORSE.upper+HORSE.lower-.001,Math.hypot(tx,tz,y));let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
     const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi),alpha=Math.atan2(horizontal,y),delta=Math.acos(clamp((HORSE.upper**2+dist**2-HORSE.lower**2)/(2*HORSE.upper*dist),-1,1)),bend=Math.acos(clamp((dist**2-HORSE.upper**2-HORSE.lower**2)/(2*HORSE.upper*HORSE.lower),-1,1));
-    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);l.knee.rotation.x=(l.z<0?1:-1)*bend;l.foot.quaternion.copy(r.body.quaternion).multiply(l.hip.quaternion).multiply(l.knee.quaternion).invert();if(l.planted)l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,l.ayaw-yaw));
+    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);
+    l.knee.rotation.x=(l.z<0?1:-1)*bend;
+    l.foot.quaternion.copy(r.body.quaternion).multiply(l.hip.quaternion).multiply(l.knee.quaternion).invert();
+    if(l.planted)l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,l.ayaw-yaw));
+
+    // World-space stance constraint, applied after the full skeletal rotation.
+    // The existing two-bone IK provides the bend; solve its residual ankle error
+    // in the parent's coordinates so pitch/yaw cannot drag a planted hoof.
+    // Swinging hooves keep their planned x/z travel, but never sink into ground.
+    l.foot.getWorldPosition(r.footWorld);
+    r.targetWorld.set(
+      l.planted?l.ax:r.footWorld.x,
+      r.g.position.y+(HORSE.hoof+lift)*scale,
+      l.planted?l.az:r.footWorld.z
+    );
+    r.body.worldToLocal(r.targetWorld);
+    r.body.worldToLocal(r.footWorld);
+    l.hip.position.add(r.targetWorld.sub(r.footWorld));
   }
   r.neck.rotation.x=Math.sin(s.phase*Math.PI*2+(gait==='canter'?.7:0))*.045*locomotion;
   r.head.rotation.x=-r.neck.rotation.x*.45;r.head.rotation.y=Math.sin(s.time*.55)*.085*(1-locomotion);
