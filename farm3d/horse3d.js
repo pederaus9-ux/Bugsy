@@ -100,7 +100,7 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
   s.phase=(s.phase+(distance>1.5?0:distance)/scale/stride)%1;
   if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*(1-Math.exp(-dt*10));}
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),step=stride*duty/2;
-  const offsets=gait==='trot'?[0,.5,.5,0]:gait==='canter'?[0,.58,.78,.18]:[0,.5,.5,0];
+  const offsets=gait==='trot'?[0,.5,.5,0]:gait==='canter'?[.5,.75,.75,0]:gait==='walk'?[.75,.25,0,.5]:[0,0,0,0];
   for(let i=0;i<r.legs.length;i++){
     const l=r.legs[i],phase=(s.phase+offsets[i])%1,z=phase<duty?-step+phase/duty*2*step:step*Math.cos((phase-duty)/(1-duty)*Math.PI),lift=phase<duty?0:Math.sin((phase-duty)/(1-duty)*Math.PI)*HORSE.lift*s.amount;
     if(phase<duty&&s.amount>.05){if(!l.planted){const rz=l.z+z;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}}else l.planted=false;
