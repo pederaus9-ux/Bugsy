@@ -1,4 +1,6 @@
 import * as THREE from './lib/three.module.min.js';
+import {createHoofTrack,beginHoofSwing,updateHoofTrack,resetHoofTrack} from './horse-stance3d.js';
+import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const HORSE={
@@ -89,55 +91,92 @@ export function createHorse3D(h=1.6,x=0,z=0){
   const g=new THREE.Group(),model=new THREE.Group();g.position.set(x,0,z);g.add(model);model.add(card);model.scale.setScalar(h/HORSE.height);
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0}));
   for(const l of legs)l.hip.rotation.order='YXZ';
-  const rig={g,model,card,body:bones[t.slots.body],neck:bones[t.slots.neck],head:bones[t.slots.head],ears:t.slots.ears.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),legs,spec:HORSE,state:{phase:0,amount:0,time:0,gait:'idle'},q:new THREE.Quaternion(),footWorld:new THREE.Vector3(),targetWorld:new THREE.Vector3(),disposed:false};
+  const rig={g,model,card,body:bones[t.slots.body],neck:bones[t.slots.neck],head:bones[t.slots.head],ears:t.slots.ears.map(i=>bones[i]),tail:t.slots.tail.map(i=>bones[i]),legs,spec:HORSE,state:{phase:0,amount:0,time:0,gait:'idle'},q:new THREE.Quaternion(),ik:createHorseIKScratch(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};
   updateHorse3D(rig,0,0,1/60,'idle');return rig;
 }
 
 export function updateHorse3D(r,dx,dz,dt,mode='walk'){
   if(!(dt>0)||!Number.isFinite(dt))return;
-  const s=r.state,distance=Math.hypot(dx,dz),speed=distance>1.5?0:distance/dt,scale=r.model.scale.x;
-  s.time+=dt;s.amount=mode==='idle'?0:clamp(speed/.04,0,1);
-  const gait=mode==='run'?(speed>1.25?'canter':'trot'):(mode==='idle'?'idle':'walk');s.gait=gait;
-  const stride=HORSE.stride*(gait==='trot'?1.12:gait==='canter'?1.38:1),duty=gait==='canter'?.40:gait==='trot'?.48:.62;
-  s.phase=(s.phase+(distance>1.5?0:distance)/scale/stride)%1;
-  if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*(1-Math.exp(-dt*10));}
-  // Apply torso pitch before solving hoof compensation; flat hooves need the full bone ancestry.
-  const locomotion=s.amount;
-  r.body.rotation.x=Math.sin(s.phase*Math.PI*2)*(gait==='canter'?.035:.012)*locomotion;
-  const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),step=stride*duty/2;
-  const offsets=gait==='trot'?[0,.5,.5,0]:gait==='canter'?[.5,.75,.75,0]:gait==='walk'?[.75,.25,0,.5]:[0,0,0,0];
-  for(let i=0;i<r.legs.length;i++){
-    const l=r.legs[i],phase=(s.phase+offsets[i])%1,z=phase<duty?-step+phase/duty*2*step:step*Math.cos((phase-duty)/(1-duty)*Math.PI),lift=phase<duty?0:Math.sin((phase-duty)/(1-duty)*Math.PI)*HORSE.lift*s.amount;
-    if(phase<duty&&s.amount>.05){if(!l.planted){const rz=l.z+z;l.ax=r.g.position.x+(l.x*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-l.x*sin)*scale;l.ayaw=yaw;l.planted=true;}}else l.planted=false;
-    let tx=0,tz=z*s.amount;if(l.planted){const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;tx=wx*cos-wz*sin-l.x;tz=wx*sin+wz*cos-l.z;}if(s.amount<.01){l.planted=false;tx=tz=0;}
-    const reach=(HORSE.upper+HORSE.lower)*.82,len=Math.hypot(tx,tz);if(len>reach){tx*=reach/len;tz*=reach/len;l.planted=false;}
-    const rootY=Math.min(HORSE.hip,HORSE.hoof+lift+Math.sqrt(Math.max(0,(HORSE.upper+HORSE.lower-.001)**2-tx*tx-tz*tz)));
-    // Reset the root each frame. World-space correction below must never accumulate.
-    l.hip.position.set(l.x,rootY-HORSE.bodyY,l.z);
-    const y=rootY-HORSE.hoof-lift,dist=Math.min(HORSE.upper+HORSE.lower-.001,Math.hypot(tx,tz,y));let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
-    const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi),alpha=Math.atan2(horizontal,y),delta=Math.acos(clamp((HORSE.upper**2+dist**2-HORSE.lower**2)/(2*HORSE.upper*dist),-1,1)),bend=Math.acos(clamp((dist**2-HORSE.upper**2-HORSE.lower**2)/(2*HORSE.upper*HORSE.lower),-1,1));
-    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);
-    l.knee.rotation.x=(l.z<0?1:-1)*bend;
-    l.foot.quaternion.copy(r.body.quaternion).multiply(l.hip.quaternion).multiply(l.knee.quaternion).invert();
-    if(l.planted)l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,l.ayaw-yaw));
+  const s=r.state,distance=Math.hypot(dx,dz),teleport=distance>1.5;
+  const speed=teleport?0:distance/dt,scale=r.model.scale.x;
+  s.time+=dt;
+  s.amount=mode==='idle'||teleport?0:clamp(speed/.04,0,1);
 
-    // World-space stance constraint, applied after the full skeletal rotation.
-    // The existing two-bone IK provides the bend; solve its residual ankle error
-    // in the parent's coordinates so pitch/yaw cannot drag a planted hoof.
-    // Swinging hooves keep their planned x/z travel, but never sink into ground.
-    l.foot.getWorldPosition(r.footWorld);
-    r.targetWorld.set(
-      l.planted?l.ax:r.footWorld.x,
-      r.g.position.y+(HORSE.hoof+lift)*scale,
-      l.planted?l.az:r.footWorld.z
-    );
-    r.body.worldToLocal(r.targetWorld);
-    r.body.worldToLocal(r.footWorld);
-    l.hip.position.add(r.targetWorld.sub(r.footWorld));
+  // Hysteresis prevents 60-Hz gait chatter around the 1.25 m/s boundary.
+  let gait=mode==='idle'?'idle':mode==='run'
+    ?(s.gait==='canter'?(speed>=1.10?'canter':'trot'):(speed>=1.35?'canter':'trot'))
+    :'walk';
+  if(teleport)gait='idle';
+  s.gait=gait;
+  const stride=HORSE.stride*(gait==='trot'?1.12:gait==='canter'?1.38:1);
+  const duty=gait==='canter'?.40:gait==='trot'?.48:.62;
+  const phaseStep=teleport?0:distance/scale/stride;
+  s.phase=(s.phase+phaseStep)%1;
+  s.totalPhase=(s.totalPhase||0)+phaseStep;
+
+  if(speed>.02){
+    const targetYaw=Math.atan2(-dx,-dz),delta=targetYaw-r.model.rotation.y;
+    r.model.rotation.y+=Math.atan2(Math.sin(delta),Math.cos(delta))*(1-Math.exp(-dt*10));
   }
+  // Stable hip roots. A full body-support solver may animate body height later,
+  // but it must never translate individual hips independently of the skeleton.
+  r.body.position.y=HORSE.bodyY-.09;
+  r.body.rotation.x=0;
+  const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);
+  const soleY=r.g.position.y+(.07425*scale)+.0005;
+  const offsets=gait==='trot'?[0,.5,.5,0]:gait==='canter'?[.5,.75,.75,0]:gait==='walk'?[.75,.25,0,.5]:[0,0,0,0];
+
+  for(let i=0;i<r.legs.length;i++){
+    const l=r.legs[i];
+    // World-space nominal hoof point (XZ). The state machine records actual
+    // stance anchors; a gait switch never changes an existing world-space pose.
+    const defaultX=r.g.position.x+(l.x*cos+l.z*sin)*scale;
+    const defaultZ=r.g.position.z+(l.z*cos-l.x*sin)*scale;
+    if(!l.track){
+      l.track=createHoofTrack(defaultX,soleY,defaultZ,yaw);
+      l.lastSwingCycle=-1;
+    }
+    const t=l.track;
+    if(teleport){
+      resetHoofTrack(t,defaultX,soleY,defaultZ,yaw);
+      l.planted=false;
+    }else{
+      const phase=(s.phase+offsets[i])%1;
+      const legCycle=Math.floor(s.totalPhase+offsets[i]);
+      const stanceDX=t.x-defaultX,stanceDZ=t.z-defaultZ;
+      const dist=Math.hypot(stanceDX,stanceDZ);
+      // Early step rather than sliding a planted hoof if a turn exhausts reach.
+      const overreach=t.mode==='stance'&&dist>.26*scale;
+      const scheduled=s.amount>.05&&phase>=duty&&legCycle!==l.lastSwingCycle;
+      if(t.mode==='stance'&&s.amount>.05&&(scheduled||overreach)){
+        const speedSafe=Math.max(speed,.20),period=stride*scale/speedSafe;
+        const swingDuration=clamp(period*(1-duty),.09,.32);
+        // Predict where the torso will be at touchdown; the swing starts
+        // at the EXACT current foot target, not a new gait-relative position.
+        const futureX=r.g.position.x+(dx/dt)*swingDuration;
+        const futureZ=r.g.position.z+(dz/dt)*swingDuration;
+        beginHoofSwing(t,{
+          x:futureX+(l.x*cos+l.z*sin)*scale,
+          y:soleY,
+          z:futureZ+(l.z*cos-l.x*sin)*scale,
+          yaw
+        },swingDuration,HORSE.lift*scale);
+        l.lastSwingCycle=legCycle;
+      }
+      updateHoofTrack(t,dt);
+      l.planted=t.mode==='stance'&&s.amount>.05;
+    }
+    l.ax=t.plantX;l.az=t.plantZ;l.ayaw=t.plantYaw;
+    // The kinematic solve reads contact state but cannot move the hip root
+    // or change the world-space anchor to hide a reach error.
+    solveHorseLegIK(r,l,t.x,t.y,t.z,t.yaw);
+  }
+
+  const locomotion=s.amount;
   r.neck.rotation.x=Math.sin(s.phase*Math.PI*2+(gait==='canter'?.7:0))*.045*locomotion;
-  r.head.rotation.x=-r.neck.rotation.x*.45;r.head.rotation.y=Math.sin(s.time*.55)*.085*(1-locomotion);
+  r.head.rotation.x=-r.neck.rotation.x*.45;
+  r.head.rotation.y=Math.sin(s.time*.55)*.085*(1-locomotion);
   for(let i=0;i<r.ears.length;i++)r.ears[i].rotation.z=Math.sin(s.time*1.3+i*2.5)*.065;
   for(let i=0;i<r.tail.length;i++)r.tail[i].rotation.z=Math.sin(s.time*1.7+i*.7)*(.10+.04*locomotion);
 }
