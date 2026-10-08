@@ -13,8 +13,11 @@ function buildTemplate(){
   const defs=[{name:'root',parent:-1,p:[0,0,0]}], slots={legs:[],ears:[],tail:[]};
   const bone=(name,parent,p)=>{const i=defs.length;defs.push({name,parent,p});return i;};
   slots.body=bone('body',0,[0,HORSE.bodyY,0]);
-  slots.neck=bone('neck',slots.body,[0,.18,-.43]);
-  slots.head=bone('head',slots.neck,[0,.30,-.28]);
+  // Rest skeleton must inherit the R2 geometry's measured neck/head offsets.
+  // Declaring only HORSE.neck/HORSE.head without wiring these bones leaves
+  // the old upright silhouette in the skinned mesh.
+  slots.neck=bone('neck',slots.body,HORSE.neck);
+  slots.head=bone('head',slots.neck,HORSE.head);
   for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.105,.17,-.02]));
   // Shoulder attachment is forward under the withers, not under the barrel.
   // The R1 IK keeps hip origins fixed and will solve these new rest offsets.

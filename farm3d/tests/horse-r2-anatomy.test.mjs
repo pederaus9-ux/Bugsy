@@ -56,8 +56,12 @@ test('R2 muzzle is long and tapered; no pale vertical forehead horn exists',()=>
     const ratio=muzzle.size.z/muzzle.size.y;
     assert.ok(ratio>1.4,'actual colored muzzle length/height '+ratio);
     const head=boneBounds(r,r.head);
-    const headOrigin=r.head.getWorldPosition(new THREE.Vector3());
-    assert.ok(head.box.max.y-headOrigin.y<.19,'non-ear skull apex above head '+(head.box.max.y-headOrigin.y));
+    // Authored mesh positions are in bind/rest geometry coordinates.
+    // Comparing those positions to the animated head world transform would
+    // falsely count the body's deliberate resting compression as a horn.
+    const restHeadY=HORSE.bodyY+HORSE.neck[1]+HORSE.head[1];
+    assert.ok(head.box.max.y-restHeadY<.19,
+      'non-ear skull apex above rest head '+(head.box.max.y-restHeadY));
     const pale=new THREE.Color(0xeadbc0),c=r.card.geometry.attributes.color,
       sk=r.card.geometry.attributes.skinIndex,headIndex=r.card.skeleton.bones.indexOf(r.head);
     let hornVertices=0;
