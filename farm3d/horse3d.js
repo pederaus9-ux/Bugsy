@@ -3,7 +3,7 @@ import * as THREE from './lib/three.module.min.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const HORSE={
   name:'horse',height:1.85,bodyY:1.03,hip:.86,upper:.40,lower:.39,hoof:.075,
-  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xb99678
+  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xb99678,body:[.31,.34,.54],neck:[0,.18,-.43],head:[0,.30,-.28]
 };
 
 let template=null;
@@ -44,7 +44,7 @@ function buildTemplate(){
   oval(HORSE.coat,[0,.27,-.30],[.20,.16,.22],slots.body,12,8);
 
   // Sloped neck into withers; skull is long and narrow with a distinct jaw/muzzle.
-  link(HORSE.coat,[0,.03,-.25],[0,.31,-.28],.145,slots.neck);
+  link(HORSE.coat,[0,-.01,-.05],[0,.31,-.28],.145,slots.neck);
   oval(HORSE.coat,[0,.01,-.03],[.14,.20,.30],slots.head,14,9);
   oval(HORSE.muzzle,[0,-.07,-.31],[.125,.13,.20],slots.head,12,8);
   oval(HORSE.coat,[0,-.10,-.12],[.13,.11,.18],slots.head,10,7);
@@ -65,7 +65,7 @@ function buildTemplate(){
     oval(HORSE.coat,[0,0,0],[.065,.060,.070],l.knee,8,6);
     rod(HORSE.coat,[0,-HORSE.lower*.43,0],.038,HORSE.lower*.78,l.knee);
     oval(HORSE.coat,[0,-HORSE.lower*.82,-.008],[.050,.070,.055],l.knee,8,6);
-    oval(HORSE.face,[0,-.035,-.018],[.070,.050,.105],l.foot,10,6);
+    oval(HORSE.face,[0,-.025,-.018],[.070,.050,.105],l.foot,10,6);
   }
   for(let i=0;i<slots.tail.length;i++){const b=slots.tail[i];link(HORSE.face,[0,0,0],[0,-.17,.075],.032,b);if(i===2)oval(HORSE.face,[0,-.18,.08],[.065,.16,.060],b,10,7);}
 
