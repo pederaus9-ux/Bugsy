@@ -102,6 +102,9 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
   const stride=HORSE.stride*(gait==='trot'?1.12:gait==='canter'?1.38:1),duty=gait==='canter'?.40:gait==='trot'?.48:.62;
   s.phase=(s.phase+(distance>1.5?0:distance)/scale/stride)%1;
   if(speed>.02){const yaw=Math.atan2(-dx,-dz),d=yaw-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*(1-Math.exp(-dt*10));}
+  // Apply torso pitch before solving hoof compensation; flat hooves need the full bone ancestry.
+  const locomotion=s.amount;
+  r.body.rotation.x=Math.sin(s.phase*Math.PI*2)*(gait==='canter'?.035:.012)*locomotion;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),step=stride*duty/2;
   const offsets=gait==='trot'?[0,.5,.5,0]:gait==='canter'?[.5,.75,.75,0]:gait==='walk'?[.75,.25,0,.5]:[0,0,0,0];
   for(let i=0;i<r.legs.length;i++){
@@ -112,10 +115,8 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
     const rootY=Math.min(HORSE.hip,HORSE.hoof+lift+Math.sqrt(Math.max(0,(HORSE.upper+HORSE.lower-.001)**2-tx*tx-tz*tz)));l.hip.position.y=rootY-HORSE.bodyY;
     const y=rootY-HORSE.hoof-lift,dist=Math.min(HORSE.upper+HORSE.lower-.001,Math.hypot(tx,tz,y));let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
     const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi),alpha=Math.atan2(horizontal,y),delta=Math.acos(clamp((HORSE.upper**2+dist**2-HORSE.lower**2)/(2*HORSE.upper*dist),-1,1)),bend=Math.acos(clamp((dist**2-HORSE.upper**2-HORSE.lower**2)/(2*HORSE.upper*HORSE.lower),-1,1));
-    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);l.knee.rotation.x=(l.z<0?1:-1)*bend;l.foot.quaternion.copy(l.hip.quaternion).multiply(l.knee.quaternion).invert();if(l.planted)l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,l.ayaw-yaw));
+    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);l.knee.rotation.x=(l.z<0?1:-1)*bend;l.foot.quaternion.copy(r.body.quaternion).multiply(l.hip.quaternion).multiply(l.knee.quaternion).invert();if(l.planted)l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,l.ayaw-yaw));
   }
-  const locomotion=s.amount;
-  r.body.rotation.x=Math.sin(s.phase*Math.PI*2)*(gait==='canter'?.035:.012)*locomotion;
   r.neck.rotation.x=Math.sin(s.phase*Math.PI*2+(gait==='canter'?.7:0))*.045*locomotion;
   r.head.rotation.x=-r.neck.rotation.x*.45;r.head.rotation.y=Math.sin(s.time*.55)*.085*(1-locomotion);
   for(let i=0;i<r.ears.length;i++)r.ears[i].rotation.z=Math.sin(s.time*1.3+i*2.5)*.065;
