@@ -46,9 +46,16 @@ test('six species keep flat feet above ground and planted feet steady at 30/60Hz
   const contact=[];
   for(const kind of kinds)for(const hz of [30,60])for(const run of [false,true]){
     const r=create(kind),dt=1/hz,speed=height[kind]*(run?1.4:.65),previous=new Map();let samples=0,worst=0,minSole=Infinity,maxPlantedSole=-Infinity;
+    const legStats=r.legs.map(()=>({stance:0,swing:0,stable:0,anchorChanges:0,streak:0,longestStance:0}));
     for(let n=0;n<hz*3;n++){
       const dz=-speed*dt;r.g.position.z+=dz;update(kind,r,dz,dt,run);r.g.updateMatrixWorld(true);
-      for(const l of r.legs){
+      for(const [li,l] of r.legs.entries()){
+        const counters=legStats[li],priorContact=previous.get(l);
+        if(l.planted){counters.stance++;counters.streak++;counters.longestStance=Math.max(counters.longestStance,counters.streak);}else{counters.swing++;counters.streak=0;}
+        if(priorContact?.planted&&l.planted){
+          if(priorContact.ax===l.ax&&priorContact.az===l.az)counters.stable++;
+          else counters.anchorChanges++;
+        }
         const foot=l.foot.getWorldPosition(new THREE.Vector3());
         const up=new THREE.Vector3(0,1,0).applyQuaternion(l.foot.getWorldQuaternion(new THREE.Quaternion()));
         assert.ok(up.y>.99999,kind+' flat foot');
@@ -69,7 +76,7 @@ test('six species keep flat feet above ground and planted feet steady at 30/60Hz
         if(r.legs.some(l=>l.planted)){maxPlantedSole=Math.max(maxPlantedSole,sole);assert.ok(sole<.002,kind+' planted rendered sole touches ground '+sole);}
       }
     }
-    assert.ok(samples>hz,kind+' planted samples');assert.ok(worst<.002,kind+' planted slip '+worst);
+    assert.ok(samples>hz,kind+' planted samples '+JSON.stringify({hz,run,samples,minimum:hz+1,speed,legStats,gait:r.state.gait,phase:r.state.phase,amount:r.state.amount}));assert.ok(worst<.002,kind+' planted slip '+worst);
     contact.push({kind,hz,mode:run?'run':'walk',samples,worstSlipM:worst,minSoleM:minSole,maxPlantedSoleM:maxPlantedSole});
     r.dispose();
   }
