@@ -34,6 +34,12 @@ function build(spec){
     oval(col,from,[r,r,r],b);oval(col,to,[r*.85,r*.85,r*.85],b);
   };
   oval(spec.coat,[0,0,0],spec.body,slots.body,16,10);
+  if(spec.name==='horse'){
+    // C2: horse-specific silhouette masses. Keep these on the body bone so dog/cat stay untouched.
+    oval(spec.coat,[0,.075,-.43],[.30,.36,.30],slots.body,14,9); // shoulder/chest
+    oval(spec.coat,[0,.035,.43],[.31,.35,.34],slots.body,14,9);  // hindquarter
+    oval(spec.coat,[0,.245,-.31],[.19,.18,.22],slots.body,12,8); // withers
+  }
   // The head bone is a pivot, not a visible neck. Fill the entire shoulder-to-head span.
   link(spec.coat,[0,-spec.neck[1]*.8,-spec.neck[2]*.22],spec.head,spec.headSize[0]*.8,slots.neck);
   oval(spec.coat,[0,0,0],spec.headSize,slots.head,16,10);
@@ -53,10 +59,13 @@ function build(spec){
     }
   }
   if(spec.name==='horse'){
-    // Mane follows the visible neck and a pale blaze makes the front readable at farm scale.
-    link(spec.face,[0,-spec.neck[1]*.5,.07],[0,spec.head[1]+hy*.45,spec.head[2]+hz*.35],hx*.28,slots.neck);
-    oval(0xeadbc0,[0,hy*.2,-hz*.94],[hx*.24,hy*.6,hz*.1],slots.head);
-    oval(spec.face,[0,hy*.9,-hz*.28],[hx*.7,hy*.18,hz*.48],slots.head);
+    // C2: the old long mane link crossed the face volume and could read as a muzzle horn.
+    // Build the mane as short overlapping masses behind the neck instead, never forward of the skull.
+    for(const [y,z,s] of [[-.08,.10,.10],[.02,.08,.095],[.12,.055,.085],[.22,.025,.075]])
+      oval(spec.face,[0,y,z],[hx*.72,s,hz*.42],slots.neck,10,7);
+    // Narrow blaze lies on the face surface; forelock stays above/behind the brow.
+    oval(0xeadbc0,[0,hy*.10,-hz*.93],[hx*.19,hy*.48,hz*.055],slots.head,10,7);
+    oval(spec.face,[0,hy*.72,-hz*.08],[hx*.55,hy*.16,hz*.32],slots.head,10,7);
   }
   for(const l of slots.legs){
     oval(spec.coat,[0,.05,0],[spec.upper*.5,spec.upper*.4,spec.upper*.45],l.hip);
@@ -126,6 +135,6 @@ export function updateQuadruped(r,dx,dz,dt,mode='walk'){
   for(let i=0;i<r.ears.length;i++)r.ears[i].rotation.z=Math.sin(s.time*1.4+i*2.8)*.07;
   for(let i=0;i<r.tail.length;i++)r.tail[i].rotation.z=Math.sin(s.time*1.8+i)*.12;
 }
-export const HORSE={name:'horse',height:1.85,bodyY:1.05,hip:.84,upper:.38,lower:.4,hoof:.06,stride:1.2,step:.16,lift:.06,neck:[0,.28,-.55],head:[0,.16,-.18],tail:3,tailZ:.62,tailDrop:.19,coat:0x8a5a32,face:0x3b2415,muzzle:0xbaa087,body:[.28,.32,.7],headSize:[.15,.23,.27],feet:[[-.14,-.48,0],[.14,-.48,.5],[-.14,.42,.5],[.14,.42,0]]};
+export const HORSE={name:'horse',height:1.85,bodyY:1.05,hip:.84,upper:.38,lower:.4,hoof:.06,stride:1.2,step:.16,lift:.06,neck:[0,.31,-.56],head:[0,.12,-.22],tail:3,tailZ:.62,tailDrop:.19,coat:0x8a5a32,face:0x3b2415,muzzle:0xbaa087,body:[.30,.34,.68],headSize:[.135,.205,.31],feet:[[-.155,-.47,0],[.155,-.47,.5],[-.15,.43,.5],[.15,.43,0]]};
 export const DOG={name:'dog',height:.55,bodyY:.38,hip:.27,upper:.12,lower:.12,hoof:.03,stride:.45,step:.06,lift:.03,neck:[0,.08,-.24],head:[0,.04,-.1],tail:2,tailZ:.24,tailDrop:-.045,coat:0xc4a574,face:0x3a2a1c,muzzle:0xead8b8,body:[.12,.12,.28],headSize:[.08,.08,.1],feet:[[-.07,-.16,0],[.07,-.16,.5],[-.07,.14,.5],[.07,.14,0]]};
 export const CAT={name:'cat',height:.4,bodyY:.28,hip:.18,upper:.08,lower:.08,hoof:.02,stride:.36,step:.045,lift:.02,neck:[0,.05,-.18],head:[0,.03,-.08],tail:3,tailZ:.19,tailDrop:-.035,coat:0xb7b7b7,face:0x6d6d6d,muzzle:0xe4d4ce,body:[.09,.09,.22],headSize:[.07,.07,.08],feet:[[-.05,-.12,0],[.05,-.12,.5],[-.05,.1,.5],[.05,.1,0]]};
