@@ -143,6 +143,38 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-live-${viewport.width}-${kind}-${mode}-${angle}.png`),scale:'css'});
           }
           live.push({viewport,travel,pose});
+          if(kind==='horse'&&viewport.width===1280&&mode==='idle'){
+            for(const detail of ['ears','knees']){
+              await page.evaluate(async detail=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                const center=(detail==='ears'?r.head:r.legs[0].knee).getWorldPosition(new T.Vector3());
+                d.camera.position.copy(center).add(new T.Vector3(a.S.h*(detail==='ears'?1.1:.8),a.S.h*.08,0));
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+              },detail);
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-idle-${detail}-closeup.png`),scale:'css'});
+            }
+          }
+          if(kind==='horse'&&viewport.width===1280&&mode==='walk'){
+            const sequence=[];
+            // Continue the real articulated pose; follow with the camera only.
+            // Do not reset contacts between samples or imply that a pose is motion.
+            for(let sample=0;sample<12;sample++){
+              sequence.push(await page.evaluate(async()=>{
+                const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2');
+                const d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                for(let n=0;n<8;n++){const dz=-a.S.h*.65/60;r.g.position.z+=dz;L.updateLiveAnimal(r,0,dz,1/60,'walk');}
+                r.g.updateMatrixWorld(true);
+                const center=new T.Vector3(r.g.position.x,a.S.h*.52,r.g.position.z);
+                d.camera.position.copy(center).add(new T.Vector3(a.S.h*2.8,a.S.h*.38,0));d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                return {time:r.state.time,phase:r.state.phase,gait:r.state.gait,root:r.g.position.toArray(),
+                  feet:r.legs.map(l=>({mode:l.track.mode,target:[l.track.x,l.track.y,l.track.z],actual:l.foot.getWorldPosition(new T.Vector3()).toArray()}))};
+              }));
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-walk-sequence-${String(sample).padStart(2,'0')}.png`),scale:'css'});
+            }
+            assert.ok(sequence.every(s=>s.gait==='walk'),'sequence must exercise walk');
+            assert.ok(sequence.at(-1).root[2]<sequence[0].root[2]-.5,'continuous walking travel');
+            fs.writeFileSync(path.join(artifacts,prefix+'-horse-walk-sequence.json'),JSON.stringify(sequence,null,2));
+          }
         }
         await page.evaluate(kind=>{const a=__dbg.animals.find(a=>a.kind===kind);a.g.position.set(60,0,60);},kind);
       }

@@ -4,58 +4,25 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-08T23:48:57.864146+00:00",
+  "lastUpdatedUtc": "2026-10-08T23:58:28.832326+00:00",
   "codeBaseline": {
-    "description": "PR #55 merged cow B2-B8 static anatomy",
-    "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
-    "pr": 55
+    "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
+    "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "pr": 69
   },
-  "currentProgram": "cow realism program",
-  "completedThrough": "B11",
-  "currentPhase": "B12",
-  "currentPhaseTitle": "Locomotion transition reconstruction",
-  "phaseStatus": "MERGE_READY",
-  "visualAcceptance": "PASSED",
-  "activePullRequest": 61,
+  "currentProgram": "horse anatomy and visual acceptance",
+  "completedThrough": "Horse R1 engineering; visual acceptance rejected",
+  "currentPhase": "HORSE_R2",
+  "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
+  "phaseStatus": "IMPLEMENTED_LOCAL_VALIDATION_PASS_HOSTED_PENDING",
+  "visualAcceptance": "NOT_ACCEPTED",
+  "activePullRequest": 71,
   "nextPhases": [
-    "B13-B15 renderer micro-behavior and recent-action suppression",
-    "B16 long deterministic behavior test",
-    "B17 full regression/performance",
-    "B18 controlled owner/device acceptance"
+    "Horse R2 exact-head CI and independent visual review",
+    "Horse R2 owner device acceptance and explicit merge authorization",
+    "Remaining species quality audits; order not owner-fixed",
+    "Reconcile wider roadmap against integrated main"
   ],
-  "b9Scope": {
-    "allowed": [
-      "diagnose current gait timing",
-      "retime visual stride",
-      "improve stance/swing timing",
-      "improve body weight transfer",
-      "add deterministic gait tests at 30/60/120 Hz",
-      "capture before/after gait evidence"
-    ],
-    "mustPreserve": [
-      "approved B8 anatomy",
-      "24-bone hierarchy",
-      "public cow renderer APIs",
-      "gameplay movement speed",
-      "collision behavior",
-      "Beast high-level decisions",
-      "save compatibility",
-      "economy/progression",
-      "Firebase/auth/cloud behavior",
-      "other animals",
-      "frozen evidence"
-    ],
-    "notAuthorized": [
-      "B10 hoof/contact reconstruction",
-      "B11 turning reconstruction",
-      "B12 transition work",
-      "anatomy redesign",
-      "save schema changes",
-      "economy changes",
-      "Firebase/auth changes",
-      "unrelated cleanup"
-    ]
-  },
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
     "knownHistoricalIssues": [
@@ -64,8 +31,8 @@
   },
   "ownerGates": {
     "visualAcceptanceRequired": true,
-    "deviceAcceptanceDeferredTo": "B18",
-    "directMergeApprovalRequiredWhenGateSaysSo": true
+    "deviceAcceptanceRequired": true,
+    "directMergeApprovalRequired": true
   },
   "relayRules": {
     "updateThisFileInEveryPhasePR": true,
@@ -75,25 +42,25 @@
     "stopOnProtectedSystemExpansion": true
   },
   "specialNotes": [
-    "PR #54 is an older separate B1 planning proposal and remains untouched unless explicitly authorized.",
-    "farm3d/HANDOFF.md contains useful historical context but may be stale; AI_RELAY.md and this state file take precedence on current phase/state.",
-    "B12 owner visual acceptance passed on 2026-10-07; B13+ remain unstarted pending B12 merge."
+    "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
+    "PR #70 remains untouched; #71 contains its anatomy plus later evidence/anatomy corrections. Use one final integration path.",
+    "No merge or other-species advancement while Horse R2 visual gate remains unresolved."
   ],
   "horseR2EvidenceReview": {
-    "phase": "Horse R2 visual evidence repair",
-    "status": "VISUAL_BLOCKED_CAPTURE_REPAIR_HOSTED_PENDING",
+    "phase": "Horse R2 measured anatomy correction",
+    "status": "ANATOMY_CORRECTION_LOCAL_PASS_HOSTED_PENDING",
     "pr": 71,
     "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
     "anatomyHead": "9e9fcbf4efa54412fea733f9ead6d57017e5a191",
     "branch": "codex/horse-r2-evidence-placement",
     "finding": "Live screenshot fixture relocates horse without resetting or translating persistent world-space hoof anchors; screenshot failure is not proof of production failure.",
-    "localTests": "7/7 placement and R2 anatomy tests pass; browser script syntax and diff checks pass. New browser path requires hosted verification.",
-    "protectedSystems": "production renderers, IK, stance solver, saves, economy, progression, other animals unchanged",
-    "nextAction": "Verify new exact-head CI and daylight/gallery evidence. Obtain Grok independent reference-based structural diagnosis before anatomy correction; capture full sequential motion evidence and obtain owner acceptance/merge authorization.",
+    "localTests": "28/28 horse tests, all four unchanged six-species visual geometry/contact/cadence tests, syntax and diff checks pass. Local Chromium unavailable; hosted rendering required.",
+    "protectedSystems": "horse-ik3d.js, horse-stance3d.js, hoof sole vertices, cow/other animals, saves, Firebase/auth/cloud, economy/progression, movement speed/collision, renderer interfaces, service worker and frozen baselines unchanged.",
+    "nextAction": "Run exact-head hosted CI, inspect new daylight front/side/rear, ear/knee close-ups and continuous walk frames; refresh authentic preview. Then independent review and owner visual/device acceptance. Full trot/canter/turn/stop evidence remains required.",
     "visualAcceptance": "NOT_ACCEPTED",
     "note": "Legacy cow phase fields are retained as historical records; they are not the live Horse R2 gate.",
     "anatomyPr": 70,
-    "reviewedEvidenceHead": "1489801a7274c0af4963f1b489fe0a0302303c14",
+    "reviewedEvidenceHead": "db8d562691f7bcdcf7e70f51119b84ab27500630",
     "hostedBaseline": "Regression #165 SUCCESS, all seven jobs at 1489801a7274c0af4963f1b489fe0a0302303c14.",
     "harnessCorrection": "Serve .mjs as text/javascript; all visual assertions and thresholds unchanged.",
     "visualFindings": [
@@ -118,6 +85,93 @@
     "captureRepair": "TEST ONLY: preset=noon query locks daylight against weather interval; isolated horse gallery now resets/translates persistent contact tracks using existing helper and enforces unchanged 2 mm residual.",
     "preview": "https://sunny-acres-horse-r2-review.ardentanole10.chatgpt.site",
     "previewSource": "1489801a7274c0af4963f1b489fe0a0302303c14",
-    "ownerPhoneLoading": "Observed in owner screenshots; no visual or movement acceptance."
+    "ownerPhoneLoading": "Observed in owner screenshots; no visual or movement acceptance.",
+    "independentReview": {
+      "verdict": "BLOCKED",
+      "source": "Owner-relayed Grok read-only review on 2026-10-08",
+      "reviewedHead": "db8d562691f7bcdcf7e70f51119b84ab27500630",
+      "referencePhotoAvailableToReviewer": false,
+      "findings": "Ear bases separated ~70.6 mm; forced torso drop causes idle crouch; cylindrical muzzle and unblended withers; ivory horn removal confirmed."
+    },
+    "correction": [
+      "Seat unchanged-size ear cones into the skull.",
+      "Replace circular muzzle cylinder with a sloping elliptical volume that tapers in both width and height; relocate nostrils onto nose.",
+      "Elongate withers volume overlapping barrel and neck, retaining broad horizontal silhouette.",
+      "Smooth resting body compression toward .03, retaining .09 moving reach envelope; fixed hip roots and unchanged IK/stance/sole.",
+      "Add real vertex/triangle attachment, taper, overlap and 95% resting-leg guards.",
+      "Add idle ear/knee close-ups and 12 uninterrupted walking samples to browser evidence; motion/reset assertions retain existing limits."
+    ],
+    "measurements": {
+      "earBaseSkullGapMetersAtHeight2_3": 0.0023884087,
+      "idleForelegExtensionRatioAtHeight2_3": 0.9561364887,
+      "horseTriangles": 5128,
+      "bones": 21,
+      "skinnedMeshes": 1
+    },
+    "failedAttempt": "Fixed .03 torso drop across all modes failed hard-turn continuity by 3.3 mm; corrected with smoothly eased rest/moving compression. Original continuity test now passes without threshold changes."
+  },
+  "legacyCowProgramRecord": {
+    "codeBaseline": {
+      "description": "PR #55 merged cow B2-B8 static anatomy",
+      "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
+      "pr": 55
+    },
+    "currentProgram": "cow realism program",
+    "completedThrough": "B11",
+    "currentPhase": "B12",
+    "currentPhaseTitle": "Locomotion transition reconstruction",
+    "phaseStatus": "MERGE_READY",
+    "visualAcceptance": "PASSED",
+    "activePullRequest": 61,
+    "nextPhases": [
+      "B13-B15 renderer micro-behavior and recent-action suppression",
+      "B16 long deterministic behavior test",
+      "B17 full regression/performance",
+      "B18 controlled owner/device acceptance"
+    ],
+    "b9Scope": {
+      "allowed": [
+        "diagnose current gait timing",
+        "retime visual stride",
+        "improve stance/swing timing",
+        "improve body weight transfer",
+        "add deterministic gait tests at 30/60/120 Hz",
+        "capture before/after gait evidence"
+      ],
+      "mustPreserve": [
+        "approved B8 anatomy",
+        "24-bone hierarchy",
+        "public cow renderer APIs",
+        "gameplay movement speed",
+        "collision behavior",
+        "Beast high-level decisions",
+        "save compatibility",
+        "economy/progression",
+        "Firebase/auth/cloud behavior",
+        "other animals",
+        "frozen evidence"
+      ],
+      "notAuthorized": [
+        "B10 hoof/contact reconstruction",
+        "B11 turning reconstruction",
+        "B12 transition work",
+        "anatomy redesign",
+        "save schema changes",
+        "economy changes",
+        "Firebase/auth changes",
+        "unrelated cleanup"
+      ]
+    },
+    "ownerGates": {
+      "visualAcceptanceRequired": true,
+      "deviceAcceptanceDeferredTo": "B18",
+      "directMergeApprovalRequiredWhenGateSaysSo": true
+    },
+    "specialNotes": [
+      "PR #54 is an older separate B1 planning proposal and remains untouched unless explicitly authorized.",
+      "farm3d/HANDOFF.md contains useful historical context but may be stale; AI_RELAY.md and this state file take precedence on current phase/state.",
+      "B12 owner visual acceptance passed on 2026-10-07; B13+ remain unstarted pending B12 merge."
+    ],
+    "note": "Historical metadata preserved, not the current task or evidence of latest cow completion. Owner says cow B0-B18 is accepted and frozen."
   }
 }
