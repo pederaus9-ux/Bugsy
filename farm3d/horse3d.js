@@ -163,7 +163,11 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
         const futureZ=r.g.position.z+(dz/dt)*swingDuration;
         // Keep the quintic foot trajectory inside a plausible swing-speed envelope.
         // An instantaneous 90-degree turn must not demand a multi-metre hoof dash.
-        const maxFootSpeed=Math.max(2.75,2.1*speed);
+        // A world-space hoof must advance faster than the moving body during
+        // swing or it lands behind the torso and immediately starts another
+        // step. Limit peak swing travel to 2.4x body speed, below the existing
+        // 2.5x per-frame continuity envelope, while restoring real stance time.
+        const maxFootSpeed=Math.max(2.75,2.4*speed);
         beginHoofSwing(t,{
           x:futureX+(l.x*cos+l.z*sin)*scale,
           y:soleY,
