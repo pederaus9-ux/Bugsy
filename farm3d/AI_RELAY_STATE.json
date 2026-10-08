@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-08T23:14:30.885446+00:00",
+  "lastUpdatedUtc": "2026-10-08T23:48:57.864146+00:00",
   "codeBaseline": {
     "description": "PR #55 merged cow B2-B8 static anatomy",
     "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
@@ -81,20 +81,43 @@
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 visual evidence repair",
-    "status": "MIME_FIX_IMPLEMENTED_HOSTED_VALIDATION_PENDING",
+    "status": "VISUAL_BLOCKED_CAPTURE_REPAIR_HOSTED_PENDING",
     "pr": 71,
     "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
     "anatomyHead": "9e9fcbf4efa54412fea733f9ead6d57017e5a191",
     "branch": "codex/horse-r2-evidence-placement",
     "finding": "Live screenshot fixture relocates horse without resetting or translating persistent world-space hoof anchors; screenshot failure is not proof of production failure.",
-    "localTests": "7/7 placement and R2 anatomy tests pass; harness syntax and diff checks pass. Local Chromium unavailable; browser download returned invalid archives.",
+    "localTests": "7/7 placement and R2 anatomy tests pass; browser script syntax and diff checks pass. New browser path requires hosted verification.",
     "protectedSystems": "production renderers, IK, stance solver, saves, economy, progression, other animals unchanged",
-    "nextAction": "Verify new exact-head hosted regression, inspect corrected actual farm captures, capture sequential gait/turn/stop evidence, establish genuine R2 preview, obtain owner visual acceptance and merge authorization.",
-    "visualAcceptance": "PENDING",
+    "nextAction": "Verify new exact-head CI and daylight/gallery evidence. Obtain Grok independent reference-based structural diagnosis before anatomy correction; capture full sequential motion evidence and obtain owner acceptance/merge authorization.",
+    "visualAcceptance": "NOT_ACCEPTED",
     "note": "Legacy cow phase fields are retained as historical records; they are not the live Horse R2 gate.",
     "anatomyPr": 70,
-    "reviewedEvidenceHead": "797d07eee5ba461f2f1e5dab45af23d9f0abd995",
-    "hostedBaseline": "Regression #164 failed only six-species browser job: dynamic .mjs import. Other six jobs passed.",
-    "harnessCorrection": "Serve .mjs as text/javascript; all visual assertions and thresholds unchanged."
+    "reviewedEvidenceHead": "1489801a7274c0af4963f1b489fe0a0302303c14",
+    "hostedBaseline": "Regression #165 SUCCESS, all seven jobs at 1489801a7274c0af4963f1b489fe0a0302303c14.",
+    "harnessCorrection": "Serve .mjs as text/javascript; all visual assertions and thresholds unchanged.",
+    "visualFindings": [
+      "Detached ear cones; authored ear-base-to-head triangle separation approximately 64 mm at horse height 2.3.",
+      "Rounded tubular muzzle, disconnected-looking masses and bent idle forelegs require independent reference-based anatomy review.",
+      "CI165 actual farm captures reverted to night; isolated gallery retained contact-inconsistent horse recentering."
+    ],
+    "ownerReference": {
+      "file": "13326.jpg",
+      "receivedUtc": "2026-10-08T23:47:13Z",
+      "description": "Side-view bay horse with lowered head; owner-selected anatomy/silhouette reference, not validation evidence.",
+      "criteria": [
+        "continuous shoulder/barrel/hindquarter silhouette",
+        "muscular neck flowing from shoulders",
+        "long tapered face and defined jaw",
+        "small attached ears",
+        "believable resting forelegs and hind hocks",
+        "compact hooves and natural mane/tail"
+      ],
+      "limitation": "Single perspective and lowered-head pose do not establish exact physical measurements, raised-head anatomy or gait acceptance."
+    },
+    "captureRepair": "TEST ONLY: preset=noon query locks daylight against weather interval; isolated horse gallery now resets/translates persistent contact tracks using existing helper and enforces unchanged 2 mm residual.",
+    "preview": "https://sunny-acres-horse-r2-review.ardentanole10.chatgpt.site",
+    "previewSource": "1489801a7274c0af4963f1b489fe0a0302303c14",
+    "ownerPhoneLoading": "Observed in owner screenshots; no visual or movement acceptance."
   }
 }

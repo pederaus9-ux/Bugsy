@@ -14,6 +14,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
       const T = await import('/farm3d/lib/three.module.min.js');
       const L = await import('/farm3d/live3d.js?v=2');
       const C = await import('/farm3d/cow3d.js?v=3');
+      const E = await import('/farm3d/tests/horse-evidence-placement.mjs');
       const kinds = ['cow','sheep','horse','dog','cat','chicken'];
       const heights = [1.7,.9,1.6,.55,.4,.35];
       const renderer = new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -34,14 +35,21 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
         const height=heights[k],half=Math.max(height*.8,k===2?1.25:height*.8);
         const camera=new T.OrthographicCamera(-half,half,half,-half,.01,30);
         for(let m=0;m<3;m++) {
-          const mode=modes[m];r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;
+          const mode=modes[m];
+          if(k===2)E.resetHorseEvidencePose(r,0,0,0);
+          else {r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;}
           for(let n=0;n<24;n++) {
             const dz=mode==='idle'?0:-height*(mode==='run'?1.4:.65)/60;
             r.g.position.z+=dz;
             if(k===0)C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode);
           }
-          r.g.position.z=0;
+          if(k===2)E.translateHorseEvidencePose(r,0,0,0);else r.g.position.z=0;
           r.g.updateMatrixWorld(true);
+          if(k===2)for(const l of r.legs){
+            const foot=l.foot.getWorldPosition(new T.Vector3());
+            const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));
+            if(error>.002)throw new Error('horse gallery world contact error '+error);
+          }
           const bounds=new T.Box3().setFromObject(r.g), center=new T.Vector3(0,height*.52,0);
           const assertFinite = [bounds.min.x,bounds.min.y,bounds.min.z,bounds.max.x,bounds.max.y,bounds.max.z].every(Number.isFinite);
           if(!assertFinite)throw new Error(kinds[k]+' nonfinite bounds');
@@ -82,7 +90,8 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
     for(const viewport of [{width:844,height:390},{width:1280,height:720}]){
       const session=await h.setup(viewport,viewport.width<1000,prefix+'-farm-session-'+viewport.width);
       const page=session.page;
-      await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0');
+      // Lock the preset so the 60-second weather refresh cannot restore night.
+      await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0&preset=noon');
       await page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
       await page.locator('canvas').first().screenshot({path:path.join(artifacts,prefix+'-farm-'+viewport.width+'.png'),scale:'css'});
       // Retain the normal UI above; remove transient visitor/toast overlays from anatomy crops.
