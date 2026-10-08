@@ -35,3 +35,11 @@ test('horse gait state distinguishes idle walk trot and canter without non-finit
   for(const l of r.legs)for(const v of [l.hip.rotation.x,l.hip.rotation.y,l.knee.rotation.x])assert.ok(Number.isFinite(v));
   r.dispose();
 });
+
+
+test('horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter',async()=>{
+  const src=await import('node:fs/promises').then(fs=>fs.readFile(new URL('../horse3d.js',import.meta.url),'utf8'));
+  assert.match(src,/gait==='trot'\?\[0,\.5,\.5,0\]/,'trot keeps diagonal pairs');
+  assert.match(src,/gait==='canter'\?\[\.5,\.75,\.75,0\]/,'canter keeps hind -> diagonal pair -> leading fore sequence');
+  assert.match(src,/gait==='walk'\?\[\.75,\.25,0,\.5\]/,'walk keeps four distinct quarter-cycle footfalls');
+});
