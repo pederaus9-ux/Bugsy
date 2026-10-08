@@ -50,7 +50,7 @@ test('every hoof trajectory remains continuous through gait change, turn and sto
   let worst={excess:-Infinity};
   for(const hz of [30,60]){
     const r=createHorse3D(2.3),dt=1/hz;
-    let prev=feet(r),frame=0;
+    let prev=feet(r),prevTargets=r.legs.map(l=>l.track?new THREE.Vector3(l.track.x,l.track.y,l.track.z):null),frame=0;
     try{
       for(const seg of segments){
         for(let n=0;n<seg.frames;n++,frame++){
@@ -62,9 +62,21 @@ test('every hoof trajectory remains continuous through gait change, turn and sto
           for(let k=0;k<4;k++){
             const observed=now[k].distanceTo(prev[k]);
             const excess=observed-bound;
-            if(excess>worst.excess)worst={excess,observed,bound,frame,leg:k,hz,segment:seg.name};
+            if(excess>worst.excess){
+              const l=r.legs[k],t=l.track;
+              const hip=l.hip.getWorldPosition(new THREE.Vector3());
+              const target=t?new THREE.Vector3(t.x,t.y,t.z):null;
+              const previousTarget=prevTargets[k];
+              worst={excess,observed,bound,frame,leg:k,hz,segment:seg.name,
+                actualPrev:prev[k].toArray(),actualNext:now[k].toArray(),
+                trackPrev:previousTarget?.toArray(),trackNext:target?.toArray(),
+                trackStep:target&&previousTarget?target.distanceTo(previousTarget):null,
+                trackMode:t?.mode,planted:l.planted,
+                targetReachM:target?.distanceTo(hip),legLengthM:(HORSE.upper+HORSE.lower)*r.model.scale.x,
+                IKErrorM:target?.distanceTo(now[k]),modelYaw:r.model.rotation.y};
+            }
           }
-          prev=now;
+          prev=now;prevTargets=r.legs.map(l=>l.track?new THREE.Vector3(l.track.x,l.track.y,l.track.z):null);
         }
       }
     }finally{r.dispose();}
