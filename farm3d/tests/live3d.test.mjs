@@ -7,13 +7,57 @@ for (const kind of ['sheep','horse','dog','cat','chicken']) {
     const rig = createLiveAnimal(kind, 1, 0, 0);
     assert.equal(rig.liveKind, kind);
     const before = rig.legs[0].hip ? rig.legs[0].hip.rotation.x : rig.legs[0].rotation.x;
-    for (let i = 0; i < 40; i++) updateLiveAnimal(rig, 0, -.4 / 60, 1 / 60, 'moving');
+    for (let i = 0; i < 40; i++) {
+      // Production animal movement translates rig.g before passing the delta.
+      // The gait updater must not apply a second translation.
+      const dz=-.4/60;
+      rig.g.position.z+=dz;
+      updateLiveAnimal(rig,0,dz,1/60,'moving');
+    }
     const after = rig.legs[0].hip ? rig.legs[0].hip.rotation.x : rig.legs[0].rotation.x;
     assert.notEqual(after, before);
     assert.ok(Number.isFinite(after));
     rig.dispose();
   });
 }
+
+// Horse-specific semantics: world-space planted contact remains fixed as the
+// model root advances; the leg moves because the torso moved over that plant.
+test('horse translated root articulates hip without moving a planted hoof',()=>{
+  const r=createLiveAnimal('horse',1,0,0);
+  try{
+    r.g.updateMatrixWorld(true);
+    const leg=r.legs[0],beforeAngle=leg.hip.rotation.x;
+    const beforeFoot=leg.foot.getWorldPosition(new THREE.Vector3());
+    const dz=-.4/60;
+    r.g.position.z+=dz;
+    updateLiveAnimal(r,0,dz,1/60,'moving');
+    r.g.updateMatrixWorld(true);
+    const afterFoot=leg.foot.getWorldPosition(new THREE.Vector3());
+    assert.notEqual(leg.hip.rotation.x,beforeAngle,'hip must articulate over world-space planted foot');
+    assert.ok(afterFoot.distanceTo(beforeFoot)<.01,
+      'moving-root stance foot moved '+afterFoot.distanceTo(beforeFoot)+'m');
+    assert.ok(leg.track && leg.track.mode==='stance','first frame remains in stance');
+  }finally{r.dispose();}
+});
+
+// Deliberately invalid caller behavior: a velocity argument is not permission
+// for horse3d to translate the root itself or slide its planted-world anchor.
+test('horse delta without root movement leaves the world contact fixed',()=>{
+  const r=createLiveAnimal('horse',1,0,0);
+  try{
+    r.g.updateMatrixWorld(true);
+    const leg=r.legs[0],before=leg.foot.getWorldPosition(new THREE.Vector3());
+    const rootZ=r.g.position.z,plantX=leg.track.plantX,plantZ=leg.track.plantZ;
+    updateLiveAnimal(r,0,-.4/60,1/60,'moving');
+    r.g.updateMatrixWorld(true);
+    assert.equal(r.g.position.z,rootZ,'animation updater must not translate root');
+    assert.equal(leg.track.plantX,plantX);
+    assert.equal(leg.track.plantZ,plantZ);
+    assert.ok(leg.foot.getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-6,
+      'without root translation the planted foot should not shift');
+  }finally{r.dispose();}
+});
 test('two saved hair styles produce different hair meshes', () => {
   const a = createLiveFarmer({hair:'buzz', hairColor:0x1f1a17, hat:'none', overalls:false});
   const b = createLiveFarmer({hair:'braids', hairColor:0x1f1a17, hat:'none', overalls:false});
