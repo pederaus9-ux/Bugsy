@@ -5,7 +5,7 @@ import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const HORSE={
   name:'horse',height:1.85,bodyY:1.03,hip:.86,upper:.40,lower:.39,hoof:.075,
-  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xb99678,body:[.31,.34,.54],neck:[0,.18,-.43],head:[0,.30,-.28]
+  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xb99678,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
 };
 
 let template=null;
@@ -16,7 +16,9 @@ function buildTemplate(){
   slots.neck=bone('neck',slots.body,[0,.18,-.43]);
   slots.head=bone('head',slots.neck,[0,.30,-.28]);
   for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.105,.17,-.02]));
-  const feet=[[-.17,-.46,0],[.17,-.46,.5],[-.16,.45,.5],[.16,.45,0]];
+  // Shoulder attachment is forward under the withers, not under the barrel.
+  // The R1 IK keeps hip origins fixed and will solve these new rest offsets.
+  const feet=[[-.17,-.66,0],[.17,-.66,.5],[-.16,.65,.5],[.16,.65,0]];
   for(const [x,z,phase] of feet){
     const hip=bone('hip'+slots.legs.length,slots.body,[x,HORSE.hip-HORSE.bodyY,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-HORSE.upper,0]);
@@ -39,40 +41,56 @@ function buildTemplate(){
   const rod=(col,p,r,len,b)=>add(new THREE.CylinderGeometry(r,r*.78,len,8),col,p,[1,1,1],b);
   const link=(col,a,bp,r,b)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...bp),d=B.clone().sub(A);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());add(new THREE.CylinderGeometry(r*.82,r,d.length(),10),col,A.add(B).multiplyScalar(.5).toArray(),[1,1,1],b,q);};
 
-  // Torso: separate rib cage, shoulder/withers and hindquarter masses produce a horse silhouette.
-  oval(HORSE.coat,[0,.00,.03],[.31,.34,.54],slots.body,16,10);
-  // Keep the muscular shoulder below the raised neck's visible bridge.
-  // Its previous high, round cap occluded the neck surface during picking.
-  oval(HORSE.coat,[0,-.01,-.42],[.30,.31,.31],slots.body,14,9);
-  oval(HORSE.coat,[0,.03,.43],[.33,.35,.34],slots.body,14,9);
-  oval(HORSE.coat,[0,.27,-.30],[.20,.16,.22],slots.body,12,8);
+  // R2: a long, nearly horizontal barrel. Continuous shoulder and haunch
+  // volumes replace the stacked vertical withers ball from R1.
+  oval(HORSE.coat,[0,-.01,0],[.30,.30,.78],slots.body,20,12);
+  oval(HORSE.coat,[0,-.035,-.54],[.29,.285,.30],slots.body,16,10);
+  oval(HORSE.coat,[0,-.01,.56],[.315,.32,.30],slots.body,16,10);
+  // A shallow withers ridge flows into the back, not a round chest hump.
+  oval(HORSE.coat,[0,.16,-.49],[.205,.105,.19],slots.body,14,8);
 
-  // Sloped neck into withers; skull is long and narrow with a distinct jaw/muzzle.
-  link(HORSE.coat,[0,-.01,-.05],[0,.31,-.28],.145,slots.neck);
-  oval(HORSE.coat,[0,.01,-.03],[.14,.20,.30],slots.head,14,9);
-  oval(HORSE.muzzle,[0,-.07,-.31],[.125,.13,.20],slots.head,12,8);
-  oval(HORSE.coat,[0,-.10,-.12],[.13,.11,.18],slots.head,10,7);
+  // Neck axis rises roughly 36 degrees from the horizontal, carried forward
+  // from the withers to a long skull ahead of the shoulders.
+  link(HORSE.coat,[0,-.05,-.02],[0,.25,-.43],.145,slots.neck);
+  oval(HORSE.coat,[0,-.025,-.105],[.14,.155,.28],slots.head,16,10);
+  oval(HORSE.coat,[0,-.095,-.19],[.122,.105,.185],slots.head,12,8);
+  // Forward-tapered face: wide at the bridge, narrower at the nose.
+  // The cylinder's axis is rotated from +Y to -Z; its narrow end is forward.
+  const forward=new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,-1));
+  add(new THREE.CylinderGeometry(.093,.143,.43,12,1),HORSE.muzzle,
+    [0,-.055,-.40],[1,1,1],slots.head,forward);
+  oval(HORSE.muzzle,[0,-.075,-.61],[.09,.085,.08],slots.head,12,8);
   for(const side of [-1,1]){
-    oval(0x1e1b18,[side*.132,.035,-.10],[.026,.035,.025],slots.head,8,6);
-    oval(0x25221e,[side*.070,-.095,-.48],[.020,.014,.012],slots.head,8,6);
+    oval(0x1e1b18,[side*.134,.015,-.11],[.026,.030,.025],slots.head,8,6);
+    oval(0x25221e,[side*.072,-.095,-.64],[.017,.014,.012],slots.head,8,6);
     const ear=slots.ears[side<0?0:1];
-    add(new THREE.ConeGeometry(.045,.16,8),HORSE.coat,[side*.015,.065,0],[1,1,1],ear);
+    add(new THREE.ConeGeometry(.045,.16,8),HORSE.coat,
+      [side*.015,.065,0],[1,1,1],ear);
   }
-  // Mane is strictly behind the skull/neck: no forward link can intersect the muzzle.
-  for(const [y,z,s] of [[.02,.10,.09],[.10,.08,.085],[.18,.055,.075],[.26,.025,.065]]) oval(HORSE.face,[0,y,z],[.105,s,.075],slots.neck,10,7);
-  oval(0xeadbc0,[0,.015,-.292],[.032,.13,.018],slots.head,8,6);
+  // Mane lies on the back of the new sloped neck. No forehead horn:
+  // the R1 ivory vertical oval is removed, not disguised as a blaze.
+  for(const [y,z,s] of [[-.01,.10,.08],[.07,.035,.078],[.15,-.05,.068],[.22,-.12,.06]])
+    oval(HORSE.face,[0,y,z],[.08,s,.072],slots.neck,10,7);
 
-  // Horse-specific limb proportions: muscular upper limb -> cannon -> fetlock/pastern -> hoof.
+  // Limb mass begins at the anatomical shoulder/haunch, then narrows to the
+  // cannon. Leg IK and world-space hoof anchors are deliberately unchanged.
   for(const l of slots.legs){
-    oval(HORSE.coat,[0,.025,0],[.13,.15,.12],l.hip,10,7);
-    rod(HORSE.coat,[0,-HORSE.upper*.48,0],.060,HORSE.upper*.90,l.hip);
+    const fore=l.z<0;
+    oval(HORSE.coat,[0,.005,0],fore?[.100,.145,.115]:[.13,.16,.135],l.hip,12,8);
+    rod(HORSE.coat,[0,-HORSE.upper*.46,0],fore?.082:.065,HORSE.upper*.88,l.hip);
     oval(HORSE.coat,[0,0,0],[.065,.060,.070],l.knee,8,6);
     rod(HORSE.coat,[0,-HORSE.lower*.43,0],.038,HORSE.lower*.78,l.knee);
     oval(HORSE.coat,[0,-HORSE.lower*.82,-.008],[.050,.070,.055],l.knee,8,6);
-    // Keep the lowest hoof vertices above the 2 mm contact floor across scaled rigs.
+    // Keep proven R1 skinned-sole contact geometry exactly unchanged.
     oval(HORSE.face,[0,-.0245,-.018],[.070,.04975,.105],l.foot,10,6);
   }
-  for(let i=0;i<slots.tail.length;i++){const b=slots.tail[i];link(HORSE.face,[0,0,0],[0,-.17,.075],.032,b);if(i===2)oval(HORSE.face,[0,-.18,.08],[.065,.16,.060],b,10,7);}
+  // A gently fuller tuft replaces the rigid-looking wire tail.
+  for(let i=0;i<slots.tail.length;i++){
+    const b=slots.tail[i];
+    link(HORSE.face,[0,0,0],[0,-.17,.075],i===0?.038:.055,b);
+    if(i>=1)oval(HORSE.face,[0,-.16,.06],[.085,.18,.080],b,10,7);
+  }
 
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
