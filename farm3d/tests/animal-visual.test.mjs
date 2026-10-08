@@ -28,7 +28,8 @@ test('all six have an exposed connected neck and a pickable head, not just head 
     assert.ok(hits.length,kind+' visible neck geometry');
     const skin=r.card.geometry.attributes.skinIndex;
     const bone=r.card.skeleton.bones[skin.getX(hits[0].face.a)];
-    assert.equal(bone,r.neck,kind+' neck is first visible surface at its bridge');
+    // Preserve identity assertion; avoid recursively formatting the entire skinned scene graph on failure.
+    assert.ok(bone===r.neck,`${kind} neck is first visible surface at its bridge: got ${bone?.name??'<none>'}, expected ${r.neck.name}`);
     const head=r.head.getWorldPosition(new THREE.Vector3());
     ray.set(head.clone().add(new THREE.Vector3(0,0,-3)),new THREE.Vector3(0,0,1));
     rayProbe(kind,'before-head-raycast');
