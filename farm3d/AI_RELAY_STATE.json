@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-08T20:25:09.236Z",
+  "lastUpdatedUtc": "2026-10-08T23:14:30.885446+00:00",
   "codeBaseline": {
     "description": "PR #55 merged cow B2-B8 static anatomy",
     "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
@@ -81,16 +81,20 @@
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 visual evidence repair",
-    "status": "IMPLEMENTED_LOCAL_TESTS_PASS_HOSTED_PENDING",
-    "pr": 70,
+    "status": "MIME_FIX_IMPLEMENTED_HOSTED_VALIDATION_PENDING",
+    "pr": 71,
     "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
     "anatomyHead": "9e9fcbf4efa54412fea733f9ead6d57017e5a191",
     "branch": "codex/horse-r2-evidence-placement",
     "finding": "Live screenshot fixture relocates horse without resetting or translating persistent world-space hoof anchors; screenshot failure is not proof of production failure.",
-    "localTests": "3 placement tests pass, including old-behavior negative control",
+    "localTests": "7/7 placement and R2 anatomy tests pass; harness syntax and diff checks pass. Local Chromium unavailable; browser download returned invalid archives.",
     "protectedSystems": "production renderers, IK, stance solver, saves, economy, progression, other animals unchanged",
-    "nextAction": "Run hosted CI, inspect regenerated live captures, obtain sequential motion evidence and owner visual acceptance before PR70 merge",
+    "nextAction": "Verify new exact-head hosted regression, inspect corrected actual farm captures, capture sequential gait/turn/stop evidence, establish genuine R2 preview, obtain owner visual acceptance and merge authorization.",
     "visualAcceptance": "PENDING",
-    "note": "Legacy cow phase fields are retained as historical records; they are not the live Horse R2 gate."
+    "note": "Legacy cow phase fields are retained as historical records; they are not the live Horse R2 gate.",
+    "anatomyPr": 70,
+    "reviewedEvidenceHead": "797d07eee5ba461f2f1e5dab45af23d9f0abd995",
+    "hostedBaseline": "Regression #164 failed only six-species browser job: dynamic .mjs import. Other six jobs passed.",
+    "harnessCorrection": "Serve .mjs as text/javascript; all visual assertions and thresholds unchanged."
   }
 }
