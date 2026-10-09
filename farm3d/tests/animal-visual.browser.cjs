@@ -166,6 +166,27 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
               await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-neck-pitch-${degrees}.png`),scale:'css'});
             }
             await page.evaluate(()=>{const r=__dbg.animals.find(a=>a.kind==='horse').rig3d;r.neck.rotation.x=0;r.g.updateMatrixWorld(true);});
+            // Head evidence on the actual farm rig: front, side and three-quarter
+            // close-ups at rest, lowered (negative neck pitch lowers the head),
+            // head turned both ways and neck turned. Evidence only; a render is
+            // not a visual verdict.
+            const headPoses=[];
+            for(const [pose,neckX,headX,headY,neckY] of [['neutral',0,0,0,0],['lowered',-24,-6,0,0],['turn-left',0,0,25,0],['turn-right',0,0,-25,0],['neck-yaw',0,0,0,20]]){
+              for(const [view,dir] of [['front',[0,.12,-1]],['side',[1,.08,0]],['three-quarter',[.75,.25,-.75]]]){
+                headPoses.push(await page.evaluate(async({pose,view,neckX,headX,headY,neckY,dir})=>{
+                  const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d,D=Math.PI/180;
+                  r.neck.rotation.set(neckX*D,neckY*D,0);r.head.rotation.set(headX*D,headY*D,0);r.g.updateMatrixWorld(true);
+                  const q=r.head.getWorldQuaternion(new T.Quaternion()),s=r.model.getWorldScale(new T.Vector3()).x;
+                  const center=r.head.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.20,-.20).applyQuaternion(q).multiplyScalar(s));
+                  const v=new T.Vector3(...dir).normalize().applyQuaternion(r.model.getWorldQuaternion(new T.Quaternion()));
+                  d.camera.position.copy(center).addScaledVector(v,a.S.h*.52);d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                  return {pose,view,neck:[neckX,neckY],head:[headX,headY],headWorld:r.head.getWorldPosition(new T.Vector3()).toArray()};
+                },{pose,view,neckX,headX,headY,neckY,dir}));
+                await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-head-${pose}-${view}.png`),scale:'css'});
+              }
+            }
+            await page.evaluate(()=>{const r=__dbg.animals.find(a=>a.kind==='horse').rig3d;r.neck.rotation.set(0,0,0);r.head.rotation.set(0,0,0);r.g.updateMatrixWorld(true);});
+            fs.writeFileSync(path.join(artifacts,prefix+'-horse-head-poses.json'),JSON.stringify(headPoses,null,2));
           }
           if(kind==='horse'&&viewport.width===1280&&mode==='walk'){
             const sequence=[];

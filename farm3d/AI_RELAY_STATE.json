@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-09T01:29:24.553500+00:00",
+  "lastUpdatedUtc": "2026-10-09T15:30:00+00:00",
   "codeBaseline": {
     "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
     "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
@@ -44,7 +44,8 @@
   "specialNotes": [
     "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
     "PR #70 remains untouched; #71 contains its anatomy plus later evidence/anatomy corrections. Use one final integration path.",
-    "No merge or other-species advancement while Horse R2 visual gate remains unresolved."
+    "No merge or other-species advancement while Horse R2 visual gate remains unresolved.",
+    "Muse PR71 report states PR #70 merged on Oct 8; verified false: PR #70 and #71 remain open drafts."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -223,5 +224,59 @@
     "evidenceAdded": "Actual-code idle and 20-degree neck pitch close-ups plus existing front/side/rear and uninterrupted walk sequence",
     "protected": "horse-ik3d.js, horse-stance3d.js, sole oval, fixed hip roots, gait schedule, other animals, gameplay, saves and cloud unchanged",
     "acceptance": "No claim of reference matching until new renders, independent review and owner device acceptance; no merge authorization"
+  },
+  "headRevision": {
+    "agent": "Claude (implementation engineer); ChatGPT integrates",
+    "task": "Horse R2: resolve rejected 'anteater' head before any other horse or species work",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "startingHead": "0afea8b3576ab47fc911b68ec1819ce1be61f2aa",
+    "branch": "claude/hayday-style-game-currency-hq3vi4 (isolated; not PR #71's codex/horse-r2-evidence-placement)",
+    "delivery": "Draft PR into codex/horse-r2-evidence-placement for ChatGPT integration; not merged, not deployed",
+    "evidenceReceived": [
+      "Muse PR71 visual QA report (BLOCKED, head severe) reviewing 0afea8b",
+      "Local SwiftShader renders of 0afea8b: front/side/three-quarter, neutral/lowered/raised, head and neck turns, body"
+    ],
+    "evidenceMissing": [
+      "13326.jpg not received by Claude; Muse's region comparison and the relay text description used instead; no photo-match claim",
+      "Hosted CI #169 artifact images not downloadable through the session proxy"
+    ],
+    "auditOfStartingHead": [
+      "Poll-to-nose 0.734 model units = 0.53 x withers; face ~21 deg below horizontal (anteater tube)",
+      "No forehead, jowl, jaw or throatlatch; eyes ~15% down the head; pale 36%-width muzzle with dot nostrils; no lips",
+      "Round cone ears 0.15 apart reading as horns; head rigid to head bone"
+    ],
+    "implemented": [
+      "One superelliptic poll-to-lip head surface: 0.589 long (0.425 x withers), face 45.6 deg below horizontal at rest; head/neck bone rest offsets unchanged",
+      "Broad flat forehead, width held through mid-face, deep rounded jowl with a rising rear edge, throatlatch notch, straight nasal bone; muzzle 0.646 of forehead width",
+      "Eyes one third down the head, embedded, with orbital ridges; comma nostrils; upper/lower lip, chin and mouth line",
+      "Dark bay points replace the pale muzzle wedge (owner choice)",
+      "Leaf ears 0.116 apart, flattened, tips slightly forward/inward, base vertices seated on the computed skull surface",
+      "One shared head/neck junction weight field for head, throat/crest trunk end and mane; neck end narrowed into the throatlatch; mane feathers out at the poll"
+    ],
+    "testAdaptations": [
+      "'R2 muzzle is long and tapered': length/height now measured forward of the actual eyes along the measured facial axis; threshold 1.4 unchanged",
+      "'muzzle narrows...slopes downward': absolute z bands (which assumed the rejected horizontal 0.75 face) replaced by anatomy-anchored bands on the facial axis; thresholds 1.5/1.5/0.08 unchanged"
+    ],
+    "newGuards": [
+      "head length 0.36-0.44 x withers; face 30-55 deg",
+      "jowl depth >= 1.5 x muzzle; throatlatch notch",
+      "eyes 25-45% down, below forehead line, embedded within 12 mm, orbit above",
+      "nostrils in forward 15%; lips below muzzle mid-depth; muzzle >= 60% forehead width",
+      "ear spread <= 0.13; ears flattened leaf (principal axes)",
+      "shared junction weights within 1e-6, normalized, dominant first",
+      "junction edge stretch 0.7-1.4 under neck pitch +/-25, head pitch +/-25, head yaw +/-30, neck yaw 20, combined"
+    ],
+    "measurements": {
+      "horseTriangles": 5320,
+      "bones": 24,
+      "skinnedMeshes": 1,
+      "sixAnimalTriangles": 28354,
+      "sixAnimalTriangleBudget": 30000,
+      "junctionEdgeStretchWorst": "0.791-1.254"
+    },
+    "protectedUnchanged": "horse-ik3d.js, horse-stance3d.js, hoof sole oval, fixed hip roots, gait schedule/updateHorse3D locomotion, cow and other animals, gameplay, saves, cloud/auth, economy, service worker, public renderer interfaces, frozen evidence",
+    "deferredBodyFindings": "Muse tail, hindquarter, neck arch/crest, barrel, shoulder blend and leg findings are body-pass work outside this head assignment",
+    "visualAcceptance": "NOT_ACCEPTED",
+    "acceptance": "Pending ChatGPT integration, hosted CI on the integrated head, independent (Grok/Muse) review and owner device review; no merge authorization"
   }
 }

@@ -3,10 +3,78 @@ import {createHoofTrack,beginHoofSwing,updateHoofTrack,resetHoofTrack,settleHoof
 import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
 export const HORSE={
   name:'horse',height:1.85,bodyY:1.03,hip:.86,upper:.40,lower:.39,hoof:.075,
-  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xc7b49a,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
+  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0x47301e,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
 };
+
+// ---------- Horse head (R2 head revision) ----------
+// Authored in head-bone space around the poll joint. The face line falls
+// FACE_DROP below horizontal at rest, as a relaxed horse carries it; the head
+// bone's own rest transform is unchanged. Each section is
+// [u along poll->nose, dorsal offset, ventral offset, upper half-width,
+// lower half-width], offsets measured perpendicular to the face line.
+// Profile: poll rise, broad flat forehead with orbits, deep rounded jowl
+// whose rear edge rises sharply into the throatlatch, straight nasal bone,
+// slight nostril flare and a blunt rounded upper lip.
+const HORSE_HEAD={length:.58,faceDrop:40*Math.PI/180,sections:[
+  [-.10,.060,-.075,.062,.064],[-.04,.072,-.095,.070,.074],[.02,.074,-.120,.078,.082],
+  [.09,.070,-.160,.090,.089],[.17,.062,-.212,.099,.093],[.25,.052,-.232,.104,.093],
+  [.33,.043,-.222,.103,.089],[.42,.034,-.190,.095,.081],[.52,.027,-.158,.080,.070],
+  [.63,.021,-.138,.069,.064],[.74,.015,-.128,.064,.061],[.84,.012,-.124,.066,.063],
+  [.91,.008,-.118,.065,.061],[.96,-.004,-.106,.058,.054],[.99,-.022,-.088,.047,.043],
+  [1.0,-.040,-.072,.030,.027]
+]};
+const headAxis=new THREE.Vector3(0,-Math.sin(HORSE_HEAD.faceDrop),-Math.cos(HORSE_HEAD.faceDrop));
+const headUp=new THREE.Vector3(0,Math.cos(HORSE_HEAD.faceDrop),-Math.sin(HORSE_HEAD.faceDrop));
+const headFrame=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(1,0,0),headUp,headAxis.clone().negate()));
+// Catmull-Rom through the section table keeps the profile free of creases.
+function headSection(u){
+  const S=HORSE_HEAD.sections;let i=0;
+  while(i<S.length-2&&u>S[i+1][0])i++;
+  const t=clamp((u-S[i][0])/(S[i+1][0]-S[i][0]),0,1),p0=S[Math.max(i-1,0)],p1=S[i],p2=S[i+1],p3=S[Math.min(i+2,S.length-1)];
+  return [1,2,3,4].map(k=>.5*((2*p1[k])+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t*t+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t*t*t));
+}
+// Superelliptic ring: flat forehead and cheeks above, rounder jaw below.
+function headSurface(u,a,out=new THREE.Vector3()){
+  const [dorsal,ventral,wTop,wBottom]=headSection(u),s=Math.sin(a),c=Math.cos(a);
+  const e=s>0?.72:1,sy=Math.sign(s)*Math.abs(s)**e,sx=Math.sign(c)*Math.abs(c)**e;
+  const mid=(dorsal+ventral)/2,half=(dorsal-ventral)/2,w=wBottom+(wTop-wBottom)*(1+s)/2;
+  return out.copy(headAxis).multiplyScalar(u*HORSE_HEAD.length).addScaledVector(headUp,mid+half*sy).setX(w*sx);
+}
+function headMesh(){
+  const rings=26,n=24,v=[],idx=[];
+  for(let j=0;j<rings;j++){
+    const u=-.10+1.10*(1-(1-j/(rings-1))**1.35),p=new THREE.Vector3();
+    for(let i=0;i<n;i++){headSurface(u,i*Math.PI*2/n,p);v.push(p.x,p.y,p.z);}
+  }
+  for(let j=0;j<rings-1;j++)for(let i=0;i<n;i++){const a=j*n+i,b=j*n+(i+1)%n;idx.push(a,c(a),b,b,c(a),c(b));}
+  function c(k){return k+n;}
+  const tip=v.length/3;const p=headSurface(1,0);v.push(0,p.y-.005,p.z-.004);
+  const back=headSurface(-.10,Math.PI/2).add(headSurface(-.10,-Math.PI/2)).multiplyScalar(.5);v.push(0,back.y,back.z);
+  for(let i=0;i<n;i++){const last=(rings-1)*n;idx.push(last+i,tip,last+(i+1)%n,i,(i+1)%n,tip+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(idx);g.computeVertexNormals();
+  return g;
+}
+// Highest skull surface under a head-local point; ears and the forelock seat here.
+function skullTop(mesh,x,z){
+  const p=mesh.attributes.position,ix=mesh.index.array,ray=new THREE.Ray(new THREE.Vector3(x,1,z),new THREE.Vector3(0,-1,0));
+  const A=new THREE.Vector3(),B=new THREE.Vector3(),C=new THREE.Vector3(),hit=new THREE.Vector3();let best=-Infinity;
+  for(let i=0;i<ix.length;i+=3){
+    A.fromBufferAttribute(p,ix[i]);B.fromBufferAttribute(p,ix[i+1]);C.fromBufferAttribute(p,ix[i+2]);
+    if(ray.intersectTriangle(A,B,C,false,hit))best=Math.max(best,hit.y);
+  }
+  return best;
+}
+// One smooth head/neck junction field shared by every surface near the poll.
+// The boundary runs from behind the ear bases down the rear edge of the jaw
+// into the throatlatch: skull, ears and jowl are head; crest and throat are
+// neck; coincident points always receive identical weights.
+function horseHeadBlend(local){
+  const d=-.988*(local.z-.08)-.156*local.y;
+  return smooth(-.14,.08,d)*(1-smooth(.20,.28,local.z));
+}
 
 let template=null;
 function buildTemplate(){
@@ -18,8 +86,10 @@ function buildTemplate(){
   // the old upright silhouette in the skinned mesh.
   slots.neck=bone('neck',slots.body,HORSE.neck);
   slots.head=bone('head',slots.neck,HORSE.head);
-  // Ear bases seat into the skull surface; ear height is unchanged.
-  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.075,.07,-.10]));
+  // Ear bases sit on the poll, closer together than before, at the actual
+  // skull surface computed from the head mesh (ear size is unchanged).
+  const headGeo=headMesh();
+  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.058,skullTop(headGeo,side*.058,-.012)-.004,-.012]));
   // Shoulder attachment is forward under the withers, not under the barrel.
   // The R1 IK keeps hip origins fixed and will solve these new rest offsets.
   const feet=[[-.17,-.66,0],[.17,-.66,.5],[-.16,.65,.5],[.16,.65,0]];
@@ -69,15 +139,26 @@ function buildTemplate(){
   // One connected indexed surface is authored from croup through poll.
   // Duplicate triangle-corner vertices keep identical weights/normals when
   // flattened into the existing renderer layout; no independent neck shell.
+  // The shared head/neck junction field, evaluated in head-bone rest space.
+  const headRest=rest[slots.head],local=new THREE.Vector3();
+  const blendHead=i=>{
+    const w=horseHeadBlend(local.set(pos[i*3]-headRest.x,pos[i*3+1]-headRest.y,pos[i*3+2]-headRest.z));
+    if(w<=0&&skin[i*4]!==slots.head)return;
+    const inf=[[slots.head,w],[slots.neck,1-w]].sort((a,b)=>b[1]-a[1]);
+    for(let k=0;k<4;k++){skin[i*4+k]=k<2?inf[k][0]:0;weight[i*4+k]=k<2?inf[k][1]:0;}
+  };
   const trunk=loft([
     [.84,-.025,.06,.12],[.70,.005,.245,.245],[.55,.005,.295,.285],
     [.30,-.025,.29,.28],[0,-.035,.30,.285],[-.32,-.015,.285,.28],
     [-.50,.015,.25,.285],[-.65,.075,.225,.28],[-.78,.18,.18,.235],
-    [-.91,.30,.135,.18],[-1.04,.405,.10,.13],[-1.10,.43,.07,.09]
+    // Throatlatch: the neck narrows and its underside rises to meet the rear
+    // edge of the jaw; its end tucks inside the head's rear rings at the poll.
+    [-.91,.3475,.12,.1275],[-1.04,.38,.068,.08],[-1.10,.40,.05,.06]
   ],HORSE.coat,slots.body,i=>{
     const z=pos[i*3+2],t=clamp((-z-.38)/.35,0,1);
     skin[i*4]=t>=.5?slots.neck:slots.body;skin[i*4+1]=t>=.5?slots.body:slots.neck;
     weight[i*4]=Math.max(t,1-t);weight[i*4+1]=Math.min(t,1-t);
+    if(t>=1)blendHead(i);
   });
   // These overlapping diagnostic spans describe shared triangles of the
   // continuous surface, rather than separate overlapping geometry shells.
@@ -90,29 +171,68 @@ function buildTemplate(){
     return {start,count:end-start};
   };
   parts.barrel=span(-.78,.84);parts.withers=span(-.91,-.32);parts.neck=span(-1.10,-.50);
-  // Single poll-to-nose surface, with reference pale coloration restricted
-  // to the forward third. No skull balls or separate nose oval.
-  part('head',()=>loft([
-    [.065,.015,.045,.055],[0,.015,.10,.105],[-.10,-.01,.14,.12],
-    [-.17,-.05,.118,.115],[-.32,-.11,.103,.096],
-    [-.49,-.17,.077,.073],[-.62,-.205,.067,.060],[-.685,-.215,.052,.05]
-  ],HORSE.coat,slots.head,i=>{
-    if(pos[i*3+2]-rest[slots.head].z<-.45){
-      const c=new THREE.Color(HORSE.muzzle);color[i*3]=c.r;color[i*3+1]=c.g;color[i*3+2]=c.b;
+  // One poll-to-lip head surface (no skull balls, nose oval or pale wedge).
+  // Bay points: coat colour darkens over the nasal bone to a near-black muzzle.
+  const coat=new THREE.Color(HORSE.coat),dark=new THREE.Color(HORSE.muzzle),mix=new THREE.Color();
+  const axial=i=>((pos[i*3]-headRest.x)*headAxis.x+(pos[i*3+1]-headRest.y)*headAxis.y+(pos[i*3+2]-headRest.z)*headAxis.z)/HORSE_HEAD.length;
+  part('head',()=>{
+    const start=pos.length/3;add(headGeo,HORSE.coat,[0,0,0],[1,1,1],slots.head);
+    for(let i=start;i<pos.length/3;i++){
+      mix.copy(coat).lerp(dark,smooth(.60,.86,axial(i)));color[i*3]=mix.r;color[i*3+1]=mix.g;color[i*3+2]=mix.b;
+      blendHead(i);
     }
-  }));
+  });
+  // Facial details are placed on the actual surface function and oriented
+  // with the face, so they stay seated when proportions are tuned.
+  const feature=(name,col,u,a,lift,scale,turn=new THREE.Quaternion())=>{
+    const p=headSurface(u,a);p.addScaledVector(p.clone().sub(headAxis.clone().multiplyScalar(u*HORSE_HEAD.length)).setComponent(0,p.x).normalize(),lift);
+    const start=pos.length/3;oval(col,p.toArray(),scale,slots.head,10,6);
+    // re-orient the just-added oval with the face frame
+    const q=headFrame.clone().multiply(turn),o=new THREE.Vector3(headRest.x+p.x,headRest.y+p.y,headRest.z+p.z),v=new THREE.Vector3(),n=new THREE.Vector3();
+    for(let i=start;i<pos.length/3;i++){
+      v.set(pos[i*3],pos[i*3+1],pos[i*3+2]).sub(o).applyQuaternion(q).add(o);pos[i*3]=v.x;pos[i*3+1]=v.y;pos[i*3+2]=v.z;
+      n.set(norm[i*3],norm[i*3+1],norm[i*3+2]).applyQuaternion(q);norm[i*3]=n.x;norm[i*3+1]=n.y;norm[i*3+2]=n.z;
+    }
+    (parts[name]??=[]).push({start,count:pos.length/3-start});
+  };
+  const yawOut=side=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),side*.55);
   for(const side of [-1,1]){
-    oval(0x1e1b18,[side*.134,.015,-.11],[.026,.030,.025],slots.head,8,6);
-    oval(0x25221e,[side*.057,-.19,-.66],[.017,.014,.012],slots.head,8,6);
-    const ear=slots.ears[side<0?0:1];
-    add(new THREE.ConeGeometry(.045,.16,8),HORSE.coat,
-      [0,.065,0],[1,1,1],ear);
+    const at=a=>side>0?a:Math.PI-a;
+    // Eye a third of the way down the head, below the forehead line, with an orbit ridge.
+    feature('eyes',0x18120d,.33,at(.42),-.008,[.017,.026,.032],yawOut(side));
+    feature('brows',HORSE.coat,.31,at(.80),-.007,[.012,.008,.038],yawOut(side));
+    // Comma-shaped nostrils on the front-sides of the broad muzzle.
+    feature('nostrils',0x120d0a,.895,at(1.0),-.005,[.013,.009,.032],
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,side*.22,side*.85)));
   }
-  // Mane lies on the back of the new sloped neck. No forehead horn:
-  // the R1 ivory vertical oval is removed, not disguised as a blaze.
-  loft([[.13,.12,.028,.055],[.02,.20,.033,.055],
-    [-.12,.27,.03,.05],[-.27,.325,.025,.045],
-    [-.42,.365,.018,.04]],HORSE.face,slots.neck);
+  // Lips, chin and the mouth line under the upper lip.
+  feature('lips',0x3a281c,.955,-Math.PI/2,-.016,[.040,.016,.040]);
+  feature('lips',0x2a1b11,.875,-Math.PI/2,-.015,[.034,.015,.038]);
+  feature('lips',0x0e0a08,.925,-Math.PI/2,-.001,[.047,.0035,.036]);
+  for(const side of [-1,1]){
+    // Leaf-shaped ear: oval base, cupped darker opening facing forward,
+    // tips slightly forward and inward; base vertices seated on the skull.
+    const ear=slots.ears[side<0?0:1],earRest=rest[ear],start=pos.length/3;
+    const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.18,0,side*.12));
+    const leaf=(r,h)=>new THREE.LatheGeometry([[0,0],[.70,0],[.98,.19],[.94,.44],[.68,.69],[.32,.88],[.06,1]].map(([x,y])=>new THREE.Vector2(x*r,y*h)),10);
+    const outer=leaf(.045,.16).toNonIndexed(),base=[];
+    for(let i=0;i<outer.attributes.position.count;i++)if(Math.abs(outer.attributes.position.getY(i))<1e-6)base.push(start+i);
+    add(outer,HORSE.coat,[0,0,0],[1,1,.74],ear,q);
+    for(const i of base){
+      const x=pos[i*3]-headRest.x,z=pos[i*3+2]-headRest.z;
+      pos[i*3+1]=headRest.y+skullTop(headGeo,x,z)-.002;
+    }
+    add(leaf(.03,.12),0x5a3a22,[0,.022,-.015],[1,1,.42],ear,q);
+    parts['ear'+side]={start,count:pos.length/3-start};
+  }
+  // Mane sits on the crest and feathers out at the poll instead of ending
+  // in a hard slab edge; its poll end shares the head/neck junction weights.
+  part('mane',()=>{
+    const m=loft([[.13,.12,.028,.055],[.02,.20,.033,.055],
+      [-.12,.27,.03,.05],[-.27,.315,.025,.042],
+      [-.42,.325,.016,.03],[-.48,.31,.006,.008]],HORSE.face,slots.neck);
+    for(let i=m.start;i<m.start+m.count;i++)blendHead(i);
+  });
 
   // Connected tapered limb sections carry blended hip/knee/foot weights.
   // Joint and fetlock radii remain below the .038 cannon radius.
@@ -148,6 +268,8 @@ function buildTemplate(){
   const geometry=new THREE.BufferGeometry();
   // Test diagnostics refer to actual vertex spans, not expected dimensions.
   geometry.userData.horseAnatomyParts=parts;
+  // Head diagnostics: rest poll (head bone) and the shared junction field.
+  geometry.userData.horseHead={poll:rest[slots.head].toArray(),blend:horseHeadBlend};
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   geometry.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));
   geometry.setAttribute('color',new THREE.Float32BufferAttribute(color,3));
