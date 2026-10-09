@@ -5,7 +5,7 @@ import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const HORSE={
   name:'horse',height:1.85,bodyY:1.03,hip:.86,upper:.40,lower:.39,hoof:.075,
-  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0x80502e,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
+  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xc7b49a,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
 };
 
 let template=null;
@@ -30,7 +30,7 @@ function buildTemplate(){
     slots.legs.push({hip,knee,foot,x,z,phase});
   }
   let parent=slots.body;
-  for(let i=0;i<3;i++){const t=bone('tail'+i,parent,[0,i?-.15:.10,i?.08:.61]);slots.tail.push(t);parent=t;}
+  for(let i=0;i<6;i++){const t=bone('tail'+i,parent,[0,i?-.145:.10,i?.015:.76]);slots.tail.push(t);parent=t;}
 
   const rest=defs.map((d,i)=>{const p=new THREE.Vector3(...d.p);let j=d.parent;while(j>=0){p.add(new THREE.Vector3(...defs[j].p));j=defs[j].parent;}return p;});
   const pos=[],norm=[],color=[],skin=[],weight=[],parts={};
@@ -48,10 +48,10 @@ function buildTemplate(){
 
   // Continuous elliptical sections author the back, belly and shoulder as
   // one surface. Separate intersecting balls created the rejected silhouette.
-  const loft=(sections,col,boneIndex)=>{
+  const loft=(sections,col,boneIndex,paint=null,axis="z")=>{
     const v=[],idx=[],n=20;
     for(const [z,y,w,h] of sections)for(let i=0;i<n;i++){
-      const a=i*Math.PI*2/n;v.push(Math.cos(a)*w,y+Math.sin(a)*h,z);
+      const a=i*Math.PI*2/n;v.push(Math.cos(a)*w,axis==="z"?y+Math.sin(a)*h:z,axis==="z"?z:y+Math.sin(a)*h);
     }
     for(let j=0;j<sections.length-1;j++)for(let i=0;i<n;i++){
       const a=j*n+i,b=j*n+(i+1)%n,c=a+n,d=b+n;
@@ -59,44 +59,48 @@ function buildTemplate(){
     }
     for(let i=1;i<n-1;i++)idx.push(0,i+1,i,
       (sections.length-1)*n,(sections.length-1)*n+i,(sections.length-1)*n+i+1);
-    if(sections.at(-1)[0]<sections[0][0])for(let i=0;i<idx.length;i+=3)[idx[i+1],idx[i+2]]=[idx[i+2],idx[i+1]];
+    if((sections.at(-1)[0]<sections[0][0])!==(axis==="y"))for(let i=0;i<idx.length;i+=3)[idx[i+1],idx[i+2]]=[idx[i+2],idx[i+1]];
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
-    g.setIndex(idx);g.computeVertexNormals();add(g,col,[0,0,0],[1,1,1],boneIndex);
+    g.setIndex(idx);g.computeVertexNormals();const start=pos.length/3;
+    add(g,col,[0,0,0],[1,1,1],boneIndex);
+    if(paint)for(let i=start;i<pos.length/3;i++)paint(i);
+    return {start,count:pos.length/3-start};
   };
-  part('barrel',()=>loft([
-    [-.84,-.05,.055,.10],[-.72,-.025,.205,.225],
-    [-.55,-.01,.265,.285],[-.32,-.015,.285,.28],
-    [0,-.035,.30,.285],[.30,-.025,.29,.28],
-    [.55,.005,.295,.285],[.70,.005,.245,.245],
-    [.84,-.025,.06,.12]],HORSE.coat,slots.body));
-  // Low withers blend into the shoulder instead of making another chest ball.
-  part('withers',()=>oval(HORSE.coat,[0,.09,-.55],[.185,.14,.34],slots.body,20,12));
-  // Deep muscular base narrows toward the poll; section centers follow the
-  // sloping neck rather than presenting a constant-radius tube.
-  part('neck',()=>loft([
-    [.12,-.10,.17,.24],[.02,-.035,.185,.25],
-    [-.12,.065,.155,.215],[-.27,.16,.125,.17],
-    [-.42,.245,.10,.125],[-.51,.27,.075,.09]],HORSE.coat,slots.neck));
-  oval(HORSE.coat,[0,-.025,-.105],[.14,.135,.235],slots.head,16,10);
-  oval(HORSE.coat,[0,-.09,-.12],[.115,.12,.145],slots.head,12,8);
-  // Elliptical sections taper in both width and height along a sloping face.
-  // This is an authored facial volume, rather than a circular muzzle tube.
-  const sections=[[-.17,-.05,.118,.115],[-.32,-.105,.103,.096],
-    [-.49,-.165,.077,.073],[-.62,-.20,.067,.060]],verts=[],indices=[],sides=12;
-  for(const [z,y,w,h] of sections)for(let i=0;i<sides;i++){
-    const a=i*Math.PI*2/sides;verts.push(Math.cos(a)*w,y+Math.sin(a)*h,z);
-  }
-  for(let j=0;j<sections.length-1;j++)for(let i=0;i<sides;i++){
-    const a=j*sides+i,b=j*sides+(i+1)%sides,c=a+sides,d=b+sides;
-    indices.push(a,c,b,b,c,d);
-  }
-  // Close the volume at the bridge and nose.
-  for(let i=1;i<sides-1;i++)indices.push(0,i,i+1,
-    (sections.length-1)*sides,(sections.length-1)*sides+i+1,(sections.length-1)*sides+i);
-  const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
-  face.setIndex(indices);face.computeVertexNormals();
-  add(face,HORSE.muzzle,[0,0,0],[1,1,1],slots.head);
-  oval(HORSE.muzzle,[0,-.20,-.625],[.070,.062,.060],slots.head,12,8);
+  // One connected indexed surface is authored from croup through poll.
+  // Duplicate triangle-corner vertices keep identical weights/normals when
+  // flattened into the existing renderer layout; no independent neck shell.
+  const trunk=loft([
+    [.84,-.025,.06,.12],[.70,.005,.245,.245],[.55,.005,.295,.285],
+    [.30,-.025,.29,.28],[0,-.035,.30,.285],[-.32,-.015,.285,.28],
+    [-.50,.015,.25,.285],[-.65,.075,.225,.28],[-.78,.18,.18,.235],
+    [-.91,.30,.135,.18],[-1.04,.405,.10,.13],[-1.10,.43,.07,.09]
+  ],HORSE.coat,slots.body,i=>{
+    const z=pos[i*3+2],t=clamp((-z-.38)/.35,0,1);
+    skin[i*4]=t>=.5?slots.neck:slots.body;skin[i*4+1]=t>=.5?slots.body:slots.neck;
+    weight[i*4]=Math.max(t,1-t);weight[i*4+1]=Math.min(t,1-t);
+  });
+  // These overlapping diagnostic spans describe shared triangles of the
+  // continuous surface, rather than separate overlapping geometry shells.
+  const span=(lo,hi)=>{
+    let start=Infinity,end=0;
+    for(let i=trunk.start;i<trunk.start+trunk.count;i+=3){
+      const zs=[pos[i*3+2],pos[(i+1)*3+2],pos[(i+2)*3+2]];
+      if(Math.max(...zs)>=lo&&Math.min(...zs)<=hi){start=Math.min(start,i);end=i+3;}
+    }
+    return {start,count:end-start};
+  };
+  parts.barrel=span(-.78,.84);parts.withers=span(-.91,-.32);parts.neck=span(-1.10,-.50);
+  // Single poll-to-nose surface, with reference pale coloration restricted
+  // to the forward third. No skull balls or separate nose oval.
+  part('head',()=>loft([
+    [.065,.015,.045,.055],[0,.015,.10,.105],[-.10,-.01,.14,.12],
+    [-.17,-.05,.118,.115],[-.32,-.11,.103,.096],
+    [-.49,-.17,.077,.073],[-.62,-.205,.067,.060],[-.685,-.215,.052,.05]
+  ],HORSE.coat,slots.head,i=>{
+    if(pos[i*3+2]-rest[slots.head].z<-.45){
+      const c=new THREE.Color(HORSE.muzzle);color[i*3]=c.r;color[i*3+1]=c.g;color[i*3+2]=c.b;
+    }
+  }));
   for(const side of [-1,1]){
     oval(0x1e1b18,[side*.134,.015,-.11],[.026,.030,.025],slots.head,8,6);
     oval(0x25221e,[side*.057,-.19,-.66],[.017,.014,.012],slots.head,8,6);
@@ -110,24 +114,36 @@ function buildTemplate(){
     [-.12,.27,.03,.05],[-.27,.325,.025,.045],
     [-.42,.365,.018,.04]],HORSE.face,slots.neck);
 
-  // Limb mass begins at the anatomical shoulder/haunch, then narrows to the
-  // cannon. Leg IK and world-space hoof anchors are deliberately unchanged.
+  // Connected tapered limb sections carry blended hip/knee/foot weights.
+  // Joint and fetlock radii remain below the .038 cannon radius.
   for(const l of slots.legs){
     const fore=l.z<0;
-    oval(HORSE.coat,[0,.005,0],fore?[.100,.145,.115]:[.13,.16,.135],l.hip,12,8);
-    rod(HORSE.coat,[0,-HORSE.upper*.46,0],fore?.082:.065,HORSE.upper*.88,l.hip);
-    oval(HORSE.coat,[0,0,0],[.065,.060,.070],l.knee,8,6);
-    rod(HORSE.coat,[0,-HORSE.lower*.43,0],.038,HORSE.lower*.78,l.knee);
-    oval(HORSE.coat,[0,-HORSE.lower*.82,-.008],[.050,.070,.055],l.knee,8,6);
-    // Keep proven R1 skinned-sole contact geometry exactly unchanged.
+    part('leg'+slots.legs.indexOf(l),()=>loft([
+      [.09,0,fore?.085:.105,fore?.09:.105],[-.10,0,.072,.075],
+      [-.25,0,.05,.052],[-HORSE.upper,0,.034,.034],
+      [-.53,0,.038,.038],[-.66,-.005,.032,.032],
+      [-.74,-.008,.030,.030],[-.79,-.012,.029,.029]
+    ],HORSE.coat,l.hip,i=>{
+      const y=pos[i*3+1]-rest[l.hip].y;
+      const knee=clamp((-y-(HORSE.upper-.08))/.16,0,1);
+      const foot=clamp((-y-(HORSE.upper+HORSE.lower-.055))/.055,0,1);
+      skin[i*4]=l.hip;skin[i*4+1]=l.knee;skin[i*4+2]=l.foot;
+      const influences=[[l.hip,1-knee],[l.knee,knee*(1-foot)],[l.foot,knee*foot]].sort((a,b)=>b[1]-a[1]);
+      for(let n=0;n<3;n++){skin[i*4+n]=influences[n][0];weight[i*4+n]=influences[n][1];}
+    },'y'));
+    // Proven actual hoof sole geometry remains byte-for-byte authored here.
     oval(HORSE.face,[0,-.0245,-.018],[.070,.04975,.105],l.foot,10,6);
   }
-  // A gently fuller tuft replaces the rigid-looking wire tail.
-  for(let i=0;i<slots.tail.length;i++){
-    const b=slots.tail[i];
-    link(HORSE.face,[0,0,0],[0,-.17,.075],i===0?.038:.055,b);
-    if(i>=1)oval(HORSE.face,[0,-.16,.06],[.085,.18,.080],b,10,7);
-  }
+  // Six bones carry one long hanging tapered tail, with no tuft spheres.
+  part('tail',()=>loft([
+    [.04,.76,.04,.04],[-.12,.775,.052,.05],[-.27,.79,.047,.045],
+    [-.42,.805,.042,.04],[-.57,.82,.036,.035],[-.72,.835,.029,.028],
+    [-.87,.85,.014,.014],[-.93,.855,.002,.002]
+  ],HORSE.face,slots.body,i=>{
+    const y=pos[i*3+1]-rest[slots.body].y;
+    const segment=clamp((.10-y)/.145,0,5),lo=Math.floor(segment),hi=Math.min(lo+1,5),t=segment-lo;
+    skin[i*4]=slots.tail[lo];skin[i*4+1]=slots.tail[hi];weight[i*4]=1-t;weight[i*4+1]=t;
+  },'y'));
 
   const geometry=new THREE.BufferGeometry();
   // Test diagnostics refer to actual vertex spans, not expected dimensions.
@@ -180,8 +196,8 @@ export function updateHorse3D(r,dx,dz,dt,mode='walk'){
   // World-space planted hooves naturally articulate the leg under the torso.
   // Stand taller at rest, retaining the proven moving reach envelope.
   // Smooth torso compression instead of nudging individual hip roots.
-  const targetDrop=.03+.06*s.amount;
-  s.bodyDrop=(s.bodyDrop??.03)+(targetDrop-(s.bodyDrop??.03))*(1-Math.exp(-dt*18));
+  const targetDrop=.09*s.amount;
+  s.bodyDrop=(s.bodyDrop??0)+(targetDrop-(s.bodyDrop??0))*(1-Math.exp(-dt*18));
   r.body.position.y=HORSE.bodyY-s.bodyDrop;
   r.body.rotation.x=0;
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);

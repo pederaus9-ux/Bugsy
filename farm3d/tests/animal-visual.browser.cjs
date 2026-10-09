@@ -154,6 +154,19 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
               await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-idle-${detail}-closeup.png`),scale:'css'});
             }
           }
+          if(kind==='horse'&&viewport.width===1280&&mode==='idle'){
+            for(const degrees of [0,20]){
+              await page.evaluate(async degrees=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                r.neck.rotation.x=degrees*Math.PI/180;r.g.updateMatrixWorld(true);
+                const center=r.neck.getWorldPosition(new T.Vector3());
+                d.camera.position.copy(center).add(new T.Vector3(a.S.h*1.25,a.S.h*.12,0));
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+              },degrees);
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-neck-pitch-${degrees}.png`),scale:'css'});
+            }
+            await page.evaluate(()=>{const r=__dbg.animals.find(a=>a.kind==='horse').rig3d;r.neck.rotation.x=0;r.g.updateMatrixWorld(true);});
+          }
           if(kind==='horse'&&viewport.width===1280&&mode==='walk'){
             const sequence=[];
             // Continue the real articulated pose; follow with the camera only.
