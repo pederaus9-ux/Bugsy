@@ -19,7 +19,7 @@ function buildTemplate(){
   slots.neck=bone('neck',slots.body,HORSE.neck);
   slots.head=bone('head',slots.neck,HORSE.head);
   // Ear bases seat into the skull surface; ear height is unchanged.
-  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.055,.0,-.02]));
+  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.055,.02,-.02]));
   // Shoulder attachment is forward under the withers, not under the barrel.
   // The R1 IK keeps hip origins fixed and will solve these new rest offsets.
   const feet=[[-.17,-.66,0],[.17,-.66,.5],[-.16,.82,.5],[.16,.82,0]];
@@ -48,35 +48,6 @@ function buildTemplate(){
 
   // Continuous elliptical sections author the back, belly and shoulder as
   // one surface. Separate intersecting balls created the rejected silhouette.
-  function profile(sections,bone,blend,paint){
-    const start=pos.length/3,sides=28,o=rest[bone],rings=[];
-    for(const [z,y,w,top,bottom] of sections){
-      const ring=[];
-      for(let j=0;j<sides;j++){
-        const a=j/sides*Math.PI*2,s=Math.sin(a);
-        ring.push(new THREE.Vector3(Math.cos(a)*w,y+(s<0?s*bottom:s*top),z));
-      }
-      rings.push(ring);
-    }
-    const emit=(p,n)=>{
-      pos.push(p.x+o.x,p.y+o.y,p.z+o.z);norm.push(n.x,n.y,n.z);
-      const c=new THREE.Color(HORSE.coat);color.push(c.r,c.g,c.b);
-      const influences=blend(p.x,p.y,p.z);
-      const sum=influences.reduce((s,w)=>s+w[1],0)||1;
-      for(let k=0;k<4;k++){skin.push(influences[k]?.[0]||0);weight.push((influences[k]?.[1]||0)/sum);}
-      if(paint)paint(pos.length/3-1,p);
-    };
-    const tri=(a,b,c)=>{
-      const n=b.clone().sub(a).cross(c.clone().sub(a));
-      if(n.lengthSq()>1e-8)n.normalize();else n.set(0,1,0);
-      emit(a,n);emit(b,n);emit(c,n);
-    };
-    for(let i=0;i<rings.length-1;i++)for(let j=0;j<sides;j++){
-      const a=rings[i][j],b=rings[i][(j+1)%sides],c=rings[i+1][j],d=rings[i+1][(j+1)%sides];
-      tri(a,c,b);tri(b,c,d);
-    }
-    return {start,count:pos.length/3-start};
-  }
   const loft=(sections,col,boneIndex,paint=null,axis="z")=>{
     const v=[],idx=[],n=20;
     for(const [z,y,w,h] of sections)for(let i=0;i<n;i++){
@@ -98,13 +69,15 @@ function buildTemplate(){
   // One connected indexed surface is authored from croup through poll.
   // Duplicate triangle-corner vertices keep identical weights/normals when
   // flattened into the existing renderer layout; no independent neck shell.
-  const trunk=profile([
-    [1.02,.02,.08,.14,.12],[.78,.0,.26,.22,.24],[.45,-.04,.30,.20,.34],
-    [.08,-.06,.30,.18,.38],[-.28,-.02,.28,.20,.32],[-.55,.04,.24,.24,.26],
-    [-.77,.1,.18,.26,.2],[-.92,.22,.13,.2,.14],[-1.08,.36,.09,.14,.1],[-1.18,.44,.06,.08,.07]
-  ],slots.body,(x,y,z)=>{
-    const t=clamp((-z-.55)/.45,0,1);
-    return [[t>=.5?slots.neck:slots.body,Math.max(t,1-t)],[t>=.5?slots.body:slots.neck,Math.min(t,1-t)]];
+  const trunk=loft([
+    [1.05,-.03,.08,.13],[.82,-.02,.25,.25],[.55,-.05,.28,.27],
+    [.25,-.07,.27,.27],[0,-.08,.26,.26],[-.28,-.04,.27,.27],
+    [-.48,.02,.24,.27],[-.77,.08,.21,.25],[-.80,.2,.16,.21],
+    [-.96,.32,.12,.16],[-1.08,.42,.09,.12],[-1.16,.46,.065,.085]
+  ],HORSE.coat,slots.body,i=>{
+    const z=pos[i*3+2],t=clamp((-z-.7)/.4,0,1);
+    skin[i*4]=t>=.5?slots.neck:slots.body;skin[i*4+1]=t>=.5?slots.body:slots.neck;
+    weight[i*4]=Math.max(t,1-t);weight[i*4+1]=Math.min(t,1-t);
   });
   // These overlapping diagnostic spans describe shared triangles of the
   // continuous surface, rather than separate overlapping geometry shells.
@@ -119,11 +92,14 @@ function buildTemplate(){
   parts.barrel=span(-.78,.84);parts.withers=span(-.91,-.32);parts.neck=span(-1.10,-.50);
   // Poll, deep cheek and jaw, then a short muzzle. The pale mark is only the
   // nose tip. A long constant taper is what read as an anteater.
-  part('head',()=>profile([
-    [.04,.06,.05,.055,.045],[-.04,.04,.1,.09,.1],[-.12,.01,.13,.09,.14],
-    [-.2,-.04,.09,.05,.07],[-.34,-.08,.06,.035,.04],[-.48,-.1,.048,.028,.03]
-  ],slots.head,()=>[[slots.head,1]],(i,p)=>{
-    if(p.z<-.3){const c=new THREE.Color(HORSE.muzzle);color[i*3]=c.r;color[i*3+1]=c.g;color[i*3+2]=c.b;}
+  part('head',()=>loft([
+    [.08,.04,.05,.06],[0,.02,.11,.12],[-.08,0,.15,.16],
+    [-.16,-.06,.145,.18],[-.26,-.14,.11,.14],
+    [-.42,-.19,.042,.018],[-.66,-.22,.034,.012]
+  ],HORSE.coat,slots.head,i=>{
+    if(pos[i*3+2]-rest[slots.head].z<-.36){
+      const c=new THREE.Color(HORSE.muzzle);color[i*3]=c.r;color[i*3+1]=c.g;color[i*3+2]=c.b;
+    }
   }));
   for(const side of [-1,1]){
     oval(0x1e1b18,[side*.09,.01,-.1],[.026,.030,.025],slots.head,8,6);
