@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-09T14:28:12.104Z",
+  "lastUpdatedUtc": "2026-10-09T15:49:35.379030+00:00",
   "codeBaseline": {
     "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
     "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
@@ -14,7 +14,7 @@
   "completedThrough": "Horse R1 engineering; visual acceptance rejected",
   "currentPhase": "HORSE_R2",
   "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
-  "phaseStatus": "CLAUDE_HEAD_INTEGRATED_LOCAL_PASS_HOSTED_PENDING",
+  "phaseStatus": "CLAUDE_HEAD_CI_PASS_MOTION_EVIDENCE_REFINEMENT",
   "visualAcceptance": "PENDING_OWNER_DEVICE_REVIEW",
   "activePullRequest": 71,
   "nextPhases": [
@@ -288,5 +288,21 @@
       "limits": "Local browser result reported by Claude, not independently rerun by ChatGPT. Hosted CI must run on new PR #71 head. Photo unavailable to Claude; color choice not owner-confirmed. Body, legs and tail remain deferred.",
       "protected": "Diff contains only horse source, anatomy tests, browser evidence capture and relay; IK/stance/sole, locomotion, other animals and gameplay unchanged"
     }
+  },
+  "motionEvidenceRevision": {
+    "parentHead": "d3b21b16bddfa1c5cacac46da7e4de6e0546b43f",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "parentCI": "Regression #171 attempt 2: all seven jobs passed unchanged; attempt 1 portrait wardrobe tap timeout retained as failure evidence; root cause unproven",
+    "ownerFeedback": "Looks better; Yes authorizes continuing refinement, not final visual acceptance or merge",
+    "preview": "https://sunny-acres-horse-r2-review.ardentanole10.chatgpt.site",
+    "previewHead": "d3b21b16bddfa1c5cacac46da7e4de6e0546b43f",
+    "finding": "Order-board pole obscures horse walking frames in original right-side farm view",
+    "implemented": "Retain original continuous walk frames; add opposite-side captures of identical poses with time, gait phase, root and contact invariance assertions; actual hoof-to-target error remains <=2 mm",
+    "files": [
+      "farm3d/tests/animal-visual.browser.cjs",
+      "farm3d/AI_RELAY_STATE.json"
+    ],
+    "protected": "All production files unchanged, including Claude head, limbs/tail, IK/stance, sole, fixed hip roots, motion, cow/other animals, gameplay, saves/cloud and service worker",
+    "remaining": "New exact-head hosted captures must be inspected; opposite view is not proven unobstructed until rendered. Legs/tail shape and full trot/canter/turn/stop motion review remain unfinished. Independent review and owner device acceptance required; no merge authorization"
   }
 }

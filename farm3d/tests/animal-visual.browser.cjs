@@ -204,6 +204,26 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
                   feet:r.legs.map(l=>({mode:l.track.mode,target:[l.track.x,l.track.y,l.track.z],actual:l.foot.getWorldPosition(new T.Vector3()).toArray()}))};
               }));
               await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-walk-sequence-${String(sample).padStart(2,'0')}.png`),scale:'css'});
+              // Retain the original farm view and add the opposite side of the
+              // same frame: the order-board posts obscure part of the first view.
+              // Camera-only inspection must neither advance the gait nor move contacts.
+              const opposite=await page.evaluate(async()=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                const center=new T.Vector3(r.g.position.x,a.S.h*.52,r.g.position.z);
+                d.camera.position.copy(center).add(new T.Vector3(-a.S.h*2.8,a.S.h*.38,0));
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                return {time:r.state.time,phase:r.state.phase,root:r.g.position.toArray(),
+                  feet:r.legs.map(l=>({target:[l.track.x,l.track.y,l.track.z],actual:l.foot.getWorldPosition(new T.Vector3()).toArray()}))};
+              });
+              const current=sequence.at(-1);
+              assert.equal(opposite.time,current.time,'camera change must not advance time');
+              assert.equal(opposite.phase,current.phase,'camera change must not advance gait');
+              assert.deepEqual(opposite.root,current.root,'camera change must not relocate horse');
+              assert.deepEqual(opposite.feet,current.feet.map(({target,actual})=>({target,actual})),
+                'camera change must preserve actual feet and persistent contacts');
+              for(const {target,actual} of opposite.feet)assert.ok(Math.hypot(...actual.map((v,i)=>v-target[i]))<=.002,
+                'walking evidence actual hoof must align with world-space target');
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-walk-opposite-${String(sample).padStart(2,'0')}.png`),scale:'css'});
             }
             assert.ok(sequence.every(s=>s.gait==='walk'),'sequence must exercise walk');
             assert.ok(sequence.at(-1).root[2]<sequence[0].root[2]-.5,'continuous walking travel');
