@@ -19,10 +19,10 @@ function buildTemplate(){
   slots.neck=bone('neck',slots.body,HORSE.neck);
   slots.head=bone('head',slots.neck,HORSE.head);
   // Ear bases seat into the skull surface; ear height is unchanged.
-  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.055,.02,-.02]));
+  for(const side of [-1,1])slots.ears.push(bone('ear'+side,slots.head,[side*.075,.07,-.10]));
   // Shoulder attachment is forward under the withers, not under the barrel.
   // The R1 IK keeps hip origins fixed and will solve these new rest offsets.
-  const feet=[[-.17,-.66,0],[.17,-.66,.5],[-.16,.82,.5],[.16,.82,0]];
+  const feet=[[-.17,-.66,0],[.17,-.66,.5],[-.16,.65,.5],[.16,.65,0]];
   for(const [x,z,phase] of feet){
     const hip=bone('hip'+slots.legs.length,slots.body,[x,HORSE.hip-HORSE.bodyY,z]);
     const knee=bone('knee'+slots.legs.length,hip,[0,-HORSE.upper,0]);
@@ -70,12 +70,12 @@ function buildTemplate(){
   // Duplicate triangle-corner vertices keep identical weights/normals when
   // flattened into the existing renderer layout; no independent neck shell.
   const trunk=loft([
-    [1.05,-.03,.08,.13],[.82,-.02,.25,.25],[.55,-.05,.28,.27],
-    [.25,-.07,.27,.27],[0,-.08,.26,.26],[-.28,-.04,.27,.27],
-    [-.48,.02,.24,.27],[-.77,.08,.21,.25],[-.80,.2,.16,.21],
-    [-.96,.32,.12,.16],[-1.08,.42,.09,.12],[-1.16,.46,.065,.085]
+    [.84,-.025,.06,.12],[.70,.005,.245,.245],[.55,.005,.295,.285],
+    [.30,-.025,.29,.28],[0,-.035,.30,.285],[-.32,-.015,.285,.28],
+    [-.50,.015,.25,.285],[-.65,.075,.225,.28],[-.78,.18,.18,.235],
+    [-.91,.30,.135,.18],[-1.04,.405,.10,.13],[-1.10,.43,.07,.09]
   ],HORSE.coat,slots.body,i=>{
-    const z=pos[i*3+2],t=clamp((-z-.7)/.4,0,1);
+    const z=pos[i*3+2],t=clamp((-z-.38)/.35,0,1);
     skin[i*4]=t>=.5?slots.neck:slots.body;skin[i*4+1]=t>=.5?slots.body:slots.neck;
     weight[i*4]=Math.max(t,1-t);weight[i*4+1]=Math.min(t,1-t);
   });
@@ -90,23 +90,23 @@ function buildTemplate(){
     return {start,count:end-start};
   };
   parts.barrel=span(-.78,.84);parts.withers=span(-.91,-.32);parts.neck=span(-1.10,-.50);
-  // Poll, deep cheek and jaw, then a short muzzle. The pale mark is only the
-  // nose tip. A long constant taper is what read as an anteater.
+  // Single poll-to-nose surface, with reference pale coloration restricted
+  // to the forward third. No skull balls or separate nose oval.
   part('head',()=>loft([
-    [.08,.04,.05,.06],[0,.02,.11,.12],[-.08,0,.15,.16],
-    [-.16,-.06,.145,.18],[-.26,-.14,.11,.14],
-    [-.42,-.19,.042,.018],[-.66,-.22,.034,.012]
+    [.065,.015,.045,.055],[0,.015,.10,.105],[-.10,-.01,.14,.12],
+    [-.17,-.05,.118,.115],[-.32,-.11,.103,.096],
+    [-.49,-.17,.077,.073],[-.62,-.205,.067,.060],[-.685,-.215,.052,.05]
   ],HORSE.coat,slots.head,i=>{
-    if(pos[i*3+2]-rest[slots.head].z<-.36){
+    if(pos[i*3+2]-rest[slots.head].z<-.45){
       const c=new THREE.Color(HORSE.muzzle);color[i*3]=c.r;color[i*3+1]=c.g;color[i*3+2]=c.b;
     }
   }));
   for(const side of [-1,1]){
-    oval(0x1e1b18,[side*.09,.01,-.1],[.026,.030,.025],slots.head,8,6);
-    oval(0x25221e,[side*.03,-.11,-.47],[.014,.01,.01],slots.head,8,6);
+    oval(0x1e1b18,[side*.134,.015,-.11],[.026,.030,.025],slots.head,8,6);
+    oval(0x25221e,[side*.057,-.19,-.66],[.017,.014,.012],slots.head,8,6);
     const ear=slots.ears[side<0?0:1];
     add(new THREE.ConeGeometry(.045,.16,8),HORSE.coat,
-      [0,.02,0],[1,1,1],ear);
+      [0,.065,0],[1,1,1],ear);
   }
   // Mane lies on the back of the new sloped neck. No forehead horn:
   // the R1 ivory vertical oval is removed, not disguised as a blaze.

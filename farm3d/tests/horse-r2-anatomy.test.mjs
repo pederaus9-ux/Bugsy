@@ -130,17 +130,15 @@ test('muzzle narrows in width and height while its face slopes downward',()=>{
   try{
     const p=r.card.geometry.attributes.position,sk=r.card.geometry.attributes.skinIndex;
     const head=r.card.skeleton.bones.indexOf(r.head),part=r.card.geometry.userData.horseAnatomyParts.head;
-    const zs=[];
-    for(let i=part.start;i<part.start+part.count;i++)zs.push(p.getZ(i));
-    const min=Math.min(...zs),span=Math.max(...zs)-min;
+    const restZ=HORSE.neck[2]+HORSE.head[2];
     const band=(lo,hi)=>{
       const b=new THREE.Box3();
-      for(let i=part.start;i<part.start+part.count;i++)if(sk.getX(i)===head){
-        const u=(p.getZ(i)-min)/span;if(u>=lo&&u<=hi)b.expandByPoint(new THREE.Vector3().fromBufferAttribute(p,i));
+      for(let i=0;i<p.count;i++)if(sk.getX(i)===head&&i>=part.start&&i<part.start+part.count){
+        const z=p.getZ(i)-restZ;if(z>=lo&&z<=hi)b.expandByPoint(new THREE.Vector3().fromBufferAttribute(p,i));
       }
       assert.ok(!b.isEmpty(),'face band must contain real vertices');return b;
     };
-    const bridge=band(.45,.7),nose=band(0,.16);
+    const bridge=band(-.20,-.15),nose=band(-.685,-.59);
     const a=bridge.getSize(new THREE.Vector3()),b=nose.getSize(new THREE.Vector3());
     assert.ok(a.x/b.x>1.5,'bridge/nose width taper '+a.x/b.x);
     assert.ok(a.y/b.y>1.5,'bridge/nose height taper '+a.y/b.y);
