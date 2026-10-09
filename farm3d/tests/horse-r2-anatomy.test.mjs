@@ -270,6 +270,38 @@ test('six-bone tapered tail tip hangs below the hock',()=>{
   }finally{r.dispose();}
 });
 
+test('fore carpus and hind hock have distinct directional surface contours',()=>{
+  const r=createHorse3D();
+  try{
+    const g=r.card.geometry,p=g.attributes.position,parts=g.userData.horseAnatomyParts;
+    const ring=(j)=>{
+      const {start,count}=parts['leg'+j],zs=[];
+      for(let i=start;i<start+count;i++)if(Math.abs(p.getY(i)-(HORSE.hip-HORSE.upper))<1e-5)zs.push(p.getZ(i)-r.legs[j].z);
+      assert.ok(zs.length>0,'actual knee surface ring must exist');
+      return {center:(Math.min(...zs)+Math.max(...zs))/2,depth:Math.max(...zs)-Math.min(...zs)};
+    };
+    const fore=ring(0),hind=ring(2);
+    assert.ok(fore.center<-.005,'fore carpus contour projects forward');
+    assert.ok(hind.center>.015,'hind hock contour projects backward');
+    assert.ok(hind.depth>fore.depth,'hock surface differs from carpus');
+  }finally{r.dispose();}
+});
+
+test('tail retains hanging hair volume with a blunt end rather than a needle',()=>{
+  const r=createHorse3D();
+  try{
+    const g=r.card.geometry,p=g.attributes.position,{start,count}=g.userData.horseAnatomyParts.tail;
+    const radiusAt=y=>{
+      const xs=[];for(let i=start;i<start+count;i++)if(Math.abs(p.getY(i)-(HORSE.bodyY+y))<1e-5)xs.push(Math.abs(p.getX(i)));
+      assert.ok(xs.length>0,'tail surface ring must exist');return Math.max(...xs);
+    };
+    const dock=radiusAt(.04),hair=radiusAt(-.72),end=radiusAt(-.93);
+    assert.ok(hair>dock,'lower hair is fuller than the dock');
+    assert.ok(end>=hair/3,'end retains a hair bundle instead of a needle point');
+    assert.ok(end<hair,'hanging hair still tapers');
+  }finally{r.dispose();}
+});
+
 // ---------- R2 head revision guards (rejected "anteater" head) ----------
 const withersHeight=r=>{
   const g=r.card.geometry,p=g.attributes.position,{start,count}=g.userData.horseAnatomyParts.barrel;

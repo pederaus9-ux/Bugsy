@@ -238,12 +238,21 @@ function buildTemplate(){
   // Joint and fetlock radii remain below the .038 cannon radius.
   for(const l of slots.legs){
     const fore=l.z<0;
-    part('leg'+slots.legs.indexOf(l),()=>loft([
-      [.09,0,fore?.085:.105,fore?.09:.105],[-.10,0,.072,.075],
-      [-.25,0,.05,.052],[-HORSE.upper,0,.034,.034],
-      [-.53,0,.038,.038],[-.66,-.005,.032,.032],
-      [-.74,-.008,.030,.030],[-.79,-.012,.029,.029]
-    ],HORSE.coat,l.hip,i=>{
+    // Distinct shoulder/elbow and thigh/hock contours share the proven
+    // joint centers and skinning. Extra rings soften the rod-like transition;
+    // directional depth reveals joints without oversized lateral balls.
+    const sections=fore?[
+      [.09,0,.085,.09],[-.10,.018,.068,.075],[-.25,.008,.05,.056],
+      [-.33,0,.038,.042],[-HORSE.upper,-.008,.034,.044],
+      [-.455,-.008,.033,.031],[-.53,-.004,.038,.030],
+      [-.66,-.005,.032,.029],[-.74,-.008,.030,.036],[-.79,-.012,.029,.029]
+    ]:[
+      [.09,0,.105,.105],[-.10,-.020,.090,.100],[-.25,-.012,.060,.072],
+      [-.33,.006,.044,.048],[-HORSE.upper,.022,.034,.054],
+      [-.455,.010,.033,.037],[-.53,0,.038,.030],
+      [-.66,-.005,.032,.029],[-.74,-.008,.030,.036],[-.79,-.012,.029,.029]
+    ];
+    part('leg'+slots.legs.indexOf(l),()=>loft(sections,HORSE.coat,l.hip,i=>{
       const y=pos[i*3+1]-rest[l.hip].y;
       const knee=clamp((-y-(HORSE.upper-.08))/.16,0,1);
       const foot=clamp((-y-(HORSE.upper+HORSE.lower-.055))/.055,0,1);
@@ -254,15 +263,17 @@ function buildTemplate(){
     // Proven actual hoof sole geometry remains byte-for-byte authored here.
     oval(HORSE.face,[0,-.0245,-.018],[.070,.04975,.105],l.foot,10,6);
   }
-  // Six bones carry one long hanging tapered tail, with no tuft spheres.
+  // Six unchanged bones carry a hanging hair bundle: narrow dock, fuller
+  // lower hair and a blunt soft end rather than a needle or paired spheres.
   part('tail',()=>loft([
-    [.04,.76,.04,.04],[-.12,.775,.052,.05],[-.27,.79,.047,.045],
-    [-.42,.805,.042,.04],[-.57,.82,.036,.035],[-.72,.835,.029,.028],
-    [-.87,.85,.014,.014],[-.93,.855,.002,.002]
+    [.04,.76,.035,.035],[-.12,.775,.038,.038],[-.27,.79,.047,.045],
+    [-.42,.805,.057,.050],[-.57,.82,.060,.052],[-.72,.835,.057,.049],
+    [-.87,.85,.040,.038],[-.93,.855,.022,.023]
   ],HORSE.face,slots.body,i=>{
     const y=pos[i*3+1]-rest[slots.body].y;
     const segment=clamp((.10-y)/.145,0,5),lo=Math.floor(segment),hi=Math.min(lo+1,5),t=segment-lo;
-    skin[i*4]=slots.tail[lo];skin[i*4+1]=slots.tail[hi];weight[i*4]=1-t;weight[i*4+1]=t;
+    const influences=[[slots.tail[lo],1-t],[slots.tail[hi],t]].sort((a,b)=>b[1]-a[1]);
+    for(let k=0;k<2;k++){skin[i*4+k]=influences[k][0];weight[i*4+k]=influences[k][1];}
   },'y'));
 
   const geometry=new THREE.BufferGeometry();

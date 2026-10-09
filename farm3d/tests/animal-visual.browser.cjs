@@ -144,11 +144,13 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           }
           live.push({viewport,travel,pose});
           if(kind==='horse'&&viewport.width===1280&&mode==='idle'){
-            for(const detail of ['ears','knees']){
+            for(const detail of ['ears','knees','hocks','tail']){
               await page.evaluate(async detail=>{
                 const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
-                const center=(detail==='ears'?r.head:r.legs[0].knee).getWorldPosition(new T.Vector3());
-                d.camera.position.copy(center).add(new T.Vector3(a.S.h*(detail==='ears'?1.1:.8),a.S.h*.08,0));
+                const bone=detail==='ears'?r.head:detail==='tail'?r.tail[3]:detail==='hocks'?r.legs.find(l=>l.z>0).knee:r.legs[0].knee;
+                const center=bone.getWorldPosition(new T.Vector3());
+                const offset=detail==='tail'?new T.Vector3(-a.S.h*.65,a.S.h*.06,a.S.h*.5):new T.Vector3(a.S.h*(detail==='ears'?1.1:.8),a.S.h*.08,0);
+                d.camera.position.copy(center).add(offset);
                 d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
               },detail);
               await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-idle-${detail}-closeup.png`),scale:'css'});

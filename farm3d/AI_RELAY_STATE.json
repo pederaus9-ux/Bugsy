@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-09T15:49:35.379030+00:00",
+  "lastUpdatedUtc": "2026-10-09T19:23:46.349673+00:00",
   "codeBaseline": {
     "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
     "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
@@ -14,7 +14,7 @@
   "completedThrough": "Horse R1 engineering; visual acceptance rejected",
   "currentPhase": "HORSE_R2",
   "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
-  "phaseStatus": "CLAUDE_HEAD_CI_PASS_MOTION_EVIDENCE_REFINEMENT",
+  "phaseStatus": "LIMB_TAIL_GEOMETRY_LOCAL_PASS_HOSTED_PENDING",
   "visualAcceptance": "PENDING_OWNER_DEVICE_REVIEW",
   "activePullRequest": 71,
   "nextPhases": [
@@ -304,5 +304,34 @@
     ],
     "protected": "All production files unchanged, including Claude head, limbs/tail, IK/stance, sole, fixed hip roots, motion, cow/other animals, gameplay, saves/cloud and service worker",
     "remaining": "New exact-head hosted captures must be inspected; opposite view is not proven unobstructed until rendered. Legs/tail shape and full trot/canter/turn/stop motion review remain unfinished. Independent review and owner device acceptance required; no merge authorization"
+  },
+  "limbTailRevision": {
+    "parentHead": "c69f9412be0e444e5660ef039fd7bc44f12046a6",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "parentCI": "Regression #172 all seven jobs passed",
+    "ownerInstruction": "Looks better; continue leg/tail/motion refinement while preserving Claude head; no final visual acceptance or merge authorization",
+    "independentReview": "Codex independent read-only reviewer inspected actual CI172 walk frames and source/diff; no blocking contract issue identified; geometry does not reconstruct separate stifle/hock articulation and tail hair appearance remains unproven",
+    "implemented": [
+      "Separate foreleg shoulder/elbow/carpus and hind thigh/hock surface contours, directional joint depth, two extra surface rings per limb",
+      "Fuller lower hanging tail bundle and blunt end, retaining six tail bones and end height",
+      "Sort tail influences dominant-first, preserving each bone weight and normalized blend",
+      "Add actual farm hock and rear-three-quarter tail closeups; retain all existing captures and assertions"
+    ],
+    "tests": "45/45 horse/contact/continuity/resource/six-species tests passed; syntax and diff checks passed; new actual-geometry guards distinguish limb contours and reject needle tail",
+    "failedCheckCorrected": "Ad-hoc global dominant-first check exposed inherited tail influence ordering; sorted the two influences, then global check and 45 tests passed",
+    "protectedVerification": "Byte comparison of11 protected geometry spans (including head/trunk), four full hoof position/normal/color/skin attributes,24 bone rest offsets passed. IK, stance, updateHorse3D, gameplay, other animals, saves/cloud, service worker and interfaces unchanged",
+    "triangles": {
+      "horse": 5640,
+      "increase": 320,
+      "sixSpeciesExpected": 28674,
+      "unchangedBudget": 30000
+    },
+    "limitations": [
+      "No new rendered claim yet; exact-head hosted CI and actual captures required",
+      "Geometry-only shaping may leave mechanical-looking walk poses; existing two-link skeleton unchanged",
+      "Tail remains a smooth closed volume; hair appearance and framing need actual rear/three-quarter review",
+      "Full trot/canter/turn/stop visual evidence, independent review and owner device acceptance still required"
+    ],
+    "mergeAuthorized": false
   }
 }
