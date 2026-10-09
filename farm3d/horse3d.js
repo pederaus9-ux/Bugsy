@@ -5,7 +5,7 @@ import {createHorseIKScratch,solveHorseLegIK} from './horse-ik3d.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const HORSE={
   name:'horse',height:1.85,bodyY:1.03,hip:.86,upper:.40,lower:.39,hoof:.075,
-  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0xb99678,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
+  stride:1.18,lift:.09,coat:0x8a5a32,face:0x3b2415,muzzle:0x80502e,body:[.30,.30,.78],neck:[0,.16,-.57],head:[0,.23,-.49]
 };
 
 let template=null;
@@ -46,23 +46,43 @@ function buildTemplate(){
   const rod=(col,p,r,len,b)=>add(new THREE.CylinderGeometry(r,r*.78,len,8),col,p,[1,1,1],b);
   const link=(col,a,bp,r,b)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...bp),d=B.clone().sub(A);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());add(new THREE.CylinderGeometry(r*.82,r,d.length(),10),col,A.add(B).multiplyScalar(.5).toArray(),[1,1,1],b,q);};
 
-  // R2: a long, nearly horizontal barrel. Continuous shoulder and haunch
-  // volumes replace the stacked vertical withers ball from R1.
-  part('barrel',()=>oval(HORSE.coat,[0,-.01,0],[.30,.30,.78],slots.body,20,12));
-  oval(HORSE.coat,[0,-.035,-.54],[.29,.285,.30],slots.body,16,10);
-  oval(HORSE.coat,[0,-.01,.56],[.315,.32,.30],slots.body,16,10);
-  // An elongated withers volume overlaps both barrel and neck root.
-  part('withers',()=>oval(HORSE.coat,[0,.09,-.55],[.215,.17,.34],slots.body,14,8));
-
-  // Neck axis rises roughly 36 degrees from the horizontal, carried forward
-  // from the withers to a long skull ahead of the shoulders.
-  part('neck',()=>link(HORSE.coat,[0,-.05,-.02],[0,.25,-.43],.145,slots.neck));
-  oval(HORSE.coat,[0,-.025,-.105],[.14,.155,.28],slots.head,16,10);
-  oval(HORSE.coat,[0,-.095,-.19],[.122,.105,.185],slots.head,12,8);
+  // Continuous elliptical sections author the back, belly and shoulder as
+  // one surface. Separate intersecting balls created the rejected silhouette.
+  const loft=(sections,col,boneIndex)=>{
+    const v=[],idx=[],n=20;
+    for(const [z,y,w,h] of sections)for(let i=0;i<n;i++){
+      const a=i*Math.PI*2/n;v.push(Math.cos(a)*w,y+Math.sin(a)*h,z);
+    }
+    for(let j=0;j<sections.length-1;j++)for(let i=0;i<n;i++){
+      const a=j*n+i,b=j*n+(i+1)%n,c=a+n,d=b+n;
+      idx.push(a,b,c,b,d,c);
+    }
+    for(let i=1;i<n-1;i++)idx.push(0,i+1,i,
+      (sections.length-1)*n,(sections.length-1)*n+i,(sections.length-1)*n+i+1);
+    if(sections.at(-1)[0]<sections[0][0])for(let i=0;i<idx.length;i+=3)[idx[i+1],idx[i+2]]=[idx[i+2],idx[i+1]];
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
+    g.setIndex(idx);g.computeVertexNormals();add(g,col,[0,0,0],[1,1,1],boneIndex);
+  };
+  part('barrel',()=>loft([
+    [-.84,-.05,.055,.10],[-.72,-.025,.205,.225],
+    [-.55,-.01,.265,.285],[-.32,-.015,.285,.28],
+    [0,-.035,.30,.285],[.30,-.025,.29,.28],
+    [.55,.005,.295,.285],[.70,.005,.245,.245],
+    [.84,-.025,.06,.12]],HORSE.coat,slots.body));
+  // Low withers blend into the shoulder instead of making another chest ball.
+  part('withers',()=>oval(HORSE.coat,[0,.09,-.55],[.185,.14,.34],slots.body,20,12));
+  // Deep muscular base narrows toward the poll; section centers follow the
+  // sloping neck rather than presenting a constant-radius tube.
+  part('neck',()=>loft([
+    [.12,-.10,.17,.24],[.02,-.035,.185,.25],
+    [-.12,.065,.155,.215],[-.27,.16,.125,.17],
+    [-.42,.245,.10,.125],[-.51,.27,.075,.09]],HORSE.coat,slots.neck));
+  oval(HORSE.coat,[0,-.025,-.105],[.14,.135,.235],slots.head,16,10);
+  oval(HORSE.coat,[0,-.09,-.12],[.115,.12,.145],slots.head,12,8);
   // Elliptical sections taper in both width and height along a sloping face.
   // This is an authored facial volume, rather than a circular muzzle tube.
-  const sections=[[-.17,-.05,.118,.115],[-.32,-.095,.103,.096],
-    [-.49,-.14,.077,.073],[-.62,-.175,.067,.060]],verts=[],indices=[],sides=12;
+  const sections=[[-.17,-.05,.118,.115],[-.32,-.105,.103,.096],
+    [-.49,-.165,.077,.073],[-.62,-.20,.067,.060]],verts=[],indices=[],sides=12;
   for(const [z,y,w,h] of sections)for(let i=0;i<sides;i++){
     const a=i*Math.PI*2/sides;verts.push(Math.cos(a)*w,y+Math.sin(a)*h,z);
   }
@@ -76,18 +96,19 @@ function buildTemplate(){
   const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
   face.setIndex(indices);face.computeVertexNormals();
   add(face,HORSE.muzzle,[0,0,0],[1,1,1],slots.head);
-  oval(HORSE.muzzle,[0,-.175,-.625],[.070,.062,.060],slots.head,12,8);
+  oval(HORSE.muzzle,[0,-.20,-.625],[.070,.062,.060],slots.head,12,8);
   for(const side of [-1,1]){
     oval(0x1e1b18,[side*.134,.015,-.11],[.026,.030,.025],slots.head,8,6);
-    oval(0x25221e,[side*.057,-.165,-.66],[.017,.014,.012],slots.head,8,6);
+    oval(0x25221e,[side*.057,-.19,-.66],[.017,.014,.012],slots.head,8,6);
     const ear=slots.ears[side<0?0:1];
     add(new THREE.ConeGeometry(.045,.16,8),HORSE.coat,
       [0,.065,0],[1,1,1],ear);
   }
   // Mane lies on the back of the new sloped neck. No forehead horn:
   // the R1 ivory vertical oval is removed, not disguised as a blaze.
-  for(const [y,z,s] of [[-.01,.10,.08],[.07,.035,.078],[.15,-.05,.068],[.22,-.12,.06]])
-    oval(HORSE.face,[0,y,z],[.08,s,.072],slots.neck,10,7);
+  loft([[.13,.12,.028,.055],[.02,.20,.033,.055],
+    [-.12,.27,.03,.05],[-.27,.325,.025,.045],
+    [-.42,.365,.018,.04]],HORSE.face,slots.neck);
 
   // Limb mass begins at the anatomical shoulder/haunch, then narrows to the
   // cannon. Leg IK and world-space hoof anchors are deliberately unchanged.

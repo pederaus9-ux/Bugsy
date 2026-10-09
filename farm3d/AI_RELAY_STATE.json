@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-08T23:58:28.832326+00:00",
+  "lastUpdatedUtc": "2026-10-09T00:33:14.642499+00:00",
   "codeBaseline": {
     "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
     "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
@@ -14,8 +14,8 @@
   "completedThrough": "Horse R1 engineering; visual acceptance rejected",
   "currentPhase": "HORSE_R2",
   "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
-  "phaseStatus": "IMPLEMENTED_LOCAL_VALIDATION_PASS_HOSTED_PENDING",
-  "visualAcceptance": "NOT_ACCEPTED",
+  "phaseStatus": "OWNER_REJECTED_CONTINUOUS_SURFACE_REVISION_LOCAL_PASS",
+  "visualAcceptance": "REJECTED_13327_JPG",
   "activePullRequest": 71,
   "nextPhases": [
     "Horse R2 exact-head CI and independent visual review",
@@ -173,5 +173,30 @@
       "B12 owner visual acceptance passed on 2026-10-07; B13+ remain unstarted pending B12 merge."
     ],
     "note": "Historical metadata preserved, not the current task or evidence of latest cow completion. Owner says cow B0-B18 is accepted and frozen."
+  },
+  "referenceSurfaceRevision": {
+    "parentHead": "90d7e90047239d0ab360543274c00a88000e1a9e",
+    "parentCI": "Regression #167 all seven jobs passed; owner rejected actual preview appearance",
+    "reference": "Owner 13326.jpg bay horse, qualitative anatomy reference",
+    "ownerRejection": "13327.jpg; bulbous chest, short thick neck and pale wedge muzzle",
+    "files": [
+      "farm3d/horse3d.js",
+      "farm3d/AI_RELAY_STATE.json"
+    ],
+    "implemented": [
+      "Continuous section-authored barrel replaces intersecting torso shoulder and rump balls",
+      "Deep tapered neck base replaces constant radius cylinder",
+      "Narrower skull and jaw, steeper face slope, bay-colored muzzle",
+      "Continuous mane strip replaces round beads"
+    ],
+    "localTests": "28/28 horse tests passed, assertions unchanged",
+    "triangles": 4624,
+    "protected": "IK, stance, sole, bone roots, gait, gameplay, other animals, saves and cloud unchanged",
+    "limitations": [
+      "Not visually verified; awaiting exact-head browser renders",
+      "Owner reference lowered head pose is not yet reproduced",
+      "Leg silhouette and tail still require rendered scrutiny"
+    ],
+    "acceptance": "Pending independent and owner review; no merge authorization"
   }
 }
