@@ -8,7 +8,7 @@ const triangles=g=>g.index?g.index.count/3:g.attributes.position.count/3;
 
 test('ground-up horse is dedicated, finite, and keeps integration contracts',()=>{
   const r=createHorse3D();
-  assert.equal(r.spec,HORSE);assert.equal(r.g.children.length,1);assert.equal(r.card.skeleton.bones.length,21);
+  assert.equal(r.spec,HORSE);assert.equal(r.g.children.length,1);assert.equal(r.card.skeleton.bones.length,24);
   assert.ok(triangles(r.card.geometry)>1000&&triangles(r.card.geometry)<12000);
   r.card.geometry.computeBoundingBox();const s=new THREE.Vector3();r.card.geometry.boundingBox.getSize(s);
   assert.ok([s.x,s.y,s.z].every(Number.isFinite));assert.ok(s.z>s.x*1.5);

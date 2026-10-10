@@ -4,58 +4,25 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-07T10:10:00Z",
+  "lastUpdatedUtc": "2026-10-09T19:23:46.349673+00:00",
   "codeBaseline": {
-    "description": "PR #55 merged cow B2-B8 static anatomy",
-    "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
-    "pr": 55
+    "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
+    "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "pr": 69
   },
-  "currentProgram": "cow realism program",
-  "completedThrough": "B11",
-  "currentPhase": "B12",
-  "currentPhaseTitle": "Locomotion transition reconstruction",
-  "phaseStatus": "MERGE_READY",
-  "visualAcceptance": "PASSED",
-  "activePullRequest": 61,
+  "currentProgram": "horse anatomy and visual acceptance",
+  "completedThrough": "Horse R1 engineering; visual acceptance rejected",
+  "currentPhase": "HORSE_R2",
+  "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
+  "phaseStatus": "LIMB_TAIL_GEOMETRY_LOCAL_PASS_HOSTED_PENDING",
+  "visualAcceptance": "PENDING_OWNER_DEVICE_REVIEW",
+  "activePullRequest": 71,
   "nextPhases": [
-    "B13-B15 renderer micro-behavior and recent-action suppression",
-    "B16 long deterministic behavior test",
-    "B17 full regression/performance",
-    "B18 controlled owner/device acceptance"
+    "Horse R2 exact-head CI and independent visual review",
+    "Horse R2 owner device acceptance and explicit merge authorization",
+    "Remaining species quality audits; order not owner-fixed",
+    "Reconcile wider roadmap against integrated main"
   ],
-  "b9Scope": {
-    "allowed": [
-      "diagnose current gait timing",
-      "retime visual stride",
-      "improve stance/swing timing",
-      "improve body weight transfer",
-      "add deterministic gait tests at 30/60/120 Hz",
-      "capture before/after gait evidence"
-    ],
-    "mustPreserve": [
-      "approved B8 anatomy",
-      "24-bone hierarchy",
-      "public cow renderer APIs",
-      "gameplay movement speed",
-      "collision behavior",
-      "Beast high-level decisions",
-      "save compatibility",
-      "economy/progression",
-      "Firebase/auth/cloud behavior",
-      "other animals",
-      "frozen evidence"
-    ],
-    "notAuthorized": [
-      "B10 hoof/contact reconstruction",
-      "B11 turning reconstruction",
-      "B12 transition work",
-      "anatomy redesign",
-      "save schema changes",
-      "economy changes",
-      "Firebase/auth changes",
-      "unrelated cleanup"
-    ]
-  },
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
     "knownHistoricalIssues": [
@@ -64,8 +31,8 @@
   },
   "ownerGates": {
     "visualAcceptanceRequired": true,
-    "deviceAcceptanceDeferredTo": "B18",
-    "directMergeApprovalRequiredWhenGateSaysSo": true
+    "deviceAcceptanceRequired": true,
+    "directMergeApprovalRequired": true
   },
   "relayRules": {
     "updateThisFileInEveryPhasePR": true,
@@ -75,8 +42,296 @@
     "stopOnProtectedSystemExpansion": true
   },
   "specialNotes": [
-    "PR #54 is an older separate B1 planning proposal and remains untouched unless explicitly authorized.",
-    "farm3d/HANDOFF.md contains useful historical context but may be stale; AI_RELAY.md and this state file take precedence on current phase/state.",
-    "B12 owner visual acceptance passed on 2026-10-07; B13+ remain unstarted pending B12 merge."
-  ]
+    "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
+    "PR #70 remains untouched; #71 contains its anatomy plus later evidence/anatomy corrections. Use one final integration path.",
+    "No merge or other-species advancement while Horse R2 visual gate remains unresolved.",
+    "Muse PR71 report states PR #70 merged on Oct 8; verified false: PR #70 and #71 remain open drafts."
+  ],
+  "horseR2EvidenceReview": {
+    "phase": "Horse R2 measured anatomy correction",
+    "status": "ANATOMY_CORRECTION_LOCAL_PASS_HOSTED_PENDING",
+    "pr": 71,
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "anatomyHead": "9e9fcbf4efa54412fea733f9ead6d57017e5a191",
+    "branch": "codex/horse-r2-evidence-placement",
+    "finding": "Live screenshot fixture relocates horse without resetting or translating persistent world-space hoof anchors; screenshot failure is not proof of production failure.",
+    "localTests": "28/28 horse tests, all four unchanged six-species visual geometry/contact/cadence tests, syntax and diff checks pass. Local Chromium unavailable; hosted rendering required.",
+    "protectedSystems": "horse-ik3d.js, horse-stance3d.js, hoof sole vertices, cow/other animals, saves, Firebase/auth/cloud, economy/progression, movement speed/collision, renderer interfaces, service worker and frozen baselines unchanged.",
+    "nextAction": "Run exact-head hosted CI, inspect new daylight front/side/rear, ear/knee close-ups and continuous walk frames; refresh authentic preview. Then independent review and owner visual/device acceptance. Full trot/canter/turn/stop evidence remains required.",
+    "visualAcceptance": "NOT_ACCEPTED",
+    "note": "Legacy cow phase fields are retained as historical records; they are not the live Horse R2 gate.",
+    "anatomyPr": 70,
+    "reviewedEvidenceHead": "db8d562691f7bcdcf7e70f51119b84ab27500630",
+    "hostedBaseline": "Regression #165 SUCCESS, all seven jobs at 1489801a7274c0af4963f1b489fe0a0302303c14.",
+    "harnessCorrection": "Serve .mjs as text/javascript; all visual assertions and thresholds unchanged.",
+    "visualFindings": [
+      "Detached ear cones; authored ear-base-to-head triangle separation approximately 64 mm at horse height 2.3.",
+      "Rounded tubular muzzle, disconnected-looking masses and bent idle forelegs require independent reference-based anatomy review.",
+      "CI165 actual farm captures reverted to night; isolated gallery retained contact-inconsistent horse recentering."
+    ],
+    "ownerReference": {
+      "file": "13326.jpg",
+      "receivedUtc": "2026-10-08T23:47:13Z",
+      "description": "Side-view bay horse with lowered head; owner-selected anatomy/silhouette reference, not validation evidence.",
+      "criteria": [
+        "continuous shoulder/barrel/hindquarter silhouette",
+        "muscular neck flowing from shoulders",
+        "long tapered face and defined jaw",
+        "small attached ears",
+        "believable resting forelegs and hind hocks",
+        "compact hooves and natural mane/tail"
+      ],
+      "limitation": "Single perspective and lowered-head pose do not establish exact physical measurements, raised-head anatomy or gait acceptance."
+    },
+    "captureRepair": "TEST ONLY: preset=noon query locks daylight against weather interval; isolated horse gallery now resets/translates persistent contact tracks using existing helper and enforces unchanged 2 mm residual.",
+    "preview": "https://sunny-acres-horse-r2-review.ardentanole10.chatgpt.site",
+    "previewSource": "90d7e90047239d0ab360543274c00a88000e1a9e",
+    "ownerPhoneLoading": "Observed in owner screenshots; no visual or movement acceptance.",
+    "independentReview": {
+      "verdict": "BLOCKED",
+      "source": "Owner-relayed Grok read-only review on 2026-10-08",
+      "reviewedHead": "db8d562691f7bcdcf7e70f51119b84ab27500630",
+      "referencePhotoAvailableToReviewer": false,
+      "findings": "Ear bases separated ~70.6 mm; forced torso drop causes idle crouch; cylindrical muzzle and unblended withers; ivory horn removal confirmed."
+    },
+    "correction": [
+      "Seat unchanged-size ear cones into the skull.",
+      "Replace circular muzzle cylinder with a sloping elliptical volume that tapers in both width and height; relocate nostrils onto nose.",
+      "Elongate withers volume overlapping barrel and neck, retaining broad horizontal silhouette.",
+      "Smooth resting body compression toward .03, retaining .09 moving reach envelope; fixed hip roots and unchanged IK/stance/sole.",
+      "Add real vertex/triangle attachment, taper, overlap and 95% resting-leg guards.",
+      "Add idle ear/knee close-ups and 12 uninterrupted walking samples to browser evidence; motion/reset assertions retain existing limits."
+    ],
+    "measurements": {
+      "earBaseSkullGapMetersAtHeight2_3": 0.0023884087,
+      "idleForelegExtensionRatioAtHeight2_3": 0.9561364887,
+      "horseTriangles": 5128,
+      "bones": 21,
+      "skinnedMeshes": 1
+    },
+    "failedAttempt": "Fixed .03 torso drop across all modes failed hard-turn continuity by 3.3 mm; corrected with smoothly eased rest/moving compression. Original continuity test now passes without threshold changes."
+  },
+  "legacyCowProgramRecord": {
+    "codeBaseline": {
+      "description": "PR #55 merged cow B2-B8 static anatomy",
+      "mergeCommit": "b0a9dea73a2cf14ffcf94a020cd672d9d54f74d1",
+      "pr": 55
+    },
+    "currentProgram": "cow realism program",
+    "completedThrough": "B11",
+    "currentPhase": "B12",
+    "currentPhaseTitle": "Locomotion transition reconstruction",
+    "phaseStatus": "MERGE_READY",
+    "visualAcceptance": "PASSED",
+    "activePullRequest": 61,
+    "nextPhases": [
+      "B13-B15 renderer micro-behavior and recent-action suppression",
+      "B16 long deterministic behavior test",
+      "B17 full regression/performance",
+      "B18 controlled owner/device acceptance"
+    ],
+    "b9Scope": {
+      "allowed": [
+        "diagnose current gait timing",
+        "retime visual stride",
+        "improve stance/swing timing",
+        "improve body weight transfer",
+        "add deterministic gait tests at 30/60/120 Hz",
+        "capture before/after gait evidence"
+      ],
+      "mustPreserve": [
+        "approved B8 anatomy",
+        "24-bone hierarchy",
+        "public cow renderer APIs",
+        "gameplay movement speed",
+        "collision behavior",
+        "Beast high-level decisions",
+        "save compatibility",
+        "economy/progression",
+        "Firebase/auth/cloud behavior",
+        "other animals",
+        "frozen evidence"
+      ],
+      "notAuthorized": [
+        "B10 hoof/contact reconstruction",
+        "B11 turning reconstruction",
+        "B12 transition work",
+        "anatomy redesign",
+        "save schema changes",
+        "economy changes",
+        "Firebase/auth changes",
+        "unrelated cleanup"
+      ]
+    },
+    "ownerGates": {
+      "visualAcceptanceRequired": true,
+      "deviceAcceptanceDeferredTo": "B18",
+      "directMergeApprovalRequiredWhenGateSaysSo": true
+    },
+    "specialNotes": [
+      "PR #54 is an older separate B1 planning proposal and remains untouched unless explicitly authorized.",
+      "farm3d/HANDOFF.md contains useful historical context but may be stale; AI_RELAY.md and this state file take precedence on current phase/state.",
+      "B12 owner visual acceptance passed on 2026-10-07; B13+ remain unstarted pending B12 merge."
+    ],
+    "note": "Historical metadata preserved, not the current task or evidence of latest cow completion. Owner says cow B0-B18 is accepted and frozen."
+  },
+  "referenceSurfaceRevision": {
+    "parentHead": "90d7e90047239d0ab360543274c00a88000e1a9e",
+    "parentCI": "Regression #167 all seven jobs passed; owner rejected actual preview appearance",
+    "reference": "Owner 13326.jpg bay horse, qualitative anatomy reference",
+    "ownerRejection": "13327.jpg; bulbous chest, short thick neck and pale wedge muzzle",
+    "files": [
+      "farm3d/horse3d.js",
+      "farm3d/AI_RELAY_STATE.json"
+    ],
+    "implemented": [
+      "Continuous section-authored barrel replaces intersecting torso shoulder and rump balls",
+      "Deep tapered neck base replaces constant radius cylinder",
+      "Narrower skull and jaw, steeper face slope, bay-colored muzzle",
+      "Continuous mane strip replaces round beads"
+    ],
+    "localTests": "28/28 horse tests passed, assertions unchanged",
+    "triangles": 4624,
+    "protected": "IK, stance, sole, bone roots, gait, gameplay, other animals, saves and cloud unchanged",
+    "limitations": [
+      "Not visually verified; awaiting exact-head browser renders",
+      "Owner reference lowered head pose is not yet reproduced",
+      "Leg silhouette and tail still require rendered scrutiny"
+    ],
+    "acceptance": "Pending independent and owner review; no merge authorization"
+  },
+  "structuralRevision": {
+    "parentHead": "db9e497db204843453ade5432070d3342662a0aa",
+    "parentCI": "#168 passed; actual renders rejected by technical lead and owner visual gate unresolved",
+    "independentAudit": "Owner-relayed source audit saw 13326.jpg but received no head-specific renders; review zip was a skill pack",
+    "implemented": [
+      "One continuous trunk-to-neck surface with normalized body/neck split skin weights",
+      "One poll-to-nose surface; pale muzzle marking on forward third",
+      "Continuous tapered limbs with hip/knee/foot weights, joint and fetlock radii below cannon",
+      "Zero idle body drop; existing .09 moving compression eased smoothly",
+      "Six-bone tapered hanging tail without paired spheres"
+    ],
+    "tests": "32/32 horse tests, four unchanged six-species geometry/contact tests pass; browser renders pending",
+    "testAdaptations": [
+      "Bone count expectation 21 to 24 implements explicitly requested six-bone tail; mesh and triangle budgets unchanged",
+      "Facial ratios measured from geometry instead of pale color marking; thresholds unchanged",
+      "Barrel/attachment center measured from actual barrel region rather than primary skin index after split weighting"
+    ],
+    "failedChecksCorrected": [
+      "Six-species picking initially classified shared neck as body and shin as hip; sorted influences by weight and corrected anatomical neck weighting; original assertions untouched",
+      "Primary body bone bounds excluded blended barrel/withers vertices; geometric region now measured directly"
+    ],
+    "evidenceAdded": "Actual-code idle and 20-degree neck pitch close-ups plus existing front/side/rear and uninterrupted walk sequence",
+    "protected": "horse-ik3d.js, horse-stance3d.js, sole oval, fixed hip roots, gait schedule, other animals, gameplay, saves and cloud unchanged",
+    "acceptance": "No claim of reference matching until new renders, independent review and owner device acceptance; no merge authorization"
+  },
+  "headRevision": {
+    "agent": "Claude (implementation engineer); ChatGPT integrates",
+    "task": "Horse R2: resolve rejected 'anteater' head before any other horse or species work",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "startingHead": "0afea8b3576ab47fc911b68ec1819ce1be61f2aa",
+    "branch": "claude/hayday-style-game-currency-hq3vi4 (isolated; not PR #71's codex/horse-r2-evidence-placement)",
+    "delivery": "Code commit 65a9fed24b8c6f173bacf87881b5f1b3c6e5ad05 integrated into draft PR #71; evidence commit retained separately in PR #72; no main merge or deployment",
+    "evidenceReceived": [
+      "Muse PR71 visual QA report (BLOCKED, head severe) reviewing 0afea8b",
+      "Local SwiftShader renders of 0afea8b: front/side/three-quarter, neutral/lowered/raised, head and neck turns, body"
+    ],
+    "evidenceMissing": [
+      "13326.jpg not received by Claude; Muse's region comparison and the relay text description used instead; no photo-match claim",
+      "Hosted CI #169 artifact images not downloadable through the session proxy"
+    ],
+    "auditOfStartingHead": [
+      "Poll-to-nose 0.734 model units = 0.53 x withers; face ~21 deg below horizontal (anteater tube)",
+      "No forehead, jowl, jaw or throatlatch; eyes ~15% down the head; pale 36%-width muzzle with dot nostrils; no lips",
+      "Round cone ears 0.15 apart reading as horns; head rigid to head bone"
+    ],
+    "implemented": [
+      "One superelliptic poll-to-lip head surface: 0.589 long (0.425 x withers), face 45.6 deg below horizontal at rest; head/neck bone rest offsets unchanged",
+      "Broad flat forehead, width held through mid-face, deep rounded jowl with a rising rear edge, throatlatch notch, straight nasal bone; muzzle 0.646 of forehead width",
+      "Eyes one third down the head, embedded, with orbital ridges; comma nostrils; upper/lower lip, chin and mouth line",
+      "Dark bay points replace the pale muzzle wedge (candidate color; owner preference not established)",
+      "Leaf ears 0.116 apart, flattened, tips slightly forward/inward, base vertices seated on the computed skull surface",
+      "One shared head/neck junction weight field for head, throat/crest trunk end and mane; neck end narrowed into the throatlatch; mane feathers out at the poll"
+    ],
+    "testAdaptations": [
+      "'R2 muzzle is long and tapered': length/height now measured forward of the actual eyes along the measured facial axis; threshold 1.4 unchanged",
+      "'muzzle narrows...slopes downward': absolute z bands (which assumed the rejected horizontal 0.75 face) replaced by anatomy-anchored bands on the facial axis; thresholds 1.5/1.5/0.08 unchanged"
+    ],
+    "newGuards": [
+      "head length 0.36-0.44 x withers; face 30-55 deg",
+      "jowl depth >= 1.5 x muzzle; throatlatch notch",
+      "eyes 25-45% down, below forehead line, embedded within 12 mm, orbit above",
+      "nostrils in forward 15%; lips below muzzle mid-depth; muzzle >= 60% forehead width",
+      "ear spread <= 0.13; ears flattened leaf (principal axes)",
+      "shared junction weights within 1e-6, normalized, dominant first",
+      "junction edge stretch 0.7-1.4 under neck pitch +/-25, head pitch +/-25, head yaw +/-30, neck yaw 20, combined"
+    ],
+    "measurements": {
+      "horseTriangles": 5320,
+      "bones": 24,
+      "skinnedMeshes": 1,
+      "sixAnimalTriangles": 28354,
+      "sixAnimalTriangleBudget": 30000,
+      "junctionEdgeStretchWorst": "0.791-1.254"
+    },
+    "protectedUnchanged": "horse-ik3d.js, horse-stance3d.js, hoof sole oval, fixed hip roots, gait schedule/updateHorse3D locomotion, cow and other animals, gameplay, saves, cloud/auth, economy, service worker, public renderer interfaces, frozen evidence",
+    "deferredBodyFindings": "Muse tail, hindquarter, neck arch/crest, barrel, shoulder blend and leg findings are body-pass work outside this head assignment",
+    "visualAcceptance": "NOT_ACCEPTED",
+    "acceptance": "Pending ChatGPT integration, hosted CI on the integrated head, independent (Grok/Muse) review and owner device review; no merge authorization",
+    "integrationReview": {
+      "reviewer": "ChatGPT",
+      "sourcePR": 72,
+      "reviewedHead": "3da8b1816bf1da219d0c9fe2598bfa362f836771",
+      "integratedCodeCommit": "65a9fed24b8c6f173bacf87881b5f1b3c6e5ad05",
+      "tests": "68/68 independently reproduced Node tests, including 39 horse, four six-species and 25 module/version/asset tests",
+      "visual": "Before/after, isolated head poses and farm closeups inspected; recognizable jaw/muzzle/ear/angle improvement; not owner device acceptance",
+      "limits": "Local browser result reported by Claude, not independently rerun by ChatGPT. Hosted CI must run on new PR #71 head. Photo unavailable to Claude; color choice not owner-confirmed. Body, legs and tail remain deferred.",
+      "protected": "Diff contains only horse source, anatomy tests, browser evidence capture and relay; IK/stance/sole, locomotion, other animals and gameplay unchanged"
+    }
+  },
+  "motionEvidenceRevision": {
+    "parentHead": "d3b21b16bddfa1c5cacac46da7e4de6e0546b43f",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "parentCI": "Regression #171 attempt 2: all seven jobs passed unchanged; attempt 1 portrait wardrobe tap timeout retained as failure evidence; root cause unproven",
+    "ownerFeedback": "Looks better; Yes authorizes continuing refinement, not final visual acceptance or merge",
+    "preview": "https://sunny-acres-horse-r2-review.ardentanole10.chatgpt.site",
+    "previewHead": "d3b21b16bddfa1c5cacac46da7e4de6e0546b43f",
+    "finding": "Order-board pole obscures horse walking frames in original right-side farm view",
+    "implemented": "Retain original continuous walk frames; add opposite-side captures of identical poses with time, gait phase, root and contact invariance assertions; actual hoof-to-target error remains <=2 mm",
+    "files": [
+      "farm3d/tests/animal-visual.browser.cjs",
+      "farm3d/AI_RELAY_STATE.json"
+    ],
+    "protected": "All production files unchanged, including Claude head, limbs/tail, IK/stance, sole, fixed hip roots, motion, cow/other animals, gameplay, saves/cloud and service worker",
+    "remaining": "New exact-head hosted captures must be inspected; opposite view is not proven unobstructed until rendered. Legs/tail shape and full trot/canter/turn/stop motion review remain unfinished. Independent review and owner device acceptance required; no merge authorization"
+  },
+  "limbTailRevision": {
+    "parentHead": "c69f9412be0e444e5660ef039fd7bc44f12046a6",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "parentCI": "Regression #172 all seven jobs passed",
+    "ownerInstruction": "Looks better; continue leg/tail/motion refinement while preserving Claude head; no final visual acceptance or merge authorization",
+    "independentReview": "Codex independent read-only reviewer inspected actual CI172 walk frames and source/diff; no blocking contract issue identified; geometry does not reconstruct separate stifle/hock articulation and tail hair appearance remains unproven",
+    "implemented": [
+      "Separate foreleg shoulder/elbow/carpus and hind thigh/hock surface contours, directional joint depth, two extra surface rings per limb",
+      "Fuller lower hanging tail bundle and blunt end, retaining six tail bones and end height",
+      "Sort tail influences dominant-first, preserving each bone weight and normalized blend",
+      "Add actual farm hock and rear-three-quarter tail closeups; retain all existing captures and assertions"
+    ],
+    "tests": "45/45 horse/contact/continuity/resource/six-species tests passed; syntax and diff checks passed; new actual-geometry guards distinguish limb contours and reject needle tail",
+    "failedCheckCorrected": "Ad-hoc global dominant-first check exposed inherited tail influence ordering; sorted the two influences, then global check and 45 tests passed",
+    "protectedVerification": "Byte comparison of11 protected geometry spans (including head/trunk), four full hoof position/normal/color/skin attributes,24 bone rest offsets passed. IK, stance, updateHorse3D, gameplay, other animals, saves/cloud, service worker and interfaces unchanged",
+    "triangles": {
+      "horse": 5640,
+      "increase": 320,
+      "sixSpeciesExpected": 28674,
+      "unchangedBudget": 30000
+    },
+    "limitations": [
+      "No new rendered claim yet; exact-head hosted CI and actual captures required",
+      "Geometry-only shaping may leave mechanical-looking walk poses; existing two-link skeleton unchanged",
+      "Tail remains a smooth closed volume; hair appearance and framing need actual rear/three-quarter review",
+      "Full trot/canter/turn/stop visual evidence, independent review and owner device acceptance still required"
+    ],
+    "mergeAuthorized": false
+  }
 }

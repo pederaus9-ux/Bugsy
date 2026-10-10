@@ -8,7 +8,7 @@ const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
  'perf.test.mjs','cow3d.test.mjs','cow-b17-performance.test.mjs','cow-anatomy.test.mjs',
  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
- 'horse-rebuild.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','sheep3d.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
+ 'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','sheep3d.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
  'animal-visual.test.mjs','features.test.mjs','sdk.test.mjs','scene-polish.test.mjs',
  'asset-policy.test.mjs'
 ];
@@ -61,4 +61,4 @@ for(const f of nodeFiles){
  }else await run(f,['--test','--test-concurrency=1',f]);
 }
 for(const f of browserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
-console.log('[CI-ISOLATION] ALL 18 Node test files and 4 browser suites passed.');
+console.log('[CI-ISOLATION] ALL 20 Node test files and 4 browser suites passed.');

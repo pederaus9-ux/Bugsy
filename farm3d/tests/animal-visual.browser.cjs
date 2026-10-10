@@ -14,6 +14,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
       const T = await import('/farm3d/lib/three.module.min.js');
       const L = await import('/farm3d/live3d.js?v=2');
       const C = await import('/farm3d/cow3d.js?v=3');
+      const E = await import('/farm3d/tests/horse-evidence-placement.mjs');
       const kinds = ['cow','sheep','horse','dog','cat','chicken'];
       const heights = [1.7,.9,1.6,.55,.4,.35];
       const renderer = new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -34,14 +35,21 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
         const height=heights[k],half=Math.max(height*.8,k===2?1.25:height*.8);
         const camera=new T.OrthographicCamera(-half,half,half,-half,.01,30);
         for(let m=0;m<3;m++) {
-          const mode=modes[m];r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;
+          const mode=modes[m];
+          if(k===2)E.resetHorseEvidencePose(r,0,0,0);
+          else {r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;}
           for(let n=0;n<24;n++) {
             const dz=mode==='idle'?0:-height*(mode==='run'?1.4:.65)/60;
             r.g.position.z+=dz;
             if(k===0)C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode);
           }
-          r.g.position.z=0;
+          if(k===2)E.translateHorseEvidencePose(r,0,0,0);else r.g.position.z=0;
           r.g.updateMatrixWorld(true);
+          if(k===2)for(const l of r.legs){
+            const foot=l.foot.getWorldPosition(new T.Vector3());
+            const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));
+            if(error>.002)throw new Error('horse gallery world contact error '+error);
+          }
           const bounds=new T.Box3().setFromObject(r.g), center=new T.Vector3(0,height*.52,0);
           const assertFinite = [bounds.min.x,bounds.min.y,bounds.min.z,bounds.max.x,bounds.max.y,bounds.max.z].every(Number.isFinite);
           if(!assertFinite)throw new Error(kinds[k]+' nonfinite bounds');
@@ -82,7 +90,8 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
     for(const viewport of [{width:844,height:390},{width:1280,height:720}]){
       const session=await h.setup(viewport,viewport.width<1000,prefix+'-farm-session-'+viewport.width);
       const page=session.page;
-      await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0');
+      // Lock the preset so the 60-second weather refresh cannot restore night.
+      await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0&preset=noon');
       await page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
       await page.locator('canvas').first().screenshot({path:path.join(artifacts,prefix+'-farm-'+viewport.width+'.png'),scale:'css'});
       // Retain the normal UI above; remove transient visitor/toast overlays from anatomy crops.
@@ -102,15 +111,23 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           const pose=await page.evaluate(async({kind,mode})=>{
             const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2'),C=await import('./cow3d.js?v=3');
             const d=__dbg,a=d.animals.find(a=>a.kind===kind),r=a.rig3d;
+            const E=kind==='horse'?await import('./tests/horse-evidence-placement.mjs'):null;
             // The existing flat dirt path keeps grass/other animals from hiding anatomy.
             // This is test-only positioning; overview captures retain normal scene placement.
             d.animals.forEach(other=>{other.g.visible=other===a;});
-            a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;
+            if(E)E.resetHorseEvidencePose(r,0,0,14);
+            else {a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;}
             for(let n=0;n<24;n++){
               const dz=mode==='idle'?0:-a.S.h*(mode==='run'?1.4:.65)/60;a.g.position.z+=dz;
               if(kind==='cow')C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode,mode==='run');
             }
-            a.g.position.set(0,0,14);a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
+            if(E)E.translateHorseEvidencePose(r,0,0,14);else a.g.position.set(0,0,14);
+            a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
+            if(E)for(const l of r.legs){
+              const foot=l.foot.getWorldPosition(new T.Vector3());
+              const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));
+              if(error>.002)throw new Error('horse capture world contact error '+error);
+            }
             const head=r.head.getWorldPosition(new T.Vector3());
             d.camera.position.set(0,a.S.h*.9,14-a.S.h*2.8);d.camera.lookAt(0,a.S.h*.52,14);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
             const projected=head.clone().project(d.camera),hit=d.hitAt((projected.x+1)*innerWidth/2,(1-projected.y)*innerHeight/2);
@@ -126,6 +143,94 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-live-${viewport.width}-${kind}-${mode}-${angle}.png`),scale:'css'});
           }
           live.push({viewport,travel,pose});
+          if(kind==='horse'&&viewport.width===1280&&mode==='idle'){
+            for(const detail of ['ears','knees','hocks','tail']){
+              await page.evaluate(async detail=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                const bone=detail==='ears'?r.head:detail==='tail'?r.tail[3]:detail==='hocks'?r.legs.find(l=>l.z>0).knee:r.legs[0].knee;
+                const center=bone.getWorldPosition(new T.Vector3());
+                const offset=detail==='tail'?new T.Vector3(-a.S.h*.65,a.S.h*.06,a.S.h*.5):new T.Vector3(a.S.h*(detail==='ears'?1.1:.8),a.S.h*.08,0);
+                d.camera.position.copy(center).add(offset);
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+              },detail);
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-idle-${detail}-closeup.png`),scale:'css'});
+            }
+          }
+          if(kind==='horse'&&viewport.width===1280&&mode==='idle'){
+            for(const degrees of [0,20]){
+              await page.evaluate(async degrees=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                r.neck.rotation.x=degrees*Math.PI/180;r.g.updateMatrixWorld(true);
+                const center=r.neck.getWorldPosition(new T.Vector3());
+                d.camera.position.copy(center).add(new T.Vector3(a.S.h*1.25,a.S.h*.12,0));
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+              },degrees);
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-neck-pitch-${degrees}.png`),scale:'css'});
+            }
+            await page.evaluate(()=>{const r=__dbg.animals.find(a=>a.kind==='horse').rig3d;r.neck.rotation.x=0;r.g.updateMatrixWorld(true);});
+            // Head evidence on the actual farm rig: front, side and three-quarter
+            // close-ups at rest, lowered (negative neck pitch lowers the head),
+            // head turned both ways and neck turned. Evidence only; a render is
+            // not a visual verdict.
+            const headPoses=[];
+            for(const [pose,neckX,headX,headY,neckY] of [['neutral',0,0,0,0],['lowered',-24,-6,0,0],['turn-left',0,0,25,0],['turn-right',0,0,-25,0],['neck-yaw',0,0,0,20]]){
+              for(const [view,dir] of [['front',[0,.12,-1]],['side',[1,.08,0]],['three-quarter',[.75,.25,-.75]]]){
+                headPoses.push(await page.evaluate(async({pose,view,neckX,headX,headY,neckY,dir})=>{
+                  const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d,D=Math.PI/180;
+                  r.neck.rotation.set(neckX*D,neckY*D,0);r.head.rotation.set(headX*D,headY*D,0);r.g.updateMatrixWorld(true);
+                  const q=r.head.getWorldQuaternion(new T.Quaternion()),s=r.model.getWorldScale(new T.Vector3()).x;
+                  const center=r.head.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.20,-.20).applyQuaternion(q).multiplyScalar(s));
+                  const v=new T.Vector3(...dir).normalize().applyQuaternion(r.model.getWorldQuaternion(new T.Quaternion()));
+                  d.camera.position.copy(center).addScaledVector(v,a.S.h*.52);d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                  return {pose,view,neck:[neckX,neckY],head:[headX,headY],headWorld:r.head.getWorldPosition(new T.Vector3()).toArray()};
+                },{pose,view,neckX,headX,headY,neckY,dir}));
+                await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-head-${pose}-${view}.png`),scale:'css'});
+              }
+            }
+            await page.evaluate(()=>{const r=__dbg.animals.find(a=>a.kind==='horse').rig3d;r.neck.rotation.set(0,0,0);r.head.rotation.set(0,0,0);r.g.updateMatrixWorld(true);});
+            fs.writeFileSync(path.join(artifacts,prefix+'-horse-head-poses.json'),JSON.stringify(headPoses,null,2));
+          }
+          if(kind==='horse'&&viewport.width===1280&&mode==='walk'){
+            const sequence=[];
+            // Continue the real articulated pose; follow with the camera only.
+            // Do not reset contacts between samples or imply that a pose is motion.
+            for(let sample=0;sample<12;sample++){
+              sequence.push(await page.evaluate(async()=>{
+                const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2');
+                const d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                for(let n=0;n<8;n++){const dz=-a.S.h*.65/60;r.g.position.z+=dz;L.updateLiveAnimal(r,0,dz,1/60,'walk');}
+                r.g.updateMatrixWorld(true);
+                const center=new T.Vector3(r.g.position.x,a.S.h*.52,r.g.position.z);
+                d.camera.position.copy(center).add(new T.Vector3(a.S.h*2.8,a.S.h*.38,0));d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                return {time:r.state.time,phase:r.state.phase,gait:r.state.gait,root:r.g.position.toArray(),
+                  feet:r.legs.map(l=>({mode:l.track.mode,target:[l.track.x,l.track.y,l.track.z],actual:l.foot.getWorldPosition(new T.Vector3()).toArray()}))};
+              }));
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-walk-sequence-${String(sample).padStart(2,'0')}.png`),scale:'css'});
+              // Retain the original farm view and add the opposite side of the
+              // same frame: the order-board posts obscure part of the first view.
+              // Camera-only inspection must neither advance the gait nor move contacts.
+              const opposite=await page.evaluate(async()=>{
+                const T=await import('./lib/three.module.min.js'),d=__dbg,a=d.animals.find(a=>a.kind==='horse'),r=a.rig3d;
+                const center=new T.Vector3(r.g.position.x,a.S.h*.52,r.g.position.z);
+                d.camera.position.copy(center).add(new T.Vector3(-a.S.h*2.8,a.S.h*.38,0));
+                d.camera.lookAt(center);d.renderer.render(d.scene,d.camera);
+                return {time:r.state.time,phase:r.state.phase,root:r.g.position.toArray(),
+                  feet:r.legs.map(l=>({target:[l.track.x,l.track.y,l.track.z],actual:l.foot.getWorldPosition(new T.Vector3()).toArray()}))};
+              });
+              const current=sequence.at(-1);
+              assert.equal(opposite.time,current.time,'camera change must not advance time');
+              assert.equal(opposite.phase,current.phase,'camera change must not advance gait');
+              assert.deepEqual(opposite.root,current.root,'camera change must not relocate horse');
+              assert.deepEqual(opposite.feet,current.feet.map(({target,actual})=>({target,actual})),
+                'camera change must preserve actual feet and persistent contacts');
+              for(const {target,actual} of opposite.feet)assert.ok(Math.hypot(...actual.map((v,i)=>v-target[i]))<=.002,
+                'walking evidence actual hoof must align with world-space target');
+              await page.locator('canvas').first().screenshot({path:path.join(artifacts,`${prefix}-horse-walk-opposite-${String(sample).padStart(2,'0')}.png`),scale:'css'});
+            }
+            assert.ok(sequence.every(s=>s.gait==='walk'),'sequence must exercise walk');
+            assert.ok(sequence.at(-1).root[2]<sequence[0].root[2]-.5,'continuous walking travel');
+            fs.writeFileSync(path.join(artifacts,prefix+'-horse-walk-sequence.json'),JSON.stringify(sequence,null,2));
+          }
         }
         await page.evaluate(kind=>{const a=__dbg.animals.find(a=>a.kind===kind);a.g.position.set(60,0,60);},kind);
       }
