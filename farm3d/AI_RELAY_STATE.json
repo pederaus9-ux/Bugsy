@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T02:27:52.348438+00:00",
+  "lastUpdatedUtc": "2026-10-12T02:31:16.167613+00:00",
   "codeBaseline": {
     "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
     "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
@@ -831,11 +831,24 @@
       "scope": "Test-only horizontal translation of sheep root and existing world anchors; no production changes.",
       "tests": "3/3 local tests pass including original sheep rig test, negative control, every skinned vertex translation and pose preservation at heights0.9/1.2 for idle/walk/run.",
       "browser": "Syntax passes; new capture and corrected six-species browser suites await hosted execution.",
-      "newEvidence": "Separate deterministic camera-follow front/side/rear idle and six sequential walk samples, no root recentering."
+      "newEvidence": "Separate deterministic camera-follow front/side/rear idle and six sequential walk samples every20frames: 120frames/2seconds at0.35m/s, covering more than one0.62m stride. No root recentering."
     },
     "publishedBranch": "codex/sheep-evidence-baseline",
     "publishedPr": 74,
     "sourceCandidateHead": "7b293b32920472493887d4a2c53f287d359fd9c0",
-    "headNote": "Publication metadata follow-up changes this relay only; qualify final branch head in hosted CI."
+    "headNote": "Publication metadata follow-up changes this relay only; qualify final branch head in hosted CI.",
+    "additionalProbes": {
+      "testedHead": "56a177569ef7fbe720a8ce190ed14b3f0c8370f8",
+      "height": 1.2,
+      "hz": [
+        30,
+        60,
+        120
+      ],
+      "scenarios": "4 seconds each; walk0.78m/s1second then stop or left/right90degree turn; straight run1.68m/s4seconds",
+      "worstPlantedHorizontalErrorMm": 1.2220524952703661e-11,
+      "skinnedSoleContactMm": "ground within0.000001mm",
+      "limitations": "Only contact and final heading/state measurements; no visual acceptance or smooth-transition/physical support claims. Idle releases planted flags, so min flag count is not the actual sole support count."
+    }
   }
 }

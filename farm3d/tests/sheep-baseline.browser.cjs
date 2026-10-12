@@ -31,11 +31,11 @@ const {start,artifacts}=require('./browser-harness.cjs');
       updateSheep3D(r,0,0,1/60,'idle');
       capture('Idle front',0);capture('Idle side',Math.PI/2);capture('Idle rear',Math.PI);
       for(let sample=0;sample<6;sample++){
-        for(let frame=0;frame<8;frame++){
+        for(let frame=0;frame<20;frame++){
           r.g.position.z-=.35/60;updateSheep3D(r,0,-.35/60,1/60,'walk');r.g.updateMatrixWorld(true);
           for(const l of r.legs)if(l.planted){const f=l.foot.getWorldPosition(new T.Vector3());worstContact=Math.max(worstContact,Math.hypot(f.x-l.ax,f.z-l.az));}
         }
-        capture('Walk '+(sample+1)+' · frame '+((sample+1)*8),Math.PI/2);
+        capture('Walk '+(sample+1)+' · frame '+((sample+1)*20),Math.PI/2);
       }
       await Promise.all([...grid.querySelectorAll('img')].map(img=>img.decode()));
       if(worstContact>.002)throw new Error('sheep continuous capture contact error '+worstContact);
