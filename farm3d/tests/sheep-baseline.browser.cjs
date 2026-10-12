@@ -24,9 +24,24 @@ const {start,artifacts}=require('./browser-harness.cjs');
       function capture(label,yaw){
         r.g.updateMatrixWorld(true);r.card.skeleton.update();
         const center=new T.Vector3(r.g.position.x,.49,r.g.position.z);
-        camera.position.copy(center).add(new T.Vector3(Math.sin(yaw)*4,.15,-Math.cos(yaw)*4));camera.lookAt(center);renderer.render(scene,camera);
+        camera.position.copy(center).add(new T.Vector3(Math.sin(yaw)*4,.15,-Math.cos(yaw)*4));camera.lookAt(center);camera.updateMatrixWorld(true);
+        // Frame actual skinned vertices, including ears/head, with 12% padding.
+        // Keep the same 390x250 resolution; neither the rig nor its contacts move.
+        const viewBounds=new T.Box3(),points=[];
+        for(let i=0;i<r.card.geometry.attributes.position.count;i++){
+          const p=r.card.getVertexPosition(i,new T.Vector3()).applyMatrix4(r.card.matrixWorld);
+          points.push(p);viewBounds.expandByPoint(p.clone().applyMatrix4(camera.matrixWorldInverse));
+        }
+        const cx=(viewBounds.min.x+viewBounds.max.x)/2,cy=(viewBounds.min.y+viewBounds.max.y)/2;
+        const halfY=Math.max((viewBounds.max.y-viewBounds.min.y)/2,(viewBounds.max.x-viewBounds.min.x)/(2*390/250))*1.12;
+        const halfX=halfY*390/250;
+        camera.left=cx-halfX;camera.right=cx+halfX;camera.top=cy+halfY;camera.bottom=cy-halfY;camera.updateProjectionMatrix();
+        let maxProjectedExtent=0;
+        for(const p of points){p.project(camera);maxProjectedExtent=Math.max(maxProjectedExtent,Math.abs(p.x),Math.abs(p.y));}
+        if(maxProjectedExtent>.98)throw new Error('sheep anatomy clipped by capture camera '+maxProjectedExtent);
+        renderer.render(scene,camera);
         const box=document.createElement('figure');box.style='margin:0';const img=document.createElement('img');img.src=renderer.domElement.toDataURL();box.append(img);const caption=document.createElement('figcaption');caption.textContent=label;box.append(caption);grid.append(box);
-        rows.push({label,root:r.g.position.toArray(),phase:r.state.phase,feet:r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()).toArray()),hipY:r.legs.map(l=>l.hip.position.y),planted:r.legs.map(l=>l.planted)});
+        rows.push({label,maxProjectedExtent,root:r.g.position.toArray(),phase:r.state.phase,feet:r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()).toArray()),hipY:r.legs.map(l=>l.hip.position.y),planted:r.legs.map(l=>l.planted)});
       }
       updateSheep3D(r,0,0,1/60,'idle');
       capture('Idle front',0);capture('Idle side',Math.PI/2);capture('Idle rear',Math.PI);

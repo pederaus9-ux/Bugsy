@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T02:31:16.167613+00:00",
+  "lastUpdatedUtc": "2026-10-12T02:47:11.389851+00:00",
   "codeBaseline": {
     "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
     "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
@@ -24,7 +24,7 @@
   "completedThrough": "Horse R8 PR #73 merged; post-merge regression #178 passed 7/7; Pages deployment succeeded",
   "currentPhase": "SHEEP_QUALITY_AUDIT",
   "currentPhaseTitle": "Read-only sheep anatomy, locomotion and evidence audit",
-  "phaseStatus": "PR74_SHEEP_EVIDENCE_HOSTED_PENDING",
+  "phaseStatus": "PR74_CONTACT_CAPTURE_PASS_FRAMING_CORRECTION_HOSTED_PENDING",
   "visualAcceptance": "SHEEP_PENDING_OWNER_REVIEW",
   "activePullRequest": 74,
   "nextPhases": [
@@ -849,6 +849,24 @@
       "worstPlantedHorizontalErrorMm": 1.2220524952703661e-11,
       "skinnedSoleContactMm": "ground within0.000001mm",
       "limitations": "Only contact and final heading/state measurements; no visual acceptance or smooth-transition/physical support claims. Idle releases planted flags, so min flag count is not the actual sole support count."
+    },
+    "hostedCandidateEvidence": {
+      "head": "39600b0bb02495f08c53d32ab3e1aedd36ddd7c2",
+      "run": 38196131129,
+      "artifact": 11724245223,
+      "sha256": "674e9e343766e0de19307a41052b06c66fc00db161746f90b91288825dd060a6",
+      "result": "Six-species job and new continuous sheep capture PASS; browser errors0; worst planted error1.8874e-12mm. Gallery rejected for full anatomy review because camera clips head."
+    },
+    "framingCorrection": {
+      "scope": "Camera bounds only; fit actual skinned vertices with12percent margin at unchanged390x250resolution per tile. New projected-vertex bounds assertion0.98; no existing threshold changed.",
+      "experiment": "9poses: old maximum projected extent1.2196428 (outside image); corrected0.89285714 (inside image); boundary1.",
+      "browser": "Corrected image not yet rendered in hosted CI."
+    },
+    "knownProductionBlocker": {
+      "diagnosticBranch": "codex/sheep-stop-diagnosis",
+      "diagnosticHead": "678e061daa6a249ca667f956021d8d573b8a664d",
+      "test": "sheep-stop-continuity.test.mjs:6/6FAIL at heights0.9/1.2 and30/60/120Hz; actual grounded hooves slide104.5/139.333mm on first stopped frame, exceeding unchanged2mmcontact tolerance.",
+      "status": "Not fixed; not included in evidence-only PR74; no production changes."
     }
   }
 }
