@@ -6,15 +6,18 @@ import * as T from '../lib/three.module.min.js';
 import {createLiveAnimal} from '../live3d.js';
 import {createCow3D} from '../cow3d.js';
 const frozen=JSON.parse(readFileSync(new URL('./baselines/dog-face-protected.json',import.meta.url)));
+// Owner-authorized cat head/upper-leg correction has its own parent-frozen guard.
+const catFrozen=JSON.parse(readFileSync(new URL('./baselines/cat-visual-protected.json',import.meta.url)));
 const digest=s=>createHash('sha256').update(s).digest('hex');
-test('dog face correction preserves every other mesh, dog non-head vertex and rest bone',()=>{
+test('dog face correction and later authorized cat regions preserve frozen meshes and rest bones',()=>{
   const heights={cow:1.7,sheep:1.2,horse:2.3,dog:1.15,cat:.85,chicken:.72};
   for(const[k,h]of Object.entries(heights)){
     const r=k==='cow'?createCow3D(h):createLiveAnimal(k,h);
     try{
       const g=r.card.geometry,head=r.card.skeleton.bones.indexOf(r.head),attrs=Object.keys(g.attributes).sort(),values=[];
-      for(let i=0;i<g.attributes.position.count;i++)if(k!=='dog'||g.attributes.skinIndex.getX(i)!==head){for(const a of attrs){const v=g.attributes[a];for(let j=0;j<v.itemSize;j++)values.push(v.array[i*v.itemSize+j]);}}
-      assert.equal(digest(JSON.stringify(values)),frozen.rigs[k].geometryDigest,k+' protected mesh changed');
+      const authorizedCat=k==='cat'?new Set([r.head,...r.ears,...r.legs.map(l=>l.hip)].map(b=>r.card.skeleton.bones.indexOf(b))):new Set();
+      for(let i=0;i<g.attributes.position.count;i++)if((k!=='dog'||g.attributes.skinIndex.getX(i)!==head)&&!authorizedCat.has(g.attributes.skinIndex.getX(i))){for(const a of attrs){const v=g.attributes[a];for(let j=0;j<v.itemSize;j++)values.push(v.array[i*v.itemSize+j]);}}
+      assert.equal(digest(JSON.stringify(values)),(k==='cat'?catFrozen:frozen).rigs[k].geometryDigest,k+' protected mesh changed');
       assert.equal(digest(JSON.stringify(r.card.skeleton.bones.map(b=>({name:b.name,p:b.position.toArray(),q:b.quaternion.toArray(),parent:r.card.skeleton.bones.indexOf(b.parent)})))),frozen.rigs[k].bonesDigest,k+' rest/initial bone pose changed');
     }finally{r.dispose();}
   }
