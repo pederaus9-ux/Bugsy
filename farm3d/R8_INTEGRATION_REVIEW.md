@@ -51,3 +51,8 @@ The commit-workflow-run connector filters to PR-triggered runs; its empty respon
 Owner update,2026-10-11 19:49 America/Chicago: ChatGPT may initiate reviews and hosted tests when ready, without asking again. Publish this reviewed candidate on a dedicated branch/draft PR and run exact-head hosted regression under that standing authority. This supersedes the original delivery's separate CI permission requirement, not merge authorization. If hosted results fail, capture the exact job/log/artifact and diagnose the first failure; no relaxed gates or blind retries.
 
 No next animal phase, optional realism work, graphics reduction or release-complete declaration. Owner merge authorization remains pending.
+
+## Publication checkpoint
+
+Draft PR73: https://github.com/pederaus9-ux/Bugsy/pull/73
+Remote branch: codex/horse-r8-validated-integration. Initial reviewed runtime commit12616357f277ce665aea4be6dec920e153bd6e9e, treec0884f3c9e2e424aeae0c1863693a1df9b54471e matches local source exactly. Hosted regression176/run38189640123 began automatically. This relay-only follow-up records the PR; hosted validation must correspond to the final current PR head, not the superseded publication head. No merge.
