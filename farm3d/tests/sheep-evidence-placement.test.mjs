@@ -23,6 +23,23 @@ test('negative control reproduces sheep root-only staging errors',()=>{
     }finally{r.dispose();}
   }
 });
+test('stopping sheep contacts remain translated on subsequent idle updates',()=>{
+  for(const height of [.9,1.2]){
+    const r=stage(height,'walk');
+    try{
+      updateLiveAnimal(r,0,0,1/60,'idle',false);r.g.updateMatrixWorld(true);
+      const before=r.legs.map(l=>foot(l)),oldRoot=r.g.position.clone(),delta=new T.Vector3(1-oldRoot.x,0,15-oldRoot.z);
+      translateSheepEvidencePose(r,1,15);
+      for(let n=0;n<60;n++)updateLiveAnimal(r,0,0,1/60,'idle',false);
+      r.g.updateMatrixWorld(true);
+      for(const [i,l] of r.legs.entries()){
+        const f=foot(l),expected=before[i].clone().add(delta);
+        assert.ok(Math.hypot(f.x-expected.x,f.z-expected.z)<=.002,'stop cache follows test placement');
+        assert.ok(Math.hypot(f.x-l.ax,f.z-l.az)<=.002,'landed contact matches translated anchor');
+      }
+    }finally{r.dispose();}
+  }
+});
 test('sheep evidence translation preserves mesh, pose and contacts at both sizes',()=>{
   for(const height of [.9,1.2])for(const mode of ['idle','walk','run']){
     const r=stage(height,mode);

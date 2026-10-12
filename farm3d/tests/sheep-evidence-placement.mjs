@@ -5,5 +5,6 @@ export function translateSheepEvidencePose(r,x,z){
     if(Number.isFinite(l.ax))l.ax+=dx;
     if(Number.isFinite(l.az))l.az+=dz;
   }
+  if(r.state.sheepStop)for(const target of r.state.sheepStop.legs){target.x+=dx;target.z+=dz;}
   r.g.position.x=x;r.g.position.z=z;r.g.updateMatrixWorld(true);
 }

@@ -1,7 +1,7 @@
-# Sheep baseline audit
+# Sheep stopping contact and visual evidence audit
 
 Base: a43a032d629e4e314f10d3c70bb544f9bf97db51; branch codex/sheep-quality-audit.
-No production files changed. Horse and cow remain frozen.
+Initial baseline audit changed no production files. The subsequent sheep-only stop correction is described below. Horse and cow remain frozen.
 
 ## Verified
 
@@ -25,7 +25,7 @@ A separate camera-follow capture script produces three idle views and six sequen
 
 Additional exact-head probes at56a1775: height1.2;30/60/120Hz;4seconds each: walk0.78m/s for1second then stop, left/right90degree turn, or straight run1.68m/s throughout. Worst planted horizontal error1.223e-11mm; sampled actual soles within0.000001mm of ground. Final turn yaw +/-pi/2; stop amount0. These do not establish natural transitions. Idle intentionally releases planted flags; flag counts alone are not physical support. Continuous capture now samples every20frames for120frames/2seconds, exceeding one0.62m stride at0.35m/s.
 
-## Proven production hard-stop defect (not fixed by evidence PR)
+## Reproduced production hard-stop defect (subsequent local correction)
 
 Reproduction on published source candidate56a1775, whose production sheep/shared solver are identical to maina43a032: createLiveAnimal('sheep',1.2); walk at0.78m/s for exactly1second with matching root movement and updateLiveAnimal(...,'walk',false), at each30/60/120Hz. Record actual foot world positions, then one updateLiveAnimal(r,0,0,1/hz,'idle',false) without moving root. Previously planted legs1/2 move139.333mm in one frame; swinging legs0/3 move210.903mm. This occurs identically across all rates. Idle sole grounding is not proof of continuous stopping.
 
@@ -33,8 +33,14 @@ Root cause: updateQuadruped sets state.amount to0 immediately when input distanc
 
 Required correction: preserve current world contacts and finish/recover ongoing steps during stopping, scoped to sheep and preserving other animals. Optional wool/joint art polish is separate. No threshold loosened. Shared quadruped code also serves dog/cat: do not modify its default behavior casually. A sheep-only opt-in recovery prototype and continuous camera-follow stop evidence are the next discriminating experiments after corrected baseline capture. Current evidence PR contains no production fix and does not accept this defect.
 
-## Hosted capture and independent framing rejection
+## Hosted capture and visual framing rejection
 
 At39600b0, regression181's six-species job passed, including corrected staging and new two-second continuous sheep capture. Artifact11724245223 SHA256674e9e343766e0de19307a41052b06c66fc00db161746f90b91288825dd060a6 verified. Browser errors0; worst contact1.8874e-12mm. Actual gallery was inspected and rejected for full anatomy review: head/ears clipped by the fixed camera window.
 
 Correction changes camera framing only, fitting actual skinned vertices with12percent margin at unchanged390x250 per-cell resolution. Adds an assertion that every projected sheep vertex is inside0.98 of the viewport. Node experiment across the same9poses: old projected extent1.2196428 (clipped; boundary1), corrected0.89285714. Syntax and3local tests pass; corrected browser render remains pending. No production file or existing assertion changed.
+
+## Current integration candidate
+
+PR74 is consolidated around sheep stopping contact plus faithful evidence. Sheep3d.js holds stationary world contacts and settles swinging feet using remaining gait timing; geometry/rest definitions and default shared solver are unchanged. The new stop regression and recovery-aware test staging are included in the existing animal job.31/31local tests pass, including sixoriginal failures,48gait-phase stop/restart/teleport cases and12turn-stop cases. New continuous stop render evidence and final exact-head hosted qualification remain pending. This is ChatGPT implementation plus self-review; no external-agent audit or owner visual approval claimed.
+
+Evidence-only parenta4d688b passed7/7regression182 jobs. Its complete9-viewgallery was inspected with no clipping; artifact11723714169 digest69c87e5d66a2003b247b16fe17005b2f73346a3c5046e782e38df135096fe221. Those passing results do not qualify the newer production stop correction. Optional wool/limb art changes are deferred. See SHEEP_STOP_DIAGNOSIS.md for reproduction, numerical and performance evidence.

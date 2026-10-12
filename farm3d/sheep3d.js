@@ -81,5 +81,45 @@ export function poseSheepLeg(leg,tz,lift){
   leg.foot.rotation.x=-leg.hip.rotation.x-leg.knee.rotation.x;
 }
 export function updateSheep3D(r,dx,dz,dt,mode='walk'){
+  if(!(dt>0)||!Number.isFinite(dt))return;
+  const distance=Math.hypot(dx,dz),s=r.state;
+  if(distance>0){
+    s.sheepStop=null;
+    if(distance<=1.5){s.lastSheepSpeed=distance/dt;s.lastSheepMode=mode;}
+  }else if(s.amount>0&&!s.sheepStop){
+    // Retain actual world contacts instead of snapping all feet to neutral.
+    r.g.updateMatrixWorld(true);
+    const scale=r.model.scale.x,ground=r.g.position.y+r.spec.hoof*scale;
+    const cycle=r.spec.stride*(s.lastSheepMode==='run'?1.35:1)*scale/Math.max(s.lastSheepSpeed||0,.9*scale*.65);
+    const stop=r.sheepStopCache||=( {elapsed:0,point:new THREE.Vector3(),legs:r.legs.map(()=>({}))} );
+    stop.elapsed=0;
+    for(let i=0;i<r.legs.length;i++){
+      const l=r.legs[i],p=l.foot.getWorldPosition(stop.point),target=stop.legs[i];
+      target.x=p.x;target.z=p.z;target.y=Math.max(ground,p.y);
+      target.duration=Math.max(dt,(1-(s.phase+l.phase)%1)*cycle);target.yaw=l.planted?l.ayaw:r.model.rotation.y;
+    }
+    s.sheepStop=stop;
+  }
   updateQuadruped(r,dx,dz,dt,mode);
+  if(!s.sheepStop)return;
+  const stop=s.sheepStop,scale=r.model.scale.x,c=r.spec,yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);
+  stop.elapsed+=dt;
+  for(let i=0;i<r.legs.length;i++){
+    const l=r.legs[i];
+    const target=stop.legs[i],u=Math.min(1,stop.elapsed/target.duration),blend=u*u*u*(10+u*(-15+6*u));
+    const ground=r.g.position.y+c.hoof*scale,yWorld=target.y+(ground-target.y)*blend,lift=(yWorld-ground)/scale;
+    const wx=(target.x-r.g.position.x)/scale,wz=(target.z-r.g.position.z)/scale,tx=wx*cos-wz*sin-l.x,tz=wx*sin+wz*cos-l.z;
+    // Same leg solve and reach margin as the existing shared walking updater.
+    const rootY=Math.min(c.hip,c.hoof+lift+Math.sqrt(Math.max(0,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
+    l.hip.position.y=rootY-c.bodyY;
+    const y=rootY-c.hoof-lift,dist=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
+    let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
+    const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi),alpha=Math.atan2(horizontal,y);
+    const delta=Math.acos(clamp((c.upper*c.upper+dist*dist-c.lower*c.lower)/(2*c.upper*dist),-1,1));
+    const bend=Math.acos(clamp((dist*dist-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
+    l.hip.rotation.set(alpha-(l.z<0?1:-1)*delta,phi,0);l.knee.rotation.x=(l.z<0?1:-1)*bend;
+    l.planted=lift<1e-8;l.ax=target.x;l.az=target.z;l.ayaw=target.yaw;
+    l.foot.quaternion.copy(l.hip.quaternion).multiply(l.knee.quaternion).invert();
+    l.foot.quaternion.multiply(r.q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,target.yaw-yaw));
+  }
 }

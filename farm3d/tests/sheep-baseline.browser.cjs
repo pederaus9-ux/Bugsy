@@ -12,7 +12,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
       const T=await import('/farm3d/lib/three.module.min.js');
       const {createSheep3D,updateSheep3D}=await import('/farm3d/sheep3d.js');
       document.body.innerHTML='';document.body.style='margin:0;background:#e4e0d4;font:16px Arial';
-      const title=document.createElement('h2');title.textContent='Sheep baseline — production rig · idle and continuous walk';document.body.append(title);
+      const title=document.createElement('h2');title.textContent='Sheep — production rig · idle, continuous walk and stop recovery';document.body.append(title);
       const grid=document.createElement('div');grid.style='display:grid;grid-template-columns:repeat(3,390px)';document.body.append(grid);
       const renderer=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(390,250);
       const scene=new T.Scene();scene.background=new T.Color(0xe4e0d4);
@@ -52,13 +52,27 @@ const {start,artifacts}=require('./browser-harness.cjs');
         }
         capture('Walk '+(sample+1)+' · frame '+((sample+1)*20),Math.PI/2);
       }
+      // Continue the same rig: root stops; camera still follows actual geometry.
+      r.g.updateMatrixWorld(true);
+      const stoppedXZ=r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()));
+      let idleFrame=0;
+      for(const frames of [1,2,7,10,20,20]){
+        for(let n=0;n<frames;n++){
+          updateSheep3D(r,0,0,1/60,'idle');r.g.updateMatrixWorld(true);idleFrame++;
+          for(let i=0;i<r.legs.length;i++){
+            const f=r.legs[i].foot.getWorldPosition(new T.Vector3());
+            worstContact=Math.max(worstContact,Math.hypot(f.x-stoppedXZ[i].x,f.z-stoppedXZ[i].z));
+          }
+        }
+        capture('Stop · frame '+idleFrame,Math.PI/2);
+      }
       await Promise.all([...grid.querySelectorAll('img')].map(img=>img.decode()));
       if(worstContact>.002)throw new Error('sheep continuous capture contact error '+worstContact);
       renderer.dispose();r.dispose();ground.geometry.dispose();ground.material.dispose();return {rows,worstContactM:worstContact};
     });
-    await s.page.screenshot({path:path.join(artifacts,'sheep-baseline-gallery.png'),scale:'css'});
+    await s.page.screenshot({path:path.join(artifacts,'sheep-baseline-gallery.png'),scale:'css',fullPage:true});
     fs.writeFileSync(path.join(artifacts,'sheep-baseline-metrics.json'),JSON.stringify({metrics,errors:s.errors},null,2));
     if(s.errors.length)throw new Error(s.errors.join('\n'));
-    console.log('Sheep baseline: 3 idle views, 6 continuous walk samples; no browser errors');failed=false;
+    console.log('Sheep: 3 idle views, 6 continuous walk and 6 continuous stop samples; no browser errors');failed=false;
   }finally{await h.close(failed);}
 })().catch(e=>{console.error(e);process.exitCode=1;});

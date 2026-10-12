@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T02:47:11.389851+00:00",
+  "lastUpdatedUtc": "2026-10-12T03:15:35.383770+00:00",
   "codeBaseline": {
     "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
     "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
@@ -22,10 +22,10 @@
   },
   "currentProgram": "remaining animal quality audits",
   "completedThrough": "Horse R8 PR #73 merged; post-merge regression #178 passed 7/7; Pages deployment succeeded",
-  "currentPhase": "SHEEP_QUALITY_AUDIT",
-  "currentPhaseTitle": "Read-only sheep anatomy, locomotion and evidence audit",
-  "phaseStatus": "PR74_CONTACT_CAPTURE_PASS_FRAMING_CORRECTION_HOSTED_PENDING",
-  "visualAcceptance": "SHEEP_PENDING_OWNER_REVIEW",
+  "currentPhase": "SHEEP_STOP_CONTACT_REPAIR",
+  "currentPhaseTitle": "Sheep-only stop contact recovery and faithful motion evidence",
+  "phaseStatus": "STOP_RECOVERY_LOCAL_PASS_HOSTED_VISUAL_PENDING",
+  "visualAcceptance": "SHEEP_PENDING_OWNER_MOTION_DEVICE_REVIEW",
   "activePullRequest": 74,
   "nextPhases": [
     "Run exact-head hosted CI and inspect corrected sheep captures",
@@ -867,6 +867,25 @@
       "diagnosticHead": "678e061daa6a249ca667f956021d8d573b8a664d",
       "test": "sheep-stop-continuity.test.mjs:6/6FAIL at heights0.9/1.2 and30/60/120Hz; actual grounded hooves slide104.5/139.333mm on first stopped frame, exceeding unchanged2mmcontact tolerance.",
       "status": "Not fixed; not included in evidence-only PR74; no production changes."
+    },
+    "completeEvidence": {
+      "head": "a4d688b7860ee59150d8b7268e4825f825ecc09e",
+      "regression": 182,
+      "result": "7/7 hosted jobs passed; complete nine-view sheep gallery inspected, zero clipping/errors/contact drift; no owner visual approval claimed.",
+      "artifact": 11723714169,
+      "sha256": "69c87e5d66a2003b247b16fe17005b2f73346a3c5046e782e38df135096fe221"
     }
+  },
+  "sheepStopRecovery": {
+    "branch": "codex/sheep-evidence-baseline",
+    "pr": 74,
+    "baseMain": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
+    "evidenceParentHead": "a4d688b7860ee59150d8b7268e4825f825ecc09e",
+    "implementation": "Sheep-only zero-input recovery holds actual foot world x/z, settles swing height using remaining gait timing and the existing leg solve, reuses per-rig scratch data, releases recovery on resumed movement/teleport. Geometry and shared quadruped solver unchanged.",
+    "tests": "31/31 local selected tests pass; original six stop failures now pass; 48 gait-phase stop/restart/teleport scenarios and12 turn-stop scenarios pass without changing2mmcontact/sole thresholds; original species/module/version tests pass.",
+    "measurements": "48stop scenarios: horizontal movement2.776e-12mm worst; actual final soles grounded within0.000001mm.",
+    "performance": "Node7batches x5000updates x6sheep: walking main0.012195ms vs prototype0.012312ms; stopped main0.010499ms vs prototype0.019986ms (additional0.009487ms/six,1.90x). Not phone/browser timing.",
+    "browser": "New six-sample stop sequence from same moving rig and full-page contact sheet require hosted execution on the new production candidate.",
+    "remaining": "Owner visual/device acceptance, exact-head hostedCI, rendered stop and restart continuity inspection; no release or merge authorization. Optional wool/joint art polish remains separate."
   }
 }
