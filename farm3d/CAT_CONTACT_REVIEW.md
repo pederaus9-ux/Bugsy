@@ -36,3 +36,27 @@ Camera follows the same real cat rig across3resting views,3head closeups and30co
 Hosted browser suites and rendered capture inspection are pending; no local browser execution or owner approval is claimed. A passing job will not establish visual acceptance. ChatGPT self-review is not an independent external-agent audit. No merge is authorized.
 
 All four original six-species visual geometry/contact/cadence assertions pass in isolated processes with original limits. Syntax checks and git diff --check pass.
+
+## Owner-rejected visual correction preflight
+
+2026-10-12T10:36:34-05:00: owner states the cat visuals are not right after reviewing the real render. Continuing the proposed bounded face and leg-attachment correction. Main remains4741a44; PR77 head7fbb7ac/tree5eaeafaf. Regression190 retry passed7/7; art66 passed. No visual acceptance or merge permission.
+
+Implementation branchcodex/cat-visual-correction; delivery remainsPR77/codex/cat-contact-audit with an expected-head safeguard. Production targetquadruped3d.js: cat-only head/ear surfaces and a continuous upper-leg volume whose top vertices follow the body. No gait, bone/rest, knee/lower-leg/paw, body/tail, other-species geometry, material/mesh/public API, gameplay/save/backend or serviceworker change.
+
+Before editing, frozen cat-visual-protected.json was generated from exact parenttree5eaeafaf. Only cat head, ears and upper-leg geometry are authorized exclusions; every other species and cat bone/lower-leg/paw/body/tail remains fingerprinted. The earlier dog snapshot's full-cat geometry guard must recognize these newly authorized regions through this separately frozen partial-cat fingerprint. Its original immutable snapshot file is not altered. This updates scope, not contact/animation/performance thresholds.
+
+Acceptance: each upper leg is one connected volume, anchored inside the actual body mesh through idle/walk/run/turn/stop; knee attachment and actual sole tests remain intact; one centered pink triangular nose, two compact cheek pads, mouth and whiskers replace the pig nostril pair; ears meet the skull. Run all contact and protected-mesh checks; inspect actual hosted36-view sheet and farm images; owner visual/gameplay approval remains required.
+
+## Visual candidate implementation and validation
+
+Cat-only template branches replace the separated upper-leg pieces with one tapered connected surface. Top vertices follow the body and lower vertices follow the existing hip, preserving the original bones, solver and paw geometry. Compact cheek pads, a centered triangular pink nose, mouth, six whiskers, forward green slit eyes and embedded ears replace the prior snout. Body/tail/lower legs and other species remain fingerprint-identical.
+
+Three visual checks: the protected-mesh guard passes on parent; identity and upper-leg continuity fail on parent and pass on candidate. Actual top anchors remain inside the skinned body through walk/run/turn/stop at heights0.4/0.85 and30/60/120Hz. Upper ends meet the knee surface; actual sole/contact/restart limits remain unchanged.
+
+An initial blended-weight prototype failed the original1e-8m staging translation assertion: stored Float32 weights summed1.0000000298023224, creating2.086162576e-8m drift. The cause was corrected by quantizing build-time blend weights to binary1/256fractions so stored weights sum exactly1. No assertion was loosened.
+
+Resource count:3464 to3776triangles (+312),21bones,one skinnedmesh/material. Geometry and weights are built once per template; no new per-frame geometry work or gait logic. Phone/GPU performance is unmeasured; existing hosted performance gates remain required.
+
+ChatGPT performs adversarial self-review, not an external independent-agent audit. New actual renders and owner acceptance remain pending. No merge authorized.
+
+Final local validation:56/56 selected tests and all four original six-species geometry/contact/cadence assertions PASS; syntax and diff checks PASS. Exact-head hosted results are still pending.
