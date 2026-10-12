@@ -1,4 +1,4 @@
-// Motion evidence: real candidate chicken, sampled without relochickening contacts.
+// Motion evidence: real candidate chicken, sampled without relocating contacts.
 const fs=require('fs');
 const path=require('path');
 const {start,artifacts}=require('./browser-harness.cjs');
@@ -44,7 +44,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
         renderer.render(scene,camera);
         const box=document.createElement('figure');box.style='margin:0';const img=document.createElement('img');img.src=renderer.domElement.toDataURL();box.append(img);const caption=document.createElement('figcaption');caption.textContent=label;box.append(caption);grid.append(box);
         if(face)faceImages.push({label,dataURL:img.src});
-        rows.push({label,maxProjectedExtent,root:r.g.position.toArray(),phase:r.state.phase,feet:r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()).toArray()),hipY:r.legs.map(l=>l.hip.position.y),planted:r.legs.map(l=>l.planted)});
+        rows.push({label,maxProjectedExtent,root:r.g.position.toArray(),phase:r.state.phase,feet:r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()).toArray()),hipY:r.legs.map(l=>l.hip.position.y),bodyDrop:r.chickenController.bodyDrop,contactStates:r.chickenController.feet.map(f=>f.state),planted:r.legs.map(l=>l.planted)});
       }
       updateChicken3D(r,0,0,1/60,'idle');
       capture('Idle front',0);capture('Idle side',Math.PI/2);capture('Idle rear',Math.PI);
@@ -95,6 +95,16 @@ const {start,artifacts}=require('./browser-harness.cjs');
         }
         capture('Run stop · frame '+idleFrame,Math.PI/2);
       }
+      for(const [label,side]of [['90° right turn',1],['180° reversal',-1]]){
+        let turnFrame=0;
+        for(const frames of [1,2,7,10,20,20]){
+          for(let n=0;n<frames;n++){
+            const dx=side*.8/60;r.g.position.x+=dx;updateChicken3D(r,dx,0,1/60,'walk');r.g.updateMatrixWorld(true);turnFrame++;
+            for(const l of r.legs)if(l.planted){const f=l.foot.getWorldPosition(new T.Vector3());worstContact=Math.max(worstContact,Math.hypot(f.x-l.ax,f.z-l.az));}
+          }
+          capture(label+' · frame '+turnFrame,Math.PI/4);
+        }
+      }
       await Promise.all([...grid.querySelectorAll('img')].map(img=>img.decode()));
       if(worstContact>.002)throw new Error('chicken continuous capture contact error '+worstContact);
       renderer.dispose();r.dispose();ground.geometry.dispose();ground.material.dispose();return {rows,worstContactM:worstContact,faceImages};
@@ -104,6 +114,6 @@ const {start,artifacts}=require('./browser-harness.cjs');
     delete metrics.faceImages;
     fs.writeFileSync(path.join(artifacts,'chicken-baseline-metrics.json'),JSON.stringify({metrics,errors:s.errors},null,2));
     if(s.errors.length)throw new Error(s.errors.join('\n'));
-    console.log('Chicken: 3 idle views,3face close-ups plus30continuous walk/stop/restart/run/run-stop samples; no browser errors');failed=false;
+    console.log('Chicken: 3 idle views,3face close-ups plus42continuous walk/stop/restart/run/run-stop/turn/reversal samples; no browser errors');failed=false;
   }finally{await h.close(failed);}
-})().chickench(e=>{console.error(e);process.exitCode=1;});
+})().catch(e=>{console.error(e);process.exitCode=1;});

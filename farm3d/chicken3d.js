@@ -1,5 +1,4 @@
 import * as THREE from './lib/three.module.min.js';
-import {updateQuadruped} from './quadruped3d.js';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 let template;
 function build(){
@@ -45,72 +44,106 @@ export function createChicken3D(height=.35,x=0,z=0){
   const rig={g,model,card,body:bones[t.slots.body],neck:bones[t.slots.neck],head:bones[t.slots.head],wings:t.slots.wings.map(i=>bones[i]),ears:[],tail:[],legs,spec:{bodyY:.28,hip:.2,upper:.08,lower:.08,hoof:.04,stride:.28,lift:.025},state:{phase:0,amount:0,time:0},q:new THREE.Quaternion(),disposed:false};
   rig.dispose=()=>{if(!rig.disposed){card.skeleton.dispose();rig.disposed=true;}};updateChicken3D(rig,0,0,1/60);return rig;
 }
-// Chicken-specific recovery; the shared walking solver and geometry stay unchanged.
+// One controller owns both contacts. Body height is shared: hip attachments never
+// move independently to conceal an unreachable foot target.
+function chickenController(r){
+  return r.chickenController||={initialized:false,next:0,bodyDrop:.001,point:new THREE.Vector3(),
+    feet:r.legs.map(()=>({state:'stance',x:0,y:0,z:0,yaw:0,fromX:0,fromY:0,fromZ:0,elapsed:0,duration:0,targetX:0,targetY:0,targetZ:0}))};
+}
 export function updateChicken3D(r,dx,dz,dt,mode='walk'){
   if(!(dt>0)||!Number.isFinite(dt))return;
-  const distance=Math.hypot(dx,dz),s=r.state,scale=r.model.scale.x,c=r.spec;
-  if(distance>0){
-    if(distance>1.5){s.chickenStop=null;s.chickenResume=null;}
-    else{
-      if(s.chickenStop){
-        r.g.updateMatrixWorld(true);
-        const resume=r.chickenResumeCache||={elapsed:0,point:new THREE.Vector3(),legs:r.legs.map(()=>({}))};
-        resume.elapsed=0;
-        const cycle=c.stride*(mode==='run'?1.35:1)*scale/Math.max(distance/dt,.52*scale*.65);
-        resume.duration=Math.min(.15,cycle*(mode==='run'?.55:.45));
-        for(let i=0;i<r.legs.length;i++){
-          const p=r.legs[i].foot.getWorldPosition(resume.point),target=resume.legs[i];
-          // Caller already advanced the root; recover the preceding world pose.
-          target.x=p.x-dx;target.y=p.y;target.z=p.z-dz;
-        }
-        s.chickenResume=resume;
-      }
-      s.chickenStop=null;s.lastChickenSpeed=distance/dt;s.lastChickenMode=mode;
-    }
-  }else if(s.amount>0&&!s.chickenStop){
-    // Retain actual world contacts instead of snapping all feet to neutral.
+  const s=r.state,c=r.spec,scale=r.model.scale.x,p=chickenController(r);
+  const distance=Math.hypot(dx,dz),teleport=distance>1.5,moving=distance>0&&!teleport;
+  const speed=moving?distance/dt:0;
+  if(!p.initialized||teleport){
+    // Factory/reset poses use the original neutral sole height and hip positions.
+    r.body.position.y=c.bodyY-.001;
+    for(const l of r.legs){l.hip.position.y=c.hip-c.bodyY;l.hip.rotation.set(0,0,0);l.knee.rotation.x=0;l.foot.quaternion.identity();}
     r.g.updateMatrixWorld(true);
-    const ground=r.g.position.y+c.hoof*scale;
-    const cycle=c.stride*(s.lastChickenMode==='run'?1.35:1)*scale/Math.max(s.lastChickenSpeed||0,.52*scale*.65);
-    const stop=r.chickenStopCache||={elapsed:0,point:new THREE.Vector3(),legs:r.legs.map(()=>({}))};
-    stop.elapsed=0;
-    for(let i=0;i<r.legs.length;i++){
-      const l=r.legs[i],p=l.foot.getWorldPosition(stop.point),target=stop.legs[i];
-      target.x=p.x;target.z=p.z;target.y=Math.max(ground,p.y);
-      target.duration=Math.max(dt,(1-(s.phase+l.phase)%1)*cycle);target.yaw=l.planted?l.ayaw:r.model.rotation.y;
+    for(let i=0;i<2;i++){
+      const f=p.feet[i],l=r.legs[i],v=l.foot.getWorldPosition(p.point);
+      f.x=v.x-(moving?dx:0);f.z=v.z-(moving?dz:0);f.y=r.g.position.y+c.hoof*scale;f.yaw=r.model.rotation.y;f.state='stance';f.elapsed=0;
+      l.planted=false;l.ax=f.x;l.az=f.z;l.ayaw=f.yaw;
     }
-    s.chickenStop=stop;s.chickenResume=null;
+    p.initialized=true;p.next=0;s.chickenStop=null;s.chickenResume=null;s.lastChickenMoving=false;s.everChickenMoved=false;
   }
-  updateQuadruped(r,dx,dz,dt,mode);
-  r.head.rotation.x=Math.sin(r.state.amount>.1?r.state.phase*12:r.state.time*1.5)*.06;
-  if(s.chickenStop){
-    const stop=s.chickenStop;stop.elapsed+=dt;
-    for(let i=0;i<r.legs.length;i++){
-      const l=r.legs[i],target=stop.legs[i],u=Math.min(1,stop.elapsed/target.duration),blend=smooth(u);
-      const ground=r.g.position.y+c.hoof*scale,y=target.y+(ground-target.y)*blend;
-      poseChickenWorldTarget(r,l,target.x,y,target.z,target.yaw);
-      l.planted=y-ground<1e-8;l.ax=target.x;l.az=target.z;l.ayaw=target.yaw;
+  s.amount=mode==='idle'?0:clamp(speed/.04,0,1);
+  s.phase=(s.phase+(moving?distance:0)/scale/(c.stride*(mode==='run'?1.35:1)))%1;s.time+=dt;
+  let desired=r.model.rotation.y;
+  if(speed>.02){desired=Math.atan2(-dx,-dz);const delta=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(delta),Math.cos(delta))*(1-Math.exp(-dt*12));}
+  const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),ground=r.g.position.y+c.hoof*scale;
+  if(!moving){
+    if(s.lastChickenMoving){
+      const stop=r.chickenStopCache||={elapsed:0,legs:r.legs.map(()=>({}))};stop.elapsed=0;s.chickenStop=stop;s.chickenResume=null;
+      for(let i=0;i<2;i++){const f=p.feet[i],t=stop.legs[i];t.x=f.x;t.z=f.z;t.y=f.y;t.duration=Math.max(dt,f.duration-f.elapsed);t.yaw=f.yaw;}
     }
-  }else if(s.chickenResume){
-    const resume=s.chickenResume;resume.elapsed+=dt;
-    const u=Math.min(1,resume.elapsed/resume.duration);
-    if(u===1){s.chickenResume=null;return;}
-    const blend=smooth(u);r.g.updateMatrixWorld(true);
-    for(let i=0;i<r.legs.length;i++){
-      const l=r.legs[i];if(l.planted)continue; // Established contacts remain fixed.
-      const from=resume.legs[i],to=l.foot.getWorldPosition(resume.point);
-      poseChickenWorldTarget(r,l,from.x+(to.x-from.x)*blend,from.y+(to.y-from.y)*blend,from.z+(to.z-from.z)*blend,r.model.rotation.y);
+    if(s.chickenStop){const stop=s.chickenStop;stop.elapsed+=dt;for(let i=0;i<2;i++){const f=p.feet[i],t=stop.legs[i];f.x=t.x;f.z=t.z;f.y=t.y+(ground-t.y)*smooth(Math.min(1,stop.elapsed/t.duration));f.state=f.y-ground<1e-8?'stance':'settle';}}
+  }else{
+    if(s.chickenStop){const resume=r.chickenResumeCache||={elapsed:0,legs:[]};resume.elapsed=0;resume.duration=.15;s.chickenResume=resume;s.chickenStop=null;}
+    if(s.chickenResume){s.chickenResume.elapsed+=dt;if(s.chickenResume.elapsed>=s.chickenResume.duration)s.chickenResume=null;}
+    // Finish the active swing before handing support to the opposite foot.
+    for(let i=0;i<2;i++){
+      const f=p.feet[i];if(f.state==='settle'){f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=-dt;f.duration=Math.max(dt,.085*scale/speed);}
+      if(f.state!=='swing')continue;
+      const other=p.feet[1-i],l=r.legs[i],o=r.legs[1-i];
+      const ox=r.g.position.x+(o.x*cos+o.z*sin)*scale,oz=r.g.position.z+(o.z*cos-o.x*sin)*scale;
+      const supportReach=Math.hypot(other.x-ox,other.z-oz)/scale;
+      // New input can invalidate the original forecast. Shorten the remaining
+      // handover before the supporting foot leaves reach; never discard it.
+      const supportTime=Math.max(dt,(.12-supportReach)*scale/speed);
+      f.duration=Math.min(f.duration,f.elapsed+supportTime);
+      f.elapsed+=dt;const u=Math.min(1,f.elapsed/f.duration),blend=u*u*(3-2*u);
+      const remaining=Math.max(0,f.duration-f.elapsed),futureYaw=desired+Math.atan2(Math.sin(yaw-desired),Math.cos(yaw-desired))*Math.exp(-12*remaining);
+      const fc=Math.cos(futureYaw),fs=Math.sin(futureYaw),lead=.055*scale;
+      let x=r.g.position.x+dx/dt*remaining+(l.x*fc+l.z*fs)*scale+dx/distance*lead;
+      let z=r.g.position.z+dz/dt*remaining+(l.z*fc-l.x*fs)*scale+dz/distance*lead;
+      const hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale;
+      // Reach the moving landing point continuously, and validate the actual
+      // interpolated path in the current frame rather than sampled guesses.
+      x=f.fromX+(x-f.fromX)*blend;z=f.fromZ+(z-f.fromZ)*blend;
+      const radius=.135*scale,len=Math.hypot(x-hx,z-hz);if(len>radius){x=hx+(x-hx)*radius/len;z=hz+(z-hz)*radius/len;}
+      f.x=x;f.z=z;f.y=ground+(f.fromY-ground)*(1-blend)+c.lift*scale*16*u*u*(1-u)*(1-u);f.yaw=yaw;
+      if(u===1){f.state='stance';f.y=ground;p.next=1-i;}
+    }
+    if(p.feet[0].state==='stance'&&p.feet[1].state==='stance'){
+      // A grounded contact is released only after the opposite foot has landed.
+      let i=p.next,max=0;
+      for(let j=0;j<2;j++){const l=r.legs[j],hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale,d=Math.hypot(p.feet[j].x-hx,p.feet[j].z-hz)/scale;if(d>max){max=d;i=j;}}
+      if(max>.035){const f=p.feet[i];f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=0;f.duration=Math.max(dt,.085*scale/speed);}
+    }
+    // A new handover can be requested on the same frame the opposite foot
+    // lands. Validate its takeoff too, especially after a speed increase.
+    for(let i=0;i<2;i++){
+      const f=p.feet[i];if(f.state!=='swing')continue;
+      const l=r.legs[i],hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale;
+      const radius=.135*scale,len=Math.hypot(f.x-hx,f.z-hz);
+      if(len>radius){f.x=hx+(f.x-hx)*radius/len;f.z=hz+(f.z-hz)*radius/len;f.y=Math.max(f.y,ground+c.lift*scale*Math.min(1,dt/f.duration));}
     }
   }
+  s.lastChickenMoving=moving;if(moving)s.everChickenMoved=true;
+  // Solve both feet with a common body height, preserving body/thigh attachment.
+  let rootY=c.hip-.001;
+  for(let i=0;i<2;i++){
+    const f=p.feet[i],l=r.legs[i],wx=(f.x-r.g.position.x)/scale,wz=(f.z-r.g.position.z)/scale;
+    const tx=wx*cos-wz*sin-l.x,tz=wx*sin+wz*cos-l.z;
+    rootY=Math.min(rootY,c.hoof+(f.y-ground)/scale+Math.sqrt(Math.max(0,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
+  }
+  p.bodyDrop=c.hip-rootY;r.body.position.y=s.everChickenMoved?c.bodyY-p.bodyDrop:c.bodyY;
+  for(let i=0;i<2;i++){
+    const f=p.feet[i],l=r.legs[i];poseChickenWorldTarget(r,l,f.x,f.y,f.z,f.yaw,rootY);
+    l.planted=!teleport&&f.state==='stance';l.ax=f.x;l.az=f.z;l.ayaw=f.yaw;
+    f.targetX=f.x;f.targetY=f.y;f.targetZ=f.z;
+  }
+  r.neck.rotation.x=Math.sin(s.phase*6.28)*.04*s.amount;
+  r.head.rotation.y=Math.sin(s.time*.65)*.10*(1-s.amount);
+  r.head.rotation.x=Math.sin(s.amount>.1?s.phase*12:s.time*1.5)*.06;
 }
 const smooth=u=>u*u*u*(10+u*(-15+6*u));
-function poseChickenWorldTarget(r,l,x,yWorld,z,footYaw){
+function poseChickenWorldTarget(r,l,x,yWorld,z,footYaw,rootY){
   const scale=r.model.scale.x,c=r.spec,yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);
   const ground=r.g.position.y+c.hoof*scale,lift=(yWorld-ground)/scale;
   const wx=(x-r.g.position.x)/scale,wz=(z-r.g.position.z)/scale,tx=wx*cos-wz*sin-l.x,tz=wx*sin+wz*cos-l.z;
-  // Identical adaptive root height, reach margin and joint solve to shared gait.
-  const rootY=Math.min(c.hip,c.hoof+lift+Math.sqrt(Math.max(0,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
-  l.hip.position.y=rootY-c.bodyY;
+  l.hip.position.y=rootY-r.body.position.y;
   const y=rootY-c.hoof-lift,dist=Math.min(c.upper+c.lower-.001,Math.hypot(tx,tz,y));
   let phi=Math.atan2(tx,tz);if(phi>Math.PI/2)phi-=Math.PI;if(phi<-Math.PI/2)phi+=Math.PI;
   const horizontal=Math.abs(tz)<1e-8?(Math.abs(tx)<1e-8?0:-tx/Math.sin(phi)):-tz/Math.cos(phi),alpha=Math.atan2(horizontal,y);

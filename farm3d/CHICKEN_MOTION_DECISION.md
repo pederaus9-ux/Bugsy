@@ -1,6 +1,10 @@
 # Sunny Acres — chicken motion repair decision
 
-## Decision requested
+## Decision resolved — October 12, 2026
+
+The owner explicitly authorized the recommended coordinated repair with “Repair it” at 17:27 America/Chicago. See `CHICKEN_COORDINATED_REVIEW.md` for implementation and current validation. The experiments below remain historical evidence; their blockers do not describe the new controller. No merge was authorized.
+
+## Original decision request
 
 Authorize a coordinated chicken foot controller, or explicitly defer the chicken milestone while keeping its defects on the release-blocker list. No merge is requested.
 

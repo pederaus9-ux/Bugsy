@@ -13,7 +13,7 @@ export function measureChickenTurns(create=createChicken3D,update=updateChicken3
     for(let i=0;i<2;i++){
      minSole=Math.min(minSole,now[i].sole);
      if(n>0&&prev[i].plant&&prev[i].sole<=1e-7&&now[i].sole<=1e-7){const slip=Math.hypot(now[i].f.x-prev[i].f.x,now[i].f.z-prev[i].f.z);maxSlip=Math.max(maxSlip,slip);if(slip>.002&&!first)first={n,i,type:'contact',mm:slip*1000};}
-     const p=r.chickenLiftCache?.[i],wanted=(p?.active||p?.hold)?{x:p.targetX,y:p.targetY,z:p.targetZ}:r.experimentExpected?.[i];if(wanted){const error=now[i].f.distanceTo(new T.Vector3(wanted.x,wanted.y,wanted.z));maxTarget=Math.max(maxTarget,error);if(error>.002&&!first)first={n,i,type:'target',mm:error*1000};}
+     const p=r.chickenLiftCache?.[i],wanted=(p?.active||p?.hold)?{x:p.targetX,y:p.targetY,z:p.targetZ}:r.chickenController?.feet[i]??r.experimentExpected?.[i];if(wanted){const error=now[i].f.distanceTo(new T.Vector3(wanted.x,wanted.y,wanted.z));maxTarget=Math.max(maxTarget,error);if(error>.002&&!first)first={n,i,type:'target',mm:error*1000};}
     }prev=now;
    }
    cases++;worstSlip=Math.max(worstSlip,maxSlip);worstTarget=Math.max(worstTarget,maxTarget);
