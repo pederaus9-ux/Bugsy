@@ -4,38 +4,42 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T06:03:26.049294+00:00",
+  "lastUpdatedUtc": "2026-10-12T11:21:54.632485+00:00",
   "codeBaseline": {
-    "description": "Sheep stop contact recovery and faithful visual evidence merged by owner instruction",
-    "mergeCommit": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
-    "pr": 74,
+    "description": "Owner-approved sheep stopping plus validated test-only capture reset integrated",
+    "mergeCommit": "ae30cc0c2dcf43145654de6bc7ce5413b807bb5e",
+    "pr": 75,
     "previousBaseline": {
-      "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
-      "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
-      "pr": 73,
+      "description": "Sheep stop contact recovery and faithful visual evidence merged by owner instruction",
+      "mergeCommit": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
+      "pr": 74,
       "previousBaseline": {
-        "description": "Integrated main: Horse R2 merged (PR #72 head revision, then PR #71 'Horse R2 approved head revision')",
-        "mergeCommit": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
-        "pr": 71,
+        "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
+        "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
+        "pr": 73,
         "previousBaseline": {
-          "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
-          "pr": 69,
-          "description": "Horse R1 engineering merged, visually rejected by owner"
+          "description": "Integrated main: Horse R2 merged (PR #72 head revision, then PR #71 'Horse R2 approved head revision')",
+          "mergeCommit": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+          "pr": 71,
+          "previousBaseline": {
+            "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+            "pr": 69,
+            "description": "Horse R1 engineering merged, visually rejected by owner"
+          }
         }
       }
     }
   },
   "currentProgram": "remaining animal quality audits",
-  "completedThrough": "HorseR8 and sheep stop-contact engineering integrated; exact-head premerge regression1837/7 andArtCandidate63pass",
-  "currentPhase": "SHEEP_CAPTURE_RESET_REPAIR",
-  "currentPhaseTitle": "Clear stale test-only stop recovery during neutral screenshot staging",
-  "phaseStatus": "OWNER_APPROVED_STOP_CHANGE_CAPTURE_RESET_LOCAL_PASS_HOSTED_PENDING",
-  "visualAcceptance": "OWNER_APPROVED_MERGED_SHEEP_STOP_CHANGE",
+  "completedThrough": "HorseR8 integrated;owner-approved sheep stopping and capture reset qualified on main regression1867/7",
+  "currentPhase": "DOG_STOP_CONTACT_REPAIR",
+  "currentPhaseTitle": "Preserve dog paw contacts while stopping and smoothly resume the existing gait",
+  "phaseStatus": "LOCAL_PASS_HOSTED_AND_OWNER_REVIEW_PENDING",
+  "visualAcceptance": "DOG_CHANGE_NOT_OWNER_REVIEWED",
   "activePullRequest": null,
   "nextPhases": [
-    "Qualify test-only neutral capture reset on exact head",
-    "Inspect regenerated capture results without changing approved rig",
-    "Remaining dog/cat/chicken quality audits after technical gate; order not owner-fixed"
+    "Qualify dog stop/restart candidate on exact head, inspect continuous captures, obtain owner review and merge authorization",
+    "Remaining dog anatomy observations and cat/chicken audits;order not owner-fixed"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -910,7 +914,7 @@
       }
     }
   },
-  "workingBranch": "codex/sheep-evidence-reset-fix",
+  "workingBranch": "codex/dog-stop-contact",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -922,7 +926,32 @@
     "reproduction": "height1.2 at(6,-2), walk0.78m/s1second, idle1frame, original neutral fixture root0,z14 andphase0/legs false, idle24frames: 17090.6-17419.6mm target error. No production movement path changed.",
     "correction": "Test-only resetSheepEvidencePose clears active recovery/amount/phase and uses existing production idle updater to initialize neutral rig. Called in isolated gallery and actual-farm staging. Existing articulated translation and all2mmassertions retained.",
     "localTests": "14/14 selected sheep tests passed; active-cache negative control and neutral reset at heights0.9/1.2, plus all stopping/restart/turn regressions. Syntax/diff checks pass.",
-    "hosted": "Pending new exact-head CI; no unchanged blind rerun requested.",
-    "protected": "Production sheep, shared solver, other animals, geometry/rest definitions, saves/cloud/economy, movement/collision, service worker and renderer interfaces unchanged."
+    "hosted": "Regression185(run38210824873):7/7SUCCESS on7428b7f987d4f52e0764ca5fd4c63507fd672d91",
+    "protected": "Production sheep, shared solver, other animals, geometry/rest definitions, saves/cloud/economy, movement/collision, service worker and renderer interfaces unchanged.",
+    "merged": {
+      "main": "ae30cc0c2dcf43145654de6bc7ce5413b807bb5e",
+      "reviewedHead": "7428b7f987d4f52e0764ca5fd4c63507fd672d91",
+      "tree": "aeecbe7a6e24b457e9e18ef2a1932684b627b37a",
+      "pr": 75,
+      "ownerAuthorization": "Merge,2026-10-12T05:39:49-05:00",
+      "artifact": 11729775698,
+      "sha256": "26a175d515020b5c5794fc5a1929b8568fb35c68c7e7a68cba83da57a46acdaf",
+      "inspection": "15-view motion sheet and actual-farm idle side inspected;errors0;contact drift1.8874e-12mm;no clipped geometry.",
+      "postmergeRegression": 38237769216,
+      "pagesRun": 38237767728,
+      "status": "Main regression186/run382377692167/7SUCCESS;Pages38237767728SUCCESS"
+    }
+  },
+  "dogStopRecovery": {
+    "baseMain": "ae30cc0c2dcf43145654de6bc7ce5413b807bb5e",
+    "branch": "codex/dog-stop-contact",
+    "owner": "ChatGPT/Codex",
+    "scope": "dog3d.js stop/restart only; geometry and shared quadruped solver unchanged; test-only faithful dog capture",
+    "baseline": "48/48 stops exceed2mm; in-game1secondwalk1.5m/s firstidle planted170.113636mm at30/60/120Hz; wholematrix worstplanted241.369318mm",
+    "implementation": "Capture world paw positions; settle height using existing gait timing and unchanged joint solve; blend unplanted paws into existing gait during restart; account for root movement preceding updater; per-rig reused scratch data",
+    "tests": "Regression8/8FAIL before correction; local stopping/restart matrix48cells plus12turn-stop casesPASS with original2mmcontact/solelimits; dog staging negative controls and active-cache translation testsPASS; broader selected species/version testsPASS",
+    "performance": "Node7measured batches x6000updates x6dogs: walking0.014302ms main vs0.017479ms candidate; idle0.011664ms main vs0.030537ms candidate. Not phone/browser measurements.",
+    "protected": "dog geometry/restspec/publicexports, quadruped3d.js, cow/horse/sheep/cat/chicken, gameplaymovement/speed/collision, saves/cloud/auth/economy, serviceworker/rendererinterfaces unchanged",
+    "remaining": "Exact-head hostedCI, continuous browser walk/stop/restart/run captures, adversarial self-review and owner visual/gameplay acceptance. No merge authorization."
   }
 }
