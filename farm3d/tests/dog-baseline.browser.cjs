@@ -20,8 +20,9 @@ const {start,artifacts}=require('./browser-harness.cjs');
       const ground=new T.Mesh(new T.PlaneGeometry(30,30),new T.MeshStandardMaterial({color:0x82956d}));ground.rotation.x=-Math.PI/2;scene.add(ground);
       const r=createDog3D(1.15);scene.add(r.g);
       const camera=new T.OrthographicCamera(-.78,.78,.5,-.5,.01,30);
-      const rows=[];let worstContact=0;
-      function capture(label,yaw){
+      const rows=[],faceImages=[];let worstContact=0;
+      const faceBones=new Set([r.head,...r.ears].map(b=>r.card.skeleton.bones.indexOf(b)));
+      function capture(label,yaw,face=false){
         r.g.updateMatrixWorld(true);r.card.skeleton.update();
         const center=new T.Vector3(r.g.position.x,.58,r.g.position.z);
         camera.position.copy(center).add(new T.Vector3(Math.sin(yaw)*4,.15,-Math.cos(yaw)*4));camera.lookAt(center);camera.updateMatrixWorld(true);
@@ -29,6 +30,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
         // Keep the same 390x250 resolution; neither the rig nor its contacts move.
         const viewBounds=new T.Box3(),points=[];
         for(let i=0;i<r.card.geometry.attributes.position.count;i++){
+          if(face&&!faceBones.has(r.card.geometry.attributes.skinIndex.getX(i)))continue;
           const p=r.card.getVertexPosition(i,new T.Vector3()).applyMatrix4(r.card.matrixWorld);
           points.push(p);viewBounds.expandByPoint(p.clone().applyMatrix4(camera.matrixWorldInverse));
         }
@@ -41,10 +43,12 @@ const {start,artifacts}=require('./browser-harness.cjs');
         if(maxProjectedExtent>.98)throw new Error('dog anatomy clipped by capture camera '+maxProjectedExtent);
         renderer.render(scene,camera);
         const box=document.createElement('figure');box.style='margin:0';const img=document.createElement('img');img.src=renderer.domElement.toDataURL();box.append(img);const caption=document.createElement('figcaption');caption.textContent=label;box.append(caption);grid.append(box);
+        if(face)faceImages.push({label,dataURL:img.src});
         rows.push({label,maxProjectedExtent,root:r.g.position.toArray(),phase:r.state.phase,feet:r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()).toArray()),hipY:r.legs.map(l=>l.hip.position.y),planted:r.legs.map(l=>l.planted)});
       }
       updateDog3D(r,0,0,1/60,'idle');
       capture('Idle front',0);capture('Idle side',Math.PI/2);capture('Idle rear',Math.PI);
+      capture('Face front',0,true);capture('Face three-quarter',Math.PI/4,true);capture('Face side',Math.PI/2,true);
       for(let sample=0;sample<6;sample++){
         for(let frame=0;frame<20;frame++){
           r.g.position.z-=1.5/60;updateDog3D(r,0,-1.5/60,1/60,'walk');r.g.updateMatrixWorld(true);
@@ -93,11 +97,13 @@ const {start,artifacts}=require('./browser-harness.cjs');
       }
       await Promise.all([...grid.querySelectorAll('img')].map(img=>img.decode()));
       if(worstContact>.002)throw new Error('dog continuous capture contact error '+worstContact);
-      renderer.dispose();r.dispose();ground.geometry.dispose();ground.material.dispose();return {rows,worstContactM:worstContact};
+      renderer.dispose();r.dispose();ground.geometry.dispose();ground.material.dispose();return {rows,worstContactM:worstContact,faceImages};
     });
     await s.page.screenshot({path:path.join(artifacts,'dog-baseline-gallery.png'),scale:'css',fullPage:true});
+    for(const [i,face]of metrics.faceImages.entries())fs.writeFileSync(path.join(artifacts,['dog-face-front.png','dog-face-three-quarter.png','dog-face-side.png'][i]),Buffer.from(face.dataURL.split(',')[1],'base64'));
+    delete metrics.faceImages;
     fs.writeFileSync(path.join(artifacts,'dog-baseline-metrics.json'),JSON.stringify({metrics,errors:s.errors},null,2));
     if(s.errors.length)throw new Error(s.errors.join('\n'));
-    console.log('Dog: 3 idle views plus 30 continuous walk/stop/restart/run/run-stop samples; no browser errors');failed=false;
+    console.log('Dog: 3 idle views,3face close-ups plus30continuous walk/stop/restart/run/run-stop samples; no browser errors');failed=false;
   }finally{await h.close(failed);}
 })().catch(e=>{console.error(e);process.exitCode=1;});
