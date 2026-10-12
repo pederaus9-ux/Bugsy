@@ -38,9 +38,18 @@ function build(spec){
   link(spec.coat,[0,-spec.neck[1]*.8,-spec.neck[2]*.22],spec.head,spec.headSize[0]*.8,slots.neck);
   oval(spec.coat,[0,0,0],spec.headSize,slots.head,16,10);
   const [hx,hy,hz]=spec.headSize;
-  oval(spec.muzzle,[0,-hy*.42,-hz*.82],[hx*.85,hy*.56,hz*.6],slots.head,12,8);
+  if(spec.name==='dog'){
+    // A forward muzzle, lower jaw and one canine nose replace the paired dots.
+    // Every surface stays on the existing head bone; the rig/gait are unchanged.
+    oval(spec.muzzle,[0,-hy*.34,-hz*.98],[hx*.60,hy*.45,hz*.65],slots.head,12,8);
+    oval(spec.muzzle,[0,-hy*.76,-hz*.93],[hx*.58,hy*.23,hz*.56],slots.head,12,8);
+    oval(0x3c2920,[0,-hy*.59,-hz*1.01],[hx*.56,hy*.06,hz*.55],slots.head,12,8);
+    oval(0x151515,[0,-hy*.25,-hz*1.70],[hx*.36,hy*.20,hz*.14],slots.head,12,8);
+  }else{
+    oval(spec.muzzle,[0,-hy*.42,-hz*.82],[hx*.85,hy*.56,hz*.6],slots.head,12,8);
+  }
   for(const side of [-1,1]){
-    oval(0x25221e,[side*hx*.42,-hy*.32,-hz*1.38],[hx*.15,hy*.1,hz*.04],slots.head);
+    if(spec.name!=='dog')oval(0x25221e,[side*hx*.42,-hy*.32,-hz*1.38],[hx*.15,hy*.1,hz*.04],slots.head);
     oval(0xf8f5e9,[side*hx*.91,hy*.24,-hz*.32],[hx*.17,hy*.18,hz*.14],slots.head);
     oval(0x211f1b,[side*hx*1.01,hy*.24,-hz*.39],[hx*.095,hy*.12,hz*.09],slots.head);
     oval(0xffffff,[side*hx*1.05,hy*.28,-hz*.45],[hx*.04,hy*.045,hz*.035],slots.head);
