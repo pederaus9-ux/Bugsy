@@ -39,3 +39,18 @@ test('chicken geometry, skinning and factory rest transforms preserve frozen mai
   }
  }finally{r.dispose();}
 });
+
+test('real 0.1-second frame cap preserves reachable feet without changing gameplay travel',()=>{
+ for(const h of [.35,.72])for(const dt of [.05,.1])for(const run of [false,true]){
+  const r=createChicken3D(h),point=new T.Vector3(),v=h===.72?(run?2.4:.8):h*(run?1.4:.65);
+  try{
+   for(let n=0;n<100;n++){
+    const angle=n<30?0:n<60?Math.PI/2:Math.PI,dx=-Math.sin(angle)*v*dt,dz=-Math.cos(angle)*v*dt;
+    r.g.position.x+=dx;r.g.position.z+=dz;const root=r.g.position.clone();updateChicken3D(r,dx,dz,dt,run?'run':'walk');assert.ok(r.g.position.equals(root));r.g.updateMatrixWorld(true);
+    let support=0;
+    for(let i=0;i<2;i++){const f=r.chickenController.feet[i],p=r.legs[i].foot.getWorldPosition(point);assert.ok(Math.hypot(p.x-f.x,p.y-f.y,p.z-f.z)<=.002,`h${h} dt${dt} run${run} n${n}`);if(f.state==='stance')support++;}
+    if(!run)assert.ok(support>=1);
+   }
+  }finally{r.dispose();}
+ }
+});

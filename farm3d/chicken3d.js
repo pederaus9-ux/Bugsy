@@ -52,6 +52,15 @@ function chickenController(r){
 }
 export function updateChicken3D(r,dx,dz,dt,mode='walk'){
   if(!(dt>0)||!Number.isFinite(dt))return;
+  const distance=Math.hypot(dx,dz);
+  // The real frame loop caps dt at0.1s. Interpolate the already-completed caller
+  // movement for planning only; never rewind/move the public gameplay root.
+  const count=distance>1.5?1:Math.ceil(dt*30),sx=dx/count,sz=dz/count;
+  const startX=r.g.position.x-dx,startZ=r.g.position.z-dz;
+  for(let i=1;i<=count;i++)stepChickenController(r,sx,sz,dt/count,mode,
+    count===1?r.g.position.x:startX+sx*i,count===1?r.g.position.z:startZ+sz*i,i===count);
+}
+function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose){
   const s=r.state,c=r.spec,scale=r.model.scale.x,p=chickenController(r);
   const distance=Math.hypot(dx,dz),teleport=distance>1.5,moving=distance>0&&!teleport;
   const speed=moving?distance/dt:0;
@@ -86,7 +95,7 @@ export function updateChicken3D(r,dx,dz,dt,mode='walk'){
       const f=p.feet[i];if(f.state==='settle'){f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=-dt;f.duration=Math.max(dt,.085*scale/speed);}
       if(f.state!=='swing')continue;
       const other=p.feet[1-i],l=r.legs[i],o=r.legs[1-i];
-      const ox=r.g.position.x+(o.x*cos+o.z*sin)*scale,oz=r.g.position.z+(o.z*cos-o.x*sin)*scale;
+      const ox=rootX+(o.x*cos+o.z*sin)*scale,oz=rootZ+(o.z*cos-o.x*sin)*scale;
       const supportReach=Math.hypot(other.x-ox,other.z-oz)/scale;
       // New input can invalidate the original forecast. Shorten the remaining
       // handover before the supporting foot leaves reach; never discard it.
@@ -95,9 +104,9 @@ export function updateChicken3D(r,dx,dz,dt,mode='walk'){
       f.elapsed+=dt;const u=Math.min(1,f.elapsed/f.duration),blend=u*u*(3-2*u);
       const remaining=Math.max(0,f.duration-f.elapsed),futureYaw=desired+Math.atan2(Math.sin(yaw-desired),Math.cos(yaw-desired))*Math.exp(-12*remaining);
       const fc=Math.cos(futureYaw),fs=Math.sin(futureYaw),lead=.055*scale;
-      let x=r.g.position.x+dx/dt*remaining+(l.x*fc+l.z*fs)*scale+dx/distance*lead;
-      let z=r.g.position.z+dz/dt*remaining+(l.z*fc-l.x*fs)*scale+dz/distance*lead;
-      const hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale;
+      let x=rootX+dx/dt*remaining+(l.x*fc+l.z*fs)*scale+dx/distance*lead;
+      let z=rootZ+dz/dt*remaining+(l.z*fc-l.x*fs)*scale+dz/distance*lead;
+      const hx=rootX+(l.x*cos+l.z*sin)*scale,hz=rootZ+(l.z*cos-l.x*sin)*scale;
       // Reach the moving landing point continuously, and validate the actual
       // interpolated path in the current frame rather than sampled guesses.
       x=f.fromX+(x-f.fromX)*blend;z=f.fromZ+(z-f.fromZ)*blend;
@@ -108,14 +117,14 @@ export function updateChicken3D(r,dx,dz,dt,mode='walk'){
     if(p.feet[0].state==='stance'&&p.feet[1].state==='stance'){
       // A grounded contact is released only after the opposite foot has landed.
       let i=p.next,max=0;
-      for(let j=0;j<2;j++){const l=r.legs[j],hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale,d=Math.hypot(p.feet[j].x-hx,p.feet[j].z-hz)/scale;if(d>max){max=d;i=j;}}
+      for(let j=0;j<2;j++){const l=r.legs[j],hx=rootX+(l.x*cos+l.z*sin)*scale,hz=rootZ+(l.z*cos-l.x*sin)*scale,d=Math.hypot(p.feet[j].x-hx,p.feet[j].z-hz)/scale;if(d>max){max=d;i=j;}}
       if(max>.035){const f=p.feet[i];f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=0;f.duration=Math.max(dt,.085*scale/speed);}
     }
     // A new handover can be requested on the same frame the opposite foot
     // lands. Validate its takeoff too, especially after a speed increase.
     for(let i=0;i<2;i++){
       const f=p.feet[i];if(f.state!=='swing')continue;
-      const l=r.legs[i],hx=r.g.position.x+(l.x*cos+l.z*sin)*scale,hz=r.g.position.z+(l.z*cos-l.x*sin)*scale;
+      const l=r.legs[i],hx=rootX+(l.x*cos+l.z*sin)*scale,hz=rootZ+(l.z*cos-l.x*sin)*scale;
       const radius=.135*scale,len=Math.hypot(f.x-hx,f.z-hz);
       if(len>radius){f.x=hx+(f.x-hx)*radius/len;f.z=hz+(f.z-hz)*radius/len;f.y=Math.max(f.y,ground+c.lift*scale*Math.min(1,dt/f.duration));}
     }
@@ -124,11 +133,13 @@ export function updateChicken3D(r,dx,dz,dt,mode='walk'){
   // Solve both feet with a common body height, preserving body/thigh attachment.
   let rootY=c.hip-.001;
   for(let i=0;i<2;i++){
-    const f=p.feet[i],l=r.legs[i],wx=(f.x-r.g.position.x)/scale,wz=(f.z-r.g.position.z)/scale;
+    const f=p.feet[i],l=r.legs[i],wx=(f.x-rootX)/scale,wz=(f.z-rootZ)/scale;
     const tx=wx*cos-wz*sin-l.x,tz=wx*sin+wz*cos-l.z;
     rootY=Math.min(rootY,c.hoof+(f.y-ground)/scale+Math.sqrt(Math.max(0,(c.upper+c.lower-.001)**2-tx*tx-tz*tz)));
   }
-  p.bodyDrop=c.hip-rootY;r.body.position.y=s.everChickenMoved?c.bodyY-p.bodyDrop:c.bodyY;
+  p.bodyDrop=c.hip-rootY;
+  if(!pose)return;
+  r.body.position.y=s.everChickenMoved?c.bodyY-p.bodyDrop:c.bodyY;
   for(let i=0;i<2;i++){
     const f=p.feet[i],l=r.legs[i];poseChickenWorldTarget(r,l,f.x,f.y,f.z,f.yaw,rootY);
     l.planted=!teleport&&f.state==='stance';l.ax=f.x;l.az=f.z;l.ayaw=f.yaw;

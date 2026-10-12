@@ -16,9 +16,13 @@ Both hips retain their attachment to the body. A single body-height adjustment m
 - Partial-stop restarts preserve the original first-frame displacement bound at both sizes, all three frame rates, walk/run and one/two/four idle frames.
 - Geometry/skin hashes and factory bone transforms are checked against frozen integrated main; other-species protection tests pass.
 - The four original six-species geometry/contact/cadence assertions pass separately, with no weakened assertion.
-- Node CPU comparison: median 1.342 microseconds per chicken update versus 1.085 on main, 1.236x. Seven alternating samples after warm-up, six rigs, repeated turns. This is not a phone measurement. Resource counts and geometry are unchanged; controller vectors/states are reused.
+- Node CPU comparison: median 1.332 microseconds per chicken update versus 1.062 on main, 1.255x. Seven alternating samples after warm-up, six rigs, repeated turns. This is not a phone measurement. Resource counts and geometry are unchanged; controller vectors/states are reused.
 
 The initial controller exposed a seeded acceleration failure: the opposite landing completed, but the newly lifted old support was already outside reach on that same frame. The corrected controller validates takeoff as well as subsequent swing frames. The failing seeded case is retained in the regression suite. A separate partial-stop restart case now starts from its current pose rather than an old swing origin.
+
+The real frame loop caps time steps at 0.1 seconds. An adversarial 10 Hz running probe found a 19.846 mm target error on the first hosted candidate. Planning now interpolates that already-completed caller travel internally at at least 30 Hz; it never rewinds or modifies the public root. The added 0.05/0.1-second tests pass, including both heights and turning. All 39 selected checks and the 45 jittered sessions were rerun after this correction.
+
+The actual skinned-body probe (`tests/chicken-body-contact-proof.mjs`) checks the two thigh origins inside the rendered torso, using upward and downward ray intersections on its actual posed triangles. All 2,520 samples passed, with minimum 4.983 mm interior clearance. This supplements fixed-attachment and geometry protection tests; it is not visual acceptance.
 
 ## Pending and limitations
 

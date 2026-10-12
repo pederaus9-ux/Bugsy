@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T22:37:14.842342+00:00",
+  "lastUpdatedUtc": "2026-10-12T22:47:37.859544+00:00",
   "codeBaseline": {
     "description": "Owner-accepted cat face, connected upper legs and stop/restart contacts integrated",
     "mergeCommit": "d87658e3ee97f0dabc372f4cbaf8c99a8d36e65d",
@@ -46,7 +46,7 @@
   "currentPhaseTitle": "Single controller owns chicken support, swing and landing",
   "phaseStatus": "LOCAL_PASS_HOSTED_AND_VISUAL_PENDING",
   "visualAcceptance": "CHICKEN_OWNER_REVIEW_PENDING",
-  "activePullRequest": null,
+  "activePullRequest": 78,
   "nextPhases": [
     "Fix pinned chicken first-step/right-turn defects without weakening contact/sole/continuity requirements",
     "Exact-head hosted regression and authentic continuous chicken captures after local gates pass",
@@ -1152,12 +1152,14 @@
     "authorization": "Owner explicitly said Repair it on 2026-10-12T17:27:33-05:00, approving the recommended coordinated controller; no merge authorization.",
     "implementation": "Chicken-specific stance/swing/settle states with support handover, adaptive landing timing, current-frame airborne reach validation and shared body height. No independent moving hip roots. Preserve distance phase, heading and head behavior.",
     "gates": "Original 2mm contact/target/sole and first-frame continuity limits retained. 96-cell turns, original stop/restart and first-step gates, seeded changes/reversals, partial settling restart and frozen geometry/rest transforms.",
-    "performance": "Local Node six-rig comparison median 1.342us vs 1.085us per update (1.236x). Reuses vectors/states; no per-frame object creation. Phone/browser cost unknown.",
+    "performance": "Local Node six-rig comparison median1.332us vs1.062us per update (1.255x). Reuses vectors/states. Phone/browser cost unknown.",
     "visualChanges": "Body lowers as one attached mass to retain reachable toes; running retains at least one contact. These internal gait changes need real captures and owner gameplay review.",
     "protected": "Geometry and skin buffers byte identical; factory transforms match main within 1e-12. Shared updater and accepted other animals, root position/speeds/collision, saves/cloud/auth/economy, public exports and serviceworker unchanged.",
-    "hostedCI": "Not started at this local checkpoint.",
+    "hostedCI": "Regression193/art68 started on1d98ec9; superseded by the evidenced long-frame correction. Await exact new-head CI; do not reuse old-head green results.",
     "ownerVisualAcceptance": "PENDING",
     "merge": "NOT AUTHORIZED",
-    "localResults": "38/38 selected checks, all four original six-species assertions, 96/96 turn cells, 45 seeded sessions (900 simulated seconds); max foot-target error 1.214e-10mm, minimum actual support1, maximum common body drop0.075507local."
+    "localResults": "39/39 selected checks, all four original six-species assertions, 96/96 turn cells, 45 seeded sessions (900 simulated seconds); max foot-target error1.214e-10mm, minimum actual support1, maximum common body drop0.076local. Real frame-cap0.05/0.1s and actual torso-interior2,520 samples pass.",
+    "longFrameCorrection": "Initial hosted candidate1d98ec9 fails10Hz running by19.846mm. New internal30Hz planning interpolation handles the real frame cap0.1s without moving the gameplay root or changing speeds.",
+    "preview": "Owner-private Site appgprj_6acd61ca7e6081918a39490e9cdbf4b9 deployed old1d98ec9; source refresh required before final acceptance."
   }
 }
