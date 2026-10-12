@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T18:38:10.040177+00:00",
+  "lastUpdatedUtc": "2026-10-12T19:49:16.701917+00:00",
   "codeBaseline": {
     "description": "Owner-accepted cat face, connected upper legs and stop/restart contacts integrated",
     "mergeCommit": "d87658e3ee97f0dabc372f4cbaf8c99a8d36e65d",
@@ -42,9 +42,9 @@
   },
   "currentProgram": "remaining animal quality audits",
   "completedThrough": "Horse R8, sheep, dog and bounded cat milestones qualified, owner accepted and integrated",
-  "currentPhase": "CHICKEN_CONTACT_DIAGNOSIS",
-  "currentPhaseTitle": "Chicken stop recovery plus first-step/right-turn diagnosis",
-  "phaseStatus": "STOP_LOCAL_PASS_START_TURN_BLOCKED",
+  "currentPhase": "CHICKEN_MOTION_DESIGN_DECISION",
+  "currentPhaseTitle": "Coordinate physical chicken feet after bounded overlays fail",
+  "phaseStatus": "BLOCKED_COORDINATED_CONTROLLER_SCOPE_DECISION",
   "visualAcceptance": "CHICKEN_OWNER_REVIEW_PENDING",
   "activePullRequest": null,
   "nextPhases": [
@@ -926,7 +926,7 @@
       }
     }
   },
-  "workingBranch": "codex/chicken-contact-audit",
+  "workingBranch": "codex/chicken-lift-validation",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -1132,6 +1132,17 @@
     "regressionClassification": "Six moving-pose comparisons (both turn directions,30/60/120Hz) exactly match currentmain: defects are inherited, not introduced by stop recovery.",
     "evidence": "Reused unmodified chicken idle front/side/rear from exact runtime-tree regression191 artifact11757967991; new motion capture script is written but not executed. Existing root-only moving chicken staging is untrustworthy until repaired.",
     "limits": "No PR opened, no hostedCI started, no visual approval, no merge. Candidate performance is unmeasured.",
-    "nextExperiment": "Compare chicken-only preservation of reachable stance targets with a continuous early lift from the actual current foot pose; measure first failing frame, actual soles, contacts and body attachment. Stop if a larger planner redesign is necessary; present repair and simpler alternatives before expanding scope."
+    "nextExperiment": "Compare chicken-only preservation of reachable stance targets with a continuous early lift from the actual current foot pose; measure first failing frame, actual soles, contacts and body attachment. Stop if a larger planner redesign is necessary; present repair and simpler alternatives before expanding scope.",
+    "experimentReview": {
+      "base": "e1a5893f9e0a49e2028a3684d2b567f790e02ce7",
+      "A": "Reach-only:44.820mm grounded slip remains; hip can fall0.2 to0.075local.",
+      "B": "Canonical cases pass;8/96matrix failures, targeterror up to5.884mm and two walking support failures.",
+      "C": "1/96matrix failure atdefault0.35/30Hz/walk/warm0.7/right:7.583mm slip,16.572mm targeterror.",
+      "D": "Landing hold:15/96failures,targeterror79.509mm; actual body/thigh vertical gap159.447mm in gameheight0.72/60Hz/warm1.3/right.",
+      "decisionDocument": "farm3d/CHICKEN_MOTION_DECISION.md",
+      "productionState": "Unchanged audit candidate e1a5893; all overlays are isolated experimental fixtures. No PR, hostedCI or merge.",
+      "recommended": "Authorize coordinated chicken foot-state ownership, preserving all public/system/protected contracts and numeric gates.",
+      "alternative": "Explicitly defer chicken and reprioritize independent work; current defects still block release."
+    }
   }
 }
