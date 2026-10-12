@@ -15,6 +15,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
       const L = await import('/farm3d/live3d.js?v=2');
       const C = await import('/farm3d/cow3d.js?v=3');
       const E = await import('/farm3d/tests/horse-evidence-placement.mjs');
+      const S = await import('/farm3d/tests/sheep-evidence-placement.mjs');
       const kinds = ['cow','sheep','horse','dog','cat','chicken'];
       const heights = [1.7,.9,1.6,.55,.4,.35];
       const renderer = new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -43,8 +44,14 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             r.g.position.z+=dz;
             if(k===0)C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode);
           }
-          if(k===2)E.translateHorseEvidencePose(r,0,0,0);else r.g.position.z=0;
+          if(k===2)E.translateHorseEvidencePose(r,0,0,0);
+          else if(k===1)S.translateSheepEvidencePose(r,0,0);
+          else r.g.position.z=0;
           r.g.updateMatrixWorld(true);
+          if(k===1)for(const l of r.legs)if(l.planted){
+            const foot=l.foot.getWorldPosition(new T.Vector3());
+            if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('sheep gallery world contact error');
+          }
           if(k===2)for(const l of r.legs){
             const foot=l.foot.getWorldPosition(new T.Vector3());
             const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));
@@ -112,6 +119,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             const T=await import('./lib/three.module.min.js'),L=await import('./live3d.js?v=2'),C=await import('./cow3d.js?v=3');
             const d=__dbg,a=d.animals.find(a=>a.kind===kind),r=a.rig3d;
             const E=kind==='horse'?await import('./tests/horse-evidence-placement.mjs'):null;
+            const S=kind==='sheep'?await import('./tests/sheep-evidence-placement.mjs'):null;
             // The existing flat dirt path keeps grass/other animals from hiding anatomy.
             // This is test-only positioning; overview captures retain normal scene placement.
             d.animals.forEach(other=>{other.g.visible=other===a;});
@@ -121,8 +129,14 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
               const dz=mode==='idle'?0:-a.S.h*(mode==='run'?1.4:.65)/60;a.g.position.z+=dz;
               if(kind==='cow')C.updateCow3D(r,0,dz,1/60,n/60,mode);else L.updateLiveAnimal(r,0,dz,1/60,mode,mode==='run');
             }
-            if(E)E.translateHorseEvidencePose(r,0,0,14);else a.g.position.set(0,0,14);
+            if(E)E.translateHorseEvidencePose(r,0,0,14);
+            else if(S)S.translateSheepEvidencePose(r,0,14);
+            else a.g.position.set(0,0,14);
             a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
+            if(S)for(const l of r.legs)if(l.planted){
+              const foot=l.foot.getWorldPosition(new T.Vector3());
+              if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('sheep capture world contact error');
+            }
             if(E)for(const l of r.legs){
               const foot=l.foot.getWorldPosition(new T.Vector3());
               const error=foot.distanceTo(new T.Vector3(l.track.x,l.track.y,l.track.z));

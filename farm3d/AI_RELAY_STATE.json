@@ -4,30 +4,34 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-11T20:36:38.845272+00:00",
+  "lastUpdatedUtc": "2026-10-12T02:27:52.348438+00:00",
   "codeBaseline": {
-    "description": "Integrated main: Horse R2 merged (PR #72 head revision, then PR #71 'Horse R2 approved head revision')",
-    "mergeCommit": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
-    "pr": 71,
+    "description": "Horse R8 contact, turn and Settings stability merged with owner authorization",
+    "mergeCommit": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
+    "pr": 73,
     "previousBaseline": {
-      "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
-      "pr": 69,
-      "description": "Horse R1 engineering merged, visually rejected by owner"
+      "description": "Integrated main: Horse R2 merged (PR #72 head revision, then PR #71 'Horse R2 approved head revision')",
+      "mergeCommit": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "pr": 71,
+      "previousBaseline": {
+        "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+        "pr": 69,
+        "description": "Horse R1 engineering merged, visually rejected by owner"
+      }
     }
   },
-  "currentProgram": "horse locomotion contact feasibility on the merged R2 rig",
-  "completedThrough": "Horse R2 merged to main (PR #72 af366ec, PR #71 205b25d)",
-  "currentPhase": "HORSE_LOCOMOTION_FEASIBILITY",
-  "currentPhaseTitle": "Hoof contact, support and turn response on the merged R2 rig (planner in horse3d.js)",
-  "phaseStatus": "PR73_DRAFT_HOSTED_REVIEW_IN_PROGRESS",
-  "visualAcceptance": "OWNER_POSITIVE_R8_PHONE_FEEDBACK_PERFORMANCE_PENDING",
-  "activePullRequest": 73,
+  "currentProgram": "remaining animal quality audits",
+  "completedThrough": "Horse R8 PR #73 merged; post-merge regression #178 passed 7/7; Pages deployment succeeded",
+  "currentPhase": "SHEEP_QUALITY_AUDIT",
+  "currentPhaseTitle": "Read-only sheep anatomy, locomotion and evidence audit",
+  "phaseStatus": "SHEEP_EVIDENCE_FIX_LOCAL_PASS_HOSTED_PENDING",
+  "visualAcceptance": "SHEEP_PENDING_OWNER_REVIEW",
+  "activePullRequest": null,
   "nextPhases": [
-    "Finish browser failure attribution and preserve authentic R8 motion evidence",
-    "Measure browser/device performance; preserve the R8 appearance owner reviewed positively",
-    "Owner motion/device and stance-delta acceptance; merge only with explicit owner authorization",
-    "Remaining species quality audits; order not owner-fixed",
-    "Reconcile wider roadmap against integrated main"
+    "Run exact-head hosted CI and inspect corrected sheep captures",
+    "Review actual sheep anatomy and contact measurements",
+    "Implement only proven defects; owner visual acceptance and explicit merge approval remain required",
+    "Audit dog, cat and chicken; order not fixed"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -50,8 +54,7 @@
   "specialNotes": [
     "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
     "PR #70, #71 and #72 are closed and merged (GitHub API, verified 2026-10-11): #70 and #71 at 2026-10-10T14:12Z by the owner (#71 = main 205b25d); #72 into #71's branch (af366ec).",
-    "Owner visual approval of the Horse R2 appearance at 39c6bff is recorded in PR #71's body (2026-10-09 17:00 America/Chicago). The locomotion feasibility work since then is unmerged, patch-delivered, and needs its own owner motion/device acceptance and acceptance of the horse-stance3d.js delta.",
-    "No advancement to other species is recorded as authorized by this relay; ask the owner."
+    "Owner authorized next phase after PR #73 merge; lead selected sheep audit. Horse R8 owner positive preview feedback and explicit merge authorization are recorded in the build conversation. Full release/device qualification remains separate."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -769,5 +772,66 @@
     "statement": "Change rull you can start review when you feel is suited",
     "reviewAndHostedCI": "STANDING_AUTHORIZATION_WHEN_READY",
     "merge": "EXPLICIT_OWNER_APPROVAL_STILL_REQUIRED"
+  },
+  "sheepBaselineAudit": {
+    "baseSha": "a43a032d629e4e314f10d3c70bb544f9bf97db51",
+    "branch": "codex/sheep-quality-audit",
+    "existingTest": "node --test farm3d/tests/sheep3d.test.mjs: 1/1 PASS",
+    "captureScript": "farm3d/tests/sheep-baseline.browser.cjs; syntax check PASS; browser execution NOT RUN",
+    "browserFailure": "Playwright Chromium download returned invalid/truncated zip; installation failed. No renders produced.",
+    "measurement": "At default height 0.9, idle hip is lowered 31 mm from authored rest position by shared quadruped solver. Visual impact unverified; no production fix proposed.",
+    "productionFilesChanged": [],
+    "hostedEvidence": {
+      "run": 38192189454,
+      "artifact": 11722491226,
+      "sha256": "bbaa6f53bfc2dc2604b56b94531edcb2a677ccb50f3722728fbc4e1ba5082f6b",
+      "directory": "Local recovered evidence/sheep-main178; canonical downloadable artifact 11722491226 (regression178). Not duplicated into proposed evidence PR.",
+      "captures": 18,
+      "sourceHead": "a43a032d629e4e314f10d3c70bb544f9bf97db51"
+    },
+    "visualObservations": [
+      "Recognizable sheep silhouette; smooth oval wool, pronounced upper limb balls and cylindrical legs. These are quality observations, not owner rejection."
+    ],
+    "evidenceLimitation": "animal-visual.browser.cjs recenters non-horse roots after movement without translating planted anchors. Idle views inspected; walk/run fixture accuracy needs measured reproduction. No continuous sheep sequence recovered.",
+    "contactProbe": {
+      "height": 1.2,
+      "speedMps": 0.78,
+      "durationSeconds": 5,
+      "hz": [
+        30,
+        60,
+        120
+      ],
+      "maxPlantedHorizontalErrorMm": 2.6645352591003757e-12,
+      "actualSkinnedSoleMm": "approximately 0 (floating-point error below 0.000001 mm)",
+      "maxHipLoweringMm": [
+        85.87397075264361,
+        86.03901059932176,
+        86.03901059932392
+      ],
+      "limitations": "Straight walk only; turns/stops/run/long-session support and continuity not yet audited."
+    },
+    "stagingReproduction": {
+      "frames": 24,
+      "hz": 60,
+      "height": 1.2,
+      "walkSpeed": 0.78,
+      "runSpeed": 1.68,
+      "walkShiftMm": 312,
+      "runShiftMm": 672,
+      "beforeRecenterHorizontalErrorMm": "below 0.000001",
+      "afterRecenterHorizontalErrorMm": [
+        312,
+        672
+      ],
+      "rootCause": "Harness restores root z=14 without translating l.ax/l.az planted world anchors."
+    },
+    "placementCorrection": {
+      "helper": "farm3d/tests/sheep-evidence-placement.mjs",
+      "scope": "Test-only horizontal translation of sheep root and existing world anchors; no production changes.",
+      "tests": "3/3 local tests pass including original sheep rig test, negative control, every skinned vertex translation and pose preservation at heights0.9/1.2 for idle/walk/run.",
+      "browser": "Syntax passes; new capture and corrected six-species browser suites await hosted execution.",
+      "newEvidence": "Separate deterministic camera-follow front/side/rear idle and six sequential walk samples, no root recentering."
+    }
   }
 }
