@@ -8,11 +8,11 @@ const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
  'perf.test.mjs','cow3d.test.mjs','cow-b17-performance.test.mjs','cow-anatomy.test.mjs',
  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
- 'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','sheep3d.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
+ 'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','horse-contact-feasibility.test.mjs','horse-motion-evidence.test.mjs','sheep3d.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
  'animal-visual.test.mjs','features.test.mjs','sdk.test.mjs','scene-polish.test.mjs',
  'asset-policy.test.mjs'
 ];
-const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs'];
+const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
 let active=null;
 function memorySnapshot(){
  let cgroup='unknown';

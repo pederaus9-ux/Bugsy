@@ -25,19 +25,15 @@ The owner is the final authority for:
 
 Agents may recommend a merge, but must not claim owner approval unless the owner explicitly gave it.
 
+Owner update, 2026-10-11 19:49 America/Chicago: ChatGPT may start engineering reviews and hosted tests whenever evidence is ready, without asking again. This supersedes older handoff restrictions reserving hosted CI initiation for a separate owner instruction. It does not authorize merging, release, destructive changes or overriding owner visual/product decisions.
+
 ## 3. Agent roles
 
 ### ChatGPT
 Technical lead, architecture, task specification, evidence review, red-team QA, phase gating, and GitHub coordination.
 
-### Antigravity
-Primary implementation worker when available: inspect repo, edit code, run tests, debug, capture evidence, push branch, and prepare PR.
-
-### Claude
-Deep implementation/refactor worker and alternate primary engineer. Preserve contracts and produce test evidence.
-
-### Grok
-Independent adversarial reviewer, alternate solution generator, and defect hunter. Distinguish proven defects from suspicions.
+### Current owner instruction — 2026-10-11
+ChatGPT/Codex is the sole active AI engineering lead and implementer. The owner canceled Claude and Grok. Do not require their handoffs or reviews, or claim they are working. Preserve their historical patches and evidence. ChatGPT performs implementation, regression checks and an adversarial self-review; disclose that this is not an independent external-agent audit. Owner acceptance and merge gates remain unchanged.
 
 ### Codex
 Repo-native implementation/debug/test worker. Prefer bounded tasks, deterministic verification, and explicit diffs.

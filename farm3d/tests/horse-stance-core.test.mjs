@@ -71,3 +71,45 @@ test('high-speed turning footstep respects bounded swing velocity instead of tel
   assert.ok(worst<=speedLimit/120+1e-9,'swing displacement '+worst);
   assert.equal(t.mode,'stance');
 });
+
+// Opt-in 'gait' swing profile and in-flight re-aim (default stays minimum-jerk).
+import {swingProfile,SWING_PEAK,reaimSwing} from '../horse-stance3d.js';
+test('gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged',()=>{
+  near(swingProfile(0,'gait'),0);near(swingProfile(1,'gait'),1);near(swingProfile(.5,'gait'),.5);
+  let peak=0,prev=0;
+  for(let i=1;i<=10000;i++){const u=i/10000,v=swingProfile(u,'gait');assert.ok(v>=prev-1e-12,'monotone');peak=Math.max(peak,(v-prev)*10000);prev=v;}
+  near(peak,SWING_PEAK.gait,1e-3);assert.ok(SWING_PEAK.gait<SWING_PEAK.minimumJerk);
+  near((swingProfile(1e-4,'gait')-swingProfile(0,'gait'))/1e-4,0,1e-5);
+  near((swingProfile(1,'gait')-swingProfile(1-1e-4,'gait'))/1e-4,0,1e-5);
+  for(const u of [0,.1,.37,.5,.9,1])near(swingProfile(u),minimumJerk(u));
+  const t=createHoofTrack(0,.1,0,0);beginHoofSwing(t,{x:1,y:.1,z:0,yaw:0},.4,.05);
+  assert.equal(t.profile,'minimumJerk','beginHoofSwing defaults to minimum-jerk');
+  const g=createHoofTrack(0,.1,0,0);beginHoofSwing(g,{x:3,y:.1,z:0,yaw:0},.3,.05,3,'gait');
+  near(g.landX,3*.3/SWING_PEAK.gait,1e-9);
+});
+test('re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks',()=>{
+  const t=createHoofTrack(0,.1,0,0);beginHoofSwing(t,{x:1,y:.1,z:0,yaw:.2},.4,.08,Infinity,'gait');
+  for(let n=0;n<4;n++)updateHoofTrack(t,1/30);
+  const pose=[t.x,t.y,t.z,t.yaw],u=t.swingElapsed/t.swingDuration;
+  assert.equal(reaimSwing(t,{x:1.3,y:.1,z:.2,yaw:.5},.5,.04),true);
+  near(t.swingElapsed/t.swingDuration,u);
+  const probe={...t};updateHoofTrack(probe,1e-12);
+  [probe.x,probe.y,probe.z,probe.yaw].forEach((v,i)=>near(v,pose[i],1e-9));
+  let prev=[t.x,t.y,t.z],worst=0;
+  while(t.mode==='swing'){updateHoofTrack(t,1/60);worst=Math.max(worst,Math.hypot(t.x-prev[0],t.y-prev[1],t.z-prev[2]));prev=[t.x,t.y,t.z];}
+  near(t.x,1.3);near(t.z,.2);near(t.y,.1);near(t.yaw,.5);assert.ok(worst<.1,'re-aimed step '+worst);
+  const m=createHoofTrack(0,.1,0,0);beginHoofSwing(m,{x:1,y:.1,z:0,yaw:0},.4,.08);updateHoofTrack(m,.1);
+  const x=m.x;assert.equal(reaimSwing(m,{x:2,y:.1,z:0,yaw:0}),false);near(m.x,x);near(m.landX,1);
+});
+test('a late re-aim of a gait swing stays continuous and lands where asked',()=>{
+  const t=createHoofTrack(0,.1,0,0);beginHoofSwing(t,{x:.6,y:.1,z:0,yaw:0},.3,.06,Infinity,'gait');
+  while(swingProfile(t.swingElapsed/t.swingDuration,'gait')<.95)updateHoofTrack(t,1/120);
+  const pose=[t.x,t.y,t.z],rest=.1;
+  assert.equal(reaimSwing(t,{x:.75,y:.1,z:.05,yaw:0},rest/(1-t.swingElapsed/t.swingDuration)),true);
+  const probe={...t};updateHoofTrack(probe,1e-12);
+  [probe.x,probe.y,probe.z].forEach((v,i)=>near(v,pose[i],1e-9));
+  let prev=[t.x,t.y,t.z],worst=0;const dist=Math.hypot(.75-pose[0],.1-pose[1],.05-pose[2]);
+  while(t.mode==='swing'){updateHoofTrack(t,1/120);worst=Math.max(worst,Math.hypot(t.x-prev[0],t.y-prev[1],t.z-prev[2]));prev=[t.x,t.y,t.z];}
+  near(t.x,.75);near(t.z,.05);near(t.y,.1);
+  assert.ok(worst<=3.2*dist/rest/120,'late re-aim step '+worst+' for '+dist+' m in '+rest+' s');
+});

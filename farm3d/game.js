@@ -1773,7 +1773,18 @@ document.addEventListener("click", (e) => {
     case "notify": setReminders(!PREFS.notify); break;
     case "wardrobe": closePanel(); view.wardrobe(true); break;
     case "bob": PREFS.bob = PREFS.bob === false; savePrefs(); renderPanel(); break;
-    case "motion": if (["system","reduce","full"].includes(d.k)) { PREFS.motion = d.k; savePrefs(); syncMotion(); renderPanel(); } break;
+    case "motion": if (["system","reduce","full"].includes(d.k)) {
+      // Keep the open dialog and its focus/scroll position. Rebuilding it
+      // replays the opening pop; enabling motion also revives that animation.
+      const dialog = $("#panelRoot .panel");
+      if (dialog) dialog.style.animation = "none";
+      PREFS.motion = d.k; savePrefs(); syncMotion();
+      dialog?.querySelectorAll('[data-act="motion"]').forEach(button => {
+        const selected = button.dataset.k === PREFS.motion;
+        button.classList.toggle("plain", !selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    } break;
     case "amb": snd.amb = !snd.amb; saveSound(); if (panel) renderPanel(); break;
     case "buzz": snd.buzz = !snd.buzz; saveSound(); if (panel) renderPanel(); buzz(15); break;
     case "quality": PREFS.quality = d.k; savePrefs(); view.setQuality(d.k); renderPanel(); break;

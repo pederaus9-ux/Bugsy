@@ -4,22 +4,28 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-09T19:23:46.349673+00:00",
+  "lastUpdatedUtc": "2026-10-11T20:36:38.845272+00:00",
   "codeBaseline": {
-    "description": "Integrated main: Horse R1 engineering merged, visually rejected by owner",
-    "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
-    "pr": 69
+    "description": "Integrated main: Horse R2 merged (PR #72 head revision, then PR #71 'Horse R2 approved head revision')",
+    "mergeCommit": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+    "pr": 71,
+    "previousBaseline": {
+      "mergeCommit": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+      "pr": 69,
+      "description": "Horse R1 engineering merged, visually rejected by owner"
+    }
   },
-  "currentProgram": "horse anatomy and visual acceptance",
-  "completedThrough": "Horse R1 engineering; visual acceptance rejected",
-  "currentPhase": "HORSE_R2",
-  "currentPhaseTitle": "Reference-informed anatomy correction and authentic visual evidence",
-  "phaseStatus": "LIMB_TAIL_GEOMETRY_LOCAL_PASS_HOSTED_PENDING",
-  "visualAcceptance": "PENDING_OWNER_DEVICE_REVIEW",
-  "activePullRequest": 71,
+  "currentProgram": "horse locomotion contact feasibility on the merged R2 rig",
+  "completedThrough": "Horse R2 merged to main (PR #72 af366ec, PR #71 205b25d)",
+  "currentPhase": "HORSE_LOCOMOTION_FEASIBILITY",
+  "currentPhaseTitle": "Hoof contact, support and turn response on the merged R2 rig (planner in horse3d.js)",
+  "phaseStatus": "LOCAL_GATES_PASS_PUBLISHING_DRAFT_FOR_HOSTED_REVIEW",
+  "visualAcceptance": "OWNER_POSITIVE_R8_PHONE_FEEDBACK_PERFORMANCE_PENDING",
+  "activePullRequest": null,
   "nextPhases": [
-    "Horse R2 exact-head CI and independent visual review",
-    "Horse R2 owner device acceptance and explicit merge authorization",
+    "Finish browser failure attribution and preserve authentic R8 motion evidence",
+    "Measure browser/device performance; preserve the R8 appearance owner reviewed positively",
+    "Owner motion/device and stance-delta acceptance; merge only with explicit owner authorization",
     "Remaining species quality audits; order not owner-fixed",
     "Reconcile wider roadmap against integrated main"
   ],
@@ -43,9 +49,9 @@
   },
   "specialNotes": [
     "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
-    "PR #70 remains untouched; #71 contains its anatomy plus later evidence/anatomy corrections. Use one final integration path.",
-    "No merge or other-species advancement while Horse R2 visual gate remains unresolved.",
-    "Muse PR71 report states PR #70 merged on Oct 8; verified false: PR #70 and #71 remain open drafts."
+    "PR #70, #71 and #72 are closed and merged (GitHub API, verified 2026-10-11): #70 and #71 at 2026-10-10T14:12Z by the owner (#71 = main 205b25d); #72 into #71's branch (af366ec).",
+    "Owner visual approval of the Horse R2 appearance at 39c6bff is recorded in PR #71's body (2026-10-09 17:00 America/Chicago). The locomotion feasibility work since then is unmerged, patch-delivered, and needs its own owner motion/device acceptance and acceptance of the horse-stance3d.js delta.",
+    "No advancement to other species is recorded as authorized by this relay; ask the owner."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -333,5 +339,430 @@
       "Full trot/canter/turn/stop visual evidence, independent review and owner device acceptance still required"
     ],
     "mergeAuthorized": false
+  },
+  "locomotionFeasibility": {
+    "agent": "Claude independent locomotion investigation",
+    "baseMain": "dd075a9cd93086e173ddedc13a0f5ce52c808798",
+    "parentHead": "39c6bff7ff477f9e83311bb4da84d4f9e15d90e6",
+    "candidate": "Code commit 7919879c56374f71a05117d7aa80e614af48083e (parent 39c6bff) plus this relay-record commit, on local isolated worktree branch claude-horse-contact; not on GitHub",
+    "delivery": "Owner decision Q3: patch file only. Not pushed, no PR, no workflow dispatch; PR #71 and #72 untouched. Hosted CI therefore unknown",
+    "ownerDecisions": {
+      "stanceApi": "Q1: opt-in gait swing profile in horse-stance3d.js; default stays minimum-jerk; horse-ik3d.js unchanged",
+      "suspension": "Q2: walk/idle keep >=2 stance hooves (idle recovery >=3); trot airborne interval <=0.10 s, canter <=0.15 s; zero emergency lifts",
+      "delivery": "Q3: patch file only",
+      "residuals": "2026-10-10: deliver now with random-input support/timing residuals reported as failed, for ChatGPT integration review",
+      "hostedGate": "2026-10-10: add horse-contact-feasibility.test.mjs to run-core-game-tests.mjs (about 75 s added to the core-game job; 20-minute limit)"
+    },
+    "reproducedAtParent": [
+      "Canter 1.8 m/s then idle (h2.3, 30 Hz): foot-target error 18.5 mm on the 3rd idle update rising to 65 mm; settled soles float 61 mm; reach 1.066 L",
+      "Walk 1 m/s 90 deg turn: error 379-440 mm, reach up to 1.45 L; 11/17 touchdowns unreachable on landing",
+      "180 deg reversal: error 798-935 mm, reach up to 1.95 L",
+      "Existing 5 m/s continuity corner: error 1.50 m, reach 2.52 L while the existing continuity test passes",
+      "Steady walk/trot/canter: zero hooves in stance on 48-59% of frames; 100% of lifts overreach-triggered; touchdown 0.17-0.22 m behind the hip",
+      "New harness on pristine parent: 273/276 runs fail (worst foot-target 2064 mm, planted sole 577 mm, settled float 547 mm, continuity excess +285 mm, walk support 0) (h2.3) and 271/276 runs fail (worst foot-target 1286 mm, settled float 366 mm) (h1.6)"
+    ],
+    "rootCauses": [
+      "R1 beginHoofSwing maxFootSpeed=max(2.75,2.4v) truncates every landing (minimum-jerk peak 1.875 needs ~4.9v at walk duty), so anchors start at the overreach limit and the duty schedule never governs lifts",
+      "R2 touchdown predicted from current-yaw rest offsets, never checked against the hip at touchdown or along the swing, never replanned on velocity/heading change",
+      "R3 overreach lifts any number of legs at once (support can reach 0) using a horizontal 0.26*scale test instead of 3D reach at actual body height",
+      "R4 stop: stepping disabled at idle, swinging hooves settle vertically at stale XZ, bodyDrop decays to 0 regardless of reach (rest leg is 99.4% extended; rest reach disc 97 mm at h2.3)",
+      "R5 existing checks bound per-frame foot motion and sample poses, not foot-to-target contact"
+    ],
+    "feasibility": "Continuity bound max(.10,2.5d+.002)/frame at 30 Hz caps hoof speed ~max(3,2.5v); a minimum-jerk swing with walk duty >=0.5 needs 1.875v/(1-duty) so walking support and unchanged continuity are jointly infeasible without a lower-peak profile. Gait profile (smoothstep-ramped trapezoid, ramp 0.10, peak 1.111) fits all gaits with margin",
+    "algorithm": [
+      "Per-frame reach-feasible stance: stride limited by reach disc at the 0.09 drop cap; torso drop floor from planted anchors, clamped to [0,0.09] (violations counted, never unbounded)",
+      "Earliest-deadline-first lift schedule: deadline = time until an anchor leaves the hard reach disc under forecast body motion (turn law, heading rate, eased acceleration) minus escape time; support slots per gait; rhythm lifts only when a release-aware feasibility check holds; same-frame landings count as support",
+      "Touchdown = predicted hip rest projection at whole-frame-quantised touchdown time plus centred forward lead; 3D path check along the swing; duration extended (<=0.45 s) instead of truncating span; velocity-continuous re-aim in flight",
+      "Turn rate limited per frame from per-leg and summed swing budgets (0.5-3 rad/s)",
+      "Stop: reachable touchdowns kept, otherwise land promptly at nearest reachable point; stationary recovery steps one hoof at a time (>=3 support); torso rises only as anchors allow",
+      "Teleport: existing reset plus drop reset"
+    ],
+    "invariants": {
+      "I1": "Every target within L-1 mm of its hip; skinned foot vs target <=2 mm",
+      "I2": "Stance anchors immutable; planted slip <=2 mm",
+      "I3": "Walk/idle >=2 stance (idle recovery >=3); trot/canter airborne <=0.10/0.15 s; hand-over of inherited hooves <=0.45 s",
+      "I4": "bodyDrop in [0,0.09]; 0 at rest",
+      "I5": "Swing 0.12-0.45 s; existing continuity formula holds",
+      "I6": "Planted sole within 2 mm; settled float <=2 mm; zero emergency lifts"
+    },
+    "stanceContractChange": "Additive only in horse-stance3d.js: beginHoofSwing gains optional profile argument (default minimumJerk); exports swingProfile, SWING_PEAK, reaimSwing (gait profile only, refuses ill-conditioned re-aims); track stores profile. Existing callers and stance tests unchanged",
+    "files": [
+      "farm3d/horse3d.js (updateHorse3D planner and import line only; lines 1-304 otherwise identical; exports unchanged)",
+      "farm3d/horse-stance3d.js (additive profile/re-aim)",
+      "farm3d/tests/horse-contact-scenarios.mjs (new)",
+      "farm3d/tests/horse-contact-feasibility.test.mjs (new)",
+      "farm3d/tests/horse-stance-core.test.mjs (2 tests appended)",
+      "farm3d/tests/run-core-game-tests.mjs (adds the new gate to the hosted core list)",
+      "farm3d/AI_RELAY_STATE.json (this record)"
+    ],
+    "unchanged": "Geometry, bone rest positions, hip roots, hoof sole bytes, horse-ik3d.js, HORSE/createHorse3D/updateHorse3D exports, gameplay root movement/speeds/collision, cow and other animals, saves/cloud/auth/economy, service worker, renderer interfaces, all existing tests and thresholds",
+    "verified": [
+      "Scenario matrix 23 scenarios x 4 warm-up phases x 30/60/120 Hz: 0/276 fail at h2.3 and 0/276 at h1.6 (worst target ~1e-11 mm, slip ~1e-11 mm, planted sole 0.5 mm, airborne 0.142 s, swing 0.43 s, min walk/idle stance 2, idle 3, settle <=1.3 s, drop <=0.09)",
+      "Continuity formula holds in every matrix run (worst margin -0.7 mm); hip roots fixed; zero emergency lifts in the matrix",
+      "Full local non-browser suite 128/130; the 2 failures (cow-b13 microbehavior; B16 terminal-state frame-rate) fail identically on pristine 39c6bff",
+      "animal-visual.browser.cjs passes locally including draw/triangle budget",
+      "Continuous 60 Hz stop/turn renders + per-frame JSON from the candidate (hard stop canter/walk, 90 deg walk/canter, 180 deg walk reversal): worst foot-target 0 mm, planted sole 0.5 mm, reach <=0.999 L"
+    ],
+    "failed": [
+      "Long random sessions (gameplay-like velocity sim and generic fuzz) still show support/airborne/swing-length/hand-over transients and rare emergency lifts: gameplay-like sim 5/45 (seed 3) and 11/90 (seed 77) sessions fail versus 45/45 on the parent; generic fuzz 55/300 and wide-height fuzz 3/120 fail. Failure kinds: walk frames with fewer than 2 stance hooves (34 runs, down to 0 in fuzz), emergency lifts (27), swings up to 0.63 s (21), hand-over up to 0.54 s (10), airborne up to 0.245 s (7), one run with a hoof still stepping 20 mm above ground 2.5 s after a stop (foot-target error stayed <=2 mm)",
+      "Contact itself (reach, foot-target <=2 mm, slip, planted sole, continuity, hip roots) held in every stress run"
+    ],
+    "unknown": [
+      "Hosted CI (not dispatched by owner decision)",
+      "Visual quality and owner device acceptance; green tests are not visual acceptance",
+      "ChatGPT local probes horse-motion-evidence*.mjs were not received or read",
+      "Performance on device: locally ~3x parent per update (idle machine, 60 Hz h2.3: walk 76-90 us vs 19-21 us, reversal 91-103 vs 19, canter turn 56-59 vs 18-22, idle 33-37 vs 14-16 us per update)"
+    ],
+    "behaviourChangesForOwnerReview": [
+      "Turns are reach-limited: 90 deg walk turn ~3 s with sideways stepping; 180 deg walk reversal ~6.3 s",
+      "Cadence reach-limited: fast canter uses short strides at high cadence; small horse walks with quick cadence",
+      "Canter suspension reduced; quick recovery steps lift lower",
+      "Walk is drawn with trot footfalls above 1.7 m/s or when hip load exceeds 1.8 (hysteresis)"
+    ],
+    "mergeAuthorized": false,
+    "visualAcceptanceClaimed": false,
+    "round2": {
+      "trigger": "ChatGPT integration review of 83432d8 (tree 3f656a79, branch codex/horse-contact-integration-review): hold; roaming 35/45 violated invariants; foot-target 2.858283 mm at measure(roaming(33,20),120,2.3,.3,40) frame 509 leg 1 canter swing reach 1.0029; walk support 1; emergency lifts; swing 0.540 s; airborne 0.317 s; 90-degree turn ~3.2 s",
+      "parent": "83432d8e8665744da415f44df9ce5c5d447b5a1e (round-1 candidate, itself on 39c6bff)",
+      "delivery": "Patch file only (owner Q3): local commit, format-patch series 39c6bff..head in a ZIP with SHA256SUMS; not pushed; no PR; no CI dispatch",
+      "reproduced": "All review failures reproduced exactly on 83432d8 (2.858283 mm twice); full-invariant roaming sweep seeds 1-45 x 30/60/120 Hz: 97/135 fail (94 swing > 0.45 s, 6 emergency, 2 support, 2 airborne, 1 contact 7.09 mm)",
+      "rootCauses": [
+        "Swing time had no lift-to-touchdown budget: replans restarted the clock, the continuity re-time granted a fresh SWING_MAX, frame jitter overran by up to one frame",
+        "A touchdown at the rear edge of planning reach was accepted; the hoof then had to lift at once and the gait profile lift-off ramp lagged the accelerating hip beyond true reach (the 2.858 mm case); re-aims were capped at 3 per swing and refused in the last 10% of travel",
+        "Support schedule: early-landing requests were blocked by the replan cap or were infeasible inside the continuity envelope; swing extensions (safety re-aims, continuity re-times) ignored which touchdowns support depended on; hooves about to land were not in the earliest-deadline schedule",
+        "An idle request while the root still coasts above 1.7 m/s was stepped as a trot but labelled idle; planner did not apply the documented gait hand-over rule"
+      ],
+      "fixes": [
+        "Swing budget: every swing touches down within SWING_MAX of lift-off, one recent longest frame in reserve",
+        "Touchdown safety: a landing whose stance would end before the hoof could escape is re-aimed; velocity-continuous re-aims have no count cap; reaimSwing (opt-in gait profile only) now refuses only in the last 1% of travel (was 10%): the post-re-aim hoof speed is remaining distance / remaining time x a bounded factor (<=3)",
+        "Support-aware timing: a touchdown is never delayed past what the support schedule can absorb (feasibility check incl. swinging hooves next lifts) or when fewer hooves are down than the gait floor; continuity re-times always get the frames the envelope needs (existing hard threshold) and further only as support allows",
+        "Every re-aim is checked frame by frame against the continuity envelope at the longest recent frame time; an early landing that cannot fit keeps or re-times its current landing; the schedule picks the slot that can be brought forward soonest",
+        "Coasting idle above 1.7 m/s is reported as trot (as walk mode already was); planner applies the hand-over rule to late lifts"
+      ],
+      "tests": "horse-contact-feasibility.test.mjs: roaming sessions now assert every invariant (previously contact only), with 11 pinned review/fix reproductions incl. roaming(33,20)@120/40; matrix gate unchanged (swing <= 0.45 s); horse-stance-core: late re-aim test",
+      "failed": [],
+      "unknown": [
+        "Hosted CI (not dispatched)",
+        "Visual quality and owner device acceptance; green tests are not visual acceptance",
+        "Device performance",
+        "ChatGPT/Grok independent probes on this exact head",
+        "Whether a 1.9 s 90-degree walk turn meets the owner/ChatGPT expectation"
+      ],
+      "candidate": "Code commit 3378b98ee206331621b727603888ab198d45f27f (parent 83432d8) plus this relay-record commit; local only",
+      "verified": [
+        "Review reproduction measure(roaming(33,20),120,2.3,.3,40): worst foot-target 3.6e-12 mm (was 2.858 mm), pinned as a test",
+        "Scenario matrix 23 scenarios x 4 warm-ups x 30/60/120 Hz: 0/276 at h2.3 and 0/276 at h1.6 with swing gate 0.45 s",
+        "Full-invariant roaming (eased steering, fence stops, frame jitter): seeds 1-200 x 30/60/120 Hz 0/600 at h2.3; seeds 1-45 0/135 at h1.6",
+        "Generic fuzz 0/300 (round 1: 55/300); wide-height fuzz 0/120; game-sim 0/45 and 0/90 (round 1: 5/45, 11/90); swing gate 0.45 s in all",
+        "Contact held in every run: foot-target <= ~1.5e-11 mm, slip ~1e-11 mm, planted sole 0.5 mm, continuity never exceeded"
+      ],
+      "options": [
+        "Walk turn budget 1.5 -> 1.8 (tested, not adopted): 90-degree walk turn 3.13 -> 1.93 s, reversal 6.28 -> 4.02 s; matrix and roaming stayed clean but generic fuzz regressed 0/300 -> 2/300 (a hoof still stepping 9-54 mm above ground 2.5 s after a stop). Needs the owner/ChatGPT turn-time threshold before choosing"
+      ]
+    },
+    "round3": {
+      "trigger": "ChatGPT handoff after PR #71 merged (main 205b25db0aab877aa6cf9a40adcbc766640c78cf): bounded stop/contact correction; reported main hard stop 65.2589/62.7188/68.1538 mm and the round-1 candidate defects",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf (horse code, tests and relay state byte-identical to 39c6bff; merge added only PR #72 evidence images)",
+      "codeCommit": "35510b2c28e741e68f87c8c66dfd9c881816a31c on local branch claude-horse-contact-r3; round-2 planner unchanged, squashed into one focused commit; not pushed",
+      "choice": "B (repair the broader contact planner): a stop-only correction (A) cannot clear the walking/turn/roaming failures; B is measured clean on all of them",
+      "failBefore": "main: hard stop canter 1.8 65.26/62.72/68.15 mm, soles 61/59/64 mm; hard stop walk 1.2 35-44 mm with walk support 0; 90-degree walk turn 617-702 mm; canter 5 turn up to 2025 mm; 180-degree reversal 798-1246 mm; matrix 273/276 fail",
+      "passAfter": "exact head: matrix 0/276 at h2.3 and h1.6; roaming seeds 1-200 x 30/60/120 Hz 0/600; h1.6 roaming 0/135; fuzz 0/300; wide fuzz 0/120; game-sim 0/90 and 0/45; stop/turn/reversal foot-target 0.00 mm, planted sole 0.5 mm, rest drop 0, settle <= 1.13 s, zero emergency lifts, swing <= 0.433 s",
+      "ci": "local run-core-game-tests 28/28 exit 0; animal-visual.browser.cjs pass; full node suite 129/131 (cow-b13 microbehavior and B16 frame-rate fail identically on main); hosted CI not dispatched",
+      "performance": "per update, 60 Hz h2.3, local: walk 85-89 vs main 19-25 us; walk reversal 131-147 vs 17-19; canter turn 79-81 vs 17-20; idle 33-35 vs 14-15",
+      "tradeoffs": [
+        "90-degree walk turn 3.13 s (main 0.43 s with 617-702 mm contact errors); 180-degree walk reversal 6.28 s; canter turn 0.70 s",
+        "Turn budget 1.8 option: 1.93 s turn but generic fuzz 2/300 settle failures; not adopted pending the owner/ChatGPT threshold"
+      ],
+      "unknown": [
+        "Hosted CI",
+        "Visual/device acceptance",
+        "Device performance",
+        "Independent ChatGPT/Grok probes on this head"
+      ]
+    },
+    "round4": {
+      "trigger": "ChatGPT review of R3 tree 11813faf: BLOCKED for turn response (90-degree walk turn 3.2 s; probe requires |yaw error| < 0.01 rad within 1.5 s at 30/60/120 Hz) plus three coverage gaps",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "commits": [
+        "47fdf9331b2b7f7f0b436d411d53dc2afffe0d75 turn response and per-gait suspension gate",
+        "db24e17a311fd89abd18c5dc9460c906d493ca2a creep recovery and pinned randomised sequences"
+      ],
+      "diagnosis": "With two hooves always down, yaw speed is bound by the hips 0.84 m from the pivot (h2.3) and the hoof speed cap of the unchanged 30 Hz continuity envelope: at the walk full swing capacity the fastest 90-degree turn is 1.40 s, 1.70 s with any margin; no walk budget meets the probe (the walk summed budget was already exhausted by straight walking at 1 m/s, pinning turns to 0.5 rad/s). Trot capacity: 0.98 s; current trot law 1.39 s.",
+      "change": "Sharp walking turns that the walk turn law could not finish within 1 s are drawn and reported as trot until the heading is within 0.05 rad; turn law and all budgets unchanged. Continuity guard lengthens a floor-restoring touchdown only by the frames the envelope needs; optional rhythm lifts into suspension need a landing due within the allowance less one frame whose remaining path fits the continuity floor. Recovery steps start while the root creeps below 0.05 m/s (eased steering tail).",
+      "coverage": "Suspension judged per frame against the effective gait (hand-over keeps the previous gait rule); recovery asserted whenever the root stops in any caller mode (walk-mode stop scenarios; roaming ends at rest in walk mode; completed steps, settled soles, rest height); all h1.6 warm-ups; ChatGPT 45-session roaming and the 90-degree probe as gates; exact failing fuzz sequences pinned.",
+      "turn": "Probe completion 1.367/1.383/1.392 s at 30/60/120 Hz (both directions), yaw error at 1.5 s 0.21/0.20/0.20 degrees; R3 3.20 s, 47.03 degrees. Matrix 90-degree walk turn 1.33 s, 180-degree walk reversal 2.53 s (R3 6.28 s).",
+      "verified": "Exact head db24e17: matrix 0/312 at h2.3 and h1.6; ChatGPT roaming 0/45; roaming seeds 1-200 x 3 rates 0/600; h1.6 roaming 0/135; fuzz 0/300; wide fuzz 0/120; game-sim 0/90 and 0/45; stop/turn/reversal foot-target 0.00 mm, sole 0.5 mm, zero emergency lifts, swing <= 0.417 s; local core list exit 0 (feasibility gate ~185 s); animal-visual pass; node suite 131/133 (cow-b13 and B16 fail identically on main)",
+      "slowReversal": "120 Hz walk 0.5 m/s 0.3 s then reverse 3 s: max bodyDrop 0.09, max grounded knee bend 56.675 degrees (R3 56.674); owner visual judgement required",
+      "performance": "per update 60 Hz h2.3 local: walk 94-106 vs main 24-25 us; reversal 125-126 vs 20-23; canter turn 67-74 vs 18-20; idle 40-45 vs 14-15",
+      "limitations": [
+        "Sharp walking turns now show a brief trot (visual/owner judgement)",
+        "Per-update cost ~4-6x main",
+        "Feasibility gate runtime ~185 s locally in the core CI list",
+        "Hosted CI, device performance and owner acceptance unknown"
+      ]
+    },
+    "round5": {
+      "trigger": "ChatGPT exact-tree review of R4 (3e428a13): tight-circle reach failures 9-71 mm; turn-promoted trot persisting; unchanged walking tests 0/2 (zero ground support during walking reversals)",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "codeCommit": "8f608647bcda60a18170782250596df1b2b15fd1",
+      "fixes": [
+        "Swing path check covers the whole remaining path from the next frame (was 60-97% only); tight circles 0.00-0.60 mm (R4 11-70 mm)",
+        "Trot promotion reasons keep separate hysteresis; turn judged before load; load thresholds above straight walking at the current speed (1.78 at 1.2 m/s lay inside the old 1.65-1.8 band); turned walk returns to walk at 1.2 and 1.5 m/s",
+        "A trot drawn for a walking or idle caller keeps at least one hoof down (run-mode trots keep bounded suspension); walking reversals at 0.5 and 1 m/s keep a hoof down at 30/60/120 Hz"
+      ],
+      "verified": "Exact head 8f60864: matrix 0/312 at h2.3 and h1.6; ChatGPT roaming 0/45; roaming seeds 1-200 x 3 rates 0/600; h1.6 roaming 0/135; fuzz 0/300; wide fuzz 0/120; game-sim 0/90 and 0/45; 90-degree probe 1.367/1.383/1.392 s; local core list exit 0 (feasibility gate ~180 s); animal-visual pass; node suite 133/135 (cow-b13 and B16 fail identically on main)",
+      "limitations": [
+        "180-degree walking reversal at 1 m/s: heading error 0.625-0.629 rad 2 s after the change, complete 2.60 s (reported by ChatGPT as a diagnostic, not an assertion; a threshold is needed if it becomes one)",
+        "Slow reversal pose unchanged: bodyDrop 0.09, grounded knee bend 56.675 degrees (owner visual judgement)",
+        "Per-update cost ~4-6x main; device performance unknown",
+        "Hosted CI not dispatched"
+      ],
+      "notes": [
+        "horse-stance3d.js is unchanged since R3 but differs from main (opt-in gait profile and reaimSwing; default minimum-jerk unchanged)",
+        "Top-level relay fields (activePullRequest 71, phaseStatus, headRevision) predate the PR #71 merge at 205b25d; left for the integration lead to reconcile"
+      ]
+    },
+    "round6": {
+      "trigger": "Audit verdict BLOCKED on R5 (8ad746a), relayed as an excerpt: preserve both failing straight-walk warm-ups; enforce reachable landings and complete swing paths; prevent unsupported lifts without breaking reach or continuity; keep emergency lifts at zero; retain the original two-second reversal assertion; add the 1.25 m/s turn probe; measure performance before accepting per-frame path checks. The F2/F3/F4 reproduction tables were not in the excerpt and have not been received.",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "parent": "8ad746acbf304cf135ca369fcbc39f8c715b67a9",
+      "codeCommit": "1a7ab89b53dbc7b7f714fe89792bc56872c70997",
+      "reproducedOnR5": [
+        "90-degree walking turn at 1.25 m/s completes at 1.533 s (1.1 m/s: 1.508 s); limit 1.5 s",
+        "Circle sweep R 0.3-1.5 m x 0.5-1.7 m/s x 30/60/120 Hz x both directions, h 2.3 and 1.6: 10/300 fail (reach misses up to 96.4 mm, no hoof down while the caller walks, emergency lifts), every one at a frame where the body's yaw reversed after its lag passed half a turn",
+        "Slalom and circle-straight-stop sweep: 8/222 fail (support loss, emergency lifts)",
+        "Jittered circles and figure-eights (R 0.3-2 m, 0.5-5 m/s), h 1.6: 4/288 fail",
+        "Straight walk from idle, 0.2-1.65 m/s x idle warm-ups 0/.3/.6/1 s x 30/60/120 Hz x h 2.3/1.6: 0/720 fail (the audit's two failing straight-walk warm-ups are not identifiable without its tables)"
+      ],
+      "fixes": [
+        "Yaw finish: no slower than a constant 12 rad/s^2 deceleration instead of an exponential creep (90-degree turn 1.25 m/s 1.383 s, 1 m/s 1.233 s)",
+        "Turn-direction persistence: while the heading keeps rotating one way faster than TURN_MIN the yaw keeps turning that way and is lapped rather than reversing; forecasts integrate the same rule; headings turning up to 8 rad/s are extrapolated (was 4)",
+        "Yaw governor: a turn may not carry a planted hoof beyond 0.96 of the reach radius (nor further once the root's own travel has); a support-locked hoof is an emergency lift only if the root's own travel with yaw held would take it out of true reach within the escape time",
+        "A landing whose last step the continuity guard will re-time is not counted as support when lifts are decided (found by roaming(33) at 30 Hz during this round)",
+        "Swing paths checked at every frame they will be drawn, touchdown included (was 9 samples)",
+        "A trot held for hip load no longer converts into a speed-held trot at 1.5-1.7 m/s (found by the existing turned-walk test during this round)"
+      ],
+      "testsAdded": "90-degree probe at 1.25 m/s (alongside 1 m/s); 10 circle, 4 slalom, 1 circle-straight-stop and 4 jittered circle/figure-eight cases that failed on R5. No threshold changed; no test removed or weakened.",
+      "verified": "Exact code 1a7ab89: matrix 0/312 at h 2.3 and h 1.6; circle sweep 0/300; wide circle/figure-eight sweep 0/864 (h 1.2, 1.6, 2.3); slalom sweep h 2.3 0/111; ChatGPT roaming 0/45; roaming seeds 1-200 x 3 rates 0/600; h 1.6 roaming 0/135; fuzz 0/300 (seed 1) and 0/300 (seed 11); wide fuzz 0/120 (seed 1) and 0/120 (seed 5); game-sim 0/90 and 0/45; straight-walk sweep 0/720; 90-degree turn 0.5-1.65 m/s all within 1.383 s; turned walk returns to walk at 1.0-1.69 m/s; local core list exit 0 (feasibility gate 259 s, was ~180 s); animal-visual pass; node suite 134/136 (cow-b13 and B16 fail identically on main)",
+      "failed": [
+        "Slalom with heading amplitude 2.5 rad and period 1 s (peak heading rate 15.7 rad/s, lateral acceleration 19-25 m/s^2): at h 1.6, 3 of 9 runs still have one emergency lift and a frame with no hoof down (R5: 4 of 9 at h 1.6, 1 of 9 at h 2.3; R6: 0 of 9 at h 2.3)"
+      ],
+      "unknown": [
+        "The audit's F2/F3/F4 reproductions (not received)",
+        "The original two-second reversal assertion (not in the repository; source not received). Reversal 0.5 m/s after 0.3 s completes in 1.70-1.74 s; 1 m/s completes in 2.43-2.44 s (heading error 0.625-0.629 rad at 2 s)",
+        "Hosted CI, device performance, owner visual acceptance"
+      ],
+      "performance": "Median us/update over 5 interleaved repetitions, 60 and 120 Hz, local, two runs: main 17-21; R5 24-123; R6 with sampled path checks 24-125; R6 with per-frame path checks (delivered) 24-139 (idle 24-27, walking 68-119, tight circles 118-139). Per-frame checks cost -5% to +28% per case over sampling (about +10% typical, partly run-to-run noise); R6 is about 1.4-7.7x main",
+      "notes": [
+        "horse-stance3d.js unchanged since R3, still differs from main",
+        "Top-level relay fields (activePullRequest, phaseStatus, headRevision) still predate the PR #71 merge; reconciliation is an integration gate for the lead"
+      ]
+    },
+    "round7": {
+      "trigger": "ChatGPT R6 exact-tree review (with independent Codex review), verdict BLOCKED: original reverse-180 assertion fails (.625/.627/.629 rad at 30/60/120 Hz); disclosed unsmoothed extreme slaloms at h 1.6 lose caller-walk support with one emergency lift. Review supplied the original motion tests, known-reproductions.mjs and an explicitly incomplete R5 audit excerpt; the full F2/F3/F4 tables remain unavailable.",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "parent": "6f312edbb9568b08cecca3303aaac358ecb54298",
+      "codeCommit": "8a5f1d9cad98b7828f4d5cfee0f4c75f68b23ec2",
+      "fixes": [
+        "Walking caller's trot turn budget: one leg may swing up to 90% of the time (was 75%), 2.8 legs on average (was 2.6); 1 m/s reversal completes 1.83-1.88 s (bound under the 30 Hz continuity cap about 1.4 s)",
+        "Walking or idling caller: yaw rate changes by at most 18 rad/s^2, live and in forecasts; running gaits unchanged",
+        "Hand-over keeps the support rule in force (walking caller's trot keeps a hoof down), not the named gait's run rule",
+        "Support-locked late hoof waits while root travel keeps it in true reach until a landing; otherwise the airborne hoof nearest to landing comes straight down within this frame's continuity envelope at a reachable point (or two frames), and the late hoof lifts on its support; emergency lift counted only if no hoof can land",
+        "Postcondition: every swing's remaining path, touchdown included, within true reach of its forecast hip at every drawn frame; failing swings landed shorter toward the hip at the same time within the envelope; any still failing counted (r.state.unverifiedSwings) and asserted zero by the contact tests"
+      ],
+      "testsAdded": "Original horse-motion-evidence.mjs and .test.mjs added byte-identical and registered in run-core-game-tests; review known reproductions pinned (warm-start circles .25/1 s both sides, four audit circles after 1 s walk both sides, extreme slaloms unsmoothed and eased); 6 slaloms and 3 running figure-eights/circles that failed on intermediate candidates pinned; reach postcondition added to every contact scenario. No threshold changed; nothing removed or weakened.",
+      "verified": "Exact code 8a5f1d9: original motion tests 2/2 (reverse-180 final error 0.000 rad at 30/60/120 Hz); feasibility test 9/9; known reproductions all pass; matrix 0/312 at h 2.3 and h 1.6; circle sweep 0/300; slalom sweeps 0/222 (all extreme A2.5 T1 cases included); ChatGPT roaming 0/45; roaming seeds 1-200 x 3 rates 0/600; h 1.6 roaming 0/135; fuzz seeds 1 and 11 0/300 each; wide fuzz seeds 1 and 5 0/120 each; game sims 0/90 and 0/45; straight-walk sweep 0/720; 90-degree turn 0.5-1.65 m/s all within 1.017 s; turned walk returns to walk 1.0-1.69 m/s; wide circle/figure-eight sweep h 1.2 0/288; local core list exit 0 (20 node files and 4 browser suites; feasibility gate 285 s); animal-visual pass; node suite 137/139 (cow-b13 and B16 fail identically on main)",
+      "failed": [
+        "Wide jittered sweep, 2 of 864 runs: running figure-eights R 0.3 m at 2.5 m/s (h 1.6, 120 Hz, ccw, jitter seed 48) and 5 m/s (h 2.3, 120 Hz, cw, jitter seed 71) count 1 and 10 swings failing the forecast reach postcondition (heading rates 8.3 and 16.7 rad/s, above the 8 rad/s extrapolation limit). Actual foot-target 0.00 mm, support and emergency clean. Not pinned because they fail."
+      ],
+      "unknown": [
+        "The original R5 audit's F2/F3/F4 tables (still not received)",
+        "Real-device cost (only emulated CPU throttling measured), hosted CI, owner motion/device acceptance"
+      ],
+      "deviceCost": {
+        "perUpdateMedianUs": "main 17-19; R6 24-114; R7 24-119 (desktop node, 5 interleaved reps, 60 and 120 Hz)",
+        "multiHorseNodeMsPerFrame": "6 horses roaming: main median 0.11 / p95 0.16; R6 0.54 / 0.93; R7 0.50 / 1.41; 12 horses R7 0.93 / 1.70",
+        "emulatedThrottledChromiumMsPerFrame": "6 horses, CDP CPU throttling 6x: main median 0.9 / p95 2.0; R6 5.9 / 12.4; R7 6.1 / 12.2. 1 horse at 6x: main 0.0 / 1.2; R7 1.2 / 3.1 (timer resolution 0.1 ms). Emulation, not a device.",
+        "allocationBytesPerUpdate": "main ~21.8 KB; R6 ~145 KB; R7 ~153 KB (V8 sampling heap profiler including collected objects). Top R7 sites: per-update closures and arrays in updateHorse3D ~44 KB, Math.hypot ~25 KB, timeToReachLimit ~11 KB, pathFits ~10 KB, sort ~7 KB",
+        "assessment": "Not cleared for production: several horses on a low-end phone could spend a large share of the frame budget and create GC pressure. Allocation hotspots identified; reduction not attempted this round to keep the corrected behaviour stable."
+      },
+      "notes": [
+        "horse-stance3d.js unchanged since R3, still differs from main",
+        "Forecast yaw still omits the planted-contact yaw governor (source risk named by the review; no failure attributed to it)",
+        "Top-level relay fields reconciled to main 205b25d in this commit"
+      ]
+    },
+    "round8": {
+      "trigger": "ChatGPT R7 exact-tree review (with independent Codex review), verdict BLOCKED for production: two running figure-eights fail the forecast reach postcondition (R .3 m at 2.5 m/s h1.6 ccw seed 48: 1; at 5 m/s h2.3 cw seed 71: 10) with actual contact ~1e-12 mm; cost too high (6 horses at 6x throttle 6.1/12.2 ms vs main 0.9/2.0; ~153 KB/update unwarmed); relay specialNotes stale (PR #70/#71 described as open drafts).",
+      "base": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+      "parent": "dcf9690d2c6fcf991915664bc1ccc0e784fbf2a9",
+      "codeCommits": [
+        "1695117a486338761708ada5746c1af7d496da29",
+        "0dd4cef522b31bece60051ace5ae6d6f532b1adf"
+      ],
+      "firstFailureMeasurement": "Forecast hip equals live hip at the failing frame (tau 0) and diverges 2.7 cm by 31 ms (2.5 m/s) and 52 cm by 0.1 s (5 m/s): heading turning 8.3 / 16.7 rad/s exceeds the 8 rad/s extrapolation limit, so the forecast runs the root straight while it curves; the swing had been re-aimed toward that wrong hip (1.66 m from the hoof). Extrapolating such rates (all up to 20, or only steady ones) produced 38-45 mm actual misses elsewhere, so the forecast is unchanged.",
+      "fixes": [
+        "1695117: postcondition fallback also lands the swing sooner (an earlier touchdown only adds support) at or toward its landing, and as a last resort straight down this frame at a point this frame's hip reaches, inside the continuity envelope; behaviour changes only on frames where the postcondition already failed",
+        "0dd4cef: allocation refactor with no output change: exact V8 ports of Math.hypot (hyp2/hyp3) and short-array sort (sortSmall), forecast loop without per-step closure, reused forecast body/hip storage, soonest landing without list building"
+      ],
+      "trajectoryEquivalence": "0dd4cef vs 1695117: every planner output bit-identical on every frame of 343 runs (full matrix 30/60/120 Hz, 24 jittered roaming sessions, slaloms, figure-eights): 159,468 frames",
+      "verified": "Exact code 0dd4cef: review figure-eights 0 unverified (target <1e-12 mm); matrix 0/312 at h2.3 and h1.6; circle sweep 0/300; slaloms 0/222; wide circle/figure-eight sweep 0/864 (h1.2/1.6/2.3); ChatGPT roaming 0/45; roaming 1-200 x 3 rates 0/600; h1.6 roaming 0/135; fuzz seeds 1/11 0/300 each; wide fuzz seeds 1/5 0/120 each; game sims 0/90, 0/45; straight-walk sweep 0/720; known reproductions all pass; 90-degree turns 0.5-1.65 m/s <= 1.017 s; reverse-180 1 m/s 1.83-1.88 s; turned walk returns to walk 1.0-1.69 m/s; core runner: all 20 Node test files passed (feasibility gate 363 s under load), including both original motion tests",
+      "notRun": "Browser suites, animal-visual, full node suite and motion evidence renders were interrupted when the owner asked to stop (regression.browser ended on SIGTERM); no result is claimed",
+      "cost": {
+        "allocationWarmedBytesPerUpdate": "main ~1.7 KB; R7 ~102 KB; R8 before refactor ~107 KB; R8 ~54 KB (warm-up pass first; the earlier 22/153 KB figures were unwarmed)",
+        "nodeMsPerFrame6Horses": "main median 0.13 / p95 0.22; R7 0.77 / 1.36; R8 0.66 / 1.18",
+        "throttled6xChromium6Horses": "6 interleaved runs each, ms/frame median / p95: main 1.1-1.5 / 2.5-4.2; R7 9.1-11.1 / 21.6-23.7; R8 9.0-11.1 / 16.8-25.6 (emulation on a loaded machine; no device)",
+        "assessment": "Allocation halved; CPU time under throttling not materially changed. Remaining cost is computation (64-step forecast with turn-rate bisection, per-frame path checks, reach-limit scans), not GC. Further cuts need behaviour-changing choices (shorter horizon, lower planning rate) for owner/lead decision. Not cleared for production."
+      },
+      "notes": [
+        "specialNotes corrected from GitHub (PR #70, #71, #72 merged); previous notes kept under specialNotesHistorical",
+        "horse-stance3d.js unchanged since R3, still differs from main; forecast yaw still omits the yaw governor (source risk, no failure attributed)"
+      ]
+    }
+  },
+  "relayReconciliation": {
+    "reconciledAtRound": "locomotion R7",
+    "note": "Top-level fields describe main 205b25d and the unmerged locomotion candidate. headRevision, motionEvidenceRevision, limbTailRevision and horseR2EvidenceReview are historical Horse R2 records, kept unchanged.",
+    "activePullRequest": "none: the locomotion work is delivered as patch files (owner decision Q3); no PR, push or workflow dispatch"
+  },
+  "specialNotesHistorical": {
+    "supersededAt": "locomotion R8 (2026-10-11)",
+    "reason": "These described the state before PR #70/#71 merged and are no longer true; kept verbatim as history.",
+    "notes": [
+      "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
+      "PR #70 remains untouched; #71 contains its anatomy plus later evidence/anatomy corrections. Use one final integration path.",
+      "No merge or other-species advancement while Horse R2 visual gate remains unresolved.",
+      "Muse PR71 report states PR #70 merged on Oct 8; verified false: PR #70 and #71 remain open drafts."
+    ]
+  },
+  "currentOperatingTeam": {
+    "leadAndImplementation": "ChatGPT/Codex",
+    "externalAgents": "None: owner canceled Claude/Grok and assigned sole AI ownership on 2026-10-11",
+    "ownerAuthority": "Visual/product/merge approval retained; no approval inferred"
+  },
+  "ownerReviewR8": {
+    "preview": "https://sunny-acres-horse-r8-review.ardentanole10.chatgpt.site/farm3d/?testfarm",
+    "reviewedTree": "ad721e1c5ed0a651ae82f9495e07ebc1c5962850",
+    "feedback": "Looked good to me",
+    "scope": "Positive phone-preview feedback; no measured performance, stance-delta or merge authorization inferred"
+  },
+  "r8SoloValidation": {
+    "productionSourceCommit": "7fb5344495112db199a46e7dd63944fb777b5ca8",
+    "productionTree": "ad721e1c5ed0a651ae82f9495e07ebc1c5962850",
+    "continuousMotionCapture": "66 samples across 11 clips; 60 Hz, height 2.3; target residual <=2 mm; no browser errors",
+    "isolatedSixSpecies": "54 poses and budget/rebuild checks pass",
+    "actualFarmVisual": "Correct-path animal-visual suite: isolated54 and live54 each at844/1280 pass; sheet path repaired by expected artifact location, source unchanged",
+    "fullFarmRegression": "Isolated current run50PASS,exit0; prior main/R8 click timeouts retained historically",
+    "shedTouch": "Current candidate and unchanged main each3viewportsPASS,exit0; prior844assertion not reproduced",
+    "browserThrottleComparison": "6 horses,6x emulation: main median0.7/p95 3.3ms; R8 median6.3/p9513.8ms. Shared host; not physical-device/full-game FPS",
+    "hostedCI": "Not dispatched; owner direction required",
+    "merge": "Not authorized; not performed",
+    "cowAnatomy": "PASS16 full-resolution views,budget,30rebuilds",
+    "cowBrowser": "Current isolated suite allchecksPASS,exit0; one unchanged-harness cleanup screenshot15s timeout remains disclosed"
+  },
+  "r8PerformanceDiagnosis": {
+    "sourceHead": "24a956394450eebd96fa68107eae2640e3e80626",
+    "report": "farm3d/HORSE_R8_PERFORMANCE_PROFILE.md",
+    "finding": "Node and Chromium profiles identify repeated timeToReachLimit scans as the largest named planner hotspot (~35%/~26% of sampled update time); pathFits ~5%.",
+    "nextExperiment": "Per-update forecast hip cache; identical arithmetic and outputs; no shorter horizon or reduced checks",
+    "status": "DIAGNOSED_NOT_IMPLEMENTED",
+    "phonePerformance": "UNKNOWN",
+    "merge": "NOT_AUTHORIZED"
+  },
+  "r8ReachCacheCandidate": {
+    "branch": "codex/horse-r8-reach-cache",
+    "base": "c984432dee057f9e76e3ad583076658996b4de2e",
+    "scope": "horse3d.js last exact reach query memo per leg, invalidated each update",
+    "report": "farm3d/HORSE_R8_REACH_CACHE_REVIEW.md",
+    "tests": "11/11 unchanged motion/contact tests;624 matrix cells;independent45roaming/known/figure8 pass",
+    "equivalence": "343/343 full runs,159468 frame trace hashes matched unchangedR8",
+    "performance": "Chromium6x6horses R8median6.3/p9514.2ms; cachemedian5.4/p9510.1ms. Node results mixed; phone unknown",
+    "merge": "NOT_AUTHORIZED_NOT_PERFORMED",
+    "testedCodeCommit": "739dfc9cec622539a1a320081141fa619fef3ffd",
+    "standaloneMatrices": "0/312 failures at each height2.3 and1.6",
+    "status": "LOCAL_VALIDATION_PASS_PHONE_AND_BROWSER_GATES_PENDING",
+    "preview": {
+      "url": "https://sunny-acres-horse-r8-review.ardentanole10.chatgpt.site/farm3d/?testfarm&perf",
+      "siteSource": "0b9e2aa6d719da5d6408800fdcf564304eb8f92c",
+      "matchingCandidate": "9d9312171f5ae3af15343889e79e6c62f1bf70b9",
+      "filesCompared": 402,
+      "mismatches": 0,
+      "deployment": "SUCCEEDED",
+      "devicePerformance": "Two owner phone windows recorded; near60FPS later; sustained-session/control qualification pending"
+    }
+  },
+  "r8BrowserDiagnosis": {
+    "report": "farm3d/HORSE_R8_BROWSER_DIAGNOSIS.md",
+    "main": "205b25db0aab877aa6cf9a40adcbc766640c78cf",
+    "verified": "Main frozen-draw click PASS; normal-loop renderer-suppressed click PASS; browser errors empty",
+    "likely": "Local SwiftShader drawing load involved; exact root cause not proven",
+    "originalRegression": "New isolated unchanged full-render run:50PASS,exit0,no warnings. Prior failures retained; root cause remains likely resource pressure,not proven"
+  },
+  "r8OwnerDeviceObservations": {
+    "source": "Owner visible screenshots1791760627489.jpeg and13643.jpg",
+    "first": {
+      "fps": 105.4,
+      "medianMs": 8.3,
+      "p95Ms": 15.2,
+      "worstMs": 27.2
+    },
+    "afterLongerPlay": {
+      "fps": 60.3,
+      "medianMs": 16.7,
+      "p95Ms": 20.5,
+      "worstMs": 25.7
+    },
+    "duration": "UNKNOWN; owner says played longer",
+    "cause": "UNKNOWN; views differ; not controlled comparison",
+    "responsiveness": "PENDING_OWNER_FEEDBACK",
+    "releaseAcceptance": "NOT_INFERRED",
+    "merge": "NOT_AUTHORIZED"
+  },
+  "settingsMotionFlash": {
+    "branch": "codex/settings-motion-flash",
+    "base": "b111d421f628db30af0bbcdee1bc883c816f33a0",
+    "ownerReproduction": "Whole screen flashes every Motion preference tap in Settings;13645.jpg",
+    "cause": "renderPanel replaces overlay and replays opening animation; reduced/full CSS may restart it",
+    "fix": "Only motion handler: keep panel, suppress its entrance animation, update buttons in place",
+    "test": "New browser regression fails on original code; passes14clicks over normal/reduced device preferences",
+    "status": "OWNER_PHONE_CONFIRMED_FIXED",
+    "report": "farm3d/SETTINGS_MOTION_FLASH_REVIEW.md",
+    "merge": "NOT_AUTHORIZED",
+    "preview": {
+      "siteSource": "bbe9c50a7d97cc24c231758d6bcae7c27109e7a2",
+      "matchingCandidate": "e565ac4a8f578952cf36f4f654644fcaaacea130",
+      "filesCompared": 405,
+      "mismatches": 0,
+      "deployment": "SUCCEEDED",
+      "phoneAcceptance": "OWNER_CONFIRMED_FLASH_FIXED"
+    },
+    "ownerConfirmation": {
+      "statement": "Fixed",
+      "receivedUtc": "2026-10-12T00:15:42Z",
+      "scope": "Settings Motion-selection flash in deployed private preview",
+      "testedCandidate": "e565ac4a8f578952cf36f4f654644fcaaacea130",
+      "previewSource": "bbe9c50a7d97cc24c231758d6bcae7c27109e7a2",
+      "mergeAuthorization": "NOT_INFERRED"
+    }
+  },
+  "r8IntegrationReview": {
+    "report": "farm3d/R8_INTEGRATION_REVIEW.md",
+    "testedRuntimeHead": "1d01b70f027ab967d826a9e668530263ccdf9fd4",
+    "runnerChange": "Add previously passing settings-motion regression; all original checks preserved",
+    "openOtherPRs": [
+      34,
+      37,
+      54,
+      60
+    ],
+    "hostedCI": "Authorized under new standing rule; publishing reviewed candidate for exact-head tests",
+    "ownerMerge": "NOT_AUTHORIZED",
+    "limitations": "Cow cleanup screenshot timeout; actual phone sustained/thermal qualification and explicit motion/stance approval remain limited"
+  },
+  "ownerReviewAuthority": {
+    "confirmedUtc": "2026-10-12T00:49:06Z",
+    "statement": "Change rull you can start review when you feel is suited",
+    "reviewAndHostedCI": "STANDING_AUTHORIZATION_WHEN_READY",
+    "merge": "EXPLICIT_OWNER_APPROVAL_STILL_REQUIRED"
   }
 }
