@@ -18,6 +18,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
       const S = await import('/farm3d/tests/sheep-evidence-placement.mjs');
       const D = await import('/farm3d/tests/dog-evidence-placement.mjs');
       const K = await import('/farm3d/tests/cat-evidence-placement.mjs');
+      const B = await import('/farm3d/tests/chicken-evidence-placement.mjs');
       const kinds = ['cow','sheep','horse','dog','cat','chicken'];
       const heights = [1.7,.9,1.6,.55,.4,.35];
       const renderer = new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -43,6 +44,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           else if(k===1)S.resetSheepEvidencePose(r,0,0);
           else if(k===3)D.resetDogEvidencePose(r,0,0);
           else if(k===4)K.resetCatEvidencePose(r,0,0);
+          else if(k===5)B.resetChickenEvidencePose(r,0,0);
           else {r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;}
           for(let n=0;n<24;n++) {
             const dz=mode==='idle'?0:-height*(mode==='run'?1.4:.65)/60;
@@ -53,6 +55,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           else if(k===1)S.translateSheepEvidencePose(r,0,0);
           else if(k===3)D.translateDogEvidencePose(r,0,0);
           else if(k===4)K.translateCatEvidencePose(r,0,0);
+          else if(k===5)B.translateChickenEvidencePose(r,0,0);
           else r.g.position.z=0;
           r.g.updateMatrixWorld(true);
           if(k===1)for(const l of r.legs)if(l.planted){
@@ -66,6 +69,10 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
           if(k===4)for(const l of r.legs)if(l.planted){
             const foot=l.foot.getWorldPosition(new T.Vector3());
             if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('cat gallery world contact error');
+          }
+          if(k===5)for(const l of r.legs)if(l.planted){
+            const foot=l.foot.getWorldPosition(new T.Vector3());
+            if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('chicken gallery world contact error');
           }
           if(k===2)for(const l of r.legs){
             const foot=l.foot.getWorldPosition(new T.Vector3());
@@ -137,6 +144,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             const S=kind==='sheep'?await import('./tests/sheep-evidence-placement.mjs'):null;
             const D=kind==='dog'?await import('./tests/dog-evidence-placement.mjs'):null;
             const K=kind==='cat'?await import('./tests/cat-evidence-placement.mjs'):null;
+            const B=kind==='chicken'?await import('./tests/chicken-evidence-placement.mjs'):null;
             // The existing flat dirt path keeps grass/other animals from hiding anatomy.
             // This is test-only positioning; overview captures retain normal scene placement.
             d.animals.forEach(other=>{other.g.visible=other===a;});
@@ -144,6 +152,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             else if(S)S.resetSheepEvidencePose(r,0,14);
             else if(D)D.resetDogEvidencePose(r,0,14);
             else if(K)K.resetCatEvidencePose(r,0,14);
+            else if(B)B.resetChickenEvidencePose(r,0,14);
             else {a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;}
             for(let n=0;n<24;n++){
               const dz=mode==='idle'?0:-a.S.h*(mode==='run'?1.4:.65)/60;a.g.position.z+=dz;
@@ -153,6 +162,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             else if(S)S.translateSheepEvidencePose(r,0,14);
             else if(D)D.translateDogEvidencePose(r,0,14);
             else if(K)K.translateCatEvidencePose(r,0,14);
+            else if(B)B.translateChickenEvidencePose(r,0,14);
             else a.g.position.set(0,0,14);
             a.status.visible=a.bubble.visible=false;r.g.updateMatrixWorld(true);
             if(S)for(const l of r.legs)if(l.planted){
@@ -166,6 +176,10 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             if(K)for(const l of r.legs)if(l.planted){
               const foot=l.foot.getWorldPosition(new T.Vector3());
               if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('cat capture world contact error');
+            }
+            if(B)for(const l of r.legs)if(l.planted){
+              const foot=l.foot.getWorldPosition(new T.Vector3());
+              if(Math.hypot(foot.x-l.ax,foot.z-l.az)>.002)throw new Error('chicken capture world contact error');
             }
             if(E)for(const l of r.legs){
               const foot=l.foot.getWorldPosition(new T.Vector3());
