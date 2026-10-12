@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from '../lib/three.module.min.js';
 import {createLiveAnimal,updateLiveAnimal} from '../live3d.js';
-import {translateSheepEvidencePose} from './sheep-evidence-placement.mjs';
+import {resetSheepEvidencePose,translateSheepEvidencePose} from './sheep-evidence-placement.mjs';
 const foot=l=>l.foot.getWorldPosition(new T.Vector3());
 function stage(height,mode){
   const r=createLiveAnimal('sheep',height,0,14);
@@ -21,6 +21,40 @@ test('negative control reproduces sheep root-only staging errors',()=>{
       r.g.position.z=14;r.g.updateMatrixWorld(true);
       for(const l of planted){const f=foot(l);assert.ok(Math.abs(Math.hypot(f.x-l.ax,f.z-l.az)-expected)<1e-9);}
     }finally{r.dispose();}
+  }
+});
+function stoppedAwayFromStage(height){
+  const r=createLiveAnimal('sheep',height,6,-2);
+  for(let n=0;n<60;n++){
+    const dz=-height*.65/60;r.g.position.z+=dz;updateLiveAnimal(r,0,dz,1/60,'walk',false);
+  }
+  updateLiveAnimal(r,0,0,1/60,'idle',false);
+  assert.ok(r.state.sheepStop,'reproduction must have an active recovery');return r;
+}
+test('negative control reproduces stale recovery targets during neutral stage reset',()=>{
+  const r=stoppedAwayFromStage(1.2);
+  try{
+    r.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;
+    for(let n=0;n<24;n++)updateLiveAnimal(r,0,0,1/60,'idle',false);
+    translateSheepEvidencePose(r,0,14);
+    assert.ok(r.legs.some(l=>l.planted&&Math.hypot(foot(l).x-l.ax,foot(l).z-l.az)>.002),'old setup leaves contacts inconsistent');
+  }finally{r.dispose();}
+});
+test('neutral sheep stage reset clears previous recovery at both sizes',()=>{
+  for(const height of [.9,1.2]){
+    const r=stoppedAwayFromStage(height),reference=createLiveAnimal('sheep',height,0,14);
+    try{
+      resetSheepEvidencePose(r,0,14);
+      assert.equal(r.state.sheepStop,null);assert.equal(r.state.amount,0);assert.equal(r.state.phase,0);
+      for(let n=0;n<24;n++)updateLiveAnimal(r,0,0,1/60,'idle',false);
+      r.g.updateMatrixWorld(true);reference.g.updateMatrixWorld(true);
+      for(let i=0;i<4;i++)assert.ok(foot(r.legs[i]).distanceTo(foot(reference.legs[i]))<1e-9,'neutral feet match a fresh rig');
+      for(let n=0;n<24;n++){
+        const dz=-height*.65/60;r.g.position.z+=dz;updateLiveAnimal(r,0,dz,1/60,'walk',false);
+      }
+      translateSheepEvidencePose(r,0,14);
+      for(const l of r.legs)if(l.planted){const f=foot(l);assert.ok(Math.hypot(f.x-l.ax,f.z-l.az)<=.002);}
+    }finally{r.dispose();reference.dispose();}
   }
 });
 test('stopping sheep contacts remain translated on subsequent idle updates',()=>{

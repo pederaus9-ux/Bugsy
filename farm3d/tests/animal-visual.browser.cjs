@@ -38,6 +38,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
         for(let m=0;m<3;m++) {
           const mode=modes[m];
           if(k===2)E.resetHorseEvidencePose(r,0,0,0);
+          else if(k===1)S.resetSheepEvidencePose(r,0,0);
           else {r.state.phase=0;r.g.position.set(0,0,0);for(const l of r.legs)l.planted=false;}
           for(let n=0;n<24;n++) {
             const dz=mode==='idle'?0:-height*(mode==='run'?1.4:.65)/60;
@@ -124,6 +125,7 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
             // This is test-only positioning; overview captures retain normal scene placement.
             d.animals.forEach(other=>{other.g.visible=other===a;});
             if(E)E.resetHorseEvidencePose(r,0,0,14);
+            else if(S)S.resetSheepEvidencePose(r,0,14);
             else {a.g.position.set(0,0,14);r.model.rotation.set(0,0,0);r.state.phase=0;for(const l of r.legs)l.planted=false;}
             for(let n=0;n<24;n++){
               const dz=mode==='idle'?0:-a.S.h*(mode==='run'?1.4:.65)/60;a.g.position.z+=dz;
