@@ -55,13 +55,14 @@ export function updateChicken3D(r,dx,dz,dt,mode='walk'){
   const distance=Math.hypot(dx,dz);
   // The real frame loop caps dt at0.1s. Interpolate the already-completed caller
   // movement for planning only; never rewind/move the public gameplay root.
-  const count=distance>1.5?1:Math.ceil(dt*30),sx=dx/count,sz=dz/count;
+  const count=distance>1.5?1:Math.ceil(dt*120),sx=dx/count,sz=dz/count;
+  const holdResume=!!r.state.chickenStop&&distance>0&&distance<=1.5;
   const startX=r.g.position.x-dx,startZ=r.g.position.z-dz;
   for(let i=1;i<=count;i++)stepChickenController(r,sx,sz,dt/count,mode,
-    count===1?r.g.position.x:startX+sx*i,count===1?r.g.position.z:startZ+sz*i,i===count);
+    count===1?r.g.position.x:startX+sx*i,count===1?r.g.position.z:startZ+sz*i,i===count,holdResume);
 }
-function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose){
-  const s=r.state,c=r.spec,scale=r.model.scale.x,p=chickenController(r);
+function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose,holdResume){
+  const s=r.state,c=r.spec,scale=r.model.scale.x,p=chickenController(r),stepTravel=c.upper+c.lower;
   const distance=Math.hypot(dx,dz),teleport=distance>1.5,moving=distance>0&&!teleport;
   const speed=moving?distance/dt:0;
   if(!p.initialized||teleport){
@@ -92,18 +93,17 @@ function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose){
     if(s.chickenResume){s.chickenResume.elapsed+=dt;if(s.chickenResume.elapsed>=s.chickenResume.duration)s.chickenResume=null;}
     // Finish the active swing before handing support to the opposite foot.
     for(let i=0;i<2;i++){
-      const f=p.feet[i];if(f.state==='settle'){f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=-dt;f.duration=Math.max(dt,.085*scale/speed);}
-      if(f.state!=='swing')continue;
+      const f=p.feet[i];if(f.state==='settle'){f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=0;f.duration=Math.max(dt,stepTravel*scale/speed);}
+      if(f.state!=='swing'||holdResume)continue;
       const other=p.feet[1-i],l=r.legs[i],o=r.legs[1-i];
-      const ox=rootX+(o.x*cos+o.z*sin)*scale,oz=rootZ+(o.z*cos-o.x*sin)*scale;
-      const supportReach=Math.hypot(other.x-ox,other.z-oz)/scale;
+
       // New input can invalidate the original forecast. Shorten the remaining
       // handover before the supporting foot leaves reach; never discard it.
-      const supportTime=Math.max(dt,(.12-supportReach)*scale/speed);
-      f.duration=Math.min(f.duration,f.elapsed+supportTime);
+      const supportTime=chickenSupportTime(other,o,rootX,rootZ,cos,sin,scale,dx/dt,dz/dt,desired-yaw,dt);
+      f.duration=Math.min(f.duration,f.elapsed+dt+supportTime);
       f.elapsed+=dt;const u=Math.min(1,f.elapsed/f.duration),blend=u*u*(3-2*u);
       const remaining=Math.max(0,f.duration-f.elapsed),futureYaw=desired+Math.atan2(Math.sin(yaw-desired),Math.cos(yaw-desired))*Math.exp(-12*remaining);
-      const fc=Math.cos(futureYaw),fs=Math.sin(futureYaw),lead=.055*scale;
+      const fc=Math.cos(futureYaw),fs=Math.sin(futureYaw),lead=stepTravel*.5*scale;
       let x=rootX+dx/dt*remaining+(l.x*fc+l.z*fs)*scale+dx/distance*lead;
       let z=rootZ+dz/dt*remaining+(l.z*fc-l.x*fs)*scale+dz/distance*lead;
       const hx=rootX+(l.x*cos+l.z*sin)*scale,hz=rootZ+(l.z*cos-l.x*sin)*scale;
@@ -118,7 +118,11 @@ function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose){
       // A grounded contact is released only after the opposite foot has landed.
       let i=p.next,max=0;
       for(let j=0;j<2;j++){const l=r.legs[j],hx=rootX+(l.x*cos+l.z*sin)*scale,hz=rootZ+(l.z*cos-l.x*sin)*scale,d=Math.hypot(p.feet[j].x-hx,p.feet[j].z-hz)/scale;if(d>max){max=d;i=j;}}
-      if(max>.035){const f=p.feet[i];f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=0;f.duration=Math.max(dt,.085*scale/speed);}
+      if(max>.035){
+        const f=p.feet[i],other=p.feet[1-i],l=r.legs[1-i];
+        const remainingSupport=chickenSupportTime(other,l,rootX,rootZ,cos,sin,scale,dx/dt,dz/dt,desired-yaw,dt);
+        f.state='swing';f.fromX=f.x;f.fromY=f.y;f.fromZ=f.z;f.elapsed=0;f.duration=Math.min(Math.max(dt,stepTravel*scale/speed),remainingSupport);
+      }
     }
     // A new handover can be requested on the same frame the opposite foot
     // lands. Validate its takeoff too, especially after a speed increase.
@@ -148,6 +152,18 @@ function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose){
   r.neck.rotation.x=Math.sin(s.phase*6.28)*.04*s.amount;
   r.head.rotation.y=Math.sin(s.time*.65)*.10*(1-s.amount);
   r.head.rotation.x=Math.sin(s.amount>.1?s.phase*12:s.time*1.5)*.06;
+}
+// Time until the supporting hip reaches its contact envelope. Use signed
+// relative motion: a foot ahead of the hip gains reach time as the body catches
+// up. Subtracting unsigned distance incorrectly compresses every new stride.
+function chickenSupportTime(f,l,rootX,rootZ,cos,sin,scale,vx,vz,delta,dt){
+  const rx=f.x-rootX-(l.x*cos+l.z*sin)*scale,rz=f.z-rootZ-(l.z*cos-l.x*sin)*scale;
+  const omega=12*Math.atan2(Math.sin(delta),Math.cos(delta));
+  vx+=(-l.x*sin+l.z*cos)*scale*omega;vz+=(-l.z*sin-l.x*cos)*scale*omega;
+  const v2=vx*vx+vz*vz,dot=rx*vx+rz*vz,radius=.12*scale;
+  if(v2<1e-12)return Infinity;
+  const exit=(dot+Math.sqrt(Math.max(0,dot*dot+v2*(radius*radius-rx*rx-rz*rz))))/v2;
+  return Math.max(dt,exit);
 }
 const smooth=u=>u*u*u*(10+u*(-15+6*u));
 function poseChickenWorldTarget(r,l,x,yWorld,z,footYaw,rootY){

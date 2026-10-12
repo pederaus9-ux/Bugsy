@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-12T22:47:37.859544+00:00",
+  "lastUpdatedUtc": "2026-10-12T23:16:54.431477+00:00",
   "codeBaseline": {
     "description": "Owner-accepted cat face, connected upper legs and stop/restart contacts integrated",
     "mergeCommit": "d87658e3ee97f0dabc372f4cbaf8c99a8d36e65d",
@@ -44,7 +44,7 @@
   "completedThrough": "Horse R8, sheep, dog and bounded cat milestones qualified, owner accepted and integrated",
   "currentPhase": "CHICKEN_COORDINATED_MOTION",
   "currentPhaseTitle": "Single controller owns chicken support, swing and landing",
-  "phaseStatus": "LOCAL_PASS_HOSTED_AND_VISUAL_PENDING",
+  "phaseStatus": "LOCAL_PASS_TIMING_NORMALIZED_HOSTED_PENDING",
   "visualAcceptance": "CHICKEN_OWNER_REVIEW_PENDING",
   "activePullRequest": 78,
   "nextPhases": [
@@ -1152,14 +1152,16 @@
     "authorization": "Owner explicitly said Repair it on 2026-10-12T17:27:33-05:00, approving the recommended coordinated controller; no merge authorization.",
     "implementation": "Chicken-specific stance/swing/settle states with support handover, adaptive landing timing, current-frame airborne reach validation and shared body height. No independent moving hip roots. Preserve distance phase, heading and head behavior.",
     "gates": "Original 2mm contact/target/sole and first-frame continuity limits retained. 96-cell turns, original stop/restart and first-step gates, seeded changes/reversals, partial settling restart and frozen geometry/rest transforms.",
-    "performance": "Local Node six-rig comparison median1.332us vs1.062us per update (1.255x). Reuses vectors/states. Phone/browser cost unknown.",
+    "performance": "Local Node six-rig comparison median1.680us vs1.042us per update (1.612x). Reuses vectors/states; phone cost unknown.",
     "visualChanges": "Body lowers as one attached mass to retain reachable toes; running retains at least one contact. These internal gait changes need real captures and owner gameplay review.",
     "protected": "Geometry and skin buffers byte identical; factory transforms match main within 1e-12. Shared updater and accepted other animals, root position/speeds/collision, saves/cloud/auth/economy, public exports and serviceworker unchanged.",
-    "hostedCI": "Regression193/art68 started on1d98ec9; superseded by the evidenced long-frame correction. Await exact new-head CI; do not reuse old-head green results.",
+    "hostedCI": "Regression194 on9a0b138: six jobs passed, backend emulator still running at review; art69 pending barn at last fetch. These parent-head results do not clear the new timing-normalized head. Require fresh exact-head CI.",
     "ownerVisualAcceptance": "PENDING",
     "merge": "NOT AUTHORIZED",
-    "localResults": "39/39 selected checks, all four original six-species assertions, 96/96 turn cells, 45 seeded sessions (900 simulated seconds); max foot-target error1.214e-10mm, minimum actual support1, maximum common body drop0.076local. Real frame-cap0.05/0.1s and actual torso-interior2,520 samples pass.",
+    "localResults": "40/40 selected checks, four original six-species assertions,96/96turns,45seeded sessions900simulated seconds; maximum foot-target error9.934e-10mm, minimum support1, maximum common body drop0.123641local. Physical feet now match across30/60/120Hz within2mm. Actual torso-interior2520samples pass.",
     "longFrameCorrection": "Initial hosted candidate1d98ec9 fails10Hz running by19.846mm. New internal30Hz planning interpolation handles the real frame cap0.1s without moving the gameplay root or changing speeds.",
-    "preview": "Owner-private Site appgprj_6acd61ca7e6081918a39490e9cdbf4b9 deployed old1d98ec9; source refresh required before final acceptance."
+    "preview": "Owner-private Site appgprj_6acd61ca7e6081918a39490e9cdbf4b9 deployed9a0b138 (source71e73f3829da0f34b42595beb13a99b59d542a6b); refresh to current normalized head before acceptance.",
+    "timingNormalization": "Parent9a0b138 has40/80mm walk/run foot differences at30vs120Hz. Fixed signed support-circle exit forecast, current elapsed-time accounting and common120Hz internal planning; retain restart first-frame continuity. Step advance uses original leg length; lead uses half that distance.",
+    "visual": "Parent9a0b138 real48-pose gallery inspected: connected legs, recognizable chicken, no console errors, contact8.951e-16m. Uniform run samples alias gait; new nonuniform captures and actual owner review required."
   }
 }

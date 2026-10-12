@@ -54,3 +54,17 @@ test('real 0.1-second frame cap preserves reachable feet without changing gamepl
   }finally{r.dispose();}
  }
 });
+
+test('the same chicken travel produces the same physical feet at 30/60/120 Hz',()=>{
+ for(const h of [.35,.72])for(const run of [false,true]){
+  const samples=[];
+  for(const hz of [30,60,120]){
+   const r=createChicken3D(h),v=h===.72?(run?2.4:.8):h*(run?1.4:.65);
+   try{
+    for(let n=0;n<hz*2;n++){const dx=n<hz*.3?0:v/hz,dz=n<hz*.3?-v/hz:0;r.g.position.x+=dx;r.g.position.z+=dz;updateChicken3D(r,dx,dz,1/hz,run?'run':'walk');}
+    r.g.updateMatrixWorld(true);samples.push(r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3())));
+   }finally{r.dispose();}
+  }
+  for(const feet of samples)for(let i=0;i<2;i++)assert.ok(feet[i].distanceTo(samples[2][i])<=.002,'physical gait differs across frame rates');
+ }
+});

@@ -79,12 +79,13 @@ const {start,artifacts}=require('./browser-harness.cjs');
         }
         capture('Restart walk · frame '+restartFrame,Math.PI/2);
       }
-      for(let sample=0;sample<6;sample++){
-        for(let frame=0;frame<10;frame++){
-          r.g.position.z-=2.4/60;updateChicken3D(r,0,-2.4/60,1/60,'run');r.g.updateMatrixWorld(true);
+      let runFrame=0;
+      for(const frames of [1,2,4,8,15,30]){
+        for(let frame=0;frame<frames;frame++){
+          runFrame++;r.g.position.z-=2.4/60;updateChicken3D(r,0,-2.4/60,1/60,'run');r.g.updateMatrixWorld(true);
           for(const l of r.legs)if(l.planted){const f=l.foot.getWorldPosition(new T.Vector3());worstContact=Math.max(worstContact,Math.hypot(f.x-l.ax,f.z-l.az));}
         }
-        capture('Run · frame '+((sample+1)*10),Math.PI/2);
+        capture('Run · frame '+runFrame,Math.PI/2);
       }
       const runStop=r.legs.map(l=>l.foot.getWorldPosition(new T.Vector3()));
       idleFrame=0;
