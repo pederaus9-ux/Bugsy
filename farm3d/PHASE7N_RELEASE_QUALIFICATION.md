@@ -24,9 +24,10 @@ not an independent Claude/Grok/Muse audit.
 
 Reconcile stale current-status labels, inspect existing tests and completed
 exact-head logs, verify selected live files, run bounded release checks, and
-record an ordered qualification plan. This checkpoint changes documentation
-and evidence only. No runtime, animal, save schema, backend, renderer,
-service worker, gameplay, dependency or test-threshold changes.
+record an ordered qualification plan. A focused conflicting-save browser test
+and isolated hosted workflow are now implemented, with behavioral execution
+pending. No runtime, animal, save schema, deployed backend, renderer, service
+worker, gameplay, dependency version or existing test-threshold changes.
 
 Historical delivery records remain available. Their old pending animal gates,
 roadmap labels, blanket purchase prohibition and schedule claims do not
@@ -88,9 +89,13 @@ of a release blocker nor authorization to merge/close them.
 
 ## Highest-value next engineering action
 
-Add a focused, production-shaped **same-account conflicting-save emulator
-qualification** using the existing harness and real `auth.js`; keep verified
-economy off. Use isolated demo accounts/data only.
+Run the newly implemented, production-shaped **same-account conflicting-save
+emulator qualification** in `farm3d/firebase/tests/conflicts.browser.cjs`, using
+the existing harness and real `auth.js`; keep verified economy off. Use isolated
+demo accounts/data only. Run `npm run test:conflicts` in `farm3d/firebase`.
+Syntax is checked; behavioral results must come from the new exact-head
+`Sunny Acres release qualification` hosted workflow before declaring this gate
+passed. Existing suites and thresholds are unchanged.
 
 1. Establish one account and the same cloud revision on two disposable devices.
 2. Change both copies with distinct saved-state markers.

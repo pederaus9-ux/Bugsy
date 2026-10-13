@@ -51,7 +51,7 @@
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
   "phaseStatus": "AUTOMATED_BASELINE_VERIFIED_DEVICE_AND_OPERATIONAL_GATES_OPEN",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": null,
+  "activePullRequest": 79,
   "nextPhases": [
     "Pin current main and reconcile current acceptance/test evidence",
     "Add reproducible same-account two-device conflicting-save qualification in local Firebase emulators",
@@ -1192,7 +1192,7 @@
     "branch": "codex/phase7n-release-qualification",
     "owner": "ChatGPT/Codex",
     "authorization": "go, 2026-10-12T19:31:33-05:00; audit, tests and bounded checkpoint; no release/merge authorization",
-    "status": "IN_PROGRESS",
+    "status": "CONFLICT_REGRESSION_IMPLEMENTED_HOSTED_PENDING",
     "report": "farm3d/PHASE7N_RELEASE_QUALIFICATION.md",
     "evidence": "farm3d/tests/evidence/phase7n/baseline.json",
     "requiredUnknowns": [
@@ -1203,8 +1203,10 @@
       "fixed release candidate rollback/update rehearsal and owner release approval"
     ],
     "confirmedNewProductionDefects": [],
-    "scope": "Documentation/evidence checkpoint only; runtime, accepted animals, backend, save schema and all test thresholds unchanged.",
+    "scope": "Current-status reconciliation and isolated same-account conflicting-save tests; runtime, accepted animals, backend, save schema and all existing test thresholds unchanged.",
     "merge": "NOT_AUTHORIZED",
-    "release": "NOT_AUTHORIZED"
+    "release": "NOT_AUTHORIZED",
+    "pr": 79,
+    "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution."
   }
 }
