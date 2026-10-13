@@ -1,0 +1,44 @@
+name: Sunny Acres bounded ambient diagnostic
+on:
+  push:
+    branches: [codex/ambient-motion-resume-diagnosis]
+    paths:
+      - 'farm3d/tests/ambient-resume-diagnostic.cjs'
+      - '.github/workflows/farm3d-ambient-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ambient-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ambient:
+    name: Original 700 ms windows with callback/frame logging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install unchanged isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Verify preserved assertions and run one bounded observation
+        working-directory: farm3d/tests
+        run: node ambient-resume-diagnostic.cjs --verify && node ambient-resume-diagnostic.cjs
+      - name: Preserve observations, screenshots and failure trace
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ambient-resume-diagnostic-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: error
+          retention-days: 14
