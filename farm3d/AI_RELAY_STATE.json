@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-13T02:11:34.888436+00:00",
+  "lastUpdatedUtc": "2026-10-13T02:23:53.950194+00:00",
   "codeBaseline": {
     "description": "Phase7N conflict qualification integrated; production runtime unchanged from accepted animal build",
     "mergeCommit": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
@@ -54,13 +54,13 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "BOUNDED_AMBIENT_RESUME_DIAGNOSTIC_ONLY",
+  "phaseStatus": "AMBIENT_DIAGNOSTIC_REPORTED_ROOT_CAUSE_INCONCLUSIVE",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": null,
   "nextPhases": [
-    "Run one bounded ambient diagnostic with render-callback and frame-timing logging; keep production and original700ms assertions unchanged",
-    "Report measured evidence before proposing any correction",
-    "Graphics review follows the current stability checkpoint; physical device/security/final release gates remain separate"
+    "Owner review of measured ambient diagnostic evidence; originalmain199 failure remains unresolved",
+    "Any subsequent diagnostic or correction must follow evidence and current owner authorization; do not silently change700ms assertions or production code",
+    "Graphics review follows current stability checkpoint; device/security/final release gates remain open"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -1237,8 +1237,16 @@
       "Callback runs but effective motion state stays reduced or object is invisible/culled",
       "Callback runs in full motion but native geometry does not change (possible production defect)"
     ],
-    "observations": "PENDING_HOSTED_DIAGNOSTIC",
+    "observations": "HOSTED_PASS4/4_ORIGINAL_COMPARISONS_ORIGINAL_FAILURE_NOT_REPRODUCED",
     "merge": "NOT_AUTHORIZED",
-    "fix": "NOT_PROPOSED_OR_AUTHORIZED_BY_THIS_DIAGNOSTIC"
+    "fix": "NOT_PROPOSED; report evidence first under owner instruction",
+    "testedHead": "528f0a9dbe9e12409c017a3a6872b98dab695672",
+    "hostedRun": 38335774387,
+    "hostedJob": 115095387590,
+    "evidence": "farm3d/tests/evidence/ambient-resume-diagnostic",
+    "verdict": "INCONCLUSIVE for root cause of originalmain199 failure; diagnostic4/4original pause/resume comparisons passed.",
+    "verifiedFinding": "1280reduced sample had0render callbacks and still passed. In this run both full-motion samples had1actual callback and movedgeometry.",
+    "likely": "Fixed wall-clock samples are sensitive to scarce render opportunities on software GPU; not proven as cause of original failure.",
+    "unknown": "Originalmain199 had no callback telemetry. Its resume failure was not reproduced, so exactcause remains unknown."
   }
 }
