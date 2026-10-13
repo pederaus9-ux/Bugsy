@@ -1,0 +1,46 @@
+name: Sunny Acres ambient render-stage diagnostic
+on:
+  push:
+    branches: [codex/ambient-render-stage-diagnostic]
+    paths:
+      - 'farm3d/tests/ambient-render-stage-preload.cjs'
+      - '.github/workflows/farm3d-ambient-stage-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ambient-render-stage-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  scene:
+    name: One original scene fixture with render-stage observations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install unchanged isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Observe the original complete scene fixture once
+        working-directory: farm3d/tests
+        env:
+          NODE_OPTIONS: --require=./ambient-render-stage-preload.cjs
+        run: node scene-polish.browser.cjs
+      - name: Preserve stage timing and original failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ambient-render-stage-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: error
+          retention-days: 14

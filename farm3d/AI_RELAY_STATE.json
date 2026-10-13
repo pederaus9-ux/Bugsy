@@ -49,7 +49,7 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "AUTOMATED_BASELINE_VERIFIED_DEVICE_AND_OPERATIONAL_GATES_OPEN",
+  "phaseStatus": "BOUNDED_AMBIENT_RENDER_STAGE_DIAGNOSIS",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": 79,
   "nextPhases": [
@@ -933,7 +933,7 @@
       }
     }
   },
-  "workingBranch": "codex/phase7n-release-qualification",
+  "workingBranch": "codex/ambient-render-stage-diagnostic",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -1208,5 +1208,19 @@
     "release": "NOT_AUTHORIZED",
     "pr": 79,
     "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution."
+  },
+  "ambientRenderStageDiagnostic": {
+    "baseMain": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
+    "baseTree": "55e8e13146e2c78fc0647d2b07e97c6cfbf1ef5b",
+    "branch": "codex/ambient-render-stage-diagnostic",
+    "owner": "ChatGPT/Codex",
+    "authorization": "Owner okay at 2026-10-13 after proposed render-timing isolation; diagnostic only. Prior one full-sequence run38338910516 is finished and not repeated.",
+    "hypothesis": "Slow synchronous render submission or draw scheduling explains sparse callbacks; compare complete game-frame time, composer and renderer-pass spans, long tasks, visibility and motion-state callbacks.",
+    "command": "NODE_OPTIONS=--require=./ambient-render-stage-preload.cjs node scene-polish.browser.cjs",
+    "limits": "One original full scene fixture, exact 700 ms assertions, same 20-minute job bound, no quality/resolution/timeout changes. Observational wrappers only, native this/args/return/exceptions preserved.",
+    "protected": "All production files, accepted animals, saves/auth/cloud/economy, original npm script/browser fixture/harness/thresholds unchanged.",
+    "result": "PENDING_ONE_HOSTED_RUN",
+    "merge": "NOT_AUTHORIZED",
+    "fix": "NOT_AUTHORIZED_BY_DIAGNOSTIC"
   }
 }
