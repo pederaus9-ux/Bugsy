@@ -1,3 +1,26 @@
+# Sunny Acres current production status — 2026-10-12
+
+Current main: `047cbed91b816b4869f983ef8fe2571cdde987e2` (PR #78).
+Current phase: **7N — release qualification**, authorized by the owner.
+Owner explicitly accepted **all current animals** on 2026-10-12. Preserve their
+models and motion unless a new reproducible defect is demonstrated.
+
+Post-merge regression #196 passed all seven jobs; Pages #75 passed. Twelve
+selected live runtime files byte-match main. This establishes an automated and
+deployed baseline, not release completion. Current device/long-session, iPhone,
+same-account conflicting-save and live backend security gates remain open.
+
+See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for the
+exact evidence, gaps, ordered next actions and stop conditions. The accepted
+core free-to-play product permits optional cosmetic monetization in future;
+this phase implements no monetization. Current team: ChatGPT/Codex only.
+
+## Historical delivery record (2026-10-05)
+
+The record below preserves earlier evidence. Its old current/next labels,
+pending animal gates, agent/schedule references and no-real-money policy do
+not describe current authorization. No running schedule is verified here.
+
 # Sunny Acres continuation status — 2026-10-05
 
 The owner requests continuous completion in focused PRs, advancing after each

@@ -1,0 +1,54 @@
+name: Sunny Acres release qualification
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'farm3d/firebase/tests/conflicts.browser.cjs'
+      - 'farm3d/firebase/tests/emu-harness.cjs'
+      - 'farm3d/firebase/package*.json'
+      - 'farm3d/firebase/firestore.rules'
+      - 'farm3d/auth.js'
+      - 'farm3d/game.js'
+      - 'farm3d/index.html'
+      - '.github/workflows/farm3d-release-qualification.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: farm3d-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  conflicts:
+    name: Same-account conflicting saves (emulator)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Install isolated emulator and pinned browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Preserve both farms through stale-upload refusal and user choices
+        working-directory: farm3d/firebase
+        run: npm run test:conflicts
+      - name: Save conflicting-save state, requests and failure evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-release-conflicts-${{ github.run_attempt }}
+          path: farm3d/firebase/artifacts/
+          if-no-files-found: error
+          retention-days: 14
