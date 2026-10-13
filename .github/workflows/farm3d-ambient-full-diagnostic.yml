@@ -1,0 +1,46 @@
+name: Sunny Acres full-sequence ambient diagnostic
+on:
+  push:
+    branches: [codex/ambient-full-sequence-diagnostic]
+    paths:
+      - 'farm3d/tests/ambient-full-sequence-preload.cjs'
+      - '.github/workflows/farm3d-ambient-full-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ambient-full-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  characters:
+    name: Original full character sequence with observational logging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install unchanged isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Run the original full sequence once
+        working-directory: farm3d/tests
+        env:
+          NODE_OPTIONS: --require=./ambient-full-sequence-preload.cjs
+        run: npm run test:core:characters
+      - name: Preserve callback/frame observations and original failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ambient-full-sequence-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: error
+          retention-days: 14
