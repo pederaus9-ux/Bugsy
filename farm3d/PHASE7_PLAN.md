@@ -1,3 +1,17 @@
+# Current roadmap checkpoint — 2026-10-12
+
+Current main `047cbed91b816b4869f983ef8fe2571cdde987e2` integrates PR #78.
+All current animals are owner accepted. Current work is **7N — release
+qualification**, detailed in [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md).
+Do not repeat delivered animal reconstruction from older phase labels.
+The newer owner product decision keeps the full farm/progression free and
+permits optional cosmetics; no monetization is implemented in this phase.
+The older blanket purchase prohibition below is historical, not current policy.
+Standing owner authorization covers routine reviews/tests/implementation;
+explicit owner visual, merge, destructive and release gates remain in force.
+
+## Historical Phase 7 roadmap
+
 # Sunny Acres 3D: Phase 7 development and polish plan
 
 This roadmap supersedes older Phase 7 labels. Work in order, using focused

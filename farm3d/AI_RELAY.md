@@ -162,7 +162,20 @@ After merge:
 4. sync any external coding workspace from `main`;
 5. then begin the next phase.
 
-## 12. Current Sunny Acres cow program
+## Current phase — 2026-10-12
+
+Main `047cbed91b816b4869f983ef8fe2571cdde987e2` integrates chicken PR #78.
+The owner explicitly said all animals are good; their current visual acceptance
+is recorded in the relay state. All accepted animal systems are frozen for
+Phase 7N unless a new reproducible defect is demonstrated. Phase 7N is now
+owner authorized. Use `PHASE7N_RELEASE_QUALIFICATION.md` for current scope,
+fixed-build evidence and remaining device/operational gates. Visual animal
+acceptance and green CI do not grant final release approval.
+
+The cow sections below retain historical intent. They do not authorize
+restarting B9 or override the current owner acceptance and relay state.
+
+## 12. Historical Sunny Acres cow program
 
 The cow program is gated sequentially:
 
@@ -180,7 +193,7 @@ The cow program is gated sequentially:
 
 Do not start B10+ as part of B9 unless the relay state or owner explicitly changes the scope.
 
-## 13. Current B9 intent
+## 13. Historical B9 intent
 
 B9 must improve gait timing while preserving approved B8 anatomy and gameplay semantics.
 
