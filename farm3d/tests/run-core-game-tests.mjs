@@ -10,7 +10,7 @@ const nodeFiles=[
  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
  'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','horse-contact-feasibility.test.mjs','horse-motion-evidence.test.mjs','sheep3d.test.mjs','dog-face.test.mjs','dog-stop-continuity.test.mjs','dog-evidence-placement.test.mjs','cat-visual.test.mjs','cat-stop-continuity.test.mjs','cat-evidence-placement.test.mjs','chicken-coordinated-motion.test.mjs','chicken-start-turn.test.mjs','chicken-stop-continuity.test.mjs','chicken-evidence-placement.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
  'animal-visual.test.mjs','features.test.mjs','sdk.test.mjs','scene-polish.test.mjs',
- 'asset-policy.test.mjs'
+ 'asset-policy.test.mjs','ambient-render-observation.test.mjs'
 ];
 const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
 let active=null;
