@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-13T02:50:06.924934+00:00",
+  "lastUpdatedUtc": "2026-10-13T03:04:15Z",
   "codeBaseline": {
     "description": "Phase7N qualification integrated; runtime unchanged from accepted animal build",
     "mergeCommit": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
@@ -54,7 +54,7 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "ONE_FULL_SEQUENCE_AMBIENT_DIAGNOSTIC_AUTHORIZED",
+  "phaseStatus": "FULL_SEQUENCE_DIAGNOSTIC_PASS_ORIGINAL_AMBIENT_FAILURE_INCONCLUSIVE",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": null,
   "nextPhases": [
@@ -1213,7 +1213,7 @@
     "release": "NOT_AUTHORIZED",
     "pr": 79,
     "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution.",
-    "postMergeQualification": "Main199 six jobs passed; character job failed ambient motion resumes. Standalone diagnostic passed but original failure remains unexplained. One full-sequence diagnostic authorized."
+    "postMergeQualification": "Main199: six jobs passed; character ambient-resume failed. Standalone run38335774387 and original full-sequence run38338910516 passed all ambient comparisons; latter also completed all seven original programs. Root cause remains inconclusive; original failed check is retained. No corrective change."
   },
   "ambientFullSequenceDiagnostic": {
     "baseMain": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
@@ -1225,8 +1225,20 @@
     "command": "npm run test:core:characters (original command unchanged), Node preload observational only in scene-polish.browser.cjs",
     "originalFixtureSha256": "88f0a77329ee7129ab5701ee07cf72e08714d4931dcfc4572296df4e84e6f435",
     "scope": "All7original browser programs, exact order, complete scene/legacy fixtures, original assertions and700ms windows, original20minute job bound. No retry or fix.",
-    "result": "PENDING_ONE_HOSTED_RUN",
+    "result": "ONE_FULL_SEQUENCE_PASS; ORIGINAL_MAIN199_FAILURE_NOT_REPRODUCED",
     "merge": "NOT_AUTHORIZED",
-    "fix": "NOT_PROPOSED"
+    "fix": "NOT_PROPOSED",
+    "testedHead": "26d332dfabf205466b304cff57578cb8c16161be",
+    "testedTree": "3e04600ba0f810e02df134a38a90f48b2fa3324c",
+    "workflowRun": 38338910516,
+    "job": 115105248859,
+    "attempt": 1,
+    "allSevenProgramsCompleted": true,
+    "comparisons": "4/4 passed with unchanged 700 ms assertions; callback counts reduce/full: 844 = 1/1, 1280 = 0/1. Full-mode first callbacks 603.3 and 239.3 ms after markers.",
+    "evidence": "farm3d/tests/evidence/ambient-full-sequence/summary.json",
+    "report": "farm3d/AMBIENT_FULL_SEQUENCE_DIAGNOSTIC.md",
+    "finding": "Same sparse-callback pattern as standalone diagnostic. No reproduced prior-suite rendering failure. 1280 pause passes without a callback.",
+    "unknown": "Cause of original main199 failure; any causal preceding-suite effects; device rendering performance.",
+    "next": "Report evidence before proposing a correction; no blind rerun, production change, limit change, fix or merge authorized by this diagnostic."
   }
 }
