@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-13T00:34:27.421822+00:00",
+  "lastUpdatedUtc": "2026-10-13T10:53:58Z",
   "codeBaseline": {
     "description": "Chicken coordinated motion integrated; all current animals owner visually accepted",
     "mergeCommit": "047cbed91b816b4869f983ef8fe2571cdde987e2",
@@ -49,7 +49,7 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "BOUNDED_AMBIENT_RENDER_STAGE_DIAGNOSIS",
+  "phaseStatus": "AMBIENT_FRAME_DELIVERY_DELAY_VERIFIED_ORIGINAL_FAILURE_UNREPRODUCED",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": 79,
   "nextPhases": [
@@ -1219,8 +1219,19 @@
     "command": "NODE_OPTIONS=--require=./ambient-render-stage-preload.cjs node scene-polish.browser.cjs",
     "limits": "One original full scene fixture, exact 700 ms assertions, same 20-minute job bound, no quality/resolution/timeout changes. Observational wrappers only, native this/args/return/exceptions preserved.",
     "protected": "All production files, accepted animals, saves/auth/cloud/economy, original npm script/browser fixture/harness/thresholds unchanged.",
-    "result": "PENDING_ONE_HOSTED_RUN",
+    "result": "ONE_ORIGINAL_SCENE_FIXTURE_PASS; 4/4 original ambient assertions pass",
     "merge": "NOT_AUTHORIZED",
-    "fix": "NOT_AUTHORIZED_BY_DIAGNOSTIC"
+    "fix": "NOT_AUTHORIZED_BY_DIAGNOSTIC",
+    "testedHead": "61dc68647f5b3b28f1abafe1912ea87b49d6ce0f",
+    "testedTree": "a28e908b6954ceed4c6f58b1a768a8a579e26706",
+    "run": 38385795074,
+    "job": 115257145474,
+    "attempt": 1,
+    "evidence": "farm3d/tests/evidence/ambient-render-stage/summary.json",
+    "report": "farm3d/AMBIENT_RENDER_STAGE_DIAGNOSTIC.md",
+    "verified": "Full-mode frame CPU durations 9.8/12.7 ms, composer 7.8/10.9 ms, requested-frame delivery delay 660.4/1007.4 ms. Full callbacks occur 529.1/210.6 ms after full-mode marker. 1280 pause has no drawn frame. No skipped drawing in the three observed assertion-window frames.",
+    "likely": "Browser scheduling or asynchronous software-GPU work delays frame delivery; fixed wall-clock assertion depends on draw timing.",
+    "unknown": "Specific underlying browser/GPU cause, original main199 callback state and failure cause, device performance.",
+    "next": "Report before correction. No production fix supported. A future test-harness correction should guarantee/explain actual draw opportunity and check pause as well as resume without hiding the original failure or weakening requirements."
   }
 }
