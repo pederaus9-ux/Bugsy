@@ -1,0 +1,136 @@
+// Read-only Phase 7N audit. No game, account, Firebase or deployment operation.
+// Usage: node --experimental-vm-modules farm3d/tests/release-qualification-audit.cjs --ref=<SHA> --out=<JSON>
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=require('node:vm');
+const {execFileSync,execFile}=require('node:child_process');
+const runFile=require('node:util').promisify(execFile);
+const crypto=require('node:crypto');
+const arg=(key,fallback)=>process.argv.find(s=>s.startsWith('--'+key+'='))?.slice(key.length+3)||fallback;
+const root=path.resolve(__dirname,'../..'),ref=arg('ref','HEAD');
+const git=(args,options={})=>execFileSync('git',args,{cwd:root,maxBuffer:32*1024*1024,...options});
+const sha=git(['rev-parse',ref],{encoding:'utf8'}).trim(),tree=git(['rev-parse',sha+'^{tree}'],{encoding:'utf8'}).trim();
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const contents=new Map(),read=file=>{if(!contents.has(file))contents.set(file,git(['show',sha+':'+file]));return contents.get(file);};
+const out=path.resolve(arg('out',path.join(__dirname,'artifacts/phase7n-release-audit.json')));
+const liveOnly=process.argv.includes('--live-only');
+const report={mode:liveOnly?'live-parity-only':'full-audit',sourceHead:sha,sourceTree:tree,checkedAtUtc:new Date().toISOString(),checks:{},limitations:[
+ 'No game/backend execution, real-account data, settings writes, deployment or phone participation.',
+ 'Anonymous fresh HTTP bytes do not establish the state of any existing device cache.',
+ 'Module closure covers literal imports/asset URLs, the full declared offline shell and enumerated client imagery; external CDNs are recorded but not requested.',
+ 'Archive rehearsal is disposable file restoration, not a live deployment rollback, cache-version downgrade, server rollback or owner-save import.',
+ 'Catalog reachability is a static dependency/unlock check, not progression balance, complete UI playthrough or elapsed-time simulation.'
+]};
+function ensure(ok,message){if(!ok)throw new Error(message);}
+function catalog(){
+ const source=read('farm3d/game.js').toString(),prefix=source.slice(0,source.indexOf('// ---------- the wardrobe:'));
+ const sandbox=vm.createContext({});
+ new vm.Script(prefix.replace(/^export /gm,'')+'\nglobalThis.catalog={ITEMS,CROPS,ANIMALS,BUILDINGS,RECIPES};').runInContext(sandbox,{timeout:1000});
+ const {ITEMS,CROPS,ANIMALS,BUILDINGS,RECIPES}=sandbox.catalog,errors=[],owners={};
+ const positive=n=>Number.isFinite(n)&&n>0;
+ for(const [k,v]of Object.entries(ITEMS))if(!Number.isInteger(v.lvl)||v.lvl<1||!positive(v.p))errors.push('invalid item '+k);
+ for(const [k,v]of Object.entries(CROPS))if(!ITEMS[k]||!positive(v.time)||!positive(v.seed))errors.push('invalid crop '+k);
+ for(const [k,b]of Object.entries(BUILDINGS))for(const r of b.recipes){if(owners[r])errors.push('duplicate producer '+r);owners[r]={building:k,level:b.lvl};if(!RECIPES[r])errors.push('unknown recipe '+r);}
+ for(const [k,r]of Object.entries(RECIPES)){
+  if(!ITEMS[k]||!owners[k]||!positive(r.out)||!positive(r.time)||!Number.isFinite(r.xp)||r.xp<0)errors.push('invalid recipe '+k);
+  const level=ITEMS[k]?.lvl;
+  if(owners[k]?.level>level)errors.push('producer unlock later than output '+k);
+  for(const [input,n]of Object.entries(r.in))if(!ITEMS[input]||!positive(n)||ITEMS[input].lvl>level)errors.push('invalid or later input '+k+' -> '+input);
+ }
+ for(const [k,a]of Object.entries(ANIMALS)){
+  if(!ITEMS[a.feed]||ITEMS[a.feed].lvl>a.lvl||!positive(a.time))errors.push('unavailable animal feed '+k);
+  if(a.out&&(!ITEMS[a.out]||a.lvl>ITEMS[a.out].lvl))errors.push('unavailable animal output '+k);
+ }
+ const levels=[];
+ for(let level=1;level<=Math.max(...Object.values(ITEMS).map(v=>v.lvl));level++){
+  const reached=new Set(Object.keys(CROPS).filter(k=>ITEMS[k].lvl<=level));let changed=true;
+  while(changed){changed=false;
+   for(const [k,r]of Object.entries(RECIPES))if(!reached.has(k)&&ITEMS[k].lvl<=level&&owners[k].level<=level&&Object.keys(r.in).every(v=>reached.has(v))){reached.add(k);changed=true;}
+   for(const a of Object.values(ANIMALS))if(a.out&&!reached.has(a.out)&&a.lvl<=level&&reached.has(a.feed)){reached.add(a.out);changed=true;}
+  }
+  const missing=Object.keys(ITEMS).filter(k=>ITEMS[k].lvl<=level&&!reached.has(k));if(missing.length)errors.push('unreachable at level '+level+': '+missing.join(','));
+  levels.push({level,reachable:[...reached].sort(),missing});
+ }
+ return {status:errors.length?'FAIL':'PASS',itemCount:Object.keys(ITEMS).length,cropCount:Object.keys(CROPS).length,recipeCount:Object.keys(RECIPES).length,buildingCount:Object.keys(BUILDINGS).length,animalCount:Object.keys(ANIMALS).length,levels,errors};
+}
+function buildInventory(){
+ const nodes=new Map(),queue=[],external=new Set(),importMap=new Map(),parsed=[];
+ function add(spec,parent='farm3d/index.html',reason='literal dependency'){
+  if(!spec||spec.startsWith('#')||spec.includes('${')||spec.startsWith('data:'))return;
+  if(/^(?:https?:)?\/\//.test(spec)){external.add(spec);return;}
+  if(!/^[./]/.test(spec)&&!spec.includes('/')&&importMap.has(spec))spec=importMap.get(spec);
+  else if(!/^[./]/.test(spec)&&!spec.includes('/')&&reason==='module dependency')throw new Error('unresolved bare import '+spec);
+  const url=new URL(spec,'https://candidate.invalid/'+parent);
+  ensure(url.origin==='https://candidate.invalid','external URL resolution');
+  const key=url.pathname.slice(1)+url.search;
+  ensure(!key.includes('..'),'unsafe relative file');
+  const file=url.pathname.endsWith('/')?url.pathname.slice(1)+'index.html':url.pathname.slice(1);
+  if(!nodes.has(key)){nodes.set(key,{url:key,file,reason});queue.push(key);}
+ }
+ for(const p of ['farm3d/index.html','farm3d/characters3d.html','farm3d/players.html','dashboard/index.html','farm3d/sw.js'])add('./'+p,'index.html','release entry');
+ const shell=JSON.parse(read('farm3d/sw.js').toString().match(/const SHELL = (\[[^\]]*\])/)[1]);
+ for(const spec of shell)add(spec,'farm3d/sw.js','declared offline shell');
+ const tracked=git(['ls-tree','-r','--name-only',sha,'farm3d/art','farm3d/tex'],{encoding:'utf8'}).trim().split('\n');
+ for(const p of tracked.filter(p=>/\.(?:png|jpe?g|webp|svg)$/.test(p)))add('./'+p,'index.html','enumerated farm imagery');
+ function imports(source,parent){
+  const module=new vm.SourceTextModule(source,{identifier:parent});parsed.push(parent);
+  for(const s of module.dependencySpecifiers)add(s,parent,'module dependency');
+  for(const m of source.matchAll(/import\(\s*(['"])([^'"\n]+)\1\s*\)/g))add(m[2],parent,'literal dynamic import');
+  for(const m of source.matchAll(/new URL\(\s*(['"])([^'"\n]+)\1\s*,\s*import\.meta\.url\s*\)/g))add(m[2],parent,'literal module asset');
+ }
+ for(let i=0;i<queue.length;i++){
+  const n=nodes.get(queue[i]),source=read(n.file);
+  if(/\.html$/.test(n.file)){
+   const text=source.toString();
+   for(const m of text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
+    const src=m[1].match(/\bsrc=["']([^"']+)["']/i);
+    if(src)add(src[1],n.file,'HTML script');
+    else if(/type=["']module["']/.test(m[1]))imports(m[2],n.file+'#inline');
+    else if(/type=["']importmap["']/.test(m[1]))for(const [k,v]of Object.entries(JSON.parse(m[2]).imports||{}))importMap.set(k,v);
+   }
+   for(const m of text.matchAll(/<link\b[^>]*>/gi))if(/rel=["'](?:manifest|icon|apple-touch-icon|stylesheet)["']/.test(m[0])){const href=m[0].match(/href=["']([^"']+)["']/);if(href)add(href[1],n.file,'HTML head resource');}
+  }else if(/\.m?js$/.test(n.file))imports(source.toString(),n.file);
+  else if(/\.webmanifest$/.test(n.file))for(const icon of JSON.parse(source.toString()).icons||[])add(icon.src,n.file,'PWA icon');
+ }
+ const list=[...nodes.values()].sort((a,b)=>a.url.localeCompare(b.url));for(const n of list){const data=read(n.file);n.sha256=hash(data);n.bytes=data.length;}
+ return {nodes:list,shellCount:shell.length,parsedModules:parsed,externalReferences:[...external].sort()};
+}
+function archiveRestore(inventory){
+ const files=[...new Set(inventory.nodes.map(n=>n.file))].sort(),expected=new Map(files.map(f=>[f,hash(read(f))]));
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-acres-release-audit-'));let result;
+ try{
+  const archive=path.join(dir,'candidate.tar'),restore=path.join(dir,'restored');fs.mkdirSync(restore);
+  git(['archive','--format=tar','-o',archive,sha,...files]);
+  execFileSync('tar',['-xf',archive,'-C',restore]);
+  const rows=files.map(file=>{const actual=fs.readFileSync(path.join(restore,file)),digest=hash(actual);return {file,sha256:digest,match:digest===expected.get(file)};});
+  result={status:rows.every(r=>r.match)?'PASS':'FAIL',files:rows.length,archiveBytes:fs.statSync(archive).size,archiveSha256:hash(fs.readFileSync(archive)),rows,boundary:'Disposable artifact restore only; no live deployment/cache/account rollback.'};
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+ return result;
+}
+async function liveParity(inventory){
+ const base='https://pederaus9-ux.github.io/Bugsy/',rows=new Array(inventory.nodes.length);let cursor=0;
+ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-acres-live-assets-'));
+ try{
+ await Promise.all(Array.from({length:4},async()=>{while(cursor<inventory.nodes.length){const i=cursor++,n=inventory.nodes[i];
+  try{
+   const url=new URL(n.url,base).href,file=path.join(temp,i+'.bin');
+   // curl honors the execution environment's configured HTTPS proxy/trust.
+   // Same anonymous GET, no redirects, same20s bound and exact-byte criteria.
+   const result=await runFile('curl',['--silent','--show-error','--max-time','20','--proto','=https','--output',file,'--write-out','%{http_code}\n%{content_type}\n',url],{timeout:25000,maxBuffer:65536});
+   const [statusText,type='']=result.stdout.trimEnd().split('\n'),status=Number(statusText),data=fs.readFileSync(file);
+   const digest=hash(data);
+   const mimeOK=/\.m?js$/.test(n.file)?/javascript|ecmascript/i.test(type):/\.html$/.test(n.file)?/text\/html/i.test(type):true;
+   rows[i]={url,file:n.file,status,contentType:type,bytes:data.length,sha256:digest,expectedSha256:n.sha256,match:status===200&&digest===n.sha256&&mimeOK,mimeOK};
+  }catch(e){rows[i]={url:new URL(n.url,base).href,file:n.file,match:false,error:e.message};}
+ }}));
+ }finally{fs.rmSync(temp,{recursive:true,force:true});}
+ return {transport:'curl (configured HTTPS proxy/trust)',status:rows.every(r=>r.match)?'PASS':'FAIL',requests:rows.length,matching:rows.filter(r=>r.match).length,rows,boundary:'Anonymous GETs of public static assets only; external references not fetched.'};
+}
+(async()=>{
+ try{
+  if(!liveOnly){report.checks.catalog=catalog();console.log('CATALOG',report.checks.catalog.status,report.checks.catalog.itemCount+' items',report.checks.catalog.recipeCount+' recipes');}
+  const inventory=buildInventory();report.inventory=inventory;console.log('INVENTORY',inventory.nodes.length+' URL variants',inventory.parsedModules.length+' modules/inline modules');
+  if(!liveOnly){report.checks.archiveRestore=archiveRestore(inventory);console.log('ARCHIVE_RESTORE',report.checks.archiveRestore.status,report.checks.archiveRestore.files+' files');}
+  report.checks.liveParity=await liveParity(inventory);console.log('LIVE_PARITY',report.checks.liveParity.status,report.checks.liveParity.matching+'/'+report.checks.liveParity.requests);
+  report.status=Object.values(report.checks).every(v=>v.status==='PASS')?'PASS':'FAIL';
+ }catch(e){report.status='FAIL';report.error=e.stack;console.error(e.message);}
+ finally{fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log('RESULT',report.status,'source',sha);if(report.status!=='PASS')process.exitCode=1;}
+})();

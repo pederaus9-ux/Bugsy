@@ -1,7 +1,11 @@
 # Sunny Acres 3D — Firestore rules
 
 `firestore.rules` is the source of truth for who may read and write what in the game's Firestore database
-(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7I** with the owner-UID check (not yet published; production still runs whatever was published before).
+(Firebase project `fir-config-18b64`, database **`default`**). Ruleset version: **7I** with the owner-UID check (repository/emulator evidence; current deployed rules identity is **UNVERIFIED**).
+
+Phase 7N, 2026-10-13: the earlier not-published note is historical, not proof of today's live rules. Obtain a read-only current rules/config export and compare offline before
+claiming deployment parity. No live publish/settings/data action is authorized by this
+report. See `../PHASE7N_RELEASE_QUALIFICATION.md`.
 
 ## What the rules protect (and what they can't)
 

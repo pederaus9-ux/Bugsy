@@ -1,19 +1,25 @@
-# Sunny Acres current production status — 2026-10-12
+# Sunny Acres current production status — 2026-10-13
 
-Current main: `047cbed91b816b4869f983ef8fe2571cdde987e2` (PR #78).
-Current phase: **7N — release qualification**, authorized by the owner.
-Owner explicitly accepted **all current animals** on 2026-10-12. Preserve their
-models and motion unless a new reproducible defect is demonstrated.
+Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
+Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.
+[Regression201](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392622802) passed all7 jobs; [Pages77](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392621215) passed on this main.
+PR79's conflicting-save emulator qualification and PR80's test-only rendered
+ambient observation correction are merged and credited, not pending reruns.
 
-Post-merge regression #196 passed all seven jobs; Pages #75 passed. Twelve
-selected live runtime files byte-match main. This establishes an automated and
-deployed baseline, not release completion. Current device/long-session, iPhone,
-same-account conflicting-save and live backend security gates remain open.
+The owner accepted all current animals and completed the qualitative Android/iPhone
+phone round: modes, movement/interactions, saves/reopen/offline and weather were
+reported good. Exact device assignment and sustained instrumentation remain incomplete;
+no true shared-account physical conflict proof is claimed. No more phone tests now.
+New bounded checks passed: catalog29 items/18 recipes,43 modules,archive65/65,
+live static assets66/66. The initial failed Node network attempt and successful
+curl follow-up are both retained. No runtime, criteria or live settings changes.
 
-See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for the
-exact evidence, gaps, ordered next actions and stop conditions. The accepted
-core free-to-play product permits optional cosmetic monetization in future;
-this phase implements no monetization. Current team: ChatGPT/Codex only.
+See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for
+fixed-source evidence, limits and next action: obtain a read-only deployed Firebase
+rules/config receipt, then compare offline. Live security, sustained measurements,
+physical conflicts and operational/full-progression gaps remain. Integration needs
+owner merge approval; no merge, deploy or release authorized. ChatGPT/Codex only.
+Full farm/progression remains free; optional future cosmetics are permitted.
 
 ## Historical delivery record (2026-10-05)
 

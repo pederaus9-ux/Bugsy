@@ -1,148 +1,106 @@
-# Phase 7N — production qualification
+# Phase 7N — qualification checkpoint, 2026-10-13
 
-Status: **IN PROGRESS — not release approved**.
-Owner authorized this phase on 2026-10-12 at 19:31:33 America/Chicago.
-Implementation owner: ChatGPT/Codex only. Review is an adversarial self-review,
-not an independent Claude/Grok/Muse audit.
+**Report ready for review; release qualification remains IN PROGRESS. No release approval.**
+Implementation/review: ChatGPT/Codex only; adversarial self-review, not an independent external-agent audit.
 
-## Fixed baseline and owner decisions
+## Fixed source and completed gates — VERIFIED
 
-- Main: `047cbed91b816b4869f983ef8fe2571cdde987e2` (chicken PR #78).
-- Main Git tree: `0643a15bc0a7144d3ca1e2dcd8e40a262e62f6fb`.
-- Reviewed PR #78 head: `935f6d2ffb2349f1de0ccbd2da98185f00470813`.
-  Its complete Git tree equals main's tree, so exact-code art qualification
-  applies to the integrated baseline.
-- Owner said **all animals are good** at 19:30:47 America/Chicago on 2026-10-12.
-  Cow, horse, sheep, dog, cat and chicken visual acceptance is closed. Preserve
-  their models/motion unless a new reproducible defect is demonstrated.
-- This acceptance does not establish long-session mobile performance,
-  iPhone support, live backend security or final release approval.
-- Full farm and normal progression remain free to play. Optional cosmetics
-  are the accepted future monetization direction. No monetization is added here.
+- Integrated main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46`.
+- Source tree: `98158379ffbed2e1ce865eaa0b6ac38b590dcd31`.
+- Report branch: `codex/phase7n-qualification-reconcile`, based on that main.
+- [Regression 201](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392622802): all **7/7 jobs passed** on this main. [Pages 77](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392621215): passed on the same commit. GitHub metadata was refreshed after the interruption; no suites were rerun to recover the report.
+- [PR79](https://github.com/pederaus9-ux/Bugsy/pull/79) merged at `2bb0daebea1fb7d8e34df4d7b7325faba76f66ce`. Same-account conflicting saves passed in isolated Firebase emulators on `c0ba1dc79bff54b210edadd7fb87a44029124d17`, [qualification run 1](https://github.com/pederaus9-ux/Bugsy/actions/runs/38328239127), job `115071811629`. The log reports both phone/cloud choices: stale upload refused, progress and byte-exact backup survive reload. This is not proof of physical shared-account conflict behavior against the live backend.
+- [PR80](https://github.com/pederaus9-ux/Bugsy/pull/80) merged at current main. Its tested head `81bb935ac73322741724eb706ce25725226ec899` has the same tree as main. The test-only ambient correction requires actual paired completed render callbacks in reduced-motion pause and full-motion resume. At least two completed draws per mode, including a draw after the original 700 ms observation period, prevent a no-draw interval passing. Original waits and geometry assertions remain; the bounded 10-second draw-availability gate does not loosen motion behavior. Main 201's character log confirms all four viewport/mode observations passed with no violations.
+- Owner accepted all current animals on 2026-10-12. Cow, horse, sheep, dog, cat and chicken remain frozen. Full farm/normal progression stays free; optional future cosmetics are permitted, with no monetization work here.
 
-## Scope of this first checkpoint
+Main 199's ambient failure and its three diagnostics remain historical evidence, not a current pending CI label. See the [frozen ambient report](https://github.com/pederaus9-ux/Bugsy/blob/a1e43eee2cd45c766bc883dac3efb55f4ffb811c/farm3d/AMBIENT_RENDERED_MOTION_CORRECTION.md). Earlier Phase 7N receipts remain in [the original evidence directory](tests/evidence/phase7n/).
 
-Reconcile stale current-status labels, inspect existing tests and completed
-exact-head logs, verify selected live files, run bounded release checks, and
-record an ordered qualification plan. A focused conflicting-save browser test
-and isolated hosted workflow are now implemented, with behavioral execution
-pending. No runtime, animal, save schema, deployed backend, renderer, service
-worker, gameplay, dependency version or existing test-threshold changes.
+## New non-destructive checks already run — VERIFIED
 
-Historical delivery records remain available. Their old pending animal gates,
-roadmap labels, blanket purchase prohibition and schedule claims do not
-supersede current owner decisions and freshly verified GitHub state.
+Checks used immutable Git source at main above. They executed before the connection interruption; resuming this task did not repeat them.
 
-## VERIFIED evidence
-
-[Regression #196](https://github.com/pederaus9-ux/Bugsy/actions/runs/38324645491)
-passed all seven jobs on main `047cbed`. The logs were read, not inferred merely
-from the workflow badge. [Pages #75](https://github.com/pederaus9-ux/Bugsy/actions/runs/38324644434)
-passed on the same main commit.
-
-| Area | Verified coverage | Boundary |
+| Check | Result | What it proves / limit |
 | --- | --- | --- |
-| Core farming and movement | Normal/testfarm boot; keyboard and mobile joystick; planting/harvest; inventory and XP; order pays once and consumes goods; insufficient inventory blocks delivery; panels fit | Short Chromium scenarios at 740×360, 844×390 and desktop; not full progression or long-session device acceptance |
-| Local persistence | Normal crop/coins survive reload; sandbox does not change existing normal save; three old/damaged fixtures; unreadable first copy retained; unknown items repaired; newer saves not overwritten; quota failure reported and recoverable | Disposable browser storage; not an owner's actual device or OS termination |
-| Cloud recovery | Actual Firebase SDK against isolated emulators; corrupt phone/good cloud; corrupt cloud/good phone; missing cloud; delayed/late reads; reconnect; sign-in race; reload/sign-out during recovery; no stand-in overwrite | Emulated rules/configuration, not the live project |
-| Accounts and social | Registration, username, friend list, showcase, visiting, leaderboard, owner-only dashboard; production-shaped verified economy remains off | No production account or data writes performed |
-| Accessibility/lifecycle | Touch targets, panel fit, modal focus, persisted motion setting, motion-menu flash regression, hidden/resumed rendering and released background input | Hidden state is simulated; Android/iOS process eviction and real app switching remain separate |
-| Animal visuals and motion | Six-species hosted visual review passed; owner accepted all current animals | No new art work authorized by this checkpoint |
-| Authored hands / cache / offline | Art #70 passed all three jobs at reviewed head935f6d2 with identical main tree; actual controlled cache migration, normal save/wardrobe, offline reload without server responses and missing asset/module fallback passed | Hosted Chromium; does not prove an existing phone's real cached old version upgrades correctly |
-| Live deployment identity | Twelve selected runtime files byte-identical to main, including index, all six animal modules, shared updater, live3d, auth, analytics and service worker | Not every deployed asset; not a user's existing cache |
-| Local release checks | 21/21 version/cache, economy feature flag, SDK parity, performance monitor and asset-policy checks | Node checks only; no local browser qualification claimed |
+| Catalog dependencies and unlocks | PASS: 29 items, 18 recipes, levels 1–8 reachable; 8 crops, 6 buildings, 4 production animal entries | Inputs and producers are available at declared unlock levels. Does not prove complete UI progression, balance, waiting times or enjoyment. |
+| Declared client inventory | PASS: 43 modules/inline modules parsed; 66 URL variants, 65 physical files | Literal imports, declared offline shell and enumerated imagery are present and parse. Computed/external SDK paths are outside coverage; parsing is not running the game. |
+| Disposable archive/restore | PASS: 65/65 files restored byte-for-byte | Temporary file restoration only. Not a live deployment rollback, player-save import, old installed cache update or backend recovery rehearsal. |
+| Live static deployment parity | PASS: 66/66 URL variants | Fresh anonymous GETs return HTTP 200, exact main SHA256 bytes and suitable JavaScript/HTML MIME types. Does not inspect an existing phone's cache or execute account/backend operations. |
 
-[Art #70](https://github.com/pederaus9-ux/Bugsy/actions/runs/38321403465)
-includes the exact-code hands/cache/offline evidence above. Selected live SHA256
-values and reproducible local commands are stored in
-[tests/evidence/phase7n/baseline.json](tests/evidence/phase7n/baseline.json).
-Full Actions artifacts expire; their current URLs are evidence locations, not
-permanent archives. The existing chicken review checkpoint is frozen at
-`5f6d52e9be88aaa961c490a21e6d89675331a034`.
+Archive: 3,604,480 bytes; SHA256 `46dfd3b7825c3619aedb25d231e9cdcc9a6e9c81f309d00ed0f9ed3373e3ac81`.
+Raw receipts: [first Node attempt](tests/evidence/phase7n-post-phone/audit-node-direct.json), [curl follow-up](tests/evidence/phase7n-post-phone/audit-curl.json), [source equivalence](tests/evidence/phase7n-post-phone/source-equivalence.json), [summary](tests/evidence/phase7n-post-phone/summary.json), and [GitHub metadata](tests/evidence/phase7n-post-phone/github-metadata.json) and [qualified log excerpts](tests/evidence/phase7n-post-phone/qualified-log-excerpts.json).
+
+### Failed attempt preserved
+
+The first full audit at `2026-10-13T15:36:46.667Z` passed catalog/inventory/archive, but native Node fetch failed all 66 network comparisons before returning HTTP responses. Its raw overall status remains **FAIL**. A representative fetch exposed DNS error `EAI_AGAIN`; curl against the same public `sw.js` returned HTTP 200 / 1,914 bytes. This discriminated an executor transport/environment problem from a deployed asset mismatch.
+
+The follow-up at `2026-10-13T15:41:26.514Z` used proxy-aware curl for network parity only and passed 66/66. Four workers, 20-second request bounds, no redirects, exact byte hashes and MIME criteria were retained. Catalog and archive were not rerun. Their functions are byte-identical between variants; the current helper was not rerun in full after this transport change. Node version: `v24.19.0`. The [original helper source](tests/evidence/phase7n-post-phone/audit-node-direct-source.txt) is retained alongside the current opt-in [audit helper](tests/release-qualification-audit.cjs). No runtime or executor environment replacement occurred.
+
+Executed commands (record only; do not rerun passed checks solely for this report):
+
+```sh
+node --experimental-vm-modules farm3d/tests/release-qualification-audit.cjs --ref=a183e17b1a0a4f855d704da2ee8e5bc0187eed46 --out=/workspace/scratch/d10a2c5c1730/phase7n-release-audit.json
+node --experimental-vm-modules farm3d/tests/release-qualification-audit.cjs --ref=a183e17b1a0a4f855d704da2ee8e5bc0187eed46 --live-only --out=/workspace/scratch/d10a2c5c1730/phase7n-release-audit-curl.json
+```
+
+The first command ran the preserved Node variant. The second ran the current curl variant. The helper is opt-in, requires Git/Node/curl/tar and changes no workflow, dependencies, existing runner or threshold.
+
+### Previous evidence carried forward, not rerun
+
+All 65 inventoried runtime files are byte-identical between the owner-accepted animal baseline `047cbed91b816b4869f983ef8fe2571cdde987e2` and current main. The conflict-qualified auth/game/feature/rules/test files are unchanged. SDK version 12.19.0 is pinned in `auth.js`; an initial comparison incorrectly named nonexistent `sdk.js`, then corrected that bookkeeping error.
+
+The controlled cache/offline fixture is unchanged. [Art 70](https://github.com/pederaus9-ux/Bugsy/actions/runs/38321403465), at PR78's identical integrated tree, covered actual controlled cache migration, normal saves/wardrobe, offline reload without server responses and asset fallback. Source equivalence supports carrying that code evidence forward; it does not establish a real previously installed phone's upgrade path.
+
+Main 201 also covers existing old-save recovery, farming/movement, emulator cloud recovery/economy rules, six-species visuals, accessibility/focus and analytics/dashboard. This report does not replace those suites with static checks or claim a fresh local browser run.
+
+## Owner phone round — VERIFIED as owner-reported evidence
+
+The owner reports the round complete: smooth Classic and Walk modes; turns, stops and animal interactions fine; phones warm; background/reopen retained progress; downloaded backup opened; offline wheat survived reopening; online/offline saves worked on the owner's Android and wife's iPhone; rain, snow and night looked good.
+
+These are real qualitative observations, not instrumented measurements. Exact device-to-observation assignment, browser/PWA versions, fixed candidate identifier and duration were not fully captured. Opening a backup is not a completed import/restore drill. Physical shared-account conflict was not established. **No more phone tests are requested now.**
+
+Historical Phase 7K's five-second S26 Ultra Walk/snow measurement remains reference evidence only; it is not sustained performance proof for this candidate. Preserve ideal 60 FPS, good 45+, floor 30; investigate sustained frame times over 33.3 ms and hitches over 50 ms. No criterion is reduced because the qualitative round was positive. Warm phones alone establish neither a thermal failure nor sustained thermal acceptance.
 
 ## LIKELY, with limits
 
-- `auth.js` uses a cloud revision check: an old device normally cannot overwrite
-  a newer saved farm. If both copies changed, the player chooses one and the
-  other is retained as a local backup. This is source evidence for the design;
-  it is not end-to-end proof of two-device conflict resolution.
-- Existing short gameplay and recovery qualification is a useful release
-  baseline. It cannot establish extended-session stability or phone thermals.
+- Current unchanged runtime and successful automated/qualitative checks are a useful baseline for continued qualification. They do not close long-session, production-security or operational gaps.
+- The initial native Node network failure came from the executor's DNS/proxy path, supported by `EAI_AGAIN` and the successful same-endpoint curl experiment. Not every failing Node request had a captured cause code; no general production outage is inferred.
 
-## UNKNOWN — required gates, not invented defects
+## UNKNOWN / remaining release gates
 
-| Gate | Missing evidence | Next action / owner |
+| Gate | Existing credit | Missing evidence / bounded next action |
 | --- | --- | --- |
-| Same-account conflicting saves | Real two-device divergence, refused stale upload, both user choices and backup survival through reload | ChatGPT: isolated emulator regression first; owner actual-device check afterward |
-| Android long session / heavy farm | Current-build sustained frame times, crashes, memory growth, heat, touch responsiveness and background recovery | Owner S26 Ultra; ChatGPT prepares fixed-build test record and interprets measurements |
-| iPhone Safari / PWA | Supported iPhone browser/install, touch, audio, account/save, offline/update and OS resume | Physical iPhone test required; software viewport emulation is insufficient |
-| Production security/configuration | Currently deployed Firestore rules identity and parity with tested rules; live owner-only dashboard/privacy boundaries | Obtain read-only Firebase console/export evidence; no live rules deployment authorized |
-| Existing-device PWA update | Real old installed/cache build upgrades; saved farm preserved; offline reopening and asset failure recovery | Owner device plus fixed old/current candidate; preserve account/save backups |
-| Complete gameplay/progression | Sustained consecutive farming, production chains, orders, inventories, unlocks, customization and applicable interactions across levels | ChatGPT audit/scenarios; owner game-feel acceptance |
-| Environment/audio quality | Real weather/day/night transitions, sound/mute behavior and environment acceptance within actual game | Inspect real runtime; owner acceptance of visible/audible results |
-| Release operations | Fixed candidate, rollback/recovery rehearsal, known limits, support record and explicit release decision | ChatGPT prepares runbook; owner approves release |
+| Live security/configuration | Repository rules and production-shaped emulator workflows pass | Current deployed rules/config identity is unknown. Obtain a read-only export/config receipt; compare offline against tested source. No publishing, settings changes or player data access. |
+| Sustained device performance | Completed owner qualitative phone round; historical short reference | Fixed-candidate measured frame times, memory/thermals/battery, session duration and precise device assignment are incomplete. Keep gap open; request no additional phone work now. |
+| Physical shared-account conflict | PR79 emulator choice/stale-write/backup scenarios passed | No real shared-account divergence/choice proof against live configuration. Do not replace this claim with ordinary online/offline saving. |
+| Full progression/gameplay | Main 201 short flows; static recipe/unlock graph passed | Consecutive real production/order/unlock/customization flow through applicable levels and long-session stress not fully qualified. Future bounded test-environment scenarios should target uncovered paths only. |
+| Real installed update / recovery operations | Existing controlled cache tests and 65-file archive rehearsal | Real old install upgrade, actual save-import recovery and live-approved rollback rehearsal are unverified. The old rules backup is historical, not an approved current rollback. |
+| Environment/audio | Owner rain/snow/night acceptance | Full sound/mute/audio lifecycle qualification is not established by those visual observations. |
+| Fixed release and owner approval | Current source and deployment match; animals accepted | No final release approval or authorization to merge this checkpoint. Documentation/test checkpoint review is separate from releasing the game. |
 
-`farm3d/firebase/README.md` says repo rules are not yet published. That is an
-old note, not proof of the live rules today. Live rules are **UNVERIFIED**.
-Open PRs #60, #54, #37 and #34 are separate work. Their presence is neither proof
-of a release blocker nor authorization to merge/close them.
+No new production defect was established by these checks. Unknown gates are missing evidence, not invented failures. Existing open PRs 60, 54, 37 and 34 are separate scopes; no authority to merge, close or overwrite them.
 
-## Highest-value next engineering action
+## Highest-value next action and approvals
 
-Run the newly implemented, production-shaped **same-account conflicting-save
-emulator qualification** in `farm3d/firebase/tests/conflicts.browser.cjs`, using
-the existing harness and real `auth.js`; keep verified economy off. Use isolated
-demo accounts/data only. Run `npm run test:conflicts` in `farm3d/firebase`.
-Syntax is checked; behavioral results must come from the new exact-head
-`Sunny Acres release qualification` hosted workflow before declaring this gate
-passed. Existing suites and thresholds are unchanged.
+First review this checkpoint. The next bounded qualification action is a **read-only live Firebase rules/config export and offline comparison**. This executor has no available Firebase connector/export; access or an exported receipt is needed, rather than repeating emulator tests. Tested repository rules SHA256: `ece0ca33c35adda40254d3ca274677fbb4efb18f356b205ee3a07c1ce674d489`. Do not access player records or publish rules.
 
-1. Establish one account and the same cloud revision on two disposable devices.
-2. Change both copies with distinct saved-state markers.
-3. Upload one device; prove the stale second device refuses overwrite and stays
-   dirty (its local unsynced progress remains available).
-4. Reopen the stale device; prove the game presents both saved farms.
-5. Test choosing cloud: cloud marker retained, phone copy backed up unchanged.
-6. Test choosing phone: phone progress becomes cloud; old cloud backed up
-   unchanged. Reload and prove selected progress plus backup survives.
-7. Exercise offline/reconnect around divergence. Record exact revision,
-   progress, user choice, backup bytes and every attempted cloud write.
-8. Fail on progress loss, unwanted overwrite, silent selection or missing
-   backup. Do not lower existing assertions or numeric thresholds.
+The October 2 pre-7I rules backup (`5ff061fd76d0e2d97185abcb46159e0bd88c6c9b85794f1dead1350b3613d92c`) allows broader farm listing/email-based ownership and client market writes. It is not a safe default current rollback and its historical publishing instructions are not current authorization.
 
-The current suites cover revision rules and recovery, and the dormant economy
-has its own two-device tests. They do **not** currently prove this whole normal
-farm conflict/choice workflow. Those economy tests cannot substitute for it.
+No approval is required merely to preserve this report or for authorized non-destructive checks. **Integrating this documentation/test checkpoint requires owner merge approval**; a PR, if opened, stays draft. Any production-impacting remediation or release needs a separate concrete review and approval. No runtime changes, merge, deployment or release are authorized here.
 
-## Device qualification packet
+Stop on a proven data-loss/privacy failure, repeatable crash, wrong award, broken update or measured sustained performance failure; capture first failing operation and isolate its cause. Stop before protected-system expansion. Do not rerun unchanged failures blindly, weaken checks or expand into optional polish.
 
-Use the fixed current baseline, record the actual build/version, device/browser,
-mode, weather, farm load and session duration. In Classic and Walk, cover
-normal play and heavy crops/animals/decorations; inspect noon/golden hour,
-rain/snow/night, settings, inventories/orders and repeated interactions.
-Include real app background/foreground and network loss/reconnect. Verify
-owned progress survives reopening. Keep diagnostics on for timed measurements;
-record median/p95/worst frame time and any visible hitch/crash/input failure.
+## SUNNY ACRES RELAY HANDOFF
 
-The existing roadmap calls for 20–30-minute mobile sessions; that is a test
-protocol, not a delivery deadline or a claim that a session already passed.
-Preserve the existing targets: ideal60FPS, good45+, floor30; investigate
-sustained >33.3ms frames and >50ms hitches. Optimize measured causes only.
-CPU throttling and software rendering do not establish hardware phone results.
-
-Do not damage or overwrite an owner's farm to manufacture a test. Disposable
-accounts/storage cover destructive conflict and corruption scenarios.
-Production authentication/rules changes require separate bounded approval.
-
-## Stop conditions and completion
-
-Stop and isolate the first proven data loss, account/privacy leak, repeated
-crash, wrong gameplay award, broken update or sustained device-performance
-failure. Capture exact build, first failing operation, logs and state, then run
-the smallest discriminating experiment. Do not blindly rerun unchanged failures.
-Escalate changes to protected systems or major product/architecture decisions.
-
-Phase 7N is complete only when applicable gameplay, persistence, security,
-update, lifecycle, mobile/device and operational gates pass on the fixed
-candidate and the owner accepts it. This initial checkpoint is not a release.
-No merge or final release authorization has been given for this phase.
+- Agent: ChatGPT/Codex.
+- Task / phase: 7N post-phone qualification checkpoint.
+- Base SHA: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46`; source tree above.
+- Head SHA: resolve the checkpoint branch commit; exact final commit is reported with delivery. Source tested is the fixed base, not a new runtime candidate.
+- Branch / PR: `codex/phase7n-qualification-reconcile`; report checkpoint, no PR required for preservation. Any later PR remains draft.
+- Scope completed: current evidence reconciliation; four bounded checks above; completed phone round credited; failed Node and successful curl receipts preserved.
+- Files changed: qualification report, current relay/roadmap/status notes, backend documentation caveats, opt-in audit helper and new receipts. Historical records retained.
+- Tests / CI: existing main 201 all 7 passed and Pages 77 passed; local results above, not repeated. No new full regression or local browser execution claimed for this documentation checkpoint.
+- Evidence: linked raw receipts, frozen original failure/diagnostics, exact-source Actions runs.
+- Protected systems checked: runtime, animals, saves, auth, economy, security rules, service worker, renderer, dependencies and existing test thresholds unchanged.
+- Known failures / limits: preserved Node environment attempt; no discovered runtime regression; outstanding gates above. Self-review is not independent external review.
+- Merge recommendation: checkpoint ready for review; **release NOT READY with outstanding evidence gates**. No merge authorized.
+- Exact next action: read-only deployed rules/config receipt and offline parity review when access/export is available; no new phone requests now.

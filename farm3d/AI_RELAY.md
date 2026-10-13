@@ -162,18 +162,30 @@ After merge:
 4. sync any external coding workspace from `main`;
 5. then begin the next phase.
 
-## Current phase — 2026-10-12
+## Current phase — 2026-10-13
 
-Main `047cbed91b816b4869f983ef8fe2571cdde987e2` integrates chicken PR #78.
-The owner explicitly said all animals are good; their current visual acceptance
-is recorded in the relay state. All accepted animal systems are frozen for
-Phase 7N unless a new reproducible defect is demonstrated. Phase 7N is now
-owner authorized. Use `PHASE7N_RELEASE_QUALIFICATION.md` for current scope,
-fixed-build evidence and remaining device/operational gates. Visual animal
-acceptance and green CI do not grant final release approval.
+Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
+Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.
+[Regression201](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392622802) passed all7 jobs; [Pages77](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392621215) passed on this main.
+PR79's conflicting-save emulator qualification and PR80's test-only rendered
+ambient observation correction are merged and credited, not pending reruns.
 
-The cow sections below retain historical intent. They do not authorize
-restarting B9 or override the current owner acceptance and relay state.
+The owner accepted all current animals and completed the qualitative Android/iPhone
+phone round: modes, movement/interactions, saves/reopen/offline and weather were
+reported good. Exact device assignment and sustained instrumentation remain incomplete;
+no true shared-account physical conflict proof is claimed. No more phone tests now.
+New bounded checks passed: catalog29 items/18 recipes,43 modules,archive65/65,
+live static assets66/66. The initial failed Node network attempt and successful
+curl follow-up are both retained. No runtime, criteria or live settings changes.
+
+See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for
+fixed-source evidence, limits and next action: obtain a read-only deployed Firebase
+rules/config receipt, then compare offline. Live security, sustained measurements,
+physical conflicts and operational/full-progression gaps remain. Integration needs
+owner merge approval; no merge, deploy or release authorized. ChatGPT/Codex only.
+Full farm/progression remains free; optional future cosmetics are permitted.
+
+The cow sections below retain historical intent and do not reopen accepted work.
 
 ## 12. Historical Sunny Acres cow program
 

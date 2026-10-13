@@ -1,3 +1,10 @@
+> Phase 7N, 2026-10-13: this is a historical backup, not a verified current
+> deployment backup or an approved rollback target. Its broader farm listing,
+> email-based ownership and client market writes weaken the tested policy.
+> The historical publish procedure below is **not current authorization**.
+> Obtain the current approved deployed configuration before planning recovery;
+> no publish/deployment or player-data changes are authorized here.
+
 # Rollback: production Firestore rules before the Phase 7I release
 
 `production-rules-before-7I-2026-10-02.rules` is the exact ruleset that was live in production (project
