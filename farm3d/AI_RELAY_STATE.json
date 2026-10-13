@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-13T00:34:27.421822+00:00",
+  "lastUpdatedUtc": "2026-10-13T11:04:40Z",
   "codeBaseline": {
     "description": "Chicken coordinated motion integrated; all current animals owner visually accepted",
     "mergeCommit": "047cbed91b816b4869f983ef8fe2571cdde987e2",
@@ -49,9 +49,9 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "AUTOMATED_BASELINE_VERIFIED_DEVICE_AND_OPERATIONAL_GATES_OPEN",
+  "phaseStatus": "TEST_ONLY_RENDERED_AMBIENT_CHECK_LOCAL_PASS_HOSTED_PENDING",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": 79,
+  "activePullRequest": null,
   "nextPhases": [
     "Pin current main and reconcile current acceptance/test evidence",
     "Add reproducible same-account two-device conflicting-save qualification in local Firebase emulators",
@@ -933,7 +933,7 @@
       }
     }
   },
-  "workingBranch": "codex/phase7n-release-qualification",
+  "workingBranch": "codex/ambient-rendered-motion-check",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -1207,6 +1207,27 @@
     "merge": "NOT_AUTHORIZED",
     "release": "NOT_AUTHORIZED",
     "pr": 79,
-    "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution."
+    "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution.",
+    "postMergeQualification": "Main2bb0dae regression199 failed ambient motion resume; all six other jobs passed. Three diagnostics passed and exposed a no-draw pause coverage weakness. Owner authorized a test-only draw-backed correction; hosted exact-head result pending. Preserve original failure and device/operational gates."
+  },
+  "ambientRenderedMotionCorrection": {
+    "baseMain": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
+    "baseTree": "55e8e13146e2c78fc0647d2b07e97c6cfbf1ef5b",
+    "branch": "codex/ambient-rendered-motion-check",
+    "owner": "ChatGPT/Codex",
+    "authorization": "Owner2026-10-13T06:04:40-05:00 authorized test-only ambient synchronization correction, original character sequence/regression qualification and draft PR; no merge or release.",
+    "requirements": "Actual paired completed draws in pause and resume; no-draw cannot pass; equivalent or stronger assertions; no runtime change; frozen failures/diagnostics retained.",
+    "timing": "Original700ms observation period/sleeps and exact geometry comparisons retained; new bounded10s draw-availability gate requires2completed draws including one after700ms. No existing timeout increased or behavior comparison retried.",
+    "local": "8/8 controls pass; scene fixture syntax and diff whitespace pass.",
+    "hosted": "PENDING_EXACT_HEAD_REGRESSION",
+    "report": "farm3d/AMBIENT_RENDERED_MOTION_CORRECTION.md",
+    "preservedEvidence": [
+      "main199 run38331540392",
+      "isolated06526afb973797fdddbc369de225aa59a01fa3eb",
+      "full-sequence1aadc3d70d54c29971a33cba38a70f85ea585138",
+      "render-stage23a856487a3486b251609cd5297672011875ed17"
+    ],
+    "merge": "NOT_AUTHORIZED",
+    "release": "NOT_AUTHORIZED"
   }
 }

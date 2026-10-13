@@ -1,6 +1,14 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');
 (async()=>{const h=await start();let failed=true;const results=[];
+const renderedMotion=[];
+const {assertRenderedMotion}=await import('./ambient-render-observation.mjs');
+async function recordRenderedPhase(p,width,passed){
+ const sample=await p.evaluate(()=>window.__ambientRendered.snapshot());
+ renderedMotion.push({width,assertionsPassed:passed,...sample});
+ fs.writeFileSync(path.join(artifacts,'ambient-rendered-motion.json'),JSON.stringify(renderedMotion,null,2));
+ console.log('AMBIENT_RENDERED '+JSON.stringify({width,mode:sample.mode,assertionsPassed:passed,draws:sample.draws,firstDrawAfterModeMs:sample.firstDrawAtMs-sample.startedAtMs,lastDrawAfterModeMs:sample.lastDrawAtMs-sample.startedAtMs,violations:sample.violations}));
+}
 try{for(const width of [844,1280]){
  const s=await h.setup({width,height:width===844?390:720},width===844,'polish-'+width),p=s.page;
  await p.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
@@ -28,10 +36,30 @@ try{for(const width of [844,1280]){
  assert.equal(environment.flowers,132);assert.equal(environment.lanterns,7);assert.equal(environment.butterflies,18);
  assert.equal(environment.stableExposure,true);assert.equal(environment.stableFog,true);assert.equal(environment.shadowLights,0);
  assert.deepEqual(environment.overlays,['none','none']);assert.deepEqual(environment.fogExamples,[.004*.78,.008*.9]);assert.deepEqual(environment.exposureExamples,[1*1.055,1.2*1.025]);
- await p.evaluate(()=>{document.documentElement.dataset.motion='reduce';window.__butterflyBefore=Array.from(__butterfly.geometry.attributes.position.array);});
- await p.waitForTimeout(700);assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)===JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'new ambient motion stops');
- await p.evaluate(()=>document.documentElement.dataset.motion='full');await p.waitForTimeout(700);
- assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)!==JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'ambient motion resumes');
+ // Observe paired onBeforeRender/onAfterRender callbacks; do not invoke a draw or animation manually.
+ await p.evaluate(async()=>{const {observeRenderedMotion}=await import('./tests/ambient-render-observation.mjs');
+  window.__ambientRendered=observeRenderedMotion(__butterfly,{readMode:()=>document.documentElement.dataset.motion});});
+ try{
+  await p.evaluate(()=>{document.documentElement.dataset.motion='reduce';window.__butterflyBefore=Array.from(__butterfly.geometry.attributes.position.array);__ambientRendered.begin('reduce');});
+  let pausePassed=false;
+  try{
+   await p.waitForTimeout(700);
+   // Draw availability is distinct from behavior: time alone cannot make this pass.
+   await p.waitForFunction(()=>__ambientRendered.ready(),null,{timeout:10000});
+   assertRenderedMotion(await p.evaluate(()=>__ambientRendered.snapshot()));
+   assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)===JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'new ambient motion stops');
+   pausePassed=true;
+  }finally{await recordRenderedPhase(p,width,pausePassed);}
+  await p.evaluate(()=>{document.documentElement.dataset.motion='full';__ambientRendered.begin('full');});
+  let resumePassed=false;
+  try{
+   await p.waitForTimeout(700);
+   await p.waitForFunction(()=>__ambientRendered.ready(),null,{timeout:10000});
+   assertRenderedMotion(await p.evaluate(()=>__ambientRendered.snapshot()));
+   assert.equal(await p.evaluate(()=>JSON.stringify(__butterflyBefore)!==JSON.stringify(Array.from(__butterfly.geometry.attributes.position.array))),true,'ambient motion resumes');
+   resumePassed=true;
+  }finally{await recordRenderedPhase(p,width,resumePassed);}
+ }finally{await p.evaluate(()=>window.__ambientRendered?.restore()).catch(()=>{});}
  await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);await p.waitForTimeout(1500);
  const material=await p.evaluate(async()=>{const d=__dbg,mod=await import('./scene-polish.js?v=1'),a=mod.soilCanvas(21),b=mod.soilCanvas(21),c=mod.soilCanvas(22);
   const bytes=canvas=>canvas.getContext('2d').getImageData(0,0,512,512).data;const hash=v=>{let n=2166136261;for(const b of v)n=Math.imul(n^b,16777619);return n>>>0;};
