@@ -89,4 +89,95 @@ Stop if behavior fails, no actual draw is observed within the bounded gate,
 any unrelated regression appears or job resources exceed existing limits.
 Capture/classify the exact failure; do not loosen thresholds or retry blindly.
 
-Status: local controls passed; draft PR and hosted qualification pending.
+Candidate creation snapshot: local controls passed. Completed qualification follows below.
+
+
+## Completed exact-head qualification
+
+[Draft PR80](https://github.com/pederaus9-ux/Bugsy/pull/80) remains open/draft,
+unmerged, head `81bb935ac73322741724eb706ce25725226ec899`.
+Tree `98158379ffbed2e1ce865eaa0b6ac38b590dcd31` matches both the reviewed local
+candidate and CI checkout `b996e0156a3bb5254f236bafe46cfe5acfaf2460`. That checkout
+is GitHub's temporary PR test commit, not an owner-authorized merge into main.
+Main was reverified unchanged at `2bb0daebea1fb7d8e34df4d7b7325faba76f66ce`.
+
+[Regression200, run38388786272](https://github.com/pederaus9-ux/Bugsy/actions/runs/38388786272),
+attempt1: **SUCCESS, 7/7 jobs passed**. No retries or further candidate edits.
+
+| Job | Result |
+|---|---|
+| Farmer, first-person and scene/visual checks | PASS — all seven original programs |
+| Farm3D core regression | PASS — all33Node files and5browser suites; new8controls passed |
+| Six-species visual regression | PASS |
+| Old saves and measurements | PASS |
+| Analytics and owner dashboard | PASS |
+| Mobile accessibility, motion and focus | PASS |
+| Firestore/economy/game/save-recovery emulators and exact SDK boot | PASS |
+
+Raw paired-draw receipts were checked beyond workflow status:
+
+| Width | Mode | Completed draws | First draw after setting mode | Last observed draw | Violations |
+|---|---|---:|---:|---:|---:|
+| 844 | Reduced | 2 | 945.3ms | 1831.9ms | 0 |
+| 844 | Full | 2 | 867.4ms | 1736.8ms | 0 |
+| 1280 | Reduced | 2 | 1292.2ms | 2579.3ms | 0 |
+| 1280 | Full | 2 | 1267.0ms | 2554.1ms | 0 |
+
+Every before/update/after mode matched its phase; geometry was finite. Reduced
+geometry stayed exactly at its baseline across both draws. Each full native
+callback updated geometry and the completed-draw receipt differed from the
+paused baseline. Updated and after-draw arrays matched in every receipt. Both
+old final comparisons also passed. No manually invoked render/update occurred.
+
+The first full draws in this run occurred **after** the old700ms window. This
+is direct evidence that draw opportunity must be distinguished from animation
+behavior on this software-rendering runner. It supports the synchronization
+correction, without reconstructing unlogged events in original main199.
+
+## Durable evidence and remaining gaps
+
+The character artifact ID11808447691, 7,553,034bytes, SHA256
+`492acd5f65a3a9f0897ebf0a5b3edadae7fdadabee9c87ff04e51ff1afa21e35` matched
+the downloaded ZIP. `tests/evidence/ambient-rendered-motion/observations.json`
+preserves its raw motion receipts byte-for-byte. `summary.json`, `provenance.json`,
+`regression-jobs.json`, `artifact-manifest.json`, `pass-log.txt` and original
+`scene-polish-results.json` record qualification/version and original outcomes.
+These receipts and the current report/relay are saved as an evidence-only child
+on `codex/ambient-rendered-motion-evidence`. The tested PR head stays frozen.
+This avoids rerunning code qualification just to publish derived results.
+
+The candidate's relay/report are the pre-CI creation snapshot. The draft PR body
+links this completed checkpoint; actual GitHub results and this exact-head
+receipt supersede that pending snapshot. No historical failure or prior frozen
+diagnostic was overwritten. Main199 remains a failed historical run.
+
+Limits: one exact-head qualification, not a guarantee against every future CI
+stall. Controlled negative tests validate observer sensitivity; real browser
+positive receipts validate native draw submission. They are not GPU pixel
+readback, a phone performance result or new owner visual acceptance. Existing
+mobile/iPhone/PWA, long-session, live backend/operational and release gates remain
+open. This is ChatGPT/Codex adversarial self-review, not an external-agent audit.
+
+## SUNNY ACRES RELAY HANDOFF
+
+Agent: ChatGPT/Codex.
+Task/phase: Phase7N, test-only ambient rendered-observation correction.
+Base SHA:2bb0daebea1fb7d8e34df4d7b7325faba76f66ce.
+Tested head SHA:81bb935ac73322741724eb706ce25725226ec899.
+Branch/PR:codex/ambient-rendered-motion-check; draftPR80.
+Scope completed: actual pause/resume draw gates, exact per-draw behavior checks,
+failure controls, original full character sequence and full regression.
+Files changed: original scene fixture/core list, observer/helper tests, report
+and relay. Evidence-only files are on a separate checkpoint branch.
+Tests:8new controls+2existing scene unit checks locally; hosted33Node files,
+5core browser suites and7original character programs passed.
+CI:regression200 run38388786272 attempt1, all7jobs PASS on the exact tree.
+Evidence:raw paired-draw receipts and immutable original failure/diagnostic links.
+Protected systems checked: all runtime, animals, backend, saves, economy,
+service worker, renderer APIs, harness/quality/dependencies unchanged.
+Known failures/limitations: original main199 immediate cause remains unproven;
+no statistical reliability guarantee or new device/release approval.
+Merge recommendation: READY FOR OWNER REVIEW. Keep draft and unmerged;
+no merge or release is authorized by this task.
+Exact next action: owner reviews bounded test-only PR80 and may separately
+approve integration; reverify head/base and gates immediately before any merge.

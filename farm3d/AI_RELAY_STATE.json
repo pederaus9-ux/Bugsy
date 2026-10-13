@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-13T11:04:40Z",
+  "lastUpdatedUtc": "2026-10-13T11:38:07Z",
   "codeBaseline": {
     "description": "Chicken coordinated motion integrated; all current animals owner visually accepted",
     "mergeCommit": "047cbed91b816b4869f983ef8fe2571cdde987e2",
@@ -49,9 +49,14 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "TEST_ONLY_RENDERED_AMBIENT_CHECK_LOCAL_PASS_HOSTED_PENDING",
+  "phaseStatus": "TEST_ONLY_RENDERED_AMBIENT_CHECK_VERIFIED_READY_FOR_OWNER_REVIEW",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": null,
+  "activePullRequest": {
+    "number": 80,
+    "url": "https://github.com/pederaus9-ux/Bugsy/pull/80",
+    "draft": true,
+    "head": "81bb935ac73322741724eb706ce25725226ec899"
+  },
   "nextPhases": [
     "Pin current main and reconcile current acceptance/test evidence",
     "Add reproducible same-account two-device conflicting-save qualification in local Firebase emulators",
@@ -1208,7 +1213,7 @@
     "release": "NOT_AUTHORIZED",
     "pr": 79,
     "nextTest": "npm run test:conflicts in farm3d/firebase; new isolated hosted Phase7N job. Syntax passed; behavioral result pending hosted emulator browser execution.",
-    "postMergeQualification": "Main2bb0dae regression199 failed ambient motion resume; all six other jobs passed. Three diagnostics passed and exposed a no-draw pause coverage weakness. Owner authorized a test-only draw-backed correction; hosted exact-head result pending. Preserve original failure and device/operational gates."
+    "postMergeQualification": "Integrated main2bb0dae retains failed regression199; diagnostics and original failure preserved. DraftPR80 candidate81bb935 now passes all7jobs of regression200. Test-only rendered observation correction verified; not integrated or released. Device/operational release gates remain open."
   },
   "ambientRenderedMotionCorrection": {
     "baseMain": "2bb0daebea1fb7d8e34df4d7b7325faba76f66ce",
@@ -1219,7 +1224,7 @@
     "requirements": "Actual paired completed draws in pause and resume; no-draw cannot pass; equivalent or stronger assertions; no runtime change; frozen failures/diagnostics retained.",
     "timing": "Original700ms observation period/sleeps and exact geometry comparisons retained; new bounded10s draw-availability gate requires2completed draws including one after700ms. No existing timeout increased or behavior comparison retried.",
     "local": "8/8 controls pass; scene fixture syntax and diff whitespace pass.",
-    "hosted": "PENDING_EXACT_HEAD_REGRESSION",
+    "hosted": "REGRESSION200 SUCCESS: all7 jobs passed, run38388786272 attempt1",
     "report": "farm3d/AMBIENT_RENDERED_MOTION_CORRECTION.md",
     "preservedEvidence": [
       "main199 run38331540392",
@@ -1228,6 +1233,18 @@
       "render-stage23a856487a3486b251609cd5297672011875ed17"
     ],
     "merge": "NOT_AUTHORIZED",
-    "release": "NOT_AUTHORIZED"
+    "release": "NOT_AUTHORIZED",
+    "testedHead": "81bb935ac73322741724eb706ce25725226ec899",
+    "testedTree": "98158379ffbed2e1ce865eaa0b6ac38b590dcd31",
+    "ciCheckout": "b996e0156a3bb5254f236bafe46cfe5acfaf2460 (same tree as candidate; synthetic CI checkout only, not owner merge)",
+    "pr": 80,
+    "drawEvidence": "All4 phases passed with2paired completed draws each. First full draws867.4/1267.0ms; final full draws1736.8/2554.1ms. All raw modes and exact geometry assertions checked.",
+    "coreCoverage": "33 Node files +5browser suites; all passed;8new controls passed in hosted Node22",
+    "characterCoverage": "All7original programs; both scene widths, visuallegacy and later color checks passed",
+    "evidence": "farm3d/tests/evidence/ambient-rendered-motion/summary.json on separate evidence branch; candidate head held unchanged",
+    "evidenceBranch": "codex/ambient-rendered-motion-evidence",
+    "review": "ChatGPT/Codex adversarial self-review; not independent external-agent audit",
+    "remainingGaps": "Original main199 immediate cause unproven; no new GPU pixel/readback or device qualification; no statistical flake-elimination guarantee. Existing release/device/operational gates open.",
+    "status": "VERIFIED; READY_FOR_OWNER_REVIEW; UNMERGED"
   }
 }
