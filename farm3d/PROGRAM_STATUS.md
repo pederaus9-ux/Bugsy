@@ -1,3 +1,11 @@
+# Sunny Acres current production status - 2026-10-14 (audio patch published)
+
+Owner-approved [PR81](https://github.com/pederaus9-ux/Bugsy/pull/81) is merged and the bounded audio patch is published at main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`, reviewed tree `fbbac30554c58a2153e79495723084701cc4e4ba`. Exact-main [Regression203](https://github.com/pederaus9-ux/Bugsy/actions/runs/38556734066) passed all seven jobs and [Pages78](https://github.com/pederaus9-ux/Bugsy/actions/runs/38556734296) succeeded, both attempt 1. Five non-mutating live GETs matched merged bytes, including the page-imported audio module.
+
+See [the completed publication report](PHASE7N_AUDIO_PUBLICATION.md). Runtime remains the exact approved two-line correction; original failures and accepted animals are preserved. No new phone tests, installations, production data writes, security/protection changes, retries or rollback. This bounded patch task is complete. Broader release gates remain open; any further development or full release requires separate authorization.
+
+## Historical pre-merge audio fix checkpoint
+
 # Sunny Acres current production status - 2026-10-14 (audio fix)
 
 Owner-approved two-line audio visibility gate passes the original native suite 10/10 and the ten-second hidden/return/muted regression. Preferences/autoplay remain covered. Only game.js intentionally changes among 65 runtime files; all prior evidence and accepted animals remain preserved.

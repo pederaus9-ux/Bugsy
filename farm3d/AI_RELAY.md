@@ -283,3 +283,7 @@ When the owner says:
 - **"Handoff"** — produce the standard relay packet without starting unrelated work.
 
 This protocol is intentionally model-neutral. The agent is replaceable; the repository state, evidence, contracts, and gates are not.
+
+## Current bounded publication record - 2026-10-14
+
+PR81 merged/published under the owner's 11:23:24 UTC conditional approval after unchanged exact-head readiness checks. Main is `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`; tree `fbbac30554c58a2153e79495723084701cc4e4ba` equals reviewed `e92a1ba40b53e8340f7d19c649e9a777d742ad28`. Regression203 all7, Pages78 and live static bytes5/5 passed. See [PHASE7N_AUDIO_PUBLICATION.md](PHASE7N_AUDIO_PUBLICATION.md) and AI_RELAY_STATE.json for exact receipts. Publication records remain on a separate evidence branch; no further main change is authorized by this outcome. Stop this completed patch task. Full release/additional development need separate owner authorization; no new phone work. Earlier phase checkpoint restrictions describe their historical authorization, not this completed bounded publication.
