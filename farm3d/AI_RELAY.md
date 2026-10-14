@@ -164,6 +164,19 @@ After merge:
 
 ## Current phase - 2026-10-14
 
+Owner approved the bounded visibility/master-gain runtime correction at 10:40:41
+UTC. Applied exactly the proposed two lines in game.js; no unrelated runtime
+changes. Original native audio suite now passes 10/10; the ten-second actual-tab
+regression records zero hidden output, positive unmuted return and zero muted
+return, with stored preferences preserved. See
+[PHASE7N_AUDIO_FIX.md](PHASE7N_AUDIO_FIX.md) for exact source/integrity limits.
+64 of 65 inventoried runtime files remain exact accepted baseline bytes; game.js
+has the intentional approved audio-only exception. Historical 65/65 receipts and
+the original audio failures remain untouched. Draft candidate needs exact-head
+hosted CI and owner merge approval. No deployment, release or phone retesting.
+
+### Previous audio failure checkpoint, 2026-10-14
+
 Owner approved isolated audio qualification at 06:21:41 UTC. Native local Chrome
 checks passed nine groups but failed actual hidden-tab ambient silence. A focused
 reproduction recorded persistent nonzero PCM over ~10 seconds, trusted hidden/

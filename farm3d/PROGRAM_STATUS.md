@@ -1,4 +1,11 @@
-# Sunny Acres current production status - 2026-10-14 (audio)
+# Sunny Acres current production status - 2026-10-14 (audio fix)
+
+Owner-approved two-line audio visibility gate passes the original native suite 10/10 and the ten-second hidden/return/muted regression. Preferences/autoplay remain covered. Only game.js intentionally changes among 65 runtime files; all prior evidence and accepted animals remain preserved.
+
+See [the audio fix candidate report](PHASE7N_AUDIO_FIX.md). Exact-head hosted CI and draft review are next; owner merge approval remains required. No deployment/release or new phone work authorized.
+
+## Previous audio failure checkpoint
+
 
 The authorized local audio scope is complete with a confirmed failure: ambient PCM continues in an actually hidden Chrome tab. Nine other native audio/mute/gesture/reload groups passed; a focused ~10-second reproduction retained trusted browser visibility evidence and a zero-output master-mute control. Runtime and prior accepted evidence are unchanged.
 
