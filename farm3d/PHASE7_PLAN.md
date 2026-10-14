@@ -1,3 +1,9 @@
+# Current isolated renderer preview checkpoint — 2026-10-14
+
+Owner approved Stage0 at16:33 UTC. [Interim checkpoint](PHASE7N_HOMESTEAD_PREVIEW_CHECKPOINT.md): real desktop before/after scene renders saved, mobile run stopped at fixed-DPR setup assertion. Production main d5ed6a96c50914320f30a7b74b799b7f66a9b6e0, plan 70a1019046f88a0914d95d547f5fb15902e0f359 preserved; five isolated preview files only. Preview code 3b4533e6a42a13cd218c1d4bbf2e133ee8c214f8. Farmhouse/Layout strip are nonfunctional; migration/editor/pricing not implemented. Resume authorized unfinished preview checks with corrected synthetic quality preference; preserve failures and desktop evidence. No production integration/merge/deploy/release/security/phone work.
+
+## Previous planning checkpoint (preserved)
+
 # Current makeover/layout planning checkpoint — 2026-10-14
 
 The owner revised the proposed narrow terrain pilot to a complete visual transformation, distinct horse/cow/sheep/chicken pens, wider building placement and movable crop plots for organized split fields. Read-only feasibility and [the cohesive makeover/layout proposal](PHASE7N_MAKEOVER_LAYOUT_PLAN.md) are complete on exact published source d5ed6a96c50914320f30a7b74b799b7f66a9b6e0. Existing220 m ground can contain a wider usable domain, but terrain/placement/camera/navigation and save migration need coordinated work. Preserve plot purchase indices, ownership, all crop/production/care state and custom saved coordinates. The labeled diagram is proposed, not an implemented/tested game. The first future preview should show the full architecture/layout/landscape/UI transformation in an isolated renderer study. Owner direction/access/legacy-conflict policy and preview approval remain open. No runtime, accepted animal/assets/existing tests/frozen evidence, CI/PR/merge/deploy/release/security/phone changes. The terrain-only pilot is superseded; do not implement it.
