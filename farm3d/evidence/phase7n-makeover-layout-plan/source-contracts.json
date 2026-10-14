@@ -1,0 +1,595 @@
+{
+  "status": "READ_ONLY_SOURCE_CONTRACT_EXTRACTION",
+  "source": "d5ed6a96c50914320f30a7b74b799b7f66a9b6e0",
+  "auditBaseline": "8c9123713e455f900dec33c59ed00b37fb8d002d",
+  "checkedAtUtc": "2026-10-14T16:24:41.112Z",
+  "method": "Immutable Git blobs and code-equivalent coordinate arithmetic for documentation. No game execution, production data, behavioral assertions or qualification reruns.",
+  "sources": [
+    {
+      "file": "farm3d/index.html",
+      "sha256": "5f37b53831628538520ddb7ecd287efb4980f5ede667072b93c618300615b7ed",
+      "lineCount": 3941,
+      "spans": [
+        {
+          "start": 1180,
+          "end": 1208,
+          "text": "const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay\nconst groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);\n{ const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);\n  p.setY(i, d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20)); }\n  groundGeo.computeVertexNormals();\n  // big soft patches of lighter, yellower and darker grass so the field never looks tiled\n  const col = new Float32Array(p.count * 3);\n  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i);\n    const n = Math.sin(x * .11 + Math.sin(z * .07) * 2) * .5 + Math.sin(z * .13 - x * .05) * .35 + Math.sin((x + z) * .31) * .15;\n    col.set([.9 + n * .14, .92 + n * .1, .82 + n * .06], i * 3); }\n  groundGeo.setAttribute(\"color\", new THREE.BufferAttribute(col, 3)); }\nconst groundTex = photo(TEX + \"grass.jpg\", [40, 40]);\nconst ground = new THREE.Mesh(groundGeo, std({map:groundTex, roughness:.95, vertexColors:true, color:0xd4dcc4}));\nground.receiveShadow = true; scene.add(ground);\n// dirt path to the barn doors, with soft edges\n{ const pathCanvas = soilCanvas(4, true), dt = tex(pathCanvas, 1, [1, 6]), pathNormal = tex(normalFrom(pathCanvas, 1.5), 0, [1, 6]);\n  const [ac, ax] = canvas(256), R = rng(8); // soft ragged edges along the sides and the far end\n  const g = ax.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, \"#000\"); g.addColorStop(.22, \"#fff\"); g.addColorStop(.78, \"#fff\"); g.addColorStop(1, \"#000\");\n  ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);\n  for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? \"rgba(0,0,0,.35)\" : \"rgba(255,255,255,.3)\"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }\n  const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, \"rgba(0,0,0,1)\"); fadeEnd.addColorStop(.25, \"rgba(0,0,0,0)\"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);\n  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, normalMap:pathNormal, normalScale:new THREE.Vector2(.13,.13), alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));\n  pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }\n\nbootStep(\"growing the grass\");\n// ---------------- grass blades: thousands of little clumps that bend in the wind ----------------\nconst windU = {uTime:{value:0}, uWind:{value:.3}};\n// where every grass tuft and wildflower grows, so they can be cleared from under new fields and buildings\nconst GRASS = {grass:null, gpos:[], flowers:null, fpos:[]}, CLEARS = new Map();"
+        },
+        {
+          "start": 1351,
+          "end": 1380,
+          "text": "const barn = mergeStatic(makeBarn(), (o) => o.userData.door); scene.add(barn); contact(0, 0, 11, 14);\nconst tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = \"t:tree\";\nconst tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = \"t:tree2\";\nconst groundY = (x, z) => { const d = Math.hypot(x, z); return d < 16 ? 0 : (Math.sin(x * .09) * Math.cos(z * .07) * 1.3 + Math.sin(x * .23 + z * .17) * .4) * Math.min(1, (d - 16) / 20); };\nconst hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);\n  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }\nbootStep(\"planting the woods\");\n// woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)\nconst far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];\n  for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;\n    const t = kinds[i % 4].clone(); t.position.set(x, groundY(x, z) - .2, z); t.rotation.y = R() * 7; t.scale.setScalar(1.1 + R() * .7);\n    t.traverse(o => { o.castShadow = false; }); woods.add(t); far.push(t); }\n  mergeStatic(woods); } // 70 distant trees drawn as two pieces: all their bark, and all their leaves\n// fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard\nconst FENCE_RUNS = [\n  [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)\n  [[10.81, 10.48], [12.6, -1.2], [12.8, -8.4], [4.5, -8.4], [4.5, -5.95]],        // paddock: east, north and back to the barn\n  [[4.5, 5.95], [4.5, 8.87]],                                                   // paddock: from the barn's front corner to the path fence\n  [[-4.6, -4.8], [-12, -4.8], [-12, 5], [-4.6, 5]],                               // chicken yard beside the barn's west wall\n];\nconst fenceSegs = [], fences = [];\nfor (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {\n  const [ax, az] = run[i - 1], [bx, bz] = run[i], len = Math.hypot(bx - ax, bz - az);\n  const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);\n  scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);\n}\n// water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat\nfunction makeWaterPan(r) {\n  const g = new THREE.Group(), rim = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, .14, 24, 1, true), M.metal || M.fence);\n  rim.position.y = .07; rim.castShadow = true; g.add(rim);"
+        },
+        {
+          "start": 1530,
+          "end": 1600,
+          "text": "// where each kind lives: cows, horses and sheep share the paddock, hens have their yard, the dog and cat go anywhere outside the pens.\n// Pens are convex outlines, counter-clockwise, matching the fence runs (the paddock's west side is the barn wall).\nconst PENS = {\n  paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:[\"cow\", \"horse\", \"sheep\"],\n    bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:\"the paddock\"},\n  yard:{poly:[[-12, -4.8], [-4.9, -4.8], [-4.9, 5], [-12, 5]], kinds:[\"chicken\"],\n    bed:[-8.6, 1.2, 1.8], shelter:{x:[-5.7, -5.3], z:[-1, 4.4]}, water:[-9.6, -2.4, .8, .8], name:\"the chicken yard\"},\n};\nconst PEN_LIST = Object.values(PENS);\nconst penOf = (kind) => PEN_LIST.find(p => p.kinds.includes(kind)) || null;\n// signed distance from each edge (positive = inside); a point is inside when every edge is at least `margin` away\nfunction edgeDepths(poly, x, z) {\n  return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);\n    return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });\n}\nconst inPen = (pen, x, z, margin = 0) => edgeDepths(pen.poly, x, z).every(e => e.d >= margin);\n// pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)\nfunction intoPen(pen, v, margin) {\n  for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }\n  return v;\n}\nfunction outOfPens(v, margin) {\n  for (const pen of PEN_LIST) { const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {\n    const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }\n  return v;\n}\n\n// where the animals may not walk: [x, z, halfWidth, halfDepth]\nconst BLOCKS = [...BLOCKS_EXTRA, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];\nconst HOME = new THREE.Vector2(1, 3), ROAM = 19;\nBLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet bowl\n// plan a way around buildings and fences: if the straight line hits one, go by the best free corner first\nconst OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),\n  ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];\nconst OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up\nconst toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };\nconst toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);\nconst insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };\nfunction hitsBlock(a, b, pad, skip) {\n  for (const k of OBST.keys()) { if (skip && skip.has(k)) continue; const o = OBST[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);\n    let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;\n    const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };\n    if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }\n  return -1;\n}\n// shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)\nfunction route(from, to, pad, pen) {\n  const skipA = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], from, pad))), skipB = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], to, pad)));\n  const both = new Set([...skipA, ...skipB]);\n  if (hitsBlock(from, to, pad, both) < 0) return [to];\n  const nodes = [from, to];\n  for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));\n    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2 && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }\n  const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;\n  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;\n  for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;\n    if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;\n    for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }\n  if (prev[1] < 0) return [to]; // no clear way: just try\n  const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;\n}\nconst blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;\n// a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen\nconst fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));\nfunction freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {\n  for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (!blocked(x, z) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }\n  if (pen) return new THREE.Vector2(pen.bed[0], pen.bed[1]);\n  return new THREE.Vector2(HOME.x, HOME.y + 8);\n}\n// little mood bubbles that float over an animal's head\nconst emoteMats = {};"
+        },
+        {
+          "start": 1614,
+          "end": 1675,
+          "text": "    const S = SPECIES[kind], live = Live3D && Live3D.createLiveAnimal(kind, S.h, x, z);\n    const A = live || (Cow3D && kind === \"cow\" ? Cow3D.createCow3D(S.h, x, z, name) : makeAnimal(ART + kind + \".webp\", S.h, x, z, RIGS[kind]));\n    Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:\"idle\", until:0, target:null, running:false, doing:null,\n      vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,\n      need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:\"Looking around\"});\n    this.rig3d = live || (Cow3D && kind === \"cow\" ? A : null);\n    this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0; this.ref = ref;\n    // a steady bubble for \"I have something for you\" (eggs ready, a gift…), separate from passing moods\n    this.status = new THREE.Sprite(emoteMat(\"🥚\")); this.status.scale.setScalar(.7); this.status.position.y = S.h + .5; this.status.visible = false; this.g.add(this.status);\n    contact(0, 0, S.h * 1.1, S.h * .45, this.g);\n    this.bubble = new THREE.Sprite(emoteMat(\"❤️\")); this.bubble.scale.setScalar(.55); this.bubble.position.y = S.h + .35; this.bubble.visible = false; this.g.add(this.bubble);\n    scene.add(this.g);\n  }\n  get pos() { return new THREE.Vector2(this.g.position.x, this.g.position.z); }\n  emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }\n  // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen\n  fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }\n  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)); this.path = route(this.pos, to, this.S.r + .7, this.pen); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = \"moving\"; this.stuckT = 0; }\n  stay(label, secs, pose) { this.target = null; this.act = pose || \"idle\"; this.label = label; this.until = clockT + secs; }\n  // decide what to do next, from needs, personality, weather and time of day\n  think() {\n    const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? \"wet\" : PRESET.night ? \"night\" : \"fair\";\n    const pen = this.pen, lerp = THREE.MathUtils.lerp;\n    // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door\n    if (weather === \"night\") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));\n      return this.go(sp.x, sp.y, false, \"Heading to bed\", \"sleep\"); }\n    // shelter: tucked against the barn wall on their side, or under the door's overhang\n    if (weather === \"wet\" && rnd() > P.brave * .5) { const s = pen ? pen.shelter : {x:[-1.6, 1.6], z:[6.3, 6.8]};\n      return this.go(lerp(s.x[0], s.x[1], rnd()), lerp(s.z[0], s.z[1], rnd()), true, \"Running for shelter\", \"shelter\"); }\n    const opts = [\n      [\"wander\", .35 + P.energy * .4], [\"eat\", .3 + N.hunger * 1.2 * P.hunger], [\"drink\", N.hunger * .8 * P.hunger * (this.kind === \"cat\" ? .3 : 1)],\n      [\"rest\", N.tired * 1.3 * (1.25 - P.energy)], [\"social\", N.lonely * P.social * 1.4], [\"play\", P.energy * P.energy * .6 * (this.kind === \"dog\" ? 2 : 1)],\n      [\"curious\", tapPoint && clockT - tapPoint.t < 25 ? P.curious * 1.5 : 0], [\"idle\", .2],\n    ];\n    let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = \"idle\";\n    for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }\n    switch (pick) {\n      case \"wander\": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, \"Going for a stroll\"); }\n      case \"eat\": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === \"peck\" ? \"Looking for seeds\" : this.S.eat === \"graze\" ? \"Off to graze\" : \"Sniffing around\", \"eat\"); }\n      case \"drink\": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;\n        return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, \"Going for a drink\", \"drink\"); }\n      case \"rest\": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, \"Finding a comfy spot\", \"rest\"); }\n      case \"social\": {\n        const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];\n        if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, \"Visiting \" + pal.name, \"social\"); }\n        break;\n      }\n      case \"play\":\n        if (this.kind === \"dog\") { const hen = animals.filter(b => b.kind === \"chicken\")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote(\"🎾\"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? \"Running along the fence after \" + hen.name + \"!\" : \"Chasing \" + hen.name + \"!\", \"chase\"); } }\n        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen); this.emote(\"🎵\"); return this.go(p.x, p.y, true, this.kind === \"horse\" ? \"Galloping for fun\" : \"Zooming around\", \"play\"); }\n      case \"curious\": { const p = tapPoint.v; this.emote(\"👀\"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, \"Checking something out\", \"look\"); }\n    }\n    this.stay(\"Taking in the view\", 2 + rnd() * 4);\n  }\n  // what happens on arrival\n  arrive() {\n    const d = this.doing, N = this.need; this.doing = null;\n    if (d === \"eat\") { N.hunger = Math.max(0, N.hunger - .5); return this.stay(this.S.eat === \"graze\" ? \"Grazing\" : this.S.eat === \"peck\" ? \"Pecking at seeds\" : \"Sniffing the grass\", 6 + rnd() * 8, \"eating\"); }\n    if (d === \"drink\") { N.hunger = 0; this.emote(\"💧\"); return this.stay(this.pen === PENS.paddock ? \"Drinking at the trough\" : \"Having a drink\", 5, \"eating\"); }\n    if (d === \"rest\") { N.tired = 0; return this.stay(\"Napping\", 10 + rnd() * 15 * (1.3 - this.P.energy), \"resting\"); }\n    if (d === \"sleep\") { return this.stay(\"Fast asleep\", 9999, \"sleeping\"); }\n    if (d === \"shelter\") { return this.stay(\"Keeping dry by the barn\", 9999, \"idle\"); }"
+        },
+        {
+          "start": 1792,
+          "end": 1807,
+          "text": "// the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave\nconst refKey = (r) => r.type === \"pen\" ? \"pen:\" + r.kind + \":\" + r.i : \"pet:\" + r.j;\nfunction syncHerd() {\n  const want = [];\n  for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:\"pen\", kind, i, name:G.meta(kind, i).name}));\n  G.S.pets.forEach((p, j) => want.push({type:\"pet\", kind:p.kind, j, name:p.name}));\n  const keys = new Set(want.map(refKey));\n  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === \"pen\" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }\n  animals = animals.filter(a => !a.gone);\n  const have = new Set(animals.map(a => refKey(a.ref)));\n  for (const r of want) {\n    if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }\n    const pen = penOf(r.kind), p = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);\n    animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));\n  }\n}"
+        },
+        {
+          "start": 1847,
+          "end": 1851,
+          "text": "const sun = new THREE.DirectionalLight(0xffffff, 3);\nsun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sun.shadow.radius = 3;\nObject.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24, near:1, far:120});\nscene.add(sun, sun.target);\nconst hemi = new THREE.HemisphereLight(0xbfd8ff, 0x5b4a30, .8); scene.add(hemi);"
+        },
+        {
+          "start": 1953,
+          "end": 1962,
+          "text": "  if (walk) return placeWalkCamera();\n  if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up\n  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : 70);\n  const k = qs.has(\"shot\") ? 1 : 1 - Math.exp(-dt * 9);\n  view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);\n  const v = view;\n  camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);\n  camera.lookAt(v.target);\n  sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look\n}"
+        },
+        {
+          "start": 1965,
+          "end": 1984,
+          "text": "renderer.domElement.addEventListener(\"pointerdown\", (e) => { renderer.domElement.setPointerCapture(e.pointerId); if (e.isPrimary) ptr.clear(); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;\n  if (ptr.size === 1) { if (editMode) editDown(e); else farmDown(e); }\n  else { farmDrag = null; seedTray.classList.remove(\"away\"); if (moving) moving.id = null; if (editMode && editMode.drag) editCancel(); } }); // a second finger always means camera, never farming\nrenderer.domElement.addEventListener(\"pointermove\", (e) => {\n  if (!ptr.has(e.pointerId)) return;\n  if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }\n  const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);\n  if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around\n  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -18, 28); return; } // slide the map\n  if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }\n  else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {\n    const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];\n    const d = pts.length === 2 ? Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]) : null;\n    if (last) {\n      if (d && last.d) cam.dist *= last.d / d;\n      const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];\n      cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;\n      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, -18, 28);\n    }\n    last = {c, d};"
+        },
+        {
+          "start": 2134,
+          "end": 2197,
+          "text": "// ---------- fields: 30 spots west of the path; you start with 6 and buy more in order ----------\nconst FIELD_C = new THREE.Vector2(-10, 12), FIELD_ROT = .12;\nconst FIELD_SLOTS = (() => {\n  const all = [];\n  for (let row = 0; row < 6; row++) for (let col = -2; col <= 2; col++) all.push({col, row, d:Math.hypot(col, (row - .5) * 1.15) + (Math.abs(col) === 2 ? .15 : 0)});\n  all.sort((a, b) => a.d - b.d || a.row - b.row || a.col - b.col);\n  for (const col of [-3, -4, -5]) for (let row = 0; row < 6; row++) all.push({col, row}); // more land (Shop): a new column west for each deed\n  return all.map(({col, row}) => { const lx = col * 2.5, lz = (row - .5) * 2.5;\n    return new THREE.Vector2(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), FIELD_C.y - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); });\n})();\nBLOCKS.push([-10, 17.5, 6.6, 8]); // the whole field area: pets walk around it, decorations don't go on it\nconst soilArt = soilCanvas(21);\nM.tilled = std({map:tex(soilArt, 1, [2, 2]), normalMap:tex(normalFrom(soilArt, 1.5), 0, [2, 2]), normalScale:new THREE.Vector2(.18,.18), roughness:.97});\n// Gently irregular earth mounds, with world-scaled grain instead of smooth tubes.\nconst furrowGeo = new THREE.PlaneGeometry(2, .38, 12, 4); furrowGeo.rotateX(-Math.PI / 2);\n{ const p = furrowGeo.attributes.position, uv = furrowGeo.attributes.uv;\n  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), ridge = Math.max(0, Math.cos(z / .19 * Math.PI / 2));\n    p.setY(i, ridge * (.078 + Math.sin(x * 29 + z * 73) * .004 + Math.sin(x * 5) * .004)); uv.setXY(i, x * .5, z * .5); }\n  furrowGeo.computeVertexNormals(); }\nconst fruitMats = {};\nconst fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + \".webp\"), alphaTest:.3}));\nconst plots = [];\nconst soilGeo = new THREE.PlaneGeometry(2.15, 2.15), sprGeo = new THREE.CylinderGeometry(.07, .09, .5, 8);\nconst WET_MAT = new THREE.MeshBasicMaterial({color:0x1d1208, transparent:true, opacity:.38, depthWrite:false});\nconst DRY_MAT = new THREE.MeshBasicMaterial({color:0xd8c29a, transparent:true, opacity:.3, depthWrite:false});\nconst SPR_MAT = new THREE.MeshStandardMaterial({color:0x7a8ea0, metalness:.6, roughness:.4});\n// ripe crops twinkle: a few little stars blink on and off above each ripe field\nconst twinkleMat = new THREE.SpriteMaterial({map:(() => { const [c, x] = canvas(64); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, \"rgba(255,255,235,1)\"); g.addColorStop(.25, \"rgba(255,240,170,.9)\"); g.addColorStop(1, \"rgba(255,230,120,0)\");\n  x.fillStyle = g; x.beginPath(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, rr = k % 2 ? 7 : 32; x.lineTo(32 + Math.cos(a) * rr, 32 + Math.sin(a) * rr); } x.fill();\n  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});\nfunction twinkle(P, t, on) {\n  if (!P.stars) { if (!on) return; P.stars = [0, 1, 2].map(k => { const s = new THREE.Sprite(twinkleMat.clone()); s.position.set((k - 1) * .6 + (Math.random() - .5) * .3, 1 + Math.random() * .5, (Math.random() - .5) * 1.2); s.userData.ph = Math.random() * 6; P.g.add(s); return s; }); }\n  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b * .55; s.scale.setScalar(.08 + .18 * b * b); s.material.rotation = t * .8 + s.userData.ph; }\n}\nfunction syncSoil() { // called every second\n  plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;\n    const wet = !!(p.crop && p.water), dry = !p.crop && G.soilNow(p) < 40;\n    P.wet.visible = wet || dry; P.wet.material = wet ? WET_MAT : DRY_MAT; P.spr.visible = G.sprinkled(i); });\n}\nfunction makePlot(i) {\n  const g = new THREE.Group(), p = FIELD_SLOTS[i];\n  g.position.set(p.x, 0, p.y); g.rotation.y = FIELD_ROT;\n  g.add(box(2.2, .12, 2.2, M.tilled, 0, .04, 0, .5));\n  for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }\n  const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);\n  g.userData.hit = {type:\"plot\", i}; scene.add(g); mergeStatic(g, (o) => o === plants);\n  // dark wet soil after watering, pale dry soil when it's worn out, and a little sprinkler head on fields a sprinkler covers\n  const wet = new THREE.Mesh(soilGeo, WET_MAT); wet.position.y = .17; wet.rotation.x = -Math.PI / 2; wet.visible = false; wet.raycast = () => {}; g.add(wet);\n  const spr = new THREE.Mesh(sprGeo, SPR_MAT); spr.position.set(1.02, .25, 1.02); spr.visible = false; spr.raycast = () => {}; g.add(spr);\n  const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2), wet, spr};\n  clearGrass(p.x, p.y, 1.3, \"plot:\" + i);\n  return P;\n}\n// a \"new field for sale\" marker on the next free spot\nconst plotSale = makeSign([\"🟫 New field\", \"\"], 1.4, .7); scene.add(plotSale); plotSale.userData.hit = {type:\"plotSale\"};\nfunction syncPlots() {\n  const n = GS().plots.length;\n  while (plots.length < n) plots.push(makePlot(plots.length));\n  while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }\n  plots.forEach((_, i) => buildPlants(i));\n  if (n < G.maxPlots()) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set([\"🟫 New field\", plotCostTxt()]); }\n  else plotSale.visible = false;\n}\nconst plotCostTxt = () => (40 + (GS().plots.length - 6) * 35) + \" 🪙\";"
+        },
+        {
+          "start": 2241,
+          "end": 2248,
+          "text": "const BUILD_SPOT = {feedmill:[5.8, 14.2], bakery:[10, 14.2], sugarmill:[14.2, 14.2], dairy:[5.8, 19.4], kitchen:[10, 19.4], loom:[14.2, 19.4]};\nconst BSTYLE = { // walls and roof colours (hue, saturation, lightness), like the 2D buildings\n  feedmill:{wall:[38, 55, 66], roof:[105, 38, 36], chimney:false}, bakery:{wall:[34, 70, 80], roof:[20, 66, 48], chimney:true},\n  sugarmill:{wall:[48, 25, 86], roof:[265, 34, 50], chimney:false}, dairy:{wall:[210, 12, 92], roof:[205, 58, 46], chimney:false},\n  kitchen:{wall:[28, 62, 74], roof:[5, 60, 42], chimney:true}, loom:{wall:[275, 30, 78], roof:[330, 55, 58], chimney:false},\n};\nfunction gable(w, h, mat) { // the triangle under the roof at each end\n  const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.lineTo(-w / 2, 0);"
+        },
+        {
+          "start": 2288,
+          "end": 2307,
+          "text": "const BLD_BLK = {}, BLD_DECAL = {}, HOME_SPOT = JSON.parse(JSON.stringify(BUILD_SPOT));\nfor (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push(BLD_BLK[bid] = [x, z, 1.9, 1.7]); clearGrass(x, z, 1.8, \"b:\" + bid); BLD_DECAL[bid] = contact(x, z, 5, 4.4); }\nfunction syncBuildings() {\n  for (const bid of Object.keys(G.BUILDINGS)) {\n    const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];\n    if (B.owned !== owned || !B.g) {\n      if (B.g) scene.remove(B.g);\n      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? \"building\" : \"lot\", bid}; B.g.userData.edit = \"b:\" + bid; scene.add(B.g); B.owned = owned;\n      if (owned) { B.bub = bubble(\"🍞\"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }\n    }\n    if (!owned) { const b = G.BUILDINGS[bid], open = GS().level >= b.lvl; B.g.userData.sign.userData.set([b.e + \" \" + b.n, open ? b.cost + \" 🪙\" : \"🔒 Level \" + b.lvl]);\n      // a floating 🔨 over a lot you're allowed to build on, so it doesn't look like just an empty patch\n      if (!B.g.userData.buy) { const bb = bubble(\"🔨\"); bb.position.set(0, 3.3, .6); bb.scale.setScalar(1.1); B.g.add(bb); B.g.userData.buy = bb; }\n      B.g.userData.buy.visible = open; }\n  }\n}\n// chimney smoke while a building is busy, and a bubble with the goods when something is ready\nconst smokeMat = new THREE.SpriteMaterial({map:radial(\"rgba(235,235,235,.9)\"), transparent:true, depthWrite:false, opacity:.5});\nconst puffs = [];\nfunction updateBuildings(t, dt) {"
+        },
+        {
+          "start": 2387,
+          "end": 2399,
+          "text": "// ---------- pen signs: \"Chicken coop · 100 🪙\" until the pen is bought ----------\nconst yardSign = makeSign([\"\", \"\"], 1.6, .8); yardSign.position.set(-8.4, 0, 5.8); yardSign.userData.hit = {type:\"penSign\", area:\"yard\"}; scene.add(yardSign);\nconst paddockSign = makeSign([\"\", \"\"], 1.6, .8); paddockSign.position.set(7.2, 0, 11.2); paddockSign.rotation.y = -.25; paddockSign.userData.hit = {type:\"penSign\", area:\"paddock\"}; scene.add(paddockSign);\nconst nextPen = (area) => (area === \"yard\" ? [\"chicken\"] : [\"cow\", \"horse\", \"sheep\"]).filter(k => !(GS().pens[k] || {}).owned).sort((a, b) => G.ANIMALS[a].lvl - G.ANIMALS[b].lvl)[0];\nfunction syncPenSigns() {\n  for (const [sg, area] of [[yardSign, \"yard\"], [paddockSign, \"paddock\"]]) {\n    const k = nextPen(area); sg.visible = !!k; if (!k) continue;\n    const a = G.ANIMALS[k]; sg.userData.set([a.e + \" \" + a.pen, GS().level >= a.lvl ? a.penCost + \" 🪙\" : \"🔒 Level \" + a.lvl]);\n  }\n}\n\n// ---------- decorations: real trees, and standing pictures for everything else ----------\nconst decorObjs = [];"
+        },
+        {
+          "start": 2431,
+          "end": 2445,
+          "text": "// is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?\nfunction spotFree(x, z, size, skip = -1) {\n  const r = size === 2 ? 1.2 : .6;\n  if (Math.hypot(x - HOME.x, z - HOME.y) > 24) return false;\n  if (BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + r && Math.abs(z - bz) < hd + r)) return false;\n  if (PEN_LIST.some(p => inPen(p, x, z, -r - .3))) return false;\n  if (Math.abs(x) < 2.3 + r && z > 5.5 && z < 24) return false; // the path\n  return !GS().decor.placed.some((d, j) => j !== skip && Math.hypot(d.x - x, d.z - z) < r + ((G.DECOR[d.id].size || 1) === 2 ? 1.2 : .6));\n}\n\n// ================= walk around in first person, and rearrange the farm =================\n// Walk: the camera drops to eye height (1.8 m). A thumbstick (or WASD / arrow keys) walks, dragging the screen looks around.\n// You bump into buildings, fences, bushes and decorations but can walk across the fields. Taps still harvest, plant and pet.\nconst EYE = 1.6, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));\nconst throwBtn = document.getElementById(\"throwBtn\"), walkBar = document.getElementById(\"walkBar\"), editBar = document.getElementById(\"editBar\"), stick = document.getElementById(\"stick\"), knob = stick.querySelector(\"i\");"
+        },
+        {
+          "start": 2503,
+          "end": 2528,
+          "text": "function collideWalker(p, r = WALK_R) {\n  for (let it = 0; it < 3; it++) {\n    for (const b of BLOCKS) {\n      if (FIELD_BLOCKS.has(b)) continue;\n      const [bx, bz, hw, hd] = b, dx = p.x - THREE.MathUtils.clamp(p.x, bx - hw, bx + hw), dz = p.y - THREE.MathUtils.clamp(p.y, bz - hd, bz + hd), d = Math.hypot(dx, dz);\n      if (d >= r) continue;\n      if (d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); continue; }\n      const ox = hw + r - Math.abs(p.x - bx), oz = hd + r - Math.abs(p.y - bz); // inside the box: out the nearest side\n      if (ox < oz) p.x += (p.x >= bx ? 1 : -1) * ox; else p.y += (p.y >= bz ? 1 : -1) * oz;\n    }\n    for (const [ax, az, bx, bz] of fenceSegs) {\n      const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((p.x - ax) * ex + (p.y - az) * ez) / (ex * ex + ez * ez || 1), 0, 1);\n      const dx = p.x - (ax + ex * u), dz = p.y - (az + ez * u), d = Math.hypot(dx, dz);\n      if (d < r && d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); }\n    }\n    for (const q of GS().decor.placed) {\n      const rr = ((G.DECOR[q.id] || {}).size === 2 ? .9 : .3) + r, dx = p.x - q.x, dz = p.y - q.z, d = Math.hypot(dx, dz);\n      if (d < rr && d > 1e-5) { p.x += dx / d * (rr - d); p.y += dz / d * (rr - d); }\n    }\n  }\n  const dx = p.x - HOME.x, dz = p.y - HOME.y, d = Math.hypot(dx, dz); if (d > 40) { p.x = HOME.x + dx / d * 40; p.y = HOME.y + dz / d * 40; }\n  return p;\n}\n// ---------- the farmer: you, in walk mode, seen from just behind (👁️ switches to your own eyes) ----------\n// Built from the player's wardrobe choices (game.js WARDROBE); rebuilt whenever they change something.\nlet hands = null; // first-person mitten hands (made further down)"
+        },
+        {
+          "start": 2641,
+          "end": 2664,
+          "text": "  }\n  sun.target.position.set(w.pos.x + fx * 9, 0, w.pos.y + fz * 9); // a tight shadow box around you, reaching ahead where you look\n  sun.position.copy(sun.target.position).addScaledVector(sunDir, 60);\n}\n// Ultra graphics while walking: full screen resolution, sharp shadows close by, crisp textures at glancing angles,\n// real distance haze instead of the miniature tilt-shift, and deeper surface detail on wood, stone and ground\nconst ULTRA = {aniso:false, groundNormal:null};\nfunction ultra(on) {\n  if (on) {\n    // walking stays on dynamic resolution when the player picked Auto, so first person holds its frame rate on mid-range phones\n    const auto = (G.PREFS.quality || \"auto\") === \"auto\"; QUALITY.fps30 = false; QUALITY.cut = 0;\n    if (auto) { QUALITY.auto = true; QUALITY.pr = Math.min(DPR, 1.5); watchFrames(); } else { QUALITY.auto = false; QUALITY.pr = window.devicePixelRatio || 1; }\n    setShadow(2048); bloom.enabled = true; tiltH.enabled = tiltV.enabled = false;\n    Object.assign(sun.shadow.camera, {left:-14, right:14, top:14, bottom:-14}); sun.shadow.camera.updateProjectionMatrix();\n    if (!ULTRA.aniso) { maxAnisotropy(); ULTRA.aniso = true; }\n    boostNormals(true); walkLook();\n    camera.fov = 70; camera.near = .1; // eye level: a natural field of view, and crops can be seen up close\n    applySize();\n  } else {\n    Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24}); sun.shadow.camera.updateProjectionMatrix();\n    boostNormals(false); walkLook();\n    camera.fov = innerWidth < innerHeight ? 50 : 38; camera.near = .1;\n    setQuality(G.PREFS.quality || \"auto\"); // also resizes the screen buffers\n  }"
+        },
+        {
+          "start": 2705,
+          "end": 2714,
+          "text": "const PITCH_MAX = THREE.MathUtils.degToRad(80);\n// what's underfoot, for footstep sounds\nfunction surfaceAt(x, z) {\n  if (Math.hypot(x - stall.position.x, z - stall.position.z) < 1.8 || Math.hypot(x - board.position.x, z - board.position.z) < 1.5) return \"wood\";\n  if (Math.abs(x) < 2.3 && z > 5 && z < 22) return \"dirt\";\n  if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return \"dirt\";\n  return \"grass\";\n}\n\n// ---------- a smooth camera swoop between any two views (classic ↔ eye level, into the barn and out) ----------"
+        },
+        {
+          "start": 2997,
+          "end": 3101,
+          "text": "\n// Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps\n// to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).\nconst grid = new THREE.GridHelper(56, 56, 0xffffff, 0xffffff); grid.position.set(1, .05, 7); grid.visible = false;\nObject.assign(grid.material, {transparent:true, opacity:.3, depthWrite:false}); scene.add(grid);\nconst editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));\neditShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);\nconst TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};\nconst TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};\nfunction setEdit(on) {\n  if (!!editMode === on) return;\n  if (on) {\n    if (walk) setWalk(false);\n    closeTrays(); G.close(); if (moving) endMove(true);\n    const yaw = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2; // north up, turning the short way round\n    editMode = {yaw, drag:null, tilt:tiltH.enabled, saved:{yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, ty:cam.target.y}};\n    cam.dist = Math.max(cam.dist, 34); cam.target.y = 0;\n    grid.visible = true; tiltH.enabled = tiltV.enabled = false;\n    document.body.classList.add(\"editing\"); editBar.hidden = false;\n  } else {\n    const E = editMode; if (E.drag) editCancel(); editMode = null;\n    Object.assign(cam, {yaw:E.saved.yaw, pitch:E.saved.pitch, dist:E.saved.dist}); cam.target.y = E.saved.ty;\n    grid.visible = editShade.visible = false; tiltH.enabled = tiltV.enabled = E.tilt;\n    document.body.classList.remove(\"editing\"); editBar.hidden = true;\n  }\n  G.sfx(\"pop\");\n}\nconst groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);\nfunction rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }\nfunction groundAt(x, y) { return rayAt(x, y).ray.intersectPlane(groundPlane, new THREE.Vector3()); }\nfunction editHit(x, y) {\n  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), tree, tree2, ...decorObjs];\n  const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h) return null;\n  let o = h.object; while (o && !o.userData.edit) o = o.parent;\n  return o ? {key:o.userData.edit, obj:o} : null;\n}\nfunction footprint(key) {\n  const [t, id] = key.split(\":\");\n  if (t === \"b\") return {hw:1.9, hd:1.7};\n  if (t === \"t\") return {hw:1.1, hd:1.1};\n  const d = GS().decor.placed[+id], r = d && G.DECOR[d.id].size === 2 ? 1.2 : .6; return {hw:r, hd:r};\n}\nconst segDist = (x, z, ax, az, bx, bz) => { const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez || 1), 0, 1); return Math.hypot(x - ax - ex * u, z - az - ez * u); };\nfunction editValid(key, x, z) {\n  const [t, id] = key.split(\":\");\n  if (t === \"d\") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }\n  const {hw, hd} = footprint(key), own = t === \"b\" ? BLD_BLK[id] : TREE_BLK[id];\n  if (Math.hypot(x - HOME.x, z - HOME.y) > 23) return false;                                   // stay on the farm\n  if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path\n  for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;\n  if (t === \"b\") {\n    for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;\n    for (const k of Object.keys(TREES)) if (Math.hypot(TREES[k].position.x - x, TREES[k].position.z - z) < hw + 1.4) return false; // not under a tree\n  } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence\n  if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;\n  if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;\n  return true;\n}\nfunction moveBlock(b, x, z) { // keep the pets' route planner in step with the block\n  const o = OBST.find(o => o.c === 1 && o.s === 0 && o.x === b[0] && o.z === b[1] && o.hw === b[2] && o.hd === b[3]); if (o) { o.x = x; o.z = z; }\n  b[0] = x; b[1] = z;\n}\nfunction commitEdit(key, x, z, save = true) {\n  const [t, id] = key.split(\":\"), L = GS().layout || (GS().layout = {b:{}, t:{}});\n  if (t === \"b\") {\n    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; BLD_DECAL[id].position.set(x, .02, z); moveClear(\"b:\" + id, x, z, 1.8);\n    const B = buildings[id]; if (B && B.g) B.g.position.set(x, 0, z);\n    if (save) (L.b || (L.b = {}))[id] = [x, z];\n  } else if (t === \"t\") {\n    moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);\n    if (save) (L.t || (L.t = {}))[id] = [x, z];\n  } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }\n  if (save) G.save();\n}\n// put buildings and trees where the saved farm has them (or back home when it doesn't say)\nfunction applyLayout() {\n  const L = GS().layout || {};\n  for (const bid of Object.keys(BLD_BLK)) { const [x, z] = (L.b || {})[bid] || HOME_SPOT[bid]; if (x !== BLD_BLK[bid][0] || z !== BLD_BLK[bid][1]) commitEdit(\"b:\" + bid, x, z, false); }\n  for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit(\"t:\" + k, x, z, false); }\n}\nfunction showShade(d) {\n  const f = footprint(d.key); editShade.scale.set(f.hw * 2, f.hd * 2, 1); editShade.position.set(d.x, .07, d.z);\n  editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;\n}\nfunction editDown(e) {\n  const h = editHit(e.clientX, e.clientY); if (!h) return false;\n  const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;\n  editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};\n  p.y = .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx(\"pickup\"); paintUsed = true;\n  return true;\n}\nfunction editMove(e) {\n  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;\n  const g = groundAt(e.clientX, e.clientY); if (!g) return true;\n  const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid\n  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, .25, z); showShade(d); G.sfx(\"tick\"); }\n  return true;\n}\nfunction editUp(e) {\n  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;\n  editMode.drag = null; editShade.visible = false;\n  if (d.moved && d.ok) { d.obj.position.y = 0; commitEdit(d.key, d.x, d.z); squish(d.obj, .6); G.sfx(\"place\"); }\n  else { d.obj.position.copy(d.from); if (d.moved) { G.toast(\"Something's in the way there\"); G.sfx(\"error\"); } }\n}\nfunction editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }"
+        },
+        {
+          "start": 3240,
+          "end": 3270,
+          "text": "// Penned animals can't get out, so they crowd the fence nearest the snack and beg. While you walk around,\n// timid animals move out of your way (so you can herd them into a corner), curious ones come to have a look,\n// and the dog trots along behind you.\nconst baits = [];\nlet baitAt = 0;\nconst baitMat = emojiMat(\"🌾\");\nfunction throwBait() {\n  if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;\n  if (authoredHands?.state.status === 'ready') handPunch('reach', 'feed');\n  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = groundY(walk.pos.x, walk.pos.y) + EYE - .35;\n  const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);\n  spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:\"bait\", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});\n  G.sfx(\"throw\");\n}\nfunction dropBaitAt(x, z) { // from the farm view: it falls from above\n  spawnDrop(new THREE.Vector3(x, 5, z), baitMat.clone(), new THREE.Vector3(0, -2, 0), {size:.45, kind:\"bait\", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});\n  G.sfx(\"throw\");\n}\nfunction layBait(x, z) {\n  const pile = new THREE.Sprite(baitMat.clone()); pile.scale.setScalar(.5); pile.position.set(x, groundY(x, z) + .2, z); scene.add(pile);\n  const b = {x, z, v:new THREE.Vector2(x, z), until:clockT + 18, pile, bites:0};\n  baits.push(b); bits(pile.position, \"rgba(235,205,120,.95)\", 6, 2.5);\n  for (const a of animals) {\n    if (a.act === \"sleeping\") continue;\n    const d = a.pos.distanceTo(b.v); if (d > 18) continue;\n    const keen = .25 + a.P.hunger * .5 + a.need.hunger * .5; if (rnd() > keen) continue;\n    const reach = a.pen ? inPen(a.pen, x, z, -.2) : !PEN_LIST.some(p => inPen(p, x, z)), ang = rnd() * Math.PI * 2, r = .6 + rnd() * .5;\n    a.bait = b; a.until = 0; a.path = null; a.emote(a.P.hunger > .8 ? \"🤩\" : \"😋\", 1.4);\n    a.go(x + Math.cos(ang) * r, z + Math.sin(ang) * r, a.P.hunger > .8 || d > 7, reach ? \"Racing to the snack\" : \"Wants that snack!\", \"bait\");\n  }\n}"
+        },
+        {
+          "start": 3340,
+          "end": 3362,
+          "text": "    const h = hitAt(x, y);\n    if (h?.type !== \"building\") return false;\n    // A touch's generated click may land on the newly opened backdrop. The\n    // current shed is already selected; consuming it keeps that menu open.\n    if (G.panel?.arg !== h.bid) G.openPanel(\"building\", h.bid);\n    return true;\n  },\n  refresh(what) {\n    if (what === \"plots\" || what === \"all\") syncPlots();\n    if (what === \"herd\" || what === \"all\") { syncHerd(); syncPenSigns(); }\n    if (what === \"buildings\" || what === \"all\") syncBuildings();\n    if (what === \"decor\" || what === \"all\") syncDecor();\n    if (what === \"stand\" || what === \"all\") syncStand();\n    if (what === \"visitor\" || what === \"all\") syncVisitor();\n    if (what === \"look\" || what === \"all\") buildFarmer();\n    if (what === \"style\" || what === \"all\") applyStyle();\n    if (what === \"all\") { syncPenSigns(); syncBuildings(); applyLayout(); }\n  },\n  freeDecorSpot(size) {\n    const c = cam.target;\n    for (let r = 0; r < 26; r += .8) for (let a = 0; a < 6.283; a += r ? .9 / r + .1 : 7) { const x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r; if (spotFree(x, z, size)) return {x:+x.toFixed(2), z:+z.toFixed(2)}; }\n    return null;\n  },"
+        },
+        {
+          "start": 3490,
+          "end": 3512,
+          "text": "  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);\n  const an = ray.intersectObjects(animals.map(a => a.card))[0];\n  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);\n  const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };\n  let hit = hits[0];\n  // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant\n  if (hit && (owner(hit).userData.hit || {}).type === \"lot\") { const b = hits.find(h => (owner(h).userData.hit || {}).type === \"building\"); if (b) hit = b; }\n  if (an && (!hit || an.distance < hit.distance + .5)) return {type:\"animal\", an:animals.find(a => a.card === an.object), dist:an.distance};\n  // animals are small from the usual camera: a tap close to one counts, unless something is clearly in front of it\n  if (!an) {\n    let best = null, bd = 34;\n    for (const a of animals) { if (!a.g.visible) continue; const p = a.g.position.clone().setY(a.S.h * .45), s = toScreen(p); if (!s) continue;\n      const d = Math.hypot(s.x - x, s.y - y); if (d < bd && (!hit || camera.position.distanceTo(p) < hit.distance + 1)) { bd = d; best = a; } }\n    if (best) return {type:\"animal\", an:best, dist:camera.position.distanceTo(best.g.position)};\n  }\n  if (!hit) return null;\n  let o = owner(hit);\n  if (o === barn) return {type:\"barn\", dist:hit.distance};\n  return o ? Object.assign({obj:o, dist:hit.distance}, o.userData.hit) : null;\n}\nconst plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === \"plot\" ? h.i : -1; };\nfunction plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent(\"plant\"); G.commit(); renderSeeds(); return true; } return false; }\nfunction harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos(\"plot:\" + i); if (sp) flyTo(\"xp\", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }"
+        },
+        {
+          "start": 3827,
+          "end": 3835,
+          "text": "}\nbootStep(\"putting your farm in place\");\nGV.refresh(\"all\");\nfor (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});\nif (qs.has(\"farmdemo\")) [[\"wheat\", 1], [\"corn\", 1], [\"tomato\", .7], [\"pumpkin\", 1], [\"strawberry\", 1], [\"sugarcane\", .4]].forEach(([c, g], i) => {\n  G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });\nupdatePlots(0);\nbootStep(\"setting the weather and time of day\");\ninstallWorld(scene, renderer);"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/game.js",
+      "sha256": "9a20b80f0e491d976cfe26f1163658f98c30e2f493550429a2ab5d3c9adc91f4",
+      "lineCount": 2103,
+      "spans": [
+        {
+          "start": 38,
+          "end": 55,
+          "text": "};\nexport const ANIMALS = {\n  chicken:{n:\"Chicken\",e:\"🐔\",feed:\"chicken_feed\",out:\"egg\",time:90,xp:2,lvl:2,pen:\"Chicken coop\",penE:\"🐔\",penCost:100,cost:40,max:6},\n  cow:{n:\"Cow\",e:\"🐄\",feed:\"cow_feed\",out:\"milk\",time:180,xp:3,lvl:4,pen:\"Cow pasture\",penE:\"🐄\",penCost:300,cost:120,max:5},\n  sheep:{n:\"Sheep\",e:\"🐑\",feed:\"sheep_feed\",out:\"wool\",time:300,xp:4,lvl:7,pen:\"Sheep meadow\",penE:\"🐑\",penCost:500,cost:200,max:5},\n  // horses don't make goods: feed them a carrot and they give pony rides to visitors for coins\n  horse:{n:\"Horse\",e:\"🐴\",feed:\"carrot\",out:null,coins:45,time:150,xp:4,lvl:5,pen:\"Horse paddock\",penE:\"🐴\",penCost:600,cost:350,max:4},\n};\nexport const outE = (a) => a.out ? ITEMS[a.out].e : \"🪙\";\nconst outName = (a) => a.out ? ITEMS[a.out].n.toLowerCase() : \"coins from pony rides\";\nexport const NAMES = {\n  chicken:[\"Clucky\", \"Nugget\", \"Henrietta\", \"Pip\", \"Goldie\", \"Peep\", \"Ginger\"], cow:[\"Bessie\", \"Clover\", \"Buttercup\", \"Mabel\", \"Daisy\", \"Moo-Moo\"],\n  sheep:[\"Woolly\", \"Fluffy\", \"Cotton\", \"Dolly\", \"Snowball\"], horse:[\"Spirit\", \"Maple\", \"Thunder\", \"Honey\", \"Star\", \"Biscuit\"],\n  dog:[\"Buddy\", \"Max\", \"Bella\", \"Rusty\", \"Sunny\"], cat:[\"Whiskers\", \"Mittens\", \"Ginger\", \"Luna\", \"Tiger\"],\n};\n// Pets roam the farm. Make them happy and they bring you little gifts.\nexport const PETS = {\n  dog:{n:\"Dog\", e:\"🐕\", cost:300, lvl:2, verb:\"dug up\", toy:\"🎾\"},"
+        },
+        {
+          "start": 103,
+          "end": 107,
+          "text": "export const MAX_PLOTS = 30, QUEUE_SLOTS = 3, STAND_MAX = 8;\n// more land west of the fields: each deed makes room for 6 more fields\nexport const LAND = [{lvl:8, cost:1500}, {lvl:12, cost:3000}, {lvl:16, cost:6000}], LAND_FIELDS = 6;\nexport const maxPlots = () => MAX_PLOTS + LAND_FIELDS * ((S && S.land) || 0);\n// crops grow best in their own seasons; out of season they still grow, only half as fast (and never gold)"
+        },
+        {
+          "start": 195,
+          "end": 241,
+          "text": "// ---------- state (the same shape as the 2D game, so a 2D farm can move over) ----------\nexport const SAVE_KEY = \"sunny-acres-3d-v1\", SAVE_2D = \"sunny-acres-v1\";\nexport let S;\nlet homeS = null; // your own farm, kept aside while you visit a friend's\n// a field: what grows, when it's ready, watered/fertilized, soil health (0-100) and the last crop grown there\nconst newPlot = () => ({crop:null, end:0, water:0, fert:0, soil:100, soilAt:0, last:null});\nfunction fresh() {\n  return {\n    v:1, coins:60, gems:5, xp:0, level:1,\n    barn:{wheat:3, corn:2}, barnCap:50, barnUps:0,\n    plots:Array.from({length:6}, () => newPlot()),\n    stand:{slots:4, list:[null, null, null, null]},\n    decor:{inv:{}, placed:[]}, event:null, nextEventAt:0, holidayDone:{},\n    lastCrop:\"wheat\",\n    pens:{chicken:{owned:false,list:[]}, cow:{owned:false,list:[]}, sheep:{owned:false,list:[]}, horse:{owned:false,list:[]}},\n    pets:[],\n    buildings:Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, {owned:k === \"feedmill\", jobs:[]}])),\n    orders:[], lastDaily:\"\",\n    stats:{orders:0, harvests:0, made:0, earned:0, gold:0, water:0, visitors:0, rush:0, bestCombo:0, helped:0},\n    style:{}, tut:0,\n    gold:{},                          // how many of each item in the barn are gold quality (sell for double)\n    sprinklers:0, land:0,             // automation and extra land\n    perks:{grow:0, sell:0, owed:0},   // level-up perks: every 5 levels, pick faster crops or better prices\n    quests:null, ach:{}, museum:{},   // daily quests, achievements claimed, the collection\n    rush:null, nextRushAt:0,          // a limited-time order\n    visitor:null, nextVisitorAt:0, villagers:{}, // who is visiting, and friendship with each villager\n    lastSeen:0, streak:{n:0, last:\"\"},  // when you last played (for \"while you were away\"), and the daily gift streak\n    seasonTrack:null, look:null, unlocks:{}, // your farmer's clothes, and wardrobe items won in season events                 // points and prizes on this season's free track\n    layout:{b:{}, t:{}}, // where buildings and the big trees stand after Edit mode (3D only)\n  };\n}\n// ---------- save versions ----------\n// SAVE_VERSION is the shape this game writes. MIGRATIONS[n] turns a version-n save into version n + 1, for changes that\n// \"fill in what's missing\" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add\n// MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an\n// item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).\nexport const SAVE_VERSION = 1;\nexport const MIGRATIONS = {};\n// (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)\nexport function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {\n  let s = saved && typeof saved === \"object\" && !Array.isArray(saved) ? saved : {};\n  let v = Number.isInteger(s.v) && s.v >= 1 ? s.v : 1;\n  while (v < target) {\n    if (!table[v]) throw new Error(\"no save migration from version \" + v); // a gap is a bug: load() keeps the save unread instead of guessing\n    s = table[v](s); v++;\n  }\n  s.v = v;"
+        },
+        {
+          "start": 245,
+          "end": 272,
+          "text": "export function upgrade(saved) {\n  // compare against a separate fresh farm: the one being filled in can't also be the reference\n  const def = fresh(), s = Object.assign(fresh(), migrate(saved));\n  s.buildings = s.buildings || {}; s.pens = s.pens || {};\n  for (const k in def.buildings) { const b = s.buildings[k] = s.buildings[k] || def.buildings[k]; b.jobs = Array.isArray(b.jobs) ? b.jobs : []; }\n  for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }\n  s.stats = Object.assign(def.stats, s.stats);\n  s.barn = s.barn || {};\n  s.plots = (Array.isArray(s.plots) && s.plots.length ? s.plots : def.plots).map(p => Object.assign(newPlot(), p));\n  s.gold = s.gold && typeof s.gold === \"object\" ? s.gold : {};\n  s.sprinklers = s.sprinklers | 0; s.land = s.land | 0;\n  s.perks = Object.assign({grow:0, sell:0, owed:0}, s.perks);\n  s.perks.owed = Math.max(s.perks.owed | 0, Math.floor((s.level || 1) / 5) - s.perks.grow - s.perks.sell); // farms from before perks get their picks too\n  s.ach = s.ach || {}; s.museum = s.museum || {}; s.villagers = s.villagers || {};\n  s.streak = s.streak && typeof s.streak === \"object\" ? s.streak : {n:0, last:\"\"};\n  s.unlocks = s.unlocks || {};\n  s.stand = s.stand && Array.isArray(s.stand.list) ? s.stand : def.stand;\n  while (s.stand.list.length < s.stand.slots) s.stand.list.push(null);\n  s.pets = (Array.isArray(s.pets) ? s.pets : []).filter(p => p && PETS[p.kind]);\n  s.orders = Array.isArray(s.orders) ? s.orders : [];\n  s.holidayDone = s.holidayDone || {};\n  s.decor = s.decor || {inv:{}, placed:[]}; s.decor.inv = s.decor.inv || {};\n  s.decor.placed = (s.decor.placed || []).filter(d => DECOR[d.id]);\n  s.style = s.style || {};\n  s.layout = s.layout && typeof s.layout === \"object\" ? s.layout : {}; s.layout.b = s.layout.b || {}; s.layout.t = s.layout.t || {};\n  // repair: numbers that came back as text or nothing, and ids this game doesn't know (one unknown item used to stop the\n  // game from starting). Damaged or hand-edited saves only; a normal save passes through unchanged.\n  const num = (v, d, lo = -Infinity) => { const n = typeof v === \"string\" && v.trim() !== \"\" ? +v : v; return typeof n === \"number\" && Number.isFinite(n) && n >= lo ? n : d; };"
+        },
+        {
+          "start": 308,
+          "end": 359,
+          "text": "let newerSave = false; // saved by a newer version of the game than this one: play it, but don't write it back older\nexport function load() {\n  if (SANDBOX) { S = sandboxFarm(); return \"sandbox\"; }\n  let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}\n  if (raw) {\n    try { const saved = JSON.parse(raw); newerSave = !!saved && Number.isInteger(saved.v) && saved.v > SAVE_VERSION; S = upgrade(saved); return \"3d\"; }\n    catch (e) {\n      try {\n        if (!localStorage.getItem(UNREADABLE_KEY)) localStorage.setItem(UNREADABLE_KEY, raw);\n        if (localStorage.getItem(\"sa3d-save-owner\")) localStorage.setItem(RECOVER, \"1\");\n      } catch (err) {}\n      S = fresh(); return \"unreadable\";\n    }\n  }\n  S = fresh();\n  try { if (localStorage.getItem(SAVE_2D)) return \"has2d\"; } catch (e) {} // the 2D game lives on the same site: offer to bring it over\n  return \"new\";\n}\nlet restoring = false; // stops the page from re-saving the old farm while a backup is being loaded\n// visit a friend's farm: their farm is shown instead of yours (read-only), and nothing is saved until you go home\nexport function visitFarm(saved) {\n  if (!homeS) homeS = S;\n  const v = upgrade(saved); v.tut = TUT.length; v.event = null; v.nextEventAt = 9e15; // no tutorial or event pop-ups on someone else's farm\n  S = v; closePanel(); view.refresh(\"all\"); renderHud();\n}\nexport function leaveVisit() {\n  if (!homeS) return; S = homeS; homeS = null; bumpPrev = {}; view.refresh(\"all\"); renderHud(); // (no coins \"flying in\" just from switching farms)\n  if (helpOwed) { const n = helpOwed; helpOwed = 0; helpedFriend(n); toast(\"💧 Thanks for helping! +\" + 2 * n + \" 🪙\"); }\n}\nexport const isVisiting = () => !!homeS;\nlet saveWarned = false;\n// an important message: shown once the loading screen is gone, and long enough to read\nfunction notice(msg) { const show = () => (document.getElementById(\"loading\") ? setTimeout(show, 500) : toast(msg, 12000)); show(); }\n// true when the farm is safely on the phone\nexport function save() {\n  if (SANDBOX) return true;\n  if (restoring || window.__saHold || homeS) return false; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading\n  if (newerSave) { // an older copy of the game (still cached) mustn't write a newer farm back in an older shape\n    if (!saveWarned) { saveWarned = true; notice(\"🔄 A newer version of the game saved this farm. Close the game and open it again to update.\"); }\n    return false;\n  }\n  if (!document.hidden) S.lastSeen = now();\n  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }\n  catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves\n    if (!saveWarned) { saveWarned = true; notice(\"⚠️ Your farm isn't saving: this phone's storage is full. Free up some space, or make a backup in ⚙️ Settings.\"); }\n    return false;\n  }\n  saveWarned = false;\n  window.dispatchEvent(new Event(\"sa3d:saved\")); // accounts back the farm up to the cloud\n  return true;\n}\n"
+        },
+        {
+          "start": 408,
+          "end": 438,
+          "text": "export const soilNow = (p) => p.crop ? p.soil : Math.min(100, p.soil + Math.max(0, now() - (p.soilAt || 0)) / 36e4);\nexport const soilWord = (v) => v >= 70 ? \"🟢 Healthy soil\" : v >= 40 ? \"🟡 Tired soil\" : \"🔴 Worn-out soil\";\nexport const sprinkled = (i) => i < S.sprinklers * 6;\n// how long a crop takes on this field: season, soil, perks, and water (a heatwave slows crops nobody watered)\nexport function growTime(crop, p) {\n  let t = CROPS[crop].time * 1000;\n  if (!inSeason(crop)) t *= 2;\n  if (soilNow(p) < 40) t *= 1.25;\n  t *= Math.max(.5, 1 - .1 * S.perks.grow);\n  return t * (p.water ? .75 : heatwave() ? 1.2 : 1);\n}\nexport const goldChance = (p) => !inSeason(p.crop) ? 0 : .05 + (p.water ? .1 : 0) + (p.fert ? .35 : 0) + (p.soil >= 70 ? .05 : 0);\nexport function plant(i, crop, quiet) {\n  const p = S.plots[i], c = CROPS[crop];\n  if (!p || p.crop || ITEMS[crop].lvl > S.level) return false;\n  if (have(crop) > 0) take(crop, 1);\n  else if (S.coins >= c.seed) S.coins -= c.seed;\n  else { if (!quiet) { toast(\"Not enough coins for \" + ITEMS[crop].n + \" seeds\"); sfx(\"error\"); } return false; }\n  p.soil = soilNow(p); p.soilAt = now();\n  p.crop = crop; p.water = isRaining() || sprinkled(i) ? 1 : 0; p.hot = !p.water && heatwave() ? 1 : 0; // rain and sprinklers water for you\n  p.dur = growTime(crop, p); p.end = now() + p.dur; S.lastCrop = crop;\n  sfx(\"plant\");\n  return true;\n}\n// watering: a growing crop finishes 25% sooner (and shrugs off a heatwave)\nexport function waterPlot(i, quiet) {\n  const p = S.plots[i];\n  if (!p || !p.crop || p.water || p.end <= now()) return false;\n  const left = p.end - now(); p.end = now() + left * .75 / (p.hot ? 1.2 : 1); p.water = 1; p.hot = 0;\n  S.stats.water++; track(\"water\", 1);\n  if (!quiet) { sfx(\"water\"); view.fx(\"plot:\" + i, \"💧\"); view.refresh(\"plots\"); commit(); }"
+        },
+        {
+          "start": 477,
+          "end": 511,
+          "text": "\n// ---------- animals ----------\nexport function feedOne(kind, i) {\n  const a = ANIMALS[kind], pen = S.pens[kind];\n  if (pen.list[i] !== 0 || have(a.feed) < 1) return false;\n  take(a.feed, 1); pen.list[i] = now() + a.time * 1000 * (loveOf(meta(kind, i)) >= 70 ? .8 : 1); // happy animals work faster\n  addLove(meta(kind, i), 5); // and a full tummy is a happy tummy\n  sfx(\"feed\");\n  return true;\n}\nexport function feedAll(kind) {\n  const a = ANIMALS[kind], pen = S.pens[kind];\n  let n = 0;\n  pen.list.forEach((_, i) => { if (feedOne(kind, i)) n++; });\n  if (n) toast(\"Fed \" + n + \" \" + a.e);\n  else if (pen.list.some(e => e === 0)) toast(\"You need \" + ITEMS[a.feed].n + \". \" + (a.feed === \"carrot\" ? \"Grow some in your fields.\" : \"Make it at the Feed Mill.\"));\n  commit();\n  return n;\n}\nexport function collectAnimal(kind, i) {\n  const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];\n  if (!end || end > now()) return false;\n  const happy = loveOf(meta(kind, i)) >= 70;\n  if (!a.out) { // horse: pony-ride money\n    const c = Math.round(a.coins * (happy ? 1.25 : 1));\n    S.coins += c; S.stats.earned += c; gainXP(a.xp); pen.list[i] = 0; eventProgress(\"rides\", 1);\n    view.fx(\"animal:\" + kind + \":\" + i, \"+\" + c + \" 🪙\"); sfx(\"coin\"); sfx(kind);\n    return true;\n  }\n  const n = happy && Math.random() < .25 && space() >= 2 ? 2 : 1; // happy animals sometimes make double\n  if (space() < 1) { barnFull(); return false; }\n  const gold = happy && Math.random() < .3; // and very happy ones sometimes make gold-quality goods\n  add(a.out, n); if (gold) addGold(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);\n  view.fx(\"animal:\" + kind + \":\" + i, (gold ? \"🥇 \" : \"\") + (n > 1 ? \"×2! \" : \"+1 \") + ITEMS[a.out].e); sfx(kind);\n  return true;"
+        },
+        {
+          "start": 523,
+          "end": 540,
+          "text": "  pen.meta = pen.meta || [];\n  if (!pen.meta[i]) {\n    const used = new Set(pen.meta.filter(Boolean).map(m => m.name)), free = NAMES[kind].filter(n => !used.has(n));\n    pen.meta[i] = {name:pick(free.length ? free : NAMES[kind]), love:50, loveAt:now(), petAt:0, brushAt:0, playAt:0};\n  }\n  return pen.meta[i];\n}\nexport const loveOf = (m) => clamp(m.love - (now() - m.loveAt) / 8.64e6, 0, 100); // fades by about 10 a day\nfunction addLove(m, n) { m.love = clamp(loveOf(m) + n, 0, 100); m.loveAt = now(); }\nexport const hearts = (m) => { const n = Math.round(loveOf(m) / 20); return \"❤️\".repeat(n) + \"🤍\".repeat(5 - n); };\nexport const cdLeft = (at, cd) => Math.max(0, at + cd - now());\n// act: pet | brush | play | treat. Returns true if something happened.\nexport function interact(m, sound, act, key) {\n  const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], k = act + \"At\";\n  if (cdLeft(m[k] || 0, CD)) return false;\n  if (act === \"treat\") { if (S.coins < 10) { toast(\"Need 10 🪙\"); sfx(\"error\"); return false; } S.coins -= 10; }\n  m[k] = t;\n  addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);"
+        },
+        {
+          "start": 1054,
+          "end": 1069,
+          "text": "// ---------- sprinklers and land ----------\nfunction buySprinkler() {\n  if (S.level < 5 || S.sprinklers >= maxSprinklers()) return;\n  const c = sprinklerCost();\n  if (S.coins < c) { toast(\"Need \" + c + \" 🪙\"); sfx(\"error\"); return; }\n  S.coins -= c; S.sprinklers++; sfx(\"build\");\n  toast(\"💦 Sprinkler installed! Fields \" + ((S.sprinklers - 1) * 6 + 1) + \"-\" + S.sprinklers * 6 + \" water themselves when planted.\");\n  S.plots.forEach((_, i) => { if (sprinkled(i)) waterPlot(i, true); });\n  view.refresh(\"plots\"); commit();\n}\nfunction buyLand() {\n  const L = LAND[S.land];\n  if (!L || S.level < L.lvl) return;\n  if (S.coins < L.cost) { toast(\"Need \" + L.cost + \" 🪙\"); sfx(\"error\"); return; }\n  S.coins -= L.cost; S.land++; sfx(\"build\"); toast(\"🗺️ New land cleared! Room for \" + LAND_FIELDS + \" more fields.\");\n  closePanel(); view.refresh(\"plots\"); view.focus(\"plot:\" + Math.min(S.plots.length, maxPlots() - 1)); commit();"
+        },
+        {
+          "start": 1163,
+          "end": 1166,
+          "text": "// ---------- helping friends, and the trading post (the Firestore side lives in friends.js) ----------\nexport function applyHelp(plots) { let n = 0; for (const i of plots) if (waterPlot(i, true)) n++; if (n) { view.refresh(\"plots\"); commit(); } return n; }\nlet helpOwed = 0; // coins for watering a friend's crops, paid into your own farm once you're home\nexport function helpedFriend(n) { if (homeS) { helpOwed += n; return; } S.stats.helped += n; S.coins += 2 * n; gainXP(n); track(\"water\", n); commit(); }"
+        },
+        {
+          "start": 1983,
+          "end": 1998,
+          "text": "   BACKUP & RESTORE (also accepts backups from the 2D game)\n   ============================================================ */\nconst backupData = () => ({game:\"sunny-acres\", v:1, d:3, at:Date.now(), farm:S, weather:WX});\nconst b64 = (u8) => { let s = \"\"; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };\nconst unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));\nasync function toCode(obj) {\n  const bytes = new TextEncoder().encode(JSON.stringify(obj));\n  if (window.CompressionStream) {\n    const z = new Blob([bytes]).stream().pipeThrough(new CompressionStream(\"gzip\"));\n    return \"SA2:\" + b64(new Uint8Array(await new Response(z).arrayBuffer()));\n  }\n  return \"SA1:\" + b64(bytes);\n}\nasync function fromCode(text) {\n  const code = text.trim();\n  if (code.startsWith(\"{\")) return JSON.parse(code);"
+        },
+        {
+          "start": 2031,
+          "end": 2055,
+          "text": "// a 2D farm keeps its layout fields (they're simply ignored here); decorations placed on the 2D map go back in the Decor box\nfunction adopt(farm) {\n  const hadTut = farm.tut != null, s = upgrade(farm);\n  for (const d of s.decor.placed.splice(0)) if (d.x == null) s.decor.inv[d.id] = (s.decor.inv[d.id] || 0) + 1; else s.decor.placed.push(d);\n  s.plots = s.plots.slice(0, MAX_PLOTS + LAND_FIELDS * LAND.length);\n  if (!hadTut) s.tut = TUT.length; // a farm from the 2D game doesn't need the tutorial\n  return s;\n}\nasync function restoreFrom(text) {\n  let data;\n  try { data = await fromCode(text); } catch (e) { data = null; }\n  const farm = data && (data.farm || data);\n  if (!farm || !Array.isArray(farm.plots) || typeof farm.level !== \"number\") { toast(\"That doesn't look like a Sunny Acres backup.\"); sfx(\"error\"); return; }\n  const when = data.at ? \" from \" + new Date(data.at).toLocaleDateString() : \"\";\n  askConfirm(\"Restore farm?\", \"Restore the level \" + farm.level + \" farm\" + when + \"? The farm on this phone will be replaced.\", \"Restore\", () => {\n    restoring = true;\n    try {\n      localStorage.setItem(SAVE_KEY, JSON.stringify(adopt(farm)));\n      localStorage.setItem(\"sa3d-restored\", \"1\"); localStorage.setItem(\"sa3d-dirty\", \"1\"); // signed in: the restored farm becomes the account's farm too (auth.js)\n      if (data.weather) localStorage.setItem(WX_KEY, JSON.stringify(Object.assign({look:\"real\"}, data.weather)));\n    } catch (e) { restoring = false; toast(\"Couldn't restore. Is the phone's storage full?\"); return; }\n    location.reload();\n  });\n}\nfunction import2D() {"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/auth.js",
+      "sha256": "b396d4dd3cdca37d3427749f5912fb3a88cdad37be598385e4d73b99ecac78b7",
+      "lineCount": 392,
+      "spans": [
+        {
+          "start": 168,
+          "end": 208,
+          "text": "// what a saved farm amounts to, for the \"which farm?\" choice and to tell a real farm from a brand-new one\nfunction summary(raw) {\n  try { const s = JSON.parse(raw); return {level:s.level || 1, coins:s.coins || 0, real:(s.level || 1) > 1 || (s.xp || 0) > 0 || ((s.stats || {}).harvests || 0) > 0}; }\n  catch (e) { return null; }\n}\n// put a farm on this phone and restart the game with it (the game mustn't save its old farm over it on the way out)\nfunction useFarm(raw, uid, rev, dirty) {\n  window.__saHold = true;\n  if (raw) ls.set(SAVE_KEY, raw); else ls.del(SAVE_KEY);\n  ls.set(OWNER, uid); ls.set(SYNC_REV, String(rev || 0)); if (dirty) ls.set(DIRTY, \"1\"); else ls.del(DIRTY);\n  location.reload();\n  return new Promise(() => {}); // the page is reloading\n}\n// Save this phone's farm to the account. Only over the version this phone last saw: if another phone saved\n// in between, nothing is overwritten and the player chooses next time the game opens. `force` is for when the\n// player has already chosen (or a farm from before accounts moves in).\nasync function upload(force) {\n  clearTimeout(upload.t);\n  const raw = ls.get(SAVE_KEY), s = raw && summary(raw);\n  if (!cloud || !cloud.uid || !s || ls.get(OWNER) !== cloud.uid) return false;\n  if (ls.get(RECOVER)) return false; // the farm here is a stand-in for one that couldn't be read: never send it over the cloud copy\n  if (!force && ls.get(DIRTY) !== \"1\") return true; // nothing new\n  try {\n    const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);\n    if (rev == null) { console.warn(\"This farm was saved from another phone meanwhile; you'll get to choose next time.\"); return false; }\n    ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); window.dispatchEvent(new CustomEvent(\"sa3d:uploaded\", {detail:raw})); return true;\n  } catch (e) { console.warn(\"Cloud save will try again later:\", e.code || e.message); return false; }\n}\n// the game saves often, even when nothing changed (like when the app is closed), and refreshes truck orders and\n// events by itself: only a change the player made counts\nfunction progressOf(raw) {\n  try { const s = JSON.parse(raw); for (const k of [\"orders\", \"event\", \"nextEventAt\", \"lastNag\", \"lastBackup\"]) delete s[k]; return JSON.stringify(s); } catch (e) { return raw; }\n}\nlet lastProgress = progressOf(ls.get(SAVE_KEY));\naddEventListener(\"sa3d:saved\", () => {\n  const p = progressOf(ls.get(SAVE_KEY)); if (p === lastProgress) return; lastProgress = p; ls.set(DIRTY, \"1\");\n  if (cloud && cloud.uid) { clearTimeout(upload.t); upload.t = setTimeout(upload, 15000); }\n});\ndocument.addEventListener(\"visibilitychange\", () => { if (document.hidden) upload(); else if (beat) beat(); }); // leaving the app: save to the cloud now\n\n// Decide which farm this account plays, the moment it signs in. No farm is ever thrown away:"
+        },
+        {
+          "start": 330,
+          "end": 345,
+          "text": "    const call = async (data) => {\n      if (!fns) { const Fn = await import(SDK + \"firebase-functions.js\"); fns = {Fn, f:Fn.getFunctions(app, \"us-central1\")}; }\n      return (await fns.Fn.httpsCallable(fns.f, \"economyAct\")(data)).data;\n    };\n    window.saAuth.fb = {F, db, auth, call}; // friends.js uses the same Firebase app\n    flushStats();\n    cloud = {uid:null,\n      get:async () => { const d = await F.getDoc(F.doc(db, \"farms\", auth.currentUser.uid)); return d.exists() ? d.data() : null; },\n      // write a new version, only if the cloud still has the version this phone expects (null: write regardless)\n      put:(raw, s, expect) => F.runTransaction(db, async (tx) => {\n        const ref = F.doc(db, \"farms\", cloud.uid), d = await tx.get(ref), cur = d.exists() ? d.data().rev || 0 : 0;\n        if (expect != null && cur !== expect) return null;\n        tx.set(ref, {save:raw, level:s.level, coins:s.coins, rev:cur + 1, updatedAt:Date.now()});\n        return cur + 1;\n      })};\n    beat = () => {"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/friends.js",
+      "sha256": "5d247d8fd1fcc1d06bc774b8e27291f0a945f7ac53e52590bf53ad9c2249624b",
+      "lineCount": 338,
+      "spans": [
+        {
+          "start": 75,
+          "end": 96,
+          "text": "  // ---------- helping: water a friend's crops while visiting ----------\n  const helpKey = (fid) => \"sa3d-helped-\" + fid + \"-\" + new Date().toLocaleDateString(\"en-CA\");\n  function waterForFriend(i) {\n    if (!fb() || !me || !visitingUid) return false;\n    let n = 0; try { n = +localStorage.getItem(helpKey(visitingUid)) || 0; } catch (e) {}\n    if (n >= HELP_PER_DAY) { G.toast(\"💧 You've watered plenty for them today. Come back tomorrow!\"); return false; }\n    try { localStorage.setItem(helpKey(visitingUid), n + 1); } catch (e) {}\n    const {F, db} = fb(), fid = visitingUid;\n    F.setDoc(F.doc(db, \"help\", fid, \"items\", uid() + \"-\" + Date.now() + \"-\" + i), {from:uid(), name:me.name, plots:[i], at:Date.now()})\n      .then(() => G.helpedFriend(1)).catch(() => G.toast(\"Couldn't send your help. Check your internet.\"));\n    return true;\n  }\n  // friends who watered my crops: water those fields here, say thank you, and clear the notes\n  let helpBusy = false;\n  async function receiveHelp() {\n    if (!fb() || helpBusy || G.isVisiting()) return; helpBusy = true;\n    try {\n      const {F, db} = fb(), snap = await F.getDocs(F.collection(db, \"help\", uid(), \"items\")), by = {};\n      for (const d of snap.docs) { const x = d.data(), plots = x.plots || []; G.applyHelp(plots); by[x.name] = (by[x.name] || 0) + plots.length; await F.deleteDoc(d.ref || F.doc(db, \"help\", uid(), \"items\", d.id)); } // (crops that ripened meanwhile don't need it, but the thank-you still counts)\n      const list = Object.entries(by).map(([name, n]) => ({name, n}));\n      if (list.length) G.noteHelp(list);\n    } catch (e) {}"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/features.js",
+      "sha256": "515e26ef315856e3d944f4f8786b1f60bc491a6071cba38755e9a47f526e88cd",
+      "lineCount": 15,
+      "spans": [
+        {
+          "start": 1,
+          "end": 15,
+          "text": "// Sunny Acres 3D: feature switches.\n//\n// verifiedEconomy: the Phase 7I server-checked economy (the Verified Field and the trading post). It needs Firebase\n// Cloud Functions, which the free (Spark) plan can't run, so it is OFF wherever the game is really played. The code\n// stays in the game and in the test suites so it keeps working for later.\n//\n// It can be turned on ONLY by the local test harness: the page must come from this computer (127.0.0.1 / localhost)\n// AND the harness must have set window.__saTestEconomy before any game script ran. No URL parameter, saved setting or\n// player action can turn it on, on the public site or anywhere else.\nconst LOCAL_TEST_HOST = [\"127.0.0.1\", \"localhost\", \"[::1]\"].includes(location.hostname);\n\nexport const FEATURES = Object.freeze({\n  verifiedEconomy: LOCAL_TEST_HOST && window.__saTestEconomy === true,\n});\n"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/sw.js",
+      "sha256": "814ecee501c9e7a3e0759ed01dc52f7b80fed8a30b3e20635ad22a18d8316fd0",
+      "lineCount": 25,
+      "spans": [
+        {
+          "start": 1,
+          "end": 25,
+          "text": "// Keeps the 3D game on the phone so it opens quickly and plays offline.\n// (Named \"sa3d-\" so the 2D game's own clean-up never touches it.)\nconst CACHE = \"sa3d-v43\";\nconst SHELL = [\"./\", \"index.html\", \"scene-polish.js?v=1\", \"features.js?v=1\", \"phase7m.js?v=3\", \"game.js?v=25\", \"analytics.js?v=3\", \"perf.js?v=1\", \"cow3d.js?v=5\", \"live3d.js?v=2\", \"sheep3d.js\", \"horse3d.js\", \"dog3d.js\", \"cat3d.js\", \"chicken3d.js\", \"farmer3d.js\", \"quadruped3d.js\", \"characters3d.html\", \"manifest.webmanifest\", \"lib/three.module.min.js\", \"lib/three.core.min.js\", \"art/authored-hands.js?v=2\", \"assets/hands/hands-candidate.glb?v=2\", \"lib/addons/loaders/GLTFLoader.js\", \"lib/addons/utils/BufferGeometryUtils.js\", \"lib/addons/utils/SkeletonUtils.js\"];\n\n\nself.addEventListener(\"install\", (e) => {\n  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));\n});\nself.addEventListener(\"activate\", (e) => {\n  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(\"sa3d-\") && k !== CACHE).map((k) => caches.delete(k))))\n    .then(() => self.clients.claim()));\n});\n// The page and its code: network first, so updates show up right away. Pictures, textures and the 3D engine: from the phone first\n// (they rarely change), refreshed in the background.\nself.addEventListener(\"fetch\", (e) => {\n  const url = new URL(e.request.url);\n  if (e.request.method !== \"GET\" || url.origin !== self.location.origin) return;\n  const heavy = /\\/(lib|art|tex|assets)\\//.test(url.pathname);\n  const fromNet = () => fetch(e.request).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return res; });\n  e.respondWith(heavy\n    ? caches.match(e.request).then((hit) => { const net = fromNet().catch(() => hit); return hit || net; })\n    : fromNet().catch(() => caches.match(e.request).then((r) => r || caches.match(\"index.html\"))));\n});\n"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/firebase/firestore.rules",
+      "sha256": "ece0ca33c35adda40254d3ca274677fbb4efb18f356b205ee3a07c1ce674d489",
+      "lineCount": 178,
+      "spans": [
+        {
+          "start": 33,
+          "end": 60,
+          "text": "    // a full farm save (JSON text). Firestore's own limit is 1 MiB per document; stay well under it.\n    function saveText(v) { return str(v, 2, 900000); }\n\n    // ---------- farms/{uid}: the cloud save. Only that account, never anyone else. ----------\n    // auth.js writes {save, level, coins, rev, updatedAt} in a transaction and always sets rev to the stored rev + 1.\n    match /farms/{uid} {\n      allow get: if isMe(uid);\n      // no list, not even for the owner: a count needs list permission, and list returns every player's whole save\n      // (players.html's farm count then falls back to the presence count)\n      allow list: if false;\n      allow create, update: if isMe(uid)\n        && hasExactly(['save', 'level', 'coins', 'rev', 'updatedAt'])\n        && saveText(data().save)\n        && num(data().level, 1, 100000) && num(data().coins, -1000000000000000, 1000000000000000)\n        && data().rev == (resource == null ? 0 : resource.data.get('rev', 0)) + 1\n        && millis(data().updatedAt);\n      allow delete: if false;\n    }\n\n    // ---------- presence/{uid}: \"seen\" heartbeat for the owner's dashboard ----------\n    // auth.js: setDoc(presence/uid, {seen: serverTimestamp(), level, joined}, {merge: true})\n    match /presence/{uid} {\n      allow read: if isOwner();\n      allow create, update: if isMe(uid)\n        && data().keys().hasOnly(['seen', 'level', 'joined'])\n        && data().seen == request.time\n        && num(data().level, 1, 100000)\n        && (!('joined' in data()) || data().joined == null || millis(data().joined));"
+        },
+        {
+          "start": 133,
+          "end": 146,
+          "text": "    // ---------- Phase 7I: the canonical farm economy. ONLY the server (Cloud Functions, admin access) writes these. ----------\n    // economy/{uid}: spendable coins and tradable items. Starts at 0 coins and nothing else; legacy save wealth is never copied.\n    match /economy/{uid} {\n      allow get: if isMe(uid);\n      allow list: if false;\n      allow write: if false;\n    }\n    // ledger/{uid}/rows/{key}: one create-once row per accepted action (the key is the idempotency key)\n    match /ledger/{uid}/rows/{key} {\n      allow get, list: if isMe(uid);\n      allow write: if false;\n    }\n    // plots/{uid}/items/{plotId}: verified plots (crop, generation, plantedAt, matureAt), written by the server only\n    match /plots/{uid}/items/{plotId} {"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/art/asset-contract.json",
+      "sha256": "85671e833022bb8f34431a5e0f8901da8bf803d686030047091bc2756ce8c2b4",
+      "lineCount": 11,
+      "spans": [
+        {
+          "start": 1,
+          "end": 11,
+          "text": "{\n  \"version\": 1,\n  \"profiles\": {\n    \"barn-lod0\": {\"rootName\":\"SunnyBarn\", \"maxBytes\":2097152, \"maxTriangles\":30000, \"maxPrimitives\":8, \"maxMaterials\":4, \"extensions\":[\"EXT_meshopt_compression\",\"KHR_texture_basisu\"]},\n    \"barn-lod1\": {\"rootName\":\"SunnyBarn\", \"maxBytes\":1048576, \"maxTriangles\":10000, \"maxPrimitives\":4, \"maxMaterials\":3, \"extensions\":[\"EXT_meshopt_compression\",\"KHR_texture_basisu\"]},\n    \"barn-lod2\": {\"rootName\":\"SunnyBarn\", \"maxBytes\":262144, \"maxTriangles\":1500, \"maxPrimitives\":2, \"maxMaterials\":2, \"extensions\":[\"EXT_meshopt_compression\",\"KHR_texture_basisu\"]},\n    \"hands\": {\"rootName\":\"SunnyHands\", \"maxBytes\":1048576, \"maxTriangles\":12000, \"maxPrimitives\":4, \"maxMaterials\":2, \"requiredAnimations\":[\"idle\",\"harvest\",\"plant\",\"water\",\"pet\",\"feed\"], \"extensions\":[\"EXT_meshopt_compression\",\"KHR_texture_basisu\"]},\n    \"vegetation-clump\": {\"rootName\":\"SunnyClump\", \"maxBytes\":131072, \"maxTriangles\":350, \"maxPrimitives\":1, \"maxMaterials\":1, \"extensions\":[\"EXT_meshopt_compression\",\"KHR_texture_basisu\"]}\n  }\n}\n"
+        }
+      ]
+    }
+  ],
+  "derived": {
+    "groundDimensions": [
+      220,
+      220
+    ],
+    "groundFlatRadius": 16,
+    "buildingTreeCenterRadius": 23,
+    "decorCenterRadius": 24,
+    "walkCenterRadius": 40,
+    "animalHome": [
+      1,
+      3
+    ],
+    "animalRoamRadius": 19,
+    "cameraTargetLimits": {
+      "x": [
+        -24,
+        24
+      ],
+      "z": [
+        -18,
+        28
+      ]
+    },
+    "editorGrid": {
+      "size": 56,
+      "divisions": 56,
+      "center": [
+        1,
+        7
+      ]
+    },
+    "plotCapacity": {
+      "starting": 6,
+      "baseCap": 30,
+      "deeds": 3,
+      "perDeed": 6,
+      "maxCap": 48
+    },
+    "currentPlotCoordinates": [
+      {
+        "i": 0,
+        "x": -10.149640259111148,
+        "z": 10.758989205182667
+      },
+      {
+        "i": 1,
+        "x": -9.850359740888852,
+        "z": 13.241010794817333
+      },
+      {
+        "i": 2,
+        "x": -12.631661848745814,
+        "z": 11.058269723404965
+      },
+      {
+        "i": 3,
+        "x": -7.667618669476483,
+        "z": 10.459708686960369
+      },
+      {
+        "i": 4,
+        "x": -12.332381330523518,
+        "z": 13.540291313039631
+      },
+      {
+        "i": 5,
+        "x": -7.368338151254185,
+        "z": 12.941730276595035
+      },
+      {
+        "i": 6,
+        "x": -9.551079222666552,
+        "z": 15.723032384451999
+      },
+      {
+        "i": 7,
+        "x": -12.033100812301218,
+        "z": 16.022312902674297
+      },
+      {
+        "i": 8,
+        "x": -7.069057633031886,
+        "z": 15.4237518662297
+      },
+      {
+        "i": 9,
+        "x": -15.11368343838048,
+        "z": 11.357550241627264
+      },
+      {
+        "i": 10,
+        "x": -5.185597079841818,
+        "z": 10.16042816873807
+      },
+      {
+        "i": 11,
+        "x": -14.814402920158184,
+        "z": 13.83957183126193
+      },
+      {
+        "i": 12,
+        "x": -4.88631656161952,
+        "z": 12.642449758372736
+      },
+      {
+        "i": 13,
+        "x": -14.515122401935884,
+        "z": 16.321593420896594
+      },
+      {
+        "i": 14,
+        "x": -4.587036043397221,
+        "z": 15.124471348007402
+      },
+      {
+        "i": 15,
+        "x": -9.251798704444255,
+        "z": 18.205053974086663
+      },
+      {
+        "i": 16,
+        "x": -11.733820294078921,
+        "z": 18.504334492308963
+      },
+      {
+        "i": 17,
+        "x": -6.769777114809588,
+        "z": 17.905773455864367
+      },
+      {
+        "i": 18,
+        "x": -14.215841883713587,
+        "z": 18.80361501053126
+      },
+      {
+        "i": 19,
+        "x": -4.287755525174923,
+        "z": 17.606492937642066
+      },
+      {
+        "i": 20,
+        "x": -8.952518186221955,
+        "z": 20.68707556372133
+      },
+      {
+        "i": 21,
+        "x": -11.43453977585662,
+        "z": 20.986356081943626
+      },
+      {
+        "i": 22,
+        "x": -6.47049659658729,
+        "z": 20.387795045499033
+      },
+      {
+        "i": 23,
+        "x": -13.916561365491287,
+        "z": 21.285636600165926
+      },
+      {
+        "i": 24,
+        "x": -3.9884750069526245,
+        "z": 20.088514527276732
+      },
+      {
+        "i": 25,
+        "x": -8.653237667999658,
+        "z": 23.169097153355995
+      },
+      {
+        "i": 26,
+        "x": -11.135259257634324,
+        "z": 23.468377671578295
+      },
+      {
+        "i": 27,
+        "x": -6.171216078364991,
+        "z": 22.869816635133695
+      },
+      {
+        "i": 28,
+        "x": -13.61728084726899,
+        "z": 23.767658189800592
+      },
+      {
+        "i": 29,
+        "x": -3.689194488730326,
+        "z": 22.5705361169114
+      },
+      {
+        "i": 30,
+        "x": -17.595705028015146,
+        "z": 11.656830759849562
+      },
+      {
+        "i": 31,
+        "x": -17.29642450979285,
+        "z": 14.138852349484228
+      },
+      {
+        "i": 32,
+        "x": -16.99714399157055,
+        "z": 16.620873939118894
+      },
+      {
+        "i": 33,
+        "x": -16.697863473348253,
+        "z": 19.10289552875356
+      },
+      {
+        "i": 34,
+        "x": -16.398582955125953,
+        "z": 21.584917118388226
+      },
+      {
+        "i": 35,
+        "x": -16.099302436903656,
+        "z": 24.06693870802289
+      },
+      {
+        "i": 36,
+        "x": -20.077726617649812,
+        "z": 11.95611127807186
+      },
+      {
+        "i": 37,
+        "x": -19.778446099427516,
+        "z": 14.438132867706527
+      },
+      {
+        "i": 38,
+        "x": -19.479165581205216,
+        "z": 16.92015445734119
+      },
+      {
+        "i": 39,
+        "x": -19.17988506298292,
+        "z": 19.402176046975857
+      },
+      {
+        "i": 40,
+        "x": -18.88060454476062,
+        "z": 21.884197636610523
+      },
+      {
+        "i": 41,
+        "x": -18.581324026538322,
+        "z": 24.36621922624519
+      },
+      {
+        "i": 42,
+        "x": -22.559748207284475,
+        "z": 12.255391796294159
+      },
+      {
+        "i": 43,
+        "x": -22.260467689062178,
+        "z": 14.737413385928825
+      },
+      {
+        "i": 44,
+        "x": -21.961187170839878,
+        "z": 17.21943497556349
+      },
+      {
+        "i": 45,
+        "x": -21.66190665261758,
+        "z": 19.701456565198157
+      },
+      {
+        "i": 46,
+        "x": -21.36262613439528,
+        "z": 22.18347815483282
+      },
+      {
+        "i": 47,
+        "x": -21.063345616172985,
+        "z": 24.66549974446749
+      }
+    ],
+    "default30": {
+      "plotCenters": {
+        "minX": -15.11368343838048,
+        "maxX": -3.689194488730326,
+        "minZ": 10.16042816873807,
+        "maxZ": 23.767658189800592
+      },
+      "furthestCenterFromHome": 25.396073044002858
+    },
+    "max48": {
+      "plotCenters": {
+        "minX": -22.559748207284475,
+        "maxX": -3.689194488730326,
+        "minZ": 10.16042816873807,
+        "maxZ": 24.66549974446749
+      },
+      "furthestCenterFromHome": 30.92224278664503
+    },
+    "plotIdentity": "S.plots purchase index; array must remain append-only/in same order",
+    "sprinklers": "i < S.sprinklers * 6",
+    "currentEnclosures": [
+      "paddock: cow/horse/sheep",
+      "yard: chicken"
+    ],
+    "saveVersion": 1,
+    "localKey": "sunny-acres-3d-v1",
+    "cloudSaveLimitCharacters": 900000,
+    "verifiedEconomyPublic": false
+  },
+  "proposalOnly": {
+    "usableDomain": {
+      "x": [
+        -34,
+        34
+      ],
+      "z": [
+        -28,
+        38
+      ]
+    },
+    "worldMeshExpansionRequired": false,
+    "playableDomainTerrainPlacementCameraNavigationChangesRequired": true,
+    "pricingOrCapacityChangeApproved": false
+  }
+}
