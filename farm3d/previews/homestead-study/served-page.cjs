@@ -5,6 +5,7 @@ module.exports=function build(source,variant){let page=source;const patches=[];f
   replace('updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);','updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt); window.__bench.mark("gameAimFarmer");','game stage');
   replace('if (perf) perf.render(); else composer.render();','window.__bench.mark("world"); window.__bench.gpuBegin(renderer); if (perf) perf.render(); else composer.render(); window.__bench.gpuEnd(); window.__bench.mark("renderSubmit");','full composer GPU');
   replace('if (photoWant) takePhoto();','if (photoWant) takePhoto(); window.__bench.end(renderer);','CPU end');
+  replace('wardrobeOn ? 9 : 70','wardrobeOn ? 9 : 100','paired wide-overview fixture zoom ceiling; production unchanged');
   const fixture=`G.opts.quiet=true; G.S.nextEventAt=G.S.nextVisitorAt=G.S.nextRushAt=9e15;
 for (const [kind,p] of Object.entries(G.S.pens)) p.meta=p.list.map((_,i)=>({name:G.NAMES[kind][i],love:50,loveAt:Date.now(),petAt:0,brushAt:0,playAt:0}));
 window.__fixtureStateBefore=JSON.stringify(G.S);
