@@ -1,3 +1,11 @@
+# Current roadmap checkpoint - 2026-10-14 (visitor patch published)
+
+[PR82](https://github.com/pederaus9-ux/Bugsy/pull/82) is merged and published at exact main `d5ed6a96c50914320f30a7b74b799b7f66a9b6e0`, reviewed tree `05ac4ee6c3ff982ba2e8925d68fd5077667d058f`. Postmerge Regression206 all seven jobs SUCCESS; Pages79/80 SUCCESS; five live static responses match merged bytes and include the expiry guard. Cancelled automatic205 and the duplicate-dispatch diagnostic are fully retained. [Completed publication report](PHASE7N_VISITOR_EXPIRY_PUBLICATION.md).
+
+Bounded patch complete; stop. Original evidence/accepted animals/audio fix and protected systems are preserved. No further patch approval needed; additional development/full release needs separate owner scope. No new phone round, settings/security/production data/FS25 change or installation.
+
+## Historical visitor candidate checkpoint
+
 # Current roadmap checkpoint - 2026-10-14 (visitor fix candidate)
 
 Owner-approved one-condition visitor expiry guard passes9/9 focused native/boundary/reload checks on committed `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951`. Existing tests/failure receipts, published audio fix and accepted animals remain frozen. See [the candidate report](PHASE7N_VISITOR_EXPIRY_FIX.md). Exact-head hosted checks and draft review are next; separate owner merge decision remains. No merge/deploy/release, installations/settings/production writes, FS25 or phone work authorized.

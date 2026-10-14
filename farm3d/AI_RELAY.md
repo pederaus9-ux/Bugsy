@@ -295,3 +295,7 @@ The owner authorized the next isolated scope at12:13:04 UTC. Exact published mai
 ## Current visitor expiry candidate - 2026-10-14
 
 Owner approval at12:39:49 UTC supersedes the earlier no-fix qualification gate only for the minimal visitor expiry check. Source checkpoint `b3e1c7ca0948f4c1dfb4a86e74d8892131f73656` and main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` were unchanged. Implementation `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951` passes nine focused browser contracts and preserves all prior evidence/runtime except the approved one-condition game.js edit. See [PHASE7N_VISITOR_EXPIRY_FIX.md](PHASE7N_VISITOR_EXPIRY_FIX.md). Keep PR draft, pin final exact-head hosted results, and await separate merge authority. No deploy/release/new phone/FS25/security/production scope.
+
+## Current bounded visitor publication - 2026-10-14
+
+Owner-approved PR82 exact head `1d2343b5c69dd2f5b3a907d82566625598979c59` merged/published at main `d5ed6a96c50914320f30a7b74b799b7f66a9b6e0`, tree `05ac4ee6c3ff982ba2e8925d68fd5077667d058f`. Postmerge206 all7, Pages79/80 and live5/5 PASS. Automatic205 cancellation and duplicate initiation are retained without a false success claim. See [PHASE7N_VISITOR_EXPIRY_PUBLICATION.md](PHASE7N_VISITOR_EXPIRY_PUBLICATION.md). Record is evidence-only on a separate branch; stop this completed bounded task. Full release/further development needs separate owner scope, with no new phone/FS25/settings/security/production-data work.
