@@ -1,3 +1,9 @@
+# Sunny Acres current production status - 2026-10-14 (visitor fix candidate)
+
+Owner-approved one-condition visitor expiry guard passes9/9 focused native/boundary/reload checks on committed `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951`. Existing tests/failure receipts, published audio fix and accepted animals remain frozen. See [the candidate report](PHASE7N_VISITOR_EXPIRY_FIX.md). Exact-head hosted checks and draft review are next; separate owner merge decision remains. No merge/deploy/release, installations/settings/production writes, FS25 or phone work authorized.
+
+## Previous later qualification checkpoint
+
 # Sunny Acres current production status - 2026-10-14 (later qualification)
 
 Qualification on exact published main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` is complete:29/30 behavior groups PASS, one expired visitor Give defect confirmed with native Date. Earned9–20, later perks/cosmetics, all3 deeds, daily calendar/quests, rush requests and relevant persistence are covered with explicit accelerated/seeded limits. [Report](PHASE7N_LATER_PROGRESSION_QUALIFICATION.md).

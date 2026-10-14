@@ -291,3 +291,7 @@ PR81 merged/published under the owner's 11:23:24 UTC conditional approval after 
 ## Current later qualification record - 2026-10-14
 
 The owner authorized the next isolated scope at12:13:04 UTC. Exact published main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` is unchanged. Later progression/land/daily/visitor/rush scope is complete with29/30 behavior PASS and a native-Date-confirmed visitor expiry action FAIL. See [PHASE7N_LATER_PROGRESSION_QUALIFICATION.md](PHASE7N_LATER_PROGRESSION_QUALIFICATION.md) and current state. Runtime fixes require a separate owner decision; propose only the one-line expiry guard. Prior publication/accepted animal/rules/phone evidence remains credited. No merge/deploy/release/new phone work is authorized by this outcome.
+
+## Current visitor expiry candidate - 2026-10-14
+
+Owner approval at12:39:49 UTC supersedes the earlier no-fix qualification gate only for the minimal visitor expiry check. Source checkpoint `b3e1c7ca0948f4c1dfb4a86e74d8892131f73656` and main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` were unchanged. Implementation `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951` passes nine focused browser contracts and preserves all prior evidence/runtime except the approved one-condition game.js edit. See [PHASE7N_VISITOR_EXPIRY_FIX.md](PHASE7N_VISITOR_EXPIRY_FIX.md). Keep PR draft, pin final exact-head hosted results, and await separate merge authority. No deploy/release/new phone/FS25/security/production scope.
