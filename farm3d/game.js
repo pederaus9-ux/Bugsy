@@ -1854,9 +1854,10 @@ function audio() {
 export function applySound() {
   const b = $("#soundBtn"); if (b) b.textContent = snd.on ? "🔊" : "🔇";
   if (!AC) return;
-  master.gain.value = snd.on ? 0.55 : 0;
+  master.gain.value = snd.on && !document.hidden ? 0.55 : 0;
   musicBus.gain.value = snd.music ? 0.22 : 0;
 }
+document.addEventListener("visibilitychange", applySound);
 function saveSound() { try { localStorage.setItem(SAVE_KEY + "-sound", JSON.stringify(snd)); } catch (e) {} applySound(); }
 export function toggleSound() { snd.on = !snd.on; saveSound(); if (snd.on) { audio(); sfx("pop"); } if (panel) renderPanel(); }
 function tone(f, d, o = {}) {

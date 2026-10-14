@@ -1,19 +1,49 @@
-# Sunny Acres current production status — 2026-10-12
+# Sunny Acres current production status - 2026-10-14 (audio fix)
 
-Current main: `047cbed91b816b4869f983ef8fe2571cdde987e2` (PR #78).
-Current phase: **7N — release qualification**, authorized by the owner.
-Owner explicitly accepted **all current animals** on 2026-10-12. Preserve their
-models and motion unless a new reproducible defect is demonstrated.
+Owner-approved two-line audio visibility gate passes the original native suite 10/10 and the ten-second hidden/return/muted regression. Preferences/autoplay remain covered. Only game.js intentionally changes among 65 runtime files; all prior evidence and accepted animals remain preserved.
 
-Post-merge regression #196 passed all seven jobs; Pages #75 passed. Twelve
-selected live runtime files byte-match main. This establishes an automated and
-deployed baseline, not release completion. Current device/long-session, iPhone,
-same-account conflicting-save and live backend security gates remain open.
+See [the audio fix candidate report](PHASE7N_AUDIO_FIX.md). Exact-head hosted CI and draft review are next; owner merge approval remains required. No deployment/release or new phone work authorized.
 
-See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for the
-exact evidence, gaps, ordered next actions and stop conditions. The accepted
-core free-to-play product permits optional cosmetic monetization in future;
-this phase implements no monetization. Current team: ChatGPT/Codex only.
+## Previous audio failure checkpoint
+
+
+The authorized local audio scope is complete with a confirmed failure: ambient PCM continues in an actually hidden Chrome tab. Nine other native audio/mute/gesture/reload groups passed; a focused ~10-second reproduction retained trusted browser visibility evidence and a zero-output master-mute control. Runtime and prior accepted evidence are unchanged.
+
+See [the audio qualification report](PHASE7N_AUDIO_QUALIFICATION.md). Next approval needed is the bounded shared-master gain/visibility runtime fix shown in an unapplied sketch. Release NOT READY; no further phone testing, merge, deployment or release authorized.
+
+## Previous connected qualification checkpoint
+
+
+Recovery of published e2f2ab2 into an owner-authorized isolated connected checkout is complete. Fifteen distinct local assertions passed: earned levels 1-8/all 18 recipes/eight orders, actual old-worker update/offline reboot, and compressed/SA1/downloaded-file restore. Failed environment/fixture attempts are retained. No runtime/security/phone/merge/deploy/release work performed.
+
+See [the connected qualification report](PHASE7N_CONNECTED_QUALIFICATION.md) for exact source, receipts and limits. Review the documentation/test checkpoint next; a bounded local audio lifecycle extension needs owner scope authorization. Sustained device, physical conflict/installed-update and approved rollback gates remain open. Release NOT READY.
+
+## Previous checkpoint, 2026-10-13
+
+
+Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
+Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.
+[Regression201](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392622802) passed all7 jobs; [Pages77](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392621215) passed on this main.
+PR79's conflicting-save emulator qualification and PR80's test-only rendered
+ambient observation correction are merged and credited, not pending reruns.
+
+The owner accepted all current animals and completed the qualitative Android/iPhone
+phone round: modes, movement/interactions, saves/reopen/offline and weather were
+reported good. Exact device assignment and sustained instrumentation remain incomplete;
+no true shared-account physical conflict proof is claimed. No more phone tests now.
+New bounded checks passed: catalog29 items/18 recipes,43 modules,archive65/65,
+live static assets66/66. The initial failed Node network attempt and successful
+curl follow-up are both retained. No runtime, criteria or live settings changes.
+
+See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for
+fixed-source evidence and limits. Owner confirms rules were already checked and are
+good (2026-10-13 19:28:55 America/Chicago); credit that review as complete without
+claiming this session independently verified deployment identity. Next: inspect
+progression/update/restore coverage, then run only uncovered test-environment checks
+after the original executor reconnects. Sustained measurements, physical conflicts
+and operational/full-progression evidence gaps remain. Integration needs
+owner merge approval; no merge, deploy or release authorized. ChatGPT/Codex only.
+Full farm/progression remains free; optional future cosmetics are permitted.
 
 ## Historical delivery record (2026-10-05)
 

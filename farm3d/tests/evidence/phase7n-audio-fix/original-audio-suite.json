@@ -1,0 +1,1031 @@
+{
+  "status": "PASS",
+  "startedSource": "758c9017a70c0aebae11e8c4b4bf4a206907a2ce",
+  "sourceTree": "3bcb9a4cd05ec8fee43bccfc976c661540d1547a",
+  "finishedAtUtc": "2026-10-14T10:45:52.588Z",
+  "helperSha256": "ba5b71639242ab4446f14c6a3842e4218cd56b25db0f267982ededabaf0fd082",
+  "probeSha256": "84dd3a49b2d98d03f4d992202e4eb8b5d79aa29d0c5349b855ca17b834c2d194",
+  "node": "v24.19.0",
+  "limitations": "Native Web Audio PCM observed via parallel analyser; headless software rendering, isolated local guest data; no audible/phone-quality claim. Native suspend is injected explicitly; actual visibility requires trusted browser event.",
+  "results": [
+    {
+      "name": "normal boot does not create audio before gesture",
+      "status": "PASS",
+      "detail": {
+        "contexts": 0,
+        "activation": false
+      }
+    },
+    {
+      "name": "browser autoplay boundary",
+      "status": "PASS",
+      "detail": {
+        "state": "suspended",
+        "rms": 0,
+        "syntheticApiCall": true
+      }
+    },
+    {
+      "name": "trusted pointer resumes native graph and effect outputs PCM",
+      "status": "PASS",
+      "detail": {
+        "samples": [
+          {
+            "rms": 0.008234545635327113,
+            "peak": 0.026950588449835777,
+            "state": "running",
+            "audioTime": 0.072,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0014356991099268757,
+            "peak": 0.004337969236075878,
+            "state": "running",
+            "audioTime": 0.13066666666666665,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.010514043971186654,
+            "peak": 0.019360821694135666,
+            "state": "running",
+            "audioTime": 0.192,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.000048691834447202625,
+            "peak": 0.00007553629984613508,
+            "state": "running",
+            "audioTime": 0.4106666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00002490260093204252,
+            "peak": 0.000054797619668534026,
+            "state": "running",
+            "audioTime": 0.4613333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 0.52,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ],
+        "trustedBrowserAutomation": true
+      }
+    },
+    {
+      "name": "master mute produces silence and persists",
+      "status": "PASS",
+      "detail": {
+        "samples": [
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 1.3706666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 1.48,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 1.6506666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 1.8,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 1.9013333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "muted reload preserves preference without audio creation",
+      "status": "PASS",
+      "detail": {
+        "muted": true,
+        "contexts": 0
+      }
+    },
+    {
+      "name": "unmute and category settings use real graph",
+      "status": "PASS",
+      "detail": {
+        "music": [
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 0.8613333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 0.9706666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.006467791700356242,
+            "peak": 0.011069159023463726,
+            "state": "running",
+            "audioTime": 1.08,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.002169739556765465,
+            "peak": 0.003701193956658244,
+            "state": "running",
+            "audioTime": 1.1813333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0006917840323462232,
+            "peak": 0.0011883319821208715,
+            "state": "running",
+            "audioTime": 1.2906666666666666,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00021347055925950283,
+            "peak": 0.00036636064760386944,
+            "state": "running",
+            "audioTime": 1.4,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00006597392937942657,
+            "peak": 0.00011294953583274037,
+            "state": "running",
+            "audioTime": 1.512,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.000020307196651706875,
+            "peak": 0.000034822835004888475,
+            "state": "running",
+            "audioTime": 1.6213333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0031328592315336837,
+            "peak": 0.008189291693270206,
+            "state": "running",
+            "audioTime": 1.7306666666666666,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0005741601810150332,
+            "peak": 0.0013858119491487741,
+            "state": "running",
+            "audioTime": 1.84,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00010782199073609152,
+            "peak": 0.000245631264988333,
+            "state": "running",
+            "audioTime": 1.952,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00002138742503182659,
+            "peak": 0.00004814990097656846,
+            "state": "running",
+            "audioTime": 2.0613333333333332,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0.2199999988079071,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ],
+        "musicOff": [
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 3.6,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 3.712,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 3.8213333333333335,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 3.9306666666666668,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 4.04,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "suspended context resumes on trusted input",
+      "status": "PASS",
+      "detail": {
+        "samples": [
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 4.24,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0027847446996350457,
+            "peak": 0.0083969347178936,
+            "state": "running",
+            "audioTime": 4.301333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.013778292802043842,
+            "peak": 0.025513887405395508,
+            "state": "running",
+            "audioTime": 4.36,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.002218762735996586,
+            "peak": 0.004130060318857431,
+            "state": "running",
+            "audioTime": 4.432,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0005009280820516677,
+            "peak": 0.0009367726743221283,
+            "state": "running",
+            "audioTime": 4.490666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.00010571072597682238,
+            "peak": 0.0001972452737390995,
+            "state": "running",
+            "audioTime": 4.552,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ],
+        "injectedNativeSuspend": true
+      }
+    },
+    {
+      "name": "category preferences persist across reload",
+      "status": "PASS",
+      "detail": {
+        "on": true,
+        "music": false,
+        "amb": true,
+        "buzz": false
+      }
+    },
+    {
+      "name": "ambient native loops output PCM",
+      "status": "PASS",
+      "detail": {
+        "samples": [
+          {
+            "rms": 0.002876988302807361,
+            "peak": 0.00891069695353508,
+            "state": "running",
+            "audioTime": 2.2,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.002575186979472735,
+            "peak": 0.008127243258059025,
+            "state": "running",
+            "audioTime": 2.312,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0023706640758725172,
+            "peak": 0.006982056424021721,
+            "state": "running",
+            "audioTime": 2.4106666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.002286948976394845,
+            "peak": 0.007101010996848345,
+            "state": "running",
+            "audioTime": 2.52,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0022145042286869426,
+            "peak": 0.006216033827513456,
+            "state": "running",
+            "audioTime": 2.632,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.001968917092986847,
+            "peak": 0.0057990774512290955,
+            "state": "running",
+            "audioTime": 2.7413333333333334,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0019146937058000493,
+            "peak": 0.006199793890118599,
+            "state": "running",
+            "audioTime": 2.8506666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.001857752838407484,
+            "peak": 0.005807838402688503,
+            "state": "running",
+            "audioTime": 2.96,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "actual browser tab background and return",
+      "status": "PASS",
+      "detail": {
+        "background": [
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.112,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.221333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.32,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.432,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.541333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.650666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.76,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.872,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 5.981333333333334,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          },
+          {
+            "rms": 0,
+            "peak": 0,
+            "state": "running",
+            "audioTime": 6.0906666666666665,
+            "sampleRate": 48000,
+            "masterGain": 0,
+            "musicGain": 0,
+            "hidden": true,
+            "visibility": "hidden",
+            "activation": true
+          }
+        ],
+        "returned": [
+          {
+            "rms": 0.0013993269106676795,
+            "peak": 0.003479112172499299,
+            "state": "running",
+            "audioTime": 8.421333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.001537265532753539,
+            "peak": 0.0040708743035793304,
+            "state": "running",
+            "audioTime": 8.530666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0016708280547593304,
+            "peak": 0.004419570788741112,
+            "state": "running",
+            "audioTime": 8.632,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.001489201659516704,
+            "peak": 0.004167656414210796,
+            "state": "running",
+            "audioTime": 8.741333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0014891961465947538,
+            "peak": 0.004207167308777571,
+            "state": "running",
+            "audioTime": 8.850666666666667,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0016722092366648707,
+            "peak": 0.006014188751578331,
+            "state": "running",
+            "audioTime": 8.96,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.001756361184465421,
+            "peak": 0.005656275898218155,
+            "state": "running",
+            "audioTime": 9.072,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          },
+          {
+            "rms": 0.0016943548414230037,
+            "peak": 0.004727054387331009,
+            "state": "running",
+            "audioTime": 9.181333333333333,
+            "sampleRate": 48000,
+            "masterGain": 0.550000011920929,
+            "musicGain": 0,
+            "hidden": false,
+            "visibility": "visible",
+            "activation": true
+          }
+        ],
+        "lifecycle": [
+          {
+            "event": "visibilitychange",
+            "trusted": true,
+            "hidden": true,
+            "state": "hidden",
+            "time": 10487
+          }
+        ]
+      }
+    }
+  ],
+  "observations": [
+    {
+      "name": "browser autoplay boundary",
+      "samples": [
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "suspended",
+          "audioTime": 0,
+          "sampleRate": 48000,
+          "masterGain": 0.550000011920929,
+          "musicGain": 0,
+          "hidden": false,
+          "visibility": "visible",
+          "activation": false
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "suspended",
+          "audioTime": 0,
+          "sampleRate": 48000,
+          "masterGain": 0.550000011920929,
+          "musicGain": 0,
+          "hidden": false,
+          "visibility": "visible",
+          "activation": false
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "suspended",
+          "audioTime": 0,
+          "sampleRate": 48000,
+          "masterGain": 0.550000011920929,
+          "musicGain": 0,
+          "hidden": false,
+          "visibility": "visible",
+          "activation": false
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "suspended",
+          "audioTime": 0,
+          "sampleRate": 48000,
+          "masterGain": 0.550000011920929,
+          "musicGain": 0,
+          "hidden": false,
+          "visibility": "visible",
+          "activation": false
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "suspended",
+          "audioTime": 0,
+          "sampleRate": 48000,
+          "masterGain": 0.550000011920929,
+          "musicGain": 0,
+          "hidden": false,
+          "visibility": "visible",
+          "activation": false
+        }
+      ]
+    },
+    {
+      "name": "actual browser tab background and return",
+      "background": [
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.112,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.221333333333333,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.32,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.432,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.541333333333333,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.650666666666667,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.76,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.872,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 5.981333333333334,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        },
+        {
+          "rms": 0,
+          "peak": 0,
+          "state": "running",
+          "audioTime": 6.0906666666666665,
+          "sampleRate": 48000,
+          "masterGain": 0,
+          "musicGain": 0,
+          "hidden": true,
+          "visibility": "hidden",
+          "activation": true
+        }
+      ],
+      "lifecycle": [
+        {
+          "event": "visibilitychange",
+          "trusted": true,
+          "hidden": true,
+          "state": "hidden",
+          "time": 10487
+        }
+      ]
+    }
+  ]
+}

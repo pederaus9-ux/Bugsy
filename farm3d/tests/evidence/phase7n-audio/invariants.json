@@ -1,0 +1,36 @@
+{
+  "checkedAtUtc": "2026-10-14T06:36:46.074Z",
+  "status": "PASS_PROTECTED_FILES",
+  "source": "d8aed9ebb78b6a4acb215be89e28435f32319f4f",
+  "sourceTree": "b4e4b1f96c38786f50474e401c4ab7b6cfc19542",
+  "scopeDiff": [
+    "farm3d/AI_RELAY.md",
+    "farm3d/AI_RELAY_STATE.json",
+    "farm3d/PHASE7_PLAN.md",
+    "farm3d/PROGRAM_STATUS.md"
+  ],
+  "immutableRuntimeRefServed": true,
+  "priorRuntimeInventory": 65,
+  "priorFrozenEvidenceFilesUnchanged": 119,
+  "priorTestAndFixtureFilesUnchanged": 109,
+  "proof": "git diff --name-only d8aed9e lists only four permitted current coordination documents. All pre-existing runtime, test and frozen evidence paths therefore remain Git-canonical unchanged; source blobs were served directly. Existing Windows autocrlf setting untouched.",
+  "newFiles": [
+    {
+      "file": "farm3d/tests/audio-native-probe.js",
+      "sha256": "84dd3a49b2d98d03f4d992202e4eb8b5d79aa29d0c5349b855ca17b834c2d194"
+    },
+    {
+      "file": "farm3d/tests/qualification-audio.browser.cjs",
+      "sha256": "ba5b71639242ab4446f14c6a3842e4218cd56b25db0f267982ededabaf0fd082"
+    },
+    {
+      "file": "farm3d/tests/qualification-audio-background.browser.cjs",
+      "sha256": "262296457f83bd39717091e59af14ac00a975b0bb5d4964cdc109f6150455553"
+    }
+  ],
+  "syntaxChecks": "three Node --check PASS",
+  "recommendedPatchApplicability": "git apply --check PASS; patch NOT APPLIED",
+  "whitespaceDiff": "git diff --check PASS",
+  "audioResult": "9 PASS / 1 FAIL",
+  "focusedReproduction": "FAIL_CONFIRMED_BACKGROUND_OUTPUT"
+}

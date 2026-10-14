@@ -162,18 +162,72 @@ After merge:
 4. sync any external coding workspace from `main`;
 5. then begin the next phase.
 
-## Current phase — 2026-10-12
+## Current phase - 2026-10-14
 
-Main `047cbed91b816b4869f983ef8fe2571cdde987e2` integrates chicken PR #78.
-The owner explicitly said all animals are good; their current visual acceptance
-is recorded in the relay state. All accepted animal systems are frozen for
-Phase 7N unless a new reproducible defect is demonstrated. Phase 7N is now
-owner authorized. Use `PHASE7N_RELEASE_QUALIFICATION.md` for current scope,
-fixed-build evidence and remaining device/operational gates. Visual animal
-acceptance and green CI do not grant final release approval.
+Owner approved the bounded visibility/master-gain runtime correction at 10:40:41
+UTC. Applied exactly the proposed two lines in game.js; no unrelated runtime
+changes. Original native audio suite now passes 10/10; the ten-second actual-tab
+regression records zero hidden output, positive unmuted return and zero muted
+return, with stored preferences preserved. See
+[PHASE7N_AUDIO_FIX.md](PHASE7N_AUDIO_FIX.md) for exact source/integrity limits.
+64 of 65 inventoried runtime files remain exact accepted baseline bytes; game.js
+has the intentional approved audio-only exception. Historical 65/65 receipts and
+the original audio failures remain untouched. Draft candidate needs exact-head
+hosted CI and owner merge approval. No deployment, release or phone retesting.
 
-The cow sections below retain historical intent. They do not authorize
-restarting B9 or override the current owner acceptance and relay state.
+### Previous audio failure checkpoint, 2026-10-14
+
+Owner approved isolated audio qualification at 06:21:41 UTC. Native local Chrome
+checks passed nine groups but failed actual hidden-tab ambient silence. A focused
+reproduction recorded persistent nonzero PCM over ~10 seconds, trusted hidden/
+visible browser events and zero hidden output under the game's master mute.
+See [PHASE7N_AUDIO_QUALIFICATION.md](PHASE7N_AUDIO_QUALIFICATION.md) for exact
+source `d8aed9e`, retained failures and the unapplied two-line fix recommendation.
+Stop this testing scope here. Next approval: owner authorization for a narrowly
+scoped shared-master gain/visibility fix. Runtime, existing tests and prior frozen
+evidence remain unchanged. No phone, security, merge, deploy or release work.
+
+### Previous connected checkpoint, 2026-10-14
+
+The owner authorized recovery of checkpoint `e2f2ab2` into a fresh isolated
+connected checkout, superseding the older replacement-environment restriction.
+Recovery and 15 distinct local progression/update/restore assertions passed on
+that immutable source: consecutive earned levels 1-8 with all 18 recipes/eight
+orders; compressed/SA1/file import and failure guards; actual published old worker
+installation followed by current-worker activation, save retention and offline
+reboot. Failed environment/fixture attempts remain frozen. See
+[PHASE7N_CONNECTED_QUALIFICATION.md](PHASE7N_CONNECTED_QUALIFICATION.md).
+Review this documentation/test checkpoint next; recommend a separately authorized
+local audio lifecycle extension. Broader device/physical-conflict/operational gates
+remain open. No runtime, phone, security, merge, deployment or release work approved.
+
+### Previous checkpoint credit, 2026-10-13
+
+Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
+Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.
+[Regression201](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392622802) passed all7 jobs; [Pages77](https://github.com/pederaus9-ux/Bugsy/actions/runs/38392621215) passed on this main.
+PR79's conflicting-save emulator qualification and PR80's test-only rendered
+ambient observation correction are merged and credited, not pending reruns.
+
+The owner accepted all current animals and completed the qualitative Android/iPhone
+phone round: modes, movement/interactions, saves/reopen/offline and weather were
+reported good. Exact device assignment and sustained instrumentation remain incomplete;
+no true shared-account physical conflict proof is claimed. No more phone tests now.
+New bounded checks passed: catalog29 items/18 recipes,43 modules,archive65/65,
+live static assets66/66. The initial failed Node network attempt and successful
+curl follow-up are both retained. No runtime, criteria or live settings changes.
+
+See [PHASE7N_RELEASE_QUALIFICATION.md](PHASE7N_RELEASE_QUALIFICATION.md) for
+fixed-source evidence and limits. Owner confirms rules were already checked and are
+good (2026-10-13 19:28:55 America/Chicago); credit that review as complete without
+claiming this session independently verified deployment identity. Next: inspect
+progression/update/restore coverage, then run only uncovered test-environment checks
+after the original executor reconnects. Sustained measurements, physical conflicts
+and operational/full-progression evidence gaps remain. Integration needs
+owner merge approval; no merge, deploy or release authorized. ChatGPT/Codex only.
+Full farm/progression remains free; optional future cosmetics are permitted.
+
+The cow sections below retain historical intent and do not reopen accepted work.
 
 ## 12. Historical Sunny Acres cow program
 
