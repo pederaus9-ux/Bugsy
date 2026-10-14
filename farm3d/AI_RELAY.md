@@ -164,6 +164,18 @@ After merge:
 
 ## Current phase - 2026-10-14
 
+Owner approved isolated audio qualification at 06:21:41 UTC. Native local Chrome
+checks passed nine groups but failed actual hidden-tab ambient silence. A focused
+reproduction recorded persistent nonzero PCM over ~10 seconds, trusted hidden/
+visible browser events and zero hidden output under the game's master mute.
+See [PHASE7N_AUDIO_QUALIFICATION.md](PHASE7N_AUDIO_QUALIFICATION.md) for exact
+source `d8aed9e`, retained failures and the unapplied two-line fix recommendation.
+Stop this testing scope here. Next approval: owner authorization for a narrowly
+scoped shared-master gain/visibility fix. Runtime, existing tests and prior frozen
+evidence remain unchanged. No phone, security, merge, deploy or release work.
+
+### Previous connected checkpoint, 2026-10-14
+
 The owner authorized recovery of checkpoint `e2f2ab2` into a fresh isolated
 connected checkout, superseding the older replacement-environment restriction.
 Recovery and 15 distinct local progression/update/restore assertions passed on

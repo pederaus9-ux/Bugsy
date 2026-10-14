@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-14T01:11:34.484Z",
+  "lastUpdatedUtc": "2026-10-14T06:36:45.915Z",
   "codeBaseline": {
     "description": "PR79 emulator conflict qualification and PR80 test-only ambient observation correction merged; runtime unchanged from accepted animal baseline",
     "mergeCommit": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
@@ -55,14 +55,14 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "CONNECTED_WORKSPACE_LOCAL_CHECKS_PASS_RELEASE_GATES_OPEN",
+  "phaseStatus": "AUDIO_QUALIFICATION_FAILED_BACKGROUND_OUTPUT_FIX_APPROVAL_NEEDED",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": null,
   "nextPhases": [
-    "Review the connected documentation/test qualification checkpoint",
-    "Authorize bounded isolated audio/mute/background-resume lifecycle qualification if desired",
-    "Preserve sustained device/physical shared-account/physical installed-update and operational rollback evidence limits; no additional phone work now",
-    "Obtain explicit integration/release approvals as applicable; no release authorized"
+    "Review native hidden-tab audio failure and unapplied minimal fix sketch",
+    "Obtain owner approval before applying shared-master gain/visibility runtime fix",
+    "After approval verify exact-head hidden/return/mute/autoplay behavior and affected gates",
+    "Preserve prior accepted evidence; no new phone tests, installation, security changes, merge/deploy/release authorization"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -89,7 +89,8 @@
     "Owner said all animals are good at 2026-10-12T19:30:47-05:00 and go at 19:31:33-05:00. Current animal visual gate closed; Phase 7N authorized. This is not sustained device, security, cloud-conflict or release acceptance. Preserve accepted animal models/motion unless a new reproducible defect is demonstrated.",
     "2026-10-13 checkpoint: PR79/80 merged, main201 all7 and Pages77 passed; owner qualitative phone round complete. Precise assignment/sustained instrumentation and true physical shared-account conflict remain unproven. No additional phone tests now; no current checkpoint merge/deploy/release authorization.",
     "2026-10-13 19:28:55 America/Chicago: owner confirms rules already checked and good. Credit review complete, no repeated export request. Original executor offline; no new local tests, replacement environment, merge/deploy/release authorized.",
-    "2026-10-14: owner authorized a fresh isolated connected workspace to recover e2f2ab2. Recovery and 15 distinct local progression/update/backup assertions passed. Original offline workspace and all other projects/FS25 preserved; no runtime/security/phone/merge/deploy/release changes. Historical replacement restriction is superseded for this task."
+    "2026-10-14: owner authorized a fresh isolated connected workspace to recover e2f2ab2. Recovery and 15 distinct local progression/update/backup assertions passed. Original offline workspace and all other projects/FS25 preserved; no runtime/security/phone/merge/deploy/release changes. Historical replacement restriction is superseded for this task.",
+    "2026-10-14 06:21:41 UTC: owner authorized isolated sound/mute/background-resume checks. Tested immutable d8aed9e; nine groups pass, actual hidden ambient output fails. Focused native-tab reproduction confirms ~10s sustained output and zero muted hidden control. Runtime fix not authorized or performed."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -1215,7 +1216,7 @@
     "merge": "NOT_AUTHORIZED",
     "release": "NOT_AUTHORIZED",
     "pr": 79,
-    "nextTest": "Review connected qualification checkpoint; isolated audio lifecycle is the bounded recommended next scope, requiring owner extension authorization.",
+    "nextTest": "Stop completed audio scope at confirmed hidden-output defect; owner approval for bounded master gain/visibility runtime fix is next.",
     "postMergeQualification": "PR80 merged; maina183 regression201 all7 and Pages77 SUCCESS. Main199 failure and three diagnostics preserved as historical evidence; no current ambient pending gate.",
     "currentMain": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
     "currentTree": "98158379ffbed2e1ce865eaa0b6ac38b590dcd31",
@@ -1444,5 +1445,39 @@
     ],
     "confirmedProductionDefects": [],
     "review": "ChatGPT/Codex adversarial self-review, not independent external-agent audit"
+  },
+  "phase7nAudioQualification": {
+    "sourceHead": "d8aed9ebb78b6a4acb215be89e28435f32319f4f",
+    "sourceTree": "b4e4b1f96c38786f50474e401c4ab7b6cfc19542",
+    "sourceMain": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
+    "branch": "codex/phase7n-audio-qualification",
+    "authorizationAtUtc": "2026-10-14T06:21:41Z",
+    "status": "FAIL_CONFIRMED_BACKGROUND_OUTPUT",
+    "report": "farm3d/PHASE7N_AUDIO_QUALIFICATION.md",
+    "evidenceDirectory": "farm3d/tests/evidence/phase7n-audio",
+    "passedGroups": 9,
+    "failedGroups": 1,
+    "confirmedFinding": "Native ambient looping audio retains nonzero master PCM while document is genuinely hidden; sound timer skips updates and master lacks visibility gate.",
+    "backgroundRmsRange": {
+      "min": 0.013296515068907803,
+      "max": 0.014230637063487622
+    },
+    "backgroundSamples": 20,
+    "actualBrowserVisibility": true,
+    "syntheticVisibilityEvents": false,
+    "nativeSuspendInjected": true,
+    "mutedBackgroundRmsMax": 0,
+    "audibleQualityOrPhoneClaim": false,
+    "recommendedFix": "Gate shared master gain on snd.on and !document.hidden; reapply on native visibility change. Unapplied review sketch only.",
+    "runtimeFix": "NOT_AUTHORIZED_NOT_APPLIED",
+    "existingTestsChanged": false,
+    "priorEvidenceChanged": false,
+    "hostedCiDispatched": false,
+    "phoneTesting": false,
+    "installations": false,
+    "securityOrProductionChanges": false,
+    "merge": "NOT_AUTHORIZED",
+    "release": "NOT_AUTHORIZED",
+    "review": "ChatGPT/Codex adversarial self-review; no independent agent audit"
   }
 }

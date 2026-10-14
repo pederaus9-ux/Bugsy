@@ -1,4 +1,11 @@
-# Sunny Acres current production status - 2026-10-14
+# Sunny Acres current production status - 2026-10-14 (audio)
+
+The authorized local audio scope is complete with a confirmed failure: ambient PCM continues in an actually hidden Chrome tab. Nine other native audio/mute/gesture/reload groups passed; a focused ~10-second reproduction retained trusted browser visibility evidence and a zero-output master-mute control. Runtime and prior accepted evidence are unchanged.
+
+See [the audio qualification report](PHASE7N_AUDIO_QUALIFICATION.md). Next approval needed is the bounded shared-master gain/visibility runtime fix shown in an unapplied sketch. Release NOT READY; no further phone testing, merge, deployment or release authorized.
+
+## Previous connected qualification checkpoint
+
 
 Recovery of published e2f2ab2 into an owner-authorized isolated connected checkout is complete. Fifteen distinct local assertions passed: earned levels 1-8/all 18 recipes/eight orders, actual old-worker update/offline reboot, and compressed/SA1/downloaded-file restore. Failed environment/fixture attempts are retained. No runtime/security/phone/merge/deploy/release work performed.
 
