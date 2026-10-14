@@ -1,3 +1,11 @@
+# Sunny Acres current production status - 2026-10-14 (later qualification)
+
+Qualification on exact published main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` is complete:29/30 behavior groups PASS, one expired visitor Give defect confirmed with native Date. Earned9–20, later perks/cosmetics, all3 deeds, daily calendar/quests, rush requests and relevant persistence are covered with explicit accelerated/seeded limits. [Report](PHASE7N_LATER_PROGRESSION_QUALIFICATION.md).
+
+Runtime/prior evidence and accepted animals remain unchanged. The original event-accounting failure is retained; only unfinished earned13–20 were continued. Stop this bounded scope. Next owner decision: approve or defer the one-line visitor expiry guard. No fix, merge/deploy/release, installation, security change or phone retest is authorized.
+
+## Previous bounded audio publication checkpoint
+
 # Sunny Acres current production status - 2026-10-14 (audio patch published)
 
 Owner-approved [PR81](https://github.com/pederaus9-ux/Bugsy/pull/81) is merged and the bounded audio patch is published at main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`, reviewed tree `fbbac30554c58a2153e79495723084701cc4e4ba`. Exact-main [Regression203](https://github.com/pederaus9-ux/Bugsy/actions/runs/38556734066) passed all seven jobs and [Pages78](https://github.com/pederaus9-ux/Bugsy/actions/runs/38556734296) succeeded, both attempt 1. Five non-mutating live GETs matched merged bytes, including the page-imported audio module.

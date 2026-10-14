@@ -1,0 +1,163 @@
+{
+  "sourceRef": "e3b59b7a65a3d9c8710bad3e4a2659d9d76be765",
+  "testSha256": "bd3ba0cc8ead52143a5062e1f9c7fa282cfcbf7c12af37680d20b284c42fb592",
+  "node": "v24.19.0",
+  "limits": "Fresh isolated guest/localhost source. Native Date and real generated requests/buttons; level20, exact inventory and expiry deadline seeded. No runtime edit, live account, clock setting or real30-minute balance claim. Diagnostic confirms the failed contract; does not relabel it PASS.",
+  "nativeDate": true,
+  "rows": [
+    {
+      "test": "valid native-clock control",
+      "generatedRequest": {
+        "id": "joe",
+        "items": {
+          "tomato": 5,
+          "wheat": 5
+        },
+        "coins": 114,
+        "xp": 22,
+        "end": 1791982658100,
+        "say": "Hmph. Your fields look... acceptable."
+      },
+      "seededDeadline": false,
+      "deadline": 1791982658100,
+      "clickedAt": 1791980858126,
+      "expiredAtAction": false,
+      "before": {
+        "coins": 1000,
+        "gems": 0,
+        "xp": 0,
+        "barn": {
+          "tomato": 5,
+          "wheat": 5
+        },
+        "visitors": 0,
+        "villagers": {
+          "joe": {
+            "h": 0,
+            "n": 0
+          }
+        }
+      },
+      "after": {
+        "coins": 1114,
+        "gems": 0,
+        "xp": 22,
+        "barn": {},
+        "visitors": 1,
+        "villagers": {
+          "joe": {
+            "h": 1,
+            "n": 1
+          }
+        }
+      },
+      "paid": 114,
+      "consumedInventory": true,
+      "remainingVisitor": null
+    },
+    {
+      "test": "expired native-clock stale button",
+      "generatedRequest": {
+        "id": "lily",
+        "items": {
+          "flour": 2,
+          "tomato": 4
+        },
+        "coins": 96,
+        "xp": 18,
+        "end": 1791982658130,
+        "say": "The light on your barn is perfect today!"
+      },
+      "seededDeadline": true,
+      "deadline": 1791980858141,
+      "clickedAt": 1791980858143,
+      "expiredAtAction": true,
+      "before": {
+        "coins": 1000,
+        "gems": 0,
+        "xp": 0,
+        "barn": {
+          "flour": 2,
+          "tomato": 4
+        },
+        "visitors": 0,
+        "villagers": {
+          "lily": {
+            "h": 0,
+            "n": 0
+          }
+        }
+      },
+      "after": {
+        "coins": 1096,
+        "gems": 0,
+        "xp": 18,
+        "barn": {},
+        "visitors": 1,
+        "villagers": {
+          "lily": {
+            "h": 1,
+            "n": 1
+          }
+        }
+      },
+      "paid": 96,
+      "consumedInventory": true,
+      "remainingVisitor": null
+    },
+    {
+      "test": "expired native-clock after tick",
+      "generatedRequest": {
+        "id": "mia",
+        "items": {
+          "strawberry": 4,
+          "tomato": 3
+        },
+        "coins": 152,
+        "xp": 30,
+        "end": 1791982658144,
+        "say": "I'm making pancakes with my grandma!"
+      },
+      "seededDeadline": true,
+      "deadline": 1791980858152,
+      "clickedAt": 1791980858153,
+      "expiredAtAction": true,
+      "before": {
+        "coins": 1000,
+        "gems": 0,
+        "xp": 0,
+        "barn": {
+          "strawberry": 4,
+          "tomato": 3
+        },
+        "visitors": 0,
+        "villagers": {
+          "mia": {
+            "h": 0,
+            "n": 0
+          }
+        }
+      },
+      "after": {
+        "coins": 1000,
+        "gems": 0,
+        "xp": 0,
+        "barn": {
+          "strawberry": 4,
+          "tomato": 3
+        },
+        "visitors": 0,
+        "villagers": {
+          "mia": {
+            "h": 0,
+            "n": 0
+          }
+        }
+      },
+      "paid": 0,
+      "consumedInventory": false,
+      "remainingVisitor": null
+    }
+  ],
+  "status": "CONFIRMED_PRODUCTION_EXPIRY_GUARD_MISSING"
+}
