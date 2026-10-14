@@ -1,0 +1,188 @@
+{
+  "status": "PASS",
+  "sourceRef": "1877fcb94b84eee5f0bc7e9af3f867a8a7b37951",
+  "testSha256": "9c883f3d3e0a532a384d32e76722ebec6fa3e49430cd5266083d6421b0e178e6",
+  "node": "v24.19.0",
+  "limits": "Immutable Git runtime on localhost, disposable profile/guest data, external requests intercepted. Same native Date/seed8309 generated request + seeded past deadline as original failure. Exact/±1ms cases override Date.now only within synchronous evaluation then restore. Level20, inventory, friendship boundaries seeded. Programmatic real Give buttons; synthetic data-act only for unavailable/invalid repeats. No real30-minute balance, phone/Safari/PWA/OS, production write or performance claim.",
+  "results": [
+    {
+      "name": "original native-Date expired stale Give has zero mutation",
+      "status": "PASS",
+      "detail": {
+        "nativeDate": true,
+        "deadline": 1791981908197,
+        "clickedAt": 1791981908198,
+        "generatedRequest": {
+          "id": "joe",
+          "items": {
+            "tomato": 5,
+            "wheat": 5
+          },
+          "coins": 114,
+          "xp": 22,
+          "end": 1791983708171,
+          "say": "Hmph. Your fields look... acceptable."
+        },
+        "fullFarmUnchanged": true,
+        "saveBytesUnchanged": true,
+        "saveEvents": 0
+      }
+    },
+    {
+      "name": "valid native-Date request exact reward, fifth heart and duplicate refusal",
+      "status": "PASS",
+      "detail": {
+        "request": {
+          "id": "joe",
+          "items": {
+            "sugarcane": 6,
+            "strawberry": 5
+          },
+          "coins": 208,
+          "xp": 41,
+          "end": 1791983708207,
+          "say": "Hmph. Your fields look... acceptable."
+        },
+        "exactReward": true,
+        "oneCommit": true,
+        "duplicateRejected": true,
+        "before": {
+          "coins": 1000,
+          "gems": 0,
+          "xp": 0,
+          "level": 20,
+          "barn": {
+            "sugarcane": 6,
+            "strawberry": 5
+          },
+          "gold": {},
+          "stats": {
+            "orders": 0,
+            "harvests": 0,
+            "made": 0,
+            "earned": 0,
+            "gold": 0,
+            "water": 0,
+            "visitors": 0,
+            "rush": 0,
+            "bestCombo": 0,
+            "helped": 0
+          },
+          "villagers": {
+            "joe": {
+              "h": 4,
+              "n": 4
+            }
+          },
+          "visitor": {
+            "id": "joe",
+            "items": {
+              "sugarcane": 6,
+              "strawberry": 5
+            },
+            "coins": 208,
+            "xp": 41,
+            "end": 1791983708207,
+            "say": "Hmph. Your fields look... acceptable."
+          },
+          "nextVisitorAt": 1791981908206
+        },
+        "after": {
+          "coins": 1208,
+          "gems": 1,
+          "xp": 41,
+          "level": 20,
+          "barn": {},
+          "gold": {},
+          "stats": {
+            "orders": 0,
+            "harvests": 0,
+            "made": 0,
+            "earned": 208,
+            "gold": 0,
+            "water": 0,
+            "visitors": 1,
+            "rush": 0,
+            "bestCombo": 0,
+            "helped": 0
+          },
+          "villagers": {
+            "joe": {
+              "h": 5,
+              "n": 5
+            }
+          },
+          "visitor": null,
+          "nextVisitorAt": 1791982508213
+        }
+      }
+    },
+    {
+      "name": "completed visitor rewards/friendship persist and repeat stays refused after reload",
+      "status": "PASS",
+      "detail": {
+        "relevantStateRetained": true,
+        "duplicateAfterReloadRejected": true
+      }
+    },
+    {
+      "name": "active visitor request persists through reload",
+      "status": "PASS",
+      "detail": {
+        "activeRequestPreserved": true
+      }
+    },
+    {
+      "name": "just before expiry succeeds",
+      "status": "PASS",
+      "detail": {
+        "deadline": 1791983724250,
+        "actionAt": 1791983724249,
+        "offsetMilliseconds": -1,
+        "browserOnlyDateNowFixture": true,
+        "accepted": true,
+        "zeroMutation": false
+      }
+    },
+    {
+      "name": "exact expiry rejects",
+      "status": "PASS",
+      "detail": {
+        "deadline": 1791983724272,
+        "actionAt": 1791983724272,
+        "offsetMilliseconds": 0,
+        "browserOnlyDateNowFixture": true,
+        "accepted": false,
+        "zeroMutation": true
+      }
+    },
+    {
+      "name": "one millisecond past expiry rejects",
+      "status": "PASS",
+      "detail": {
+        "deadline": 1791983724293,
+        "actionAt": 1791983724294,
+        "offsetMilliseconds": 1,
+        "browserOnlyDateNowFixture": true,
+        "accepted": false,
+        "zeroMutation": true
+      }
+    },
+    {
+      "name": "missing goods still disabled and rejected by handler",
+      "status": "PASS",
+      "detail": {
+        "disabledControl": true,
+        "fullFarmUnchanged": true
+      }
+    },
+    {
+      "name": "expired persisted request and post-tick no-request action cannot reward",
+      "status": "PASS",
+      "detail": {
+        "expiredRewardsUnchangedAcrossReload": true,
+        "postTickNoRequestRejected": true
+      }
+    }
+  ]
+}

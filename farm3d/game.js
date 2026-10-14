@@ -897,7 +897,7 @@ function visitorTick() {
 }
 function helpVisitor() {
   const v = S.visitor;
-  if (!v || !hasAll(v.items)) return;
+  if (!v || v.end <= now() || !hasAll(v.items)) return;
   const V = VILLAGERS[v.id], f = friendOf(v.id);
   for (const [id, n] of Object.entries(v.items)) take(id, n);
   f.h = Math.min(5, f.h + 1); f.n++;

@@ -283,3 +283,15 @@ When the owner says:
 - **"Handoff"** — produce the standard relay packet without starting unrelated work.
 
 This protocol is intentionally model-neutral. The agent is replaceable; the repository state, evidence, contracts, and gates are not.
+
+## Current bounded publication record - 2026-10-14
+
+PR81 merged/published under the owner's 11:23:24 UTC conditional approval after unchanged exact-head readiness checks. Main is `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`; tree `fbbac30554c58a2153e79495723084701cc4e4ba` equals reviewed `e92a1ba40b53e8340f7d19c649e9a777d742ad28`. Regression203 all7, Pages78 and live static bytes5/5 passed. See [PHASE7N_AUDIO_PUBLICATION.md](PHASE7N_AUDIO_PUBLICATION.md) and AI_RELAY_STATE.json for exact receipts. Publication records remain on a separate evidence branch; no further main change is authorized by this outcome. Stop this completed patch task. Full release/additional development need separate owner authorization; no new phone work. Earlier phase checkpoint restrictions describe their historical authorization, not this completed bounded publication.
+
+## Current later qualification record - 2026-10-14
+
+The owner authorized the next isolated scope at12:13:04 UTC. Exact published main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` is unchanged. Later progression/land/daily/visitor/rush scope is complete with29/30 behavior PASS and a native-Date-confirmed visitor expiry action FAIL. See [PHASE7N_LATER_PROGRESSION_QUALIFICATION.md](PHASE7N_LATER_PROGRESSION_QUALIFICATION.md) and current state. Runtime fixes require a separate owner decision; propose only the one-line expiry guard. Prior publication/accepted animal/rules/phone evidence remains credited. No merge/deploy/release/new phone work is authorized by this outcome.
+
+## Current visitor expiry candidate - 2026-10-14
+
+Owner approval at12:39:49 UTC supersedes the earlier no-fix qualification gate only for the minimal visitor expiry check. Source checkpoint `b3e1c7ca0948f4c1dfb4a86e74d8892131f73656` and main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` were unchanged. Implementation `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951` passes nine focused browser contracts and preserves all prior evidence/runtime except the approved one-condition game.js edit. See [PHASE7N_VISITOR_EXPIRY_FIX.md](PHASE7N_VISITOR_EXPIRY_FIX.md). Keep PR draft, pin final exact-head hosted results, and await separate merge authority. No deploy/release/new phone/FS25/security/production scope.
