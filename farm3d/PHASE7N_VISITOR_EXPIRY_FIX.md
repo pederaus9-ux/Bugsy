@@ -1,6 +1,6 @@
 # Phase 7N visitor-expiry fix candidate, 2026-10-14
 
-**Owner-approved one-line guard passes all nine focused browser regressions. Original failure/tests/evidence are preserved. Exact-head hosted checks remain the draft candidate gate; no merge, deployment or release is authorized.**
+**Reviewed draft PR82: all nine focused browser regressions PASS, exact-head Regression204 all seven jobs SUCCESS and conflict qualification3 SUCCESS, attempt 1. Original failures/tests/evidence are preserved. Candidate remains draft and unmerged; separate owner merge decision is next. No deployment or release is authorized.**
 
 ## Exact source and minimal change
 
@@ -52,12 +52,30 @@ Exact/±1ms cases temporarily override browser Date.now within one synchronous e
 
 ## Exact-head hosted gate and handoff
 
-Final candidate PR head is pinned in delivery after report/relay publication. Existing seven-job regression and same-account conflict qualification are relevant required PR gates because runtime reward handling changed. Workflows/tests/job limits remain unchanged; their normal isolated runner setup is not an installation on this connected PC. No rerun/skip/loosened criteria or deployment dispatch is requested. Hosted terminal results must apply to that exact head/tree; prior main 203 green does not replace this gate.
+Final reviewed [draft PR82](https://github.com/pederaus9-ux/Bugsy/pull/82) head is **`1d2343b5c69dd2f5b3a907d82566625598979c59`**, candidate tree **`05ac4ee6c3ff982ba2e8925d68fd5077667d058f`**, on unchanged base main **`e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`**. GitHub test-merge commit `37eac87a9301a3de55f6b838ce069a4d925ec29c` has the identical candidate tree. Local nine-group runtime/test blobs equal this head; final reports were the only candidate additions after implementation. [Exact-head review/tree proof](tests/evidence/phase7n-visitor-expiry-fix/exact-head-review.json).
+
+[Regression204](https://github.com/pederaus9-ux/Bugsy/actions/runs/38566969545): **SUCCESS, 7/7 jobs**, attempt 1. [Conflict qualification3](https://github.com/pederaus9-ux/Bugsy/actions/runs/38566969568): **SUCCESS, 1/1 job**, attempt 1. [Terminal hosted receipt](tests/evidence/phase7n-visitor-expiry-fix/hosted-ci.json). All configured test gates were retained; no workflow rerun, removed gate, loosened criterion, candidate mutation or deployment dispatch. Hosted setup occurs only in normal disposable CI runners, with no installation on this PC.
+
+| Exact-head regression job | Terminal result |
+| --- | --- |
+| Mobile accessibility + motion + focus | SUCCESS |
+| Six-species animal visual review | SUCCESS |
+| Farmer + first-person + visual polish | SUCCESS |
+| Old saves + save measurements | SUCCESS |
+| Firestore rules + economy functions + game flows + save recovery (emulator) | SUCCESS |
+| Anonymous analytics + owner dashboard | SUCCESS |
+| Farm3D regression | SUCCESS |
+
+[Review-record scope receipt](tests/evidence/phase7n-visitor-expiry-fix/review-record-scope.json) confirms that evidence completion changes only documents/new receipts. Evidence completion is committed on separate `codex/phase7n-visitor-expiry-review` so the tested/reviewed PR head remains unchanged. The final read confirms draft/unmerged head/base and remote main unchanged. Self-review found no material issue; this remains ChatGPT/Codex review, not an independent external-agent audit.
+
+
 
 - Agent: ChatGPT/Codex.
 - Branch base: `b3e1c7ca0948f4c1dfb4a86e74d8892131f73656`; integrated base main: `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`; local tested runtime head: `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951`.
 - Branch: `codex/phase7n-visitor-expiry-fix`; any PR stays **draft**.
 - Change: one approved helpVisitor expiry condition, new focused regression and truthful evidence/coordination updates.
 - Local: 9/9 PASS; syntax/whitespace/source invariants PASS; original failures frozen.
-- Hosted: pending final exact candidate head; record immutable terminal results separately so a documentation update cannot invalidate the reviewed head.
-- Remaining gates: exact-head hosted results and final evidence review, then owner's separate merge decision. No merge/deploy/release/install/security/production data/FS25/phone change authorized.
+- Hosted: Regression204 all 7 and conflict qualification3 SUCCESS, exact candidate head/tree, attempt 1; terminal receipts saved separately without moving PR82 head.
+- Scope complete: reviewed/tested candidate ready for owner decision; PR82 stays draft. Next approval is merge of this exact reviewed head. No deployment/release/install/security/production data/FS25/phone change authorized.
+
+Final candidate review/evidence record completed at 2026-10-14T13:15:57.948Z.

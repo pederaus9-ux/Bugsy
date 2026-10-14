@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-14T12:48:20.448Z",
+  "lastUpdatedUtc": "2026-10-14T13:15:57.948Z",
   "codeBaseline": {
     "description": "Owner-approved PR81 bounded two-line background audio correction merged and published; accepted animal baseline preserved",
     "mergeCommit": "e3b59b7a65a3d9c8710bad3e4a2659d9d76be765",
@@ -61,13 +61,13 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "VISITOR_EXPIRY_FIX_LOCAL_PASS_HOSTED_EXACT_HEAD_GATE",
+  "phaseStatus": "VISITOR_EXPIRY_CANDIDATE_REVIEWED_LOCAL_HOSTED_PASS_OWNER_MERGE_GATE",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": null,
+  "activePullRequest": 82,
   "nextPhases": [
-    "Complete relevant exact-head hosted checks and final adversarial review of draft visitor expiry candidate",
-    "Preserve reviewed head; save immutable evidence receipts and await separate owner merge decision",
-    "No merge, deployment/full release, security/settings, production writes or new phone testing authorized"
+    "Bounded visitor expiry candidate review/tests complete; stop with PR82 draft at exact1d2343b",
+    "Owner decision required before merging this exact reviewed candidate",
+    "No deployment/full release, settings/security, production writes, new phone or FS25 scope authorized"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -99,7 +99,8 @@
     "2026-10-14 10:40:41 UTC: owner approved applying/testing the minimal audio master visibility fix. Exact two-line game.js edit at 758c901; original audio suite 10/10 and ten-second native hidden/return/muted regression pass. Only game.js differs among 65 inventoried runtime files; old receipts/animal baselines preserved. Draft PR/hosted gates and owner merge approval remain.",
     "2026-10-14 11:23:24 UTC: owner conditionally approved PR81 merge/publication (If ready). Exact reviewed e92a1ba unchanged, 8/8 successful checks, clean preflight and existing main/root Pages route. Guarded merge e3b59b7 has reviewed tree fbbac30. Main203 all7 and Pages78 passed attempt1; live static GETs5/5 exact merged bytes. No settings/protection/access change, retries, rollback, phone retest or full release. Publication receipts are on separate evidence branch.",
     "2026-10-14 12:13:04 UTC: owner approved isolated later progression/land/daily/visitors/rush qualification. Exact main e3b59b7 unchanged. Earned9–20 from retained earned8 save,3 deeds and later unlocks pass;29/30 behavior groups PASS, one stale expired visitor action FAIL confirmed with native Date. Initial50-coin legitimate event-accounting failure and7 prerequisite cascades retained; continued only unfinished13–20 from exact partial state. No runtime changes or prior coverage reruns. Minimal expiry guard requires owner decision.",
-    "2026-10-14 12:39:49 UTC: owner Yes authorizes only minimal visitor expiry guard application/testing. Qualification b3e1c7c and main e3b59b7 unchanged. Committed1877fcb adds end<=now before inventory/reward effects; nine focused native/boundary/reload checks pass.64/65 runtime files equal main, game.js exact one-condition exception; all prior tests/failure evidence frozen. Draft hosted/review gates and separate owner merge approval remain."
+    "2026-10-14 12:39:49 UTC: owner Yes authorizes only minimal visitor expiry guard application/testing. Qualification b3e1c7c and main e3b59b7 unchanged. Committed1877fcb adds end<=now before inventory/reward effects; nine focused native/boundary/reload checks pass.64/65 runtime files equal main, game.js exact one-condition exception; all prior tests/failure evidence frozen. Draft hosted/review gates and separate owner merge approval remain.",
+    "2026-10-14: PR82 draft head1d2343b/tree05ac4ee is the reviewed visitor expiry candidate. Local nine groups PASS; hosted Regression204 all7 and conflict qualification3 SUCCESS attempt1. GitHub test merge37eac87 has identical tree, original290 tests/evidence172 frozen objects unchanged, only one game.js guard runtime exception. Final evidence saved separately without moving PR head; owner merge decision remains. No merge/deploy/release/phone/settings/production writes."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -1699,7 +1700,7 @@
     "implementationHead": "1877fcb94b84eee5f0bc7e9af3f867a8a7b37951",
     "implementationTree": "c9199b2dd21baae95f9fe0d4d42f3fdc055079aa",
     "branch": "codex/phase7n-visitor-expiry-fix",
-    "status": "LOCAL_PASS_HOSTED_GATE_PENDING",
+    "status": "REVIEWED_LOCAL_AND_HOSTED_PASS_DRAFT_OWNER_MERGE_GATE",
     "report": "farm3d/PHASE7N_VISITOR_EXPIRY_FIX.md",
     "evidenceDirectory": "farm3d/tests/evidence/phase7n-visitor-expiry-fix",
     "runtimeChange": "Only game.js helpVisitor condition: add v.end <= now()",
@@ -1708,8 +1709,24 @@
     "validMissingStockDuplicatePersistencePass": true,
     "priorTestsAndEvidenceUnchanged": true,
     "review": "ChatGPT/Codex adversarial self-review, not independent external agent",
-    "hosted": "PENDING at final candidate publication",
+    "hosted": {
+      "regressionRun": 38566969545,
+      "regressionNumber": 204,
+      "regressionJobsPassed": 7,
+      "conflictsRun": 38566969568,
+      "conflictsNumber": 3,
+      "conflictsJobsPassed": 1,
+      "attempt": 1,
+      "head": "1d2343b5c69dd2f5b3a907d82566625598979c59",
+      "testMerge": "37eac87a9301a3de55f6b838ce069a4d925ec29c",
+      "sameTree": true
+    },
     "mergeDeploymentRelease": "NOT_AUTHORIZED",
-    "installationsSettingsProductionWritesPhonesFS25": false
+    "installationsSettingsProductionWritesPhonesFS25": false,
+    "pr": 82,
+    "candidateHead": "1d2343b5c69dd2f5b3a907d82566625598979c59",
+    "candidateTree": "05ac4ee6c3ff982ba2e8925d68fd5077667d058f",
+    "reviewRecordBranch": "codex/phase7n-visitor-expiry-review",
+    "nextApproval": "Owner merge decision on exact reviewed head; stop this bounded scope"
   }
 }

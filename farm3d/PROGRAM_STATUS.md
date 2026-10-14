@@ -1,3 +1,11 @@
+# Sunny Acres current production status - 2026-10-14 (reviewed visitor candidate)
+
+[Draft PR82](https://github.com/pederaus9-ux/Bugsy/pull/82) visitor expiry candidate is reviewed/tested at exact `1d2343b5c69dd2f5b3a907d82566625598979c59`, tree `05ac4ee6c3ff982ba2e8925d68fd5077667d058f`, base main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765`. Nine local focused groups PASS; Regression204 all seven jobs and conflict qualification3 SUCCESS on attempt1. Runtime is only the approved helpVisitor guard; previous evidence and accepted animals remain frozen. [Completed candidate report](PHASE7N_VISITOR_EXPIRY_FIX.md).
+
+Stop this completed bounded task. PR82 remains draft/unmerged; the next owner decision is merging this exact reviewed head. No deployment/release, installations/settings/security/production writes, phone retest or FS25 scope authorized.
+
+## Historical local candidate checkpoint
+
 # Sunny Acres current production status - 2026-10-14 (visitor fix candidate)
 
 Owner-approved one-condition visitor expiry guard passes9/9 focused native/boundary/reload checks on committed `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951`. Existing tests/failure receipts, published audio fix and accepted animals remain frozen. See [the candidate report](PHASE7N_VISITOR_EXPIRY_FIX.md). Exact-head hosted checks and draft review are next; separate owner merge decision remains. No merge/deploy/release, installations/settings/production writes, FS25 or phone work authorized.
