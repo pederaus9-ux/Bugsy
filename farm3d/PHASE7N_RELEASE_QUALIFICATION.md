@@ -69,7 +69,7 @@ Historical Phase 7K's five-second S26 Ultra Walk/snow measurement remains refere
 
 | Gate | Existing credit | Missing evidence / bounded next action |
 | --- | --- | --- |
-| Live security/configuration | Repository rules and production-shaped emulator workflows pass | Current deployed rules/config identity is unknown. Obtain a read-only export/config receipt; compare offline against tested source. No publishing, settings changes or player data access. |
+| Live security/configuration | Owner confirmed on 2026-10-13 at 19:28:55 America/Chicago that rules were already checked and are good; repository/emulator qualification remains credited | Rules review is owner-confirmed complete. This session did not independently verify an export, deployed ruleset ID/hash or the wider configuration. Do not ask again for the completed rules review or claim independent deployment parity. |
 | Sustained device performance | Completed owner qualitative phone round; historical short reference | Fixed-candidate measured frame times, memory/thermals/battery, session duration and precise device assignment are incomplete. Keep gap open; request no additional phone work now. |
 | Physical shared-account conflict | PR79 emulator choice/stale-write/backup scenarios passed | No real shared-account divergence/choice proof against live configuration. Do not replace this claim with ordinary online/offline saving. |
 | Full progression/gameplay | Main 201 short flows; static recipe/unlock graph passed | Consecutive real production/order/unlock/customization flow through applicable levels and long-session stress not fully qualified. Future bounded test-environment scenarios should target uncovered paths only. |
@@ -81,7 +81,9 @@ No new production defect was established by these checks. Unknown gates are miss
 
 ## Highest-value next action and approvals
 
-First review this checkpoint. The next bounded qualification action is a **read-only live Firebase rules/config export and offline comparison**. This executor has no available Firebase connector/export; access or an exported receipt is needed, rather than repeating emulator tests. Tested repository rules SHA256: `ece0ca33c35adda40254d3ca274677fbb4efb18f356b205ee3a07c1ce674d489`. Do not access player records or publish rules.
+Owner confirms the rules were already checked and are good. Credit that completed review; the earlier export request is superseded and is not the next task. Independently verified deployed identity/config parity remains a measurement limit, not a reason to repeat the owner's review. Tested repository rules SHA256: `ece0ca33c35adda40254d3ca274677fbb4efb18f356b205ee3a07c1ce674d489`.
+
+The next bounded engineering action is to inspect existing full-progression and installed-update/backup-restore coverage, then execute only distinct uncovered test-environment scenarios when the original executor reconnects. The workspace currently reports `409 Conflict, environment_offline: Environment is not connected`; no new local checks ran and no replacement environment is authorized. Do not request additional phone tests.
 
 The October 2 pre-7I rules backup (`5ff061fd76d0e2d97185abcb46159e0bd88c6c9b85794f1dead1350b3613d92c`) allows broader farm listing/email-based ownership and client market writes. It is not a safe default current rollback and its historical publishing instructions are not current authorization.
 
@@ -103,4 +105,4 @@ Stop on a proven data-loss/privacy failure, repeatable crash, wrong award, broke
 - Protected systems checked: runtime, animals, saves, auth, economy, security rules, service worker, renderer, dependencies and existing test thresholds unchanged.
 - Known failures / limits: preserved Node environment attempt; no discovered runtime regression; outstanding gates above. Self-review is not independent external review.
 - Merge recommendation: checkpoint ready for review; **release NOT READY with outstanding evidence gates**. No merge authorized.
-- Exact next action: read-only deployed rules/config receipt and offline parity review when access/export is available; no new phone requests now.
+- Exact next action: inspect progression/update/restore coverage; execute only distinct uncovered test-environment checks after the original executor reconnects. Owner rules review is complete; no new phone requests now.
