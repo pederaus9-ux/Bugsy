@@ -1,0 +1,29 @@
+// Rehearse a real prior Git worker installation -> current worker update on localhost.
+// This differs from seeding an old cache name. It does not establish phone/PWA upgrades.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {execFileSync}=require('node:child_process');const {start,root}=require('./qualification-cdp.cjs');
+const ref=process.env.QUALIFICATION_REF||'e2f2ab2edfdabdd0d9d78b896c21cad50fb82a9c';
+const oldRef='3fb7eff9f2a9d2da0c4384342fd85e6fd1a448c3';
+const out=path.resolve(process.env.TEST_ARTIFACTS||path.join(__dirname,'artifacts','qualification-update'));
+const results=[];let stage='launch',h;
+const pass=(name,detail)=>{results.push({name,status:'PASS',detail});console.log('PASS',name);};
+const saved=()=>h.cdp.evaluate(`(()=>{const G=__dbg.G;return {coins:G.S.coins,level:G.S.level,crop:G.S.plots[0].crop,look:G.lookOf(),raw:localStorage.getItem(G.SAVE_KEY)};})()`);
+const stable=raw=>{const s=JSON.parse(raw);delete s.lastSeen;delete s.lastNag;return s;};
+(async()=>{let failed=true;try{
+  h=await start(out,oldRef);await h.cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:`if(!sessionStorage.getItem('__qualifiedSeed')){localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');sessionStorage.setItem('__qualifiedSeed','1');}`});await h.boot();
+  stage='real prior worker installation';
+  await h.cdp.evaluate(`(()=>{const G=__dbg.G;G.close();G.S.tut=99;G.S.nextEventAt=9e15;G.S.nextRushAt=9e15;G.S.nextVisitorAt=9e15;G.wear('skin',3);G.plant(0,'wheat');G.save();})()`);
+  const before=await saved();
+  const old=await h.cdp.evaluate(`(async()=>{await(await caches.open('foreign-farm-cache')).put('foreign-marker',new Response('preserve'));await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>navigator.serviceWorker.addEventListener('controllerchange',r,{once:true}));return {keys:await caches.keys(),controlled:!!navigator.serviceWorker.controller};})()`);
+  assert(old.controlled);assert(old.keys.includes('sa3d-v42'));pass(stage,{oldRef,...old});
+  stage='update to current immutable worker';h.setRef(ref);
+  await h.cdp.evaluate(`(async()=>{window.__qualifiedControllerChange=0;navigator.serviceWorker.addEventListener('controllerchange',()=>window.__qualifiedControllerChange++);const r=await navigator.serviceWorker.getRegistration();await r.update();})()`);
+  await h.cdp.until(`window.__qualifiedControllerChange>=1`);
+  const updated=await h.cdp.evaluate(`(async()=>{const c=await caches.open('sa3d-v43'),r=await c.match(new URL('cow3d.js?v=5',location.href));const b=await r.arrayBuffer(),d=await crypto.subtle.digest('SHA-256',b);return {keys:await caches.keys(),controlled:!!navigator.serviceWorker.controller,changes:window.__qualifiedControllerChange,foreign:await(await(await caches.open('foreign-farm-cache')).match('foreign-marker')).text(),cowSha256:Array.from(new Uint8Array(d),n=>n.toString(16).padStart(2,'0')).join('')};})()`);
+  assert(updated.keys.includes('sa3d-v43'));assert(!updated.keys.includes('sa3d-v42'));assert.equal(updated.foreign,'preserve');
+  const expected=crypto.createHash('sha256').update(execFileSync('git',['show',ref+':farm3d/cow3d.js'],{cwd:root})).digest('hex');assert.equal(updated.cowSha256,expected);pass(stage,updated);
+  stage='current update preserves complete farm';await h.reload();const after=await saved();assert.deepEqual(stable(after.raw),stable(before.raw));assert.equal(after.crop,'wheat');assert.equal(after.look.skin,3);pass(stage,{farmExactExceptLifecycleTimestamps:true});
+  stage='updated worker offline reboot';h.setOffline(true);const served=h.requests.length;await h.cdp.send('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});await h.reload();const offline=await saved();assert.deepEqual(stable(offline.raw),stable(before.raw));assert.equal(h.requests.length,served,'zero server responses during offline reload');assert.equal(await h.cdp.evaluate('!!navigator.serviceWorker.controller'),true);pass(stage,{serverResponses:0,crop:offline.crop,skin:offline.look.skin});
+  assert.deepEqual(h.errors,[]);await h.cdp.screenshot(path.join(out,'updated-offline.png'));failed=false;
+}catch(e){results.push({name:stage,status:'FAIL',error:e.stack});console.error(e.stack);process.exitCode=1;if(h)try{await h.cdp.screenshot(path.join(out,'first-failure.png'));}catch{}}
+finally{if(h)await h.close();fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({status:failed?'FAIL':'PASS',sourceRef:ref,oldRef,helperSha256:crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex'),node:process.version,results},null,2));}})();

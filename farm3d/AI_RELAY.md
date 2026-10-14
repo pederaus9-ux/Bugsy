@@ -162,7 +162,21 @@ After merge:
 4. sync any external coding workspace from `main`;
 5. then begin the next phase.
 
-## Current phase — 2026-10-13
+## Current phase - 2026-10-14
+
+The owner authorized recovery of checkpoint `e2f2ab2` into a fresh isolated
+connected checkout, superseding the older replacement-environment restriction.
+Recovery and 15 distinct local progression/update/restore assertions passed on
+that immutable source: consecutive earned levels 1-8 with all 18 recipes/eight
+orders; compressed/SA1/file import and failure guards; actual published old worker
+installation followed by current-worker activation, save retention and offline
+reboot. Failed environment/fixture attempts remain frozen. See
+[PHASE7N_CONNECTED_QUALIFICATION.md](PHASE7N_CONNECTED_QUALIFICATION.md).
+Review this documentation/test checkpoint next; recommend a separately authorized
+local audio lifecycle extension. Broader device/physical-conflict/operational gates
+remain open. No runtime, phone, security, merge, deployment or release work approved.
+
+### Previous checkpoint credit, 2026-10-13
 
 Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
 Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.

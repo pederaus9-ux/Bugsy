@@ -1,5 +1,12 @@
 # Phase 7N — qualification checkpoint, 2026-10-13
 
+**Current continuation, 2026-10-14:** The owner authorized an isolated connected
+workspace. Recovery and 15 distinct local progression/update/restore assertions
+passed; see [the connected qualification report](PHASE7N_CONNECTED_QUALIFICATION.md)
+for exact source, raw failures, results, remaining gates and next approval.
+The October 13 record below preserves its historical evidence and limits; its
+original-executor-only next step is superseded by that authorized continuation.
+
 **Report ready for review; release qualification remains IN PROGRESS. No release approval.**
 Implementation/review: ChatGPT/Codex only; adversarial self-review, not an independent external-agent audit.
 

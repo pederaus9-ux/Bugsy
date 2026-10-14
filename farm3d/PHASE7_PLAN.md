@@ -1,4 +1,11 @@
-# Current roadmap checkpoint — 2026-10-13
+# Current roadmap checkpoint - 2026-10-14
+
+Recovery of published e2f2ab2 into an owner-authorized isolated connected checkout is complete. Fifteen distinct local assertions passed: earned levels 1-8/all 18 recipes/eight orders, actual old-worker update/offline reboot, and compressed/SA1/downloaded-file restore. Failed environment/fixture attempts are retained. No runtime/security/phone/merge/deploy/release work performed.
+
+See [the connected qualification report](PHASE7N_CONNECTED_QUALIFICATION.md) for exact source, receipts and limits. Review the documentation/test checkpoint next; a bounded local audio lifecycle extension needs owner scope authorization. Sustained device, physical conflict/installed-update and approved rollback gates remain open. Release NOT READY.
+
+## Previous checkpoint, 2026-10-13
+
 
 Current main: `a183e17b1a0a4f855d704da2ee8e5bc0187eed46` (PR80 merged).
 Current phase: **7N — release qualification; report checkpoint ready for review, release gates open**.
