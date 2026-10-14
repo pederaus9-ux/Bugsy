@@ -60,8 +60,28 @@ export function createStudy(c) {
     mergeStatic(root);c.OBST.length=0;for(const[x,z,hw,hd]of c.BLOCKS)c.OBST.push({x,z,hw,hd,c:1,s:0});for(const[ax,az,bx,bz]of c.fenceSegs){const a=Math.atan2(bz-az,bx-ax);c.OBST.push({x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});}
     window.__homesteadStudy={status:'ISOLATED_RENDERER_STUDY',enclosures:enclosures.map(p=>({species:p.id,bounds:[p.x,p.z,p.w,p.d]})),plotCoordinates:c.FIELD_SLOTS.slice(0,30).map(v=>v.toArray()),farmhouse:'decorative placeholder; no purchase/production/interior',layoutControls:'presentation only; migration/free placement not implemented',source:'d5ed6a96c50914320f30a7b74b799b7f66a9b6e0',newTextures:1,roam:'local fixture bound60; no production navigation qualification',oldFieldBlocksRemoved:oldField.length};
   }
-  function finish(){const old=scene.getObjectByName('Phase7M-MaxWow');if(old){for(const l of [...old.children].filter(o=>o.isLight)){old.remove(l);scene.add(l);}old.visible=false;}for(const P of c.plots)P.g.rotation.y=0;
+  // Reuse native soil/decal geometry and materials. Original objects stay in the
+  // native plot hierarchy for hits/state; only render submission is instanced.
+  // Three spatial groups bound culling. Copy live transforms before each render,
+  // including the native squish, and restore visibility immediately afterward.
+  const batches=[];let suspended=false;
+  function batchPlots(){
+    for(let group=0;group<3;group++)for(const kind of ['soil','decal','spr']){
+      const ps=c.plots.slice(group*10,group*10+10),originals=ps.map(p=>kind==='soil'?p.g.children.find(o=>o.isMesh&&o.material===M.tilled):kind==='decal'?p.decal:p.spr);
+      if(originals.some(o=>!o))throw Error('Missing native plot '+kind);
+      const first=originals[0],a=first.geometry.attributes;let error=0;
+      for(const o of originals){if(o.material!==first.material||o.castShadow!==first.castShadow||o.receiveShadow!==first.receiveShadow)throw Error('Plot batch material/shadow mismatch');for(const key of Object.keys(a)){const v=a[key].array,w=o.geometry.attributes[key]?.array;if(!w||v.length!==w.length)throw Error('Plot batch geometry mismatch');for(let i=0;i<v.length;i++)error=Math.max(error,Math.abs(v[i]-w[i]));}}
+      if(error>1e-5)throw Error('Native plot batch geometry drift '+error);
+      const mesh=new T.InstancedMesh(first.geometry,first.material,originals.length);mesh.name='Native-'+kind+'-field-'+group;mesh.castShadow=first.castShadow;mesh.receiveShadow=first.receiveShadow;mesh.raycast=()=>{};scene.add(mesh);
+      batches.push({kind,group,originals,mesh,error,visible:[]});
+    }
+    window.__homesteadStudy.plotBatch={groups:3,kinds:['soil','decal','spr'],originalObjects:90,geometryMaxError:Math.max(...batches.map(b=>b.error)),preserves:'native geometry/material/shadows/live transforms; originals restored after render; crop plants/fruit untouched'};
+  }
+  function beforeRender(){if(suspended||!batches.length)return;scene.updateMatrixWorld(true);for(const b of batches){let n=0;b.visible=b.originals.map(o=>o.visible);for(const o of b.originals){if(o.visible){b.mesh.setMatrixAt(n++,o.matrixWorld);o.visible=false;}}b.mesh.count=n;b.mesh.visible=n>0;b.mesh.instanceMatrix.needsUpdate=true;b.mesh.computeBoundingSphere();}}
+  function afterRender(){for(const b of batches)b.originals.forEach((o,i)=>o.visible=b.visible[i]);}
+  function setBatchEnabled(on){suspended=!on;for(const b of batches)b.mesh.visible=on;}
+  function finish(){const old=scene.getObjectByName('Phase7M-MaxWow');if(old){for(const l of [...old.children].filter(o=>o.isLight)){old.remove(l);scene.add(l);}old.visible=false;}for(const P of c.plots)P.g.rotation.y=0;batchPlots();window.__homesteadBatch={setEnabled:setBatchEnabled};
     const style=document.createElement('style');style.textContent=`.cnt,.xpbar,.chip{background:#3e4e36!important;border-color:#efdfb9!important}.dock button{background:#ead4a1!important;border-color:#fcf1d3!important;box-shadow:0 3px 0 #7b684a!important}.side button,.walkbtns button{background:#f3e9cf!important;border-color:#e5d5ae!important}.out{text-shadow:0 1px 1px #3c3324!important}.testbadge{background:#3f6048!important}#homestead-preview-label{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:12;background:#fff1d5e8;color:#435238;border:1px solid #938360;border-radius:8px;padding:4px 10px;font:800 12px Nunito,sans-serif;pointer-events:none}#homestead-preview-tools{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:8;border-radius:8px;background:#e9ddc4e8;color:#4c503c;padding:5px 12px;font:800 12px Nunito,sans-serif;pointer-events:none}`;document.head.append(style);for(const[id,t]of[['homestead-preview-label','Homestead study · synthetic farm · no saving'],['homestead-preview-tools','Proposed Layout: select · move · Place / Cancel  (not functional)']]){const e=document.createElement('div');e.id=id;e.textContent=t;document.body.append(e);}
   }
-  return {prepare,finish,workshop,root};
+  return {prepare,finish,workshop,root,beforeRender,afterRender};
 }

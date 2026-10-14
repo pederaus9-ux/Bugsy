@@ -1,3 +1,7 @@
+## Resumed isolated preview checkpoint — 2026-10-14T17:38:15.134Z
+
+[Current report](PHASE7N_HOMESTEAD_PREVIEW_PROGRESS2.md):42 actual captures,18 exact camera pairs plus3 farmhouse offset pairs, fixed Best preference and native plot submission batching; mobile844 compatibility passes;740 stops at crop-hit assertion. Proposed desktop Field-Walk draw budget still fails. Positive owner art feedback preserved; player-character source diagnosis saved, no character edits. Approved Stage0 continues with framing, actual character renders and final review. Main d5ed6a96c50914320f30a7b74b799b7f66a9b6e0 unchanged.
+
 # Current isolated renderer preview checkpoint — 2026-10-14
 
 Owner approved Stage0 at16:33 UTC. [Interim checkpoint](PHASE7N_HOMESTEAD_PREVIEW_CHECKPOINT.md): real desktop before/after scene renders saved, mobile run stopped at fixed-DPR setup assertion. Production main d5ed6a96c50914320f30a7b74b799b7f66a9b6e0, plan 70a1019046f88a0914d95d547f5fb15902e0f359 preserved; five isolated preview files only. Preview code 3b4533e6a42a13cd218c1d4bbf2e133ee8c214f8. Farmhouse/Layout strip are nonfunctional; migration/editor/pricing not implemented. Resume authorized unfinished preview checks with corrected synthetic quality preference; preserve failures and desktop evidence. No production integration/merge/deploy/release/security/phone work.

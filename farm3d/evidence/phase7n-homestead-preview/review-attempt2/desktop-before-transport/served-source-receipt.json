@@ -1,0 +1,47 @@
+{
+  "variant": "before",
+  "baseSourceSha256": "5f37b53831628538520ddb7ecd287efb4980f5ede667072b93c618300615b7ed",
+  "servedSourceSha256": "30540849b6fb9e1c026e180981c180c4a289bc9ec1323a9eaf94eba83b27e064",
+  "patches": [
+    {
+      "label": "CPU begin and held-frame visual comparison",
+      "anchor": "clock.update(); const t =",
+      "replacement": "if(window.__previewHold){requestAnimationFrame(frame);return;} window.__bench.begin(); clock.update(); const t ="
+    },
+    {
+      "label": "animal stage",
+      "anchor": "for (const a of animals) a.update(dt, t);",
+      "replacement": "window.__bench.mark(\"camera\"); for (const a of animals) a.update(dt, t); window.__bench.mark(\"animals\");"
+    },
+    {
+      "label": "game stage",
+      "anchor": "updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);",
+      "replacement": "updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt); window.__bench.mark(\"gameAimFarmer\");"
+    },
+    {
+      "label": "full composer GPU",
+      "anchor": "if (perf) perf.render(); else composer.render();",
+      "replacement": "window.__bench.mark(\"world\"); window.__bench.gpuBegin(renderer); if (perf) perf.render(); else composer.render(); window.__bench.gpuEnd(); window.__bench.mark(\"renderSubmit\");"
+    },
+    {
+      "label": "CPU end",
+      "anchor": "if (photoWant) takePhoto();",
+      "replacement": "if (photoWant) takePhoto(); window.__bench.end(renderer);"
+    },
+    {
+      "label": "paired wide-overview fixture zoom ceiling; production unchanged",
+      "anchor": "wardrobeOn ? 9 : 70",
+      "replacement": "wardrobeOn ? 9 : 100"
+    },
+    {
+      "label": "shared synthetic fixture and study installation",
+      "anchor": "bootStep(\"putting your farm in place\");\nGV.refresh(\"all\");",
+      "replacement": "bootStep(\"putting your farm in place\");\nlet homesteadStudy=null;\nG.opts.quiet=true; G.S.nextEventAt=G.S.nextVisitorAt=G.S.nextRushAt=9e15;\nfor (const [kind,p] of Object.entries(G.S.pens)) p.meta=p.list.map((_,i)=>({name:G.NAMES[kind][i],love:50,loveAt:Date.now(),petAt:0,brushAt:0,playAt:0}));\nwindow.__fixtureStateBefore=JSON.stringify(G.S);\nwindow.__fixtureStateAfter=JSON.stringify(G.S); window.__seedReset();\nGV.refresh(\"all\");"
+    },
+    {
+      "label": "preview presentation finalization",
+      "anchor": "installWorld(scene, renderer);",
+      "replacement": "installWorld(scene, renderer);\nif(homesteadStudy)homesteadStudy.finish(); window.__previewRender=()=>{homesteadStudy?.beforeRender();try{composer.render();}finally{homesteadStudy?.afterRender();}};"
+    }
+  ]
+}

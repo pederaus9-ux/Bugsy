@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),crypto=require('node:crypto');
 module.exports=function build(source,variant){let page=source;const patches=[];function replace(anchor,replacement,label){assert.equal(page.split(anchor).length,2,'unique served-copy anchor '+label);page=page.replace(anchor,replacement);patches.push({label,anchor,replacement});}
-  replace('clock.update(); const t =','window.__bench.begin(); clock.update(); const t =','CPU begin');
+  replace('clock.update(); const t =','if(window.__previewHold){requestAnimationFrame(frame);return;} window.__bench.begin(); clock.update(); const t =','CPU begin and held-frame visual comparison');
   replace('for (const a of animals) a.update(dt, t);','window.__bench.mark("camera"); for (const a of animals) a.update(dt, t); window.__bench.mark("animals");','animal stage');
   replace('updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);','updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt); window.__bench.mark("gameAimFarmer");','game stage');
   replace('if (perf) perf.render(); else composer.render();','window.__bench.mark("world"); window.__bench.gpuBegin(renderer); if (perf) perf.render(); else composer.render(); window.__bench.gpuEnd(); window.__bench.mark("renderSubmit");','full composer GPU');
@@ -21,6 +21,7 @@ PRESETS.noon.cover=.30;
   install+='window.__fixtureStateAfter=JSON.stringify(G.S); window.__seedReset();\n';
   replace('bootStep("putting your farm in place");\nGV.refresh("all");','bootStep("putting your farm in place");\n'+install+'GV.refresh("all");','shared synthetic fixture and study installation');
   if(variant==='after')replace('for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});','// study prepares complete synthetic obstacles once; skip old suffix append','avoid duplicate fixture obstacles');
-  replace('installWorld(scene, renderer);','installWorld(scene, renderer);\nif(homesteadStudy)homesteadStudy.finish();','preview presentation finalization');
+  replace('installWorld(scene, renderer);','installWorld(scene, renderer);\nif(homesteadStudy)homesteadStudy.finish(); window.__previewRender=()=>{homesteadStudy?.beforeRender();try{composer.render();}finally{homesteadStudy?.afterRender();}};','preview presentation finalization');
+  if(variant==='after')replace('if (perf) perf.render(); else composer.render();','homesteadStudy.beforeRender(); try { if (perf) perf.render(); else composer.render(); } finally { homesteadStudy.afterRender(); }','native plot submission batching only');
   return {page,receipt:{variant,baseSourceSha256:crypto.createHash('sha256').update(source).digest('hex'),servedSourceSha256:crypto.createHash('sha256').update(page).digest('hex'),patches}};
 };

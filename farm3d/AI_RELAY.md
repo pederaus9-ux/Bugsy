@@ -1,3 +1,7 @@
+## Resumed isolated preview checkpoint — 2026-10-14T17:38:15.134Z
+
+[Current report](PHASE7N_HOMESTEAD_PREVIEW_PROGRESS2.md):42 actual captures,18 exact camera pairs plus3 farmhouse offset pairs, fixed Best preference and native plot submission batching; mobile844 compatibility passes;740 stops at crop-hit assertion. Proposed desktop Field-Walk draw budget still fails. Positive owner art feedback preserved; player-character source diagnosis saved, no character edits. Approved Stage0 continues with framing, actual character renders and final review. Main d5ed6a96c50914320f30a7b74b799b7f66a9b6e0 unchanged.
+
 # Sunny Acres AI Relay Protocol
 
 **Canonical coordination document for all coding agents.**

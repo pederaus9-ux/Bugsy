@@ -1,0 +1,94 @@
+{
+  "runtime": "d5ed6a96c50914320f30a7b74b799b7f66a9b6e0",
+  "ownerReport": "2026-10-14 17:17 UTC: first-person player looks/walks like a zombie and falls below accepted animal quality",
+  "scope": "source/asset diagnosis, no character edits; actual production-path render still pending",
+  "asset": "farm3d/assets/hands/hands-candidate.glb",
+  "sha256": "18bbcefd808131e7d8040c8f6126e6a18bd3ed0fc5b76c7a6cbd10c70a99e503",
+  "animations": [
+    "feed",
+    "harvest",
+    "idle",
+    "pet",
+    "plant",
+    "water"
+  ],
+  "armIdleTracks": [
+    {
+      "node": "L_arm",
+      "path": "translation",
+      "times": [
+        0,
+        0.800000011920929
+      ],
+      "values": [
+        -0.2199999988079071,
+        -0.24330002069473267,
+        -0.2619999945163727,
+        -0.2199999988079071,
+        -0.24330002069473267,
+        -0.2619999945163727
+      ]
+    },
+    {
+      "node": "L_arm",
+      "path": "rotation",
+      "times": [
+        0,
+        0.800000011920929
+      ],
+      "values": [
+        -0.6339889168739319,
+        0,
+        0,
+        0.7733421921730042,
+        -0.6339889168739319,
+        0,
+        0,
+        0.7733421921730042
+      ]
+    },
+    {
+      "node": "R_arm",
+      "path": "translation",
+      "times": [
+        0,
+        0.800000011920929
+      ],
+      "values": [
+        0.2199999988079071,
+        -0.24330002069473267,
+        -0.2619999945163727,
+        0.2199999988079071,
+        -0.24330002069473267,
+        -0.2619999945163727
+      ]
+    },
+    {
+      "node": "R_arm",
+      "path": "rotation",
+      "times": [
+        0,
+        0.800000011920929
+      ],
+      "values": [
+        -0.6339889168739319,
+        0,
+        0,
+        0.7733421921730042,
+        -0.6339889168739319,
+        0,
+        0,
+        0.7733421921730042
+      ]
+    }
+  ],
+  "verified": {
+    "productionLoadsAuthoredExceptTestfarmWithoutArtHands": true,
+    "normalPreviewUsesFallback": true,
+    "noWalkOrRunClip": true,
+    "idleArmTranslationAndRotationConstant": true,
+    "gaitInputs": "updateHands passes a small lateral sway and shared bob; authored idle clip is sampled during locomotion, with no elbow/stride arm solve"
+  },
+  "inference": "Static extended neutral arms and only small sway plausibly explain first-person zombie impression. Precise on-device path and owner style assessment cannot be independently proven from code or the fallback still.",
+  "recommendedScope": "Separate proposed player-only neutral/rest pose and distance-driven alternating relaxed walk/run arms, natural elbow/wrist/finger pose, preserving wardrobe/controls/actions/reduced-motion/fallback. Third-person proportion/material/contact review before edits. No accepted-animal changes."
+}
