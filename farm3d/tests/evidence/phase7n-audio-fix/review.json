@@ -1,0 +1,86 @@
+{
+  "candidateHead": "e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+  "candidateTree": "fbbac30554c58a2153e79495723084701cc4e4ba",
+  "baseCheckpoint": "7ff71d8ffbc83ce5fd0f7b4f0a26282609eaba23",
+  "integratedBase": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
+  "pr": 81,
+  "prUrl": "https://github.com/pederaus9-ux/Bugsy/pull/81",
+  "reviewer": "ChatGPT/Codex adversarial self-review; not independent external agent",
+  "reviewFindings": [],
+  "reviewedCases": [
+    "No AudioContext before gesture or while starting muted",
+    "Existing autoplay-suspended context is not resumed by visibility listener",
+    "Unmuted native hidden/foreground return restores output without changing preferences",
+    "Muted native hidden/foreground return remains silent",
+    "Injected native suspension still resumes with trusted input",
+    "New listener is module-scoped, not installed by each game.start call",
+    "No added timers, source scheduling, schema, rewards, cloud, accepted-animal or renderer changes"
+  ],
+  "runtimeDifference": "Exactly master gain condition plus native visibilitychange listener; other game.js contents equal the checkpoint",
+  "sourceIntegrity": {
+    "runtimeFiles": 65,
+    "unchanged": 64,
+    "intentionallyChanged": 1,
+    "originalTestsAndFrozenEvidenceUnchanged": true
+  },
+  "testSummary": {
+    "localNativeOriginal": "10/10 PASS",
+    "nativeActualTab": "PASS; hidden 20 samples RMS0, unmuted return positive, muted hidden/return RMS0",
+    "candidateEquivalentToLocalImplementation": "758c901 runtime and test files exactly match candidate head"
+  },
+  "checkedOutCIMerge": [
+    {
+      "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/git/commits/e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+      "sha": "e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+      "tree": "fbbac30554c58a2153e79495723084701cc4e4ba",
+      "parents": [
+        "758c9017a70c0aebae11e8c4b4bf4a206907a2ce"
+      ]
+    },
+    {
+      "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/git/commits/f4581eb328635e6ab6d1f5e46590c2d736e29a15",
+      "sha": "f4581eb328635e6ab6d1f5e46590c2d736e29a15",
+      "tree": "fbbac30554c58a2153e79495723084701cc4e4ba",
+      "parents": [
+        "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
+        "e92a1ba40b53e8340f7d19c649e9a777d742ad28"
+      ]
+    }
+  ],
+  "hostedStatus": "PASS: Regression202 all7 jobs and conflict qualification2, attempt1, exact candidate head/tree",
+  "limitations": [
+    "Native graph PCM in headless Chrome, not audible or physical phone quality",
+    "Context may remain running while hidden; no reduced CPU/power claim",
+    "Broader release gates remain open"
+  ],
+  "mergeDeploymentRelease": "NOT_AUTHORIZED",
+  "nextGate": "Exact-head CI completion, then owner approval for merge",
+  "hostedRuns": [
+    {
+      "id": 38552464056,
+      "name": "Sunny Acres 3D regression",
+      "run_number": 202,
+      "run_attempt": 1,
+      "head_sha": "e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/pederaus9-ux/Bugsy/actions/runs/38552464056",
+      "created_at": "2026-10-14T10:51:15Z",
+      "updated_at": "2026-10-14T11:12:48Z",
+      "headTree": "fbbac30554c58a2153e79495723084701cc4e4ba"
+    },
+    {
+      "id": 38552463831,
+      "name": "Sunny Acres release qualification",
+      "run_number": 2,
+      "run_attempt": 1,
+      "head_sha": "e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/pederaus9-ux/Bugsy/actions/runs/38552463831",
+      "created_at": "2026-10-14T10:51:15Z",
+      "updated_at": "2026-10-14T10:56:29Z",
+      "headTree": "fbbac30554c58a2153e79495723084701cc4e4ba"
+    }
+  ]
+}

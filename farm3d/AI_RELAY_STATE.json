@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-14T10:49:59.010Z",
+  "lastUpdatedUtc": "2026-10-14T11:16:53.795Z",
   "codeBaseline": {
     "description": "PR79 emulator conflict qualification and PR80 test-only ambient observation correction merged; runtime unchanged from accepted animal baseline",
     "mergeCommit": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
@@ -55,14 +55,13 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "PHASE_7N_RELEASE_QUALIFICATION",
   "currentPhaseTitle": "Fixed-build gameplay, persistence, device and operational qualification",
-  "phaseStatus": "AUDIO_FIX_LOCAL_PASS_EXACT_HEAD_HOSTED_AND_OWNER_MERGE_GATE",
+  "phaseStatus": "AUDIO_FIX_EXACT_HEAD_PASS_OWNER_MERGE_GATE",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": null,
+  "activePullRequest": 81,
   "nextPhases": [
-    "Complete exact-head hosted regression and adversarial review of the draft audio-fix candidate",
-    "Record immutable CI/test receipts and obtain owner merge approval for exact reviewed head",
-    "Retain physical device/conflict/operational release limits; no new phone testing",
-    "No deployment/release authorized"
+    "Owner review/approval for exact PR81 head e92a1ba; keep draft and unmerged until authorized",
+    "Retain release/device/physical-conflict/operational qualification gaps; no additional phone work",
+    "Deployment/release require separate approval; not performed"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -91,7 +90,8 @@
     "2026-10-13 19:28:55 America/Chicago: owner confirms rules already checked and good. Credit review complete, no repeated export request. Original executor offline; no new local tests, replacement environment, merge/deploy/release authorized.",
     "2026-10-14: owner authorized a fresh isolated connected workspace to recover e2f2ab2. Recovery and 15 distinct local progression/update/backup assertions passed. Original offline workspace and all other projects/FS25 preserved; no runtime/security/phone/merge/deploy/release changes. Historical replacement restriction is superseded for this task.",
     "2026-10-14 06:21:41 UTC: owner authorized isolated sound/mute/background-resume checks. Tested immutable d8aed9e; nine groups pass, actual hidden ambient output fails. Focused native-tab reproduction confirms ~10s sustained output and zero muted hidden control. Runtime fix not authorized or performed.",
-    "2026-10-14 10:40:41 UTC: owner approved applying/testing the minimal audio master visibility fix. Exact two-line game.js edit at 758c901; original audio suite 10/10 and ten-second native hidden/return/muted regression pass. Only game.js differs among 65 inventoried runtime files; old receipts/animal baselines preserved. Draft PR/hosted gates and owner merge approval remain."
+    "2026-10-14 10:40:41 UTC: owner approved applying/testing the minimal audio master visibility fix. Exact two-line game.js edit at 758c901; original audio suite 10/10 and ten-second native hidden/return/muted regression pass. Only game.js differs among 65 inventoried runtime files; old receipts/animal baselines preserved. Draft PR/hosted gates and owner merge approval remain.",
+    "2026-10-14 completed: exact PR81 e92a1ba/treefbb passes all eight hosted jobs and local native audio. Completed report/evidence on separate review branch; original PR head frozen, draft and unmerged. No owner merge/deploy/release approval."
   ],
   "horseR2EvidenceReview": {
     "phase": "Horse R2 measured anatomy correction",
@@ -1217,7 +1217,7 @@
     "merge": "NOT_AUTHORIZED",
     "release": "NOT_AUTHORIZED",
     "pr": 79,
-    "nextTest": "Complete exact-head hosted review of the draft audio fix, then obtain owner merge approval for exact reviewed head. No more phone tests.",
+    "nextTest": "Owner review and approval of exact tested PR81 e92a1ba; no additional tests or phone requests needed for this bounded audio fix.",
     "postMergeQualification": "PR80 merged; maina183 regression201 all7 and Pages77 SUCCESS. Main199 failure and three diagnostics preserved as historical evidence; no current ambient pending gate.",
     "currentMain": "a183e17b1a0a4f855d704da2ee8e5bc0187eed46",
     "currentTree": "98158379ffbed2e1ce865eaa0b6ac38b590dcd31",
@@ -1487,7 +1487,7 @@
     "implementationTree": "3bcb9a4cd05ec8fee43bccfc976c661540d1547a",
     "authorizationAtUtc": "2026-10-14T10:40:41Z",
     "branch": "codex/phase7n-audio-fix",
-    "status": "LOCAL_PASS_HOSTED_EXACT_HEAD_GATE_PENDING",
+    "status": "EXACT_HEAD_LOCAL_AND_HOSTED_PASS_READY_FOR_OWNER_REVIEW",
     "report": "farm3d/PHASE7N_AUDIO_FIX.md",
     "evidenceDirectory": "farm3d/tests/evidence/phase7n-audio-fix",
     "runtimeChange": "Only game.js: master gain respects document.hidden; native visibilitychange reapplies gain",
@@ -1498,12 +1498,18 @@
     "acceptedRuntimeFilesUnchanged": 64,
     "acceptedRuntimeFilesIntentionallyChanged": 1,
     "originalTestsAndEvidenceUnchanged": true,
-    "hosted": "PENDING at candidate publication; delivery will pin exact reviewed head and results",
+    "hosted": "Regression202 run38552464056 all7 SUCCESS; conflict qualification2 run38552463831 SUCCESS; attempt1; exact e92a1ba/treefbb; no retries",
     "review": "ChatGPT/Codex adversarial self-review, not independent external agent",
     "merge": "NOT_AUTHORIZED",
     "deployment": "NOT_AUTHORIZED",
     "release": "NOT_AUTHORIZED",
     "phoneRetesting": false,
-    "localInstallations": false
+    "localInstallations": false,
+    "reviewedHead": "e92a1ba40b53e8340f7d19c649e9a777d742ad28",
+    "reviewedTree": "fbbac30554c58a2153e79495723084701cc4e4ba",
+    "pr": 81,
+    "prState": "DRAFT_UNMERGED",
+    "completedEvidenceBranch": "codex/phase7n-audio-fix-review",
+    "materialReviewFindings": []
   }
 }

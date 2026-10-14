@@ -1,4 +1,11 @@
-# Current roadmap checkpoint - 2026-10-14 (audio fix)
+# Current roadmap checkpoint - 2026-10-14 (reviewed audio fix)
+
+Draft PR81 head e92a1ba40b53e8340f7d19c649e9a777d742ad28 passes the original native audio suite 10/10, the ten-second native hidden/return/muted regression and all eight hosted jobs (Regression202 all7 plus conflict qualification2, attempt1). Candidate/runtime head is frozen; completed receipts are saved separately on the review branch.
+
+[Completed review report](PHASE7N_AUDIO_FIX.md). No material bounded self-review finding remains. Next gate is owner merge approval for that exact head; keep draft. Release NOT READY; no merge/deployment/release or new phone work performed. The approved two-line game.js exception is explicit; other runtime/tests/prior evidence remain preserved.
+
+## Candidate creation snapshot
+
 
 Owner-approved two-line audio visibility gate passes the original native suite 10/10 and the ten-second hidden/return/muted regression. Preferences/autoplay remain covered. Only game.js intentionally changes among 65 runtime files; all prior evidence and accepted animals remain preserved.
 
