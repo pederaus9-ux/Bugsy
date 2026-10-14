@@ -162,7 +162,13 @@ After merge:
 4. sync any external coding workspace from `main`;
 5. then begin the next phase.
 
-## Current phase - 2026-10-14
+## Current phase - visual audit checkpoint - 2026-10-14
+
+Owner approved audit/planning only at14:55:09 UTC. Exact published source remains d5ed6a96c50914320f30a7b74b799b7f66a9b6e0. Fifteen actual Classic/Walk captures on desktop and mobile-sized PC profiles are complete. [Audit and bounded proposal](PHASE7N_VISUAL_STYLE_AUDIT.md): first quiet the ground/path/soil in the barn-and-fields scene; no implementation performed. Shared-material reach, proposed performance limits and actual-render owner acceptance are explicit gates. Original makeover attachments were not found; historical actual renders are credited. Runtime/assets/accepted animals/all existing tests and frozen evidence unchanged. No PR, CI dispatch, installation/settings/security/production write, phone test, merge/deploy/release. Next: owner approve or revise this one material pilot.
+
+## Previous publication checkpoint (retained)
+
+## Historical audio candidate checkpoint - 2026-10-14
 
 Owner approved the bounded visibility/master-gain runtime correction at 10:40:41
 UTC. Applied exactly the proposed two lines in game.js; no unrelated runtime

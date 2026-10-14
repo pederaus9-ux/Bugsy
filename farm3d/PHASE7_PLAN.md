@@ -1,3 +1,9 @@
+# Current visual audit checkpoint - 2026-10-14
+
+Owner approved audit/planning only at14:55:09 UTC. Exact published source remains d5ed6a96c50914320f30a7b74b799b7f66a9b6e0. Fifteen actual Classic/Walk captures on desktop and mobile-sized PC profiles are complete. [Audit and bounded proposal](PHASE7N_VISUAL_STYLE_AUDIT.md): first quiet the ground/path/soil in the barn-and-fields scene; no implementation performed. Shared-material reach, proposed performance limits and actual-render owner acceptance are explicit gates. Original makeover attachments were not found; historical actual renders are credited. Runtime/assets/accepted animals/all existing tests and frozen evidence unchanged. No PR, CI dispatch, installation/settings/security/production write, phone test, merge/deploy/release. Next: owner approve or revise this one material pilot.
+
+## Previous publication checkpoint (retained)
+
 # Current roadmap checkpoint - 2026-10-14 (visitor patch published)
 
 [PR82](https://github.com/pederaus9-ux/Bugsy/pull/82) is merged and published at exact main `d5ed6a96c50914320f30a7b74b799b7f66a9b6e0`, reviewed tree `05ac4ee6c3ff982ba2e8925d68fd5077667d058f`. Postmerge Regression206 all seven jobs SUCCESS; Pages79/80 SUCCESS; five live static responses match merged bytes and include the expiry guard. Cancelled automatic205 and the duplicate-dispatch diagnostic are fully retained. [Completed publication report](PHASE7N_VISITOR_EXPIRY_PUBLICATION.md).

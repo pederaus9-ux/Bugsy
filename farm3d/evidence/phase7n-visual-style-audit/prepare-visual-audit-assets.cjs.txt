@@ -1,0 +1,15 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const repo=path.join(__dirname,'Bugsy-qualification'),ref='d5ed6a96c50914320f30a7b74b799b7f66a9b6e0',out=path.join(__dirname,'visual-audit-assets');fs.mkdirSync(out,{recursive:true});
+const html=cp.execFileSync('git',['show',ref+':farm3d/index.html'],{cwd:repo,encoding:'utf8'});
+const cssUrl=html.match(/href="(https:\/\/fonts.googleapis.com[^"\n]+)"/)[1];
+const cssPath=path.join(out,'declared-fonts.css'),ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36';
+const fetch=(url,file)=>cp.execFileSync('curl.exe',['--fail','--silent','--show-error','--max-time','25','--user-agent',ua,'--output',file,url],{timeout:30000});
+fetch(cssUrl,cssPath);const css=fs.readFileSync(cssPath,'utf8'),urls=[...new Set([...css.matchAll(/url\((https:\/\/fonts.gstatic.com\/[^)]+)\)/g)].map(m=>m[1]))];
+const assets=[{url:cssUrl,file:cssPath,mime:'text/css'}];for(let i=0;i<urls.length;i++){const file=path.join(out,'webfont-'+i+'.woff2');fetch(urls[i],file);assets.push({url:urls[i],file,mime:'font/woff2'});}
+for(const a of assets){const b=fs.readFileSync(a.file);a.bytes=b.length;a.sha256=crypto.createHash('sha256').update(b).digest('hex');}
+fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify({source:ref,method:'Anonymous downloads of exact page-declared webfonts to audit-only workspace; no OS font installation',assets},null,2)+'\n');
+let harness=fs.readFileSync(path.join(repo,'farm3d/tests/qualification-cdp.cjs'),'utf8');
+harness=harness.replace("const root = path.resolve(__dirname, '../..');",'const root = '+JSON.stringify(repo)+';');
+harness=harness.replace("'--use-angle=swiftshader','--enable-unsafe-swiftshader'","'--use-angle=d3d11'");
+fs.writeFileSync(path.join(__dirname,'visual-audit-cdp.cjs'),harness);
+console.log(JSON.stringify({status:'ASSETS_READY',webfonts:urls.length,declaredFontsCSS:cssUrl,originalRepositoryHarnessUnchanged:true,auditOnlyGraphicsRequest:'ANGLE D3D11; actual renderer will be recorded'}));
