@@ -362,6 +362,13 @@ body.introing > :not(canvas):not(#intro){visibility:hidden!important} /* the far
   border:4px solid #fff;box-shadow:0 5px 0 var(--green-dk),0 8px 18px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;animation:pop .18s ease-out}
 .actbtn .ai{font-size:34px;line-height:1} .actbtn .al{font:400 15px/1 var(--fun);text-shadow:0 2px 0 var(--green-dk);margin-top:2px}
 .actbtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--green-dk)}
+.seedtool{position:fixed;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);z-index:9;display:flex;align-items:center;gap:5px}
+.seedtool button{min-height:44px;border:3px solid #fff;background:#FFF6DC;border-radius:14px;box-shadow:0 3px 0 rgba(110,61,24,.3);color:var(--wood-dk)}
+.seedchoice{display:flex;align-items:center;gap:7px;padding:4px 10px;text-align:left}
+.seedchoice .si{font-size:27px;line-height:1}.seedchoice b{display:block;font:400 16px/1.1 var(--fun);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seedchoice small{display:block;font-size:10px;font-weight:800;opacity:.75}.seedtool .putaway{width:44px;padding:0;font-size:24px}
+.seedtool button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(110,61,24,.3)}
+.actbtn .al{max-width:84px;line-height:1.1;white-space:normal;text-align:center}
 body.fp .dock,body.fp #hint,body.fp .testbadge{display:none!important}
 body.fp .throwbtn{right:128px;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);width:56px;height:56px;font-size:24px}
 .barnfade{position:fixed;inset:0;z-index:15;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(120,70,30,.35),rgba(40,20,5,.9));opacity:0;transition:opacity .8s}
@@ -590,6 +597,10 @@ html[data-motion="reduce"] button:active{transform:none!important}
 <div class="fpspad" id="fpsPad" hidden></div>
 <div class="xhair" id="xhair" hidden></div>
 <button class="actbtn" id="actBtn" hidden aria-label="Use what you're looking at"></button>
+<div class="seedtool" id="seedTool" hidden>
+  <button class="seedchoice" id="seedChoice" aria-label="Change selected seed" aria-controls="seedTray" aria-expanded="false"><span class="si" id="seedIcon" aria-hidden="true"></span><span><b id="seedName"></b><small>Change seed</small></span></button>
+  <button class="putaway" id="seedPutAway" aria-label="Put away seeds">×</button>
+</div>
 <div class="barnfade" id="barnFade"></div>
 <!-- the game is played sideways: in portrait this covers everything and the farm pauses -->
 <div class="rotate" id="rotate" hidden><div class="rphone">📱</div><b>Rotate your phone sideways to play</b><small>Sunny Acres is played in landscape. Your farm is waiting!</small></div>
@@ -2845,17 +2856,21 @@ function aimScan() {
   if (label) aim = Object.assign(h, {label, icon});
 }
 function updateAim(t) {
+  updateSeedTool();
   if (!walk) { xhair.hidden = actBtn.hidden = true; return; }
   if (t - aimT > .12) { aimT = t; aimScan(); }
   xhair.hidden = inBarn || !!G.panel; xhair.classList.toggle("on", !!aim);
   actBtn.hidden = !aim;
-  if (aim) { const h = `<span class="ai">${aim.icon}</span><span class="al">${aim.label}</span>`; if (actBtn.dataset.h !== h) { actBtn.innerHTML = h; actBtn.dataset.h = h; } }
+  if (aim) { const planting = aim.label === "Plant" && armed, label = planting ? "Plant " + G.ITEMS[armed].n : aim.label, icon = planting ? G.ITEMS[armed].e : aim.icon;
+    const h = `<span class="ai">${icon}</span><span class="al">${label}</span>`; if (actBtn.dataset.h !== h) { actBtn.innerHTML = h; actBtn.dataset.h = h; actBtn.setAttribute("aria-label", label); } }
 }
 function interact() {
+  if (visiting || editMode || photoMode || wardrobeOn || inBarn || G.panel || !seedTray.hidden) return false;
   const h = aim; if (!h) return false;
   handPunch(h.label === "Pet" ? "pat" : "reach", {Harvest:'harvest',Plant:'plant',Water:'water',Pet:'pet'}[h.label] || 'harvest');
   if (h.type === "plot" && h.label === "Harvest") { const crop = GS().plots[h.i].crop; if (harvestAt(h.i) === true) fpBurst(h.i, crop); return true; }
   if (h.type === "plot" && h.label === "Water") { if (G.waterPlot(h.i)) { squish(plots[h.i].g, .25); syncSoil(); } return true; }
+  if (h.type === "plot" && h.label === "Plant" && armed) { closeTrays(); plantAt(h.i); return true; }
   if (h.type === "animal" && h.label === "Pet") { petFacing(h.an); return true; }
   if (h.type === "barn") { enterBarn(); return true; }
   return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view
@@ -3368,9 +3383,21 @@ Object.assign(GV, {
 });
 
 // ---------- trays: seeds, a growing field, an animal or pet, a decoration ----------
-let armed = null, trayFor = null;
+let armed = null, trayFor = null, pendingPlot = -1;
 const seedTray = document.getElementById("seedTray"), infoTray = document.getElementById("infoTray");
-function closeTrays() { seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; armed = null; trayFor = null; }
+const seedTool = document.getElementById("seedTool"), seedChoice = document.getElementById("seedChoice"), seedIcon = document.getElementById("seedIcon"), seedName = document.getElementById("seedName");
+function closeTrays() { seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; trayFor = null; pendingPlot = -1; updateSeedTool(); }
+function updateSeedTool() {
+  // Equipment belongs to this play session, not to a particular tray or save.
+  if (!visiting && armed && (!G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level)) armed = null;
+  seedTool.hidden = !armed || !seedTray.hidden || !infoTray.hidden || !!visiting || !!editMode || photoMode || wardrobeOn || !!inBarn || !!G.panel || rotatePaused;
+  seedChoice.setAttribute("aria-expanded", String(!seedTray.hidden));
+  if (armed && seedTool.dataset.crop !== armed) {
+    seedTool.dataset.crop = armed; seedIcon.textContent = G.ITEMS[armed].e; seedName.textContent = G.ITEMS[armed].n;
+    seedChoice.setAttribute("aria-label", "Change selected seed: " + G.ITEMS[armed].n);
+  }
+}
+function putAwaySeeds() { armed = null; closeTrays(); }
 function renderSeeds() {
   if (seedTray.hidden) return;
   const pp = pendingPlot >= 0 && GS().plots[pendingPlot], soil = pp ? G.soilNow(pp) : 100;
@@ -3383,10 +3410,9 @@ function renderSeeds() {
       ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>${G.inSeason(id) ? "⏱ " + G.fmt(c.time * 1000) : "🐢 ½ speed · " + G.fmt(c.time * 2000)}</small></button>`).join("");
 }
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
-let pendingPlot = -1;
 function openSeeds(i) {
   G.close(); infoTray.hidden = true; seedTray.classList.remove("away"); seedTray.hidden = false; trayFor = {type:"seeds"};
-  armed = null; pendingPlot = i; renderSeeds();
+  pendingPlot = i; renderSeeds(); updateSeedTool();
 }
 // while a finger is dragging to plant, the tray steps out of the way so you can see the fields under it.
 // Let go after planting and it closes (like Hay Day); let go without planting anything and it comes back.
@@ -3395,9 +3421,10 @@ function endPlantDrag() {
   if (away && farmDrag && farmDrag.n > 0) closeTrays();
 }
 function pickSeed(id) {
+  if (!G.CROPS[id] || !G.ITEMS[id] || G.ITEMS[id].lvl > GS().level) return false;
   armed = id; G.sfx("tick");
   if (pendingPlot >= 0 && GS().plots[pendingPlot] && !GS().plots[pendingPlot].crop) plantAt(pendingPlot);
-  pendingPlot = -1; renderSeeds();
+  closeTrays(); return true;
 }
 // or drag a seed out of the tray and across the fields, like the 2D game
 let seedDrag = null, seedDragEnd = 0;
@@ -3419,7 +3446,9 @@ addEventListener("pointermove", (e) => {
 const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; endPlantDrag(); farmDrag = null; };
 addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", endSeedDrag);
 seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
-function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; armed = null; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; }
+seedChoice.addEventListener("click", () => openSeeds(-1));
+document.getElementById("seedPutAway").addEventListener("click", putAwaySeeds);
+function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; pendingPlot = -1; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; updateSeedTool(); }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
 const cdBtn = (act, label, at, cd, data) => { const l = G.cdLeft(at || 0, cd); return `<button class="btn plain sm" data-w="${act}" ${data} ${l ? "disabled" : ""}>${label}${l ? " · " + G.fmt(l).split(" ")[0] : ""}</button>`; };
 const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
@@ -3510,7 +3539,11 @@ function hitAt(x, y) {
   return o ? Object.assign({obj:o, dist:hit.distance}, o.userData.hit) : null;
 }
 const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
-function plantAt(i) { if (!GS().plots[i].crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false; }
+function plantAt(i) {
+  if (visiting || editMode || photoMode || wardrobeOn || inBarn || !armed || !G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level) return false;
+  const p = GS().plots[i];
+  if (p && !p.crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false;
+}
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
   if (visiting || photoMode || wardrobeOn) return false; // a friend's farm: look, don't touch
@@ -3616,7 +3649,7 @@ function onTap(e) {
     }
     case "plot": {
       const p = GS().plots[h.i]; squish(h.obj, .3);
-      if (!p.crop) openSeeds(h.i); else if (!ready(h.i)) openInfo({type:"plot", i:h.i});
+      if (!p.crop) { if (walk && armed && seedTray.hidden) { closeTrays(); plantAt(h.i); } else openSeeds(h.i); } else if (!ready(h.i)) openInfo({type:"plot", i:h.i});
       return true;
     }
     case "plotSale": squish(h.obj, .6); openInfo({type:"plotSale"}); return true;
