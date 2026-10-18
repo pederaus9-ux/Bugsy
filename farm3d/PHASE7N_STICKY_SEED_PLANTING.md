@@ -12,7 +12,7 @@ Runtime files: index.html and cache-version-only sw.js(v45→v46). game.js, asse
 
 ## Validation
 
-Local Node v24.19.0:100/100 focused unit/source contracts pass,0 fail/skip/cancelled; six syntax checks pass(two actual index module scripts, worker and test modules). The11 new seed tests execute actual extracted page handlers and unchanged native planting/inventory functions inside DOM/world fixtures. They are not browser evidence. Existing89 character/surrounding contracts are preserved. The cache integration assertion updates only its expected v45 literal to the intentional v46; all other checks remain.
+Local Node v24.19.0:101/101 focused unit/source contracts pass,0 fail/skip/cancelled; six syntax checks pass(two actual index module scripts, worker and test modules). The12 new seed tests execute actual extracted page handlers and unchanged native planting/inventory functions inside DOM/world fixtures. They are not browser evidence. Existing89 character/surrounding contracts are preserved. The cache integration assertion updates only its expected v45 literal to the intentional v46; all other checks remain.
 
 Fail-first receipts retained: the10 completed-fixture tests initially all failed, proving missing close/equip/repeat behavior; subsequent overlay cases failed before correction. First incomplete fixture, intermediate cache expectation failure and all outputs are preserved, not rewritten into passing evidence.
 
@@ -25,3 +25,11 @@ Hosted status at candidate creation: PENDING. Visual/owner acceptance: PENDING. 
 Lead adversarial self-review, not independent external review: stale pending targets cleared on close; repeat payments prevented by native plant checks; invalid/locked selections guarded; visited/blocked modes cannot use the direct Plant path; native save/business logic untouched; overlapping tray control hidden. Classic tapping still opens its chooser and existing drag code remains unchanged. Hosted regressions must verify those native paths.
 
 Inherited character desktop authored-hands timeout, reference variance, broader CPU/GPU failures/control drift and release/device gates remain open. Owner acceptance of PR83 does not clear them. Do not loosen assertions/timeouts to obtain green CI. No merge, publication, release or production data writes authorized for this feature. Next: inspect exact-head hosted receipts and genuine screenshots, correct reproduced defects, then request owner review/merge decision.
+
+## First hosted run and focused correction
+
+Candidate54031074638f65c41ef06f084fa617040fcbab8a; regression run39138597813. Dedicated seed job117708139432 passes all22 browser behavior groups across all three viewports and guest reload; actual screenshots retained in artifact12140394821(SHA2565dc2a83b3a9a3371113ab7e20f786c6906eb27e0a37c97567f40c018d246e23c). Save/accessibility/analytics jobs also passed. These receipts apply to that candidate, not a later revision.
+
+The original unchanged regression job failed because the new equipment display reused the picker action attribute data-crop, causing its existing seed locator to match both display and picker. Artifact12140771867(SHA2560330505a7470dabdd2d833c19dc27c4006772674936822abef3336d039f0474e), full log and trace retained. Add a failing check, then change only the display metadata to data-equipped-crop; do not weaken the original locator/assertions. Local focused retest101/101 passes. Hosted exact-head rerun remains required. Added a screenshot at the actual next-plot Plant Wheat state so review shows the action button as well as equipment.
+
+Broader local core coverage: initial34-file run had33 passing files and one missing historical cow fixture in this partial workspace. Original failure retained. Fetching the exact base-main fixture and rerunning its unchanged cow test gives4/4. All34 core files now have passing receipts across the original run and focused corrections(187 non-seed core tests plus12 seed tests; overlapping character/focused receipts are not added together). This is not a claim that the original full command exited0.

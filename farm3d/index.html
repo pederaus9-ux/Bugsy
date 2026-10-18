@@ -3392,8 +3392,8 @@ function updateSeedTool() {
   if (!visiting && armed && (!G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level)) armed = null;
   seedTool.hidden = !armed || !seedTray.hidden || !infoTray.hidden || !!visiting || !!editMode || photoMode || wardrobeOn || !!inBarn || !!G.panel || rotatePaused;
   seedChoice.setAttribute("aria-expanded", String(!seedTray.hidden));
-  if (armed && seedTool.dataset.crop !== armed) {
-    seedTool.dataset.crop = armed; seedIcon.textContent = G.ITEMS[armed].e; seedName.textContent = G.ITEMS[armed].n;
+  if (armed && seedTool.dataset.equippedCrop !== armed) {
+    seedTool.dataset.equippedCrop = armed; seedIcon.textContent = G.ITEMS[armed].e; seedName.textContent = G.ITEMS[armed].n;
     seedChoice.setAttribute("aria-label", "Change selected seed: " + G.ITEMS[armed].n);
   }
 }

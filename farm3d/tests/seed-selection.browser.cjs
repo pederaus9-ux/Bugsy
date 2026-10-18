@@ -38,7 +38,7 @@ try{
     const before=await p.evaluate(()=>({x:__dbg.walk.pos.x,y:__dbg.walk.pos.y}));
     await p.keyboard.down('KeyW');try{await p.waitForFunction(before=>Math.hypot(__dbg.walk.pos.x-before.x,__dbg.walk.pos.y-before.y)>.05,before,{timeout:30000});}finally{await p.keyboard.up('KeyW');}
     assert.equal((await state(p)).armed,'wheat');passed(width+' ordinary movement keeps the seed equipped');
-    await focusPlot(p,1,'Plant Wheat');await p.locator('#actBtn').dblclick();
+    await focusPlot(p,1,'Plant Wheat');await take(p,width,'ready-to-plant-wheat');await p.locator('#actBtn').dblclick();
     a=await state(p);assert.equal(a.crop[1],'wheat');assert.equal(a.wheat,0);assert.equal(a.coins,10);assert.equal(a.picker,false);
     assert.equal((await state(p)).coins,10,'a double press cannot charge a growing plot');
     passed(width+' next plot plants directly and a repeated press cannot charge it again',a);

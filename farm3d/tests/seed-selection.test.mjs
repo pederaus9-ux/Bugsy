@@ -140,3 +140,10 @@ test('equipped seed chip steps aside while the picker is open and returns when i
   f.api.openSeeds(-1);assert.equal(f.get('seedTool').hidden,true,'the chip must not cover the seed picker header');
   f.api.closeTrays();assert.equal(f.get('seedTool').hidden,false);assert.equal(f.api.armed,'wheat');
 });
+
+// data-crop belongs to actionable picker entries, including existing automation.
+test('equipped display does not reuse the picker action attribute',()=>{
+  const f=fixture();f.api.openSeeds(0);f.api.pickSeed('wheat');
+  assert.equal(f.get('seedTool').dataset.crop,undefined);
+  assert.equal(f.get('seedTool').dataset.equippedCrop,'wheat');
+});
