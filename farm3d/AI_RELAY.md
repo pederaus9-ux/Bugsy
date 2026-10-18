@@ -295,3 +295,15 @@ The owner authorized the next isolated scope at12:13:04 UTC. Exact published mai
 ## Current visitor expiry candidate - 2026-10-14
 
 Owner approval at12:39:49 UTC supersedes the earlier no-fix qualification gate only for the minimal visitor expiry check. Source checkpoint `b3e1c7ca0948f4c1dfb4a86e74d8892131f73656` and main `e3b59b7a65a3d9c8710bad3e4a2659d9d76be765` were unchanged. Implementation `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951` passes nine focused browser contracts and preserves all prior evidence/runtime except the approved one-condition game.js edit. See [PHASE7N_VISITOR_EXPIRY_FIX.md](PHASE7N_VISITOR_EXPIRY_FIX.md). Keep PR draft, pin final exact-head hosted results, and await separate merge authority. No deploy/release/new phone/FS25/security/production scope.
+
+## Owner-authorized accepted character publication — 2026-10-18
+
+Owner instruction at08:55:37 America/Chicago: "Just merge and let me see it in game and we can unmerge if it dont approve". This explicitly authorizes merging the recovered accepted character baseline for in-game owner review before fresh screenshots. It supersedes the earlier preview-before-merge restriction only for this bounded publication. It does not clear the known broader CPU/GPU, capture-repeatability or release gates.
+
+Fresh main is `d5ed6a96c50914320f30a7b74b799b7f66a9b6e0`, tree`05ac4ee6c3ff982ba2e8925d68fd5077667d058f`. The five runtime files exactly match recovered accepted reference`70e7085c744acc3a8d7b83ba601753e055c2e9a3`. The normal-calculation optimization and recorder investigation remain shelved; no recorder launch or code is included. Saves, Firebase, economy, native controls, animals and assets are unchanged. Worker algorithms are unchanged; only the matching module versions/cache shell entries change.
+
+Local verification passes89/89 focused character and surrounding regressions,0fail/skip/cancelled, plus four module syntax checks. Existing hosted commands remain intact, with the seven focused character test files prepended to the existing character job. Await exact-head CI before the guarded merge. No fresh native screenshots or performance clearance is claimed. This is lead self-review, not an independent external audit.
+
+See[PHASE7N_ACCEPTED_CHARACTER_PUBLICATION.md](PHASE7N_ACCEPTED_CHARACTER_PUBLICATION.md). Record the final merge/base for a normal revert if the owner rejects the in-game result; do not reset main or imply save writes can be undone by code rollback. Earlier stopped scopes and failures above remain historical evidence.
+
+First PR83 head a4a84bc8 failed the authored-hands harvest-return check. Its isolated adapter neutral excluded the accepted overlay's relaxed finger bend. The real-GLB offline probe reproduced the exact baseline mismatch; a test-only correction retains nativeNeutral and checks independently composed idle before and after harvest using unchanged action/return tolerances and timeout. Initial logs, screenshots and trace remain retained. No runtime changes; fresh exact-head CI remains required.

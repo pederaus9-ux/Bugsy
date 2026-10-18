@@ -658,7 +658,9 @@ import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALY
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
 import {FEATURES} from "./features.js?v=1";
-import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=1";
+import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=2";
+import {installPlayerMotion} from "./player-motion.js?v=1";
+import {installArmAttachment} from "./player-arm-attachment.js?v=1";
 import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=3";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
@@ -3833,6 +3835,10 @@ if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 
 updatePlots(0);
 bootStep("setting the weather and time of day");
 installWorld(scene, renderer);
+const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
+  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
+const armAttachment = installArmAttachment({THREE,camera,fallback:hands,
+  getContext:()=>({walk,ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
@@ -3857,7 +3863,7 @@ function frame() {
   // the animals live their lives
   const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
   if (walk) updateWalk(dt);
-  updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); updateDoors(dt); updateSquish(performance.now());
+  updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); playerMotion.update(dt, t); updateDoors(dt); armAttachment.update(); updateSquish(performance.now());
   updateDrops(dt); updateBaits(); drawTrail();
   if (G.reducedMotion()) shake = 0;
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }

@@ -67,13 +67,18 @@ export function createHands(sleeve, skin) {
       segments.push(ellipsoid(.009,[.88,.9,.9],[px,-.005,-length]));
     }
     fingers.add(batch(segments,skin));
-    h.userData={base:h.position.clone(),side:sd,fingers};
+    h.userData={base:h.position.clone(),side:sd,fingers,baseRotation:h.rotation.clone(),baseKnuckleRotation:knuckles.rotation.clone(),baseFingerRotation:fingers.rotation.clone()};
   }
   g.traverse(o=>{if(o.isMesh){o.castShadow=false;o.renderOrder=10;}});
   g.visible=false;g.userData={sleeve,skin};return g;
 }
 export function poseHands(g, reach, kind) {
   for (const h of g.children) {
+    // Overlay rotations must not leak into this frame's native reach/pat.
+    // Restore before current animation channels are evaluated below/in updateHands.
+    h.rotation.copy(h.userData.baseRotation);
+    h.userData.fingers.parent.rotation.copy(h.userData.baseKnuckleRotation);
+    h.userData.fingers.rotation.copy(h.userData.baseFingerRotation);
     // The active hand closes gently for a harvest/plant reach and opens for petting.
     h.userData.fingers.rotation.x = h.userData.side === 1 && kind !== 'pat' ? reach * .65 : 0;
   }

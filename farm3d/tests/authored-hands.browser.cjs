@@ -39,19 +39,27 @@ try{for(const width of [844,1280]){
    Object.assign(d.G.S.plots[0],{crop:'wheat',end:Date.now()-1,dur:60000});d.G.view.refresh('all');});
  await p.waitForFunction(()=>{const d=__dbg,h=d.hitAt(innerWidth/2,innerHeight/2);return h?.type==='plot'&&h.i===0&&!document.getElementById('actBtn').hidden;},null,{timeout:60000});
  await p.emulateMedia({reducedMotion:'reduce'});await p.waitForFunction(()=>__dbg.G.reducedMotion());
- const neutral=await p.evaluate(()=>{const root=__dbg.camera.getObjectByName('Authored first-person hands');
-   root.userData.authoredHands.update({visible:true,time:0,reducedMotion:true});return root.getObjectByName('R_finger1_0').quaternion.toArray();});
+ // Keep the isolated adapter's neutral sample, then require the live composed
+ // idle pose: the accepted motion overlay adds a -0.10 rad relaxed finger bend.
+ // Do not use an adapter-only pose as the expected whole-game action return.
+ const {nativeNeutral,neutral}=await p.evaluate(async()=>{const root=__dbg.camera.getObjectByName('Authored first-person hands');
+   root.userData.authoredHands.update({visible:true,time:0,reducedMotion:true});
+   const nativeNeutral=root.getObjectByName('R_finger1_0').quaternion.toArray(),T=await import('./lib/three.module.min.js');
+   const neutral=new T.Quaternion().fromArray(nativeNeutral).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),-.10)).toArray();
+   return {nativeNeutral,neutral};});
+ await p.waitForFunction(neutral=>{const q=__dbg.camera.getObjectByName('Authored first-person hands').getObjectByName('R_finger1_0').quaternion.toArray();
+   return q.every((n,i)=>Math.abs(n-neutral[i])<1e-6);},neutral,{timeout:10000});
  await p.evaluate(()=>{window.__authoredSamples=[];window.__authoredSampling=true;let frames=0;const sample=()=>{if(!__authoredSampling)return;const root=__dbg.camera.getObjectByName('Authored first-person hands');
    __authoredSamples.push(root.getObjectByName('R_finger1_0').quaternion.toArray());if(frames++<70)requestAnimationFrame(sample);};requestAnimationFrame(sample);});
  await p.locator('#actBtn').click();
  await p.waitForFunction(neutral=>__authoredSamples.length>5&&__authoredSamples.some(q=>q.some((n,i)=>Math.abs(n-neutral[i])>.1))&&
    __authoredSamples.slice(-3).every(q=>q.every((n,i)=>Math.abs(n-neutral[i])<1e-6)),neutral,{timeout:10000});
  const harvest=await p.evaluate(()=>({crop:__dbg.G.S.plots[0].crop,samples:__authoredSamples}));
- fs.writeFileSync(path.join(artifacts,'authored-hands-'+width+'-harvest-samples.json'),JSON.stringify({neutral,harvest},null,2));
+ fs.writeFileSync(path.join(artifacts,'authored-hands-'+width+'-harvest-samples.json'),JSON.stringify({nativeNeutral,neutral,harvest},null,2));
  assert.equal(harvest.crop,null);assert(harvest.samples.length>5);
  const difference=q=>Math.max(...q.map((n,i)=>Math.abs(n-neutral[i])));
  assert(harvest.samples.some(q=>difference(q)>.1),'actual harvest curls weighted finger joints');
- assert(harvest.samples.slice(-3).every(q=>difference(q)<1e-6),'actual harvest returns fingers to neutral');
+ assert(harvest.samples.slice(-3).every(q=>difference(q)<1e-6),'actual harvest returns fingers to the settled composed idle pose');
  await p.evaluate(()=>window.__authoredSampling=false);
  // With a stopped game loop, sample each adapter clip in the real game camera.
  const poses=await p.evaluate(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands'),c=root.userData.authoredHands;
