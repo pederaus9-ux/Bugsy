@@ -6,7 +6,15 @@ const loveAt=(m,t)=>Math.max(0,Math.min(100,(m?.love??50)-(t-(m?.loveAt??t))/8_6
 function random(c){let x=c.rng|0;x^=x<<13;x^=x>>>17;x^=x<<5;c.rng=x>>>0||1;return c.rng/4294967296;}
 const count=c=>c.batches.reduce((n,b)=>n+b.n,0);
 function sync(c){c.normal=0;c.gold=0;for(const b of c.batches)c[b.gold?'gold':'normal']+=b.n;}
-function valid(c){return c?.v===1&&finite(c.lastAt)&&finite(c.feedUntil)&&finite(c.waterUntil)&&Array.isArray(c.birds)&&Array.isArray(c.legacy)&&Array.isArray(c.batches)&&c.batches.length<=C.capacity&&c.batches.every(b=>Number.isInteger(b.n)&&b.n>0&&b.n<=2&&finite(b.xp))&&count(c)<=C.capacity&&c.birds.every(b=>finite(b.progress)&&b.progress>=0&&finite(b.duration)&&b.duration>0)&&Number.isInteger(c.revision)&&Number.isInteger(c.rng);}
+function valid(c){
+  if(c?.v!==1||!finite(c.lastAt)||!finite(c.feedUntil)||!finite(c.waterUntil)||c.feedUntil<0||c.waterUntil<0)return false;
+  if(!Array.isArray(c.birds)||c.birds.length>6||!Array.isArray(c.legacy)||c.legacy.length>6||!Array.isArray(c.batches)||c.batches.length>C.capacity)return false;
+  if(!c.batches.every(b=>b&&Number.isInteger(b.n)&&b.n>0&&b.n<=2&&typeof b.gold==='boolean'&&(b.xp===0||b.xp===2)))return false;
+  if(!c.birds.every(b=>b&&finite(b.progress)&&b.progress>=0&&b.progress<=b.duration&&[C.interval,C.interval*.8].includes(b.duration)&&typeof b.happy==='boolean'&&(b.startedAt===null||finite(b.startedAt))))return false;
+  if(!c.legacy.every(l=>l&&Number.isInteger(l.i)&&l.i>=0&&l.i<c.birds.length&&finite(l.at)&&l.at>0)||new Set(c.legacy.map(l=>l.i)).size!==c.legacy.length)return false;
+  const normal=c.batches.filter(b=>!b.gold).reduce((n,b)=>n+b.n,0),gold=c.batches.filter(b=>b.gold).reduce((n,b)=>n+b.n,0);
+  return normal+gold<=C.capacity&&normal===c.normal&&gold===c.gold&&Number.isSafeInteger(c.revision)&&c.revision>=0&&Number.isInteger(c.rng)&&c.rng>=0&&c.rng<=0xffffffff;
+}
 function bird(){return {progress:0,duration:C.interval,happy:false,startedAt:null};}
 export function ensureChickenCare(pen,at){
   if(!pen?.owned||!Array.isArray(pen.list)||pen.list.length>6||!finite(at))return null;

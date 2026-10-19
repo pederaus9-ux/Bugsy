@@ -5,7 +5,7 @@ const DEFAULT={walls:'wood',roof:'red',trim:'cream',roofType:'metal'};
 const PAINT={walls:{wood:0x95683f,sage:0x788b62,cream:0xe4d5ac,red:0x9a3c30,white:0xe8e1cf},roof:{red:0x934336,charcoal:0x353b3a,green:0x3c5548},trim:{cream:0xeee3cc,white:0xf8f4e7,dark:0x493729}};
 export const CHICKEN_YARD_LAYOUT=Object.freeze({
   polygon:[[-12,-4.8],[-4.9,-4.8],[-4.9,5],[-12,5]],gate:[-6.8,-5.3],
-  fenceSegments:[[-12,-4.8,-4.9,-4.8],[-12,-4.8,-12,5],[-12,5,-6.8,5],[-5.3,5,-4.9,5]],
+  fenceSegments:[[-12,-4.8,-4.9,-4.8],[-12,-4.8,-12,5],[-12,5,-6.8,5],[-5.3,5,-4.9,5],[-4.9,-4.8,-4.9,5]],
   obstacles:[[-10.2,-2.8,1.45,1.6],[-10.2,-.45,.48,1.05],[-7.6,3,.5,.5],[-6,3.15,.48,.48],[-7.6,6.3,.85,.65]],
   bed:[-8.2,0,1.2],shelter:{x:[-8.9,-8.5],z:[-4,-1]},water:[-6,3.15,.8,.8],
 });
@@ -15,12 +15,14 @@ export function createChickenYard(){
   function mat(color,roughness=.88){return new THREE.MeshStandardMaterial({color,roughness,metalness:0});}
   function box(g,w,h,d,m,x=0,y=0,z=0,rx=0,rz=0){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,0,rz);g.add(o);return o;}
   function cylinder(g,r1,r2,h,m,x,y,z){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),materials[m]);o.position.set(x,y,z);g.add(o);return o;}
-  function merge(g){const buckets=new Map();g.updateMatrixWorld(true);for(const o of [...g.children])if(o.isMesh){const geo=o.geometry.toNonIndexed();geo.applyMatrix4(o.matrix);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);}return g;}
+  function merge(g){const buckets=new Map();g.updateMatrixWorld(true);for(const o of [...g.children])if(o.isMesh){const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);}return g;}
   const coop=new THREE.Group();coop.name='coop';
   box(coop,2.8,.17,3,'wood',0,.55,0);
   for(const x of [-1.22,1.22])for(const z of [-1.25,1.25])box(coop,.16,.58,.16,'wood',x,.28,z);
   for(let i=0;i<14;i++){const x=-1.3+i*.2;box(coop,.185,1.7,.12,'walls',x,1.45,-1.4);box(coop,.185,1.7,.12,'walls',x,1.45,1.4);}
   for(const x of [-1.35,1.35])box(coop,.12,1.7,2.8,'walls',x,1.45,0);
+  const gableShape=new THREE.Shape();gableShape.moveTo(-1.35,0);gableShape.lineTo(1.35,0);gableShape.lineTo(0,.57);gableShape.closePath();
+  const gable=new THREE.Mesh(new THREE.ExtrudeGeometry(gableShape,{depth:2.8,bevelEnabled:false,steps:1}),materials.walls);gable.position.set(0,2.3,-1.4);coop.add(gable);
   for(const x of [-1.4,1.4])for(const z of [-1.44,1.44])box(coop,.13,1.8,.13,'trim',x,1.46,z);
   box(coop,.73,1.15,.04,'dark',0,1.19,1.49);box(coop,.84,.1,.13,'trim',0,1.8,1.5);
   for(const x of [-.43,.43])box(coop,.09,1.25,.12,'trim',x,1.2,1.5);

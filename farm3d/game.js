@@ -485,14 +485,14 @@ export const CHICKEN_PAINT = {
 };
 export const CHICKEN_DEFAULT_STYLE = Object.freeze({walls:'wood',roof:'red',trim:'cream',roofType:'metal'});
 const canCare = () => !!S?.pens.chicken?.owned && !homeS && !restoring && !newerSave && !window.__saHold && (!S.pens.chicken.care || S.pens.chicken.care.v === 1);
-function settleChickens() {
+function settleChickens(force=false) {
   if(!canCare())return null;
   const pen=S.pens.chicken,old=pen.care,copy=structuredClone(pen),next=settleChickenCare(copy,now());
   if(!next)return null;
   // Store production events, not every elapsed second: the saved time anchor
   // already reconstructs partial progress. Passive ticks must not dirty cloud
   // snapshots before any goods or player action changed.
-  if(!old||next.normal!==old.normal||next.gold!==old.gold||next.legacy.length!==old.legacy.length||next.birds.length!==old.birds.length){pen.care=next;pen.list=copy.list;}
+  if(force||!old||next.normal!==old.normal||next.gold!==old.gold||next.legacy.length!==old.legacy.length||next.birds.length!==old.birds.length){pen.care=next;pen.list=copy.list;}
   return pen.care;
 }
 export const getChickenCareStatus = () => chickenCareStatus(S?.pens.chicken,now());
@@ -582,6 +582,7 @@ export const cdLeft = (at, cd) => Math.max(0, at + cd - now());
 export function interact(m, sound, act, key) {
   const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], k = act + "At";
   if (cdLeft(m[k] || 0, CD)) return false;
+  if(sound==='chicken')settleChickens(true); // Earned offline cycles precede this new happiness change.
   if (act === "treat") { if (S.coins < 10) { toast("Need 10 🪙"); sfx("error"); return false; } S.coins -= 10; }
   m[k] = t;
   addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
@@ -751,11 +752,11 @@ export function buyPen(kind) {
   return true;
 }
 export function buyAnimal(kind) {
-  if(kind==='chicken'&&!canCare())return false;
+  if(kind==='chicken'&&(!canCare()||getChickenCareStatus().reason==='unavailable'))return false;
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (!pen.owned || pen.list.length >= a.max) return false;
   if (S.coins < a.cost) { toast("Need " + a.cost + " 🪙"); sfx("error"); return false; }
-  if(kind==='chicken')settleChickens();
+  if(kind==='chicken')settleChickens(true);
   S.coins -= a.cost; pen.list.push(0); if(kind==='chicken')ensureChickenCare(pen,now()); sfx(kind); toast("A new " + a.n.toLowerCase() + " joined the farm!"); view.refresh("herd"); commit();
   return true;
 }

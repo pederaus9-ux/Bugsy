@@ -3514,7 +3514,7 @@ function trayHtml() {
   return "";
 }
 function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
-function openInfo(forWhat) { trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
+function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
 infoTray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-w]"); if (!b) return;
   const d = b.dataset, f = trayFor, i = +d.i;
@@ -3662,6 +3662,7 @@ function onTap(e) {
   if (wardrobeOn) return true; // (drag to turn around your farmer; taps do nothing here)
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
+  if(h.type==='chickenStation'&&walk&&(h.dist??Infinity)>(thirdPerson?8.5:5))return false;
   switch (h.type) {
     case "animal": {
       const an = h.an; squish(an.g, 1.3);

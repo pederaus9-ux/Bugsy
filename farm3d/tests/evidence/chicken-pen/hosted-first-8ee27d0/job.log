@@ -1,0 +1,648 @@
+﻿2026-10-19T01:25:16.4611149Z Current runner version: '2.337.0'
+2026-10-19T01:25:16.4646839Z ##[group]Runner Image Provisioner
+2026-10-19T01:25:16.4648310Z Hosted Compute Agent
+2026-10-19T01:25:16.4649525Z Version: 20261012.601
+2026-10-19T01:25:16.4650688Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-19T01:25:16.4652436Z Build Date: 2026-10-12T17:48:21Z
+2026-10-19T01:25:16.4653754Z Worker ID: {753b8d8f-c65d-4e5b-8e07-e38df1549b6a}
+2026-10-19T01:25:16.4655104Z Region: eastus
+2026-10-19T01:25:16.4656520Z Cloud: Azure
+2026-10-19T01:25:16.4657438Z ##[endgroup]
+2026-10-19T01:25:16.4659715Z ##[group]Operating System
+2026-10-19T01:25:16.4660756Z Ubuntu
+2026-10-19T01:25:16.4662135Z 24.04.5
+2026-10-19T01:25:16.4663160Z LTS
+2026-10-19T01:25:16.4664099Z ##[endgroup]
+2026-10-19T01:25:16.4665199Z ##[group]Runner Image
+2026-10-19T01:25:16.4666308Z Image: ubuntu-24.04
+2026-10-19T01:25:16.4667344Z Version: 20261012.334.1
+2026-10-19T01:25:16.4669501Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-19T01:25:16.4672574Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-19T01:25:16.4674349Z ##[endgroup]
+2026-10-19T01:25:16.4676499Z ##[group]GITHUB_TOKEN Permissions
+2026-10-19T01:25:16.4679397Z Contents: read
+2026-10-19T01:25:16.4680564Z Metadata: read
+2026-10-19T01:25:16.4681789Z ##[endgroup]
+2026-10-19T01:25:16.4685067Z Secret source: Actions
+2026-10-19T01:25:16.4686601Z Cache mode: write
+2026-10-19T01:25:16.4687852Z Prepare workflow directory
+2026-10-19T01:25:16.5173980Z Prepare all required actions
+2026-10-19T01:25:16.5246677Z Getting action download info
+2026-10-19T01:25:16.6963717Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-19T01:25:16.8233232Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-19T01:25:16.9785882Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-19T01:25:17.2323686Z Complete job name: Chicken pen + care + native touch + installed update
+2026-10-19T01:25:17.3140413Z ##[group]Run actions/checkout@v6
+2026-10-19T01:25:17.3141707Z with:
+2026-10-19T01:25:17.3142218Z   persist-credentials: false
+2026-10-19T01:25:17.3142830Z   repository: pederaus9-ux/Bugsy
+2026-10-19T01:25:17.3146670Z   token: ***
+2026-10-19T01:25:17.3147160Z   ssh-strict: true
+2026-10-19T01:25:17.3147649Z   ssh-user: git
+2026-10-19T01:25:17.3148114Z   clean: true
+2026-10-19T01:25:17.3148596Z   sparse-checkout-cone-mode: true
+2026-10-19T01:25:17.3149171Z   fetch-depth: 1
+2026-10-19T01:25:17.3149654Z   fetch-tags: false
+2026-10-19T01:25:17.3150138Z   show-progress: true
+2026-10-19T01:25:17.3150627Z   lfs: false
+2026-10-19T01:25:17.3151269Z   submodules: false
+2026-10-19T01:25:17.3151776Z   set-safe-directory: true
+2026-10-19T01:25:17.3152324Z   allow-unsafe-pr-checkout: false
+2026-10-19T01:25:17.3153170Z ##[endgroup]
+2026-10-19T01:25:17.4171064Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-19T01:25:17.4173556Z ##[group]Getting Git version info
+2026-10-19T01:25:17.4174605Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T01:25:17.4175905Z [command]/usr/bin/git version
+2026-10-19T01:25:17.4251044Z git version 2.55.0
+2026-10-19T01:25:17.4277711Z ##[endgroup]
+2026-10-19T01:25:17.4293142Z Temporarily overriding HOME='/home/runner/work/_temp/f4e7e57b-4ff7-4805-aa11-d194c8df9703' before making global git config changes
+2026-10-19T01:25:17.4295889Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T01:25:17.4298110Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T01:25:17.4345127Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T01:25:17.4349589Z ##[group]Determining repository object format
+2026-10-19T01:25:17.4352187Z ##[endgroup]
+2026-10-19T01:25:17.4353855Z ##[group]Initializing the repository
+2026-10-19T01:25:17.4356209Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-19T01:25:17.4461401Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-19T01:25:17.4463125Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-19T01:25:17.4467743Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-19T01:25:17.4469751Z hint: call:
+2026-10-19T01:25:17.4471219Z hint:
+2026-10-19T01:25:17.4472713Z hint: 	git config --global init.defaultBranch <name>
+2026-10-19T01:25:17.4474389Z hint:
+2026-10-19T01:25:17.4475844Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-19T01:25:17.4477994Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-19T01:25:17.4480181Z hint:
+2026-10-19T01:25:17.4481670Z hint: 	git branch -m <name>
+2026-10-19T01:25:17.4482618Z hint:
+2026-10-19T01:25:17.4483365Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-19T01:25:17.4484460Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-19T01:25:17.4492785Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-19T01:25:17.4539688Z ##[endgroup]
+2026-10-19T01:25:17.4541830Z ##[group]Disabling automatic garbage collection
+2026-10-19T01:25:17.4543828Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-19T01:25:17.4585976Z ##[endgroup]
+2026-10-19T01:25:17.4587249Z ##[group]Setting up auth
+2026-10-19T01:25:17.4588469Z Removing SSH command configuration
+2026-10-19T01:25:17.4589644Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T01:25:17.4626923Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T01:25:17.5072236Z Removing HTTP extra header
+2026-10-19T01:25:17.5074169Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T01:25:17.5096601Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T01:25:17.5389111Z Removing includeIf entries pointing to credentials config files
+2026-10-19T01:25:17.5396255Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T01:25:17.5439952Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T01:25:17.5703773Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-19T01:25:17.5745725Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:17.5782663Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:17.5823028Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:17.5861456Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:17.5892584Z ##[endgroup]
+2026-10-19T01:25:17.5894197Z ##[group]Fetching the repository
+2026-10-19T01:25:17.5902458Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +165068c7f831fae22494f1d7afb1c6a2e9fe392b:refs/remotes/pull/85/merge
+2026-10-19T01:25:19.0270759Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T01:25:19.0273853Z  * [new ref]         165068c7f831fae22494f1d7afb1c6a2e9fe392b -> pull/85/merge
+2026-10-19T01:25:19.0279662Z ##[endgroup]
+2026-10-19T01:25:19.0282127Z ##[group]Determining the checkout info
+2026-10-19T01:25:19.0284434Z ##[endgroup]
+2026-10-19T01:25:19.0285825Z [command]/usr/bin/git sparse-checkout disable
+2026-10-19T01:25:19.0336528Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-19T01:25:19.0367383Z ##[group]Checking out the ref
+2026-10-19T01:25:19.0370438Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/85/merge
+2026-10-19T01:25:19.1679412Z Note: switching to 'refs/remotes/pull/85/merge'.
+2026-10-19T01:25:19.1681083Z 
+2026-10-19T01:25:19.1682175Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-19T01:25:19.1684943Z changes and commit them, and you can discard any commits you make in this
+2026-10-19T01:25:19.1687663Z state without impacting any branches by switching back to a branch.
+2026-10-19T01:25:19.1689382Z 
+2026-10-19T01:25:19.1690526Z If you want to create a new branch to retain commits you create, you may
+2026-10-19T01:25:19.1693205Z do so (now or later) by using -c with the switch command. Example:
+2026-10-19T01:25:19.1694664Z 
+2026-10-19T01:25:19.1695299Z   git switch -c <new-branch-name>
+2026-10-19T01:25:19.1696278Z 
+2026-10-19T01:25:19.1696958Z Or undo this operation with:
+2026-10-19T01:25:19.1697826Z 
+2026-10-19T01:25:19.1698322Z   git switch -
+2026-10-19T01:25:19.1699014Z 
+2026-10-19T01:25:19.1700346Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-19T01:25:19.1702212Z 
+2026-10-19T01:25:19.1704293Z HEAD is now at 165068c Merge 8ee27d0bf769fa501f218516bb45f4e0e4154589 into 756df378e7adbe20f34c204dc54172b1030e16bd
+2026-10-19T01:25:19.1711419Z ##[endgroup]
+2026-10-19T01:25:19.1748458Z [command]/usr/bin/git log -1 --format=%H
+2026-10-19T01:25:19.1830427Z 165068c7f831fae22494f1d7afb1c6a2e9fe392b
+2026-10-19T01:25:19.1836322Z ##[group]Removing auth
+2026-10-19T01:25:19.1838396Z Removing SSH command configuration
+2026-10-19T01:25:19.1841145Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T01:25:19.1847061Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T01:25:19.2057123Z Removing HTTP extra header
+2026-10-19T01:25:19.2061525Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T01:25:19.2102971Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T01:25:19.2319940Z Removing includeIf entries pointing to credentials config files
+2026-10-19T01:25:19.2323365Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T01:25:19.2352436Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T01:25:19.2354721Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T01:25:19.2356806Z includeif.gitdir:/github/workspace/.git.path
+2026-10-19T01:25:19.2358681Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T01:25:19.2364245Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T01:25:19.2388458Z /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2402301Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2439393Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T01:25:19.2464027Z /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2474066Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2515925Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-19T01:25:19.2540252Z /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2552182Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2588965Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T01:25:19.2623146Z /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2637265Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config
+2026-10-19T01:25:19.2672892Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T01:25:19.2890698Z Removing credentials config '/home/runner/work/_temp/git-credentials-1ea87d2d-c1f0-4273-9e8f-b1a114082d45.config'
+2026-10-19T01:25:19.2897753Z ##[endgroup]
+2026-10-19T01:25:19.3256847Z ##[group]Run actions/setup-node@v6
+2026-10-19T01:25:19.3258049Z with:
+2026-10-19T01:25:19.3258909Z   node-version: 22
+2026-10-19T01:25:19.3259832Z   cache: npm
+2026-10-19T01:25:19.3261136Z   cache-dependency-path: farm3d/tests/package-lock.json
+2026-10-19T01:25:19.3262583Z   check-latest: false
+2026-10-19T01:25:19.3271824Z   token: ***
+2026-10-19T01:25:19.3272782Z   package-manager-cache: true
+2026-10-19T01:25:19.3273989Z ##[endgroup]
+2026-10-19T01:25:19.4691513Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-19T01:25:19.4695115Z ##[group]Environment details
+2026-10-19T01:25:19.8354633Z node: v22.23.3
+2026-10-19T01:25:19.8355028Z npm: 10.9.9
+2026-10-19T01:25:19.8355273Z yarn: 1.22.22
+2026-10-19T01:25:19.8355857Z ##[endgroup]
+2026-10-19T01:25:19.8374874Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-19T01:25:19.9479134Z /home/runner/.npm
+2026-10-19T01:25:20.0346144Z Cache hit for: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-19T01:25:20.1892136Z Received 4079830 of 4079830 (100.0%), 36.0 MBs/sec
+2026-10-19T01:25:20.1892775Z Cache Size: ~4 MB (4079830 B)
+2026-10-19T01:25:20.1919244Z [command]/usr/bin/tar -xf /home/runner/work/_temp/ed6bf968-6299-4929-986c-e65999bf2c03/cache.tzst -P -C /home/runner/work/Bugsy/Bugsy --use-compress-program unzstd
+2026-10-19T01:25:20.2029547Z Cache restored successfully
+2026-10-19T01:25:20.2035325Z Cache restored from key: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-19T01:25:20.2165806Z ##[group]Run git fetch --depth 1 https://github.com/pederaus9-ux/Bugsy.git 756df378e7adbe20f34c204dc54172b1030e16bd
+2026-10-19T01:25:20.2166698Z [36;1mgit fetch --depth 1 https://github.com/pederaus9-ux/Bugsy.git 756df378e7adbe20f34c204dc54172b1030e16bd[0m
+2026-10-19T01:25:20.2413821Z shell: /usr/bin/bash -e {0}
+2026-10-19T01:25:20.2414101Z ##[endgroup]
+2026-10-19T01:25:20.3998932Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T01:25:20.3999861Z  * branch            756df378e7adbe20f34c204dc54172b1030e16bd -> FETCH_HEAD
+2026-10-19T01:25:20.4035452Z ##[group]Run npm ci --ignore-scripts
+2026-10-19T01:25:20.4035823Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-19T01:25:20.4098035Z shell: /usr/bin/bash -e {0}
+2026-10-19T01:25:20.4098298Z ##[endgroup]
+2026-10-19T01:25:21.2196145Z 
+2026-10-19T01:25:21.2202418Z added 3 packages, and audited 4 packages in 753ms
+2026-10-19T01:25:21.2204761Z 
+2026-10-19T01:25:21.2204982Z found 0 vulnerabilities
+2026-10-19T01:25:21.2618543Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-19T01:25:21.2619014Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-19T01:25:21.2681759Z shell: /usr/bin/bash -e {0}
+2026-10-19T01:25:21.2682025Z ##[endgroup]
+2026-10-19T01:25:22.0755247Z Installing dependencies...
+2026-10-19T01:25:22.0821596Z Switching to root user to install dependencies...
+2026-10-19T01:25:22.2192449Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T01:25:22.2875277Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-19T01:25:22.3821655Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-19T01:25:22.3830373Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-19T01:25:22.3905195Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-19T01:25:22.3931915Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-19T01:25:22.3935939Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [618 kB]
+2026-10-19T01:25:22.4078629Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [557 kB]
+2026-10-19T01:25:22.4133790Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-19T01:25:22.5122621Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+2026-10-19T01:25:22.5222369Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [308 kB]
+2026-10-19T01:25:22.5224247Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+2026-10-19T01:25:22.5317729Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-19T01:25:22.5362225Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-19T01:25:22.5444002Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-19T01:25:22.6689770Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1144 kB]
+2026-10-19T01:25:22.6803424Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-19T01:25:22.6820326Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-19T01:25:22.6895530Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-19T01:25:22.7323904Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-19T01:25:22.7413793Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-19T01:25:25.6455029Z Fetched 12.5 MB in 1s (8661 kB/s)
+2026-10-19T01:25:26.5316470Z Reading package lists...
+2026-10-19T01:25:26.5553425Z Reading package lists...
+2026-10-19T01:25:26.7426196Z Building dependency tree...
+2026-10-19T01:25:26.7433228Z Reading state information...
+2026-10-19T01:25:26.8814435Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-19T01:25:26.8815442Z libasound2t64 set to manually installed.
+2026-10-19T01:25:26.8816429Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T01:25:26.8817390Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-19T01:25:26.8818336Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T01:25:26.8819227Z libatk1.0-0t64 set to manually installed.
+2026-10-19T01:25:26.8820170Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T01:25:26.8821480Z libatspi2.0-0t64 set to manually installed.
+2026-10-19T01:25:26.8822396Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-19T01:25:26.8823235Z libcairo2 set to manually installed.
+2026-10-19T01:25:26.8824048Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-19T01:25:26.8824914Z libcups2t64 set to manually installed.
+2026-10-19T01:25:26.8825629Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-19T01:25:26.8826061Z libdbus-1-3 set to manually installed.
+2026-10-19T01:25:26.8826500Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-19T01:25:26.8826915Z libdrm2 set to manually installed.
+2026-10-19T01:25:26.8827334Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-19T01:25:26.8827731Z libgbm1 set to manually installed.
+2026-10-19T01:25:26.8828148Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-19T01:25:26.8828574Z libglib2.0-0t64 set to manually installed.
+2026-10-19T01:25:26.8829009Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-19T01:25:26.8829403Z libnspr4 set to manually installed.
+2026-10-19T01:25:26.8829889Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-19T01:25:26.8830281Z libnss3 set to manually installed.
+2026-10-19T01:25:26.8831182Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-19T01:25:26.8832010Z libpango-1.0-0 set to manually installed.
+2026-10-19T01:25:26.8832791Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-19T01:25:26.8833555Z libx11-6 set to manually installed.
+2026-10-19T01:25:26.8834273Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-19T01:25:26.8835033Z libxcb1 set to manually installed.
+2026-10-19T01:25:26.8835836Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-19T01:25:26.8836640Z libxcomposite1 set to manually installed.
+2026-10-19T01:25:26.8837446Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-19T01:25:26.8838211Z libxdamage1 set to manually installed.
+2026-10-19T01:25:26.8838954Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-19T01:25:26.8839640Z libxext6 set to manually installed.
+2026-10-19T01:25:26.8840391Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-19T01:25:26.8841420Z libxfixes3 set to manually installed.
+2026-10-19T01:25:26.8842195Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-19T01:25:26.8842962Z libxkbcommon0 set to manually installed.
+2026-10-19T01:25:26.8843722Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-19T01:25:26.8844445Z libxrandr2 set to manually installed.
+2026-10-19T01:25:26.8845212Z xvfb is already the newest version (2:21.1.12-1ubuntu1.8).
+2026-10-19T01:25:26.8846220Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-19T01:25:26.8847517Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-19T01:25:26.8848346Z libfontconfig1 set to manually installed.
+2026-10-19T01:25:26.8849244Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-19T01:25:26.8850077Z libfreetype6 set to manually installed.
+2026-10-19T01:25:26.8851154Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-19T01:25:26.8851957Z fonts-liberation set to manually installed.
+2026-10-19T01:25:26.8852748Z The following additional packages will be installed:
+2026-10-19T01:25:26.8853462Z   xfonts-encodings xfonts-utils
+2026-10-19T01:25:26.8853995Z Recommended packages:
+2026-10-19T01:25:26.8854541Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-10-19T01:25:26.8982893Z The following NEW packages will be installed:
+2026-10-19T01:25:26.8983636Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-19T01:25:26.8988330Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-19T01:25:26.8988958Z   xfonts-utils
+2026-10-19T01:25:26.9151826Z 0 upgraded, 9 newly installed, 0 to remove and 44 not upgraded.
+2026-10-19T01:25:26.9152554Z Need to get 21.1 MB of archives.
+2026-10-19T01:25:26.9153076Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-19T01:25:26.9153579Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T01:25:27.0159655Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-19T01:25:27.1859859Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-19T01:25:27.3734622Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-19T01:25:27.4560511Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-19T01:25:27.5653772Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-19T01:25:27.8278872Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-19T01:25:27.9235215Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-19T01:25:28.0062899Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-19T01:25:28.0970740Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-19T01:25:28.3422433Z Fetched 21.1 MB in 1s (17.6 MB/s)
+2026-10-19T01:25:28.3641122Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-19T01:25:28.3881593Z (Reading database ... 
+2026-10-19T01:25:28.3882324Z (Reading database ... 5%
+2026-10-19T01:25:28.3882801Z (Reading database ... 10%
+2026-10-19T01:25:28.3883198Z (Reading database ... 15%
+2026-10-19T01:25:28.3883629Z (Reading database ... 20%
+2026-10-19T01:25:28.3884068Z (Reading database ... 25%
+2026-10-19T01:25:28.3884452Z (Reading database ... 30%
+2026-10-19T01:25:28.3884831Z (Reading database ... 35%
+2026-10-19T01:25:28.3885204Z (Reading database ... 40%
+2026-10-19T01:25:28.3885575Z (Reading database ... 45%
+2026-10-19T01:25:28.3885952Z (Reading database ... 50%
+2026-10-19T01:25:28.3918247Z (Reading database ... 55%
+2026-10-19T01:25:28.4720075Z (Reading database ... 60%
+2026-10-19T01:25:28.6609127Z (Reading database ... 65%
+2026-10-19T01:25:28.8683457Z (Reading database ... 70%
+2026-10-19T01:25:29.0154137Z (Reading database ... 75%
+2026-10-19T01:25:29.1383520Z (Reading database ... 80%
+2026-10-19T01:25:29.2730610Z (Reading database ... 85%
+2026-10-19T01:25:29.3859249Z (Reading database ... 90%
+2026-10-19T01:25:29.5308715Z (Reading database ... 95%
+2026-10-19T01:25:29.5309122Z (Reading database ... 100%
+2026-10-19T01:25:29.5309671Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-19T01:25:29.5352414Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-19T01:25:29.5440265Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T01:25:29.7718052Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-19T01:25:29.7843469Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-19T01:25:29.7851779Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T01:25:29.8603143Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-19T01:25:29.8732295Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-19T01:25:29.8739540Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T01:25:29.8944196Z Selecting previously unselected package fonts-unifont.
+2026-10-19T01:25:29.9069672Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-19T01:25:29.9076918Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T01:25:30.0185250Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-19T01:25:30.0311620Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-19T01:25:30.0409998Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T01:25:30.5032643Z Selecting previously unselected package xfonts-encodings.
+2026-10-19T01:25:30.5157559Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-19T01:25:30.5165266Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T01:25:30.5426138Z Selecting previously unselected package xfonts-utils.
+2026-10-19T01:25:30.5552125Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-19T01:25:30.5561201Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-19T01:25:30.5887756Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-19T01:25:30.6012745Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-19T01:25:30.6021431Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T01:25:30.6336179Z Selecting previously unselected package xfonts-scalable.
+2026-10-19T01:25:30.6460296Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-19T01:25:30.6467477Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T01:25:30.6863654Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T01:25:30.6984799Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T01:25:30.7003292Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T01:25:30.7123762Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T01:25:30.7144376Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T01:25:30.7209958Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-19T01:25:30.7224712Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T01:25:30.7244060Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-19T01:25:30.7283458Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T01:25:30.7568887Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T01:25:30.7837595Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-19T01:25:30.7857311Z Not building database; man-db/auto-update is not 'true'.
+2026-10-19T01:25:30.7868950Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-19T01:25:31.4758603Z 
+2026-10-19T01:25:31.4759440Z Running kernel seems to be up-to-date.
+2026-10-19T01:25:31.4759879Z 
+2026-10-19T01:25:31.4760178Z No services need to be restarted.
+2026-10-19T01:25:31.4760521Z 
+2026-10-19T01:25:31.4761299Z No containers need to be restarted.
+2026-10-19T01:25:31.4761671Z 
+2026-10-19T01:25:31.4762020Z No user sessions are running outdated binaries.
+2026-10-19T01:25:31.4762406Z 
+2026-10-19T01:25:31.4762919Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-19T01:25:32.3029476Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-19T01:25:33.2967030Z |                                                                                |   0% of 184.3 MiB
+2026-10-19T01:25:33.4432709Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-19T01:25:33.5278375Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-19T01:25:33.6054573Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-19T01:25:33.6732347Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-19T01:25:33.7381772Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-19T01:25:33.8086308Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-19T01:25:33.8758119Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-19T01:25:33.9397121Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-19T01:25:34.0018645Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-19T01:25:34.0656142Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-19T01:25:36.6987053Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-19T01:25:36.6990272Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-19T01:25:37.6628276Z |                                                                                |   0% of 2.3 MiB
+2026-10-19T01:25:37.6667986Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-19T01:25:37.6759047Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-19T01:25:37.6904738Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-19T01:25:37.6978983Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-19T01:25:37.7001493Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-19T01:25:37.7088405Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-19T01:25:37.7194146Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-19T01:25:37.7277924Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-19T01:25:37.7496539Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-19T01:25:37.7564678Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-19T01:25:37.8137308Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-19T01:25:37.8140543Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-19T01:25:38.7810979Z |                                                                                |   0% of 114.7 MiB
+2026-10-19T01:25:38.9104873Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-19T01:25:39.0098154Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-19T01:25:39.0633443Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-19T01:25:39.1152868Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-19T01:25:39.1590581Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-19T01:25:39.2031306Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-19T01:25:39.2423973Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-19T01:25:39.2851859Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-19T01:25:39.3247095Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-19T01:25:39.3662199Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-19T01:25:41.2474959Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-19T01:25:41.2762911Z ##[group]Run npm run test:chickens
+2026-10-19T01:25:41.2763256Z [36;1mnpm run test:chickens[0m
+2026-10-19T01:25:41.2824867Z shell: /usr/bin/bash -e {0}
+2026-10-19T01:25:41.2825123Z ##[endgroup]
+2026-10-19T01:25:41.3811534Z 
+2026-10-19T01:25:41.3812297Z > sunny-acres-regression-tests@1.0.0 test:chickens
+2026-10-19T01:25:41.3813762Z > node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs && node chicken-pen.browser.cjs && node chicken-pen-update.browser.cjs
+2026-10-19T01:25:41.3814595Z 
+2026-10-19T01:25:41.4313613Z TAP version 13
+2026-10-19T01:25:41.5138793Z # Subtest: insufficient_feed_and_duplicate_confirmation
+2026-10-19T01:25:41.5161701Z ok 1 - insufficient_feed_and_duplicate_confirmation
+2026-10-19T01:25:41.5191388Z   ---
+2026-10-19T01:25:41.5192101Z   duration_ms: 21.226764
+2026-10-19T01:25:41.5197999Z   type: 'test'
+2026-10-19T01:25:41.5221460Z   ...
+2026-10-19T01:25:41.5232102Z # Subtest: water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T01:25:41.5233143Z ok 2 - water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T01:25:41.5233825Z   ---
+2026-10-19T01:25:41.5234266Z   duration_ms: 5.046895
+2026-10-19T01:25:41.5234815Z   type: 'test'
+2026-10-19T01:25:41.5235275Z   ...
+2026-10-19T01:25:41.5235939Z # Subtest: legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T01:25:41.5236821Z ok 3 - legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T01:25:41.5237499Z   ---
+2026-10-19T01:25:41.5237968Z   duration_ms: 1.200282
+2026-10-19T01:25:41.5238473Z   type: 'test'
+2026-10-19T01:25:41.5238903Z   ...
+2026-10-19T01:25:41.5239517Z # Subtest: read_only_farms_reject_all_new_mutations
+2026-10-19T01:25:41.5240350Z ok 4 - read_only_farms_reject_all_new_mutations
+2026-10-19T01:25:41.5241212Z   ---
+2026-10-19T01:25:41.5241678Z   duration_ms: 3.553087
+2026-10-19T01:25:41.5242188Z   type: 'test'
+2026-10-19T01:25:41.5242643Z   ...
+2026-10-19T01:25:41.5243259Z # Subtest: other_species_exact and farm_roundtrip
+2026-10-19T01:25:41.5244132Z ok 5 - other_species_exact and farm_roundtrip
+2026-10-19T01:25:41.5244784Z   ---
+2026-10-19T01:25:41.5245209Z   duration_ms: 1.997314
+2026-10-19T01:25:41.5245700Z   type: 'test'
+2026-10-19T01:25:41.5246128Z   ...
+2026-10-19T01:25:41.5246899Z # Subtest: unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T01:25:41.5248000Z ok 6 - unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T01:25:41.5248721Z   ---
+2026-10-19T01:25:41.5249555Z   duration_ms: 0.310778
+2026-10-19T01:25:41.5250061Z   type: 'test'
+2026-10-19T01:25:41.5250539Z   ...
+2026-10-19T01:25:41.5251751Z # Subtest: passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T01:25:41.5253217Z ok 7 - passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T01:25:41.5254160Z   ---
+2026-10-19T01:25:41.5254660Z   duration_ms: 0.948474
+2026-10-19T01:25:41.5255210Z   type: 'test'
+2026-10-19T01:25:41.5255688Z   ...
+2026-10-19T01:25:41.5256634Z # Subtest: a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T01:25:41.5257960Z ok 8 - a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T01:25:41.5258836Z   ---
+2026-10-19T01:25:41.5259339Z   duration_ms: 1.908128
+2026-10-19T01:25:41.5259946Z   type: 'test'
+2026-10-19T01:25:41.5260442Z   ...
+2026-10-19T01:25:43.9099601Z # Subtest: chicken care module is available
+2026-10-19T01:25:43.9100334Z ok 9 - chicken care module is available
+2026-10-19T01:25:43.9101081Z   ---
+2026-10-19T01:25:43.9101327Z   duration_ms: 2.899201
+2026-10-19T01:25:43.9101621Z   type: 'test'
+2026-10-19T01:25:43.9101942Z   ...
+2026-10-19T01:25:43.9102261Z # Subtest: one_six_and_zero_chickens
+2026-10-19T01:25:43.9102823Z ok 10 - one_six_and_zero_chickens
+2026-10-19T01:25:43.9105916Z   ---
+2026-10-19T01:25:43.9106279Z   duration_ms: 6.040774
+2026-10-19T01:25:43.9106671Z   type: 'test'
+2026-10-19T01:25:43.9107009Z   ...
+2026-10-19T01:25:43.9108160Z # Subtest: earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T01:25:43.9109163Z ok 11 - earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T01:25:43.9109777Z   ---
+2026-10-19T01:25:43.9110103Z   duration_ms: 0.576642
+2026-10-19T01:25:43.9110473Z   type: 'test'
+2026-10-19T01:25:43.9111030Z   ...
+2026-10-19T01:25:43.9111797Z # Subtest: early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T01:25:43.9112956Z ok 12 - early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T01:25:43.9113533Z   ---
+2026-10-19T01:25:43.9113739Z   duration_ms: 3.154626
+2026-10-19T01:25:43.9114049Z   type: 'test'
+2026-10-19T01:25:43.9114335Z   ...
+2026-10-19T01:25:43.9114789Z # Subtest: pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T01:25:43.9115543Z ok 13 - pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T01:25:43.9116029Z   ---
+2026-10-19T01:25:43.9116295Z   duration_ms: 0.556686
+2026-10-19T01:25:43.9116556Z   type: 'test'
+2026-10-19T01:25:43.9116750Z   ...
+2026-10-19T01:25:43.9117263Z # Subtest: pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T01:25:43.9117996Z ok 14 - pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T01:25:43.9118473Z   ---
+2026-10-19T01:25:43.9118675Z   duration_ms: 5.6945
+2026-10-19T01:25:43.9118890Z   type: 'test'
+2026-10-19T01:25:43.9119113Z   ...
+2026-10-19T01:25:43.9119573Z # Subtest: clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T01:25:43.9120238Z ok 15 - clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T01:25:43.9120724Z   ---
+2026-10-19T01:25:43.9121206Z   duration_ms: 21.792585
+2026-10-19T01:25:43.9121448Z   type: 'test'
+2026-10-19T01:25:43.9121731Z   ...
+2026-10-19T01:25:43.9122144Z # Subtest: clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T01:25:43.9122968Z ok 16 - clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T01:25:43.9123351Z   ---
+2026-10-19T01:25:43.9123536Z   duration_ms: 0.356343
+2026-10-19T01:25:43.9123757Z   type: 'test'
+2026-10-19T01:25:43.9123944Z   ...
+2026-10-19T01:25:43.9124283Z # Subtest: new_chicken starts fresh with current supplies
+2026-10-19T01:25:43.9124833Z ok 17 - new_chicken starts fresh with current supplies
+2026-10-19T01:25:43.9125129Z   ---
+2026-10-19T01:25:43.9125403Z   duration_ms: 0.733804
+2026-10-19T01:25:43.9125623Z   type: 'test'
+2026-10-19T01:25:43.9126083Z   ...
+2026-10-19T01:25:43.9126510Z # Subtest: legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T01:25:43.9127266Z ok 18 - legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T01:25:43.9127824Z   ---
+2026-10-19T01:25:43.9128062Z   duration_ms: 1.004829
+2026-10-19T01:25:43.9128284Z   type: 'test'
+2026-10-19T01:25:43.9128471Z   ...
+2026-10-19T01:25:43.9128975Z # Subtest: unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T01:25:43.9129660Z ok 19 - unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T01:25:43.9130120Z   ---
+2026-10-19T01:25:43.9130310Z   duration_ms: 0.345703
+2026-10-19T01:25:43.9130529Z   type: 'test'
+2026-10-19T01:25:43.9131123Z   ...
+2026-10-19T01:25:43.9131585Z # Subtest: happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T01:25:43.9132416Z ok 20 - happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T01:25:43.9132814Z   ---
+2026-10-19T01:25:43.9133006Z   duration_ms: 45.766429
+2026-10-19T01:25:43.9133235Z   type: 'test'
+2026-10-19T01:25:43.9133425Z   ...
+2026-10-19T01:25:43.9133808Z # Subtest: status is a read-only projection, even before first migration
+2026-10-19T01:25:43.9134447Z ok 21 - status is a read-only projection, even before first migration
+2026-10-19T01:25:43.9134879Z   ---
+2026-10-19T01:25:43.9135145Z   duration_ms: 0.27455
+2026-10-19T01:25:43.9135480Z   type: 'test'
+2026-10-19T01:25:43.9136011Z   ...
+2026-10-19T01:25:43.9136712Z # Subtest: chicken card retains naming and petting without old feeding controls
+2026-10-19T01:25:43.9137722Z ok 22 - chicken card retains naming and petting without old feeding controls
+2026-10-19T01:25:43.9138370Z   ---
+2026-10-19T01:25:43.9138676Z   duration_ms: 4.54972
+2026-10-19T01:25:43.9139039Z   type: 'test'
+2026-10-19T01:25:43.9139348Z   ...
+2026-10-19T01:25:43.9140043Z # Subtest: feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T01:25:43.9142416Z ok 23 - feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T01:25:43.9143099Z   ---
+2026-10-19T01:25:43.9143315Z   duration_ms: 3.708907
+2026-10-19T01:25:43.9143637Z   type: 'test'
+2026-10-19T01:25:43.9143845Z   ...
+2026-10-19T01:25:43.9144359Z # Subtest: customization offers real color previews, apply, cancel and two roofs
+2026-10-19T01:25:43.9145122Z ok 24 - customization offers real color previews, apply, cancel and two roofs
+2026-10-19T01:25:43.9145573Z   ---
+2026-10-19T01:25:43.9145779Z   duration_ms: 1.748662
+2026-10-19T01:25:43.9146003Z   type: 'test'
+2026-10-19T01:25:43.9146193Z   ...
+2026-10-19T01:25:43.9146619Z # Subtest: full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T01:25:43.9147229Z ok 25 - full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T01:25:43.9147606Z   ---
+2026-10-19T01:25:43.9147793Z   duration_ms: 1.350492
+2026-10-19T01:25:43.9148011Z   type: 'test'
+2026-10-19T01:25:43.9148196Z   ...
+2026-10-19T01:25:43.9148580Z # Subtest: physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T01:25:43.9149145Z ok 26 - physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T01:25:43.9149501Z   ---
+2026-10-19T01:25:43.9149687Z   duration_ms: 44.361335
+2026-10-19T01:25:43.9149916Z   type: 'test'
+2026-10-19T01:25:43.9150102Z   ...
+2026-10-19T01:25:43.9150406Z # Subtest: geometry stays under a bounded component budget
+2026-10-19T01:25:43.9151128Z ok 27 - geometry stays under a bounded component budget
+2026-10-19T01:25:43.9151489Z   ---
+2026-10-19T01:25:43.9151673Z   duration_ms: 16.748358
+2026-10-19T01:25:43.9151894Z   type: 'test'
+2026-10-19T01:25:43.9152083Z   ...
+2026-10-19T01:25:43.9152554Z # Subtest: appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T01:25:43.9153270Z ok 28 - appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T01:25:43.9154250Z   ---
+2026-10-19T01:25:43.9154448Z   duration_ms: 23.789914
+2026-10-19T01:25:43.9154681Z   type: 'test'
+2026-10-19T01:25:43.9154871Z   ...
+2026-10-19T01:25:43.9155045Z 1..28
+2026-10-19T01:25:43.9155223Z # tests 28
+2026-10-19T01:25:43.9155410Z # suites 0
+2026-10-19T01:25:43.9155590Z # pass 28
+2026-10-19T01:25:43.9155766Z # fail 0
+2026-10-19T01:25:43.9155955Z # cancelled 0
+2026-10-19T01:25:43.9156150Z # skipped 0
+2026-10-19T01:25:43.9156332Z # todo 0
+2026-10-19T01:25:43.9156549Z # duration_ms 2496.568124
+2026-10-19T01:27:31.2441527Z page.waitForFunction: Timeout 30000ms exceeded.
+2026-10-19T01:27:31.2443294Z     at focus (/home/runner/work/Bugsy/Bugsy/farm3d/tests/chicken-pen.browser.cjs:11:303)
+2026-10-19T01:27:31.2446810Z     at async /home/runner/work/Bugsy/Bugsy/farm3d/tests/chicken-pen.browser.cjs:20:42
+2026-10-19T01:27:39.8858940Z ##[error]Process completed with exit code 1.
+2026-10-19T01:27:39.8970417Z ##[group]Run actions/upload-artifact@v5
+2026-10-19T01:27:39.8970727Z with:
+2026-10-19T01:27:39.8971284Z   name: farm3d-chicken-pen-1
+2026-10-19T01:27:39.8971979Z   path: farm3d/tests/artifacts/chicken-pen/
+farm3d/tests/artifacts/chicken-pen-update/
+farm3d/tests/artifacts/chicken-*.png
+farm3d/tests/artifacts/chicken-*.zip
+
+2026-10-19T01:27:39.8972692Z   if-no-files-found: error
+2026-10-19T01:27:39.8972933Z   retention-days: 14
+2026-10-19T01:27:39.8973151Z   compression-level: 6
+2026-10-19T01:27:39.8973360Z   overwrite: false
+2026-10-19T01:27:39.8973571Z   include-hidden-files: false
+2026-10-19T01:27:39.8973813Z ##[endgroup]
+2026-10-19T01:27:40.0581895Z (node:3383) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-19T01:27:40.0582731Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-19T01:27:40.0674328Z With the provided path, there will be 8 files uploaded
+2026-10-19T01:27:40.0679974Z Artifact name is valid!
+2026-10-19T01:27:40.0680688Z Root directory input is valid!
+2026-10-19T01:27:40.2772311Z Beginning upload of artifact content to blob storage
+2026-10-19T01:27:40.5647665Z (node:3383) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-19T01:27:40.7510434Z Uploaded bytes 8388608
+2026-10-19T01:27:40.8263391Z Uploaded bytes 11709291
+2026-10-19T01:27:40.8409806Z Finished uploading artifact content to blob storage!
+2026-10-19T01:27:40.8411448Z SHA256 digest of uploaded artifact zip is cae6d49b519aca69e7c0184915608ca452fbc9398fac538490e059b6981ed1dc
+2026-10-19T01:27:40.8413596Z Finalizing artifact upload
+2026-10-19T01:27:41.0499428Z Artifact farm3d-chicken-pen-1.zip successfully finalized. Artifact ID 12157608588
+2026-10-19T01:27:41.0501977Z Artifact farm3d-chicken-pen-1 has been successfully uploaded! Final size is 11709291 bytes. Artifact ID is 12157608588
+2026-10-19T01:27:41.0508066Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39185264006/artifacts/12157608588
+2026-10-19T01:27:41.0730260Z Post job cleanup.
+2026-10-19T01:27:41.1576870Z [command]/usr/bin/git version
+2026-10-19T01:27:41.1618343Z git version 2.55.0
+2026-10-19T01:27:41.1657359Z Temporarily overriding HOME='/home/runner/work/_temp/07c41d50-3136-402b-bab7-aefb8989ae9a' before making global git config changes
+2026-10-19T01:27:41.1658967Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T01:27:41.1662552Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T01:27:41.1700150Z Removing SSH command configuration
+2026-10-19T01:27:41.1702738Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T01:27:41.1737861Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T01:27:41.1982474Z Removing HTTP extra header
+2026-10-19T01:27:41.1989568Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T01:27:41.2026947Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T01:27:41.2282208Z Removing includeIf entries pointing to credentials config files
+2026-10-19T01:27:41.2288752Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T01:27:41.2325132Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T01:27:41.2738083Z Cleaning up orphan processes
+2026-10-19T01:27:41.3020107Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

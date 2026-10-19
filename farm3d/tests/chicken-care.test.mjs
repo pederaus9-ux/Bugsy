@@ -21,3 +21,10 @@ test('legacy_migration_once retains paid ready and future eggs without free feed
 test('unknown_care_version_preserved rejects actions without deleting data',()=>{const p=pen();p.care={v:99,precious:[1,2,3]};const before=JSON.stringify(p);assert.equal(care.ensureChickenCare(p,T),null);assert.equal(care.refillChickenCare(p,'water',T,0).ok,false);assert.deepEqual(care.takeChickenEggs(p,50,T),{normal:0,gold:0,xp:0});assert.equal(status(p,T).reason,'unavailable');assert.equal(JSON.stringify(p),before);});
 test('happy_cycles_and_rewards persist and split double eggs without double XP',()=>{const p=pen(6,100);fill(p);assert.equal(status(p,T+1_440_000-1).total,0);care.settleChickenCare(p,T+H12);const q=JSON.parse(JSON.stringify(p));assert.deepEqual(status(q,T+H12),status(p,T+H12));const stock=status(p,T+H12);assert.ok(stock.total>180&&stock.gold>0);let normal=0,gold=0,xp=0;while(status(q,T+H12).total){const got=care.takeChickenEggs(q,1,T+H12);normal+=got.normal;gold+=got.gold;xp+=got.xp;}assert.equal(normal+gold,stock.total);assert.equal(gold,stock.gold);assert.equal(xp,360);assert.deepEqual(care.takeChickenEggs(q,999,T+H12),{normal:0,gold:0,xp:0});});
 test('status is a read-only projection, even before first migration',()=>{const p=pen();const s=JSON.stringify(p);status(p,T+EGG);assert.equal(JSON.stringify(p),s);});
+test('malformed current-version care is preserved without crashing or paying invalid rewards',()=>{
+  for(const mutate of [c=>c.batches=[null],c=>c.birds=[null],c=>c.legacy=[null],c=>{c.batches=[{n:1,gold:false,xp:-2}];c.normal=1;},c=>c.birds[0].duration=.001]){
+    const p=pen();fill(p);mutate(p.care);const raw=JSON.stringify(p);
+    assert.doesNotThrow(()=>status(p,T+EGG));assert.equal(status(p,T+EGG).reason,'unavailable');
+    assert.deepEqual(care.takeChickenEggs(p,999,T+EGG),{normal:0,gold:0,xp:0});assert.equal(care.refillChickenCare(p,'feed',T,p.care.revision).ok,false);assert.equal(JSON.stringify(p),raw);
+  }
+});
