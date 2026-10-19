@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+import {G,reset} from './chicken-game-fixture.mjs';
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+// Run the actual tray renderer, rather than checking whether source contains
+// strings. A restored old chicken feed button or missing station quote fails.
+function tray(forWhat){const c={G,GS:()=>G.S,trayFor:forWhat,chickenPreview:{...G.CHICKEN_DEFAULT_STYLE},esc:String,ART:'art/',nowMs:()=>Date.now(),plotCostTxt:()=>'',cdBtn:()=>'<button>Pet</button>',PET_CD:0,BRUSH_CD:0,PLAY_CD:0,TREAT_CD:0,GIFT_CD:0};vm.createContext(c);vm.runInContext(html.slice(html.indexOf('function trayHtml()'),html.indexOf('\nfunction refreshInfo')),c);return {c,body:c.trayHtml()};}
+test('chicken card retains naming and petting without old feeding controls',()=>{reset(1);const {body}=tray({type:'animal',an:{kind:'chicken',ref:{i:0},pers:'Calm',label:'Resting'}});assert.match(body,/data-w="rename"/);assert.match(body,/Pet/);assert.doesNotMatch(body,/data-w="feed(All)?"/);assert.match(body,/pallet/i);});
+test('feed and water trays show exact quote and 12-hour station confirmation',()=>{reset(6);const a=tray({type:'chickenStation',station:'feed'}).body;assert.match(a,/6 chicken feed/);assert.match(a,/12/);assert.match(a,/data-rev="\d+"/);const b=tray({type:'chickenStation',station:'water'}).body;assert.match(b,/free/i);assert.match(b,/water/i);});
+test('customization offers real color previews, apply, cancel and two roofs',()=>{reset();const {body}=tray({type:'chickenStation',station:'coop'});assert.match(body,/data-w="chickenPaint"/);assert.match(body,/data-w="chickenApply"/);assert.match(body,/data-w="chickenCancel"/);assert.match(body,/Shingles/);assert.match(body,/Metal/);assert.match(body,/aria-pressed/);});
+test('full barn pallet tray reports stored stock and cannot offer a paid pickup',()=>{const s=reset(1);s.barnCap=G.barnUsed();const {body}=tray({type:'chickenStation',station:'eggs'});assert.match(body,/240/);assert.match(body,/barn/i);assert.doesNotMatch(body,/data-act="sell/);});

@@ -1,0 +1,102 @@
+✖ insufficient_feed_and_duplicate_confirmation (2.276163ms)
+✖ water_is_free_and_pallet_pays_once_with_barn_limit (0.275513ms)
+✖ legacy_chicken_buttons_do_not_bypass_stations (0.509587ms)
+✖ read_only_farms_reject_all_new_mutations (15.930554ms)
+✖ other_species_exact and farm_roundtrip (0.408011ms)
+✖ unowned_and_future_care cannot spend or overwrite appearance (0.300863ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 141.949236
+
+✖ failing tests:
+
+test at farm3d/tests/chicken-care-integration.test.mjs:5:1
+✖ insufficient_feed_and_duplicate_confirmation (2.276163ms)
+  AssertionError [ERR_ASSERTION]: station refill is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:5:81)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/chicken-care-integration.test.mjs:6:1
+✖ water_is_free_and_pallet_pays_once_with_barn_limit (0.275513ms)
+  TypeError: G.chickenRefillQuote is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:6:107)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at farm3d/tests/chicken-care-integration.test.mjs:7:1
+✖ legacy_chicken_buttons_do_not_bypass_stations (0.509587ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:7:116)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/chicken-care-integration.test.mjs:8:1
+✖ read_only_farms_reject_all_new_mutations (15.930554ms)
+  TypeError: G.chickenRefillQuote is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:8:212)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d/tests/chicken-care-integration.test.mjs:9:1
+✖ other_species_exact and farm_roundtrip (0.408011ms)
+  TypeError: G.setChickenAppearance is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:9:327)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d/tests/chicken-care-integration.test.mjs:10:1
+✖ unowned_and_future_care cannot spend or overwrite appearance (0.300863ms)
+  TypeError: G.refillChickens is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:10:132)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

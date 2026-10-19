@@ -9,7 +9,7 @@ const read = (f) => readFileSync(new URL(f, dir), "utf8");
 const html = read("index.html"), sw = read("sw.js");
 const shell = JSON.parse(sw.match(/const SHELL = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
 const versionedImports = source => [...source.matchAll(/["'(](?:\.\/)?((?:[a-z0-9-]+\/)*[a-z0-9-]+\.js)\?v=(\d+)["')]/gi)].map(m => ({file: m[1], v: +m[2]}));
-const imports = versionedImports(html);
+const imports = [...versionedImports(html), ...versionedImports(read('game.js'))];
 
 test("nested authored module versions cannot evade the cache consistency check", () => {
   const nested = versionedImports("import('./art/authored-hands.js?v=2'); import './game.js?v=25';");
@@ -42,4 +42,10 @@ test("the offline shell caches the same versions the page imports", () => {
 
 test("the cache name is versioned and namespaced away from the 2D game", () => {
   assert.match(sw, /const CACHE = "sa3d-v\d+";/);
+});
+test('chicken dependencies of both the page and game rules are cached offline',()=>{
+  for(const file of ['chicken-care.js','chicken-yard.js']){
+    const used=imports.find(i=>i.file===file);assert.ok(used,file+' is used by the candidate');
+    assert.ok(shell.includes(file+'?v='+used.v),file+' must be available on offline reboot');
+  }
 });

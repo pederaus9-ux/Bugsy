@@ -282,3 +282,40 @@ jobs:
             farm3d/tests/artifacts/seed-selection*.zip
           if-no-files-found: error
           retention-days: 14
+
+  chicken-pen:
+    name: Chicken pen + care + native touch + installed update
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Fetch immutable base for real installed-worker update
+        run: git fetch --depth 1 https://github.com/pederaus9-ux/Bugsy.git 756df378e7adbe20f34c204dc54172b1030e16bd
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Care, station controls, native touch, saves and installed update
+        working-directory: farm3d/tests
+        run: npm run test:chickens
+      - name: Preserve actual frames, videos, partial results and failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-chicken-pen-${{ github.run_attempt }}
+          path: |
+            farm3d/tests/artifacts/chicken-pen/
+            farm3d/tests/artifacts/chicken-pen-update/
+            farm3d/tests/artifacts/chicken-*.png
+            farm3d/tests/artifacts/chicken-*.zip
+          if-no-files-found: error
+          retention-days: 14

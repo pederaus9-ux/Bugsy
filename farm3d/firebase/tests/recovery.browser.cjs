@@ -57,6 +57,20 @@ async function main() {
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
 
+    // Chicken envelope traverses the existing authenticated snapshot path. No
+    // Firebase/auth/rules code is substituted or enabled on the public farm.
+    await P(g, () => {
+      const G=__dbg.G;G.S.pens.chicken={owned:true,list:[0],meta:[{name:'Snapshot Hen',love:50,loveAt:Date.now()}]};G.S.barn.chicken_feed=3;
+      if(!G.refillChickens('feed',G.chickenRefillQuote('feed').revision)||!G.refillChickens('water',G.chickenRefillQuote('water').revision))throw Error('chicken fixture refill failed');
+      if(!G.setChickenAppearance({walls:'sage',roof:'red',trim:'cream',roofType:'metal'}))throw Error('chicken fixture appearance failed');
+    });
+    const chickenBase=await establish(uid,'chicken-snapshot');
+    const chickenCloud=JSON.parse((await cloud(uid)).save).pens.chicken;
+    check('chicken care and appearance survive authenticated cloud upload',chickenCloud.care?.v===1&&chickenCloud.care.feedUntil>0&&chickenCloud.care.waterUntil>0&&chickenCloud.appearance?.walls==='sage');
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const chickenRestored=await P(g,()=>__dbg.G.S.pens.chicken);
+    check('chicken snapshot restores without losing supplies, stock or appearance',JSON.stringify(chickenRestored.care)===JSON.stringify(chickenCloud.care)&&JSON.stringify(chickenRestored.appearance)===JSON.stringify(chickenCloud.appearance)&&chickenRestored.meta[0].name==='Snapshot Hen');
+
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
       const base = await establish(uid, 'race'), n0 = loads.grandma || 0; g.farmWrites = [];
