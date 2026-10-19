@@ -28,3 +28,5 @@ test('malformed current-version care is preserved without crashing or paying inv
     assert.deepEqual(care.takeChickenEggs(p,999,T+EGG),{normal:0,gold:0,xp:0});assert.equal(care.refillChickenCare(p,'feed',T,p.care.revision).ok,false);assert.equal(JSON.stringify(p),raw);
   }
 });
+test('a legacy timer written by an older cached client is migrated even when care already exists',()=>{const p=pen();care.ensureChickenCare(p,T);p.list[0]=T+90_000;care.settleChickenCare(p,T+90_000);assert.equal(status(p,T+90_000).total,1);assert.equal(p.list[0],0);const q=JSON.parse(JSON.stringify(p));care.settleChickenCare(q,T+180_000);assert.equal(status(q,T+180_000).total,1);});
+test('overlapping already-paid legacy timers for the same hen are preserved once each',()=>{const p=pen();p.list[0]=T+90_000;care.ensureChickenCare(p,T);p.list[0]=T+180_000;care.settleChickenCare(p,T+180_000);assert.equal(status(p,T+180_000).total,2);assert.equal(p.list[0],0);assert.equal(p.care.legacy.length,0);});

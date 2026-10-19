@@ -8,7 +8,7 @@ Implemented: chicken-only deterministic care/migration module; physical coop, ne
 
 Local focused checks: 28 care/game/geometry/tray contracts pass, plus six cache/version contracts. Syntax checks pass for three inline scripts and three modified/new product modules; browser scripts parse. Existing selected chicken motion/placement checks pass with the geometry checks (24 total). Initial failures and the stale-quote regression are retained under `tests/evidence/chicken-pen/`. These are Node/geometry/contract checks, not native touch or visual acceptance.
 
-Qualification is IN PROGRESS. Native touch/video, installed-worker failure/update/offline reboot and authenticated emulator snapshot assertions are authored but not yet qualified. Exact-head hosted regression is required. No actual new game screenshot is claimed yet; no merge or deployment performed. Any generated image would be concept only; none was used.
+Qualification is IN PROGRESS. Native touch/video, installed-worker failure/update/offline reboot and authenticated emulator snapshot assertions are authored but not yet qualified. Exact-head hosted regression is required. Authentic hosted browser screenshots/video are retained from two attempts below; no merge or deployment performed. Any generated image would be concept only; none was used.
 
 ## Decisions made while executing
 
@@ -36,3 +36,15 @@ Code self-review found and reproduced important defects: malformed care could th
 New native coverage includes joystick gate traversal, full/repeated pickup, empty-supply pause/refill, real pet/name controls, opposite-side noon/night and first/third-person captures. These extensions remain unverified until their new exact-head run finishes. Auth fixture proves active supplies plus a paid egg survive upload/reload, then explicitly pauses its test supplies for the existing long quiescent recovery scenarios; no original recovery assertion is removed.
 
 Local full `npm test` rerun completed41 Node invocations with229 passing assertions on the earlier candidate, then stopped because Chromium is not installed locally. No alternate local browser transport was used. New corrections have focused verification; complete native/global qualification belongs to the next exact-head hosted run. Self-review is not an independent audit; no merge approval exists.
+
+## Cached-client follow-up (qualification pending)
+
+Two additional failing Node probes showed that a still-open v25 client can write a paid timer into `pen.list` after the care envelope exists; the first implementation ignored it. The correction imports distinct unpaid timers even after initial migration, clears their legacy slots once, and preserves overlapping paid outputs. The compatibility queue is bounded at12 entries; ambiguous overflow is preserved and blocks new care spending rather than being discarded.56 focused contracts pass, including both new cases. The installed-update suite now revisits the actual base v25 module, feeds a bird through its original mutation, advances a disclosed test clock90 seconds, and returns to v26 before offline reboot. This new browser extension is not yet verified.
+
+## Second hosted attempt and scoped pickup correction
+
+Source b60d7722d1c7ef5cc8c2de472f02950d7e5af1f4, tree ad0a7ca800ffd7c1881520fc7dd713db34a35500; regression run39186621804, chicken job117850570866.20 native behavior groups pass: feed/water, pickup12, preview/cancel/apply and touch turning on740×360,844×390,390×844, plus740 joystick gate/full/repeated pickup/expiry-refill and desktop feed/water. Desktop pickup then times out at the unchanged30s target gate. Actual failure capture shows Buddy directly in front of the pallet; receipt centerHit is animal/Gift at0.952m. This is a real obstruction, not proof of a pallet gap causing this native failure. The next fixture approaches from the clear east side, with pets and hit priorities unchanged.
+
+A separate Node ray probe reproduces a true center gap when looking down through the pallet slats. A bounded non-rendered raycast volume covers the actual pallet footprint; no extra GPU geometry/material, no global animal-priority change. Failing/passing tests retained.57 focused care/game/geometry/tray/planting/version contracts pass. Native desktop retest, installed update and cloud results remain pending.
+
+Second raw ZIP artifact12158632372, SHA256 864bf18adcf2c2962fe5d250f24117d50e955e923dadad9c2664babc75a8473d retained with screenshots/video/trace. Base844 vs candidate844 three complete farm draws report303→333 calls,1,149,787→1,175,311 triangles, geometry259→275,textures94→96. These are scene-resource observations, not frame-time/GPU/phone-performance qualification. No release or performance clearance.

@@ -492,7 +492,7 @@ function settleChickens(force=false) {
   // Store production events, not every elapsed second: the saved time anchor
   // already reconstructs partial progress. Passive ticks must not dirty cloud
   // snapshots before any goods or player action changed.
-  if(force||!old||next.normal!==old.normal||next.gold!==old.gold||next.legacy.length!==old.legacy.length||next.birds.length!==old.birds.length){pen.care=next;pen.list=copy.list;}
+  if(force||!old||next.normal!==old.normal||next.gold!==old.gold||next.legacy.length!==old.legacy.length||next.birds.length!==old.birds.length||copy.list.some((n,i)=>n!==pen.list[i])){pen.care=next;pen.list=copy.list;}
   return pen.care;
 }
 export const getChickenCareStatus = () => chickenCareStatus(S?.pens.chicken,now());
