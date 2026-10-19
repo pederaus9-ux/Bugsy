@@ -1,0 +1,589 @@
+﻿2026-10-19T13:35:45.7940381Z Current runner version: '2.337.0'
+2026-10-19T13:35:45.7977594Z ##[group]Runner Image Provisioner
+2026-10-19T13:35:45.7979051Z Hosted Compute Agent
+2026-10-19T13:35:45.7980368Z Version: 20261012.601
+2026-10-19T13:35:45.7981554Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-19T13:35:45.7983124Z Build Date: 2026-10-12T17:48:21Z
+2026-10-19T13:35:45.7984452Z Worker ID: {8891d859-8742-492c-ac44-de9c0f2254f3}
+2026-10-19T13:35:45.7985732Z Region: eastus
+2026-10-19T13:35:45.7986932Z Cloud: Azure
+2026-10-19T13:35:45.7988219Z ##[endgroup]
+2026-10-19T13:35:45.7990626Z ##[group]Operating System
+2026-10-19T13:35:45.7991822Z Ubuntu
+2026-10-19T13:35:45.7992765Z 24.04.5
+2026-10-19T13:35:45.7993989Z LTS
+2026-10-19T13:35:45.7995000Z ##[endgroup]
+2026-10-19T13:35:45.7996121Z ##[group]Runner Image
+2026-10-19T13:35:45.7997515Z Image: ubuntu-24.04
+2026-10-19T13:35:45.7998419Z Version: 20261012.334.1
+2026-10-19T13:35:45.8001278Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-19T13:35:45.8004150Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-19T13:35:45.8005985Z ##[endgroup]
+2026-10-19T13:35:45.8008452Z ##[group]GITHUB_TOKEN Permissions
+2026-10-19T13:35:45.8011662Z Contents: read
+2026-10-19T13:35:45.8012715Z Metadata: read
+2026-10-19T13:35:45.8013559Z ##[endgroup]
+2026-10-19T13:35:45.8016567Z Secret source: Actions
+2026-10-19T13:35:45.8018609Z Cache mode: write
+2026-10-19T13:35:45.8019715Z Prepare workflow directory
+2026-10-19T13:35:45.8518723Z Prepare all required actions
+2026-10-19T13:35:45.8591879Z Getting action download info
+2026-10-19T13:35:46.1060799Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-19T13:35:46.2048563Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-19T13:35:46.3499374Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-19T13:35:46.6140073Z Complete job name: Core partition (browser)
+2026-10-19T13:35:46.6945946Z ##[group]Run actions/checkout@v6
+2026-10-19T13:35:46.6946848Z with:
+2026-10-19T13:35:46.6947590Z   persist-credentials: false
+2026-10-19T13:35:46.6948164Z   repository: pederaus9-ux/Bugsy
+2026-10-19T13:35:46.6951911Z   token: ***
+2026-10-19T13:35:46.6952350Z   ssh-strict: true
+2026-10-19T13:35:46.6952800Z   ssh-user: git
+2026-10-19T13:35:46.6953225Z   clean: true
+2026-10-19T13:35:46.6953674Z   sparse-checkout-cone-mode: true
+2026-10-19T13:35:46.6954197Z   fetch-depth: 1
+2026-10-19T13:35:46.6954625Z   fetch-tags: false
+2026-10-19T13:35:46.6955065Z   show-progress: true
+2026-10-19T13:35:46.6955498Z   lfs: false
+2026-10-19T13:35:46.6955912Z   submodules: false
+2026-10-19T13:35:46.6956362Z   set-safe-directory: true
+2026-10-19T13:35:46.6956871Z   allow-unsafe-pr-checkout: false
+2026-10-19T13:35:46.6957836Z ##[endgroup]
+2026-10-19T13:35:46.8116729Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-19T13:35:46.8119695Z ##[group]Getting Git version info
+2026-10-19T13:35:46.8120881Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T13:35:46.8122384Z [command]/usr/bin/git version
+2026-10-19T13:35:46.8236981Z git version 2.55.0
+2026-10-19T13:35:46.8305058Z ##[endgroup]
+2026-10-19T13:35:46.8333358Z Temporarily overriding HOME='/home/runner/work/_temp/f160b5c6-2299-449e-bad1-3e493cfe411e' before making global git config changes
+2026-10-19T13:35:46.8338807Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T13:35:46.8341083Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:35:46.8394209Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T13:35:46.8413140Z ##[group]Determining repository object format
+2026-10-19T13:35:46.8415192Z ##[endgroup]
+2026-10-19T13:35:46.8422411Z ##[group]Initializing the repository
+2026-10-19T13:35:46.8424020Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:35:46.8568052Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-19T13:35:46.8570701Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-19T13:35:46.8572579Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-19T13:35:46.8574228Z hint: call:
+2026-10-19T13:35:46.8574918Z hint:
+2026-10-19T13:35:46.8575975Z hint: 	git config --global init.defaultBranch <name>
+2026-10-19T13:35:46.8577518Z hint:
+2026-10-19T13:35:46.8578490Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-19T13:35:46.8580021Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-19T13:35:46.8581243Z hint:
+2026-10-19T13:35:46.8581967Z hint: 	git branch -m <name>
+2026-10-19T13:35:46.8582861Z hint:
+2026-10-19T13:35:46.8583909Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-19T13:35:46.8585470Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-19T13:35:46.8589709Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-19T13:35:46.8701665Z ##[endgroup]
+2026-10-19T13:35:46.8703865Z ##[group]Disabling automatic garbage collection
+2026-10-19T13:35:46.8706780Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-19T13:35:46.8743191Z ##[endgroup]
+2026-10-19T13:35:46.8744480Z ##[group]Setting up auth
+2026-10-19T13:35:46.8745312Z Removing SSH command configuration
+2026-10-19T13:35:46.8746722Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:35:46.8781634Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:35:46.9216811Z Removing HTTP extra header
+2026-10-19T13:35:46.9223156Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:35:46.9264537Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:35:46.9489464Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:35:46.9496783Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:35:46.9536975Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:35:46.9776278Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-19T13:35:46.9823494Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:46.9866815Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:46.9916226Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:46.9953765Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:46.9988224Z ##[endgroup]
+2026-10-19T13:35:46.9989006Z ##[group]Fetching the repository
+2026-10-19T13:35:46.9996713Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6b01770328e6fa1361edef142b42162076188f6b:refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.5000735Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T13:35:48.5003532Z  * [new ref]         6b01770328e6fa1361edef142b42162076188f6b -> origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.5013613Z [command]/usr/bin/git branch --list --remote origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.5043117Z   origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.5053056Z [command]/usr/bin/git rev-parse refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.5079725Z 6b01770328e6fa1361edef142b42162076188f6b
+2026-10-19T13:35:48.5086018Z ##[endgroup]
+2026-10-19T13:35:48.5088016Z ##[group]Determining the checkout info
+2026-10-19T13:35:48.5089811Z ##[endgroup]
+2026-10-19T13:35:48.5092067Z [command]/usr/bin/git sparse-checkout disable
+2026-10-19T13:35:48.5148750Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-19T13:35:48.5181119Z ##[group]Checking out the ref
+2026-10-19T13:35:48.5188135Z [command]/usr/bin/git checkout --progress --force -B codex/chicken-ci-completion-20261019 refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:48.6558670Z Switched to a new branch 'codex/chicken-ci-completion-20261019'
+2026-10-19T13:35:48.6563383Z branch 'codex/chicken-ci-completion-20261019' set up to track 'origin/codex/chicken-ci-completion-20261019'.
+2026-10-19T13:35:48.6581609Z ##[endgroup]
+2026-10-19T13:35:48.6630022Z [command]/usr/bin/git log -1 --format=%H
+2026-10-19T13:35:48.6658546Z 6b01770328e6fa1361edef142b42162076188f6b
+2026-10-19T13:35:48.6668828Z ##[group]Removing auth
+2026-10-19T13:35:48.6669501Z Removing SSH command configuration
+2026-10-19T13:35:48.6674459Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:35:48.6710678Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:35:48.6939192Z Removing HTTP extra header
+2026-10-19T13:35:48.6945748Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:35:48.6986982Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:35:48.7241138Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:35:48.7244443Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:35:48.7276663Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T13:35:48.7278500Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T13:35:48.7279853Z includeif.gitdir:/github/workspace/.git.path
+2026-10-19T13:35:48.7281162Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T13:35:48.7288280Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T13:35:48.7314942Z /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7326503Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7363915Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T13:35:48.7390745Z /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7401087Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7449645Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-19T13:35:48.7479281Z /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7493305Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7537941Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T13:35:48.7565299Z /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7576772Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config
+2026-10-19T13:35:48.7615759Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:35:48.7843723Z Removing credentials config '/home/runner/work/_temp/git-credentials-0c78bc19-d8b7-4a20-8ba2-ed1c630f4797.config'
+2026-10-19T13:35:48.7852757Z ##[endgroup]
+2026-10-19T13:35:48.8276182Z ##[group]Run actions/setup-node@v6
+2026-10-19T13:35:48.8277515Z with:
+2026-10-19T13:35:48.8278282Z   node-version: 22
+2026-10-19T13:35:48.8279152Z   check-latest: false
+2026-10-19T13:35:48.8288121Z   token: ***
+2026-10-19T13:35:48.8288973Z   package-manager-cache: true
+2026-10-19T13:35:48.8289947Z ##[endgroup]
+2026-10-19T13:35:48.9789296Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-19T13:35:48.9793087Z ##[group]Environment details
+2026-10-19T13:35:49.4165774Z node: v22.23.3
+2026-10-19T13:35:49.4168290Z npm: 10.9.9
+2026-10-19T13:35:49.4168953Z yarn: 1.22.22
+2026-10-19T13:35:49.4170422Z ##[endgroup]
+2026-10-19T13:35:49.4327108Z ##[group]Run npm ci --ignore-scripts
+2026-10-19T13:35:49.4328217Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-19T13:35:49.4623722Z shell: /usr/bin/bash -e {0}
+2026-10-19T13:35:49.4624413Z ##[endgroup]
+2026-10-19T13:35:50.4942628Z 
+2026-10-19T13:35:50.4951296Z added 3 packages, and audited 4 packages in 966ms
+2026-10-19T13:35:50.4953687Z 
+2026-10-19T13:35:50.4954114Z found 0 vulnerabilities
+2026-10-19T13:35:50.5396903Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-19T13:35:50.5397780Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-19T13:35:50.5464822Z shell: /usr/bin/bash -e {0}
+2026-10-19T13:35:50.5465129Z ##[endgroup]
+2026-10-19T13:35:51.3537906Z Installing dependencies...
+2026-10-19T13:35:51.3622443Z Switching to root user to install dependencies...
+2026-10-19T13:35:51.4652522Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T13:35:51.5146899Z Get:4 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-19T13:35:51.5348550Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-19T13:35:51.5368449Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-19T13:35:51.5432416Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-19T13:35:51.5452605Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-19T13:35:51.6070882Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-19T13:35:51.6193675Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [557 kB]
+2026-10-19T13:35:51.6314093Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [618 kB]
+2026-10-19T13:35:51.7189960Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+2026-10-19T13:35:51.7278866Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [308 kB]
+2026-10-19T13:35:51.7286068Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+2026-10-19T13:35:51.7399622Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-19T13:35:51.7416748Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-19T13:35:51.7528817Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-19T13:35:51.8311421Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1144 kB]
+2026-10-19T13:35:51.8382657Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-19T13:35:51.8403350Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-19T13:35:51.8472750Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-19T13:35:51.8959566Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-19T13:35:51.9028929Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-19T13:35:55.0683250Z Fetched 12.5 MB in 1s (9473 kB/s)
+2026-10-19T13:35:56.0486394Z Reading package lists...
+2026-10-19T13:35:56.0740848Z Reading package lists...
+2026-10-19T13:35:56.3138506Z Building dependency tree...
+2026-10-19T13:35:56.3145852Z Reading state information...
+2026-10-19T13:35:56.5224515Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-19T13:35:56.5225528Z libasound2t64 set to manually installed.
+2026-10-19T13:35:56.5226408Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T13:35:56.5229248Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-19T13:35:56.5230208Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T13:35:56.5230982Z libatk1.0-0t64 set to manually installed.
+2026-10-19T13:35:56.5231838Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T13:35:56.5232626Z libatspi2.0-0t64 set to manually installed.
+2026-10-19T13:35:56.5233436Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-19T13:35:56.5234158Z libcairo2 set to manually installed.
+2026-10-19T13:35:56.5234962Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-19T13:35:56.5235986Z libcups2t64 set to manually installed.
+2026-10-19T13:35:56.5236523Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-19T13:35:56.5237016Z libdbus-1-3 set to manually installed.
+2026-10-19T13:35:56.5238069Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-19T13:35:56.5238814Z libdrm2 set to manually installed.
+2026-10-19T13:35:56.5239313Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-19T13:35:56.5239755Z libgbm1 set to manually installed.
+2026-10-19T13:35:56.5240163Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-19T13:35:56.5240605Z libglib2.0-0t64 set to manually installed.
+2026-10-19T13:35:56.5241185Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-19T13:35:56.5241913Z libnspr4 set to manually installed.
+2026-10-19T13:35:56.5242625Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-19T13:35:56.5243337Z libnss3 set to manually installed.
+2026-10-19T13:35:56.5244138Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-19T13:35:56.5244936Z libpango-1.0-0 set to manually installed.
+2026-10-19T13:35:56.5245757Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-19T13:35:56.5246511Z libx11-6 set to manually installed.
+2026-10-19T13:35:56.5247549Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-19T13:35:56.5248281Z libxcb1 set to manually installed.
+2026-10-19T13:35:56.5249084Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-19T13:35:56.5249897Z libxcomposite1 set to manually installed.
+2026-10-19T13:35:56.5250714Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-19T13:35:56.5251473Z libxdamage1 set to manually installed.
+2026-10-19T13:35:56.5252213Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-19T13:35:56.5252895Z libxext6 set to manually installed.
+2026-10-19T13:35:56.5253620Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-19T13:35:56.5254706Z libxfixes3 set to manually installed.
+2026-10-19T13:35:56.5255495Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-19T13:35:56.5256269Z libxkbcommon0 set to manually installed.
+2026-10-19T13:35:56.5257028Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-19T13:35:56.5258056Z libxrandr2 set to manually installed.
+2026-10-19T13:35:56.5258788Z xvfb is already the newest version (2:21.1.12-1ubuntu1.8).
+2026-10-19T13:35:56.5259885Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-19T13:35:56.5260960Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-19T13:35:56.5261767Z libfontconfig1 set to manually installed.
+2026-10-19T13:35:56.5262623Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-19T13:35:56.5263462Z libfreetype6 set to manually installed.
+2026-10-19T13:35:56.5264255Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-19T13:35:56.5265127Z fonts-liberation set to manually installed.
+2026-10-19T13:35:56.5265942Z The following additional packages will be installed:
+2026-10-19T13:35:56.5266597Z   xfonts-encodings xfonts-utils
+2026-10-19T13:35:56.5267127Z Recommended packages:
+2026-10-19T13:35:56.5267962Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-10-19T13:35:56.5436034Z The following NEW packages will be installed:
+2026-10-19T13:35:56.5436618Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-19T13:35:56.5443890Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-19T13:35:56.5444297Z   xfonts-utils
+2026-10-19T13:35:56.5652198Z 0 upgraded, 9 newly installed, 0 to remove and 77 not upgraded.
+2026-10-19T13:35:56.5653022Z Need to get 21.1 MB of archives.
+2026-10-19T13:35:56.5653842Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-19T13:35:56.5654705Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T13:35:56.6596433Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-19T13:35:56.8202422Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-19T13:35:56.9973575Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-19T13:35:57.0774268Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-19T13:35:57.2367622Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-19T13:35:57.5233088Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-19T13:35:57.6190108Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-19T13:35:57.7073414Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-19T13:35:57.7969553Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-19T13:35:58.0610113Z Fetched 21.1 MB in 1s (16.9 MB/s)
+2026-10-19T13:35:58.0848072Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-19T13:35:58.1164343Z (Reading database ... 
+2026-10-19T13:35:58.1164920Z (Reading database ... 5%
+2026-10-19T13:35:58.1165314Z (Reading database ... 10%
+2026-10-19T13:35:58.1165643Z (Reading database ... 15%
+2026-10-19T13:35:58.1165964Z (Reading database ... 20%
+2026-10-19T13:35:58.1166855Z (Reading database ... 25%
+2026-10-19T13:35:58.1167590Z (Reading database ... 30%
+2026-10-19T13:35:58.1168110Z (Reading database ... 35%
+2026-10-19T13:35:58.1168600Z (Reading database ... 40%
+2026-10-19T13:35:58.1169037Z (Reading database ... 45%
+2026-10-19T13:35:58.1169356Z (Reading database ... 50%
+2026-10-19T13:35:58.1225117Z (Reading database ... 55%
+2026-10-19T13:35:58.2211581Z (Reading database ... 60%
+2026-10-19T13:35:58.4298258Z (Reading database ... 65%
+2026-10-19T13:35:58.6363484Z (Reading database ... 70%
+2026-10-19T13:35:58.7800146Z (Reading database ... 75%
+2026-10-19T13:35:58.8860037Z (Reading database ... 80%
+2026-10-19T13:35:58.9862724Z (Reading database ... 85%
+2026-10-19T13:35:59.1016503Z (Reading database ... 90%
+2026-10-19T13:35:59.1954562Z (Reading database ... 95%
+2026-10-19T13:35:59.1955141Z (Reading database ... 100%
+2026-10-19T13:35:59.1956009Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-19T13:35:59.2000112Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-19T13:35:59.2094372Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T13:35:59.4469104Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-19T13:35:59.4599662Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-19T13:35:59.4609725Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T13:35:59.5455553Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-19T13:35:59.5585717Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-19T13:35:59.5594536Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T13:35:59.5821393Z Selecting previously unselected package fonts-unifont.
+2026-10-19T13:35:59.5954316Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-19T13:35:59.5963610Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T13:35:59.7040926Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-19T13:35:59.7172786Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-19T13:35:59.7281127Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T13:36:00.1972326Z Selecting previously unselected package xfonts-encodings.
+2026-10-19T13:36:00.2098539Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-19T13:36:00.2108070Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T13:36:00.2421766Z Selecting previously unselected package xfonts-utils.
+2026-10-19T13:36:00.2553641Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-19T13:36:00.2562560Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-19T13:36:00.2962401Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-19T13:36:00.3094347Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-19T13:36:00.3103812Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T13:36:00.3449243Z Selecting previously unselected package xfonts-scalable.
+2026-10-19T13:36:00.3580683Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-19T13:36:00.3590662Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T13:36:00.4025718Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T13:36:00.4149900Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T13:36:00.4171401Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T13:36:00.4193124Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T13:36:00.4215278Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T13:36:00.4284439Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-19T13:36:00.4302716Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T13:36:00.4324163Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-19T13:36:00.4367876Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T13:36:00.4685763Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T13:36:00.4978837Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-19T13:36:00.5000911Z Not building database; man-db/auto-update is not 'true'.
+2026-10-19T13:36:00.5015880Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-19T13:36:01.2550709Z 
+2026-10-19T13:36:01.2551646Z Running kernel seems to be up-to-date.
+2026-10-19T13:36:01.2552014Z 
+2026-10-19T13:36:01.2552594Z No services need to be restarted.
+2026-10-19T13:36:01.2552888Z 
+2026-10-19T13:36:01.2553120Z No containers need to be restarted.
+2026-10-19T13:36:01.2553411Z 
+2026-10-19T13:36:01.2553707Z No user sessions are running outdated binaries.
+2026-10-19T13:36:01.2554051Z 
+2026-10-19T13:36:01.2554519Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-19T13:36:02.3349000Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-19T13:36:03.3270148Z |                                                                                |   0% of 184.3 MiB
+2026-10-19T13:36:03.4838528Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-19T13:36:03.5755611Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-19T13:36:03.6479270Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-19T13:36:03.7168333Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-19T13:36:03.7906897Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-19T13:36:03.8604176Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-19T13:36:03.9243174Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-19T13:36:03.9854993Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-19T13:36:04.0497311Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-19T13:36:04.1181600Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-19T13:36:06.9503745Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-19T13:36:06.9508582Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-19T13:36:07.9292260Z |                                                                                |   0% of 2.3 MiB
+2026-10-19T13:36:07.9333530Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-19T13:36:07.9401694Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-19T13:36:07.9443926Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-19T13:36:07.9504813Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-19T13:36:07.9558339Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-19T13:36:07.9614688Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-19T13:36:07.9641999Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-19T13:36:07.9655876Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-19T13:36:07.9668837Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-19T13:36:07.9678757Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-19T13:36:08.0321313Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-19T13:36:08.0329269Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-19T13:36:09.0218935Z |                                                                                |   0% of 114.7 MiB
+2026-10-19T13:36:09.1644745Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-19T13:36:09.2508128Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-19T13:36:09.3107435Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-19T13:36:09.3623625Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-19T13:36:09.4107363Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-19T13:36:09.4578078Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-19T13:36:09.5005234Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-19T13:36:09.5438025Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-19T13:36:09.5917652Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-19T13:36:09.6362249Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-19T13:36:11.6753437Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-19T13:36:11.7088244Z ##[group]Run npm run test:core:game -- browser
+2026-10-19T13:36:11.7088892Z [36;1mnpm run test:core:game -- browser[0m
+2026-10-19T13:36:11.7153072Z shell: /usr/bin/bash -e {0}
+2026-10-19T13:36:11.7153362Z ##[endgroup]
+2026-10-19T13:36:11.8260784Z 
+2026-10-19T13:36:11.8261644Z > sunny-acres-regression-tests@1.0.0 test:core:game
+2026-10-19T13:36:11.8262472Z > node run-core-game-tests.mjs browser
+2026-10-19T13:36:11.8263362Z 
+2026-10-19T13:36:11.8597575Z [CI-ISOLATION] START regression.browser.cjs 2026-10-19T13:36:11.858Z
+2026-10-19T13:36:12.2613603Z PASS All game modules and inline scripts parse 
+2026-10-19T13:36:12.2638049Z PASS PR #24 paintAlong guards Null entry and mid-loop cancellation during planting and harvesting
+2026-10-19T13:36:12.2654137Z (node:3104) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+2026-10-19T13:36:12.2655817Z (Use `node --trace-warnings ...` to show where the warning was created)
+2026-10-19T13:36:21.9100995Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 399920      00:09 chrome |    3183    3124 353516      00:09 chrome |    3116    3104 224692      00:09 chrome |    2113    2111 156096      02:40 provjobd3917827 |    3104    3097 139984      00:10 node |    2175    2154 130684      00:36 Runner.Worker
+2026-10-19T13:36:31.9004413Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 529920      00:19 chrome |    3183    3124 342936      00:19 chrome |    3116    3104 227488      00:19 chrome |    2113    2111 160284      02:50 provjobd3917827 |    3159    3116 130900      00:19 chrome |    2175    2154 130760      00:46 Runner.Worker
+2026-10-19T13:36:33.1418121Z PASS 1280x720 testfarm boot 
+2026-10-19T13:36:41.9119568Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 568768      00:29 chrome |    3183    3124 326216      00:29 chrome |    3116    3104 231156      00:29 chrome |    2113    2111 149720      03:00 provjobd3917827 |    3159    3116 131588      00:29 chrome |    2175    2154 130736      00:56 Runner.Worker
+2026-10-19T13:36:50.7373013Z PASS KeyW movement 
+2026-10-19T13:36:51.9229362Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 577724      00:39 chrome |    3183    3124 266808      00:39 chrome |    3116    3104 232840      00:39 chrome |    2113    2111 149784      03:10 provjobd3917827 |    3159    3116 132244      00:39 chrome |    2175    2154 130788      01:06 Runner.Worker
+2026-10-19T13:36:52.4246867Z PASS KeyS movement 
+2026-10-19T13:36:53.7406565Z PASS KeyA movement 
+2026-10-19T13:36:55.0711872Z PASS KeyD movement 
+2026-10-19T13:36:56.3513776Z PASS KeyQ rotation 
+2026-10-19T13:36:57.6943653Z PASS ArrowLeft rotation 
+2026-10-19T13:36:59.0357876Z PASS ArrowRight rotation 
+2026-10-19T13:37:01.9333232Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=50s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 580332      00:49 chrome |    3183    3124 277060      00:49 chrome |    3116    3104 232864      00:49 chrome |    2113    2111 149796      03:20 provjobd3917827 |    3159    3116 132252      00:49 chrome |    2175    2154 131300      01:16 Runner.Worker
+2026-10-19T13:37:03.0868792Z PASS KeyE interacts without rotation 
+2026-10-19T13:37:05.4511040Z PASS Enter interacts without rotation 
+2026-10-19T13:37:11.9444847Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=60s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 586280      00:59 chrome |    3183    3124 282556      00:59 chrome |    3116    3104 233264      00:59 chrome |    2113    2111 150212      03:30 provjobd3917827 |    3159    3116 132320      00:59 chrome |    2175    2154 131248      01:26 Runner.Worker
+2026-10-19T13:37:16.5534881Z PASS 1280x720 planting through seed tray 
+2026-10-19T13:37:16.5919901Z PASS 1280x720 pointer harvest adds crops and XP 
+2026-10-19T13:37:21.9651016Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=70s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 587652      01:09 chrome |    3183    3124 281112      01:09 chrome |    3116    3104 230312      01:09 chrome |    2113    2111 148280      03:40 provjobd3917827 |    3159    3116 131720      01:09 chrome |    2175    2154 131280      01:36 Runner.Worker
+2026-10-19T13:37:31.9572068Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=80s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 606244      01:19 chrome |    3183    3124 281764      01:19 chrome |    3116    3104 233000      01:19 chrome |    2113    2111 149780      03:50 provjobd3917827 |    3159    3116 131720      01:19 chrome |    2175    2154 131280      01:46 Runner.Worker
+2026-10-19T13:37:37.9096626Z PASS 1280x720 cancelled seed drag Second-pointer cancellation followed by continued original pointer movement; ghost/tray cleanup
+2026-10-19T13:37:41.4909477Z PASS 1280x720 order delivery pays once and consumes inventory 
+2026-10-19T13:37:41.9672134Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=90s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 578964      01:29 chrome |    3183    3124 280256      01:29 chrome |    3116    3104 232712      01:29 chrome |    2113    2111 149780      04:00 provjobd3917827 |    3159    3116 131712      01:29 chrome |    2175    2154 131280      01:56 Runner.Worker
+2026-10-19T13:37:43.2888712Z PASS 1280x720 insufficient order inventory disables delivery 
+2026-10-19T13:37:51.9910978Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=100s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 580532      01:39 chrome |    3183    3124 283328      01:39 chrome |    3116    3104 232676      01:39 chrome |    2113    2111 149780      04:10 provjobd3917827 |    3159    3116 131724      01:39 chrome |    2175    2154 131280      02:06 Runner.Worker
+2026-10-19T13:38:02.0019227Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=110s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 581112      01:49 chrome |    3183    3124 280916      01:49 chrome |    3116    3104 232656      01:49 chrome |    2113    2111 149796      04:20 provjobd3917827 |    3159    3116 131724      01:49 chrome |    2175    2154 131332      02:16 Runner.Worker
+2026-10-19T13:38:11.9974138Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=120s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 583208      01:59 chrome |    3183    3124 290268      01:59 chrome |    3116    3104 233584      01:59 chrome |    2113    2111 135708      04:30 provjobd3917827 |    3159    3116 132036      01:59 chrome |    2175    2154 131708      02:26 Runner.Worker
+2026-10-19T13:38:22.0210804Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=130s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 585272      02:09 chrome |    3183    3124 286968      02:09 chrome |    3116    3104 231004      02:09 chrome |    2113    2111 135708      04:40 provjobd3917827 |    3159    3116 131988      02:09 chrome |    2175    2154 131708      02:36 Runner.Worker
+2026-10-19T13:38:24.8665194Z PASS 1280x720 orders/barn/shop/settings panels fit and close 
+2026-10-19T13:38:24.8769556Z PASS 1280x720 sandbox never writes a farm save 
+2026-10-19T13:38:24.8776846Z PASS 1280x720 no page/console/resource errors 
+2026-10-19T13:38:32.0263808Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=140s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 387772      02:19 chrome |    3116    3104 235492      02:19 chrome |    2113    2111 159636      04:50 provjobd3917827 |    3265    3124 157688      00:00 chrome |    3104    3097 132452      02:20 node |    3159    3116 131944      02:19 chrome
+2026-10-19T13:38:42.0265800Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=150s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 518276      02:29 chrome |    3265    3124 312152      00:10 chrome |    3116    3104 233708      02:29 chrome |    2113    2111 157256      05:00 provjobd3917827 |    3104    3097 133808      02:30 node |    3159    3116 133172      02:29 chrome
+2026-10-19T13:38:46.6721932Z PASS 1280x720 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+2026-10-19T13:38:52.0417069Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=160s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 489624      02:39 chrome |    3265    3124 293572      00:20 chrome |    3116    3104 235140      02:39 chrome |    2113    2111 157644      05:10 provjobd3917827 |    3104    3097 133660      02:40 node |    3159    3116 133424      02:39 chrome
+2026-10-19T13:39:02.0480832Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=170s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 534316      02:49 chrome |    3265    3124 401220      00:30 chrome |    3116    3104 234080      02:49 chrome |    2113    2111 158976      05:20 provjobd3917827 |    3104    3097 133984      02:50 node |    3159    3116 133268      02:49 chrome
+2026-10-19T13:39:06.5634169Z PASS 1280x720 local v1 save/reload retains crop, coins and guest 
+2026-10-19T13:39:12.0627464Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=180s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 406664      02:59 chrome |    3265    3124 256248      00:40 chrome |    3116    3104 235248      02:59 chrome |    2113    2111 141672      05:30 provjobd3917827 |    3104    3097 137284      03:00 node |    3159    3116 133884      02:59 chrome
+2026-10-19T13:39:22.0768601Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=190s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 558312      03:09 chrome |    3265    3124 399884      00:50 chrome |    3116    3104 233948      03:09 chrome |    2113    2111 142392      05:40 provjobd3917827 |    3104    3097 137284      03:10 node |    3159    3116 133468      03:09 chrome
+2026-10-19T13:39:28.7837634Z PASS Existing normal farm save survives sandbox play 
+2026-10-19T13:39:28.7839167Z PASS 1280x720 normal/reload no page/console/resource errors 
+2026-10-19T13:39:32.0924422Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=200s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 633968      03:19 chrome |    3265    3124 274832      01:01 chrome |    3116    3104 235496      03:19 chrome |    2113    2111 142788      05:50 provjobd3917827 |    3104    3097 141684      03:20 node |    3159    3116 133536      03:19 chrome
+2026-10-19T13:39:42.1064888Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=210s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 448404      03:29 chrome |    3387    3124 353692      00:04 chrome |    3116    3104 234276      03:29 chrome |    2113    2111 145464      06:00 provjobd3917827 |    3104    3097 140828      03:30 node |    3159    3116 131892      03:29 chrome
+2026-10-19T13:39:52.0941963Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=220s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 580896      03:39 chrome |    3387    3124 342128      00:14 chrome |    3116    3104 234204      03:39 chrome |    2113    2111 146728      06:10 provjobd3917827 |    3104    3097 140832      03:40 node |    3159    3116 132948      03:39 chrome
+2026-10-19T13:39:53.4628760Z PASS 740x360 testfarm boot 
+2026-10-19T13:40:02.1139383Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=230s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 597804      03:49 chrome |    3387    3124 332624      00:24 chrome |    3116    3104 234584      03:49 chrome |    2113    2111 148348      06:20 provjobd3917827 |    3104    3097 142488      03:50 node |    3159    3116 132960      03:49 chrome
+2026-10-19T13:40:07.0838212Z PASS 740x360 mobile joystick movement 
+2026-10-19T13:40:12.1265332Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=240s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 599772      03:59 chrome |    3387    3124 265900      00:34 chrome |    3116    3104 236504      03:59 chrome |    2113    2111 150288      06:30 provjobd3917827 |    3104    3097 142496      04:00 node |    3159    3116 132948      03:59 chrome
+2026-10-19T13:40:13.5345178Z PASS 740x360 mobile walk action button harvests ripe crop 
+2026-10-19T13:40:21.6614839Z PASS 740x360 planting through seed tray 
+2026-10-19T13:40:21.6915138Z PASS 740x360 pointer harvest adds crops and XP 
+2026-10-19T13:40:22.1315677Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=250s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 602800      04:09 chrome |    3387    3124 275312      00:44 chrome |    3116    3104 236628      04:09 chrome |    2113    2111 152236      06:40 provjobd3917827 |    3104    3097 142500      04:10 node |    3159    3116 132976      04:09 chrome
+2026-10-19T13:40:24.2841314Z PASS 740x360 order delivery pays once and consumes inventory 
+2026-10-19T13:40:25.5898022Z PASS 740x360 insufficient order inventory disables delivery 
+2026-10-19T13:40:32.1547371Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=260s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 576360      04:19 chrome |    3387    3124 289844      00:54 chrome |    3116    3104 236716      04:19 chrome |    2113    2111 153912      06:50 provjobd3917827 |    3104    3097 141540      04:20 node |    3159    3116 133264      04:19 chrome
+2026-10-19T13:40:32.9520432Z PASS 740x360 orders/barn/shop/settings panels fit and close 
+2026-10-19T13:40:32.9645710Z PASS 740x360 sandbox never writes a farm save 
+2026-10-19T13:40:32.9661442Z PASS 740x360 no page/console/resource errors 
+2026-10-19T13:40:42.1481839Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=270s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 522836      04:29 chrome |    3431    3124 293540      00:08 chrome |    3116    3104 235088      04:29 chrome |    2113    2111 158424      07:00 provjobd3917827 |    3104    3097 141744      04:30 node |    3159    3116 133260      04:29 chrome
+2026-10-19T13:40:51.6738465Z PASS 740x360 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+2026-10-19T13:40:52.1700033Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=280s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 527876      04:39 chrome |    3431    3124 284428      00:18 chrome |    3116    3104 236432      04:39 chrome |    2113    2111 145448      07:10 provjobd3917827 |    3104    3097 141580      04:40 node |    3159    3116 133296      04:39 chrome
+2026-10-19T13:41:02.1653332Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=290s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 541292      04:49 chrome |    3431    3124 398940      00:28 chrome |    3116    3104 235016      04:49 chrome |    2113    2111 145452      07:21 provjobd3917827 |    3104    3097 141900      04:50 node |    3159    3116 133328      04:49 chrome
+2026-10-19T13:41:07.2615551Z PASS 740x360 local v1 save/reload retains crop, coins and guest 
+2026-10-19T13:41:07.2616528Z PASS 740x360 normal/reload no page/console/resource errors 
+2026-10-19T13:41:12.1852006Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=300s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 564796      04:59 chrome |    3431    3124 264452      00:38 chrome |    3116    3104 235868      04:59 chrome |    2113    2111 145692      07:31 provjobd3917827 |    3104    3097 144296      05:00 node |    3159    3116 133328      04:59 chrome
+2026-10-19T13:41:22.1890225Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=310s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 520868      05:09 chrome |    3467    3124 334992      00:07 chrome |    3116    3104 235108      05:09 chrome |    2113    2111 158424      07:41 provjobd3917827 |    3104    3097 143092      05:10 node |    2175    2154 132176      05:36 Runner.Worker
+2026-10-19T13:41:32.2007572Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=320s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 600240      05:19 chrome |    3467    3124 318008      00:17 chrome |    3116    3104 236076      05:19 chrome |    2113    2111 145460      07:51 provjobd3917827 |    3104    3097 144360      05:20 node |    2175    2154 132920      05:46 Runner.Worker
+2026-10-19T13:41:33.7166665Z PASS 844x390 testfarm boot 
+2026-10-19T13:41:42.2120019Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=330s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 612740      05:29 chrome |    3467    3124 328848      00:27 chrome |    3116    3104 237288      05:29 chrome |    2113    2111 145496      08:01 provjobd3917827 |    3104    3097 144360      05:30 node |    3159    3116 133064      05:29 chrome
+2026-10-19T13:41:47.0668259Z PASS 844x390 mobile joystick movement 
+2026-10-19T13:41:52.2207480Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=340s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 620304      05:39 chrome |    3467    3124 265484      00:37 chrome |    3116    3104 237308      05:39 chrome |    2113    2111 146060      08:11 provjobd3917827 |    3104    3097 144372      05:40 node |    3159    3116 133064      05:39 chrome
+2026-10-19T13:41:53.9419259Z PASS 844x390 mobile walk action button harvests ripe crop 
+2026-10-19T13:42:02.2308759Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=350s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 622632      05:49 chrome |    3467    3124 271848      00:47 chrome |    3116    3104 237796      05:49 chrome |    2113    2111 147804      08:21 provjobd3917827 |    3104    3097 144392      05:50 node |    3159    3116 133288      05:49 chrome
+2026-10-19T13:42:02.6816101Z PASS 844x390 planting through seed tray 
+2026-10-19T13:42:02.7201175Z PASS 844x390 pointer harvest adds crops and XP 
+2026-10-19T13:42:05.4292443Z PASS 844x390 order delivery pays once and consumes inventory 
+2026-10-19T13:42:06.4009086Z PASS 844x390 insufficient order inventory disables delivery 
+2026-10-19T13:42:12.2466251Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=360s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 590268      05:59 chrome |    3467    3124 287092      00:57 chrome |    3116    3104 237096      05:59 chrome |    2113    2111 149644      08:31 provjobd3917827 |    3104    3097 143076      06:00 node |    3159    3116 133544      05:59 chrome
+2026-10-19T13:42:14.5038398Z PASS 844x390 orders/barn/shop/settings panels fit and close 
+2026-10-19T13:42:14.5153670Z PASS 844x390 sandbox never writes a farm save 
+2026-10-19T13:42:14.5185665Z PASS 844x390 no page/console/resource errors 
+2026-10-19T13:42:22.2650566Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=370s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 491904      06:09 chrome |    3512    3124 306244      00:06 chrome |    3116    3104 236112      06:09 chrome |    2113    2111 157580      08:41 provjobd3917827 |    3104    3097 144016      06:10 node |    2175    2154 132920      06:36 Runner.Worker
+2026-10-19T13:42:32.2550629Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=380s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 582192      06:19 chrome |    3512    3124 300672      00:16 chrome |    3116    3104 236708      06:19 chrome |    2113    2111 158336      08:51 provjobd3917827 |    3104    3097 144660      06:20 node |    3159    3116 133536      06:19 chrome
+2026-10-19T13:42:33.7766948Z PASS 844x390 normal fresh guest boot Firebase SDK isolated to exercise offline guest fallback
+2026-10-19T13:42:42.2794731Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=390s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 483748      06:29 chrome |    3512    3124 404316      00:26 chrome |    3116    3104 235996      06:29 chrome |    2113    2111 159568      09:01 provjobd3917827 |    3104    3097 144340      06:30 node |    3159    3116 133600      06:29 chrome
+2026-10-19T13:42:49.5224704Z PASS 844x390 local v1 save/reload retains crop, coins and guest 
+2026-10-19T13:42:49.5226017Z PASS 844x390 normal/reload no page/console/resource errors 
+2026-10-19T13:42:52.2965914Z [CI-ISOLATION] RUNNING regression.browser.cjs elapsed=400s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3145    3123 568504      06:39 chrome |    3512    3124 359904      00:36 chrome |    3116    3104 236208      06:39 chrome |    2113    2111 163444      09:11 provjobd3917827 |    3104    3097 145428      06:40 node |    3159    3116 133596      06:39 chrome
+2026-10-19T13:42:56.2260134Z [CI-ISOLATION] END regression.browser.cjs code=0 signal=null elapsed=404.4s
+2026-10-19T13:42:56.2260856Z [CI-ISOLATION] START shed-switch.browser.cjs 2026-10-19T13:42:56.225Z
+2026-10-19T13:43:06.2472380Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 425616      00:09 chrome |    3627    3565 336392      00:09 chrome |    3557    3545 226960      00:09 chrome |    2113    2111 151548      09:25 provjobd3917827 |    3545    3097 140224      00:10 node |    2175    2154 132928      07:20 Runner.Worker
+2026-10-19T13:43:16.2612431Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 532596      00:19 chrome |    3627    3565 326308      00:19 chrome |    3557    3545 228556      00:19 chrome |    2113    2111 152800      09:35 provjobd3917827 |    2175    2154 132928      07:30 Runner.Worker |    3589    3557 131108      00:19 chrome
+2026-10-19T13:43:25.4919370Z PASS one-tap shed switch 740x360 {"a":{"bid":"feedmill","x":393.78700636702825,"y":159.60181650449113},"b":{"bid":"loom","x":694.4020422153583,"y":171.43886100633824},"cam":{"targetX":5,"targetZ":14,"yaw":-0.5,"dist":18}}
+2026-10-19T13:43:26.2841392Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 405400      00:29 chrome |    3557    3545 235320      00:29 chrome |    2113    2111 161204      09:45 provjobd3917827 |    3667    3565 142608      00:00 chrome |    2175    2154 132932      07:40 Runner.Worker |    3589    3557 131668      00:29 chrome
+2026-10-19T13:43:36.2799546Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 473756      00:39 chrome |    3667    3565 338800      00:10 chrome |    3557    3545 235652      00:39 chrome |    2113    2111 162840      09:55 provjobd3917827 |    3545    3097 133000      00:40 node |    2175    2154 132924      07:50 Runner.Worker
+2026-10-19T13:43:46.2776662Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=50s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 536792      00:49 chrome |    3667    3565 323352      00:20 chrome |    3557    3545 237232      00:49 chrome |    2113    2111 164664      10:05 provjobd3917827 |    3545    3097 134684      00:50 node |    3589    3557 133320      00:49 chrome
+2026-10-19T13:43:52.5020859Z PASS one-tap shed switch 844x390 {"a":{"bid":"feedmill","x":447.76925689761396,"y":172.9019678798654},"b":{"bid":"loom","x":773.4355457333048,"y":185.7254327568664},"cam":{"targetX":5,"targetZ":14,"yaw":-0.5,"dist":18}}
+2026-10-19T13:43:56.3010698Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=60s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 454524      00:59 chrome |    3703    3565 352244      00:03 chrome |    3557    3545 237300      00:59 chrome |    2113    2111 160604      10:15 provjobd3917827 |    3545    3097 135228      01:00 node |    2175    2154 132924      08:10 Runner.Worker
+2026-10-19T13:44:06.2978100Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=70s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 578788      01:09 chrome |    3703    3565 362096      00:13 chrome |    3557    3545 235296      01:09 chrome |    2113    2111 161988      10:25 provjobd3917827 |    3545    3097 136536      01:10 node |    2175    2154 132924      08:20 Runner.Worker
+2026-10-19T13:44:16.3086640Z [CI-ISOLATION] RUNNING shed-switch.browser.cjs elapsed=80s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3586    3564 589848      01:19 chrome |    3703    3565 316196      00:23 chrome |    3557    3545 238028      01:19 chrome |    2113    2111 163144      10:35 provjobd3917827 |    3545    3097 137604      01:20 node |    2175    2154 132924      08:31 Runner.Worker
+2026-10-19T13:44:23.5248043Z PASS one-tap shed switch 1280x720 {"a":{"bid":"feedmill","x":714.2357582545444,"y":324.9486183643515},"b":{"bid":"bakery","x":1103.973489090902,"y":324.9486183643515},"cam":{"targetX":5,"targetZ":14,"yaw":0,"dist":12}}
+2026-10-19T13:44:24.1675076Z [CI-ISOLATION] END shed-switch.browser.cjs code=0 signal=null elapsed=87.9s
+2026-10-19T13:44:24.1675735Z [CI-ISOLATION] START cow3d.browser.cjs 2026-10-19T13:44:24.167Z
+2026-10-19T13:44:34.1894906Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 424424      00:09 chrome |    3817    3753 331088      00:09 chrome |    3745    3733 223736      00:09 chrome |    2113    2111 152556      10:53 provjobd3917827 |    3733    3097 139944      00:10 node |    2175    2154 132924      08:48 Runner.Worker
+2026-10-19T13:44:44.2040825Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 522408      00:19 chrome |    3817    3753 325932      00:19 chrome |    3745    3733 226576      00:19 chrome |    2113    2111 154128      11:03 provjobd3917827 |    3733    3097 142752      00:20 node |    2175    2154 132924      08:58 Runner.Worker
+2026-10-19T13:44:44.6294596Z PASS 3D cow farm travel, blocking, picking and sandbox save 740
+2026-10-19T13:44:54.2298804Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 548648      00:29 chrome |    3817    3753 308644      00:29 chrome |    3745    3733 228024      00:29 chrome |    2113    2111 144396      11:13 provjobd3917827 |    2175    2154 132924      09:08 Runner.Worker |    3778    3745 131816      00:29 chrome
+2026-10-19T13:45:04.2420542Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 569172      00:39 chrome |    3817    3753 308720      00:39 chrome |    3745    3733 227480      00:39 chrome |    2113    2111 144708      11:23 provjobd3917827 |    2175    2154 132924      09:18 Runner.Worker |    3778    3745 131884      00:39 chrome
+2026-10-19T13:45:14.2358708Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=50s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 328084      00:49 chrome |    3745    3733 229088      00:49 chrome |    3817    3753 193468      00:49 chrome |    2113    2111 145316      11:33 provjobd3917827 |    2175    2154 132924      09:28 Runner.Worker |    3778    3745 131580      00:49 chrome
+2026-10-19T13:45:24.2500805Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=60s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 313780      00:59 chrome |    3745    3733 228640      00:59 chrome |    3817    3753 211224      00:59 chrome |    2113    2111 147088      11:43 provjobd3917827 |    2175    2154 132924      09:38 Runner.Worker |    3778    3745 131720      00:59 chrome
+2026-10-19T13:45:25.6792743Z PASS 3D preview controls, orbit, geometry and cost 740 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":10576},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.01720000000001164},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":21152},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.008699999999953434}]
+2026-10-19T13:45:34.2500692Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=70s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 464028      01:09 chrome |    3865    3753 340596      00:08 chrome |    3745    3733 230368      01:09 chrome |    2113    2111 157048      11:53 provjobd3917827 |    2175    2154 132924      09:48 Runner.Worker |    3778    3745 131540      01:09 chrome
+2026-10-19T13:45:42.6265480Z PASS 3D cow farm travel, blocking, picking and sandbox save 844
+2026-10-19T13:45:44.2661561Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=80s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 542452      01:19 chrome |    3865    3753 313136      00:18 chrome |    3745    3733 231784      01:19 chrome |    2113    2111 158600      12:03 provjobd3917827 |    2175    2154 132924      09:58 Runner.Worker |    3778    3745 132624      01:19 chrome
+2026-10-19T13:45:54.2909176Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=90s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 566084      01:29 chrome |    3865    3753 313136      00:28 chrome |    3745    3733 230436      01:29 chrome |    2113    2111 160552      12:13 provjobd3917827 |    2175    2154 134336      10:08 Runner.Worker |    3778    3745 132600      01:29 chrome
+2026-10-19T13:46:04.2937788Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=100s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 586544      01:39 chrome |    3865    3753 313236      00:38 chrome |    3745    3733 230436      01:39 chrome |    2113    2111 162548      12:23 provjobd3917827 |    2175    2154 134336      10:18 Runner.Worker |    3778    3745 132604      01:39 chrome
+2026-10-19T13:46:14.3015048Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=110s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 341936      01:49 chrome |    3745    3733 230404      01:49 chrome |    3865    3753 198316      00:48 chrome |    2113    2111 163932      12:33 provjobd3917827 |    2175    2154 134336      10:28 Runner.Worker |    3778    3745 132600      01:49 chrome
+2026-10-19T13:46:24.3108198Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=120s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 333440      01:59 chrome |    3745    3733 231320      01:59 chrome |    3865    3753 214756      00:58 chrome |    2113    2111 165888      12:43 provjobd3917827 |    2175    2154 134336      10:39 Runner.Worker |    3778    3745 132844      01:59 chrome
+2026-10-19T13:46:26.2572550Z PASS 3D preview controls, orbit, geometry and cost 844 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":10576},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.013900000000023283},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":21152},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.008849999999976717}]
+2026-10-19T13:46:34.3149082Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=130s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 453520      02:09 chrome |    3904    3753 348796      00:07 chrome |    3745    3733 230760      02:09 chrome |    2113    2111 157820      12:53 provjobd3917827 |    2175    2154 134344      10:49 Runner.Worker |    3733    3097 131940      02:10 node
+2026-10-19T13:46:44.3186477Z PASS 3D cow farm travel, blocking, picking and sandbox save 1280
+2026-10-19T13:46:44.3333980Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=140s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 579900      02:19 chrome |    3904    3753 321568      00:17 chrome |    3745    3733 232388      02:19 chrome |    2113    2111 159548      13:03 provjobd3917827 |    2175    2154 134344      10:59 Runner.Worker |    3733    3097 133336      02:20 node
+2026-10-19T13:46:54.3500559Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=150s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 596160      02:29 chrome |    3904    3753 310940      00:27 chrome |    3745    3733 230976      02:29 chrome |    2113    2111 161780      13:13 provjobd3917827 |    2175    2154 134344      11:09 Runner.Worker |    3733    3097 133340      02:30 node
+2026-10-19T13:47:04.3589602Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=160s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 626860      02:39 chrome |    3904    3753 310852      00:37 chrome |    3745    3733 230976      02:39 chrome |    2113    2111 164212      13:23 provjobd3917827 |    2175    2154 134344      11:19 Runner.Worker |    3733    3097 133340      02:40 node
+2026-10-19T13:47:14.3618891Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=170s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 416096      02:49 chrome |    3745    3733 230916      02:49 chrome |    3904    3753 214696      00:47 chrome |    2113    2111 165668      13:33 provjobd3917827 |    2175    2154 134352      11:29 Runner.Worker |    3733    3097 133712      02:50 node
+2026-10-19T13:47:24.3716943Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=180s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 375112      02:59 chrome |    3745    3733 230916      02:59 chrome |    3904    3753 197712      00:57 chrome |    2113    2111 167924      13:43 provjobd3917827 |    2175    2154 134352      11:39 Runner.Worker |    3733    3097 133720      03:00 node
+2026-10-19T13:47:34.3839758Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=190s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 369112      03:09 chrome |    3745    3733 231800      03:09 chrome |    3904    3753 199976      01:07 chrome |    2113    2111 168664      13:53 provjobd3917827 |    2175    2154 134352      11:49 Runner.Worker |    3733    3097 133724      03:10 node
+2026-10-19T13:47:42.7763995Z PASS 3D preview controls, orbit, geometry and cost 1280 [{"shadows":false,"baseline":{"calls":2,"triangles":4},"prototype":{"calls":1,"triangles":10576},"resources":{"geometries":4,"textures":5},"stable":true,"updateMs":0.016199999999953432},{"shadows":true,"baseline":{"calls":3,"triangles":6},"prototype":{"calls":2,"triangles":21152},"resources":{"geometries":4,"textures":7},"stable":true,"updateMs":0.007900000000023282}]
+2026-10-19T13:47:44.3854791Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=200s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 331552      03:19 chrome |    3745    3733 232376      03:19 chrome |    3941    3753 187060      00:01 chrome |    2113    2111 151032      14:03 provjobd3917827 |    2175    2154 134360      11:59 Runner.Worker |    3778    3745 131680      03:19 chrome
+2026-10-19T13:47:54.3821652Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=210s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 476908      03:29 chrome |    3941    3753 292836      00:11 chrome |    3745    3733 231236      03:29 chrome |    2113    2111 152228      14:13 provjobd3917827 |    2175    2154 134364      12:09 Runner.Worker |    3778    3745 131424      03:29 chrome
+2026-10-19T13:48:01.2505572Z PASS optional painted-cow comparison and sandbox save
+2026-10-19T13:48:04.3965026Z [CI-ISOLATION] RUNNING cow3d.browser.cjs elapsed=220s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    3775    3752 585816      03:39 chrome |    3941    3753 284600      00:21 chrome |    3745    3733 233128      03:39 chrome |    2113    2111 154088      14:23 provjobd3917827 |    2175    2154 134364      12:19 Runner.Worker |    3733    3097 132888      03:40 node
+2026-10-19T13:48:12.1331745Z [CI-ISOLATION] END cow3d.browser.cjs code=0 signal=null elapsed=228.0s
+2026-10-19T13:48:12.1333022Z [CI-ISOLATION] START cow-anatomy.browser.cjs 2026-10-19T13:48:12.132Z
+2026-10-19T13:48:22.1623097Z [CI-ISOLATION] RUNNING cow-anatomy.browser.cjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4011    3989 228072      00:09 chrome |    3982    3970 197852      00:09 chrome |    4052    3990 193428      00:09 chrome |    2113    2111 158516      14:40 provjobd3917827 |    3970    3097 136504      00:10 node |    2175    2154 134364      12:36 Runner.Worker
+2026-10-19T13:48:32.1702997Z [CI-ISOLATION] RUNNING cow-anatomy.browser.cjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4011    3989 228280      00:19 chrome |    3982    3970 198020      00:19 chrome |    4052    3990 195408      00:19 chrome |    2113    2111 143356      14:51 provjobd3917827 |    2175    2154 134364      12:46 Runner.Worker |    4014    3982 130404      00:19 chrome
+2026-10-19T13:48:42.1804845Z [CI-ISOLATION] RUNNING cow-anatomy.browser.cjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4011    3989 280756      00:29 chrome |    3982    3970 201296      00:29 chrome |    4087    3990 174408      00:09 chrome |    2113    2111 147720      15:01 provjobd3917827 |    2175    2154 134372      12:56 Runner.Worker |    4014    3982 131712      00:29 chrome
+2026-10-19T13:48:52.2011230Z [CI-ISOLATION] RUNNING cow-anatomy.browser.cjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4011    3989 280872      00:39 chrome |    3982    3970 201396      00:39 chrome |    4087    3990 182056      00:19 chrome |    2113    2111 149856      15:11 provjobd3917827 |    2175    2154 134372      13:06 Runner.Worker |    4014    3982 131780      00:39 chrome
+2026-10-19T13:49:02.2096494Z [CI-ISOLATION] RUNNING cow-anatomy.browser.cjs elapsed=50s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4011    3989 281000      00:49 chrome |    3982    3970 201452      00:49 chrome |    4087    3990 193148      00:29 chrome |    2113    2111 139564      15:21 provjobd3917827 |    2175    2154 134340      13:16 Runner.Worker |    4014    3982 131780      00:49 chrome
+2026-10-19T13:49:11.1812813Z PASS B8 full-resolution 16 views, rigid soles, geometry budget and 30 rebuilds per view
+2026-10-19T13:49:11.2875934Z [CI-ISOLATION] END cow-anatomy.browser.cjs code=0 signal=null elapsed=59.2s
+2026-10-19T13:49:11.2876655Z [CI-ISOLATION] START settings-motion.browser.cjs 2026-10-19T13:49:11.287Z
+2026-10-19T13:49:21.3148801Z [CI-ISOLATION] RUNNING settings-motion.browser.cjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4156    4135 429256      00:09 chrome |    4200    4136 332348      00:09 chrome |    4128    4116 226740      00:09 chrome |    2113    2111 156956      15:40 provjobd3917827 |    4116    3097 139592      00:10 node |    2175    2154 134340      13:36 Runner.Worker
+2026-10-19T13:49:31.3378524Z [CI-ISOLATION] RUNNING settings-motion.browser.cjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4156    4135 530068      00:19 chrome |    4200    4136 325600      00:19 chrome |    4128    4116 226376      00:19 chrome |    2113    2111 158548      15:50 provjobd3917827 |    4116    3097 142480      00:20 node |    2175    2154 134340      13:46 Runner.Worker
+2026-10-19T13:49:35.6157567Z PASS motion selections retain overlay, scroll, focus, preference and accessibility no-preference
+2026-10-19T13:49:41.3520825Z [CI-ISOLATION] RUNNING settings-motion.browser.cjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4156    4135 423212      00:29 chrome |    4240    4136 356920      00:05 chrome |    4128    4116 235024      00:29 chrome |    2113    2111 155044      16:00 provjobd3917827 |    4116    3097 151512      00:30 node |    2175    2154 134340      13:56 Runner.Worker
+2026-10-19T13:49:51.3496184Z [CI-ISOLATION] RUNNING settings-motion.browser.cjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    4156    4135 545916      00:39 chrome |    4240    4136 374164      00:15 chrome |    4128    4116 235636      00:39 chrome |    2113    2111 146276      16:10 provjobd3917827 |    2175    2154 134340      14:06 Runner.Worker |    4159    4128 133304      00:39 chrome
+2026-10-19T13:49:56.0984809Z PASS motion selections retain overlay, scroll, focus, preference and accessibility reduce
+2026-10-19T13:49:56.2948644Z [CI-ISOLATION] END settings-motion.browser.cjs code=0 signal=null elapsed=45.0s
+2026-10-19T13:49:56.2949466Z [CI-ISOLATION] ALL 0 Node test files and 5 browser suites passed; partition=browser.
+2026-10-19T13:49:56.3133808Z ##[group]Run actions/upload-artifact@v5
+2026-10-19T13:49:56.3134133Z with:
+2026-10-19T13:49:56.3134370Z   name: core-partition-browser-1
+2026-10-19T13:49:56.3134642Z   path: farm3d/tests/artifacts/
+2026-10-19T13:49:56.3134888Z   if-no-files-found: ignore
+2026-10-19T13:49:56.3135116Z   retention-days: 14
+2026-10-19T13:49:56.3135326Z   compression-level: 6
+2026-10-19T13:49:56.3135537Z   overwrite: false
+2026-10-19T13:49:56.3135743Z   include-hidden-files: false
+2026-10-19T13:49:56.3135977Z ##[endgroup]
+2026-10-19T13:49:56.4794656Z (node:4274) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-19T13:49:56.4795544Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-19T13:49:56.4943362Z With the provided path, there will be 49 files uploaded
+2026-10-19T13:49:56.4958075Z Artifact name is valid!
+2026-10-19T13:49:56.4959010Z Root directory input is valid!
+2026-10-19T13:49:56.6746539Z Beginning upload of artifact content to blob storage
+2026-10-19T13:49:56.9172679Z (node:4274) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-19T13:49:57.0743723Z Uploaded bytes 5168169
+2026-10-19T13:49:57.0894389Z Finished uploading artifact content to blob storage!
+2026-10-19T13:49:57.0896168Z SHA256 digest of uploaded artifact zip is e539dddb9798f312cd7ea0efead2ff405178fdb28399f1d883be1f5073da15fc
+2026-10-19T13:49:57.0897901Z Finalizing artifact upload
+2026-10-19T13:49:57.3134477Z Artifact core-partition-browser-1.zip successfully finalized. Artifact ID 12190264832
+2026-10-19T13:49:57.3136144Z Artifact core-partition-browser-1 has been successfully uploaded! Final size is 5168169 bytes. Artifact ID is 12190264832
+2026-10-19T13:49:57.3143218Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39261488673/artifacts/12190264832
+2026-10-19T13:49:57.3338106Z Post job cleanup.
+2026-10-19T13:49:57.4710629Z Post job cleanup.
+2026-10-19T13:49:57.5657026Z [command]/usr/bin/git version
+2026-10-19T13:49:57.5700679Z git version 2.55.0
+2026-10-19T13:49:57.5746638Z Temporarily overriding HOME='/home/runner/work/_temp/7e199979-c209-4644-839b-76ef27601916' before making global git config changes
+2026-10-19T13:49:57.5751191Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T13:49:57.5753952Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:49:57.5791140Z Removing SSH command configuration
+2026-10-19T13:49:57.5800157Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:49:57.5845600Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:49:57.6111442Z Removing HTTP extra header
+2026-10-19T13:49:57.6113758Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:49:57.6160034Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:49:57.6414642Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:49:57.6420864Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:49:57.6518941Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:49:57.7050178Z Cleaning up orphan processes
+2026-10-19T13:49:57.7399264Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

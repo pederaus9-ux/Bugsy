@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-19T13:42:00Z",
+  "lastUpdatedUtc": "2026-10-19T13:52:00Z",
   "codeBaseline": {
     "description": "PR84 sticky-seed planting integrated; main ref verified during chicken design documentation",
     "mergeCommit": "756df378e7adbe20f34c204dc54172b1030e16bd",
@@ -1845,7 +1845,7 @@
     "review": "Lead self-review; no independent external audit",
     "knownLimitations": "Existing character CI/performance/capture gates and black-surface root cause remain unresolved; recorder/normal optimization shelved",
     "plan": "docs/superpowers/plans/2026-10-18-chicken-pen.md",
-    "planStatus": "TARGETED_GATES_VERIFIED_FULL_CI_BLOCKED_AUTHORED_RETURN_AND_CORE_JOB_TIMEOUT",
+    "planStatus": "FEATURE_AND_CORE_CHECKS_VERIFIED_AUTHORED_RETURN_UNRESOLVED_PR_CI_PENDING",
     "ownerRequestedContinuation": "2026-10-18T19:48:25-05:00: Yes so let's continue on pen",
     "executionMethod": "Direct ChatGPT/Codex; sole implementer; no delegation",
     "planValidation": "Structure, placeholder and whitespace check PASS; not a product test",
@@ -1878,7 +1878,7 @@
     ],
     "localCoreNodeAssertions": 239,
     "localCoreBrowser": "UNVERIFIED_CHROMIUM_ABSENT",
-    "coreRegression": "All38 Node files/five browser suites logged PASS on2afe; job118075858759 CANCELLED at20m before artifact upload, so no full-job PASS. Separate unchanged partition qualification pending browser.",
+    "coreRegression": "Verified38 Node files/248 assertions and5 browser suites in unchanged partition run39261488673 on6b017703; original2afe core job remains cancelled. Prepared production aggregate requires exact-head PR CI.",
     "maxBirds": 30,
     "palletCapacity": 1200,
     "palletSizingAuthority": "proportional implementation choice; owner explicitly selected flock30",
@@ -2087,7 +2087,7 @@
       "head": "6b01770328e6fa1361edef142b42162076188f6b",
       "tree": "83431721e9f2b5a89fdeacfa98c3a16da652f749",
       "run": 39261488673,
-      "status": "PENDING",
+      "status": "BOTH_PARTITIONS_VERIFIED; prepared aggregate workflow still needs exact-head PR CI",
       "originalInventoriesIdentical": true,
       "allDefaultPreserved": true,
       "individualDeadlinesAndAssertionsChanged": false,
@@ -2099,12 +2099,73 @@
         "conclusion": "success",
         "completedNodeFiles": 38,
         "childProcesses": 41,
-        "footerVerified": true
+        "footerVerified": true,
+        "assertionsPassed": 248
       },
       "browserJob": {
         "id": 118089990009,
-        "status": "in_progress"
-      }
+        "status": "completed",
+        "conclusion": "success",
+        "completedBrowserSuites": 5,
+        "footerVerified": true,
+        "artifactsUploaded": true
+      },
+      "preparedIntegration": {
+        "branch": "codex/chicken-ci-gate-20261019",
+        "head": "af7665eec1a612cc256681906994f0e240065923",
+        "tree": "f336cf1c1754024cf92079ec4f2a06b99d916157",
+        "files": [
+          ".github/workflows/farm3d-regression.yml",
+          "farm3d/tests/run-core-game-tests.mjs"
+        ],
+        "existingCheckNamePreserved": "Farm3D regression",
+        "aggregateGate": "only needs.regression_suites.result==success can pass; failure/cancelled/skipped/empty fail closed",
+        "localGateTruthTable": "PASS all5 statuses",
+        "nativeAggregateWorkflow": "UNVERIFIED; needs exact-head PR CI before integration clearance",
+        "temporaryDiagnosticWorkflow": "Retained only on qualification branch; omitted from prepared integration",
+        "runtimeChanged": false,
+        "mergedIntoPR": false
+      },
+      "artifacts": [
+        {
+          "id": 12190264832,
+          "name": "core-partition-browser-1",
+          "size_in_bytes": 5168169,
+          "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12190264832",
+          "archive_download_url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12190264832/zip",
+          "expired": false,
+          "created_at": "2026-10-19T13:49:57Z",
+          "expires_at": "2026-11-02T13:49:56Z",
+          "updated_at": "2026-10-19T13:49:57Z",
+          "digest": "sha256:e539dddb9798f312cd7ea0efead2ff405178fdb28399f1d883be1f5073da15fc",
+          "workflow_run": {
+            "id": 39261488673,
+            "repository_id": 1388310894,
+            "head_repository_id": 1388310894,
+            "head_branch": "codex/chicken-ci-completion-20261019",
+            "head_sha": "6b01770328e6fa1361edef142b42162076188f6b"
+          }
+        },
+        {
+          "id": 12190228405,
+          "name": "core-partition-node-1",
+          "size_in_bytes": 69567,
+          "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12190228405",
+          "archive_download_url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12190228405/zip",
+          "expired": false,
+          "created_at": "2026-10-19T13:40:05Z",
+          "expires_at": "2026-11-02T13:40:05Z",
+          "updated_at": "2026-10-19T13:40:05Z",
+          "digest": "sha256:04df74f2e4c825bbf4c3d092132fdc4c4d7488671a0b66bfba11542773736992",
+          "workflow_run": {
+            "id": 39261488673,
+            "repository_id": 1388310894,
+            "head_repository_id": 1388310894,
+            "head_branch": "codex/chicken-ci-completion-20261019",
+            "head_sha": "6b01770328e6fa1361edef142b42162076188f6b"
+          }
+        }
+      ]
     },
     "ownerAuthorization": "Continue testing; no merge or deploy",
     "broaderLimitations": [
@@ -2126,10 +2187,24 @@
     },
     "rawEvidenceBundle": {
       "file": "Sunny-Acres-Full-CI-Followup-2026-10-19.zip",
-      "sha256": "8d6809708e440d73b3f02a1a728e253201cd1e4f6c3f559e099424922d50a9bd",
-      "bytes": 22356084,
+      "sha256": "a26b06a6c2600b46fc2e5c4a6226b713edaf34250fac16178b364e6597c1b0fe",
+      "bytes": 41354558,
       "libraryId": "libfile_6f0c564708ec8191abdbac0b37395768",
-      "limit": "Core browser partition pending at packaging time"
-    }
+      "limit": "Contains completed core receipts and current30-bird844 game footage; no full-PR or authored-failure clearance",
+      "version": 1
+    },
+    "visualEvidence": {
+      "source": "2afe7fc8c884f182e1341174eb9d79ed8ad0fdd9",
+      "run": 39257238448,
+      "artifact": 12188196439,
+      "layout": "844x390 actual Chromium game fixture with30birds; no generated images",
+      "phonePerformance": "NOT_VERIFIED",
+      "owner30BirdVisualAcceptance": "PENDING",
+      "savedFiles": [
+        "coop-sage-844.png",
+        "full-flock-noon-844.png"
+      ]
+    },
+    "mergeRecommendation": "KEEP_DRAFT; authored return remains unresolved; prepared orchestration aggregate needs exact-head PR CI; owner visual/merge authority pending"
   }
 }
