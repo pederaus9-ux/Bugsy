@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-19T00:45:20.429Z",
+  "lastUpdatedUtc": "2026-10-19T00:52:28.112Z",
   "codeBaseline": {
     "description": "PR84 sticky-seed planting integrated; main ref verified during chicken design documentation",
     "mergeCommit": "756df378e7adbe20f34c204dc54172b1030e16bd",
@@ -78,14 +78,15 @@
   "currentProgram": "Individual animal-pen design and care",
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "CHICKEN_PEN_DESIGN",
-  "currentPhaseTitle": "Chicken coop, 12-hour supplies and outside egg pallet",
-  "phaseStatus": "WRITTEN_DESIGN_DRAFT_FOR_OWNER_REVIEW",
+  "currentPhaseTitle": "Chicken pen implementation planning",
+  "phaseStatus": "CHICKEN_IMPLEMENTATION_PLAN_READY_FOR_OWNER_REVIEW",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": null,
   "nextPhases": [
-    "Review chicken written design and proposed defaults, then prepare implementation plan",
-    "Implement and qualify only chickens; actual in-game review and explicit merge approval remain separate",
-    "Next separate product change: holiday-decoration defects and visual polish; market sales and cow bulk tank remain later scoped work"
+    "Owner reviews written chicken implementation plan and its proposed defaults",
+    "Direct ChatGPT/Codex implementation task by task; care/save tests before visual integration",
+    "Exact-head native evidence and existing regressions; owner visual acceptance and explicit merge instruction",
+    "Holiday decoration correction next; market and cow tank separately scoped; whole-game graphical polish before release"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -1841,9 +1842,14 @@
     "testsExecutedForDesign": false,
     "gameLaunch": false,
     "mergeDeployment": false,
-    "ownerWrittenSpecApproval": "NOT_YET_REVIEWED",
+    "ownerWrittenSpecApproval": "Owner instructed continuing pen after linked draft; no claim of line-by-line review. Written implementation plan now presented for review.",
     "review": "Lead self-review; no independent external audit",
-    "knownLimitations": "Existing character CI/performance/capture gates and black-surface root cause remain unresolved; recorder/normal optimization shelved"
+    "knownLimitations": "Existing character CI/performance/capture gates and black-surface root cause remain unresolved; recorder/normal optimization shelved",
+    "plan": "docs/superpowers/plans/2026-10-18-chicken-pen.md",
+    "planStatus": "PREPARED_SELF_REVIEWED_NOT_EXECUTED",
+    "ownerRequestedContinuation": "2026-10-18T19:48:25-05:00: Yes so let's continue on pen",
+    "executionMethod": "Direct ChatGPT/Codex; sole implementer; no delegation",
+    "planValidation": "Structure, placeholder and whitespace check PASS; not a product test"
   },
   "nextOwnerRequestedPolish": {
     "after": "Chicken pen",
@@ -1872,5 +1878,24 @@
     "priceBounds": "Not settled",
     "cowBulkTank": "Deferred explicitly to cow-pen phase",
     "implementation": false
+  },
+  "finalReleasePolish": {
+    "status": "OWNER_CONFIRMED_ROADMAP_NOT_IMPLEMENTED",
+    "scope": [
+      "all decorations",
+      "buildings",
+      "terrain",
+      "lighting/shadows",
+      "characters",
+      "opening screen",
+      "settings",
+      "UI"
+    ],
+    "qualityConstraints": [
+      "smooth phone performance",
+      "reliable saves",
+      "actual game evidence before release readiness"
+    ],
+    "releaseApproval": false
   }
 }

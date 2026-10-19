@@ -64,6 +64,8 @@ Check confinement, player access, coop appearance persistence and pickup reach; 
 
 Other species' pens, expanded land, movable plots, new cosmetic monetization, the shelved normal optimization and recorder investigation are outside this scope.
 
+**Final release polish:** the owner confirmed a whole-game graphical pass covering all decorations, buildings, terrain, lighting/shadows, characters, opening screen, settings and UI. This is a later release-readiness phase, after the separate feature updates. Judge the actual game against consistent appearance, smooth phone performance and reliable saves; this direction does not establish current implementation, performance clearance or release approval.
+
 ## Review boundary
 
 This file records agreed behavior and concrete proposed defaults. It is not an implemented or tested feature. Next is the owner's review of this written design; an implementation plan follows the reviewed design. Actual product/visual acceptance and explicit merge authority remain separate.
