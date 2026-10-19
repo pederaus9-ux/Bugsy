@@ -363,9 +363,15 @@ jobs:
           retention-days: 14
 
   chicken-flock30:
-    name: Thirty-chicken full-flock touch + game evidence
+    name: Thirty-chicken full-flock touch (${{ matrix.width }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        width: [844, 390]
+    env:
+      FLOCK_WIDTH: ${{ matrix.width }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -389,7 +395,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-chicken-flock30-${{ github.run_attempt }}
+          name: farm3d-chicken-flock30-${{ matrix.width }}-${{ github.run_attempt }}
           path: |
             farm3d/tests/artifacts/chicken-flock30/
             farm3d/tests/artifacts/chicken-*.png

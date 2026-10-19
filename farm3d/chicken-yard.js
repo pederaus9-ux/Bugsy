@@ -8,7 +8,7 @@ export const CHICKEN_YARD_LAYOUT=Object.freeze({
   polygon:[[-16.5,-5.8],[-4.9,-5.8],[-4.9,5],[-16.5,5]],gate:[-6.8,-5.3],
   fenceSegments:[[-16.5,-5.8,-4.9,-5.8],[-16.5,-5.8,-16.5,5],[-16.5,5,-6.8,5],[-5.3,5,-4.9,5],[-4.9,-5.8,-4.9,5]],
   obstacles:[[-11.6,-2.2,2.5,2.9],[-11.6,1.55,.82,1.63],[-7.6,3,.65,.65],[-6,3.15,.65,.65],[-7.6,6.3,1.15,.88]],
-  bed:[-9.8,.6,3.2],shelter:{x:[-8.7,-8.3],z:[-3.4,-1]},water:[-6,3.15,1.1,1.1],
+  bed:[-9.6,1.7,3.2],shelter:{x:[-8.7,-8.3],z:[-3.4,-1]},water:[-6,3.15,1.1,1.1],
 });
 export function createChickenYard(){
   const group=new THREE.Group();group.name='chicken-yard';

@@ -14,7 +14,8 @@ async function resources(p){return p.evaluate(async()=>{const d=__dbg,r=d.render
 let h,page,failed=true,stage='launch';save();
 (async()=>{try{
  h=await start({deviceScaleFactor:1,recordVideo:true,videoDir:path.join(out,'video')});
- for(const [width,height]of [[844,390],[390,844]]){
+ const layouts=[[844,390],[390,844]].filter(([width])=>!process.env.FLOCK_WIDTH||width===Number(process.env.FLOCK_WIDTH));assert.ok(layouts.length,'unknown full-flock viewport');
+ for(const [width,height]of layouts){
   stage=width+' full-flock boot';const s=await h.setup({width,height},true,'chicken-fullflock-'+width,true);page=s.page;
   await page.addInitScript(()=>{localStorage.setItem('sa3d-pov','eyes');localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');const now=Date.now.bind(Date);window.__flockOffset=0;Date.now=()=>now()+window.__flockOffset;});
   await page.goto(h.base+'farm3d/?debug&portrait&preset=noon');await page.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
