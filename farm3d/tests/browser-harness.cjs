@@ -34,7 +34,7 @@ async function start(options = {}) {
     serveRef(ref){servedRef=ref||null;},
     async setup(viewport, touch, name, mobile = touch) {
       // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
-      const context = await browser.newContext({viewport,deviceScaleFactor:options.deviceScaleFactor??.5,hasTouch:touch,isMobile:mobile,serviceWorkers:options.serviceWorkers??'block',...(options.recordVideo?{recordVideo:{dir:path.join(artifacts,'chicken-pen','video'),size:viewport}}:{})});
+      const context = await browser.newContext({viewport,deviceScaleFactor:options.deviceScaleFactor??.5,hasTouch:touch,isMobile:mobile,serviceWorkers:options.serviceWorkers??'block',...(options.recordVideo?{recordVideo:{dir:options.videoDir??path.join(artifacts,'chicken-pen','video'),size:viewport}}:{})});
       await context.tracing.start({screenshots:true,snapshots:true,sources:true});
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push('pageerror: ' + error.message));

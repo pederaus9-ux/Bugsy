@@ -60,16 +60,16 @@ async function main() {
     // Chicken envelope traverses the existing authenticated snapshot path. No
     // Firebase/auth/rules code is substituted or enabled on the public farm.
     await P(g, () => {
-      const G=__dbg.G;G.S.pens.chicken={owned:true,list:[Date.now()-1],meta:[{name:'Snapshot Hen',love:50,loveAt:Date.now()}]};G.S.barn.chicken_feed=3;
+      const G=__dbg.G;G.S.pens.chicken={owned:true,list:[Date.now()-1,...Array(29).fill(0)],meta:Array.from({length:30},(_,i)=>({name:i?'Snapshot Hen '+i:'Snapshot Hen',love:50,loveAt:Date.now()}))};G.S.barn.chicken_feed=31;
       if(!G.refillChickens('feed',G.chickenRefillQuote('feed').revision)||!G.refillChickens('water',G.chickenRefillQuote('water').revision))throw Error('chicken fixture refill failed');
       if(!G.setChickenAppearance({walls:'sage',roof:'red',trim:'cream',roofType:'metal'}))throw Error('chicken fixture appearance failed');
     });
     const chickenBase=await establish(uid,'chicken-snapshot');
     const chickenCloud=JSON.parse((await cloud(uid)).save).pens.chicken;
-    check('chicken care and appearance survive authenticated cloud upload',chickenCloud.care?.v===1&&chickenCloud.care.normal===1&&chickenCloud.care.feedUntil>0&&chickenCloud.care.waterUntil>0&&chickenCloud.appearance?.walls==='sage');
+    check('chicken care and appearance survive authenticated cloud upload',chickenCloud.list.length===30&&chickenCloud.care?.v===1&&chickenCloud.care.birds.length===30&&chickenCloud.care.normal===1&&chickenCloud.care.feedUntil>0&&chickenCloud.care.waterUntil>0&&chickenCloud.appearance?.walls==='sage');
     await g.page.reload({waitUntil:'load'});await gameUp();
     const chickenRestored=await P(g,()=>__dbg.G.S.pens.chicken);
-    check('chicken snapshot restores without losing supplies, stock or appearance',JSON.stringify(chickenRestored.care)===JSON.stringify(chickenCloud.care)&&JSON.stringify(chickenRestored.appearance)===JSON.stringify(chickenCloud.appearance)&&chickenRestored.meta[0].name==='Snapshot Hen');
+    check('chicken snapshot restores without losing supplies, stock or appearance',JSON.stringify(chickenRestored.care)===JSON.stringify(chickenCloud.care)&&JSON.stringify(chickenRestored.appearance)===JSON.stringify(chickenCloud.appearance)&&chickenRestored.meta[0].name==='Snapshot Hen'&&chickenRestored.meta[29].name==='Snapshot Hen 29'&&chickenRestored.list.length===30);
 
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;

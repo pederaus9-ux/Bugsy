@@ -1,5 +1,5 @@
 // Chicken-only accounting. No DOM, inventory, timers, network or global randomness.
-export const CHICKEN_CARE = Object.freeze({version:1,capacity:240,interval:1_800_000,supply:43_200_000});
+export const CHICKEN_CARE = Object.freeze({version:1,maxBirds:30,capacity:1200,interval:1_800_000,supply:43_200_000});
 const C=CHICKEN_CARE;
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
 const loveAt=(m,t)=>Math.max(0,Math.min(100,(m?.love??50)-(t-(m?.loveAt??t))/8_640_000));
@@ -8,7 +8,7 @@ const count=c=>c.batches.reduce((n,b)=>n+b.n,0);
 function sync(c){c.normal=0;c.gold=0;for(const b of c.batches)c[b.gold?'gold':'normal']+=b.n;}
 function valid(c){
   if(c?.v!==1||!finite(c.lastAt)||!finite(c.feedUntil)||!finite(c.waterUntil)||c.feedUntil<0||c.waterUntil<0)return false;
-  if(!Array.isArray(c.birds)||c.birds.length>6||!Array.isArray(c.legacy)||c.legacy.length>12||!Array.isArray(c.batches)||c.batches.length>C.capacity)return false;
+  if(!Array.isArray(c.birds)||c.birds.length>C.maxBirds||!Array.isArray(c.legacy)||c.legacy.length>C.maxBirds*2||!Array.isArray(c.batches)||c.batches.length>C.capacity)return false;
   if(!c.batches.every(b=>b&&Number.isInteger(b.n)&&b.n>0&&b.n<=2&&typeof b.gold==='boolean'&&(b.xp===0||b.xp===2)))return false;
   if(!c.birds.every(b=>b&&finite(b.progress)&&b.progress>=0&&b.progress<=b.duration&&[C.interval,C.interval*.8].includes(b.duration)&&typeof b.happy==='boolean'&&(b.startedAt===null||finite(b.startedAt))))return false;
   if(!c.legacy.every(l=>l&&Number.isInteger(l.i)&&l.i>=0&&l.i<c.birds.length&&finite(l.at)&&l.at>0)||new Set(c.legacy.map(l=>l.i+':'+l.at)).size!==c.legacy.length)return false;
@@ -17,7 +17,7 @@ function valid(c){
 }
 function bird(){return {progress:0,duration:C.interval,happy:false,startedAt:null};}
 export function ensureChickenCare(pen,at){
-  if(!pen?.owned||!Array.isArray(pen.list)||pen.list.length>6||!finite(at))return null;
+  if(!pen?.owned||!Array.isArray(pen.list)||pen.list.length>C.maxBirds||!finite(at))return null;
   let c=pen.care;
   if(c&&!valid(c))return null; // Preserve unknown/corrupt envelopes, never reset valuable stock.
   if(!c){
@@ -30,7 +30,7 @@ export function ensureChickenCare(pen,at){
   // preserving this optional envelope. Import each distinct unpaid timer once;
   // do not lose it merely because the initial migration already happened.
   const incoming=pen.list.flatMap((end,i)=>finite(end)&&end>0&&!c.legacy.some(l=>l.i===i&&l.at===end)?[{i,at:end}]:[]);
-  if(c.legacy.length+incoming.length>12)return null; // Preserve ambiguous overflow for recovery.
+  if(c.legacy.length+incoming.length>C.maxBirds*2)return null; // Preserve ambiguous overflow for recovery.
   while(c.birds.length<pen.list.length){c.birds.push(bird());c.revision++;}
   if(incoming.length){c.legacy.push(...incoming);c.revision++;}
   if(pen.list.some(end=>finite(end)&&end>0))pen.list=pen.list.map(end=>finite(end)&&end>0?0:end);

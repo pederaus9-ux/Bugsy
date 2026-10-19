@@ -1,0 +1,93 @@
+✔ insufficient_feed_and_duplicate_confirmation (43.494516ms)
+✔ water_is_free_and_pallet_pays_once_with_barn_limit (3.89802ms)
+✔ legacy_chicken_buttons_do_not_bypass_stations (2.130485ms)
+✔ read_only_farms_reject_all_new_mutations (2.13916ms)
+✔ other_species_exact and farm_roundtrip (4.354073ms)
+✔ unowned_and_future_care cannot spend or overwrite appearance (0.614252ms)
+✔ passive clock progress does not dirty an otherwise unchanged cloud snapshot (1.119916ms)
+✔ a stale displayed top-up cost cannot charge more feed than confirmed (0.857428ms)
+✔ malformed existing care blocks chicken purchase without spending (1.120309ms)
+✔ petting after time away cannot retroactively upgrade eggs already earned (1.766587ms)
+✔ buying between outputs never gives the new bird pre-purchase progress (1.479306ms)
+✔ thirty-bird purchase limit, refill charge and whole-flock save are consistent (13.995581ms)
+✔ chicken care module is available (1.574496ms)
+✔ one_six_and_zero_chickens (5.975927ms)
+✔ earlier_supply_deadline credits an egg exactly at expiry only (0.637401ms)
+✔ early_topup_quote costs by missing fraction and rejects duplicate revision (8.561615ms)
+✔ pause_and_resume preserves active progress without empty-supply backlog (0.714161ms)
+✔ pallet_boundary_and_barn_room never exceed capacity and collect gold first (35.443348ms)
+✔ clock_partition produces the same batches and RNG as one catch-up (36.591911ms)
+✔ clock_backwards neither credits time nor extends a refill into the past (0.426548ms)
+✔ new_chicken starts fresh with current supplies (0.639767ms)
+✔ legacy_migration_once retains paid ready and future eggs without free feed (0.849937ms)
+✔ unknown_care_version_preserved rejects actions without deleting data (0.541126ms)
+✔ happy_cycles_and_rewards persist and split double eggs without double XP (40.204434ms)
+✔ status is a read-only projection, even before first migration (0.416603ms)
+✔ malformed current-version care is preserved without crashing or paying invalid rewards (3.647528ms)
+✔ a legacy timer written by an older cached client is migrated even when care already exists (0.514802ms)
+✔ overlapping already-paid legacy timers for the same hen are preserved once each (0.576806ms)
+✔ thirty ordinary birds produce720 eggs over12 hours and survive reload (16.85112ms)
+✔ thirty birds retain partition-independent bonuses and pause at1200 eggs (86.514857ms)
+✔ all30 paid legacy timers migrate once, while31 birds remain untouched (1.085918ms)
+✔ chicken card retains naming and petting without old feeding controls (5.291516ms)
+✔ feed and water trays show exact quote and 12-hour station confirmation (4.754277ms)
+✔ customization offers real color previews, apply, cancel and two roofs (3.74067ms)
+✔ full barn pallet tray reports stored stock and cannot offer a paid pickup (1.411292ms)
+✔ walking taps cannot collect a distant station outside interaction reach (2.82369ms)
+✔ replacing the coop tray discards its uncommitted preview (1.737033ms)
+✔ supply countdown cannot replace customization controls during a gesture (29.450577ms)
+✔ physical coop and distinct reachable stations fit the chicken yard (79.318084ms)
+✔ geometry stays under a bounded component budget (41.447123ms)
+✔ netting encloses the east side and the coop has complete gable faces (25.203754ms)
+✔ pallet center remains selectable through slat gaps with stable station bounds (20.709224ms)
+✔ appearance and status reuse resources and restore preview without affecting footprint (39.113797ms)
+✔ thirty-bird yard has expanded room and a proportionately larger coop (20.558112ms)
+✖ enlarged stations and ramp clear the existing boulder collision footprints (33.934678ms)
+✔ native page installs one connection after motion, updates after current hand poses, and precaches the dependency (5.542393ms)
+✔ picking a seed plants the selected plot, closes the picker and keeps it equipped (10.859327ms)
+✔ opening seeds discards an uncommitted coop preview (3.303204ms)
+✔ walking Plant repeats the selected crop without reopening its picker (5.696846ms)
+✔ changing the equipped seed does not plant an old pending plot (3.694569ms)
+✔ failed purchase keeps the equipped seed and does not change or charge a plot (6.589413ms)
+✔ opening information and changing view context do not unequip a seed (4.630003ms)
+✔ putting seeds away explicitly clears the selection and target without spending (3.251422ms)
+✔ locked and unknown crops cannot become equipped or call the planting rule (3.702698ms)
+✔ equipped planting cannot modify a visited farm or another blocked mode (18.768041ms)
+✔ walking action label names the equipped crop while keeping its Plant action identity (6.765449ms)
+✔ E and Enter plant once and repeated keydown events do not spend twice (8.615843ms)
+✔ equipped seed chip steps aside while the picker is open and returns when it closes (3.011717ms)
+✔ equipped display does not reuse the picker action attribute (3.672137ms)
+✔ nested authored module versions cannot evade the cache consistency check (2.21431ms)
+✔ every versioned script is imported with one version only (0.806141ms)
+✔ window.__gameVer matches the game.js version it imports (0.258584ms)
+✔ the offline shell caches the same versions the page imports (0.36503ms)
+✔ the cache name is versioned and namespaced away from the 2D game (1.029838ms)
+✔ chicken dependencies of both the page and game rules are cached offline (0.229822ms)
+ℹ tests 65
+ℹ suites 0
+ℹ pass 64
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2647.873922
+
+✖ failing tests:
+
+test at farm3d/tests/chicken-yard.test.mjs:16:1
+✖ enlarged stations and ramp clear the existing boulder collision footprints (33.934678ms)
+  AssertionError [ERR_ASSERTION]: new station at -11.6,-2.7 overlaps existing boulder -11.2,-5.8
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-yard.test.mjs:16:481)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,6 +1,6 @@
 # Sunny Acres: chicken pen and care — design draft
 
-Status: written design for owner review. No product code, implementation plan, game launch, merge or deployment is included.
+Status: implementation and qualification in progress. Owner amendment at2026-10-18T21:29:59-05:00 selects30 chickens, superseding the earlier six-bird limit. No new visual acceptance, merge or deployment.
 
 Verified source: main `756df378e7adbe20f34c204dc54172b1030e16bd`, tree `6580beff7b9018ec33c6d4cda0fff9139b4339d4`. Three.js and Firebase remain the existing engine and services. This draft distinguishes confirmed directions from proposed engineering defaults; approving the draft would approve those defaults too.
 
@@ -9,22 +9,22 @@ Verified source: main `756df378e7adbe20f34c204dc54172b1030e16bd`, tree `6580beff
 Build one animal pen at a time, beginning with chickens. Each animal's pen can have a different size and design. Review genuine game captures and merge each pen independently; no other pen is rebuilt with the chicken update.
 
 - A proper chicken coop and a run enclosed with chicken netting.
-- Players customize the coop inside the game. First-version chicken capacity stays fixed: retain the existing maximum of six.
+- Players customize the coop inside the game. First-version chicken capacity is fixed at30, as revised by the owner. Existing small flocks and names remain intact; added birds use the existing purchase flow.
 - Separate physical feed bin and waterer, filled by interacting with those objects instead of feeding chickens individually.
 - A full feed supply and a full water supply each last 12 real hours, including time away. Filling an empty feed bin costs one existing chicken-feed item per current chicken; water is free. This uses feed already produced at the Feed Mill.
-- The new base production interval is one egg per chicken per 30 minutes. Six chickens therefore produce 144 ordinary eggs in 12 hours before happiness bonuses.
-- Eggs accumulate automatically on a pallet outside the pen while feed and water remain. A 240-egg pallet was recommended and accepted with the feeding proposal. Production pauses when storage is full or either supply is empty.
+- The new base production interval is one egg per chicken per 30 minutes. Thirty chickens therefore produce720 ordinary eggs in12 hours before happiness bonuses; the earlier six-bird144-egg case remains a regression test.
+- Eggs accumulate automatically on a pallet outside the pen while feed and water remain. Scale the earlier240-egg engineering default proportionally to1,200 eggs for30 birds. This sizing is an implementation choice for the revised flock, not a separately confirmed owner preference. Production pauses when storage is full or either supply is empty.
 - One pallet interaction collects everything the barn can hold. Remaining eggs stay on the pallet.
 
 ## Proposed first-version visual and customization defaults
 
-Keep the chicken run in its existing west-of-barn area initially; do not enlarge the whole farm or move the shared livestock paddock. Give this run its own chicken-wire/netting fence, posts and visible gate opening. Keep a safe walking route to the gate, feed bin, waterer, pallet and coop controls. Chicken pathing must match the actual enclosure and keep birds inside.
+Expand the chicken run west of the barn to polygon[[-16.5,-5.8],[-4.9,-5.8],[-4.9,5],[-16.5,5]]:125.28 scene-square-units, about80% above the previous69.58. Enlarge the coop and stations to fit; clear existing boulder footprints. Do not enlarge the whole farm or move the shared livestock paddock. Give this run its own chicken-wire/netting fence, posts and visible gate opening. Keep a safe walking route to the gate, feed bin, waterer, pallet and coop controls. Chicken pathing must match the actual enclosure and keep birds inside.
 
 Use a raised wooden coop with roof, door, nesting-house detail and ramp. Place feed and water inside the run; put the egg pallet outside near the access route. Netting needs readable wire detail at phone distance without a high draw-call or transparent-overdraw cost. Preserve the accepted chicken model and animation.
 
 Customization opens from a coop interaction. First version offers free wall, roof and trim colors plus two compatible roof appearances (shingles and corrugated metal). Options share a fixed footprint and capacity. They do not move or enlarge the coop, improve production or cost real money. Default appearance: natural wood walls, muted red metal roof and cream trim. These are proposed defaults, not previously selected colors. Preview choices before Apply; Cancel spends nothing and changes no saved appearance. Save applied choices across reopen and offline use.
 
-Show feed/water fill levels and remaining time, egg count out of 240, and an understandable paused reason. Keep controls usable with a finger, keyboard and mouse, and readable in first person, third person and the overhead view. Chicken interaction retains petting/renaming; the care stations and pallet own feeding, water and egg collection.
+Show feed/water fill levels and remaining time, egg count out of1,200, and an understandable paused reason. Keep controls usable with a finger, keyboard and mouse, and readable in first person, third person and the overhead view. Chicken interaction retains petting/renaming; the care stations and pallet own feeding, water and egg collection.
 
 ## Proposed care, storage and migration rules
 
@@ -48,7 +48,7 @@ The optional chicken care/appearance data belongs under the existing chicken-pen
 
 ## Evidence required before owner review and merge
 
-Meaningful fail-first checks cover exact 30-minute/12-hour boundaries, differing supply deadlines, top-up spending, insufficient feed, empty/full barn, 240-egg cap, pause/resume, newly added chickens, deterministic bonuses, backwards clock and one-time legacy-output migration. Verify repeated pickup, duplicate input and reload never duplicate inventory, XP or coins. Test saves with no chicken pen, one chicken, six chickens and old pending outputs.
+Meaningful fail-first checks cover exact 30-minute/12-hour boundaries, differing supply deadlines, top-up spending, insufficient feed, empty/full barn, 1,200-egg cap, pause/resume, newly added chickens, deterministic bonuses, backwards clock and one-time legacy-output migration. Verify repeated pickup, duplicate input and reload never duplicate inventory, XP or coins. Test saves with no chicken pen, one chicken, six chickens, thirty chickens and old pending outputs.
 
 Native browser checks must include actual touch taps/drags, keyboard/mouse, a persistent normal guest farm, and an old service-worker/cache installation updating to the new build. Fresh phone-sized mouse sessions with service workers disabled are insufficient. Isolate external accounts/services in automated fixtures; do not write production user data. Preserve failed receipts and take genuine in-game close-up and whole-pen captures plus an interaction sequence. Disclose software rendering, device scale and physical-phone limits.
 
@@ -69,3 +69,9 @@ Other species' pens, expanded land, movable plots, new cosmetic monetization, th
 ## Review boundary
 
 This file records agreed behavior and concrete proposed defaults. It is not an implemented or tested feature. Next is the owner's review of this written design; an implementation plan follows the reviewed design. Actual product/visual acceptance and explicit merge authority remain separate.
+
+## Thirty-bird implementation qualification
+
+The coop floor scales1.7× in width and1.55× in depth (about22 scene-square-units); raised roof, ramp and side shelter use matching transforms. Run/collision data are kept together; no real livestock-welfare certification or physical-device capacity is inferred from virtual scene units. The existing40-coin bird price and other species stay unchanged. An empty bin for30 birds costs30 feed items and water remains free. A full flock has64 focused checks passing before the later boulder correction; latest65-check receipt supersedes that count.
+
+The first new layout intersected existing boulder collision footprints. Retained red probes and successive layout failures led to coop center(-11.6,-2.2), ramp(-11.6,1.55). The first boulder fixture failed while parsing JavaScript decimal literals as JSON; preserve that failure too. New physical-scene evidence must show all30 real chicken models, ordinary and partial pickup, shared supplies, customization, normal guest reload, and installed-worker offline persistence. Full-flock/native/update jobs are independent, preserving each result.

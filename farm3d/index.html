@@ -669,8 +669,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=26"; window.__gameVer = 26; // bump this version whenever game.js changes
-import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=1';
+import * as G from "./game.js?v=27"; window.__gameVer = 27; // bump this version whenever game.js changes
+import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
 import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
@@ -1393,6 +1393,7 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
 const chickenYard=createChickenYard();scene.add(chickenYard.group);
+CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
 fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);
 // water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
 function makeWaterPan(r) {
@@ -3472,12 +3473,12 @@ function trayHtml() {
   const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
   if(f.type==='chickenStation'){
     const s=G.getChickenCareStatus(),why={full:'Egg pallet full',feed:'Feed bin empty',water:'Waterer empty','feed-water':'Fill feed and water','no-chickens':'Add a chicken',unavailable:'Update required for this chicken save',unowned:'Buy the chicken coop first'}[s.reason]||'Producing eggs';
-    const summary=`<div class="tray-sub">${s.total}/240 eggs · ${why}</div><div class="tray-sub">Feed: ${G.fmt(s.feedMs)} · Water: ${G.fmt(s.waterMs)}</div>`;
+    const summary=`<div class="tray-sub">${s.total}/${G.CHICKEN_CARE.capacity} eggs · ${why}</div><div class="tray-sub">Feed: ${G.fmt(s.feedMs)} · Water: ${G.fmt(s.waterMs)}</div>`;
     if(f.station==='feed'||f.station==='water'){const q=G.chickenRefillQuote(f.station),isFeed=f.station==='feed';return `<h3><span>${isFeed?'🌾 Feed bin':'💧 Waterer'}</span>${x}</h3>${summary}<p>Full supplies last 12 real hours, including while you are away.</p><div class="row"><button id="chicken-fill" class="btn" data-w="chickenFill" data-resource="${f.station}" data-rev="${q.revision}" data-cost="${q.cost}" ${q.full||q.reason||!GS().pens.chicken.owned?'disabled':''}>${q.full?'Already full':isFeed?'Fill · '+q.cost+' chicken feed':'Fill water · free'}</button></div>`;}
     if(f.station==='eggs')return `<h3><span>🥚 Egg pallet</span>${x}</h3>${summary}<p>Your barn has room for ${Math.max(0,G.space())}. Tap the pallet to pick up all that fits; remaining eggs stay here.</p>`;
     const draft=chickenPreview||GS().pens.chicken.appearance||G.CHICKEN_DEFAULT_STYLE;
     let options='';for(const [part,colors]of Object.entries(G.CHICKEN_PAINT)){options+=`<fieldset><legend>${part[0].toUpperCase()+part.slice(1)}</legend><div class="row">${Object.entries(colors).map(([id,[name,color]])=>`<button id="chicken-${part}-${id}" class="btn plain sm chicken-swatch" data-w="chickenPaint" data-part="${part}" data-value="${id}" aria-pressed="${draft[part]===id}" style="border-bottom:5px solid #${color.toString(16).padStart(6,'0')}">${name}</button>`).join('')}</div></fieldset>`;}
-    return `<h3><span>🏠 Customize coop</span>${x}</h3><p>Free appearance choices · space for 6 chickens</p>${options}<fieldset><legend>Roof appearance</legend><div class="row">${[['metal','Metal'],['shingles','Shingles']].map(([id,name])=>`<button id="chicken-roofType-${id}" class="btn plain sm" data-w="chickenPaint" data-part="roofType" data-value="${id}" aria-pressed="${draft.roofType===id}">${name}</button>`).join('')}</div></fieldset><div class="row"><button id="chicken-apply" class="btn" data-w="chickenApply">Apply</button><button id="chicken-cancel" class="btn plain" data-w="chickenCancel">Cancel</button></div>`;
+    return `<h3><span>🏠 Customize coop</span>${x}</h3><p>Free appearance choices · space for ${G.ANIMALS.chicken.max} chickens</p>${options}<fieldset><legend>Roof appearance</legend><div class="row">${[['metal','Metal'],['shingles','Shingles']].map(([id,name])=>`<button id="chicken-roofType-${id}" class="btn plain sm" data-w="chickenPaint" data-part="roofType" data-value="${id}" aria-pressed="${draft.roofType===id}">${name}</button>`).join('')}</div></fieldset><div class="row"><button id="chicken-apply" class="btn" data-w="chickenApply">Apply</button><button id="chicken-cancel" class="btn plain" data-w="chickenCancel">Cancel</button></div>`;
   }
   if (f.type === "plot") {
     const p = GS().plots[f.i]; if (!p.crop) return ""; const it = G.ITEMS[p.crop], left = p.end - nowMs(), n = G.thirsty();

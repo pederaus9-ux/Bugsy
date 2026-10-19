@@ -284,7 +284,7 @@ jobs:
           retention-days: 14
 
   chicken-pen:
-    name: Chicken pen + care + native touch + installed update
+    name: Chicken pen + care + native touch
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -312,10 +312,6 @@ jobs:
       - name: Chicken stations and native touch
         working-directory: farm3d/tests
         run: node chicken-pen.browser.cjs
-      - name: Installed worker update and offline reboot
-        if: ${{ !cancelled() && steps.chicken-contracts.outcome == 'success' }}
-        working-directory: farm3d/tests
-        run: node chicken-pen-update.browser.cjs
       - name: Preserve actual frames, videos, partial results and failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
@@ -324,6 +320,78 @@ jobs:
           path: |
             farm3d/tests/artifacts/chicken-pen/
             farm3d/tests/artifacts/chicken-pen-update/
+            farm3d/tests/artifacts/chicken-*.png
+            farm3d/tests/artifacts/chicken-*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  chicken-update:
+    name: Chicken installed update +30-bird offline save
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Fetch immutable installed base
+        run: git fetch --depth 1 https://github.com/pederaus9-ux/Bugsy.git 756df378e7adbe20f34c204dc54172b1030e16bd
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Chicken installed update +30-bird offline save
+        working-directory: farm3d/tests
+        run: node --test versions.test.mjs && node chicken-pen-update.browser.cjs
+      - name: Preserve frames, video, partial results and failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-chicken-update-${{ github.run_attempt }}
+          path: |
+            farm3d/tests/artifacts/chicken-pen-update/
+            farm3d/tests/artifacts/chicken-*.png
+            farm3d/tests/artifacts/chicken-*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  chicken-flock30:
+    name: Thirty-chicken full-flock touch + game evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Thirty-chicken full-flock touch + game evidence
+        working-directory: farm3d/tests
+        run: node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs && node chicken-flock30.browser.cjs
+      - name: Preserve frames, video, partial results and failures
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-chicken-flock30-${{ github.run_attempt }}
+          path: |
+            farm3d/tests/artifacts/chicken-flock30/
             farm3d/tests/artifacts/chicken-*.png
             farm3d/tests/artifacts/chicken-*.zip
           if-no-files-found: error

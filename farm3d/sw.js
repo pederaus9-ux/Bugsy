@@ -1,7 +1,7 @@
 // Keeps the 3D game on the phone so it opens quickly and plays offline.
 // (Named "sa3d-" so the 2D game's own clean-up never touches it.)
-const CACHE = "sa3d-v47";
-const SHELL = ["./", "index.html", "chicken-care.js?v=1", "chicken-yard.js?v=1", "player-motion.js?v=1", "player-arm-attachment.js?v=1", "scene-polish.js?v=2", "features.js?v=1", "phase7m.js?v=3", "game.js?v=26", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=5", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js", "art/authored-hands.js?v=2", "assets/hands/hands-candidate.glb?v=2", "lib/addons/loaders/GLTFLoader.js", "lib/addons/utils/BufferGeometryUtils.js", "lib/addons/utils/SkeletonUtils.js"];
+const CACHE = "sa3d-v48";
+const SHELL = ["./", "index.html", "chicken-care.js?v=2", "chicken-yard.js?v=2", "player-motion.js?v=1", "player-arm-attachment.js?v=1", "scene-polish.js?v=2", "features.js?v=1", "phase7m.js?v=3", "game.js?v=27", "analytics.js?v=3", "perf.js?v=1", "cow3d.js?v=5", "live3d.js?v=2", "sheep3d.js", "horse3d.js", "dog3d.js", "cat3d.js", "chicken3d.js", "farmer3d.js", "quadruped3d.js", "characters3d.html", "manifest.webmanifest", "lib/three.module.min.js", "lib/three.core.min.js", "art/authored-hands.js?v=2", "assets/hands/hands-candidate.glb?v=2", "lib/addons/loaders/GLTFLoader.js", "lib/addons/utils/BufferGeometryUtils.js", "lib/addons/utils/SkeletonUtils.js"];
 
 
 self.addEventListener("install", (e) => {

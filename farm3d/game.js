@@ -6,7 +6,8 @@
    can show rewards over things, move the camera and place decorations.
    ============================================================ */
 
-import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=1';
+import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
+export {CHICKEN_CARE};
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
   fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; }, moveDecor(j) {},
@@ -38,7 +39,7 @@ export const CROPS = {
   strawberry:{time:360,xp:4,seed:8}, pumpkin:{time:600,xp:6,seed:12},
 };
 export const ANIMALS = {
-  chicken:{n:"Chicken",e:"🐔",feed:"chicken_feed",out:"egg",time:1800,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:6},
+  chicken:{n:"Chicken",e:"🐔",feed:"chicken_feed",out:"egg",time:1800,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:CHICKEN_CARE.maxBirds},
   cow:{n:"Cow",e:"🐄",feed:"cow_feed",out:"milk",time:180,xp:3,lvl:4,pen:"Cow pasture",penE:"🐄",penCost:300,cost:120,max:5},
   sheep:{n:"Sheep",e:"🐑",feed:"sheep_feed",out:"wool",time:300,xp:4,lvl:7,pen:"Sheep meadow",penE:"🐑",penCost:500,cost:200,max:5},
   // horses don't make goods: feed them a carrot and they give pony rides to visitors for coins
