@@ -1,0 +1,1180 @@
+﻿2026-10-19T12:47:25.8799712Z Current runner version: '2.337.0'
+2026-10-19T12:47:25.8817632Z ##[group]Runner Image Provisioner
+2026-10-19T12:47:25.8818272Z Hosted Compute Agent
+2026-10-19T12:47:25.8818607Z Version: 20261012.601
+2026-10-19T12:47:25.8818995Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-19T12:47:25.8819413Z Build Date: 2026-10-12T17:48:21Z
+2026-10-19T12:47:25.8819838Z Worker ID: {7476cd77-2fc3-484a-a208-66ce29a18276}
+2026-10-19T12:47:25.8820293Z Region: westus3
+2026-10-19T12:47:25.8820613Z Cloud: Azure
+2026-10-19T12:47:25.8820948Z ##[endgroup]
+2026-10-19T12:47:25.8822004Z ##[group]Operating System
+2026-10-19T12:47:25.8822352Z Ubuntu
+2026-10-19T12:47:25.8822693Z 24.04.5
+2026-10-19T12:47:25.8822989Z LTS
+2026-10-19T12:47:25.8823281Z ##[endgroup]
+2026-10-19T12:47:25.8823676Z ##[group]Runner Image
+2026-10-19T12:47:25.8824025Z Image: ubuntu-24.04
+2026-10-19T12:47:25.8824686Z Version: 20261012.334.1
+2026-10-19T12:47:25.8825400Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-19T12:47:25.8826289Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-19T12:47:25.8826847Z ##[endgroup]
+2026-10-19T12:47:25.8827491Z ##[group]GITHUB_TOKEN Permissions
+2026-10-19T12:47:25.8828812Z Contents: read
+2026-10-19T12:47:25.8829222Z Metadata: read
+2026-10-19T12:47:25.8829543Z ##[endgroup]
+2026-10-19T12:47:25.8830829Z Secret source: Actions
+2026-10-19T12:47:25.8831548Z Cache mode: write
+2026-10-19T12:47:25.8831942Z Prepare workflow directory
+2026-10-19T12:47:25.9034477Z Prepare all required actions
+2026-10-19T12:47:25.9065528Z Getting action download info
+2026-10-19T12:47:26.2039061Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-19T12:47:26.3083696Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-19T12:47:26.4148911Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-19T12:47:26.6326836Z Complete job name: focused (update-a, chicken-pen-update.browser.cjs)
+2026-10-19T12:47:26.6777451Z ##[group]Run actions/checkout@v6
+2026-10-19T12:47:26.6777851Z with:
+2026-10-19T12:47:26.6778081Z   persist-credentials: false
+2026-10-19T12:47:26.6778354Z   repository: pederaus9-ux/Bugsy
+2026-10-19T12:47:26.6780390Z   token: ***
+2026-10-19T12:47:26.6780610Z   ssh-strict: true
+2026-10-19T12:47:26.6780834Z   ssh-user: git
+2026-10-19T12:47:26.6781051Z   clean: true
+2026-10-19T12:47:26.6781282Z   sparse-checkout-cone-mode: true
+2026-10-19T12:47:26.6781727Z   fetch-depth: 1
+2026-10-19T12:47:26.6781951Z   fetch-tags: false
+2026-10-19T12:47:26.6782181Z   show-progress: true
+2026-10-19T12:47:26.6782416Z   lfs: false
+2026-10-19T12:47:26.6782629Z   submodules: false
+2026-10-19T12:47:26.6782863Z   set-safe-directory: true
+2026-10-19T12:47:26.6783125Z   allow-unsafe-pr-checkout: false
+2026-10-19T12:47:26.6783467Z ##[endgroup]
+2026-10-19T12:47:26.7409139Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-19T12:47:26.7410979Z ##[group]Getting Git version info
+2026-10-19T12:47:26.7411748Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T12:47:26.7412582Z [command]/usr/bin/git version
+2026-10-19T12:47:26.7450926Z git version 2.55.0
+2026-10-19T12:47:26.7473006Z ##[endgroup]
+2026-10-19T12:47:26.7479017Z Temporarily overriding HOME='/home/runner/work/_temp/3bfaad7c-ed0f-457e-801c-6d292ab15ade' before making global git config changes
+2026-10-19T12:47:26.7480181Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T12:47:26.7481211Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T12:47:26.7525624Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T12:47:26.7532685Z ##[group]Determining repository object format
+2026-10-19T12:47:26.7533426Z ##[endgroup]
+2026-10-19T12:47:26.7534001Z ##[group]Initializing the repository
+2026-10-19T12:47:26.7534526Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-19T12:47:26.7605544Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-19T12:47:26.7609075Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-19T12:47:26.7609839Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-19T12:47:26.7610463Z hint: call:
+2026-10-19T12:47:26.7610788Z hint:
+2026-10-19T12:47:26.7611210Z hint: 	git config --global init.defaultBranch <name>
+2026-10-19T12:47:26.7611813Z hint:
+2026-10-19T12:47:26.7612311Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-19T12:47:26.7613086Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-19T12:47:26.7613687Z hint:
+2026-10-19T12:47:26.7614029Z hint: 	git branch -m <name>
+2026-10-19T12:47:26.7614429Z hint:
+2026-10-19T12:47:26.7614955Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-19T12:47:26.7615736Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-19T12:47:26.7617138Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-19T12:47:26.7673049Z ##[endgroup]
+2026-10-19T12:47:26.7673936Z ##[group]Disabling automatic garbage collection
+2026-10-19T12:47:26.7674910Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-19T12:47:26.7708583Z ##[endgroup]
+2026-10-19T12:47:26.7709243Z ##[group]Setting up auth
+2026-10-19T12:47:26.7709733Z Removing SSH command configuration
+2026-10-19T12:47:26.7717616Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T12:47:26.7741226Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T12:47:26.8009129Z Removing HTTP extra header
+2026-10-19T12:47:26.8013941Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T12:47:26.8044116Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T12:47:26.8206412Z Removing includeIf entries pointing to credentials config files
+2026-10-19T12:47:26.8211019Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T12:47:26.8238873Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T12:47:26.8408093Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-19T12:47:26.8439307Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:26.8490018Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:26.8523414Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:26.8550509Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:26.8608118Z ##[endgroup]
+2026-10-19T12:47:26.8608780Z ##[group]Fetching the repository
+2026-10-19T12:47:26.8614586Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +a1279e6a8c9e0f2f8711b3f22ff60603d44afff6:refs/remotes/origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.4965756Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T12:47:29.4967893Z  * [new ref]         a1279e6a8c9e0f2f8711b3f22ff60603d44afff6 -> origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.4974707Z [command]/usr/bin/git branch --list --remote origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.4997824Z   origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.5015366Z [command]/usr/bin/git rev-parse refs/remotes/origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.5036151Z a1279e6a8c9e0f2f8711b3f22ff60603d44afff6
+2026-10-19T12:47:29.5039515Z ##[endgroup]
+2026-10-19T12:47:29.5040447Z ##[group]Determining the checkout info
+2026-10-19T12:47:29.5041561Z ##[endgroup]
+2026-10-19T12:47:29.5042766Z [command]/usr/bin/git sparse-checkout disable
+2026-10-19T12:47:29.5081995Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-19T12:47:29.5106573Z ##[group]Checking out the ref
+2026-10-19T12:47:29.5108688Z [command]/usr/bin/git checkout --progress --force -B codex/chicken-update-fix-20261019 refs/remotes/origin/codex/chicken-update-fix-20261019
+2026-10-19T12:47:29.6057936Z Switched to a new branch 'codex/chicken-update-fix-20261019'
+2026-10-19T12:47:29.6059906Z branch 'codex/chicken-update-fix-20261019' set up to track 'origin/codex/chicken-update-fix-20261019'.
+2026-10-19T12:47:29.6075161Z ##[endgroup]
+2026-10-19T12:47:29.6111816Z [command]/usr/bin/git log -1 --format=%H
+2026-10-19T12:47:29.6134211Z a1279e6a8c9e0f2f8711b3f22ff60603d44afff6
+2026-10-19T12:47:29.6142177Z ##[group]Removing auth
+2026-10-19T12:47:29.6143326Z Removing SSH command configuration
+2026-10-19T12:47:29.6144962Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T12:47:29.6171575Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T12:47:29.6345186Z Removing HTTP extra header
+2026-10-19T12:47:29.6347832Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T12:47:29.6376964Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T12:47:29.6541221Z Removing includeIf entries pointing to credentials config files
+2026-10-19T12:47:29.6543588Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T12:47:29.6566292Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T12:47:29.6567610Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T12:47:29.6569050Z includeif.gitdir:/github/workspace/.git.path
+2026-10-19T12:47:29.6570161Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T12:47:29.6573594Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T12:47:29.6593901Z /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6602009Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6629749Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T12:47:29.6650161Z /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6657368Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6692838Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-19T12:47:29.6716963Z /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6724958Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6778390Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T12:47:29.6797903Z /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6802900Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config
+2026-10-19T12:47:29.6829702Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T12:47:29.6994980Z Removing credentials config '/home/runner/work/_temp/git-credentials-706dee21-4db3-4335-9626-2c2de6e9b81d.config'
+2026-10-19T12:47:29.7002077Z ##[endgroup]
+2026-10-19T12:47:29.7294682Z ##[group]Run actions/setup-node@v6
+2026-10-19T12:47:29.7295357Z with:
+2026-10-19T12:47:29.7295843Z   node-version: 22
+2026-10-19T12:47:29.7296386Z   check-latest: false
+2026-10-19T12:47:29.7301758Z   token: ***
+2026-10-19T12:47:29.7302297Z   package-manager-cache: true
+2026-10-19T12:47:29.7302916Z ##[endgroup]
+2026-10-19T12:47:29.8203565Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-19T12:47:29.8204867Z ##[group]Environment details
+2026-10-19T12:47:30.0866843Z node: v22.23.3
+2026-10-19T12:47:30.0867799Z npm: 10.9.9
+2026-10-19T12:47:30.0868030Z yarn: 1.22.22
+2026-10-19T12:47:30.0868810Z ##[endgroup]
+2026-10-19T12:47:30.0980593Z ##[group]Run git fetch --depth=1 origin 756df378e7adbe20f34c204dc54172b1030e16bd
+2026-10-19T12:47:30.0981016Z [36;1mgit fetch --depth=1 origin 756df378e7adbe20f34c204dc54172b1030e16bd[0m
+2026-10-19T12:47:30.1180208Z shell: /usr/bin/bash -e {0}
+2026-10-19T12:47:30.1180450Z ##[endgroup]
+2026-10-19T12:47:30.6123292Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T12:47:30.6123689Z  * branch            756df378e7adbe20f34c204dc54172b1030e16bd -> FETCH_HEAD
+2026-10-19T12:47:30.6149284Z ##[group]Run npm ci --ignore-scripts
+2026-10-19T12:47:30.6149485Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-19T12:47:30.6202315Z shell: /usr/bin/bash -e {0}
+2026-10-19T12:47:30.6202509Z ##[endgroup]
+2026-10-19T12:47:32.0358414Z 
+2026-10-19T12:47:32.0363356Z added 3 packages, and audited 4 packages in 1s
+2026-10-19T12:47:32.0363574Z 
+2026-10-19T12:47:32.0363656Z found 0 vulnerabilities
+2026-10-19T12:47:32.0695817Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-19T12:47:32.0696065Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-19T12:47:32.0747547Z shell: /usr/bin/bash -e {0}
+2026-10-19T12:47:32.0747696Z ##[endgroup]
+2026-10-19T12:47:32.5823396Z Installing dependencies...
+2026-10-19T12:47:32.5876624Z Switching to root user to install dependencies...
+2026-10-19T12:47:32.6873604Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T12:47:32.7134177Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-19T12:47:32.7345200Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-19T12:47:32.7360003Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-19T12:47:32.7423634Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-19T12:47:32.7458076Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-19T12:47:32.8192760Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [557 kB]
+2026-10-19T12:47:32.8357844Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [618 kB]
+2026-10-19T12:47:32.8413329Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-19T12:47:32.9138437Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+2026-10-19T12:47:32.9203673Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [308 kB]
+2026-10-19T12:47:32.9233180Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+2026-10-19T12:47:32.9285386Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-19T12:47:32.9305960Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-19T12:47:32.9383445Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-19T12:47:32.9978193Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1144 kB]
+2026-10-19T12:47:33.0027081Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-19T12:47:33.0042955Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-19T12:47:33.0121239Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-19T12:47:33.0590050Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-19T12:47:33.0659573Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-19T12:47:40.1782497Z Fetched 12.5 MB in 1s (12.3 MB/s)
+2026-10-19T12:47:40.7778883Z Reading package lists...
+2026-10-19T12:47:40.7958972Z Reading package lists...
+2026-10-19T12:47:40.9821264Z Building dependency tree...
+2026-10-19T12:47:40.9826628Z Reading state information...
+2026-10-19T12:47:41.1062506Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-19T12:47:41.1063084Z libasound2t64 set to manually installed.
+2026-10-19T12:47:41.1063557Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T12:47:41.1063911Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-19T12:47:41.1064250Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T12:47:41.1064586Z libatk1.0-0t64 set to manually installed.
+2026-10-19T12:47:41.1064923Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T12:47:41.1065140Z libatspi2.0-0t64 set to manually installed.
+2026-10-19T12:47:41.1065379Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-19T12:47:41.1065629Z libcairo2 set to manually installed.
+2026-10-19T12:47:41.1065967Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-19T12:47:41.1066789Z libcups2t64 set to manually installed.
+2026-10-19T12:47:41.1067005Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-19T12:47:41.1067207Z libdbus-1-3 set to manually installed.
+2026-10-19T12:47:41.1067423Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-19T12:47:41.1067627Z libdrm2 set to manually installed.
+2026-10-19T12:47:41.1067831Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-19T12:47:41.1068032Z libgbm1 set to manually installed.
+2026-10-19T12:47:41.1068242Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-19T12:47:41.1068451Z libglib2.0-0t64 set to manually installed.
+2026-10-19T12:47:41.1068666Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-19T12:47:41.1068862Z libnspr4 set to manually installed.
+2026-10-19T12:47:41.1069060Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-19T12:47:41.1069248Z libnss3 set to manually installed.
+2026-10-19T12:47:41.1069484Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-19T12:47:41.1069708Z libpango-1.0-0 set to manually installed.
+2026-10-19T12:47:41.1069913Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-19T12:47:41.1070110Z libx11-6 set to manually installed.
+2026-10-19T12:47:41.1070294Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-19T12:47:41.1070475Z libxcb1 set to manually installed.
+2026-10-19T12:47:41.1070680Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-19T12:47:41.1071105Z libxcomposite1 set to manually installed.
+2026-10-19T12:47:41.1071313Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-19T12:47:41.1071730Z libxdamage1 set to manually installed.
+2026-10-19T12:47:41.1071932Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-19T12:47:41.1072119Z libxext6 set to manually installed.
+2026-10-19T12:47:41.1072319Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-19T12:47:41.1072518Z libxfixes3 set to manually installed.
+2026-10-19T12:47:41.1072720Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-19T12:47:41.1072918Z libxkbcommon0 set to manually installed.
+2026-10-19T12:47:41.1073120Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-19T12:47:41.1073314Z libxrandr2 set to manually installed.
+2026-10-19T12:47:41.1073514Z xvfb is already the newest version (2:21.1.12-1ubuntu1.8).
+2026-10-19T12:47:41.1073783Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-19T12:47:41.1074068Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-19T12:47:41.1074277Z libfontconfig1 set to manually installed.
+2026-10-19T12:47:41.1074499Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-19T12:47:41.1074712Z libfreetype6 set to manually installed.
+2026-10-19T12:47:41.1074923Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-19T12:47:41.1075127Z fonts-liberation set to manually installed.
+2026-10-19T12:47:41.1075333Z The following additional packages will be installed:
+2026-10-19T12:47:41.1075517Z   xfonts-encodings xfonts-utils
+2026-10-19T12:47:41.1075661Z Recommended packages:
+2026-10-19T12:47:41.1075808Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-10-19T12:47:41.1399546Z The following NEW packages will be installed:
+2026-10-19T12:47:41.1399857Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-19T12:47:41.1406385Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-19T12:47:41.1406674Z   xfonts-utils
+2026-10-19T12:47:41.1546979Z 0 upgraded, 9 newly installed, 0 to remove and 44 not upgraded.
+2026-10-19T12:47:41.1547385Z Need to get 21.1 MB of archives.
+2026-10-19T12:47:41.1547799Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-19T12:47:41.1548189Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T12:47:41.2412758Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-19T12:47:41.3779357Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-19T12:47:41.5545807Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-19T12:47:41.6192107Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-19T12:47:41.7489076Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-19T12:47:41.9701312Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-19T12:47:42.0456502Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-19T12:47:42.1098822Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-19T12:47:42.1856855Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-19T12:47:42.3986271Z Fetched 21.1 MB in 1s (20.3 MB/s)
+2026-10-19T12:47:42.4305114Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-19T12:47:42.4780419Z (Reading database ... 
+2026-10-19T12:47:42.4780770Z (Reading database ... 5%
+2026-10-19T12:47:42.4781078Z (Reading database ... 10%
+2026-10-19T12:47:42.4781322Z (Reading database ... 15%
+2026-10-19T12:47:42.4782110Z (Reading database ... 20%
+2026-10-19T12:47:42.4782398Z (Reading database ... 25%
+2026-10-19T12:47:42.4782644Z (Reading database ... 30%
+2026-10-19T12:47:42.4782863Z (Reading database ... 35%
+2026-10-19T12:47:42.4783005Z (Reading database ... 40%
+2026-10-19T12:47:42.4783133Z (Reading database ... 45%
+2026-10-19T12:47:42.4783448Z (Reading database ... 50%
+2026-10-19T12:47:42.5087871Z (Reading database ... 55%
+2026-10-19T12:47:42.8123351Z (Reading database ... 60%
+2026-10-19T12:47:43.0713209Z (Reading database ... 65%
+2026-10-19T12:47:43.3050113Z (Reading database ... 70%
+2026-10-19T12:47:43.5932274Z (Reading database ... 75%
+2026-10-19T12:47:43.9192465Z (Reading database ... 80%
+2026-10-19T12:47:44.4317794Z (Reading database ... 85%
+2026-10-19T12:47:45.0516113Z (Reading database ... 90%
+2026-10-19T12:47:45.5472112Z (Reading database ... 95%
+2026-10-19T12:47:45.5472367Z (Reading database ... 100%
+2026-10-19T12:47:45.5472612Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-19T12:47:45.5507826Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-19T12:47:45.5668788Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T12:47:45.7832412Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-19T12:47:45.7927635Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-19T12:47:45.7936294Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T12:47:45.9040929Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-19T12:47:45.9134299Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-19T12:47:45.9140237Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T12:47:45.9349279Z Selecting previously unselected package fonts-unifont.
+2026-10-19T12:47:45.9443023Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-19T12:47:45.9450216Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T12:47:46.1549582Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-19T12:47:46.1643679Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-19T12:47:46.1724496Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T12:47:46.6083638Z Selecting previously unselected package xfonts-encodings.
+2026-10-19T12:47:46.6175058Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-19T12:47:46.6181414Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T12:47:46.6402445Z Selecting previously unselected package xfonts-utils.
+2026-10-19T12:47:46.6498753Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-19T12:47:46.6506805Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-19T12:47:46.7104120Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-19T12:47:46.7198210Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-19T12:47:46.7205780Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T12:47:46.7461210Z Selecting previously unselected package xfonts-scalable.
+2026-10-19T12:47:46.7552971Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-19T12:47:46.7559591Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T12:47:46.8054846Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T12:47:46.8143832Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T12:47:46.8158998Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T12:47:46.8174837Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T12:47:46.8189021Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T12:47:46.8242221Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-19T12:47:46.8254788Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T12:47:46.8270302Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-19T12:47:46.8303979Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T12:47:46.8778011Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T12:47:46.9054913Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-19T12:47:46.9071879Z Not building database; man-db/auto-update is not 'true'.
+2026-10-19T12:47:46.9083936Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-19T12:47:48.0151873Z 
+2026-10-19T12:47:48.0152523Z Running kernel seems to be up-to-date.
+2026-10-19T12:47:48.0152737Z 
+2026-10-19T12:47:48.0152857Z No services need to be restarted.
+2026-10-19T12:47:48.0152961Z 
+2026-10-19T12:47:48.0153043Z No containers need to be restarted.
+2026-10-19T12:47:48.0153141Z 
+2026-10-19T12:47:48.0153245Z No user sessions are running outdated binaries.
+2026-10-19T12:47:48.0153366Z 
+2026-10-19T12:47:48.0153520Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-19T12:47:48.9963545Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-19T12:47:49.8994118Z |                                                                                |   0% of 184.3 MiB
+2026-10-19T12:47:49.9949243Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-19T12:47:50.0391958Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-19T12:47:50.0805054Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-19T12:47:50.1232352Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-19T12:47:50.1654313Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-19T12:47:50.2089224Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-19T12:47:50.2549506Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-19T12:47:50.2949645Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-19T12:47:50.3369308Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-19T12:47:50.3784833Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-19T12:47:52.0803878Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-19T12:47:52.0821396Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-19T12:47:52.9893424Z |                                                                                |   0% of 2.3 MiB
+2026-10-19T12:47:53.0125703Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-19T12:47:53.0212321Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-19T12:47:53.0283283Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-19T12:47:53.0348033Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-19T12:47:53.0368477Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-19T12:47:53.0426239Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-19T12:47:53.0440486Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-19T12:47:53.0463005Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-19T12:47:53.0528324Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-19T12:47:53.0534695Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-19T12:47:53.0927273Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-19T12:47:53.0929504Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-19T12:47:53.9955871Z |                                                                                |   0% of 114.7 MiB
+2026-10-19T12:47:54.0785132Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-19T12:47:54.1276265Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-19T12:47:54.1673757Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-19T12:47:54.2024142Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-19T12:47:54.2328575Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-19T12:47:54.2563213Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-19T12:47:54.2852876Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-19T12:47:54.3094175Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-19T12:47:54.3364772Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-19T12:47:54.3633075Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-19T12:47:55.5781981Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-19T12:47:55.6004033Z ##[group]Run node --test worker-transition.test.cjs versions.test.mjs chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs player-motion.test.mjs player-arm-actions.test.mjs player-arm-contour.test.mjs player-arm-clearance.test.mjs player-arm-attachment.test.mjs player-arm-attachment-integration.test.mjs player-motion-fallback.test.mjs
+2026-10-19T12:47:55.6005512Z [36;1mnode --test worker-transition.test.cjs versions.test.mjs chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs player-motion.test.mjs player-arm-actions.test.mjs player-arm-contour.test.mjs player-arm-clearance.test.mjs player-arm-attachment.test.mjs player-arm-attachment-integration.test.mjs player-motion-fallback.test.mjs[0m
+2026-10-19T12:47:55.6058023Z shell: /usr/bin/bash -e {0}
+2026-10-19T12:47:55.6058172Z ##[endgroup]
+2026-10-19T12:47:55.6469457Z TAP version 13
+2026-10-19T12:47:55.7204675Z # Subtest: insufficient_feed_and_duplicate_confirmation
+2026-10-19T12:47:55.7233499Z ok 1 - insufficient_feed_and_duplicate_confirmation
+2026-10-19T12:47:55.7242307Z   ---
+2026-10-19T12:47:55.7260712Z   duration_ms: 20.470706
+2026-10-19T12:47:55.7261239Z   type: 'test'
+2026-10-19T12:47:55.7261690Z   ...
+2026-10-19T12:47:55.7262117Z # Subtest: water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T12:47:55.7262638Z ok 2 - water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T12:47:55.7263145Z   ---
+2026-10-19T12:47:55.7263440Z   duration_ms: 2.761995
+2026-10-19T12:47:55.7263754Z   type: 'test'
+2026-10-19T12:47:55.7264051Z   ...
+2026-10-19T12:47:55.7264449Z # Subtest: legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T12:47:55.7264933Z ok 3 - legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T12:47:55.7265308Z   ---
+2026-10-19T12:47:55.7265599Z   duration_ms: 2.127157
+2026-10-19T12:47:55.7265921Z   type: 'test'
+2026-10-19T12:47:55.7266216Z   ...
+2026-10-19T12:47:55.7274489Z # Subtest: read_only_farms_reject_all_new_mutations
+2026-10-19T12:47:55.7275099Z ok 4 - read_only_farms_reject_all_new_mutations
+2026-10-19T12:47:55.7275509Z   ---
+2026-10-19T12:47:55.7275827Z   duration_ms: 1.013559
+2026-10-19T12:47:55.7276159Z   type: 'test'
+2026-10-19T12:47:55.7276456Z   ...
+2026-10-19T12:47:55.7276885Z # Subtest: other_species_exact and farm_roundtrip
+2026-10-19T12:47:55.7277362Z ok 5 - other_species_exact and farm_roundtrip
+2026-10-19T12:47:55.7277748Z   ---
+2026-10-19T12:47:55.7278048Z   duration_ms: 1.199108
+2026-10-19T12:47:55.7278374Z   type: 'test'
+2026-10-19T12:47:55.7278671Z   ...
+2026-10-19T12:47:55.7279122Z # Subtest: unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T12:47:55.7279696Z ok 6 - unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T12:47:55.7280111Z   ---
+2026-10-19T12:47:55.7280401Z   duration_ms: 0.174933
+2026-10-19T12:47:55.7280719Z   type: 'test'
+2026-10-19T12:47:55.7281006Z   ...
+2026-10-19T12:47:55.7281636Z # Subtest: passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T12:47:55.7282318Z ok 7 - passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T12:47:55.7282786Z   ---
+2026-10-19T12:47:55.7283076Z   duration_ms: 0.541466
+2026-10-19T12:47:55.7283396Z   type: 'test'
+2026-10-19T12:47:55.7283690Z   ...
+2026-10-19T12:47:55.7284200Z # Subtest: a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T12:47:55.7284818Z ok 8 - a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T12:47:55.7285277Z   ---
+2026-10-19T12:47:55.7285580Z   duration_ms: 0.361555
+2026-10-19T12:47:55.7285894Z   type: 'test'
+2026-10-19T12:47:55.7286181Z   ...
+2026-10-19T12:47:55.7286638Z # Subtest: malformed existing care blocks chicken purchase without spending
+2026-10-19T12:47:55.7287252Z ok 9 - malformed existing care blocks chicken purchase without spending
+2026-10-19T12:47:55.7287703Z   ---
+2026-10-19T12:47:55.7288388Z   duration_ms: 0.527416
+2026-10-19T12:47:55.7288914Z   type: 'test'
+2026-10-19T12:47:55.7289211Z   ...
+2026-10-19T12:47:55.7289717Z # Subtest: petting after time away cannot retroactively upgrade eggs already earned
+2026-10-19T12:47:55.7290399Z ok 10 - petting after time away cannot retroactively upgrade eggs already earned
+2026-10-19T12:47:55.7290869Z   ---
+2026-10-19T12:47:55.7291179Z   duration_ms: 0.926878
+2026-10-19T12:47:55.7291629Z   type: 'test'
+2026-10-19T12:47:55.7291912Z   ...
+2026-10-19T12:47:55.7292367Z # Subtest: buying between outputs never gives the new bird pre-purchase progress
+2026-10-19T12:47:55.7292999Z ok 11 - buying between outputs never gives the new bird pre-purchase progress
+2026-10-19T12:47:55.7293474Z   ---
+2026-10-19T12:47:55.7293772Z   duration_ms: 0.587066
+2026-10-19T12:47:55.7294099Z   type: 'test'
+2026-10-19T12:47:55.7294434Z   ...
+2026-10-19T12:47:55.7295081Z # Subtest: thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-19T12:47:55.7295754Z ok 12 - thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-19T12:47:55.7296207Z   ---
+2026-10-19T12:47:55.7296613Z   duration_ms: 6.948408
+2026-10-19T12:47:55.7296952Z   type: 'test'
+2026-10-19T12:47:55.7297247Z   ...
+2026-10-19T12:47:58.1159908Z # Subtest: chicken care module is available
+2026-10-19T12:47:58.1160240Z ok 13 - chicken care module is available
+2026-10-19T12:47:58.1160397Z   ---
+2026-10-19T12:47:58.1160518Z   duration_ms: 1.276875
+2026-10-19T12:47:58.1160649Z   type: 'test'
+2026-10-19T12:47:58.1160755Z   ...
+2026-10-19T12:47:58.1173500Z # Subtest: one_six_and_zero_chickens
+2026-10-19T12:47:58.1173687Z ok 14 - one_six_and_zero_chickens
+2026-10-19T12:47:58.1174138Z   ---
+2026-10-19T12:47:58.1174372Z   duration_ms: 2.076652
+2026-10-19T12:47:58.1174572Z   type: 'test'
+2026-10-19T12:47:58.1174732Z   ...
+2026-10-19T12:47:58.1175050Z # Subtest: earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T12:47:58.1175533Z ok 15 - earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T12:47:58.1175828Z   ---
+2026-10-19T12:47:58.1175993Z   duration_ms: 0.893227
+2026-10-19T12:47:58.1176174Z   type: 'test'
+2026-10-19T12:47:58.1176328Z   ...
+2026-10-19T12:47:58.1176675Z # Subtest: early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T12:47:58.1177175Z ok 16 - early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T12:47:58.1177495Z   ---
+2026-10-19T12:47:58.1177649Z   duration_ms: 0.755549
+2026-10-19T12:47:58.1177829Z   type: 'test'
+2026-10-19T12:47:58.1177985Z   ...
+2026-10-19T12:47:58.1178329Z # Subtest: pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T12:47:58.1178856Z ok 17 - pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T12:47:58.1179165Z   ---
+2026-10-19T12:47:58.1179321Z   duration_ms: 0.301374
+2026-10-19T12:47:58.1179498Z   type: 'test'
+2026-10-19T12:47:58.1179654Z   ...
+2026-10-19T12:47:58.1180001Z # Subtest: pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T12:47:58.1180508Z ok 18 - pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T12:47:58.1180823Z   ---
+2026-10-19T12:47:58.1180978Z   duration_ms: 10.069163
+2026-10-19T12:47:58.1181159Z   type: 'test'
+2026-10-19T12:47:58.1181312Z   ...
+2026-10-19T12:47:58.1181765Z # Subtest: clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T12:47:58.1182221Z ok 19 - clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T12:47:58.1182517Z   ---
+2026-10-19T12:47:58.1182670Z   duration_ms: 12.912554
+2026-10-19T12:47:58.1182850Z   type: 'test'
+2026-10-19T12:47:58.1183004Z   ...
+2026-10-19T12:47:58.1183260Z # Subtest: clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T12:47:58.1183570Z ok 20 - clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T12:47:58.1183768Z   ---
+2026-10-19T12:47:58.1184204Z   duration_ms: 0.27875
+2026-10-19T12:47:58.1184430Z   type: 'test'
+2026-10-19T12:47:58.1184535Z   ...
+2026-10-19T12:47:58.1184695Z # Subtest: new_chicken starts fresh with current supplies
+2026-10-19T12:47:58.1184917Z ok 21 - new_chicken starts fresh with current supplies
+2026-10-19T12:47:58.1185074Z   ---
+2026-10-19T12:47:58.1185175Z   duration_ms: 0.463459
+2026-10-19T12:47:58.1185290Z   type: 'test'
+2026-10-19T12:47:58.1185390Z   ...
+2026-10-19T12:47:58.1185601Z # Subtest: legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T12:47:58.1185916Z ok 22 - legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T12:47:58.1186116Z   ---
+2026-10-19T12:47:58.1186218Z   duration_ms: 0.641397
+2026-10-19T12:47:58.1186333Z   type: 'test'
+2026-10-19T12:47:58.1186435Z   ...
+2026-10-19T12:47:58.1186638Z # Subtest: unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T12:47:58.1186933Z ok 23 - unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T12:47:58.1187133Z   ---
+2026-10-19T12:47:58.1187232Z   duration_ms: 0.280904
+2026-10-19T12:47:58.1187347Z   type: 'test'
+2026-10-19T12:47:58.1187449Z   ...
+2026-10-19T12:47:58.1187662Z # Subtest: happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T12:47:58.1187972Z ok 24 - happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T12:47:58.1188169Z   ---
+2026-10-19T12:47:58.1188273Z   duration_ms: 20.742696
+2026-10-19T12:47:58.1188390Z   type: 'test'
+2026-10-19T12:47:58.1188491Z   ...
+2026-10-19T12:47:58.1188680Z # Subtest: status is a read-only projection, even before first migration
+2026-10-19T12:47:58.1188949Z ok 25 - status is a read-only projection, even before first migration
+2026-10-19T12:47:58.1189125Z   ---
+2026-10-19T12:47:58.1189227Z   duration_ms: 0.215275
+2026-10-19T12:47:58.1189343Z   type: 'test'
+2026-10-19T12:47:58.1189444Z   ...
+2026-10-19T12:47:58.1189692Z # Subtest: malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-19T12:47:58.1190109Z ok 26 - malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-19T12:47:58.1190439Z   ---
+2026-10-19T12:47:58.1190602Z   duration_ms: 0.997845
+2026-10-19T12:47:58.1190720Z   type: 'test'
+2026-10-19T12:47:58.1190871Z   ...
+2026-10-19T12:47:58.1191127Z # Subtest: a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-19T12:47:58.1191653Z ok 27 - a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-19T12:47:58.1191950Z   ---
+2026-10-19T12:47:58.1192051Z   duration_ms: 0.248865
+2026-10-19T12:47:58.1192214Z   type: 'test'
+2026-10-19T12:47:58.1192327Z   ...
+2026-10-19T12:47:58.1192678Z # Subtest: overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-19T12:47:58.1193097Z ok 28 - overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-19T12:47:58.1193436Z   ---
+2026-10-19T12:47:58.1193540Z   duration_ms: 0.154804
+2026-10-19T12:47:58.1193698Z   type: 'test'
+2026-10-19T12:47:58.1193816Z   ...
+2026-10-19T12:47:58.1194148Z # Subtest: thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-19T12:47:58.1194512Z ok 29 - thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-19T12:47:58.1194795Z   ---
+2026-10-19T12:47:58.1194922Z   duration_ms: 14.512743
+2026-10-19T12:47:58.1195042Z   type: 'test'
+2026-10-19T12:47:58.1195201Z   ...
+2026-10-19T12:47:58.1195502Z # Subtest: thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-19T12:47:58.1195908Z ok 30 - thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-19T12:47:58.1196161Z   ---
+2026-10-19T12:47:58.1196320Z   duration_ms: 37.32075
+2026-10-19T12:47:58.1196438Z   type: 'test'
+2026-10-19T12:47:58.1196584Z   ...
+2026-10-19T12:47:58.1196797Z # Subtest: all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-19T12:47:58.1197553Z ok 31 - all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-19T12:47:58.1197837Z   ---
+2026-10-19T12:47:58.1197988Z   duration_ms: 0.401796
+2026-10-19T12:47:58.1198159Z   type: 'test'
+2026-10-19T12:47:58.1198308Z   ...
+2026-10-19T12:47:58.1198614Z # Subtest: chicken card retains naming and petting without old feeding controls
+2026-10-19T12:47:58.1199067Z ok 32 - chicken card retains naming and petting without old feeding controls
+2026-10-19T12:47:58.1199352Z   ---
+2026-10-19T12:47:58.1199536Z   duration_ms: 2.544527
+2026-10-19T12:47:58.1199705Z   type: 'test'
+2026-10-19T12:47:58.1199858Z   ...
+2026-10-19T12:47:58.1200167Z # Subtest: feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T12:47:58.1200527Z ok 33 - feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T12:47:58.1200718Z   ---
+2026-10-19T12:47:58.1200818Z   duration_ms: 2.034799
+2026-10-19T12:47:58.1200935Z   type: 'test'
+2026-10-19T12:47:58.1201043Z   ...
+2026-10-19T12:47:58.1201258Z # Subtest: customization offers real color previews, apply, cancel and two roofs
+2026-10-19T12:47:58.1202029Z ok 34 - customization offers real color previews, apply, cancel and two roofs
+2026-10-19T12:47:58.1202337Z   ---
+2026-10-19T12:47:58.1202518Z   duration_ms: 1.00821
+2026-10-19T12:47:58.1202709Z   type: 'test'
+2026-10-19T12:47:58.1202868Z   ...
+2026-10-19T12:47:58.1203210Z # Subtest: full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T12:47:58.1203713Z ok 35 - full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T12:47:58.1204029Z   ---
+2026-10-19T12:47:58.1204181Z   duration_ms: 0.817273
+2026-10-19T12:47:58.1204361Z   type: 'test'
+2026-10-19T12:47:58.1204562Z   ...
+2026-10-19T12:47:58.1204892Z # Subtest: walking taps cannot collect a distant station outside interaction reach
+2026-10-19T12:47:58.1205389Z ok 36 - walking taps cannot collect a distant station outside interaction reach
+2026-10-19T12:47:58.1205714Z   ---
+2026-10-19T12:47:58.1205880Z   duration_ms: 1.596848
+2026-10-19T12:47:58.1206061Z   type: 'test'
+2026-10-19T12:47:58.1206224Z   ...
+2026-10-19T12:47:58.1206520Z # Subtest: replacing the coop tray discards its uncommitted preview
+2026-10-19T12:47:58.1206934Z ok 37 - replacing the coop tray discards its uncommitted preview
+2026-10-19T12:47:58.1207214Z   ---
+2026-10-19T12:47:58.1207371Z   duration_ms: 1.082852
+2026-10-19T12:47:58.1207559Z   type: 'test'
+2026-10-19T12:47:58.1207720Z   ...
+2026-10-19T12:47:58.1208060Z # Subtest: supply countdown cannot replace customization controls during a gesture
+2026-10-19T12:47:58.1208572Z ok 38 - supply countdown cannot replace customization controls during a gesture
+2026-10-19T12:47:58.1208896Z   ---
+2026-10-19T12:47:58.1209060Z   duration_ms: 19.175353
+2026-10-19T12:47:58.1209248Z   type: 'test'
+2026-10-19T12:47:58.1209413Z   ...
+2026-10-19T12:47:58.1209745Z # Subtest: physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T12:47:58.1210237Z ok 39 - physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T12:47:58.1210552Z   ---
+2026-10-19T12:47:58.1210711Z   duration_ms: 47.292589
+2026-10-19T12:47:58.1210905Z   type: 'test'
+2026-10-19T12:47:58.1211064Z   ...
+2026-10-19T12:47:58.1211336Z # Subtest: geometry stays under a bounded component budget
+2026-10-19T12:47:58.1211860Z ok 40 - geometry stays under a bounded component budget
+2026-10-19T12:47:58.1212117Z   ---
+2026-10-19T12:47:58.1212284Z   duration_ms: 22.444953
+2026-10-19T12:47:58.1212478Z   type: 'test'
+2026-10-19T12:47:58.1212642Z   ...
+2026-10-19T12:47:58.1212979Z # Subtest: netting encloses the east side and the coop has complete gable faces
+2026-10-19T12:47:58.1213475Z ok 41 - netting encloses the east side and the coop has complete gable faces
+2026-10-19T12:47:58.1213794Z   ---
+2026-10-19T12:47:58.1213961Z   duration_ms: 18.073912
+2026-10-19T12:47:58.1214150Z   type: 'test'
+2026-10-19T12:47:58.1214315Z   ...
+2026-10-19T12:47:58.1215194Z # Subtest: pallet center remains selectable through slat gaps with stable station bounds
+2026-10-19T12:47:58.1215756Z ok 42 - pallet center remains selectable through slat gaps with stable station bounds
+2026-10-19T12:47:58.1216099Z   ---
+2026-10-19T12:47:58.1216268Z   duration_ms: 24.248232
+2026-10-19T12:47:58.1216462Z   type: 'test'
+2026-10-19T12:47:58.1216625Z   ...
+2026-10-19T12:47:58.1217029Z # Subtest: appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T12:47:58.1217649Z ok 43 - appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T12:47:58.1218016Z   ---
+2026-10-19T12:47:58.1218194Z   duration_ms: 29.189283
+2026-10-19T12:47:58.1218382Z   type: 'test'
+2026-10-19T12:47:58.1218549Z   ...
+2026-10-19T12:47:58.1218897Z # Subtest: thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-19T12:47:58.1219394Z ok 44 - thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-19T12:47:58.1219718Z   ---
+2026-10-19T12:47:58.1219887Z   duration_ms: 21.684546
+2026-10-19T12:47:58.1220073Z   type: 'test'
+2026-10-19T12:47:58.1220233Z   ...
+2026-10-19T12:47:58.1220604Z # Subtest: enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-19T12:47:58.1221170Z ok 45 - enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-19T12:47:58.1221668Z   ---
+2026-10-19T12:47:58.1221839Z   duration_ms: 41.712806
+2026-10-19T12:47:58.1222032Z   type: 'test'
+2026-10-19T12:47:58.1222195Z   ...
+2026-10-19T12:47:58.1222583Z # Subtest: default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-19T12:47:58.1223152Z ok 46 - default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-19T12:47:58.1223507Z   ---
+2026-10-19T12:47:58.1223673Z   duration_ms: 22.48278
+2026-10-19T12:47:58.1223868Z   type: 'test'
+2026-10-19T12:47:58.1224033Z   ...
+2026-10-19T12:47:58.1224343Z # Subtest: connected natural action/return: fallback reach pitch-80
+2026-10-19T12:47:58.1224794Z ok 47 - connected natural action/return: fallback reach pitch-80
+2026-10-19T12:47:58.1225075Z   ---
+2026-10-19T12:47:58.1225243Z   duration_ms: 74.826129
+2026-10-19T12:47:58.1225435Z   type: 'test'
+2026-10-19T12:47:58.1225600Z   ...
+2026-10-19T12:47:58.1225894Z # Subtest: connected natural action/return: fallback pat pitch-80
+2026-10-19T12:47:58.1226312Z ok 48 - connected natural action/return: fallback pat pitch-80
+2026-10-19T12:47:58.1226586Z   ---
+2026-10-19T12:47:58.1226754Z   duration_ms: 40.160054
+2026-10-19T12:47:58.1226948Z   type: 'test'
+2026-10-19T12:47:58.1227113Z   ...
+2026-10-19T12:47:58.1227416Z # Subtest: connected natural action/return: fallback reach pitch-69
+2026-10-19T12:47:58.1227847Z ok 49 - connected natural action/return: fallback reach pitch-69
+2026-10-19T12:47:58.1228129Z   ---
+2026-10-19T12:47:58.1228295Z   duration_ms: 18.774599
+2026-10-19T12:47:58.1228485Z   type: 'test'
+2026-10-19T12:47:58.1228648Z   ...
+2026-10-19T12:47:58.1228948Z # Subtest: connected natural action/return: fallback pat pitch-69
+2026-10-19T12:47:58.1229362Z ok 50 - connected natural action/return: fallback pat pitch-69
+2026-10-19T12:47:58.1229638Z   ---
+2026-10-19T12:47:58.1229806Z   duration_ms: 28.885454
+2026-10-19T12:47:58.1229996Z   type: 'test'
+2026-10-19T12:47:58.1230160Z   ...
+2026-10-19T12:47:58.1230455Z # Subtest: connected natural action/return: fallback reach pitch0
+2026-10-19T12:47:58.1230865Z ok 51 - connected natural action/return: fallback reach pitch0
+2026-10-19T12:47:58.1231139Z   ---
+2026-10-19T12:47:58.1231303Z   duration_ms: 14.030325
+2026-10-19T12:47:58.1231796Z   type: 'test'
+2026-10-19T12:47:58.1231951Z   ...
+2026-10-19T12:47:58.1232234Z # Subtest: connected natural action/return: fallback pat pitch0
+2026-10-19T12:47:58.1232625Z ok 52 - connected natural action/return: fallback pat pitch0
+2026-10-19T12:47:58.1232883Z   ---
+2026-10-19T12:47:58.1233044Z   duration_ms: 16.35746
+2026-10-19T12:47:58.1233229Z   type: 'test'
+2026-10-19T12:47:58.1233569Z   ...
+2026-10-19T12:47:58.1234022Z # Subtest: connected natural action/return: fallback reach pitch80
+2026-10-19T12:47:58.1234438Z ok 53 - connected natural action/return: fallback reach pitch80
+2026-10-19T12:47:58.1234719Z   ---
+2026-10-19T12:47:58.1234882Z   duration_ms: 12.054626
+2026-10-19T12:47:58.1235074Z   type: 'test'
+2026-10-19T12:47:58.1235237Z   ...
+2026-10-19T12:47:58.1235523Z # Subtest: connected natural action/return: fallback pat pitch80
+2026-10-19T12:47:58.1235930Z ok 54 - connected natural action/return: fallback pat pitch80
+2026-10-19T12:47:58.1236200Z   ---
+2026-10-19T12:47:58.1236363Z   duration_ms: 15.086047
+2026-10-19T12:47:58.1236555Z   type: 'test'
+2026-10-19T12:47:58.1236718Z   ...
+2026-10-19T12:47:58.1237026Z # Subtest: connected natural action/return: fallback reach pitchsweep
+2026-10-19T12:47:58.1237609Z ok 55 - connected natural action/return: fallback reach pitchsweep
+2026-10-19T12:47:58.1237887Z   ---
+2026-10-19T12:47:58.1238044Z   duration_ms: 14.457439
+2026-10-19T12:47:58.1238238Z   type: 'test'
+2026-10-19T12:47:58.1238401Z   ...
+2026-10-19T12:47:58.1238688Z # Subtest: connected natural action/return: fallback pat pitchsweep
+2026-10-19T12:47:58.1239097Z ok 56 - connected natural action/return: fallback pat pitchsweep
+2026-10-19T12:47:58.1239366Z   ---
+2026-10-19T12:47:58.1239520Z   duration_ms: 11.852763
+2026-10-19T12:47:58.1239707Z   type: 'test'
+2026-10-19T12:47:58.1239865Z   ...
+2026-10-19T12:47:58.1240152Z # Subtest: connected natural action/return: authored reach pitch-80
+2026-10-19T12:47:58.1240559Z ok 57 - connected natural action/return: authored reach pitch-80
+2026-10-19T12:47:58.1240827Z   ---
+2026-10-19T12:47:58.1241037Z   duration_ms: 52.291987
+2026-10-19T12:47:58.1241220Z   type: 'test'
+2026-10-19T12:47:58.1241379Z   ...
+2026-10-19T12:47:58.1241824Z # Subtest: connected natural action/return: authored pat pitch-80
+2026-10-19T12:47:58.1242223Z ok 58 - connected natural action/return: authored pat pitch-80
+2026-10-19T12:47:58.1242497Z   ---
+2026-10-19T12:47:58.1242654Z   duration_ms: 33.109463
+2026-10-19T12:47:58.1242838Z   type: 'test'
+2026-10-19T12:47:58.1242997Z   ...
+2026-10-19T12:47:58.1243331Z # Subtest: connected natural action/return: authored reach pitch-69
+2026-10-19T12:47:58.1243734Z ok 59 - connected natural action/return: authored reach pitch-69
+2026-10-19T12:47:58.1244000Z   ---
+2026-10-19T12:47:58.1244153Z   duration_ms: 22.571394
+2026-10-19T12:47:58.1244335Z   type: 'test'
+2026-10-19T12:47:58.1244493Z   ...
+2026-10-19T12:47:58.1244768Z # Subtest: connected natural action/return: authored pat pitch-69
+2026-10-19T12:47:58.1245163Z ok 60 - connected natural action/return: authored pat pitch-69
+2026-10-19T12:47:58.1245428Z   ---
+2026-10-19T12:47:58.1245583Z   duration_ms: 23.845685
+2026-10-19T12:47:58.1245764Z   type: 'test'
+2026-10-19T12:47:58.1245925Z   ...
+2026-10-19T12:47:58.1246204Z # Subtest: connected natural action/return: authored reach pitch0
+2026-10-19T12:47:58.1246597Z ok 61 - connected natural action/return: authored reach pitch0
+2026-10-19T12:47:58.1246863Z   ---
+2026-10-19T12:47:58.1247022Z   duration_ms: 17.772518
+2026-10-19T12:47:58.1247202Z   type: 'test'
+2026-10-19T12:47:58.1247362Z   ...
+2026-10-19T12:47:58.1247634Z # Subtest: connected natural action/return: authored pat pitch0
+2026-10-19T12:47:58.1248019Z ok 62 - connected natural action/return: authored pat pitch0
+2026-10-19T12:47:58.1248279Z   ---
+2026-10-19T12:47:58.1248435Z   duration_ms: 18.219131
+2026-10-19T12:47:58.1248617Z   type: 'test'
+2026-10-19T12:47:58.1248777Z   ...
+2026-10-19T12:47:58.1249014Z # Subtest: connected natural action/return: authored reach pitch80
+2026-10-19T12:47:58.1249268Z ok 63 - connected natural action/return: authored reach pitch80
+2026-10-19T12:47:58.1249437Z   ---
+2026-10-19T12:47:58.1249538Z   duration_ms: 20.171475
+2026-10-19T12:47:58.1249656Z   type: 'test'
+2026-10-19T12:47:58.1249761Z   ...
+2026-10-19T12:47:58.1249932Z # Subtest: connected natural action/return: authored pat pitch80
+2026-10-19T12:47:58.1250283Z ok 64 - connected natural action/return: authored pat pitch80
+2026-10-19T12:47:58.1250829Z   ---
+2026-10-19T12:47:58.1250993Z   duration_ms: 25.158415
+2026-10-19T12:47:58.1251183Z   type: 'test'
+2026-10-19T12:47:58.1251347Z   ...
+2026-10-19T12:47:58.1251772Z # Subtest: connected natural action/return: authored reach pitchsweep
+2026-10-19T12:47:58.1252214Z ok 65 - connected natural action/return: authored reach pitchsweep
+2026-10-19T12:47:58.1252498Z   ---
+2026-10-19T12:47:58.1252657Z   duration_ms: 24.998243
+2026-10-19T12:47:58.1252845Z   type: 'test'
+2026-10-19T12:47:58.1253008Z   ...
+2026-10-19T12:47:58.1253306Z # Subtest: connected natural action/return: authored pat pitchsweep
+2026-10-19T12:47:58.1253737Z ok 66 - connected natural action/return: authored pat pitchsweep
+2026-10-19T12:47:58.1254021Z   ---
+2026-10-19T12:47:58.1254185Z   duration_ms: 12.241729
+2026-10-19T12:47:58.1254378Z   type: 'test'
+2026-10-19T12:47:58.1254542Z   ...
+2026-10-19T12:47:58.1255069Z # Subtest: native page installs one connection after motion, updates after current hand poses, and precaches the dependency
+2026-10-19T12:47:58.1255887Z ok 67 - native page installs one connection after motion, updates after current hand poses, and precaches the dependency
+2026-10-19T12:47:58.1256339Z   ---
+2026-10-19T12:47:58.1256507Z   duration_ms: 2.094068
+2026-10-19T12:47:58.1256697Z   type: 'test'
+2026-10-19T12:47:58.1256862Z   ...
+2026-10-19T12:47:58.1257393Z # Subtest: real authored sleeves connect to current elbow bones across camera/gait/action extremes without moving native bones
+2026-10-19T12:47:58.1258222Z ok 68 - real authored sleeves connect to current elbow bones across camera/gait/action extremes without moving native bones
+2026-10-19T12:47:58.1258672Z   ---
+2026-10-19T12:47:58.1258839Z   duration_ms: 123.650078
+2026-10-19T12:47:58.1259039Z   type: 'test'
+2026-10-19T12:47:58.1259202Z   ...
+2026-10-19T12:47:58.1259590Z # Subtest: idle, walking, running, action onset and return keep connection endpoints current
+2026-10-19T12:47:58.1260183Z ok 69 - idle, walking, running, action onset and return keep connection endpoints current
+2026-10-19T12:47:58.1260535Z   ---
+2026-10-19T12:47:58.1260698Z   duration_ms: 20.077654
+2026-10-19T12:47:58.1260890Z   type: 'test'
+2026-10-19T12:47:58.1261055Z   ...
+2026-10-19T12:47:58.1261835Z # Subtest: procedural/load-failure representation, hidden transitions and native material replacement are supported
+2026-10-19T12:47:58.1262608Z ok 70 - procedural/load-failure representation, hidden transitions and native material replacement are supported
+2026-10-19T12:47:58.1263043Z   ---
+2026-10-19T12:47:58.1263206Z   duration_ms: 16.981541
+2026-10-19T12:47:58.1263395Z   type: 'test'
+2026-10-19T12:47:58.1263559Z   ...
+2026-10-19T12:47:58.1264045Z # Subtest: root replacement, stable updates and cleanup never write stale nodes or dispose borrowed wardrobe resources
+2026-10-19T12:47:58.1264802Z ok 71 - root replacement, stable updates and cleanup never write stale nodes or dispose borrowed wardrobe resources
+2026-10-19T12:47:58.1265218Z   ---
+2026-10-19T12:47:58.1265399Z   duration_ms: 26.372295
+2026-10-19T12:47:58.1265595Z   type: 'test'
+2026-10-19T12:47:58.1265763Z   ...
+2026-10-19T12:47:58.1266090Z # Subtest: native fallback full cap has strict clearance: idle, pitch -80
+2026-10-19T12:47:58.1266575Z ok 72 - native fallback full cap has strict clearance: idle, pitch -80
+2026-10-19T12:47:58.1266882Z   ---
+2026-10-19T12:47:58.1267049Z   duration_ms: 94.513626
+2026-10-19T12:47:58.1267244Z   type: 'test'
+2026-10-19T12:47:58.1267410Z   ...
+2026-10-19T12:47:58.1267735Z # Subtest: native fallback full cap has strict clearance: walk, pitch -80
+2026-10-19T12:47:58.1268211Z ok 73 - native fallback full cap has strict clearance: walk, pitch -80
+2026-10-19T12:47:58.1268513Z   ---
+2026-10-19T12:47:58.1268677Z   duration_ms: 56.935008
+2026-10-19T12:47:58.1268870Z   type: 'test'
+2026-10-19T12:47:58.1269039Z   ...
+2026-10-19T12:47:58.1269359Z # Subtest: native fallback full cap has strict clearance: run, pitch -80
+2026-10-19T12:47:58.1270008Z ok 74 - native fallback full cap has strict clearance: run, pitch -80
+2026-10-19T12:47:58.1270413Z   ---
+2026-10-19T12:47:58.1270572Z   duration_ms: 45.758606
+2026-10-19T12:47:58.1270765Z   type: 'test'
+2026-10-19T12:47:58.1270932Z   ...
+2026-10-19T12:47:58.1271255Z # Subtest: native fallback full cap has strict clearance: reach, pitch -80
+2026-10-19T12:47:58.1271883Z ok 75 - native fallback full cap has strict clearance: reach, pitch -80
+2026-10-19T12:47:58.1272190Z   ---
+2026-10-19T12:47:58.1272354Z   duration_ms: 42.035472
+2026-10-19T12:47:58.1272546Z   type: 'test'
+2026-10-19T12:47:58.1272711Z   ...
+2026-10-19T12:47:58.1273030Z # Subtest: native fallback full cap has strict clearance: pat, pitch -80
+2026-10-19T12:47:58.1273495Z ok 76 - native fallback full cap has strict clearance: pat, pitch -80
+2026-10-19T12:47:58.1273790Z   ---
+2026-10-19T12:47:58.1273955Z   duration_ms: 40.127619
+2026-10-19T12:47:58.1274146Z   type: 'test'
+2026-10-19T12:47:58.1274313Z   ...
+2026-10-19T12:47:58.1274634Z # Subtest: native fallback full cap has strict clearance: idle, pitch -69
+2026-10-19T12:47:58.1275153Z ok 77 - native fallback full cap has strict clearance: idle, pitch -69
+2026-10-19T12:47:58.1275452Z   ---
+2026-10-19T12:47:58.1275615Z   duration_ms: 48.21492
+2026-10-19T12:47:58.1275802Z   type: 'test'
+2026-10-19T12:47:58.1275967Z   ...
+2026-10-19T12:47:58.1276280Z # Subtest: native fallback full cap has strict clearance: walk, pitch -69
+2026-10-19T12:47:58.1276750Z ok 78 - native fallback full cap has strict clearance: walk, pitch -69
+2026-10-19T12:47:58.1277048Z   ---
+2026-10-19T12:47:58.1277211Z   duration_ms: 22.181351
+2026-10-19T12:47:58.1277398Z   type: 'test'
+2026-10-19T12:47:58.1277566Z   ...
+2026-10-19T12:47:58.1277890Z # Subtest: native fallback full cap has strict clearance: run, pitch -69
+2026-10-19T12:47:58.1278351Z ok 79 - native fallback full cap has strict clearance: run, pitch -69
+2026-10-19T12:47:58.1278644Z   ---
+2026-10-19T12:47:58.1278806Z   duration_ms: 21.067226
+2026-10-19T12:47:58.1278996Z   type: 'test'
+2026-10-19T12:47:58.1279169Z   ...
+2026-10-19T12:47:58.1279488Z # Subtest: native fallback full cap has strict clearance: reach, pitch -69
+2026-10-19T12:47:58.1279968Z ok 80 - native fallback full cap has strict clearance: reach, pitch -69
+2026-10-19T12:47:58.1280275Z   ---
+2026-10-19T12:47:58.1280437Z   duration_ms: 25.096191
+2026-10-19T12:47:58.1280628Z   type: 'test'
+2026-10-19T12:47:58.1280798Z   ...
+2026-10-19T12:47:58.1281114Z # Subtest: native fallback full cap has strict clearance: pat, pitch -69
+2026-10-19T12:47:58.1281704Z ok 81 - native fallback full cap has strict clearance: pat, pitch -69
+2026-10-19T12:47:58.1282003Z   ---
+2026-10-19T12:47:58.1282166Z   duration_ms: 24.85023
+2026-10-19T12:47:58.1282355Z   type: 'test'
+2026-10-19T12:47:58.1282520Z   ...
+2026-10-19T12:47:58.1282838Z # Subtest: native fallback full cap has strict clearance: idle, pitch 0
+2026-10-19T12:47:58.1283291Z ok 82 - native fallback full cap has strict clearance: idle, pitch 0
+2026-10-19T12:47:58.1283577Z   ---
+2026-10-19T12:47:58.1283740Z   duration_ms: 17.171862
+2026-10-19T12:47:58.1283933Z   type: 'test'
+2026-10-19T12:47:58.1284094Z   ...
+2026-10-19T12:47:58.1284405Z # Subtest: native fallback full cap has strict clearance: walk, pitch 0
+2026-10-19T12:47:58.1284854Z ok 83 - native fallback full cap has strict clearance: walk, pitch 0
+2026-10-19T12:47:58.1285140Z   ---
+2026-10-19T12:47:58.1285299Z   duration_ms: 18.159171
+2026-10-19T12:47:58.1285487Z   type: 'test'
+2026-10-19T12:47:58.1285652Z   ...
+2026-10-19T12:47:58.1285961Z # Subtest: native fallback full cap has strict clearance: run, pitch 0
+2026-10-19T12:47:58.1286403Z ok 84 - native fallback full cap has strict clearance: run, pitch 0
+2026-10-19T12:47:58.1286693Z   ---
+2026-10-19T12:47:58.1286854Z   duration_ms: 19.495616
+2026-10-19T12:47:58.1287046Z   type: 'test'
+2026-10-19T12:47:58.1287208Z   ...
+2026-10-19T12:47:58.1287528Z # Subtest: native fallback full cap has strict clearance: reach, pitch 0
+2026-10-19T12:47:58.1287987Z ok 85 - native fallback full cap has strict clearance: reach, pitch 0
+2026-10-19T12:47:58.1288545Z   ---
+2026-10-19T12:47:58.1288708Z   duration_ms: 19.621546
+2026-10-19T12:47:58.1288897Z   type: 'test'
+2026-10-19T12:47:58.1289060Z   ...
+2026-10-19T12:47:58.1289378Z # Subtest: native fallback full cap has strict clearance: pat, pitch 0
+2026-10-19T12:47:58.1289830Z ok 86 - native fallback full cap has strict clearance: pat, pitch 0
+2026-10-19T12:47:58.1290121Z   ---
+2026-10-19T12:47:58.1290285Z   duration_ms: 22.046502
+2026-10-19T12:47:58.1290475Z   type: 'test'
+2026-10-19T12:47:58.1290639Z   ...
+2026-10-19T12:47:58.1290961Z # Subtest: native fallback full cap has strict clearance: idle, pitch 80
+2026-10-19T12:47:58.1291554Z ok 87 - native fallback full cap has strict clearance: idle, pitch 80
+2026-10-19T12:47:58.1291840Z   ---
+2026-10-19T12:47:58.1292007Z   duration_ms: 20.432299
+2026-10-19T12:47:58.1292201Z   type: 'test'
+2026-10-19T12:47:58.1292367Z   ...
+2026-10-19T12:47:58.1292687Z # Subtest: native fallback full cap has strict clearance: walk, pitch 80
+2026-10-19T12:47:58.1293154Z ok 88 - native fallback full cap has strict clearance: walk, pitch 80
+2026-10-19T12:47:58.1293450Z   ---
+2026-10-19T12:47:58.1293612Z   duration_ms: 24.987737
+2026-10-19T12:47:58.1293799Z   type: 'test'
+2026-10-19T12:47:58.1293963Z   ...
+2026-10-19T12:47:58.1294277Z # Subtest: native fallback full cap has strict clearance: run, pitch 80
+2026-10-19T12:47:58.1294732Z ok 89 - native fallback full cap has strict clearance: run, pitch 80
+2026-10-19T12:47:58.1295023Z   ---
+2026-10-19T12:47:58.1295183Z   duration_ms: 43.882918
+2026-10-19T12:47:58.1295373Z   type: 'test'
+2026-10-19T12:47:58.1295533Z   ...
+2026-10-19T12:47:58.1295851Z # Subtest: native fallback full cap has strict clearance: reach, pitch 80
+2026-10-19T12:47:58.1296313Z ok 90 - native fallback full cap has strict clearance: reach, pitch 80
+2026-10-19T12:47:58.1296610Z   ---
+2026-10-19T12:47:58.1296776Z   duration_ms: 35.944398
+2026-10-19T12:47:58.1296969Z   type: 'test'
+2026-10-19T12:47:58.1297133Z   ...
+2026-10-19T12:47:58.1297453Z # Subtest: native fallback full cap has strict clearance: pat, pitch 80
+2026-10-19T12:47:58.1297920Z ok 91 - native fallback full cap has strict clearance: pat, pitch 80
+2026-10-19T12:47:58.1298213Z   ---
+2026-10-19T12:47:58.1298378Z   duration_ms: 24.320331
+2026-10-19T12:47:58.1298574Z   type: 'test'
+2026-10-19T12:47:58.1298739Z   ...
+2026-10-19T12:47:58.1299075Z # Subtest: fallback elbow cross-section matches narrow native forearm: idle
+2026-10-19T12:47:58.1299558Z ok 92 - fallback elbow cross-section matches narrow native forearm: idle
+2026-10-19T12:47:58.1299865Z   ---
+2026-10-19T12:47:58.1300029Z   duration_ms: 43.103173
+2026-10-19T12:47:58.1300222Z   type: 'test'
+2026-10-19T12:47:58.1300383Z   ...
+2026-10-19T12:47:58.1300708Z # Subtest: fallback elbow cross-section matches narrow native forearm: walk
+2026-10-19T12:47:58.1301193Z ok 93 - fallback elbow cross-section matches narrow native forearm: walk
+2026-10-19T12:47:58.1301773Z   ---
+2026-10-19T12:47:58.1301935Z   duration_ms: 32.69348
+2026-10-19T12:47:58.1302128Z   type: 'test'
+2026-10-19T12:47:58.1302295Z   ...
+2026-10-19T12:47:58.1302623Z # Subtest: fallback elbow cross-section matches narrow native forearm: pet
+2026-10-19T12:47:58.1303111Z ok 94 - fallback elbow cross-section matches narrow native forearm: pet
+2026-10-19T12:47:58.1303412Z   ---
+2026-10-19T12:47:58.1303575Z   duration_ms: 22.199559
+2026-10-19T12:47:58.1303767Z   type: 'test'
+2026-10-19T12:47:58.1303932Z   ...
+2026-10-19T12:47:58.1304280Z # Subtest: fallback elbow cross-section matches narrow native forearm: reach-up
+2026-10-19T12:47:58.1304798Z ok 95 - fallback elbow cross-section matches narrow native forearm: reach-up
+2026-10-19T12:47:58.1305113Z   ---
+2026-10-19T12:47:58.1305275Z   duration_ms: 24.802493
+2026-10-19T12:47:58.1305469Z   type: 'test'
+2026-10-19T12:47:58.1305632Z   ...
+2026-10-19T12:47:58.1306014Z # Subtest: real native fallback idle-to-reach and return preserve every native pose channel
+2026-10-19T12:47:58.1306605Z ok 96 - real native fallback idle-to-reach and return preserve every native pose channel
+2026-10-19T12:47:58.1307222Z   ---
+2026-10-19T12:47:58.1307377Z   duration_ms: 59.088866
+2026-10-19T12:47:58.1307765Z   type: 'test'
+2026-10-19T12:47:58.1308056Z   ...
+2026-10-19T12:47:58.1308411Z # Subtest: real native fallback idle-to-pat and return preserve every native pose channel
+2026-10-19T12:47:58.1308859Z ok 97 - real native fallback idle-to-pat and return preserve every native pose channel
+2026-10-19T12:47:58.1309161Z   ---
+2026-10-19T12:47:58.1309401Z   duration_ms: 25.120377
+2026-10-19T12:47:58.1309606Z   type: 'test'
+2026-10-19T12:47:58.1309812Z   ...
+2026-10-19T12:47:58.1319429Z # Subtest: fallback finger replacement does not retain prior overlay rotation or stale writes
+2026-10-19T12:47:58.1319822Z ok 98 - fallback finger replacement does not retain prior overlay rotation or stale writes
+2026-10-19T12:47:58.1320059Z   ---
+2026-10-19T12:47:58.1320165Z   duration_ms: 23.289831
+2026-10-19T12:47:58.1320310Z   type: 'test'
+2026-10-19T12:47:58.1320416Z   ...
+2026-10-19T12:47:58.1320694Z # Subtest: hidden-to-fallback, disable and disposal preserve fresh native action evaluation
+2026-10-19T12:47:58.1321062Z ok 99 - hidden-to-fallback, disable and disposal preserve fresh native action evaluation
+2026-10-19T12:47:58.1321294Z   ---
+2026-10-19T12:47:58.1321412Z   duration_ms: 56.298814
+2026-10-19T12:47:58.1321629Z   type: 'test'
+2026-10-19T12:47:58.1321748Z   ...
+2026-10-19T12:47:58.1322031Z # Subtest: accepted motion reference stays byte-pinned;production arm correction needs no browser globals
+2026-10-19T12:47:58.1322454Z ok 100 - accepted motion reference stays byte-pinned;production arm correction needs no browser globals
+2026-10-19T12:47:58.1322708Z   ---
+2026-10-19T12:47:58.1322826Z   duration_ms: 17.96668
+2026-10-19T12:47:58.1322953Z   type: 'test'
+2026-10-19T12:47:58.1323070Z   ...
+2026-10-19T12:47:58.1323409Z # Subtest: 360 frames preserve accepted locomotion,local hand animation,state and held-frame behavior around scoped action placement
+2026-10-19T12:47:58.1323920Z ok 101 - 360 frames preserve accepted locomotion,local hand animation,state and held-frame behavior around scoped action placement
+2026-10-19T12:47:58.1324221Z   ---
+2026-10-19T12:47:58.1324341Z   duration_ms: 121.08163
+2026-10-19T12:47:58.1324464Z   type: 'test'
+2026-10-19T12:47:58.1324566Z   ...
+2026-10-19T12:47:58.1324763Z # Subtest: restoration owns native values after subsequent native mutation
+2026-10-19T12:47:58.1325046Z ok 102 - restoration owns native values after subsequent native mutation
+2026-10-19T12:47:58.1325243Z   ---
+2026-10-19T12:47:58.1325346Z   duration_ms: 7.325596
+2026-10-19T12:47:58.1325462Z   type: 'test'
+2026-10-19T12:47:58.1325564Z   ...
+2026-10-19T12:47:58.1325761Z # Subtest: steady update reuses snapshots without vector or quaternion clones
+2026-10-19T12:47:58.1326183Z ok 103 - steady update reuses snapshots without vector or quaternion clones
+2026-10-19T12:47:58.1326473Z   ---
+2026-10-19T12:47:58.1326647Z   duration_ms: 6.490276
+2026-10-19T12:47:58.1326887Z   type: 'test'
+2026-10-19T12:47:58.1327050Z   ...
+2026-10-19T12:47:58.1327254Z # Subtest: root replacement at held time never writes detached bones
+2026-10-19T12:47:58.1327601Z ok 104 - root replacement at held time never writes detached bones
+2026-10-19T12:47:58.1327775Z   ---
+2026-10-19T12:47:58.1327898Z   duration_ms: 9.935872
+2026-10-19T12:47:58.1328016Z   type: 'test'
+2026-10-19T12:47:58.1328118Z   ...
+2026-10-19T12:47:58.1328308Z # Subtest: same-root bone subtree replacement invalidates cached references
+2026-10-19T12:47:58.1328589Z ok 105 - same-root bone subtree replacement invalidates cached references
+2026-10-19T12:47:58.1328778Z   ---
+2026-10-19T12:47:58.1328877Z   duration_ms: 7.196481
+2026-10-19T12:47:58.1328999Z   type: 'test'
+2026-10-19T12:47:58.1329100Z   ...
+2026-10-19T12:47:58.1329283Z # Subtest: customization materials and native channels remain current
+2026-10-19T12:47:58.1329546Z ok 106 - customization materials and native channels remain current
+2026-10-19T12:47:58.1329721Z   ---
+2026-10-19T12:47:58.1329974Z   duration_ms: 5.249655
+2026-10-19T12:47:58.1330168Z   type: 'test'
+2026-10-19T12:47:58.1330270Z   ...
+2026-10-19T12:47:58.1330477Z # Subtest: fallback finger replacement at held time invalidates reusable snapshots
+2026-10-19T12:47:58.1330791Z ok 107 - fallback finger replacement at held time invalidates reusable snapshots
+2026-10-19T12:47:58.1330988Z   ---
+2026-10-19T12:47:58.1331085Z   duration_ms: 5.621005
+2026-10-19T12:47:58.1331203Z   type: 'test'
+2026-10-19T12:47:58.1331306Z   ...
+2026-10-19T12:47:58.1331653Z # Subtest: independent instances share no mutable snapshots or scratch state
+2026-10-19T12:47:58.1331941Z ok 108 - independent instances share no mutable snapshots or scratch state
+2026-10-19T12:47:58.1332129Z   ---
+2026-10-19T12:47:58.1332229Z   duration_ms: 9.858104
+2026-10-19T12:47:58.1332345Z   type: 'test'
+2026-10-19T12:47:58.1332446Z   ...
+2026-10-19T12:47:58.1332654Z # Subtest: dispose and repeated disposal do not dispose borrowed renderer resources
+2026-10-19T12:47:58.1332975Z ok 109 - dispose and repeated disposal do not dispose borrowed renderer resources
+2026-10-19T12:47:58.1333180Z   ---
+2026-10-19T12:47:58.1333279Z   duration_ms: 7.10297
+2026-10-19T12:47:58.1333398Z   type: 'test'
+2026-10-19T12:47:58.1333502Z   ...
+2026-10-19T12:47:58.1333736Z # Subtest: hidden/classic, reduced motion and action handoff preserve native context ownership
+2026-10-19T12:47:58.1334091Z ok 110 - hidden/classic, reduced motion and action handoff preserve native context ownership
+2026-10-19T12:47:58.1334305Z   ---
+2026-10-19T12:47:58.1334406Z   duration_ms: 20.425719
+2026-10-19T12:47:58.1334528Z   type: 'test'
+2026-10-19T12:47:58.1334630Z   ...
+2026-10-19T12:47:58.1334865Z # Subtest: native page installs once, updates after native hands, and precaches its exact import
+2026-10-19T12:47:58.1335220Z ok 111 - native page installs once, updates after native hands, and precaches its exact import
+2026-10-19T12:47:58.1335435Z   ---
+2026-10-19T12:47:58.1335534Z   duration_ms: 1.338639
+2026-10-19T12:47:58.1335653Z   type: 'test'
+2026-10-19T12:47:58.1335760Z   ...
+2026-10-19T12:47:58.1335975Z # Subtest: nested authored module versions cannot evade the cache consistency check
+2026-10-19T12:47:58.1336286Z ok 112 - nested authored module versions cannot evade the cache consistency check
+2026-10-19T12:47:58.1336483Z   ---
+2026-10-19T12:47:58.1336584Z   duration_ms: 1.043733
+2026-10-19T12:47:58.1336703Z   type: 'test'
+2026-10-19T12:47:58.1336804Z   ...
+2026-10-19T12:47:58.1336980Z # Subtest: every versioned script is imported with one version only
+2026-10-19T12:47:58.1337235Z ok 113 - every versioned script is imported with one version only
+2026-10-19T12:47:58.1337405Z   ---
+2026-10-19T12:47:58.1337504Z   duration_ms: 0.353302
+2026-10-19T12:47:58.1337621Z   type: 'test'
+2026-10-19T12:47:58.1337721Z   ...
+2026-10-19T12:47:58.1337897Z # Subtest: window.__gameVer matches the game.js version it imports
+2026-10-19T12:47:58.1338145Z ok 114 - window.__gameVer matches the game.js version it imports
+2026-10-19T12:47:58.1338315Z   ---
+2026-10-19T12:47:58.1338424Z   duration_ms: 0.184418
+2026-10-19T12:47:58.1338541Z   type: 'test'
+2026-10-19T12:47:58.1338642Z   ...
+2026-10-19T12:47:58.1338823Z # Subtest: the offline shell caches the same versions the page imports
+2026-10-19T12:47:58.1339087Z ok 115 - the offline shell caches the same versions the page imports
+2026-10-19T12:47:58.1339260Z   ---
+2026-10-19T12:47:58.1339359Z   duration_ms: 0.296317
+2026-10-19T12:47:58.1339478Z   type: 'test'
+2026-10-19T12:47:58.1339580Z   ...
+2026-10-19T12:47:58.1339770Z # Subtest: the cache name is versioned and namespaced away from the 2D game
+2026-10-19T12:47:58.1340048Z ok 116 - the cache name is versioned and namespaced away from the 2D game
+2026-10-19T12:47:58.1340233Z   ---
+2026-10-19T12:47:58.1340332Z   duration_ms: 0.195055
+2026-10-19T12:47:58.1340448Z   type: 'test'
+2026-10-19T12:47:58.1340551Z   ...
+2026-10-19T12:47:58.1340761Z # Subtest: chicken dependencies of both the page and game rules are cached offline
+2026-10-19T12:47:58.1341218Z ok 117 - chicken dependencies of both the page and game rules are cached offline
+2026-10-19T12:47:58.1341629Z   ---
+2026-10-19T12:47:58.1341730Z   duration_ms: 0.115715
+2026-10-19T12:47:58.1341844Z   type: 'test'
+2026-10-19T12:47:58.1341949Z   ...
+2026-10-19T12:47:58.1342139Z # Subtest: offline shell contains the complete local JavaScript boot graph
+2026-10-19T12:47:58.1342416Z ok 118 - offline shell contains the complete local JavaScript boot graph
+2026-10-19T12:47:58.1342598Z   ---
+2026-10-19T12:47:58.1342698Z   duration_ms: 0.173151
+2026-10-19T12:47:58.1342814Z   type: 'test'
+2026-10-19T12:47:58.1342917Z   ...
+2026-10-19T12:47:58.1343113Z # Subtest: an already activated predecessor cannot satisfy a requested update
+2026-10-19T12:47:58.1343403Z ok 119 - an already activated predecessor cannot satisfy a requested update
+2026-10-19T12:47:58.1343587Z   ---
+2026-10-19T12:47:58.1343687Z   duration_ms: 2.469574
+2026-10-19T12:47:58.1343800Z   type: 'test'
+2026-10-19T12:47:58.1343901Z   ...
+2026-10-19T12:47:58.1344158Z # Subtest: activation is insufficient while another install is pending or requested worker is redundant
+2026-10-19T12:47:58.1344550Z ok 120 - activation is insufficient while another install is pending or requested worker is redundant
+2026-10-19T12:47:58.1344779Z   ---
+2026-10-19T12:47:58.1344877Z   duration_ms: 0.646945
+2026-10-19T12:47:58.1344992Z   type: 'test'
+2026-10-19T12:47:58.1345096Z   ...
+2026-10-19T12:47:58.1345191Z 1..120
+2026-10-19T12:47:58.1345294Z # tests 120
+2026-10-19T12:47:58.1345395Z # suites 0
+2026-10-19T12:47:58.1345498Z # pass 120
+2026-10-19T12:47:58.1345599Z # fail 0
+2026-10-19T12:47:58.1345699Z # cancelled 0
+2026-10-19T12:47:58.1345810Z # skipped 0
+2026-10-19T12:47:58.1345909Z # todo 0
+2026-10-19T12:47:58.1346038Z # duration_ms 2482.633113
+2026-10-19T12:47:58.1393827Z ##[group]Run node chicken-pen-update.browser.cjs
+2026-10-19T12:47:58.1394046Z [36;1mnode chicken-pen-update.browser.cjs[0m
+2026-10-19T12:47:58.1443982Z shell: /usr/bin/bash -e {0}
+2026-10-19T12:47:58.1444126Z ##[endgroup]
+2026-10-19T12:48:11.3454799Z PASS install exact base worker
+2026-10-19T12:48:13.0655431Z PASS failed new-module installation preserves installed worker
+2026-10-19T12:48:14.6842520Z PASS activate candidate worker and verify cached hashes
+2026-10-19T12:48:26.5479864Z PASS new page migrates paid egg exactly once
+2026-10-19T12:48:38.2716268Z PASS one-way update reboots fully offline before any old-client or rollback scenario
+2026-10-19T12:49:01.4941134Z PASS older cached client writes a new paid timer after migration
+2026-10-19T12:49:28.5658304Z PASS explicit old-worker rollback then candidate re-upgrade
+2026-10-19T12:49:28.6052649Z PASS reconfirm current worker after intentionally serving the older version
+2026-10-19T12:49:44.7272158Z PASS fully offline reboot retains modules and unpaid pallet
+2026-10-19T12:49:56.2292385Z PASS installed full flock retains30 birds, care and appearance offline
+2026-10-19T12:50:01.0484048Z ##[group]Run actions/upload-artifact@v5
+2026-10-19T12:50:01.0484216Z with:
+2026-10-19T12:50:01.0484347Z   name: correction-update-a-1
+2026-10-19T12:50:01.0484485Z   path: farm3d/tests/artifacts/
+2026-10-19T12:50:01.0484613Z   retention-days: 7
+2026-10-19T12:50:01.0484726Z   if-no-files-found: warn
+2026-10-19T12:50:01.0484847Z   compression-level: 6
+2026-10-19T12:50:01.0484959Z   overwrite: false
+2026-10-19T12:50:01.0485072Z   include-hidden-files: false
+2026-10-19T12:50:01.0485197Z ##[endgroup]
+2026-10-19T12:50:01.1447873Z (node:3265) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-19T12:50:01.1448331Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-19T12:50:01.1486708Z With the provided path, there will be 3 files uploaded
+2026-10-19T12:50:01.1502007Z Artifact name is valid!
+2026-10-19T12:50:01.1502356Z Root directory input is valid!
+2026-10-19T12:50:01.4876755Z Beginning upload of artifact content to blob storage
+2026-10-19T12:50:01.5258665Z (node:3265) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-19T12:50:02.0246346Z Uploaded bytes 1217970
+2026-10-19T12:50:02.0835884Z Finished uploading artifact content to blob storage!
+2026-10-19T12:50:02.0836566Z SHA256 digest of uploaded artifact zip is cea612bd2f493ab7dca4029cb095fe369b0a6bb1536defba23caf396f5eb3a62
+2026-10-19T12:50:02.0837027Z Finalizing artifact upload
+2026-10-19T12:50:02.3761398Z Artifact correction-update-a-1.zip successfully finalized. Artifact ID 12187936305
+2026-10-19T12:50:02.3762293Z Artifact correction-update-a-1 has been successfully uploaded! Final size is 1217970 bytes. Artifact ID is 12187936305
+2026-10-19T12:50:02.3766448Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39254796023/artifacts/12187936305
+2026-10-19T12:50:02.3909913Z Post job cleanup.
+2026-10-19T12:50:02.4839680Z Post job cleanup.
+2026-10-19T12:50:02.5381960Z [command]/usr/bin/git version
+2026-10-19T12:50:02.5413082Z git version 2.55.0
+2026-10-19T12:50:02.5437846Z Temporarily overriding HOME='/home/runner/work/_temp/81b7214d-f2c5-487c-8e5b-b625be85cf91' before making global git config changes
+2026-10-19T12:50:02.5438607Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T12:50:02.5441520Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T12:50:02.5469441Z Removing SSH command configuration
+2026-10-19T12:50:02.5474373Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T12:50:02.5503704Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T12:50:02.5685224Z Removing HTTP extra header
+2026-10-19T12:50:02.5690362Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T12:50:02.5720706Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T12:50:02.5907832Z Removing includeIf entries pointing to credentials config files
+2026-10-19T12:50:02.5914370Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T12:50:02.5949809Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T12:50:02.6259574Z Cleaning up orphan processes
+2026-10-19T12:50:02.6455531Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
