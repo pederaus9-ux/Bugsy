@@ -1,0 +1,48 @@
+name: Hand return causal observation
+on:
+  push:
+    branches: [diagnostic/hand-return-causal-20261019]
+permissions:
+  contents: read
+jobs:
+  observe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Verify observer and exact original source
+        run: |
+          node --test farm3d/tests/hand-return-observer.test.cjs
+          sha256sum farm3d/tests/authored-hands.browser.cjs farm3d/index.html farm3d/player-motion.js farm3d/assets/hands/hands-candidate.glb
+      - name: Original preceding asset and study sequence
+        run: |
+          node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+          node farm3d/tests/hands-validator.cjs
+          node farm3d/tools/capture-hands-study.cjs
+      - name: One observed original 844 then 1280 sequence
+        run: node farm3d/tests/authored-hands-diagnostic.browser.cjs
+      - name: Original following production and capture sequence
+        run: |
+          node farm3d/tests/hands-production.browser.cjs
+          node farm3d/tools/capture-hands-game.cjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: hand-return-causal-${{ github.run_attempt }}
+          path: |
+            farm3d/tests/artifacts/authored-hands*
+            farm3d/tests/artifacts/hands-study/
+            farm3d/tests/artifacts/hands-production*
+            farm3d/tests/artifacts/hands-game-captures/
+          retention-days: 14
