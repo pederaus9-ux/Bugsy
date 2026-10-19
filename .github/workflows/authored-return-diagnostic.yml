@@ -19,9 +19,19 @@ jobs:
         run: npm ci --ignore-scripts
       - working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
+      - name: Original preceding export validation
+        run: |
+          node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+          node farm3d/tests/hands-validator.cjs
+      - name: Original preceding hand study
+        run: node farm3d/tools/capture-hands-study.cjs
       - name: Unchanged authored test; snapshot only after a failure
         working-directory: farm3d/tests
         run: node --require ./authored-failure-snapshot.cjs authored-hands.browser.cjs
+      - name: Original following normal-farm and offline checks
+        run: node farm3d/tests/hands-production.browser.cjs
+      - name: Original following in-game captures
+        run: node farm3d/tools/capture-hands-game.cjs
       - name: Preserve original result and failure state
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
