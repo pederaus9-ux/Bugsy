@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  regression:
+  regression_suites:
     name: Farm3D regression (${{ matrix.suite }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -53,6 +53,20 @@ jobs:
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+  regression:
+    # Preserve the existing required-check name. A failed/cancelled partition
+    # must fail this gate even when the other partition passed.
+    name: Farm3D regression
+    needs: regression_suites
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Require every original core suite
+        env:
+          CORE_RESULT: ${{ needs.regression_suites.result }}
+        run: test "$CORE_RESULT" = success
 
   characters-polish:
     name: Farmer + first-person + visual polish
