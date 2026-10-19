@@ -29,3 +29,11 @@ test('served instrumentation retains actual dt calculation and original held-fra
  assert(observed.includes('if(window.__handsCaptureHold){requestAnimationFrame(frame);return;}'));
  assert(observed.includes('composed(punch,playerMotion.state)'));assert.throws(()=>instrumentSource('different source'));
 });
+test('queued original collector callback remains safe after observer removal',()=>{
+ const f=fixture(),queue=[];f.c.requestAnimationFrame=fn=>queue.push(fn);
+ const source=fs.readFileSync(path.join(__dirname,'authored-hands-diagnostic.browser.cjs'),'utf8');
+ const begin=source.indexOf('window.__authoredSamples=[];window.__authoredSampling=true;let frames=0;');
+ const end=source.indexOf('},{nativeNeutral,neutral});',begin);assert(begin>=0&&end>begin);
+ vm.runInNewContext(source.slice(begin,end),f.c);f.c.__handReturnObserver.stop();
+ assert.doesNotThrow(()=>queue.shift()());assert.equal(f.c.__authoredSamples.length,1);
+});

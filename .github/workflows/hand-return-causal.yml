@@ -32,6 +32,8 @@ jobs:
           node farm3d/tools/capture-hands-study.cjs
       - name: One observed original 844 then 1280 sequence
         run: node farm3d/tests/authored-hands-diagnostic.browser.cjs
+      - name: Qualify the original test without observer instrumentation
+        run: node farm3d/tests/authored-hands.browser.cjs
       - name: Original following production and capture sequence
         run: |
           node farm3d/tests/hands-production.browser.cjs

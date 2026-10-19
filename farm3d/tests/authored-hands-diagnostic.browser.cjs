@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts,root}=require('./browser-harness.cjs');
 const {instrumentSource,installHandObservation}=require('./hand-return-observer.cjs');
-(async()=>{const harness=await start(),results=[];let failed=true;
+(async()=>{const harness=await start({deviceScaleFactor:.25}),results=[];let failed=true;
 try{for(const width of [844,1280]){
  const s=await harness.setup({width,height:width===844?390:720},width===844,'authored-hands-'+width),p=s.page;
  const source=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8');
@@ -95,7 +95,7 @@ try{for(const width of [844,1280]){
  }
  w.__handReturnObserver=observer;
 })({nativeNeutral,neutral});window.__authoredSamples=[];window.__authoredSampling=true;let frames=0;const sample=()=>{if(!__authoredSampling)return;const root=__dbg.camera.getObjectByName('Authored first-person hands');
-   __authoredSamples.push(root.getObjectByName('R_finger1_0').quaternion.toArray());window.__handReturnObserver.sample(__authoredSamples.at(-1));if(frames++<70)requestAnimationFrame(sample);};requestAnimationFrame(sample);},{nativeNeutral,neutral});
+   __authoredSamples.push(root.getObjectByName('R_finger1_0').quaternion.toArray());window.__handReturnObserver?.sample(__authoredSamples.at(-1));if(frames++<70)requestAnimationFrame(sample);};requestAnimationFrame(sample);},{nativeNeutral,neutral});
  const marks={clickStartedWall:Date.now()};let originalError=null;
  try{
   await p.locator('#actBtn').click();marks.clickFinishedWall=Date.now();marks.waitStartedWall=Date.now();
