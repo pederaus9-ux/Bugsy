@@ -1,0 +1,198 @@
+[
+  {
+    "type": "before",
+    "callId": "call@321",
+    "startTime": 107586.088,
+    "class": "Frame",
+    "method": "waitForFunction",
+    "params": {
+      "expression": "()=>{const d=__dbg,h=d.hitAt(innerWidth/2,innerHeight/2);return h?.type==='plot'&&h.i===0&&!document.getElementById('actBtn').hidden;}",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "v": "null"
+        },
+        "handles": []
+      },
+      "timeout": 60000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@321"
+  },
+  {
+    "type": "before",
+    "callId": "call@323",
+    "startTime": 109038.641,
+    "class": "Page",
+    "method": "emulateMedia",
+    "params": {
+      "reducedMotion": "reduce"
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@323"
+  },
+  {
+    "type": "before",
+    "callId": "call@325",
+    "startTime": 109046.033,
+    "class": "Frame",
+    "method": "waitForFunction",
+    "params": {
+      "expression": "()=>__dbg.G.reducedMotion()",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "v": "undefined"
+        },
+        "handles": []
+      },
+      "timeout": 30000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@325"
+  },
+  {
+    "type": "before",
+    "callId": "call@327",
+    "startTime": 109052.957,
+    "class": "Frame",
+    "method": "evaluateExpression",
+    "params": {
+      "expression": "async()=>{const root=__dbg.camera.getObjectByName('Authored first-person hands');\n   root.userData.authoredHands.update({visible:true,time:0,reducedMotion:true});\n   const nativeNeutral=root.getObjectByName('R_finger1_0').quaternion.toArray(),T=await import('./lib/three.module.min.js');\n   const neutral=new T.Quaternion().fromArray(nativeNeutral).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),-.10)).toArray();\n   return {nativeNeutral,neutral};}",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "v": "undefined"
+        },
+        "handles": []
+      }
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@327"
+  },
+  {
+    "type": "before",
+    "callId": "call@329",
+    "startTime": 109058.623,
+    "class": "Frame",
+    "method": "waitForFunction",
+    "params": {
+      "expression": "neutral=>{const q=__dbg.camera.getObjectByName('Authored first-person hands').getObjectByName('R_finger1_0').quaternion.toArray();\n   return q.every((n,i)=>Math.abs(n-neutral[i])<1e-6);}",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "a": [
+            {
+              "n": -0.16860670692458335
+            },
+            {
+              "n": 0
+            },
+            {
+              "n": 0
+            },
+            {
+              "n": 0.9856834018773867
+            }
+          ],
+          "id": 1
+        },
+        "handles": []
+      },
+      "timeout": 10000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@329"
+  },
+  {
+    "type": "before",
+    "callId": "call@331",
+    "startTime": 110593.764,
+    "class": "Frame",
+    "method": "evaluateExpression",
+    "params": {
+      "expression": "()=>{window.__authoredSamples=[];window.__authoredSampling=true;let frames=0;const sample=()=>{if(!__authoredSampling)return;const root=__dbg.camera.getObjectByName('Authored first-person hands');\n   __authoredSamples.push(root.getObjectByName('R_finger1_0').quaternion.toArray());if(frames++<70)requestAnimationFrame(sample);};requestAnimationFrame(sample);}",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "v": "undefined"
+        },
+        "handles": []
+      }
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@331"
+  },
+  {
+    "type": "before",
+    "callId": "call@333",
+    "startTime": 110603.961,
+    "class": "Frame",
+    "method": "click",
+    "params": {
+      "selector": "#actBtn",
+      "strict": true,
+      "timeout": 30000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@333"
+  },
+  {
+    "type": "before",
+    "callId": "call@335",
+    "startTime": 115028.862,
+    "class": "Route",
+    "method": "continue",
+    "params": {
+      "isFallback": false
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b"
+  },
+  {
+    "type": "before",
+    "callId": "call@337",
+    "startTime": 115037.072,
+    "class": "Frame",
+    "method": "waitForFunction",
+    "params": {
+      "expression": "neutral=>__authoredSamples.length>5&&__authoredSamples.some(q=>q.some((n,i)=>Math.abs(n-neutral[i])>.1))&&\n   __authoredSamples.slice(-3).every(q=>q.every((n,i)=>Math.abs(n-neutral[i])<1e-6))",
+      "isFunction": true,
+      "arg": {
+        "value": {
+          "a": [
+            {
+              "n": -0.16860670692458335
+            },
+            {
+              "n": 0
+            },
+            {
+              "n": 0
+            },
+            {
+              "n": 0.9856834018773867
+            }
+          ],
+          "id": 1
+        },
+        "handles": []
+      },
+      "timeout": 10000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@337"
+  },
+  {
+    "type": "before",
+    "callId": "call@339",
+    "startTime": 125045.494,
+    "class": "Page",
+    "method": "screenshot",
+    "params": {
+      "type": "png",
+      "timeout": 15000
+    },
+    "pageId": "page@424ae436aaacb52b14bbfa0d7483ab0b",
+    "beforeSnapshot": "before@call@339"
+  }
+]

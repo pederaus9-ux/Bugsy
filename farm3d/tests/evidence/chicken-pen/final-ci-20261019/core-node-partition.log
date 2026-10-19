@@ -1,0 +1,2265 @@
+﻿2026-10-19T13:35:46.0974421Z Current runner version: '2.337.0'
+2026-10-19T13:35:46.1002282Z ##[group]Runner Image Provisioner
+2026-10-19T13:35:46.1003975Z Hosted Compute Agent
+2026-10-19T13:35:46.1005073Z Version: 20261012.601
+2026-10-19T13:35:46.1006197Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-19T13:35:46.1007715Z Build Date: 2026-10-12T17:48:21Z
+2026-10-19T13:35:46.1009011Z Worker ID: {41659418-d4ea-482b-b67a-c8d0f8653287}
+2026-10-19T13:35:46.1010546Z Region: southcentralus
+2026-10-19T13:35:46.1011802Z Cloud: Azure
+2026-10-19T13:35:46.1012819Z ##[endgroup]
+2026-10-19T13:35:46.1015093Z ##[group]Operating System
+2026-10-19T13:35:46.1016167Z Ubuntu
+2026-10-19T13:35:46.1017067Z 24.04.5
+2026-10-19T13:35:46.1018165Z LTS
+2026-10-19T13:35:46.1019103Z ##[endgroup]
+2026-10-19T13:35:46.1020418Z ##[group]Runner Image
+2026-10-19T13:35:46.1021587Z Image: ubuntu-24.04
+2026-10-19T13:35:46.1022692Z Version: 20261012.334.1
+2026-10-19T13:35:46.1025131Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-19T13:35:46.1028539Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-19T13:35:46.1030711Z ##[endgroup]
+2026-10-19T13:35:46.1032806Z ##[group]GITHUB_TOKEN Permissions
+2026-10-19T13:35:46.1035828Z Contents: read
+2026-10-19T13:35:46.1036843Z Metadata: read
+2026-10-19T13:35:46.1037984Z ##[endgroup]
+2026-10-19T13:35:46.1041271Z Secret source: Actions
+2026-10-19T13:35:46.1043055Z Cache mode: write
+2026-10-19T13:35:46.1044577Z Prepare workflow directory
+2026-10-19T13:35:46.1428759Z Prepare all required actions
+2026-10-19T13:35:46.1486732Z Getting action download info
+2026-10-19T13:35:46.4605292Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-19T13:35:46.5586363Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-19T13:35:46.6953674Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-19T13:35:47.1349900Z Complete job name: Core partition (node)
+2026-10-19T13:35:47.2302517Z ##[group]Run actions/checkout@v6
+2026-10-19T13:35:47.2303910Z with:
+2026-10-19T13:35:47.2304715Z   persist-credentials: false
+2026-10-19T13:35:47.2305712Z   repository: pederaus9-ux/Bugsy
+2026-10-19T13:35:47.2315604Z   token: ***
+2026-10-19T13:35:47.2316401Z   ssh-strict: true
+2026-10-19T13:35:47.2317215Z   ssh-user: git
+2026-10-19T13:35:47.2317984Z   clean: true
+2026-10-19T13:35:47.2318816Z   sparse-checkout-cone-mode: true
+2026-10-19T13:35:47.2319818Z   fetch-depth: 1
+2026-10-19T13:35:47.2320758Z   fetch-tags: false
+2026-10-19T13:35:47.2321563Z   show-progress: true
+2026-10-19T13:35:47.2322390Z   lfs: false
+2026-10-19T13:35:47.2323154Z   submodules: false
+2026-10-19T13:35:47.2323988Z   set-safe-directory: true
+2026-10-19T13:35:47.2324936Z   allow-unsafe-pr-checkout: false
+2026-10-19T13:35:47.2326185Z ##[endgroup]
+2026-10-19T13:35:47.3390274Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-19T13:35:47.3394365Z ##[group]Getting Git version info
+2026-10-19T13:35:47.3396408Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T13:35:47.3399323Z [command]/usr/bin/git version
+2026-10-19T13:35:47.3447373Z git version 2.55.0
+2026-10-19T13:35:47.3472788Z ##[endgroup]
+2026-10-19T13:35:47.3489486Z Temporarily overriding HOME='/home/runner/work/_temp/ceebacd4-6710-422a-be94-68ab141c9e18' before making global git config changes
+2026-10-19T13:35:47.3494470Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T13:35:47.3498074Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:35:47.3547319Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T13:35:47.3553295Z ##[group]Determining repository object format
+2026-10-19T13:35:47.3556531Z ##[endgroup]
+2026-10-19T13:35:47.3559415Z ##[group]Initializing the repository
+2026-10-19T13:35:47.3562005Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:35:47.3668366Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-19T13:35:47.3671942Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-19T13:35:47.3675222Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-19T13:35:47.3677755Z hint: call:
+2026-10-19T13:35:47.3679004Z hint:
+2026-10-19T13:35:47.3680850Z hint: 	git config --global init.defaultBranch <name>
+2026-10-19T13:35:47.3682754Z hint:
+2026-10-19T13:35:47.3683900Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-19T13:35:47.3685728Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-19T13:35:47.3687171Z hint:
+2026-10-19T13:35:47.3687927Z hint: 	git branch -m <name>
+2026-10-19T13:35:47.3688795Z hint:
+2026-10-19T13:35:47.3689971Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-19T13:35:47.3693153Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-19T13:35:47.3696394Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-19T13:35:47.3741802Z ##[endgroup]
+2026-10-19T13:35:47.3743215Z ##[group]Disabling automatic garbage collection
+2026-10-19T13:35:47.3746079Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-19T13:35:47.3780508Z ##[endgroup]
+2026-10-19T13:35:47.3782453Z ##[group]Setting up auth
+2026-10-19T13:35:47.3784162Z Removing SSH command configuration
+2026-10-19T13:35:47.3787961Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:35:47.3831508Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:35:47.4187124Z Removing HTTP extra header
+2026-10-19T13:35:47.4195659Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:35:47.4237344Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:35:47.4471565Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:35:47.4477518Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:35:47.4514085Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:35:47.4741449Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-19T13:35:47.4782502Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:47.4816978Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:47.4854469Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:47.4891463Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:47.4920721Z ##[endgroup]
+2026-10-19T13:35:47.4922108Z ##[group]Fetching the repository
+2026-10-19T13:35:47.4929097Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6b01770328e6fa1361edef142b42162076188f6b:refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.5019860Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T13:35:49.5021919Z  * [new ref]         6b01770328e6fa1361edef142b42162076188f6b -> origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.5037444Z [command]/usr/bin/git branch --list --remote origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.5065579Z   origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.5074398Z [command]/usr/bin/git rev-parse refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.5101087Z 6b01770328e6fa1361edef142b42162076188f6b
+2026-10-19T13:35:49.5105666Z ##[endgroup]
+2026-10-19T13:35:49.5106632Z ##[group]Determining the checkout info
+2026-10-19T13:35:49.5107673Z ##[endgroup]
+2026-10-19T13:35:49.5112444Z [command]/usr/bin/git sparse-checkout disable
+2026-10-19T13:35:49.5165433Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-19T13:35:49.5195763Z ##[group]Checking out the ref
+2026-10-19T13:35:49.5199893Z [command]/usr/bin/git checkout --progress --force -B codex/chicken-ci-completion-20261019 refs/remotes/origin/codex/chicken-ci-completion-20261019
+2026-10-19T13:35:49.6552796Z Switched to a new branch 'codex/chicken-ci-completion-20261019'
+2026-10-19T13:35:49.6568438Z branch 'codex/chicken-ci-completion-20261019' set up to track 'origin/codex/chicken-ci-completion-20261019'.
+2026-10-19T13:35:49.6573442Z ##[endgroup]
+2026-10-19T13:35:49.6621302Z [command]/usr/bin/git log -1 --format=%H
+2026-10-19T13:35:49.6648993Z 6b01770328e6fa1361edef142b42162076188f6b
+2026-10-19T13:35:49.6661843Z ##[group]Removing auth
+2026-10-19T13:35:49.6662422Z Removing SSH command configuration
+2026-10-19T13:35:49.6663320Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:35:49.6701480Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:35:49.6928435Z Removing HTTP extra header
+2026-10-19T13:35:49.6933254Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:35:49.6970224Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:35:49.7191294Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:35:49.7195235Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:35:49.7225788Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T13:35:49.7226857Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T13:35:49.7227860Z includeif.gitdir:/github/workspace/.git.path
+2026-10-19T13:35:49.7228803Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T13:35:49.7236223Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T13:35:49.7262272Z /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7272165Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7310480Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T13:35:49.7336613Z /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7346370Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7394482Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-19T13:35:49.7422303Z /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7434382Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7469632Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T13:35:49.7494667Z /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7501991Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config
+2026-10-19T13:35:49.7538423Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:35:49.7757880Z Removing credentials config '/home/runner/work/_temp/git-credentials-7c16b7f9-f8f8-4469-b443-a1b77251795e.config'
+2026-10-19T13:35:49.7767620Z ##[endgroup]
+2026-10-19T13:35:49.8094316Z ##[group]Run actions/setup-node@v6
+2026-10-19T13:35:49.8094682Z with:
+2026-10-19T13:35:49.8094941Z   node-version: 22
+2026-10-19T13:35:49.8095207Z   check-latest: false
+2026-10-19T13:35:49.8097976Z   token: ***
+2026-10-19T13:35:49.8098261Z   package-manager-cache: true
+2026-10-19T13:35:49.8098560Z ##[endgroup]
+2026-10-19T13:35:49.9571211Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-19T13:35:49.9575260Z ##[group]Environment details
+2026-10-19T13:35:52.5912828Z node: v22.23.3
+2026-10-19T13:35:52.5913214Z npm: 10.9.9
+2026-10-19T13:35:52.5913410Z yarn: 1.22.22
+2026-10-19T13:35:52.5914316Z ##[endgroup]
+2026-10-19T13:35:52.6038616Z ##[group]Run npm ci --ignore-scripts
+2026-10-19T13:35:52.6038993Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-19T13:35:52.6328916Z shell: /usr/bin/bash -e {0}
+2026-10-19T13:35:52.6329222Z ##[endgroup]
+2026-10-19T13:35:54.5925674Z 
+2026-10-19T13:35:54.5932286Z added 3 packages, and audited 4 packages in 2s
+2026-10-19T13:35:54.5933905Z 
+2026-10-19T13:35:54.5934208Z found 0 vulnerabilities
+2026-10-19T13:35:54.6392825Z ##[group]Run npm run test:core:game -- node
+2026-10-19T13:35:54.6393215Z [36;1mnpm run test:core:game -- node[0m
+2026-10-19T13:35:54.6455025Z shell: /usr/bin/bash -e {0}
+2026-10-19T13:35:54.6455282Z ##[endgroup]
+2026-10-19T13:35:54.7505016Z 
+2026-10-19T13:35:54.7505940Z > sunny-acres-regression-tests@1.0.0 test:core:game
+2026-10-19T13:35:54.7506787Z > node run-core-game-tests.mjs node
+2026-10-19T13:35:54.7507175Z 
+2026-10-19T13:35:54.7970654Z [CI-ISOLATION] START chicken-care.test.mjs 2026-10-19T13:35:54.795Z
+2026-10-19T13:35:54.8608337Z TAP version 13
+2026-10-19T13:35:55.0295859Z # Subtest: chicken care module is available
+2026-10-19T13:35:55.0301597Z ok 1 - chicken care module is available
+2026-10-19T13:35:55.0302537Z   ---
+2026-10-19T13:35:55.0302979Z   duration_ms: 1.975633
+2026-10-19T13:35:55.0303436Z   type: 'test'
+2026-10-19T13:35:55.0303825Z   ...
+2026-10-19T13:35:55.0305319Z # Subtest: one_six_and_zero_chickens
+2026-10-19T13:35:55.0313548Z ok 2 - one_six_and_zero_chickens
+2026-10-19T13:35:55.0314474Z   ---
+2026-10-19T13:35:55.0315252Z   duration_ms: 3.480064
+2026-10-19T13:35:55.0316002Z   type: 'test'
+2026-10-19T13:35:55.0316421Z   ...
+2026-10-19T13:35:55.0317224Z # Subtest: earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T13:35:55.0318354Z ok 3 - earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-19T13:35:55.0319048Z   ---
+2026-10-19T13:35:55.0319426Z   duration_ms: 1.266487
+2026-10-19T13:35:55.0319871Z   type: 'test'
+2026-10-19T13:35:55.0320557Z   ...
+2026-10-19T13:35:55.0321403Z # Subtest: early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T13:35:55.0322664Z ok 4 - early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-19T13:35:55.0323521Z   ---
+2026-10-19T13:35:55.0323914Z   duration_ms: 1.142224
+2026-10-19T13:35:55.0324359Z   type: 'test'
+2026-10-19T13:35:55.0324750Z   ...
+2026-10-19T13:35:55.0325602Z # Subtest: pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T13:35:55.0338144Z ok 5 - pause_and_resume preserves active progress without empty-supply backlog
+2026-10-19T13:35:55.0339071Z   ---
+2026-10-19T13:35:55.0339835Z   duration_ms: 0.413483
+2026-10-19T13:35:55.0340732Z   type: 'test'
+2026-10-19T13:35:55.0341294Z   ...
+2026-10-19T13:35:55.0342282Z # Subtest: pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T13:35:55.0343788Z ok 6 - pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-19T13:35:55.0344584Z   ---
+2026-10-19T13:35:55.0344977Z   duration_ms: 14.289776
+2026-10-19T13:35:55.0345424Z   type: 'test'
+2026-10-19T13:35:55.0345801Z   ...
+2026-10-19T13:35:55.0346570Z # Subtest: clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T13:35:55.0347698Z ok 7 - clock_partition produces the same batches and RNG as one catch-up
+2026-10-19T13:35:55.0348416Z   ---
+2026-10-19T13:35:55.0348820Z   duration_ms: 16.530526
+2026-10-19T13:35:55.0349385Z   type: 'test'
+2026-10-19T13:35:55.0349772Z   ...
+2026-10-19T13:35:55.0350823Z # Subtest: clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T13:35:55.0352060Z ok 8 - clock_backwards neither credits time nor extends a refill into the past
+2026-10-19T13:35:55.0352831Z   ---
+2026-10-19T13:35:55.0353223Z   duration_ms: 0.331509
+2026-10-19T13:35:55.0353651Z   type: 'test'
+2026-10-19T13:35:55.0354019Z   ...
+2026-10-19T13:35:55.0354619Z # Subtest: new_chicken starts fresh with current supplies
+2026-10-19T13:35:55.0355452Z ok 9 - new_chicken starts fresh with current supplies
+2026-10-19T13:35:55.0355991Z   ---
+2026-10-19T13:35:55.0356326Z   duration_ms: 0.503261
+2026-10-19T13:35:55.0356710Z   type: 'test'
+2026-10-19T13:35:55.0357036Z   ...
+2026-10-19T13:35:55.0371834Z # Subtest: legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T13:35:55.0373132Z ok 10 - legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-19T13:35:55.0374389Z   ---
+2026-10-19T13:35:55.0374873Z   duration_ms: 0.932714
+2026-10-19T13:35:55.0375338Z   type: 'test'
+2026-10-19T13:35:55.0375719Z   ...
+2026-10-19T13:35:55.0376521Z # Subtest: unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T13:35:55.0377731Z ok 11 - unknown_care_version_preserved rejects actions without deleting data
+2026-10-19T13:35:55.0378499Z   ---
+2026-10-19T13:35:55.0378911Z   duration_ms: 0.297296
+2026-10-19T13:35:55.0379377Z   type: 'test'
+2026-10-19T13:35:55.0379814Z   ...
+2026-10-19T13:35:55.0381269Z # Subtest: happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T13:35:55.0382516Z ok 12 - happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-19T13:35:55.0383282Z   ---
+2026-10-19T13:35:55.0383682Z   duration_ms: 27.413883
+2026-10-19T13:35:55.0384116Z   type: 'test'
+2026-10-19T13:35:55.0384478Z   ...
+2026-10-19T13:35:55.0385196Z # Subtest: status is a read-only projection, even before first migration
+2026-10-19T13:35:55.0386256Z ok 13 - status is a read-only projection, even before first migration
+2026-10-19T13:35:55.0386917Z   ---
+2026-10-19T13:35:55.0387282Z   duration_ms: 0.286134
+2026-10-19T13:35:55.0387704Z   type: 'test'
+2026-10-19T13:35:55.0388071Z   ...
+2026-10-19T13:35:55.0389023Z # Subtest: malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-19T13:35:55.0396790Z ok 14 - malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-19T13:35:55.0397626Z   ---
+2026-10-19T13:35:55.0398167Z   duration_ms: 1.511024
+2026-10-19T13:35:55.0398711Z   type: 'test'
+2026-10-19T13:35:55.0399212Z   ...
+2026-10-19T13:35:55.0400507Z # Subtest: a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-19T13:35:55.0401880Z ok 15 - a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-19T13:35:55.0402408Z   ---
+2026-10-19T13:35:55.0402643Z   duration_ms: 0.383807
+2026-10-19T13:35:55.0403153Z   type: 'test'
+2026-10-19T13:35:55.0403382Z   ...
+2026-10-19T13:35:55.0403912Z # Subtest: overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-19T13:35:55.0404699Z ok 16 - overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-19T13:35:55.0405160Z   ---
+2026-10-19T13:35:55.0405370Z   duration_ms: 0.293158
+2026-10-19T13:35:55.0405642Z   type: 'test'
+2026-10-19T13:35:55.0405841Z   ...
+2026-10-19T13:35:55.0406294Z # Subtest: thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-19T13:35:55.0406937Z ok 17 - thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-19T13:35:55.0407313Z   ---
+2026-10-19T13:35:55.0407515Z   duration_ms: 13.028739
+2026-10-19T13:35:55.0407746Z   type: 'test'
+2026-10-19T13:35:55.0407939Z   ...
+2026-10-19T13:35:55.0408360Z # Subtest: thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-19T13:35:55.0408993Z ok 18 - thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-19T13:35:55.0409374Z   ---
+2026-10-19T13:35:55.0409576Z   duration_ms: 43.222556
+2026-10-19T13:35:55.0409832Z   type: 'test'
+2026-10-19T13:35:55.0410332Z   ...
+2026-10-19T13:35:55.0410758Z # Subtest: all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-19T13:35:55.0411383Z ok 19 - all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-19T13:35:55.0411858Z   ---
+2026-10-19T13:35:55.0412248Z   duration_ms: 0.557792
+2026-10-19T13:35:55.0412762Z   type: 'test'
+2026-10-19T13:35:55.0413057Z   ...
+2026-10-19T13:35:55.0471655Z 1..19
+2026-10-19T13:35:55.0471977Z # tests 19
+2026-10-19T13:35:55.0472493Z # suites 0
+2026-10-19T13:35:55.0473049Z # pass 19
+2026-10-19T13:35:55.0473575Z # fail 0
+2026-10-19T13:35:55.0474112Z # cancelled 0
+2026-10-19T13:35:55.0474610Z # skipped 0
+2026-10-19T13:35:55.0475111Z # todo 0
+2026-10-19T13:35:55.0475664Z # duration_ms 207.030362
+2026-10-19T13:35:55.0524305Z [CI-ISOLATION] END chicken-care.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:35:55.0525245Z [CI-ISOLATION] START chicken-care-integration.test.mjs 2026-10-19T13:35:55.052Z
+2026-10-19T13:35:55.0940514Z TAP version 13
+2026-10-19T13:35:55.3908807Z # Subtest: insufficient_feed_and_duplicate_confirmation
+2026-10-19T13:35:55.3917268Z ok 1 - insufficient_feed_and_duplicate_confirmation
+2026-10-19T13:35:55.3918318Z   ---
+2026-10-19T13:35:55.3918985Z   duration_ms: 230.946887
+2026-10-19T13:35:55.3919570Z   type: 'test'
+2026-10-19T13:35:55.3919951Z   ...
+2026-10-19T13:35:55.3921123Z # Subtest: water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T13:35:55.3923865Z ok 2 - water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-19T13:35:55.3925292Z   ---
+2026-10-19T13:35:55.3925695Z   duration_ms: 3.64372
+2026-10-19T13:35:55.3926124Z   type: 'test'
+2026-10-19T13:35:55.3926492Z   ...
+2026-10-19T13:35:55.3938903Z # Subtest: legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T13:35:55.3939831Z ok 3 - legacy_chicken_buttons_do_not_bypass_stations
+2026-10-19T13:35:55.3940687Z   ---
+2026-10-19T13:35:55.3941082Z   duration_ms: 1.843946
+2026-10-19T13:35:55.3941518Z   type: 'test'
+2026-10-19T13:35:55.3941889Z   ...
+2026-10-19T13:35:55.3942446Z # Subtest: read_only_farms_reject_all_new_mutations
+2026-10-19T13:35:55.3943222Z ok 4 - read_only_farms_reject_all_new_mutations
+2026-10-19T13:35:55.3943760Z   ---
+2026-10-19T13:35:55.3944140Z   duration_ms: 1.32732
+2026-10-19T13:35:55.3944557Z   type: 'test'
+2026-10-19T13:35:55.3944923Z   ...
+2026-10-19T13:35:55.3945476Z # Subtest: other_species_exact and farm_roundtrip
+2026-10-19T13:35:55.3946468Z ok 5 - other_species_exact and farm_roundtrip
+2026-10-19T13:35:55.3947030Z   ---
+2026-10-19T13:35:55.3947414Z   duration_ms: 1.528807
+2026-10-19T13:35:55.3947832Z   type: 'test'
+2026-10-19T13:35:55.3948435Z   ...
+2026-10-19T13:35:55.3951630Z # Subtest: unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T13:35:55.3952849Z ok 6 - unowned_and_future_care cannot spend or overwrite appearance
+2026-10-19T13:35:55.3954158Z   ---
+2026-10-19T13:35:55.3954568Z   duration_ms: 0.22985
+2026-10-19T13:35:55.3954982Z   type: 'test'
+2026-10-19T13:35:55.3955351Z   ...
+2026-10-19T13:35:55.3956147Z # Subtest: passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T13:35:55.3957461Z ok 7 - passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-19T13:35:55.3958273Z   ---
+2026-10-19T13:35:55.3958630Z   duration_ms: 0.787893
+2026-10-19T13:35:55.3959049Z   type: 'test'
+2026-10-19T13:35:55.3959493Z   ...
+2026-10-19T13:35:55.3960491Z # Subtest: a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T13:35:55.3971155Z ok 8 - a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-19T13:35:55.3972540Z   ---
+2026-10-19T13:35:55.3973285Z   duration_ms: 0.592968
+2026-10-19T13:35:55.3973841Z   type: 'test'
+2026-10-19T13:35:55.3974325Z   ...
+2026-10-19T13:35:55.3975189Z # Subtest: malformed existing care blocks chicken purchase without spending
+2026-10-19T13:35:55.3976352Z ok 9 - malformed existing care blocks chicken purchase without spending
+2026-10-19T13:35:55.3977085Z   ---
+2026-10-19T13:35:55.3977468Z   duration_ms: 0.698024
+2026-10-19T13:35:55.3977908Z   type: 'test'
+2026-10-19T13:35:55.3978276Z   ...
+2026-10-19T13:35:55.3979283Z # Subtest: petting after time away cannot retroactively upgrade eggs already earned
+2026-10-19T13:35:55.3981041Z ok 10 - petting after time away cannot retroactively upgrade eggs already earned
+2026-10-19T13:35:55.3982033Z   ---
+2026-10-19T13:35:55.3982541Z   duration_ms: 1.2575
+2026-10-19T13:35:55.3983146Z   type: 'test'
+2026-10-19T13:35:55.3983844Z   ...
+2026-10-19T13:35:55.3984739Z # Subtest: buying between outputs never gives the new bird pre-purchase progress
+2026-10-19T13:35:55.3985908Z ok 11 - buying between outputs never gives the new bird pre-purchase progress
+2026-10-19T13:35:55.3986696Z   ---
+2026-10-19T13:35:55.3987057Z   duration_ms: 0.819622
+2026-10-19T13:35:55.3987860Z   type: 'test'
+2026-10-19T13:35:55.3988262Z   ...
+2026-10-19T13:35:55.3989100Z # Subtest: thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-19T13:35:55.3990596Z ok 12 - thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-19T13:35:55.3992385Z   ---
+2026-10-19T13:35:55.3992746Z   duration_ms: 7.227407
+2026-10-19T13:35:55.3993152Z   type: 'test'
+2026-10-19T13:35:55.3993494Z   ...
+2026-10-19T13:35:57.7892913Z 1..12
+2026-10-19T13:35:57.7893169Z # tests 12
+2026-10-19T13:35:57.7893941Z # suites 0
+2026-10-19T13:35:57.7894259Z # pass 12
+2026-10-19T13:35:57.7894569Z # fail 0
+2026-10-19T13:35:57.7894892Z # cancelled 0
+2026-10-19T13:35:57.7895331Z # skipped 0
+2026-10-19T13:35:57.7895795Z # todo 0
+2026-10-19T13:35:57.7896330Z # duration_ms 2706.797048
+2026-10-19T13:35:57.7943088Z [CI-ISOLATION] END chicken-care-integration.test.mjs code=0 signal=null elapsed=2.7s
+2026-10-19T13:35:57.7944271Z [CI-ISOLATION] START chicken-yard.test.mjs 2026-10-19T13:35:57.794Z
+2026-10-19T13:35:57.8355841Z TAP version 13
+2026-10-19T13:35:58.1738775Z # Subtest: physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T13:35:58.1751541Z ok 1 - physical coop and distinct reachable stations fit the chicken yard
+2026-10-19T13:35:58.1771077Z   ---
+2026-10-19T13:35:58.1771419Z   duration_ms: 58.363503
+2026-10-19T13:35:58.1771981Z   type: 'test'
+2026-10-19T13:35:58.1772322Z   ...
+2026-10-19T13:35:58.1772962Z # Subtest: geometry stays under a bounded component budget
+2026-10-19T13:35:58.1773779Z ok 2 - geometry stays under a bounded component budget
+2026-10-19T13:35:58.1774351Z   ---
+2026-10-19T13:35:58.1774685Z   duration_ms: 32.469169
+2026-10-19T13:35:58.1775127Z   type: 'test'
+2026-10-19T13:35:58.1775455Z   ...
+2026-10-19T13:35:58.1776177Z # Subtest: netting encloses the east side and the coop has complete gable faces
+2026-10-19T13:35:58.1777223Z ok 3 - netting encloses the east side and the coop has complete gable faces
+2026-10-19T13:35:58.1778350Z   ---
+2026-10-19T13:35:58.1778684Z   duration_ms: 25.696853
+2026-10-19T13:35:58.1779052Z   type: 'test'
+2026-10-19T13:35:58.1779374Z   ...
+2026-10-19T13:35:58.1780346Z # Subtest: pallet center remains selectable through slat gaps with stable station bounds
+2026-10-19T13:35:58.1781496Z ok 4 - pallet center remains selectable through slat gaps with stable station bounds
+2026-10-19T13:35:58.1782167Z   ---
+2026-10-19T13:35:58.1782479Z   duration_ms: 24.533981
+2026-10-19T13:35:58.1782836Z   type: 'test'
+2026-10-19T13:35:58.1783133Z   ...
+2026-10-19T13:35:58.1783933Z # Subtest: appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T13:35:58.1785185Z ok 5 - appearance and status reuse resources and restore preview without affecting footprint
+2026-10-19T13:35:58.1785914Z   ---
+2026-10-19T13:35:58.1786219Z   duration_ms: 34.276378
+2026-10-19T13:35:58.1786631Z   type: 'test'
+2026-10-19T13:35:58.1786941Z   ...
+2026-10-19T13:35:58.1787775Z # Subtest: thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-19T13:35:58.1789058Z ok 6 - thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-19T13:35:58.1789909Z   ---
+2026-10-19T13:35:58.1790607Z   duration_ms: 31.948758
+2026-10-19T13:35:58.1791158Z   type: 'test'
+2026-10-19T13:35:58.1791623Z   ...
+2026-10-19T13:35:58.1792545Z # Subtest: enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-19T13:35:58.1793854Z ok 7 - enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-19T13:35:58.1794769Z   ---
+2026-10-19T13:35:58.1795023Z   duration_ms: 30.374227
+2026-10-19T13:35:58.1795282Z   type: 'test'
+2026-10-19T13:35:58.1795485Z   ...
+2026-10-19T13:35:58.1795955Z # Subtest: default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-19T13:35:58.1796623Z ok 8 - default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-19T13:35:58.1797029Z   ---
+2026-10-19T13:35:58.1797457Z   duration_ms: 22.163248
+2026-10-19T13:35:58.1797709Z   type: 'test'
+2026-10-19T13:35:58.1797903Z   ...
+2026-10-19T13:35:58.2324579Z 1..8
+2026-10-19T13:35:58.2325000Z # tests 8
+2026-10-19T13:35:58.2325362Z # suites 0
+2026-10-19T13:35:58.2325711Z # pass 8
+2026-10-19T13:35:58.2326064Z # fail 0
+2026-10-19T13:35:58.2326416Z # cancelled 0
+2026-10-19T13:35:58.2326808Z # skipped 0
+2026-10-19T13:35:58.2327304Z # todo 0
+2026-10-19T13:35:58.2327948Z # duration_ms 408.966786
+2026-10-19T13:35:58.2374097Z [CI-ISOLATION] END chicken-yard.test.mjs code=0 signal=null elapsed=0.4s
+2026-10-19T13:35:58.2375443Z [CI-ISOLATION] START chicken-yard-interaction.test.mjs 2026-10-19T13:35:58.237Z
+2026-10-19T13:35:58.2810380Z TAP version 13
+2026-10-19T13:35:58.3618546Z # Subtest: chicken card retains naming and petting without old feeding controls
+2026-10-19T13:35:58.3623745Z ok 1 - chicken card retains naming and petting without old feeding controls
+2026-10-19T13:35:58.3624492Z   ---
+2026-10-19T13:35:58.3624884Z   duration_ms: 3.234505
+2026-10-19T13:35:58.3625361Z   type: 'test'
+2026-10-19T13:35:58.3625725Z   ...
+2026-10-19T13:35:58.3626512Z # Subtest: feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T13:35:58.3628768Z ok 2 - feed and water trays show exact quote and 12-hour station confirmation
+2026-10-19T13:35:58.3631042Z   ---
+2026-10-19T13:35:58.3631568Z   duration_ms: 2.653479
+2026-10-19T13:35:58.3632017Z   type: 'test'
+2026-10-19T13:35:58.3632374Z   ...
+2026-10-19T13:35:58.3635635Z # Subtest: customization offers real color previews, apply, cancel and two roofs
+2026-10-19T13:35:58.3637767Z ok 3 - customization offers real color previews, apply, cancel and two roofs
+2026-10-19T13:35:58.3638924Z   ---
+2026-10-19T13:35:58.3639590Z   duration_ms: 1.282647
+2026-10-19T13:35:58.3640386Z   type: 'test'
+2026-10-19T13:35:58.3640909Z   ...
+2026-10-19T13:35:58.3641924Z # Subtest: full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T13:35:58.3643347Z ok 4 - full barn pallet tray reports stored stock and cannot offer a paid pickup
+2026-10-19T13:35:58.3644744Z   ---
+2026-10-19T13:35:58.3645157Z   duration_ms: 1.023804
+2026-10-19T13:35:58.3645578Z   type: 'test'
+2026-10-19T13:35:58.3646097Z   ...
+2026-10-19T13:35:58.3646901Z # Subtest: walking taps cannot collect a distant station outside interaction reach
+2026-10-19T13:35:58.3648174Z ok 5 - walking taps cannot collect a distant station outside interaction reach
+2026-10-19T13:35:58.3649036Z   ---
+2026-10-19T13:35:58.3649401Z   duration_ms: 2.811394
+2026-10-19T13:35:58.3649920Z   type: 'test'
+2026-10-19T13:35:58.3650547Z   ...
+2026-10-19T13:35:58.3651235Z # Subtest: replacing the coop tray discards its uncommitted preview
+2026-10-19T13:35:58.3652206Z ok 6 - replacing the coop tray discards its uncommitted preview
+2026-10-19T13:35:58.3652845Z   ---
+2026-10-19T13:35:58.3653205Z   duration_ms: 1.253412
+2026-10-19T13:35:58.3653613Z   type: 'test'
+2026-10-19T13:35:58.3653989Z   ...
+2026-10-19T13:35:58.3654804Z # Subtest: supply countdown cannot replace customization controls during a gesture
+2026-10-19T13:35:58.3656014Z ok 7 - supply countdown cannot replace customization controls during a gesture
+2026-10-19T13:35:58.3656765Z   ---
+2026-10-19T13:35:58.3671082Z   duration_ms: 20.529918
+2026-10-19T13:35:58.3671491Z   type: 'test'
+2026-10-19T13:35:58.3671814Z   ...
+2026-10-19T13:35:58.3736362Z 1..7
+2026-10-19T13:35:58.3736797Z # tests 7
+2026-10-19T13:35:58.3737280Z # suites 0
+2026-10-19T13:35:58.3737784Z # pass 7
+2026-10-19T13:35:58.3738265Z # fail 0
+2026-10-19T13:35:58.3738776Z # cancelled 0
+2026-10-19T13:35:58.3739264Z # skipped 0
+2026-10-19T13:35:58.3739738Z # todo 0
+2026-10-19T13:35:58.3740989Z # duration_ms 105.176939
+2026-10-19T13:35:58.3799145Z [CI-ISOLATION] END chicken-yard-interaction.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:35:58.3800728Z [CI-ISOLATION] START seed-selection.test.mjs 2026-10-19T13:35:58.379Z
+2026-10-19T13:35:58.4205599Z TAP version 13
+2026-10-19T13:35:58.4965155Z # Subtest: picking a seed plants the selected plot, closes the picker and keeps it equipped
+2026-10-19T13:35:58.4969708Z ok 1 - picking a seed plants the selected plot, closes the picker and keeps it equipped
+2026-10-19T13:35:58.4970931Z   ---
+2026-10-19T13:35:58.4971598Z   duration_ms: 5.31328
+2026-10-19T13:35:58.4972336Z   type: 'test'
+2026-10-19T13:35:58.4972900Z   ...
+2026-10-19T13:35:58.4977032Z # Subtest: opening seeds discards an uncommitted coop preview
+2026-10-19T13:35:58.4978856Z ok 2 - opening seeds discards an uncommitted coop preview
+2026-10-19T13:35:58.4979508Z   ---
+2026-10-19T13:35:58.5008890Z   duration_ms: 1.920169
+2026-10-19T13:35:58.5009352Z   type: 'test'
+2026-10-19T13:35:58.5010234Z   ...
+2026-10-19T13:35:58.5014183Z # Subtest: walking Plant repeats the selected crop without reopening its picker
+2026-10-19T13:35:58.5018546Z ok 3 - walking Plant repeats the selected crop without reopening its picker
+2026-10-19T13:35:58.5019282Z   ---
+2026-10-19T13:35:58.5019610Z   duration_ms: 2.015106
+2026-10-19T13:35:58.5020266Z   type: 'test'
+2026-10-19T13:35:58.5020660Z   ...
+2026-10-19T13:35:58.5021396Z # Subtest: changing the equipped seed does not plant an old pending plot
+2026-10-19T13:35:58.5022450Z ok 4 - changing the equipped seed does not plant an old pending plot
+2026-10-19T13:35:58.5023118Z   ---
+2026-10-19T13:35:58.5023486Z   duration_ms: 2.666854
+2026-10-19T13:35:58.5023903Z   type: 'test'
+2026-10-19T13:35:58.5024270Z   ...
+2026-10-19T13:35:58.5025094Z # Subtest: failed purchase keeps the equipped seed and does not change or charge a plot
+2026-10-19T13:35:58.5026347Z ok 5 - failed purchase keeps the equipped seed and does not change or charge a plot
+2026-10-19T13:35:58.5027105Z   ---
+2026-10-19T13:35:58.5027467Z   duration_ms: 1.854205
+2026-10-19T13:35:58.5027877Z   type: 'test'
+2026-10-19T13:35:58.5028236Z   ...
+2026-10-19T13:35:58.5029001Z # Subtest: opening information and changing view context do not unequip a seed
+2026-10-19T13:35:58.5030429Z ok 6 - opening information and changing view context do not unequip a seed
+2026-10-19T13:35:58.5031544Z   ---
+2026-10-19T13:35:58.5031894Z   duration_ms: 1.798231
+2026-10-19T13:35:58.5032281Z   type: 'test'
+2026-10-19T13:35:58.5032648Z   ...
+2026-10-19T13:35:58.5033486Z # Subtest: putting seeds away explicitly clears the selection and target without spending
+2026-10-19T13:35:58.5034783Z ok 7 - putting seeds away explicitly clears the selection and target without spending
+2026-10-19T13:35:58.5035560Z   ---
+2026-10-19T13:35:58.5035921Z   duration_ms: 1.817507
+2026-10-19T13:35:58.5036330Z   type: 'test'
+2026-10-19T13:35:58.5036678Z   ...
+2026-10-19T13:35:58.5037469Z # Subtest: locked and unknown crops cannot become equipped or call the planting rule
+2026-10-19T13:35:58.5038653Z ok 8 - locked and unknown crops cannot become equipped or call the planting rule
+2026-10-19T13:35:58.5039395Z   ---
+2026-10-19T13:35:58.5039775Z   duration_ms: 1.793842
+2026-10-19T13:35:58.5040585Z   type: 'test'
+2026-10-19T13:35:58.5040946Z   ...
+2026-10-19T13:35:58.5041759Z # Subtest: equipped planting cannot modify a visited farm or another blocked mode
+2026-10-19T13:35:58.5042667Z ok 9 - equipped planting cannot modify a visited farm or another blocked mode
+2026-10-19T13:35:58.5043066Z   ---
+2026-10-19T13:35:58.5043263Z   duration_ms: 8.215643
+2026-10-19T13:35:58.5043486Z   type: 'test'
+2026-10-19T13:35:58.5043677Z   ...
+2026-10-19T13:35:58.5044167Z # Subtest: walking action label names the equipped crop while keeping its Plant action identity
+2026-10-19T13:35:58.5044972Z ok 10 - walking action label names the equipped crop while keeping its Plant action identity
+2026-10-19T13:35:58.5045814Z   ---
+2026-10-19T13:35:58.5046207Z   duration_ms: 2.064508
+2026-10-19T13:35:58.5046613Z   type: 'test'
+2026-10-19T13:35:58.5046970Z   ...
+2026-10-19T13:35:58.5047639Z # Subtest: E and Enter plant once and repeated keydown events do not spend twice
+2026-10-19T13:35:58.5048267Z ok 11 - E and Enter plant once and repeated keydown events do not spend twice
+2026-10-19T13:35:58.5048640Z   ---
+2026-10-19T13:35:58.5048835Z   duration_ms: 3.544755
+2026-10-19T13:35:58.5049271Z   type: 'test'
+2026-10-19T13:35:58.5049478Z   ...
+2026-10-19T13:35:58.5049930Z # Subtest: equipped seed chip steps aside while the picker is open and returns when it closes
+2026-10-19T13:35:58.5051392Z ok 12 - equipped seed chip steps aside while the picker is open and returns when it closes
+2026-10-19T13:35:58.5051867Z   ---
+2026-10-19T13:35:58.5052063Z   duration_ms: 1.729412
+2026-10-19T13:35:58.5052284Z   type: 'test'
+2026-10-19T13:35:58.5052469Z   ...
+2026-10-19T13:35:58.5052824Z # Subtest: equipped display does not reuse the picker action attribute
+2026-10-19T13:35:58.5053347Z ok 13 - equipped display does not reuse the picker action attribute
+2026-10-19T13:35:58.5053681Z   ---
+2026-10-19T13:35:58.5053871Z   duration_ms: 1.668759
+2026-10-19T13:35:58.5054085Z   type: 'test'
+2026-10-19T13:35:58.5054267Z   ...
+2026-10-19T13:35:58.5127691Z 1..13
+2026-10-19T13:35:58.5128321Z # tests 13
+2026-10-19T13:35:58.5128712Z # suites 0
+2026-10-19T13:35:58.5129280Z # pass 13
+2026-10-19T13:35:58.5129833Z # fail 0
+2026-10-19T13:35:58.5130842Z # cancelled 0
+2026-10-19T13:35:58.5131391Z # skipped 0
+2026-10-19T13:35:58.5131836Z # todo 0
+2026-10-19T13:35:58.5132506Z # duration_ms 104.278834
+2026-10-19T13:35:58.5179645Z [CI-ISOLATION] END seed-selection.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:35:58.5180748Z [CI-ISOLATION] START perf.test.mjs 2026-10-19T13:35:58.517Z
+2026-10-19T13:35:58.5607690Z TAP version 13
+2026-10-19T13:35:58.6156649Z # Subtest: frame intervals: empty, median, nearest-rank p95 and foreground hitch
+2026-10-19T13:35:58.6161849Z ok 1 - frame intervals: empty, median, nearest-rank p95 and foreground hitch
+2026-10-19T13:35:58.6163367Z   ---
+2026-10-19T13:35:58.6164120Z   duration_ms: 1.614167
+2026-10-19T13:35:58.6164968Z   type: 'test'
+2026-10-19T13:35:58.6165678Z   ...
+2026-10-19T13:35:58.6169903Z # Subtest: rolling windows expire old frames and retain bounded ring data
+2026-10-19T13:35:58.6181679Z ok 2 - rolling windows expire old frames and retain bounded ring data
+2026-10-19T13:35:58.6183272Z   ---
+2026-10-19T13:35:58.6183950Z   duration_ms: 0.26731
+2026-10-19T13:35:58.6184599Z   type: 'test'
+2026-10-19T13:35:58.6185191Z   ...
+2026-10-19T13:35:58.6186231Z # Subtest: pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+2026-10-19T13:35:58.6187653Z ok 3 - pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+2026-10-19T13:35:58.6188613Z   ---
+2026-10-19T13:35:58.6189222Z   duration_ms: 0.833157
+2026-10-19T13:35:58.6189868Z   type: 'test'
+2026-10-19T13:35:58.6190705Z   ...
+2026-10-19T13:35:58.6191556Z # Subtest: p95 uses nearest rank across 20 distinct intervals
+2026-10-19T13:35:58.6192715Z ok 4 - p95 uses nearest rank across 20 distinct intervals
+2026-10-19T13:35:58.6193577Z   ---
+2026-10-19T13:35:58.6194164Z   duration_ms: 0.272589
+2026-10-19T13:35:58.6194808Z   type: 'test'
+2026-10-19T13:35:58.6195391Z   ...
+2026-10-19T13:35:58.6196239Z # Subtest: composer counters include every pass and restore reset policy
+2026-10-19T13:35:58.6197411Z ok 5 - composer counters include every pass and restore reset policy
+2026-10-19T13:35:58.6198200Z   ---
+2026-10-19T13:35:58.6198686Z   duration_ms: 0.481269
+2026-10-19T13:35:58.6199231Z   type: 'test'
+2026-10-19T13:35:58.6199749Z   ...
+2026-10-19T13:35:58.6200908Z # Subtest: display throttles updates, resets visibility gaps and remains collapsible
+2026-10-19T13:35:58.6202259Z ok 6 - display throttles updates, resets visibility gaps and remains collapsible
+2026-10-19T13:35:58.6203147Z   ---
+2026-10-19T13:35:58.6203677Z   duration_ms: 14.58104
+2026-10-19T13:35:58.6204244Z   type: 'test'
+2026-10-19T13:35:58.6204773Z   ...
+2026-10-19T13:35:58.6263531Z 1..6
+2026-10-19T13:35:58.6264069Z # tests 6
+2026-10-19T13:35:58.6264796Z # suites 0
+2026-10-19T13:35:58.6265552Z # pass 6
+2026-10-19T13:35:58.6266281Z # fail 0
+2026-10-19T13:35:58.6266927Z # cancelled 0
+2026-10-19T13:35:58.6270928Z # skipped 0
+2026-10-19T13:35:58.6280768Z # todo 0
+2026-10-19T13:35:58.6281129Z # duration_ms 78.243067
+2026-10-19T13:35:58.6312548Z [CI-ISOLATION] END perf.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:35:58.6313133Z [CI-ISOLATION] START cow3d.test.mjs 2026-10-19T13:35:58.631Z
+2026-10-19T13:35:58.6716660Z TAP version 13
+2026-10-19T13:35:58.9774725Z # Subtest: actual joints reach hoof targets and keep hooves level in three dimensions
+2026-10-19T13:35:58.9785709Z ok 1 - actual joints reach hoof targets and keep hooves level in three dimensions
+2026-10-19T13:35:58.9786415Z   ---
+2026-10-19T13:35:58.9786744Z   duration_ms: 110.605876
+2026-10-19T13:35:58.9787084Z   type: 'test'
+2026-10-19T13:35:58.9787297Z   ...
+2026-10-19T13:35:58.9788497Z # Subtest: planted feet stay in place through real travel; stationary phase freezes and settles
+2026-10-19T13:35:58.9791779Z ok 2 - planted feet stay in place through real travel; stationary phase freezes and settles
+2026-10-19T13:35:58.9792513Z   ---
+2026-10-19T13:35:58.9792842Z   duration_ms: 73.941696
+2026-10-19T13:35:58.9793141Z   type: 'test'
+2026-10-19T13:35:58.9793347Z   ...
+2026-10-19T13:35:58.9794610Z # Subtest: head turns, independent ears flick, blinking/tail move; sleeping is quieter
+2026-10-19T13:35:58.9821217Z ok 3 - head turns, independent ears flick, blinking/tail move; sleeping is quieter
+2026-10-19T13:35:58.9824573Z   ---
+2026-10-19T13:35:58.9825153Z   duration_ms: 21.775736
+2026-10-19T13:35:58.9825575Z   type: 'test'
+2026-10-19T13:35:58.9825917Z   ...
+2026-10-19T13:35:58.9826754Z # Subtest: skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+2026-10-19T13:35:58.9828010Z ok 4 - skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+2026-10-19T13:35:58.9828691Z   ---
+2026-10-19T13:35:58.9828894Z   duration_ms: 0.728983
+2026-10-19T13:35:58.9829122Z   type: 'test'
+2026-10-19T13:35:58.9829320Z   ...
+2026-10-19T13:35:58.9829745Z # Subtest: planted hoof drift stays small at walk and run, then returns to neutral
+2026-10-19T13:35:58.9830682Z ok 5 - planted hoof drift stays small at walk and run, then returns to neutral
+2026-10-19T13:35:58.9831569Z   ---
+2026-10-19T13:35:58.9831773Z   duration_ms: 16.496841
+2026-10-19T13:35:58.9831995Z   type: 'test'
+2026-10-19T13:35:58.9832185Z   ...
+2026-10-19T13:35:58.9832571Z # Subtest: hips stay parented to the body and do not drop during a full stride
+2026-10-19T13:35:58.9833130Z ok 6 - hips stay parented to the body and do not drop during a full stride
+2026-10-19T13:35:58.9833488Z   ---
+2026-10-19T13:35:58.9833676Z   duration_ms: 3.484422
+2026-10-19T13:35:58.9833902Z   type: 'test'
+2026-10-19T13:35:58.9834090Z   ...
+2026-10-19T13:35:58.9834495Z # Subtest: equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+2026-10-19T13:35:58.9835090Z ok 7 - equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+2026-10-19T13:35:58.9835458Z   ---
+2026-10-19T13:35:58.9835641Z   duration_ms: 5.868548
+2026-10-19T13:35:58.9835848Z   type: 'test'
+2026-10-19T13:35:58.9836032Z   ...
+2026-10-19T13:35:59.0167622Z 1..7
+2026-10-19T13:35:59.0167979Z # tests 7
+2026-10-19T13:35:59.0168257Z # suites 0
+2026-10-19T13:35:59.0169619Z # pass 7
+2026-10-19T13:35:59.0170150Z # fail 0
+2026-10-19T13:35:59.0170470Z # cancelled 0
+2026-10-19T13:35:59.0170712Z # skipped 0
+2026-10-19T13:35:59.0170995Z # todo 0
+2026-10-19T13:35:59.0171220Z # duration_ms 357.595612
+2026-10-19T13:35:59.0214767Z [CI-ISOLATION] END cow3d.test.mjs code=0 signal=null elapsed=0.4s
+2026-10-19T13:35:59.0215642Z [CI-ISOLATION] START cow-b17-performance.test.mjs 2026-10-19T13:35:59.021Z
+2026-10-19T13:35:59.0626272Z TAP version 13
+2026-10-19T13:35:59.4649431Z # {"b17Performance":{"cows":12,"seconds":30,"hz":60,"updates":21600,"elapsedMs":209.261,"msPerUpdate":0.009688}}
+2026-10-19T13:35:59.4674990Z # Subtest: B17 production topology stays inside the frozen cow envelope
+2026-10-19T13:35:59.4680798Z ok 1 - B17 production topology stays inside the frozen cow envelope
+2026-10-19T13:35:59.4681727Z   ---
+2026-10-19T13:35:59.4691610Z   duration_ms: 109.055903
+2026-10-19T13:35:59.4692325Z   type: 'test'
+2026-10-19T13:35:59.4692744Z   ...
+2026-10-19T13:35:59.4694318Z # Subtest: B17 herd instances share immutable render resources but own animation state
+2026-10-19T13:35:59.4695615Z ok 2 - B17 herd instances share immutable render resources but own animation state
+2026-10-19T13:35:59.4696382Z   ---
+2026-10-19T13:35:59.4696761Z   duration_ms: 5.128073
+2026-10-19T13:35:59.4697181Z   type: 'test'
+2026-10-19T13:35:59.4697557Z   ...
+2026-10-19T13:35:59.4698365Z # Subtest: B17 twelve-cow mixed-state soak remains finite and records update cost
+2026-10-19T13:35:59.4699532Z ok 3 - B17 twelve-cow mixed-state soak remains finite and records update cost
+2026-10-19T13:35:59.4700798Z   ---
+2026-10-19T13:35:59.4701177Z   duration_ms: 217.261861
+2026-10-19T13:35:59.4701605Z   type: 'test'
+2026-10-19T13:35:59.4701952Z   ...
+2026-10-19T13:35:59.4823421Z 1..3
+2026-10-19T13:35:59.4823827Z # tests 3
+2026-10-19T13:35:59.4824198Z # suites 0
+2026-10-19T13:35:59.4824566Z # pass 3
+2026-10-19T13:35:59.4825053Z # fail 0
+2026-10-19T13:35:59.4825690Z # cancelled 0
+2026-10-19T13:35:59.4826211Z # skipped 0
+2026-10-19T13:35:59.4826867Z # todo 0
+2026-10-19T13:35:59.4827424Z # duration_ms 431.654525
+2026-10-19T13:35:59.4879592Z [CI-ISOLATION] END cow-b17-performance.test.mjs code=0 signal=null elapsed=0.5s
+2026-10-19T13:35:59.4881003Z [CI-ISOLATION] START cow-anatomy.test.mjs 2026-10-19T13:35:59.487Z
+2026-10-19T13:35:59.5275428Z TAP version 13
+2026-10-19T13:36:00.9205504Z # Subtest: cow anatomy has outward closed surfaces, finite normalized weights and rigid flat cloven soles
+2026-10-19T13:36:00.9211198Z ok 1 - cow anatomy has outward closed surfaces, finite normalized weights and rigid flat cloven soles
+2026-10-19T13:36:00.9212428Z   ---
+2026-10-19T13:36:00.9213023Z   duration_ms: 202.848304
+2026-10-19T13:36:00.9213581Z   type: 'test'
+2026-10-19T13:36:00.9213986Z   ...
+2026-10-19T13:36:00.9221388Z # Subtest: actual neutral cow skin fits the B1 envelope and exposes attached neck/head/limbs
+2026-10-19T13:36:00.9223246Z ok 2 - actual neutral cow skin fits the B1 envelope and exposes attached neck/head/limbs
+2026-10-19T13:36:00.9224660Z   ---
+2026-10-19T13:36:00.9225244Z   duration_ms: 819.909157
+2026-10-19T13:36:00.9225693Z   type: 'test'
+2026-10-19T13:36:00.9226067Z   ...
+2026-10-19T13:36:00.9227107Z # Subtest: head/neck transitions remain finite and independent; motion algorithm stays externally controlled
+2026-10-19T13:36:00.9229373Z ok 3 - head/neck transitions remain finite and independent; motion algorithm stays externally controlled
+2026-10-19T13:36:00.9230648Z   ---
+2026-10-19T13:36:00.9231046Z   duration_ms: 96.428917
+2026-10-19T13:36:00.9231670Z   type: 'test'
+2026-10-19T13:36:00.9232176Z   ...
+2026-10-19T13:36:00.9233324Z # Subtest: udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source
+2026-10-19T13:36:00.9235130Z ok 4 - udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source
+2026-10-19T13:36:00.9236299Z   ---
+2026-10-19T13:36:00.9236716Z   duration_ms: 201.554351
+2026-10-19T13:36:00.9237333Z   type: 'test'
+2026-10-19T13:36:00.9237836Z   ...
+2026-10-19T13:36:00.9366734Z 1..4
+2026-10-19T13:36:00.9367795Z # tests 4
+2026-10-19T13:36:00.9368341Z # suites 0
+2026-10-19T13:36:00.9369010Z # pass 4
+2026-10-19T13:36:00.9369517Z # fail 0
+2026-10-19T13:36:00.9370291Z # cancelled 0
+2026-10-19T13:36:00.9370940Z # skipped 0
+2026-10-19T13:36:00.9371462Z # todo 0
+2026-10-19T13:36:00.9372054Z # duration_ms 1420.965359
+2026-10-19T13:36:00.9422097Z [CI-ISOLATION] END cow-anatomy.test.mjs code=0 signal=null elapsed=1.5s
+2026-10-19T13:36:00.9423088Z [CI-ISOLATION] START versions.test.mjs 2026-10-19T13:36:00.942Z
+2026-10-19T13:36:00.9821174Z TAP version 13
+2026-10-19T13:36:01.0358544Z # Subtest: nested authored module versions cannot evade the cache consistency check
+2026-10-19T13:36:01.0363160Z ok 1 - nested authored module versions cannot evade the cache consistency check
+2026-10-19T13:36:01.0364041Z   ---
+2026-10-19T13:36:01.0364503Z   duration_ms: 1.467351
+2026-10-19T13:36:01.0365092Z   type: 'test'
+2026-10-19T13:36:01.0365971Z   ...
+2026-10-19T13:36:01.0369255Z # Subtest: every versioned script is imported with one version only
+2026-10-19T13:36:01.0371665Z ok 2 - every versioned script is imported with one version only
+2026-10-19T13:36:01.0372432Z   ---
+2026-10-19T13:36:01.0372809Z   duration_ms: 0.436936
+2026-10-19T13:36:01.0373231Z   type: 'test'
+2026-10-19T13:36:01.0373633Z   ...
+2026-10-19T13:36:01.0374373Z # Subtest: window.__gameVer matches the game.js version it imports
+2026-10-19T13:36:01.0376425Z ok 3 - window.__gameVer matches the game.js version it imports
+2026-10-19T13:36:01.0377342Z   ---
+2026-10-19T13:36:01.0377729Z   duration_ms: 0.247486
+2026-10-19T13:36:01.0378152Z   type: 'test'
+2026-10-19T13:36:01.0378541Z   ...
+2026-10-19T13:36:01.0379489Z # Subtest: the offline shell caches the same versions the page imports
+2026-10-19T13:36:01.0381071Z ok 4 - the offline shell caches the same versions the page imports
+2026-10-19T13:36:01.0381788Z   ---
+2026-10-19T13:36:01.0382162Z   duration_ms: 0.38356
+2026-10-19T13:36:01.0382627Z   type: 'test'
+2026-10-19T13:36:01.0383304Z   ...
+2026-10-19T13:36:01.0385161Z # Subtest: the cache name is versioned and namespaced away from the 2D game
+2026-10-19T13:36:01.0386419Z ok 5 - the cache name is versioned and namespaced away from the 2D game
+2026-10-19T13:36:01.0387263Z   ---
+2026-10-19T13:36:01.0387732Z   duration_ms: 0.245522
+2026-10-19T13:36:01.0388264Z   type: 'test'
+2026-10-19T13:36:01.0388826Z   ...
+2026-10-19T13:36:01.0393504Z # Subtest: chicken dependencies of both the page and game rules are cached offline
+2026-10-19T13:36:01.0395131Z ok 6 - chicken dependencies of both the page and game rules are cached offline
+2026-10-19T13:36:01.0396073Z   ---
+2026-10-19T13:36:01.0396447Z   duration_ms: 0.18334
+2026-10-19T13:36:01.0397005Z   type: 'test'
+2026-10-19T13:36:01.0397495Z   ...
+2026-10-19T13:36:01.0398361Z # Subtest: offline shell contains the complete local JavaScript boot graph
+2026-10-19T13:36:01.0399511Z ok 7 - offline shell contains the complete local JavaScript boot graph
+2026-10-19T13:36:01.0400905Z   ---
+2026-10-19T13:36:01.0401306Z   duration_ms: 0.26092
+2026-10-19T13:36:01.0401725Z   type: 'test'
+2026-10-19T13:36:01.0402104Z   ...
+2026-10-19T13:36:01.0482532Z 1..7
+2026-10-19T13:36:01.0482924Z # tests 7
+2026-10-19T13:36:01.0483275Z # suites 0
+2026-10-19T13:36:01.0483885Z # pass 7
+2026-10-19T13:36:01.0484756Z # fail 0
+2026-10-19T13:36:01.0485307Z # cancelled 0
+2026-10-19T13:36:01.0485861Z # skipped 0
+2026-10-19T13:36:01.0486313Z # todo 0
+2026-10-19T13:36:01.0486869Z # duration_ms 77.876521
+2026-10-19T13:36:01.0529603Z [CI-ISOLATION] END versions.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:36:01.0530771Z [CI-ISOLATION] START animal-modules.test.mjs 2026-10-19T13:36:01.052Z
+2026-10-19T13:36:01.0936524Z TAP version 13
+2026-10-19T13:36:01.3898586Z # Subtest: horse hips stay on the body and planted drift stays bounded
+2026-10-19T13:36:01.3907854Z ok 1 - horse hips stay on the body and planted drift stays bounded
+2026-10-19T13:36:01.3908972Z   ---
+2026-10-19T13:36:01.3909616Z   duration_ms: 152.3112
+2026-10-19T13:36:01.3910274Z   type: 'test'
+2026-10-19T13:36:01.3910668Z   ...
+2026-10-19T13:36:01.3912159Z # Subtest: dog and cat are not scaled sheep and return to neutral
+2026-10-19T13:36:01.3917193Z ok 2 - dog and cat are not scaled sheep and return to neutral
+2026-10-19T13:36:01.3918038Z   ---
+2026-10-19T13:36:01.3920137Z   duration_ms: 32.326204
+2026-10-19T13:36:01.3921023Z   type: 'test'
+2026-10-19T13:36:01.3921683Z   ...
+2026-10-19T13:36:01.3922406Z # Subtest: chicken and farmer modules load and return to neutral
+2026-10-19T13:36:01.3923845Z ok 3 - chicken and farmer modules load and return to neutral
+2026-10-19T13:36:01.3924917Z   ---
+2026-10-19T13:36:01.3925316Z   duration_ms: 34.633922
+2026-10-19T13:36:01.3925740Z   type: 'test'
+2026-10-19T13:36:01.3926099Z   ...
+2026-10-19T13:36:01.4055643Z 1..3
+2026-10-19T13:36:01.4056007Z # tests 3
+2026-10-19T13:36:01.4056531Z # suites 0
+2026-10-19T13:36:01.4058009Z # pass 3
+2026-10-19T13:36:01.4058459Z # fail 0
+2026-10-19T13:36:01.4059381Z # cancelled 0
+2026-10-19T13:36:01.4059743Z # skipped 0
+2026-10-19T13:36:01.4060555Z # todo 0
+2026-10-19T13:36:01.4061146Z # duration_ms 323.521628
+2026-10-19T13:36:01.4110832Z [CI-ISOLATION] END animal-modules.test.mjs code=0 signal=null elapsed=0.4s
+2026-10-19T13:36:01.4118016Z [CI-ISOLATION] START horse-c1-baseline.test.mjs 2026-10-19T13:36:01.411Z
+2026-10-19T13:36:01.4524064Z TAP version 13
+2026-10-19T13:36:01.6212574Z # {"horseC1":{"triangles":5640,"bones":24,"skinnedMeshes":1,"height":1.85}}
+2026-10-19T13:36:02.0349464Z # Subtest: C1 freezes production horse topology and render structure
+2026-10-19T13:36:02.0358045Z ok 1 - C1 freezes production horse topology and render structure
+2026-10-19T13:36:02.0358964Z   ---
+2026-10-19T13:36:02.0359188Z   duration_ms: 98.697228
+2026-10-19T13:36:02.0359428Z   type: 'test'
+2026-10-19T13:36:02.0359635Z   ...
+2026-10-19T13:36:02.0366698Z # Subtest: C1 horse instances share render resources but own skeleton state
+2026-10-19T13:36:02.0368620Z ok 2 - C1 horse instances share render resources but own skeleton state
+2026-10-19T13:36:02.0369278Z   ---
+2026-10-19T13:36:02.0369495Z   duration_ms: 8.484204
+2026-10-19T13:36:02.0369728Z   type: 'test'
+2026-10-19T13:36:02.0369926Z   ...
+2026-10-19T13:36:02.0372087Z # Subtest: C1 horse runtime is repeatable at the same frame rate and remains finite
+2026-10-19T13:36:02.0375435Z ok 3 - C1 horse runtime is repeatable at the same frame rate and remains finite
+2026-10-19T13:36:02.0376260Z   ---
+2026-10-19T13:36:02.0376471Z   duration_ms: 401.131376
+2026-10-19T13:36:02.0376698Z   type: 'test'
+2026-10-19T13:36:02.0376887Z   ...
+2026-10-19T13:36:02.1071378Z 1..3
+2026-10-19T13:36:02.1072220Z # tests 3
+2026-10-19T13:36:02.1072783Z # suites 0
+2026-10-19T13:36:02.1073347Z # pass 3
+2026-10-19T13:36:02.1073884Z # fail 0
+2026-10-19T13:36:02.1074556Z # cancelled 0
+2026-10-19T13:36:02.1075060Z # skipped 0
+2026-10-19T13:36:02.1075871Z # todo 0
+2026-10-19T13:36:02.1076439Z # duration_ms 666.328812
+2026-10-19T13:36:02.1128818Z [CI-ISOLATION] END horse-c1-baseline.test.mjs code=0 signal=null elapsed=0.7s
+2026-10-19T13:36:02.1129651Z [CI-ISOLATION] START horse-rebuild.test.mjs 2026-10-19T13:36:02.112Z
+2026-10-19T13:36:02.1528116Z TAP version 13
+2026-10-19T13:36:02.3282815Z # Subtest: ground-up horse is dedicated, finite, and keeps integration contracts
+2026-10-19T13:36:02.3287902Z ok 1 - ground-up horse is dedicated, finite, and keeps integration contracts
+2026-10-19T13:36:02.3288897Z   ---
+2026-10-19T13:36:02.3289279Z   duration_ms: 99.643522
+2026-10-19T13:36:02.3289725Z   type: 'test'
+2026-10-19T13:36:02.3290328Z   ...
+2026-10-19T13:36:02.4305679Z # Subtest: ground-up horse no longer depends on generic quadruped implementation
+2026-10-19T13:36:02.4307721Z ok 2 - ground-up horse no longer depends on generic quadruped implementation
+2026-10-19T13:36:02.4308455Z   ---
+2026-10-19T13:36:02.4320916Z   duration_ms: 5.917797
+2026-10-19T13:36:02.4328582Z   type: 'test'
+2026-10-19T13:36:02.4328962Z   ...
+2026-10-19T13:36:02.4329567Z # Subtest: dog and cat remain on their unchanged generic production path
+2026-10-19T13:36:02.4330373Z ok 3 - dog and cat remain on their unchanged generic production path
+2026-10-19T13:36:02.4330760Z   ---
+2026-10-19T13:36:02.4330967Z   duration_ms: 31.443487
+2026-10-19T13:36:02.4331203Z   type: 'test'
+2026-10-19T13:36:02.4331394Z   ...
+2026-10-19T13:36:02.4331867Z # Subtest: horse gait state distinguishes idle walk trot and canter without non-finite joints
+2026-10-19T13:36:02.4332557Z ok 4 - horse gait state distinguishes idle walk trot and canter without non-finite joints
+2026-10-19T13:36:02.4332965Z   ---
+2026-10-19T13:36:02.4333155Z   duration_ms: 68.1036
+2026-10-19T13:36:02.4333371Z   type: 'test'
+2026-10-19T13:36:02.4333556Z   ...
+2026-10-19T13:36:02.4334052Z # Subtest: horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter
+2026-10-19T13:36:02.4334787Z ok 5 - horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter
+2026-10-19T13:36:02.4335223Z   ---
+2026-10-19T13:36:02.4335767Z   duration_ms: 2.244556
+2026-10-19T13:36:02.4335995Z   type: 'test'
+2026-10-19T13:36:02.4336182Z   ...
+2026-10-19T13:36:02.4452819Z 1..5
+2026-10-19T13:36:02.4453176Z # tests 5
+2026-10-19T13:36:02.4453637Z # suites 0
+2026-10-19T13:36:02.4454157Z # pass 5
+2026-10-19T13:36:02.4454619Z # fail 0
+2026-10-19T13:36:02.4455106Z # cancelled 0
+2026-10-19T13:36:02.4455593Z # skipped 0
+2026-10-19T13:36:02.4456041Z # todo 0
+2026-10-19T13:36:02.4456638Z # duration_ms 304.142282
+2026-10-19T13:36:02.4501674Z [CI-ISOLATION] END horse-rebuild.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:36:02.4502791Z [CI-ISOLATION] START horse-r2-anatomy.test.mjs 2026-10-19T13:36:02.450Z
+2026-10-19T13:36:02.4904017Z TAP version 13
+2026-10-19T13:36:02.9711778Z # Subtest: R2 barrel has a long horizontal torso, not stacked spherical chest
+2026-10-19T13:36:02.9713324Z ok 1 - R2 barrel has a long horizontal torso, not stacked spherical chest
+2026-10-19T13:36:02.9740779Z   ---
+2026-10-19T13:36:02.9770861Z   duration_ms: 100.943073
+2026-10-19T13:36:02.9771671Z   type: 'test'
+2026-10-19T13:36:02.9790745Z   ...
+2026-10-19T13:36:02.9791653Z # Subtest: R2 neck rises less than 40 degrees and positions head ahead of withers
+2026-10-19T13:36:02.9792601Z ok 2 - R2 neck rises less than 40 degrees and positions head ahead of withers
+2026-10-19T13:36:02.9793187Z   ---
+2026-10-19T13:36:02.9793682Z   duration_ms: 5.547116
+2026-10-19T13:36:02.9794075Z   type: 'test'
+2026-10-19T13:36:02.9794421Z   ...
+2026-10-19T13:36:02.9795112Z # Subtest: R2 muzzle is long and tapered; no pale vertical forehead horn exists
+2026-10-19T13:36:02.9796090Z ok 3 - R2 muzzle is long and tapered; no pale vertical forehead horn exists
+2026-10-19T13:36:02.9796697Z   ---
+2026-10-19T13:36:02.9797016Z   duration_ms: 10.730133
+2026-10-19T13:36:02.9797394Z   type: 'test'
+2026-10-19T13:36:02.9797716Z   ...
+2026-10-19T13:36:02.9798440Z # Subtest: R2 forehips attach forward at shoulders while hoof IK roots remain fixed
+2026-10-19T13:36:02.9799958Z ok 4 - R2 forehips attach forward at shoulders while hoof IK roots remain fixed
+2026-10-19T13:36:02.9800832Z   ---
+2026-10-19T13:36:02.9801157Z   duration_ms: 3.900586
+2026-10-19T13:36:02.9801522Z   type: 'test'
+2026-10-19T13:36:02.9801843Z   ...
+2026-10-19T13:36:02.9802514Z # Subtest: ear bases meet actual skull triangles within 5 mm at farm scale
+2026-10-19T13:36:02.9803446Z ok 5 - ear bases meet actual skull triangles within 5 mm at farm scale
+2026-10-19T13:36:02.9804035Z   ---
+2026-10-19T13:36:02.9804363Z   duration_ms: 21.412247
+2026-10-19T13:36:02.9804738Z   type: 'test'
+2026-10-19T13:36:02.9805053Z   ...
+2026-10-19T13:36:02.9805717Z # Subtest: muzzle narrows in width and height while its face slopes downward
+2026-10-19T13:36:02.9806684Z ok 6 - muzzle narrows in width and height while its face slopes downward
+2026-10-19T13:36:02.9807287Z   ---
+2026-10-19T13:36:02.9807598Z   duration_ms: 3.60821
+2026-10-19T13:36:02.9807966Z   type: 'test'
+2026-10-19T13:36:02.9808284Z   ...
+2026-10-19T13:36:02.9808920Z # Subtest: authored withers overlaps both actual barrel and neck bounds
+2026-10-19T13:36:02.9809834Z ok 7 - authored withers overlaps both actual barrel and neck bounds
+2026-10-19T13:36:02.9810615Z   ---
+2026-10-19T13:36:02.9810940Z   duration_ms: 2.137006
+2026-10-19T13:36:02.9811320Z   type: 'test'
+2026-10-19T13:36:02.9811634Z   ...
+2026-10-19T13:36:02.9812309Z # Subtest: resting forelegs reach at least 95 percent without moving hip roots
+2026-10-19T13:36:02.9813303Z ok 8 - resting forelegs reach at least 95 percent without moving hip roots
+2026-10-19T13:36:02.9813918Z   ---
+2026-10-19T13:36:02.9814239Z   duration_ms: 43.585052
+2026-10-19T13:36:02.9814619Z   type: 'test'
+2026-10-19T13:36:02.9814960Z   ...
+2026-10-19T13:36:02.9815722Z # Subtest: continuous withers uses body-neck split weights and stays joined at 20 degrees
+2026-10-19T13:36:02.9816864Z ok 9 - continuous withers uses body-neck split weights and stays joined at 20 degrees
+2026-10-19T13:36:02.9817445Z   ---
+2026-10-19T13:36:02.9817649Z   duration_ms: 3.638396
+2026-10-19T13:36:02.9818042Z   type: 'test'
+2026-10-19T13:36:02.9818240Z   ...
+2026-10-19T13:36:02.9818588Z # Subtest: idle foreknee stays under 15 degrees with fixed hip roots
+2026-10-19T13:36:02.9819081Z ok 10 - idle foreknee stays under 15 degrees with fixed hip roots
+2026-10-19T13:36:02.9819423Z   ---
+2026-10-19T13:36:02.9819617Z   duration_ms: 40.44738
+2026-10-19T13:36:02.9819831Z   type: 'test'
+2026-10-19T13:36:02.9820282Z   ...
+2026-10-19T13:36:02.9820701Z # Subtest: continuous limbs keep knee and fetlock radius below cannon radius
+2026-10-19T13:36:02.9821270Z ok 11 - continuous limbs keep knee and fetlock radius below cannon radius
+2026-10-19T13:36:02.9821624Z   ---
+2026-10-19T13:36:02.9821815Z   duration_ms: 2.719512
+2026-10-19T13:36:02.9822030Z   type: 'test'
+2026-10-19T13:36:02.9822212Z   ...
+2026-10-19T13:36:02.9822515Z # Subtest: six-bone tapered tail tip hangs below the hock
+2026-10-19T13:36:02.9822934Z ok 12 - six-bone tapered tail tip hangs below the hock
+2026-10-19T13:36:02.9823229Z   ---
+2026-10-19T13:36:02.9823421Z   duration_ms: 4.126486
+2026-10-19T13:36:02.9823626Z   type: 'test'
+2026-10-19T13:36:02.9823807Z   ...
+2026-10-19T13:36:02.9824190Z # Subtest: fore carpus and hind hock have distinct directional surface contours
+2026-10-19T13:36:02.9824755Z ok 13 - fore carpus and hind hock have distinct directional surface contours
+2026-10-19T13:36:02.9825107Z   ---
+2026-10-19T13:36:02.9825294Z   duration_ms: 0.998432
+2026-10-19T13:36:02.9825503Z   type: 'test'
+2026-10-19T13:36:02.9825683Z   ...
+2026-10-19T13:36:02.9826070Z # Subtest: tail retains hanging hair volume with a blunt end rather than a needle
+2026-10-19T13:36:02.9826644Z ok 14 - tail retains hanging hair volume with a blunt end rather than a needle
+2026-10-19T13:36:02.9827007Z   ---
+2026-10-19T13:36:02.9827192Z   duration_ms: 0.761921
+2026-10-19T13:36:02.9827399Z   type: 'test'
+2026-10-19T13:36:02.9827578Z   ...
+2026-10-19T13:36:02.9828005Z # Subtest: head length and resting face angle are horse proportions, not an anteater snout
+2026-10-19T13:36:02.9828808Z ok 15 - head length and resting face angle are horse proportions, not an anteater snout
+2026-10-19T13:36:02.9829207Z   ---
+2026-10-19T13:36:02.9829398Z   duration_ms: 3.383701
+2026-10-19T13:36:02.9829611Z   type: 'test'
+2026-10-19T13:36:02.9829794Z   ...
+2026-10-19T13:36:02.9830424Z # Subtest: deep rounded jowl over a narrower muzzle, with a throatlatch notch into the neck
+2026-10-19T13:36:02.9831083Z ok 16 - deep rounded jowl over a narrower muzzle, with a throatlatch notch into the neck
+2026-10-19T13:36:02.9831475Z   ---
+2026-10-19T13:36:02.9831661Z   duration_ms: 8.892947
+2026-10-19T13:36:02.9831876Z   type: 'test'
+2026-10-19T13:36:02.9832060Z   ...
+2026-10-19T13:36:02.9832520Z # Subtest: eyes sit a third down the head, below the forehead line, seated on the skull with orbits
+2026-10-19T13:36:02.9833204Z ok 17 - eyes sit a third down the head, below the forehead line, seated on the skull with orbits
+2026-10-19T13:36:02.9833614Z   ---
+2026-10-19T13:36:02.9833804Z   duration_ms: 64.30606
+2026-10-19T13:36:02.9834022Z   type: 'test'
+2026-10-19T13:36:02.9834205Z   ...
+2026-10-19T13:36:02.9834562Z # Subtest: nostrils and lips sit on a broad muzzle, not a narrow tube tip
+2026-10-19T13:36:02.9835735Z ok 18 - nostrils and lips sit on a broad muzzle, not a narrow tube tip
+2026-10-19T13:36:02.9836298Z   ---
+2026-10-19T13:36:02.9836608Z   duration_ms: 5.150055
+2026-10-19T13:36:02.9836958Z   type: 'test'
+2026-10-19T13:36:02.9837153Z   ...
+2026-10-19T13:36:02.9837608Z # Subtest: leaf ears stand closer together than the skull edges and are flattened front to back
+2026-10-19T13:36:02.9838297Z ok 19 - leaf ears stand closer together than the skull edges and are flattened front to back
+2026-10-19T13:36:02.9838745Z   ---
+2026-10-19T13:36:02.9838938Z   duration_ms: 3.872563
+2026-10-19T13:36:02.9839149Z   type: 'test'
+2026-10-19T13:36:02.9839330Z   ...
+2026-10-19T13:36:02.9839746Z # Subtest: head, throat, crest and mane share one junction field with normalized weights
+2026-10-19T13:36:02.9841505Z ok 20 - head, throat, crest and mane share one junction field with normalized weights
+2026-10-19T13:36:02.9841924Z   ---
+2026-10-19T13:36:02.9842122Z   duration_ms: 7.975405
+2026-10-19T13:36:02.9842339Z   type: 'test'
+2026-10-19T13:36:02.9842526Z   ...
+2026-10-19T13:36:02.9842937Z # Subtest: junction bends without folding or tearing under head/neck pitch and turns
+2026-10-19T13:36:02.9843549Z ok 21 - junction bends without folding or tearing under head/neck pitch and turns
+2026-10-19T13:36:02.9843926Z   ---
+2026-10-19T13:36:02.9844122Z   duration_ms: 59.709927
+2026-10-19T13:36:02.9844342Z   type: 'test'
+2026-10-19T13:36:02.9844528Z   ...
+2026-10-19T13:36:02.9957388Z 1..21
+2026-10-19T13:36:02.9957738Z # tests 21
+2026-10-19T13:36:02.9958054Z # suites 0
+2026-10-19T13:36:02.9958368Z # pass 21
+2026-10-19T13:36:02.9958904Z # fail 0
+2026-10-19T13:36:02.9959382Z # cancelled 0
+2026-10-19T13:36:02.9959854Z # skipped 0
+2026-10-19T13:36:02.9961516Z # todo 0
+2026-10-19T13:36:02.9962020Z # duration_ms 517.220057
+2026-10-19T13:36:03.0010660Z [CI-ISOLATION] END horse-r2-anatomy.test.mjs code=0 signal=null elapsed=0.6s
+2026-10-19T13:36:03.0011810Z [CI-ISOLATION] START horse-evidence-placement.test.mjs 2026-10-19T13:36:03.000Z
+2026-10-19T13:36:03.0458397Z TAP version 13
+2026-10-19T13:36:03.2754389Z # Subtest: negative control: raw capture relocation leaves world anchors behind
+2026-10-19T13:36:03.2767091Z ok 1 - negative control: raw capture relocation leaves world anchors behind
+2026-10-19T13:36:03.2767850Z   ---
+2026-10-19T13:36:03.2780875Z   duration_ms: 106.711233
+2026-10-19T13:36:03.2791034Z   type: 'test'
+2026-10-19T13:36:03.2791359Z   ...
+2026-10-19T13:36:03.2792103Z # Subtest: capture placement resets idle contacts at both horse sizes
+2026-10-19T13:36:03.2792967Z ok 2 - capture placement resets idle contacts at both horse sizes
+2026-10-19T13:36:03.2793491Z   ---
+2026-10-19T13:36:03.2793919Z   duration_ms: 16.557722
+2026-10-19T13:36:03.2794409Z   type: 'test'
+2026-10-19T13:36:03.2794815Z   ...
+2026-10-19T13:36:03.2796082Z # Subtest: capture recentering preserves articulated pose and contacts for all modes
+2026-10-19T13:36:03.2797055Z ok 3 - capture recentering preserves articulated pose and contacts for all modes
+2026-10-19T13:36:03.2797605Z   ---
+2026-10-19T13:36:03.2798052Z   duration_ms: 27.593436
+2026-10-19T13:36:03.2798552Z   type: 'test'
+2026-10-19T13:36:03.2798942Z   ...
+2026-10-19T13:36:03.2900715Z 1..3
+2026-10-19T13:36:03.2901091Z # tests 3
+2026-10-19T13:36:03.2901688Z # suites 0
+2026-10-19T13:36:03.2903490Z # pass 3
+2026-10-19T13:36:03.2904102Z # fail 0
+2026-10-19T13:36:03.2904985Z # cancelled 0
+2026-10-19T13:36:03.2905472Z # skipped 0
+2026-10-19T13:36:03.2906119Z # todo 0
+2026-10-19T13:36:03.2906718Z # duration_ms 256.34422
+2026-10-19T13:36:03.2956381Z [CI-ISOLATION] END horse-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:36:03.2957546Z [CI-ISOLATION] START horse-stance-core.test.mjs 2026-10-19T13:36:03.295Z
+2026-10-19T13:36:03.3378527Z TAP version 13
+2026-10-19T13:36:03.3856968Z # Subtest: world-space stance anchor never drifts when updated
+2026-10-19T13:36:03.3861226Z ok 1 - world-space stance anchor never drifts when updated
+2026-10-19T13:36:03.3861896Z   ---
+2026-10-19T13:36:03.3862274Z   duration_ms: 2.060464
+2026-10-19T13:36:03.3862699Z   type: 'test'
+2026-10-19T13:36:03.3863065Z   ...
+2026-10-19T13:36:03.3869316Z # Subtest: swing captures actual pose, has smooth endpoint velocities and lands without a jump
+2026-10-19T13:36:03.3871099Z ok 2 - swing captures actual pose, has smooth endpoint velocities and lands without a jump
+2026-10-19T13:36:03.3872057Z   ---
+2026-10-19T13:36:03.3872479Z   duration_ms: 0.610278
+2026-10-19T13:36:03.3872907Z   type: 'test'
+2026-10-19T13:36:03.3873422Z   ...
+2026-10-19T13:36:03.3874068Z # Subtest: swing touchdown matches across 30, 60 and 120 Hz
+2026-10-19T13:36:03.3874898Z ok 3 - swing touchdown matches across 30, 60 and 120 Hz
+2026-10-19T13:36:03.3875634Z   ---
+2026-10-19T13:36:03.3876029Z   duration_ms: 1.125089
+2026-10-19T13:36:03.3876588Z   type: 'test'
+2026-10-19T13:36:03.3877402Z   ...
+2026-10-19T13:36:03.3878438Z # Subtest: ordinary gait changes do not reset a swinging hoof; teleport explicitly resets it
+2026-10-19T13:36:03.3879809Z ok 4 - ordinary gait changes do not reset a swinging hoof; teleport explicitly resets it
+2026-10-19T13:36:03.3891404Z   ---
+2026-10-19T13:36:03.3892070Z   duration_ms: 0.222946
+2026-10-19T13:36:03.3892525Z   type: 'test'
+2026-10-19T13:36:03.3892896Z   ...
+2026-10-19T13:36:03.3893744Z # Subtest: stopping midway through a fast swing lands vertically without a hoof teleport
+2026-10-19T13:36:03.3895012Z ok 5 - stopping midway through a fast swing lands vertically without a hoof teleport
+2026-10-19T13:36:03.3895775Z   ---
+2026-10-19T13:36:03.3896130Z   duration_ms: 0.404425
+2026-10-19T13:36:03.3896538Z   type: 'test'
+2026-10-19T13:36:03.3896895Z   ...
+2026-10-19T13:36:03.3897786Z # Subtest: high-speed turning footstep respects bounded swing velocity instead of teleporting
+2026-10-19T13:36:03.3899166Z ok 6 - high-speed turning footstep respects bounded swing velocity instead of teleporting
+2026-10-19T13:36:03.3900229Z   ---
+2026-10-19T13:36:03.3900619Z   duration_ms: 0.247161
+2026-10-19T13:36:03.3901041Z   type: 'test'
+2026-10-19T13:36:03.3901812Z   ...
+2026-10-19T13:36:03.3902913Z # Subtest: gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged
+2026-10-19T13:36:03.3904637Z ok 7 - gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged
+2026-10-19T13:36:03.3905634Z   ---
+2026-10-19T13:36:03.3906112Z   duration_ms: 4.421566
+2026-10-19T13:36:03.3906667Z   type: 'test'
+2026-10-19T13:36:03.3907120Z   ...
+2026-10-19T13:36:03.3908252Z # Subtest: re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks
+2026-10-19T13:36:03.3909841Z ok 8 - re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks
+2026-10-19T13:36:03.3910995Z   ---
+2026-10-19T13:36:03.3921801Z   duration_ms: 0.411087
+2026-10-19T13:36:03.3922354Z   type: 'test'
+2026-10-19T13:36:03.3922571Z   ...
+2026-10-19T13:36:03.3923047Z # Subtest: a late re-aim of a gait swing stays continuous and lands where asked
+2026-10-19T13:36:03.3923671Z ok 9 - a late re-aim of a gait swing stays continuous and lands where asked
+2026-10-19T13:36:03.3924058Z   ---
+2026-10-19T13:36:03.3924258Z   duration_ms: 0.495814
+2026-10-19T13:36:03.3924479Z   type: 'test'
+2026-10-19T13:36:03.3924670Z   ...
+2026-10-19T13:36:03.3988044Z 1..9
+2026-10-19T13:36:03.3988385Z # tests 9
+2026-10-19T13:36:03.3990773Z # suites 0
+2026-10-19T13:36:03.4010756Z # pass 9
+2026-10-19T13:36:03.4011114Z # fail 0
+2026-10-19T13:36:03.4011471Z # cancelled 0
+2026-10-19T13:36:03.4011821Z # skipped 0
+2026-10-19T13:36:03.4012175Z # todo 0
+2026-10-19T13:36:03.4012522Z # duration_ms 73.416633
+2026-10-19T13:36:03.4035434Z [CI-ISOLATION] END horse-stance-core.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:36:03.4036586Z [CI-ISOLATION] START horse-locomotion-contract.test.mjs 2026-10-19T13:36:03.403Z
+2026-10-19T13:36:03.4460930Z TAP version 13
+2026-10-19T13:36:03.7822269Z # Subtest: horse hips remain anatomically attached to the body through walk and canter
+2026-10-19T13:36:03.7834621Z ok 1 - horse hips remain anatomically attached to the body through walk and canter
+2026-10-19T13:36:03.7835573Z   ---
+2026-10-19T13:36:03.7836106Z   duration_ms: 163.830475
+2026-10-19T13:36:03.7836676Z   type: 'test'
+2026-10-19T13:36:03.7837177Z   ...
+2026-10-19T13:36:03.7839486Z # Subtest: every hoof trajectory remains continuous through gait change, turn and stop
+2026-10-19T13:36:03.7841839Z ok 2 - every hoof trajectory remains continuous through gait change, turn and stop
+2026-10-19T13:36:03.7842788Z   ---
+2026-10-19T13:36:03.7843119Z   duration_ms: 76.787459
+2026-10-19T13:36:03.7843639Z   type: 'test'
+2026-10-19T13:36:03.7843968Z   ...
+2026-10-19T13:36:03.7844981Z # Subtest: trot/canter threshold does not chatter under small speed variations
+2026-10-19T13:36:03.7846835Z ok 3 - trot/canter threshold does not chatter under small speed variations
+2026-10-19T13:36:03.7848189Z   ---
+2026-10-19T13:36:03.7848550Z   duration_ms: 18.568813
+2026-10-19T13:36:03.7848947Z   type: 'test'
+2026-10-19T13:36:03.7849272Z   ...
+2026-10-19T13:36:03.9074341Z 1..3
+2026-10-19T13:36:03.9074724Z # tests 3
+2026-10-19T13:36:03.9075058Z # suites 0
+2026-10-19T13:36:03.9076305Z # pass 3
+2026-10-19T13:36:03.9076950Z # fail 0
+2026-10-19T13:36:03.9077613Z # cancelled 0
+2026-10-19T13:36:03.9078242Z # skipped 0
+2026-10-19T13:36:03.9078844Z # todo 0
+2026-10-19T13:36:03.9079528Z # duration_ms 476.070666
+2026-10-19T13:36:03.9128340Z [CI-ISOLATION] END horse-locomotion-contract.test.mjs code=0 signal=null elapsed=0.5s
+2026-10-19T13:36:03.9129092Z [CI-ISOLATION] START horse-contact-feasibility.test.mjs 2026-10-19T13:36:03.912Z
+2026-10-19T13:36:03.9535582Z TAP version 13
+2026-10-19T13:36:13.9474966Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 172576      00:09 node |    2104    2101 148456      00:32 provjobd1254886 |    2157    2137 128692      00:28 Runner.Worker |    2137    2083 94584       00:30 Runner.Listener |    1358       1 74496       00:44 dockerd |    2437    2436 61316       00:19 npm run test:co
+2026-10-19T13:36:23.9400503Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=20s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 199064      00:19 node |    2104    2101 148540      00:42 provjobd1254886 |    2157    2137 130356      00:38 Runner.Worker |    2137    2083 94744       00:40 Runner.Listener |    1358       1 74496       00:54 dockerd |    2437    2436 61316       00:29 npm run test:co
+2026-10-19T13:36:33.9493669Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=30s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 190364      00:29 node |    2104    2101 148568      00:52 provjobd1254886 |    2157    2137 128660      00:48 Runner.Worker |    2137    2083 94744       00:50 Runner.Listener |    1358       1 74496       01:04 dockerd |    2437    2436 61316       00:39 npm run test:co
+2026-10-19T13:36:43.9593958Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=40s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 191120      00:40 node |    2104    2101 148588      01:02 provjobd1254886 |    2157    2137 129680      00:58 Runner.Worker |    2137    2083 94744       01:00 Runner.Listener |    1358       1 74496       01:14 dockerd |    2437    2436 61316       00:49 npm run test:co
+2026-10-19T13:36:53.9691109Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=50s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 191380      00:50 node |    2104    2101 148600      01:12 provjobd1254886 |    2157    2137 129712      01:08 Runner.Worker |    2137    2083 95744       01:10 Runner.Listener |    1358       1 74496       01:24 dockerd |    2437    2436 61316       00:59 npm run test:co
+2026-10-19T13:37:03.9781543Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=60s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 191380      01:00 node |    2104    2101 148648      01:22 provjobd1254886 |    2157    2137 129400      01:18 Runner.Worker |    2137    2083 96592       01:20 Runner.Listener |    1358       1 74496       01:34 dockerd |    2437    2436 61316       01:09 npm run test:co
+2026-10-19T13:37:13.9873901Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=70s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 194628      01:10 node |    2104    2101 148672      01:32 provjobd1254886 |    2157    2137 129392      01:28 Runner.Worker |    2137    2083 96576       01:30 Runner.Listener |    1358       1 74496       01:44 dockerd |    2437    2436 61316       01:19 npm run test:co
+2026-10-19T13:37:23.9979810Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=80s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 191244      01:20 node |    2104    2101 134040      01:42 provjobd1254886 |    2157    2137 129404      01:38 Runner.Worker |    2137    2083 96592       01:40 Runner.Listener |    1358       1 74496       01:54 dockerd |    2437    2436 61316       01:29 npm run test:co
+2026-10-19T13:37:34.0081002Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=90s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 189788      01:30 node |    2104    2101 134040      01:52 provjobd1254886 |    2157    2137 129404      01:48 Runner.Worker |    2137    2083 96596       01:50 Runner.Listener |    1358       1 74560       02:04 dockerd |    2437    2436 61316       01:39 npm run test:co
+2026-10-19T13:37:44.0179837Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=100s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 189816      01:40 node |    2104    2101 137952      02:02 provjobd1254886 |    2157    2137 129404      01:58 Runner.Worker |    2137    2083 96592       02:00 Runner.Listener |    1358       1 72704       02:14 dockerd |    2437    2436 61316       01:49 npm run test:co
+2026-10-19T13:37:54.0335110Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=110s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 187052      01:50 node |    2104    2101 138056      02:12 provjobd1254886 |    2157    2137 129404      02:08 Runner.Worker |    2137    2083 97280       02:10 Runner.Listener |    1358       1 72704       02:24 dockerd |    2437    2436 61316       01:59 npm run test:co
+2026-10-19T13:38:04.0376095Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=120s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 187708      02:00 node |    2104    2101 138056      02:22 provjobd1254886 |    2157    2137 132020      02:18 Runner.Worker |    2137    2083 97284       02:20 Runner.Listener |    1358       1 72704       02:34 dockerd |    2437    2436 61316       02:09 npm run test:co
+2026-10-19T13:38:14.0475659Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=130s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 201292      02:10 node |    2104    2101 138056      02:32 provjobd1254886 |    2157    2137 132020      02:28 Runner.Worker |    2137    2083 97280       02:30 Runner.Listener |    1358       1 72704       02:44 dockerd |    2437    2436 61316       02:19 npm run test:co
+2026-10-19T13:38:24.0580190Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=140s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 189016      02:20 node |    2104    2101 138060      02:42 provjobd1254886 |    2157    2137 132020      02:38 Runner.Worker |    2137    2083 96748       02:40 Runner.Listener |    1358       1 72704       02:54 dockerd |    2437    2436 61396       02:29 npm run test:co
+2026-10-19T13:38:34.0684294Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=150s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 204132      02:30 node |    2104    2101 138060      02:52 provjobd1254886 |    2157    2137 132372      02:48 Runner.Worker |    2137    2083 96748       02:50 Runner.Listener |    1358       1 72704       03:04 dockerd |    2437    2436 61396       02:39 npm run test:co
+2026-10-19T13:38:44.0783616Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=160s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 212376      02:40 node |    2104    2101 138060      03:02 provjobd1254886 |    2157    2137 132372      02:58 Runner.Worker |    2137    2083 96756       03:00 Runner.Listener |    1358       1 72704       03:14 dockerd |    2437    2436 61396       02:49 npm run test:co
+2026-10-19T13:38:54.0872700Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=170s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 214468      02:50 node |    2104    2101 138060      03:12 provjobd1254886 |    2157    2137 131408      03:08 Runner.Worker |    2137    2083 98864       03:10 Runner.Listener |    1358       1 72704       03:24 dockerd |    2437    2436 61396       02:59 npm run test:co
+2026-10-19T13:39:04.0969133Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=180s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 219432      03:00 node |    2104    2101 138064      03:22 provjobd1254886 |    2157    2137 131400      03:18 Runner.Worker |    2137    2083 98924       03:20 Runner.Listener |    1358       1 72704       03:34 dockerd |    2437    2436 61396       03:09 npm run test:co
+2026-10-19T13:39:14.1075140Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=190s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 239396      03:10 node |    2104    2101 138192      03:32 provjobd1254886 |    2157    2137 131400      03:28 Runner.Worker |    2137    2083 97048       03:30 Runner.Listener |    1358       1 72704       03:44 dockerd |    2437    2436 61396       03:19 npm run test:co
+2026-10-19T13:39:24.1174616Z [CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=200s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2695    2689 245672      03:20 node |    2104    2101 138192      03:42 provjobd1254886 |    2157    2137 131400      03:38 Runner.Worker |    2137    2083 97048       03:40 Runner.Listener |    1358       1 72704       03:54 dockerd |    2437    2436 61396       03:29 npm run test:co
+2026-10-19T13:39:24.6627884Z # Subtest: horse contact and support invariants hold, h 2.3, 104 scenarios x 30/60/120 Hz
+2026-10-19T13:39:24.6636369Z ok 1 - horse contact and support invariants hold, h 2.3, 104 scenarios x 30/60/120 Hz
+2026-10-19T13:39:24.6637777Z   ---
+2026-10-19T13:39:24.6638192Z   duration_ms: 61143.03709
+2026-10-19T13:39:24.6638645Z   type: 'test'
+2026-10-19T13:39:24.6639497Z   ...
+2026-10-19T13:39:24.6640707Z # Subtest: horse contact and support invariants hold, h 1.6, 104 scenarios x 30/60/120 Hz
+2026-10-19T13:39:24.6642803Z ok 2 - horse contact and support invariants hold, h 1.6, 104 scenarios x 30/60/120 Hz
+2026-10-19T13:39:24.6649369Z   ---
+2026-10-19T13:39:24.6651824Z   duration_ms: 57557.383425
+2026-10-19T13:39:24.6652688Z   type: 'test'
+2026-10-19T13:39:24.6653039Z   ...
+2026-10-19T13:39:24.6653870Z # Subtest: game-like roaming holds every invariant, 56 sessions (review reproductions pinned)
+2026-10-19T13:39:24.6655103Z ok 3 - game-like roaming holds every invariant, 56 sessions (review reproductions pinned)
+2026-10-19T13:39:24.6655813Z   ---
+2026-10-19T13:39:24.6656132Z   duration_ms: 55360.388792
+2026-10-19T13:39:24.6656511Z   type: 'test'
+2026-10-19T13:39:24.6656819Z   ...
+2026-10-19T13:39:24.6657387Z # Subtest: pinned randomised sequences hold every invariant
+2026-10-19T13:39:24.6658157Z ok 4 - pinned randomised sequences hold every invariant
+2026-10-19T13:39:24.6658664Z   ---
+2026-10-19T13:39:24.6658974Z   duration_ms: 3701.510071
+2026-10-19T13:39:24.6659350Z   type: 'test'
+2026-10-19T13:39:24.6659659Z   ...
+2026-10-19T13:39:24.6660713Z # Subtest: a 90-degree walking turn completes within 1.5 s at 1 and 1.25 m/s, 30/60/120 Hz
+2026-10-19T13:39:24.6662385Z ok 5 - a 90-degree walking turn completes within 1.5 s at 1 and 1.25 m/s, 30/60/120 Hz
+2026-10-19T13:39:24.6663055Z   ---
+2026-10-19T13:39:24.6663364Z   duration_ms: 251.701965
+2026-10-19T13:39:24.6663731Z   type: 'test'
+2026-10-19T13:39:24.6664049Z   ...
+2026-10-19T13:39:24.6665350Z # Subtest: tight circles keep every hoof on its target and every invariant
+2026-10-19T13:39:24.6667621Z ok 6 - tight circles keep every hoof on its target and every invariant
+2026-10-19T13:39:24.6668486Z   ---
+2026-10-19T13:39:24.6668985Z   duration_ms: 3908.997267
+2026-10-19T13:39:24.6669559Z   type: 'test'
+2026-10-19T13:39:24.6670573Z   ...
+2026-10-19T13:39:24.6671694Z # Subtest: circles beyond the turn rate, slaloms and a straightened circle hold every invariant
+2026-10-19T13:39:24.6673190Z ok 7 - circles beyond the turn rate, slaloms and a straightened circle hold every invariant
+2026-10-19T13:39:24.6674306Z   ---
+2026-10-19T13:39:24.6675000Z   duration_ms: 12685.017487
+2026-10-19T13:39:24.6675771Z   type: 'test'
+2026-10-19T13:39:24.6676438Z   ...
+2026-10-19T13:39:24.6677318Z # Subtest: R6 review reproductions hold every invariant
+2026-10-19T13:39:24.6678396Z ok 8 - R6 review reproductions hold every invariant
+2026-10-19T13:39:24.6679250Z   ---
+2026-10-19T13:39:24.6679920Z   duration_ms: 5552.504231
+2026-10-19T13:39:24.6680913Z   type: 'test'
+2026-10-19T13:39:24.6681508Z   ...
+2026-10-19T13:39:24.6682214Z # Subtest: a turned walk returns to walk, and walking reversals keep a hoof down
+2026-10-19T13:39:24.6682994Z ok 9 - a turned walk returns to walk, and walking reversals keep a hoof down
+2026-10-19T13:39:24.6683546Z   ---
+2026-10-19T13:39:24.6683909Z   duration_ms: 462.352145
+2026-10-19T13:39:24.6684293Z   type: 'test'
+2026-10-19T13:39:24.6684637Z   ...
+2026-10-19T13:39:24.6950724Z 1..9
+2026-10-19T13:39:24.6951088Z # tests 9
+2026-10-19T13:39:24.6951472Z # suites 0
+2026-10-19T13:39:24.6952024Z # pass 9
+2026-10-19T13:39:24.6952612Z # fail 0
+2026-10-19T13:39:24.6953129Z # cancelled 0
+2026-10-19T13:39:24.6953692Z # skipped 0
+2026-10-19T13:39:24.6954219Z # todo 0
+2026-10-19T13:39:24.6954817Z # duration_ms 200753.359762
+2026-10-19T13:39:24.6997413Z [CI-ISOLATION] END horse-contact-feasibility.test.mjs code=0 signal=null elapsed=200.8s
+2026-10-19T13:39:24.6998617Z [CI-ISOLATION] START horse-motion-evidence.test.mjs 2026-10-19T13:39:24.699Z
+2026-10-19T13:39:24.7418922Z TAP version 13
+2026-10-19T13:39:26.6145071Z # Subtest: motion evidence clips exercise actual gaits, transitions, turns, stops and teleport
+2026-10-19T13:39:26.6152816Z ok 1 - motion evidence clips exercise actual gaits, transitions, turns, stops and teleport
+2026-10-19T13:39:26.6154379Z   ---
+2026-10-19T13:39:26.6155099Z   duration_ms: 1031.126446
+2026-10-19T13:39:26.6155737Z   type: 'test'
+2026-10-19T13:39:26.6156259Z   ...
+2026-10-19T13:39:26.6158766Z # Subtest: slow reversals preserve actual contact without compensatory crouch
+2026-10-19T13:39:26.6160925Z ok 2 - slow reversals preserve actual contact without compensatory crouch
+2026-10-19T13:39:26.6161591Z   ---
+2026-10-19T13:39:26.6162092Z   duration_ms: 763.908568
+2026-10-19T13:39:26.6162566Z   type: 'test'
+2026-10-19T13:39:26.6162970Z   ...
+2026-10-19T13:39:26.6761390Z 1..2
+2026-10-19T13:39:26.6762028Z # tests 2
+2026-10-19T13:39:26.6762835Z # suites 0
+2026-10-19T13:39:26.6763600Z # pass 2
+2026-10-19T13:39:26.6764152Z # fail 0
+2026-10-19T13:39:26.6765529Z # cancelled 0
+2026-10-19T13:39:26.6766037Z # skipped 0
+2026-10-19T13:39:26.6766615Z # todo 0
+2026-10-19T13:39:26.6767232Z # duration_ms 1947.351902
+2026-10-19T13:39:26.6813674Z [CI-ISOLATION] END horse-motion-evidence.test.mjs code=0 signal=null elapsed=2.0s
+2026-10-19T13:39:26.6814726Z [CI-ISOLATION] START sheep3d.test.mjs 2026-10-19T13:39:26.681Z
+2026-10-19T13:39:26.7208808Z TAP version 13
+2026-10-19T13:39:26.8312253Z # Subtest: sheep hips stay on the body and the gait stays finite
+2026-10-19T13:39:26.8322352Z ok 1 - sheep hips stay on the body and the gait stays finite
+2026-10-19T13:39:26.8323245Z   ---
+2026-10-19T13:39:26.8323623Z   duration_ms: 37.781936
+2026-10-19T13:39:26.8324009Z   type: 'test'
+2026-10-19T13:39:26.8324336Z   ...
+2026-10-19T13:39:26.8442873Z 1..1
+2026-10-19T13:39:26.8443312Z # tests 1
+2026-10-19T13:39:26.8443682Z # suites 0
+2026-10-19T13:39:26.8444043Z # pass 1
+2026-10-19T13:39:26.8445443Z # fail 0
+2026-10-19T13:39:26.8446420Z # cancelled 0
+2026-10-19T13:39:26.8447216Z # skipped 0
+2026-10-19T13:39:26.8448910Z # todo 0
+2026-10-19T13:39:26.8449422Z # duration_ms 134.851125
+2026-10-19T13:39:26.8495016Z [CI-ISOLATION] END sheep3d.test.mjs code=0 signal=null elapsed=0.2s
+2026-10-19T13:39:26.8496445Z [CI-ISOLATION] START dog-face.test.mjs 2026-10-19T13:39:26.849Z
+2026-10-19T13:39:26.8899776Z TAP version 13
+2026-10-19T13:39:27.4374934Z # Subtest: dog face correction and later authorized cat regions preserve frozen meshes and rest bones
+2026-10-19T13:39:27.4382956Z ok 1 - dog face correction and later authorized cat regions preserve frozen meshes and rest bones
+2026-10-19T13:39:27.4384265Z   ---
+2026-10-19T13:39:27.4384894Z   duration_ms: 447.36131
+2026-10-19T13:39:27.4385362Z   type: 'test'
+2026-10-19T13:39:27.4385737Z   ...
+2026-10-19T13:39:27.4392900Z # Subtest: dog has one embedded central nose, a narrow muzzle, mouth and attached lower jaw
+2026-10-19T13:39:27.4395329Z ok 2 - dog has one embedded central nose, a narrow muzzle, mouth and attached lower jaw
+2026-10-19T13:39:27.4396306Z   ---
+2026-10-19T13:39:27.4396796Z   duration_ms: 15.691138
+2026-10-19T13:39:27.4397378Z   type: 'test'
+2026-10-19T13:39:27.4397849Z   ...
+2026-10-19T13:39:27.4558112Z 1..2
+2026-10-19T13:39:27.4559050Z # tests 2
+2026-10-19T13:39:27.4560718Z # suites 0
+2026-10-19T13:39:27.4561494Z # pass 2
+2026-10-19T13:39:27.4562138Z # fail 0
+2026-10-19T13:39:27.4563626Z # cancelled 0
+2026-10-19T13:39:27.4564301Z # skipped 0
+2026-10-19T13:39:27.4565015Z # todo 0
+2026-10-19T13:39:27.4565666Z # duration_ms 577.635548
+2026-10-19T13:39:27.4612474Z [CI-ISOLATION] END dog-face.test.mjs code=0 signal=null elapsed=0.6s
+2026-10-19T13:39:27.4613267Z [CI-ISOLATION] START dog-stop-continuity.test.mjs 2026-10-19T13:39:27.461Z
+2026-10-19T13:39:27.5008378Z TAP version 13
+2026-10-19T13:39:28.6502426Z # Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=30
+2026-10-19T13:39:28.6530486Z ok 1 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=30
+2026-10-19T13:39:28.6531259Z   ---
+2026-10-19T13:39:28.6531594Z   duration_ms: 38.900839
+2026-10-19T13:39:28.6531958Z   type: 'test'
+2026-10-19T13:39:28.6532254Z   ...
+2026-10-19T13:39:28.6532937Z # Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=60
+2026-10-19T13:39:28.6534454Z ok 2 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=60
+2026-10-19T13:39:28.6535111Z   ---
+2026-10-19T13:39:28.6535456Z   duration_ms: 6.676646
+2026-10-19T13:39:28.6535827Z   type: 'test'
+2026-10-19T13:39:28.6536134Z   ...
+2026-10-19T13:39:28.6536808Z # Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=120
+2026-10-19T13:39:28.6537845Z ok 3 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=120
+2026-10-19T13:39:28.6538492Z   ---
+2026-10-19T13:39:28.6538804Z   duration_ms: 14.747894
+2026-10-19T13:39:28.6539039Z   type: 'test'
+2026-10-19T13:39:28.6539223Z   ...
+2026-10-19T13:39:28.6539642Z # Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=30
+2026-10-19T13:39:28.6540655Z ok 4 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=30
+2026-10-19T13:39:28.6541047Z   ---
+2026-10-19T13:39:28.6541239Z   duration_ms: 6.35698
+2026-10-19T13:39:28.6541479Z   type: 'test'
+2026-10-19T13:39:28.6541678Z   ...
+2026-10-19T13:39:28.6542097Z # Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=60
+2026-10-19T13:39:28.6542698Z ok 5 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=60
+2026-10-19T13:39:28.6543069Z   ---
+2026-10-19T13:39:28.6543253Z   duration_ms: 4.736684
+2026-10-19T13:39:28.6543469Z   type: 'test'
+2026-10-19T13:39:28.6543658Z   ...
+2026-10-19T13:39:28.6544082Z # Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=120
+2026-10-19T13:39:28.6544701Z ok 6 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=120
+2026-10-19T13:39:28.6545088Z   ---
+2026-10-19T13:39:28.6545277Z   duration_ms: 4.251331
+2026-10-19T13:39:28.6545487Z   type: 'test'
+2026-10-19T13:39:28.6545672Z   ...
+2026-10-19T13:39:28.6546102Z # Subtest: dog stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:28.6546733Z ok 7 - dog stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:28.6547331Z   ---
+2026-10-19T13:39:28.6547531Z   duration_ms: 943.846711
+2026-10-19T13:39:28.6547760Z   type: 'test'
+2026-10-19T13:39:28.6547942Z   ...
+2026-10-19T13:39:28.6548336Z # Subtest: dog stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:28.6564622Z ok 8 - dog stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:28.6565218Z   ---
+2026-10-19T13:39:28.6565655Z   duration_ms: 47.415743
+2026-10-19T13:39:28.6566153Z   type: 'test'
+2026-10-19T13:39:28.6566595Z   ...
+2026-10-19T13:39:28.6567190Z # Subtest: dog recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:28.6568232Z ok 9 - dog recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:28.6576949Z   ---
+2026-10-19T13:39:28.6577177Z   duration_ms: 2.046228
+2026-10-19T13:39:28.6577414Z   type: 'test'
+2026-10-19T13:39:28.6577610Z   ...
+2026-10-19T13:39:28.6778974Z 1..9
+2026-10-19T13:39:28.6779421Z # tests 9
+2026-10-19T13:39:28.6779793Z # suites 0
+2026-10-19T13:39:28.6781124Z # pass 9
+2026-10-19T13:39:28.6781494Z # fail 0
+2026-10-19T13:39:28.6790931Z # cancelled 0
+2026-10-19T13:39:28.6791322Z # skipped 0
+2026-10-19T13:39:28.6791644Z # todo 0
+2026-10-19T13:39:28.6791885Z # duration_ms 1189.024542
+2026-10-19T13:39:28.6830776Z [CI-ISOLATION] END dog-stop-continuity.test.mjs code=0 signal=null elapsed=1.2s
+2026-10-19T13:39:28.6831927Z [CI-ISOLATION] START dog-evidence-placement.test.mjs 2026-10-19T13:39:28.682Z
+2026-10-19T13:39:28.7259774Z TAP version 13
+2026-10-19T13:39:28.9991656Z # Subtest: active dog restart cache follows staging translation
+2026-10-19T13:39:28.9993101Z ok 1 - active dog restart cache follows staging translation
+2026-10-19T13:39:29.0015234Z   ---
+2026-10-19T13:39:29.0015880Z   duration_ms: 46.891122
+2026-10-19T13:39:29.0016298Z   type: 'test'
+2026-10-19T13:39:29.0016629Z   ...
+2026-10-19T13:39:29.0017270Z # Subtest: negative control reproduces dog root-only staging errors
+2026-10-19T13:39:29.0018663Z ok 2 - negative control reproduces dog root-only staging errors
+2026-10-19T13:39:29.0019309Z   ---
+2026-10-19T13:39:29.0019679Z   duration_ms: 2.644311
+2026-10-19T13:39:29.0020441Z   type: 'test'
+2026-10-19T13:39:29.0020814Z   ...
+2026-10-19T13:39:29.0021613Z # Subtest: negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:29.0022478Z ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:29.0022883Z   ---
+2026-10-19T13:39:29.0023078Z   duration_ms: 3.636988
+2026-10-19T13:39:29.0023304Z   type: 'test'
+2026-10-19T13:39:29.0023495Z   ...
+2026-10-19T13:39:29.0023900Z # Subtest: neutral dog stage reset clears previous recovery at both sizes
+2026-10-19T13:39:29.0024446Z ok 4 - neutral dog stage reset clears previous recovery at both sizes
+2026-10-19T13:39:29.0024802Z   ---
+2026-10-19T13:39:29.0024994Z   duration_ms: 6.434184
+2026-10-19T13:39:29.0025215Z   type: 'test'
+2026-10-19T13:39:29.0025401Z   ...
+2026-10-19T13:39:29.0025817Z # Subtest: stopping dog contacts remain translated on subsequent idle updates
+2026-10-19T13:39:29.0026387Z ok 5 - stopping dog contacts remain translated on subsequent idle updates
+2026-10-19T13:39:29.0026739Z   ---
+2026-10-19T13:39:29.0026923Z   duration_ms: 7.580037
+2026-10-19T13:39:29.0027135Z   type: 'test'
+2026-10-19T13:39:29.0027318Z   ...
+2026-10-19T13:39:29.0027736Z # Subtest: dog evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:29.0028390Z ok 6 - dog evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:29.0028763Z   ---
+2026-10-19T13:39:29.0028946Z   duration_ms: 115.99369
+2026-10-19T13:39:29.0029189Z   type: 'test'
+2026-10-19T13:39:29.0029376Z   ...
+2026-10-19T13:39:29.0137971Z 1..6
+2026-10-19T13:39:29.0138330Z # tests 6
+2026-10-19T13:39:29.0138806Z # suites 0
+2026-10-19T13:39:29.0139375Z # pass 6
+2026-10-19T13:39:29.0139840Z # fail 0
+2026-10-19T13:39:29.0140634Z # cancelled 0
+2026-10-19T13:39:29.0141191Z # skipped 0
+2026-10-19T13:39:29.0141992Z # todo 0
+2026-10-19T13:39:29.0142357Z # duration_ms 300.058075
+2026-10-19T13:39:29.0186176Z [CI-ISOLATION] END dog-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:39:29.0187265Z [CI-ISOLATION] START cat-visual.test.mjs 2026-10-19T13:39:29.018Z
+2026-10-19T13:39:29.0585387Z TAP version 13
+2026-10-19T13:39:38.6398421Z # Subtest: cat visual correction preserves other species, cat body/tail/lower legs/paws and every rest bone
+2026-10-19T13:39:38.6404322Z ok 1 - cat visual correction preserves other species, cat body/tail/lower legs/paws and every rest bone
+2026-10-19T13:39:38.6405149Z   ---
+2026-10-19T13:39:38.6405483Z   duration_ms: 457.479609
+2026-10-19T13:39:38.6405792Z   type: 'test'
+2026-10-19T13:39:38.6406004Z   ...
+2026-10-19T13:39:38.6411145Z # Subtest: cat has compact cheek pads, one triangular nose, whiskers and embedded ears
+2026-10-19T13:39:38.6452240Z ok 2 - cat has compact cheek pads, one triangular nose, whiskers and embedded ears
+2026-10-19T13:39:38.6453392Z   ---
+2026-10-19T13:39:38.6453928Z   duration_ms: 20.524566
+2026-10-19T13:39:38.6454327Z   type: 'test'
+2026-10-19T13:39:38.6454642Z   ...
+2026-10-19T13:39:38.6455215Z # Subtest: cat upper legs are continuous and remain attached to actual body across motion
+2026-10-19T13:39:38.6455901Z ok 3 - cat upper legs are continuous and remain attached to actual body across motion
+2026-10-19T13:39:38.6456297Z   ---
+2026-10-19T13:39:38.6456498Z   duration_ms: 9017.682694
+2026-10-19T13:39:38.6456727Z   type: 'test'
+2026-10-19T13:39:38.6456916Z   ...
+2026-10-19T13:39:38.6686302Z 1..3
+2026-10-19T13:39:38.6686668Z # tests 3
+2026-10-19T13:39:38.6686986Z # suites 0
+2026-10-19T13:39:38.6688105Z # pass 3
+2026-10-19T13:39:38.6688654Z # fail 0
+2026-10-19T13:39:38.6689269Z # cancelled 0
+2026-10-19T13:39:38.6689940Z # skipped 0
+2026-10-19T13:39:38.6710972Z # todo 0
+2026-10-19T13:39:38.6713368Z # duration_ms 9622.008304
+2026-10-19T13:39:38.6735996Z [CI-ISOLATION] END cat-visual.test.mjs code=0 signal=null elapsed=9.7s
+2026-10-19T13:39:38.6737011Z [CI-ISOLATION] START cat-stop-continuity.test.mjs 2026-10-19T13:39:38.673Z
+2026-10-19T13:39:38.7149137Z TAP version 13
+2026-10-19T13:39:39.8635928Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=30
+2026-10-19T13:39:39.8640489Z ok 1 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=30
+2026-10-19T13:39:39.8641412Z   ---
+2026-10-19T13:39:39.8641913Z   duration_ms: 40.448199
+2026-10-19T13:39:39.8642469Z   type: 'test'
+2026-10-19T13:39:39.8642942Z   ...
+2026-10-19T13:39:39.8646239Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=60
+2026-10-19T13:39:39.8648041Z ok 2 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=60
+2026-10-19T13:39:39.8649275Z   ---
+2026-10-19T13:39:39.8649959Z   duration_ms: 5.521565
+2026-10-19T13:39:39.8650636Z   type: 'test'
+2026-10-19T13:39:39.8651007Z   ...
+2026-10-19T13:39:39.8651842Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=120
+2026-10-19T13:39:39.8653964Z ok 3 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=120
+2026-10-19T13:39:39.8655150Z   ---
+2026-10-19T13:39:39.8655527Z   duration_ms: 13.15988
+2026-10-19T13:39:39.8655944Z   type: 'test'
+2026-10-19T13:39:39.8656306Z   ...
+2026-10-19T13:39:39.8657864Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=30
+2026-10-19T13:39:39.8659739Z ok 4 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=30
+2026-10-19T13:39:39.8660816Z   ---
+2026-10-19T13:39:39.8661108Z   duration_ms: 5.77161
+2026-10-19T13:39:39.8661466Z   type: 'test'
+2026-10-19T13:39:39.8661785Z   ...
+2026-10-19T13:39:39.8668017Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=60
+2026-10-19T13:39:39.8699078Z ok 5 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=60
+2026-10-19T13:39:39.8699531Z   ---
+2026-10-19T13:39:39.8699745Z   duration_ms: 4.632411
+2026-10-19T13:39:39.8700247Z   type: 'test'
+2026-10-19T13:39:39.8708917Z   ...
+2026-10-19T13:39:39.8709381Z # Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=120
+2026-10-19T13:39:39.8710268Z ok 6 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=120
+2026-10-19T13:39:39.8710678Z   ---
+2026-10-19T13:39:39.8710875Z   duration_ms: 4.026644
+2026-10-19T13:39:39.8711091Z   type: 'test'
+2026-10-19T13:39:39.8711280Z   ...
+2026-10-19T13:39:39.8711723Z # Subtest: cat stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:39.8712604Z ok 7 - cat stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:39.8712997Z   ---
+2026-10-19T13:39:39.8713185Z   duration_ms: 945.792115
+2026-10-19T13:39:39.8713403Z   type: 'test'
+2026-10-19T13:39:39.8713587Z   ...
+2026-10-19T13:39:39.8713982Z # Subtest: cat stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:39.8714568Z ok 8 - cat stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:39.8714935Z   ---
+2026-10-19T13:39:39.8715125Z   duration_ms: 44.797406
+2026-10-19T13:39:39.8715345Z   type: 'test'
+2026-10-19T13:39:39.8715528Z   ...
+2026-10-19T13:39:39.8717891Z # Subtest: cat recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:39.8718506Z ok 9 - cat recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:39.8718893Z   ---
+2026-10-19T13:39:39.8719079Z   duration_ms: 2.287918
+2026-10-19T13:39:39.8719294Z   type: 'test'
+2026-10-19T13:39:39.8719475Z   ...
+2026-10-19T13:39:39.8900511Z 1..9
+2026-10-19T13:39:39.8900868Z # tests 9
+2026-10-19T13:39:39.8901185Z # suites 0
+2026-10-19T13:39:39.8901690Z # pass 9
+2026-10-19T13:39:39.8902160Z # fail 0
+2026-10-19T13:39:39.8902682Z # cancelled 0
+2026-10-19T13:39:39.8903171Z # skipped 0
+2026-10-19T13:39:39.8903638Z # todo 0
+2026-10-19T13:39:39.8904201Z # duration_ms 1186.86742
+2026-10-19T13:39:39.8946397Z [CI-ISOLATION] END cat-stop-continuity.test.mjs code=0 signal=null elapsed=1.2s
+2026-10-19T13:39:39.8947407Z [CI-ISOLATION] START cat-evidence-placement.test.mjs 2026-10-19T13:39:39.894Z
+2026-10-19T13:39:39.9346574Z TAP version 13
+2026-10-19T13:39:40.2216868Z # Subtest: active cat restart cache follows staging translation
+2026-10-19T13:39:40.2231879Z ok 1 - active cat restart cache follows staging translation
+2026-10-19T13:39:40.2232791Z   ---
+2026-10-19T13:39:40.2233249Z   duration_ms: 57.270167
+2026-10-19T13:39:40.2233771Z   type: 'test'
+2026-10-19T13:39:40.2234220Z   ...
+2026-10-19T13:39:40.2234936Z # Subtest: negative control reproduces cat root-only staging errors
+2026-10-19T13:39:40.2235903Z ok 2 - negative control reproduces cat root-only staging errors
+2026-10-19T13:39:40.2236751Z   ---
+2026-10-19T13:39:40.2237142Z   duration_ms: 2.20912
+2026-10-19T13:39:40.2237718Z   type: 'test'
+2026-10-19T13:39:40.2238111Z   ...
+2026-10-19T13:39:40.2238975Z # Subtest: negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:40.2240721Z ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:40.2241641Z   ---
+2026-10-19T13:39:40.2242057Z   duration_ms: 2.030518
+2026-10-19T13:39:40.2242594Z   type: 'test'
+2026-10-19T13:39:40.2242989Z   ...
+2026-10-19T13:39:40.2245581Z # Subtest: neutral cat stage reset clears previous recovery at both sizes
+2026-10-19T13:39:40.2246913Z ok 4 - neutral cat stage reset clears previous recovery at both sizes
+2026-10-19T13:39:40.2247713Z   ---
+2026-10-19T13:39:40.2248139Z   duration_ms: 7.042345
+2026-10-19T13:39:40.2248573Z   type: 'test'
+2026-10-19T13:39:40.2248935Z   ...
+2026-10-19T13:39:40.2249698Z # Subtest: stopping cat contacts remain translated on subsequent idle updates
+2026-10-19T13:39:40.2251106Z ok 5 - stopping cat contacts remain translated on subsequent idle updates
+2026-10-19T13:39:40.2251825Z   ---
+2026-10-19T13:39:40.2252210Z   duration_ms: 6.457327
+2026-10-19T13:39:40.2252639Z   type: 'test'
+2026-10-19T13:39:40.2253315Z   ...
+2026-10-19T13:39:40.2255003Z # Subtest: cat evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:40.2256317Z ok 6 - cat evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:40.2257031Z   ---
+2026-10-19T13:39:40.2257350Z   duration_ms: 129.990355
+2026-10-19T13:39:40.2257738Z   type: 'test'
+2026-10-19T13:39:40.2258033Z   ...
+2026-10-19T13:39:40.2371958Z 1..6
+2026-10-19T13:39:40.2372188Z # tests 6
+2026-10-19T13:39:40.2372468Z # suites 0
+2026-10-19T13:39:40.2373148Z # pass 6
+2026-10-19T13:39:40.2373598Z # fail 0
+2026-10-19T13:39:40.2374164Z # cancelled 0
+2026-10-19T13:39:40.2374689Z # skipped 0
+2026-10-19T13:39:40.2375168Z # todo 0
+2026-10-19T13:39:40.2375854Z # duration_ms 314.552447
+2026-10-19T13:39:40.2421234Z [CI-ISOLATION] END cat-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:39:40.2421951Z [CI-ISOLATION] START chicken-coordinated-motion.test.mjs 2026-10-19T13:39:40.242Z
+2026-10-19T13:39:40.2829016Z TAP version 13
+2026-10-19T13:39:50.2572801Z [CI-ISOLATION] RUNNING chicken-coordinated-motion.test.mjs elapsed=10s cgroup=unknown; processes=    PID    PPID   RSS     ELAPSED COMMAND |    2104    2101 138192      04:08 provjobd1254886 |    2157    2137 132184      04:04 Runner.Worker |    2928    2922 119212      00:09 node |    2137    2083 98068       04:06 Runner.Listener |    1358       1 72708       04:21 dockerd |    2437    2436 61396       03:55 npm run test:co
+2026-10-19T13:39:56.1484869Z # Subtest: coordinated chicken meets every original 96-cell turn gate
+2026-10-19T13:39:56.1490808Z ok 1 - coordinated chicken meets every original 96-cell turn gate
+2026-10-19T13:39:56.1491719Z   ---
+2026-10-19T13:39:56.1501554Z   duration_ms: 6881.208633
+2026-10-19T13:39:56.1502418Z   type: 'test'
+2026-10-19T13:39:56.1502820Z   ...
+2026-10-19T13:39:56.1503765Z # Subtest: seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+2026-10-19T13:39:56.1505184Z ok 2 - seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+2026-10-19T13:39:56.1506472Z   ---
+2026-10-19T13:39:56.1506850Z   duration_ms: 8883.006295
+2026-10-19T13:39:56.1507353Z   type: 'test'
+2026-10-19T13:39:56.1507705Z   ...
+2026-10-19T13:39:56.1508437Z # Subtest: restart during partial settling retains first-frame continuity
+2026-10-19T13:39:56.1509497Z ok 3 - restart during partial settling retains first-frame continuity
+2026-10-19T13:39:56.1510428Z   ---
+2026-10-19T13:39:56.1510804Z   duration_ms: 7.294154
+2026-10-19T13:39:56.1511217Z   type: 'test'
+2026-10-19T13:39:56.1511569Z   ...
+2026-10-19T13:39:56.1512379Z # Subtest: chicken geometry, skinning and factory rest transforms preserve frozen main
+2026-10-19T13:39:56.1513632Z ok 4 - chicken geometry, skinning and factory rest transforms preserve frozen main
+2026-10-19T13:39:56.1514384Z   ---
+2026-10-19T13:39:56.1514754Z   duration_ms: 4.321622
+2026-10-19T13:39:56.1515160Z   type: 'test'
+2026-10-19T13:39:56.1515522Z   ...
+2026-10-19T13:39:56.1516448Z # Subtest: real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+2026-10-19T13:39:56.1522075Z ok 5 - real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+2026-10-19T13:39:56.1522952Z   ---
+2026-10-19T13:39:56.1523316Z   duration_ms: 9.166629
+2026-10-19T13:39:56.1523740Z   type: 'test'
+2026-10-19T13:39:56.1524101Z   ...
+2026-10-19T13:39:56.1524893Z # Subtest: the same chicken travel produces the same physical feet at 30/60/120 Hz
+2026-10-19T13:39:56.1526061Z ok 6 - the same chicken travel produces the same physical feet at 30/60/120 Hz
+2026-10-19T13:39:56.1526782Z   ---
+2026-10-19T13:39:56.1527149Z   duration_ms: 5.149502
+2026-10-19T13:39:56.1527566Z   type: 'test'
+2026-10-19T13:39:56.1527924Z   ...
+2026-10-19T13:39:56.1658028Z 1..6
+2026-10-19T13:39:56.1658426Z # tests 6
+2026-10-19T13:39:56.1658798Z # suites 0
+2026-10-19T13:39:56.1659435Z # pass 6
+2026-10-19T13:39:56.1660280Z # fail 0
+2026-10-19T13:39:56.1670817Z # cancelled 0
+2026-10-19T13:39:56.1683669Z # skipped 0
+2026-10-19T13:39:56.1684828Z # todo 0
+2026-10-19T13:39:56.1685302Z # duration_ms 15894.867984
+2026-10-19T13:39:56.1707140Z [CI-ISOLATION] END chicken-coordinated-motion.test.mjs code=0 signal=null elapsed=15.9s
+2026-10-19T13:39:56.1708488Z [CI-ISOLATION] START chicken-start-turn.test.mjs 2026-10-19T13:39:56.170Z
+2026-10-19T13:39:56.2100022Z TAP version 13
+2026-10-19T13:39:56.5846185Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=30
+2026-10-19T13:39:56.5851190Z ok 1 - chicken first walk frame cannot jump farther than root travel hz=30
+2026-10-19T13:39:56.5852272Z   ---
+2026-10-19T13:39:56.5852782Z   duration_ms: 25.333955
+2026-10-19T13:39:56.5853309Z   type: 'test'
+2026-10-19T13:39:56.5853694Z   ...
+2026-10-19T13:39:56.5857893Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=30
+2026-10-19T13:39:56.5859868Z ok 2 - chicken right turn retains real grounded contacts even if a flag resets hz=30
+2026-10-19T13:39:56.5861104Z   ---
+2026-10-19T13:39:56.5861661Z   duration_ms: 57.42328
+2026-10-19T13:39:56.5862165Z   type: 'test'
+2026-10-19T13:39:56.5862556Z   ...
+2026-10-19T13:39:56.5863389Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=60
+2026-10-19T13:39:56.5865073Z ok 3 - chicken first walk frame cannot jump farther than root travel hz=60
+2026-10-19T13:39:56.5866334Z   ---
+2026-10-19T13:39:56.5866885Z   duration_ms: 0.52687
+2026-10-19T13:39:56.5867385Z   type: 'test'
+2026-10-19T13:39:56.5867830Z   ...
+2026-10-19T13:39:56.5868927Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=60
+2026-10-19T13:39:56.5870645Z ok 4 - chicken right turn retains real grounded contacts even if a flag resets hz=60
+2026-10-19T13:39:56.5871566Z   ---
+2026-10-19T13:39:56.5871981Z   duration_ms: 74.734936
+2026-10-19T13:39:56.5872404Z   type: 'test'
+2026-10-19T13:39:56.5872770Z   ...
+2026-10-19T13:39:56.5874061Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=120
+2026-10-19T13:39:56.5875850Z ok 5 - chicken first walk frame cannot jump farther than root travel hz=120
+2026-10-19T13:39:56.5876726Z   ---
+2026-10-19T13:39:56.5877112Z   duration_ms: 0.481506
+2026-10-19T13:39:56.5889557Z   type: 'test'
+2026-10-19T13:39:56.5890405Z   ...
+2026-10-19T13:39:56.5892899Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=120
+2026-10-19T13:39:56.5894252Z ok 6 - chicken right turn retains real grounded contacts even if a flag resets hz=120
+2026-10-19T13:39:56.5895061Z   ---
+2026-10-19T13:39:56.5895387Z   duration_ms: 144.083218
+2026-10-19T13:39:56.5895843Z   type: 'test'
+2026-10-19T13:39:56.5896235Z   ...
+2026-10-19T13:39:56.5977421Z 1..6
+2026-10-19T13:39:56.5977887Z # tests 6
+2026-10-19T13:39:56.5978298Z # suites 0
+2026-10-19T13:39:56.5978785Z # pass 6
+2026-10-19T13:39:56.5979252Z # fail 0
+2026-10-19T13:39:56.5979751Z # cancelled 0
+2026-10-19T13:39:56.5980454Z # skipped 0
+2026-10-19T13:39:56.5981014Z # todo 0
+2026-10-19T13:39:56.5981527Z # duration_ms 399.491316
+2026-10-19T13:39:56.6023093Z [CI-ISOLATION] END chicken-start-turn.test.mjs code=0 signal=null elapsed=0.4s
+2026-10-19T13:39:56.6024232Z [CI-ISOLATION] START chicken-stop-continuity.test.mjs 2026-10-19T13:39:56.602Z
+2026-10-19T13:39:56.6420448Z TAP version 13
+2026-10-19T13:39:57.6446310Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+2026-10-19T13:39:57.6450653Z ok 1 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+2026-10-19T13:39:57.6451490Z   ---
+2026-10-19T13:39:57.6451881Z   duration_ms: 28.977505
+2026-10-19T13:39:57.6452465Z   type: 'test'
+2026-10-19T13:39:57.6453286Z   ...
+2026-10-19T13:39:57.6458344Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+2026-10-19T13:39:57.6460783Z ok 2 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+2026-10-19T13:39:57.6461696Z   ---
+2026-10-19T13:39:57.6462066Z   duration_ms: 4.155654
+2026-10-19T13:39:57.6462479Z   type: 'test'
+2026-10-19T13:39:57.6463323Z   ...
+2026-10-19T13:39:57.6469049Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+2026-10-19T13:39:57.6491128Z ok 3 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+2026-10-19T13:39:57.6506124Z   ---
+2026-10-19T13:39:57.6506512Z   duration_ms: 5.317886
+2026-10-19T13:39:57.6506945Z   type: 'test'
+2026-10-19T13:39:57.6507312Z   ...
+2026-10-19T13:39:57.6508151Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+2026-10-19T13:39:57.6509436Z ok 4 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+2026-10-19T13:39:57.6510398Z   ---
+2026-10-19T13:39:57.6510761Z   duration_ms: 4.430935
+2026-10-19T13:39:57.6511181Z   type: 'test'
+2026-10-19T13:39:57.6511545Z   ...
+2026-10-19T13:39:57.6512433Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+2026-10-19T13:39:57.6525239Z ok 5 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+2026-10-19T13:39:57.6525712Z   ---
+2026-10-19T13:39:57.6525925Z   duration_ms: 3.416889
+2026-10-19T13:39:57.6526164Z   type: 'test'
+2026-10-19T13:39:57.6526374Z   ...
+2026-10-19T13:39:57.6526824Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+2026-10-19T13:39:57.6527500Z ok 6 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+2026-10-19T13:39:57.6527902Z   ---
+2026-10-19T13:39:57.6528093Z   duration_ms: 6.819371
+2026-10-19T13:39:57.6528308Z   type: 'test'
+2026-10-19T13:39:57.6528498Z   ...
+2026-10-19T13:39:57.6528952Z # Subtest: chicken stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:57.6529623Z ok 7 - chicken stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-19T13:39:57.6530283Z   ---
+2026-10-19T13:39:57.6530485Z   duration_ms: 849.715916
+2026-10-19T13:39:57.6530711Z   type: 'test'
+2026-10-19T13:39:57.6531159Z   ...
+2026-10-19T13:39:57.6531578Z # Subtest: chicken stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:57.6532191Z ok 8 - chicken stop recovery also preserves contacts after left and right turns
+2026-10-19T13:39:57.6532563Z   ---
+2026-10-19T13:39:57.6532750Z   duration_ms: 16.998062
+2026-10-19T13:39:57.6532966Z   type: 'test'
+2026-10-19T13:39:57.6533155Z   ...
+2026-10-19T13:39:57.6533580Z # Subtest: chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:57.6534222Z ok 9 - chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-19T13:39:57.6534611Z   ---
+2026-10-19T13:39:57.6534793Z   duration_ms: 1.736622
+2026-10-19T13:39:57.6535001Z   type: 'test'
+2026-10-19T13:39:57.6535183Z   ...
+2026-10-19T13:39:57.6700570Z 1..9
+2026-10-19T13:39:57.6700888Z # tests 9
+2026-10-19T13:39:57.6701097Z # suites 0
+2026-10-19T13:39:57.6701368Z # pass 9
+2026-10-19T13:39:57.6702043Z # fail 0
+2026-10-19T13:39:57.6702473Z # cancelled 0
+2026-10-19T13:39:57.6703096Z # skipped 0
+2026-10-19T13:39:57.6703635Z # todo 0
+2026-10-19T13:39:57.6704282Z # duration_ms 1039.532528
+2026-10-19T13:39:57.6747608Z [CI-ISOLATION] END chicken-stop-continuity.test.mjs code=0 signal=null elapsed=1.1s
+2026-10-19T13:39:57.6748323Z [CI-ISOLATION] START chicken-evidence-placement.test.mjs 2026-10-19T13:39:57.674Z
+2026-10-19T13:39:57.7136889Z TAP version 13
+2026-10-19T13:39:57.9121630Z # Subtest: active chicken restart cache follows staging translation
+2026-10-19T13:39:57.9141481Z ok 1 - active chicken restart cache follows staging translation
+2026-10-19T13:39:57.9142164Z   ---
+2026-10-19T13:39:57.9142515Z   duration_ms: 32.479824
+2026-10-19T13:39:57.9142939Z   type: 'test'
+2026-10-19T13:39:57.9143263Z   ...
+2026-10-19T13:39:57.9143921Z # Subtest: negative control reproduces chicken root-only staging errors
+2026-10-19T13:39:57.9144866Z ok 2 - negative control reproduces chicken root-only staging errors
+2026-10-19T13:39:57.9145460Z   ---
+2026-10-19T13:39:57.9145818Z   duration_ms: 1.990765
+2026-10-19T13:39:57.9146600Z   type: 'test'
+2026-10-19T13:39:57.9146938Z   ...
+2026-10-19T13:39:57.9147702Z # Subtest: negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:57.9161171Z ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+2026-10-19T13:39:57.9162072Z   ---
+2026-10-19T13:39:57.9162508Z   duration_ms: 3.270216
+2026-10-19T13:39:57.9162880Z   type: 'test'
+2026-10-19T13:39:57.9163199Z   ...
+2026-10-19T13:39:57.9163734Z # Subtest: neutral chicken stage reset clears previous recovery at both sizes
+2026-10-19T13:39:57.9164442Z ok 4 - neutral chicken stage reset clears previous recovery at both sizes
+2026-10-19T13:39:57.9164930Z   ---
+2026-10-19T13:39:57.9165244Z   duration_ms: 5.968036
+2026-10-19T13:39:57.9165584Z   type: 'test'
+2026-10-19T13:39:57.9165886Z   ...
+2026-10-19T13:39:57.9166407Z # Subtest: stopping chicken contacts remain translated on subsequent idle updates
+2026-10-19T13:39:57.9167467Z ok 5 - stopping chicken contacts remain translated on subsequent idle updates
+2026-10-19T13:39:57.9168335Z   ---
+2026-10-19T13:39:57.9168854Z   duration_ms: 3.924793
+2026-10-19T13:39:57.9169398Z   type: 'test'
+2026-10-19T13:39:57.9169898Z   ...
+2026-10-19T13:39:57.9171328Z # Subtest: chicken evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:57.9172713Z ok 6 - chicken evidence translation preserves mesh, pose and contacts at both sizes
+2026-10-19T13:39:57.9173510Z   ---
+2026-10-19T13:39:57.9173931Z   duration_ms: 67.826849
+2026-10-19T13:39:57.9174505Z   type: 'test'
+2026-10-19T13:39:57.9174829Z   ...
+2026-10-19T13:39:57.9594943Z 1..6
+2026-10-19T13:39:57.9595313Z # tests 6
+2026-10-19T13:39:57.9595631Z # suites 0
+2026-10-19T13:39:57.9595946Z # pass 6
+2026-10-19T13:39:57.9596253Z # fail 0
+2026-10-19T13:39:57.9596560Z # cancelled 0
+2026-10-19T13:39:57.9597043Z # skipped 0
+2026-10-19T13:39:57.9597570Z # todo 0
+2026-10-19T13:39:57.9598138Z # duration_ms 257.587821
+2026-10-19T13:39:57.9648854Z [CI-ISOLATION] END chicken-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+2026-10-19T13:39:57.9650165Z [CI-ISOLATION] START live3d.test.mjs 2026-10-19T13:39:57.964Z
+2026-10-19T13:39:58.0061937Z TAP version 13
+2026-10-19T13:39:58.4092251Z # Subtest: sheep movement changes the gait
+2026-10-19T13:39:58.4101174Z ok 1 - sheep movement changes the gait
+2026-10-19T13:39:58.4101681Z   ---
+2026-10-19T13:39:58.4102029Z   duration_ms: 33.71993
+2026-10-19T13:39:58.4102279Z   type: 'test'
+2026-10-19T13:39:58.4102488Z   ...
+2026-10-19T13:39:58.4111030Z # Subtest: horse movement changes the gait
+2026-10-19T13:39:58.4112105Z ok 2 - horse movement changes the gait
+2026-10-19T13:39:58.4112878Z   ---
+2026-10-19T13:39:58.4113529Z   duration_ms: 107.922436
+2026-10-19T13:39:58.4114245Z   type: 'test'
+2026-10-19T13:39:58.4114871Z   ...
+2026-10-19T13:39:58.4115617Z # Subtest: dog movement changes the gait
+2026-10-19T13:39:58.4116530Z ok 3 - dog movement changes the gait
+2026-10-19T13:39:58.4117271Z   ---
+2026-10-19T13:39:58.4117930Z   duration_ms: 14.849113
+2026-10-19T13:39:58.4118695Z   type: 'test'
+2026-10-19T13:39:58.4119305Z   ...
+2026-10-19T13:39:58.4120388Z # Subtest: cat movement changes the gait
+2026-10-19T13:39:58.4150336Z ok 4 - cat movement changes the gait
+2026-10-19T13:39:58.4164080Z   ---
+2026-10-19T13:39:58.4164679Z   duration_ms: 13.473063
+2026-10-19T13:39:58.4165270Z   type: 'test'
+2026-10-19T13:39:58.4165602Z   ...
+2026-10-19T13:39:58.4166059Z # Subtest: chicken movement changes the gait
+2026-10-19T13:39:58.4166684Z ok 5 - chicken movement changes the gait
+2026-10-19T13:39:58.4167135Z   ---
+2026-10-19T13:39:58.4167457Z   duration_ms: 9.730407
+2026-10-19T13:39:58.4167823Z   type: 'test'
+2026-10-19T13:39:58.4168148Z   ...
+2026-10-19T13:39:58.4168782Z # Subtest: horse translated root articulates hip without moving a planted hoof
+2026-10-19T13:39:58.4169381Z ok 6 - horse translated root articulates hip without moving a planted hoof
+2026-10-19T13:39:58.4169751Z   ---
+2026-10-19T13:39:58.4169973Z   duration_ms: 1.258673
+2026-10-19T13:39:58.4170890Z   type: 'test'
+2026-10-19T13:39:58.4171238Z   ...
+2026-10-19T13:39:58.4171689Z # Subtest: horse delta without root movement leaves the world contact fixed
+2026-10-19T13:39:58.4172268Z ok 7 - horse delta without root movement leaves the world contact fixed
+2026-10-19T13:39:58.4172625Z   ---
+2026-10-19T13:39:58.4172816Z   duration_ms: 1.168494
+2026-10-19T13:39:58.4173030Z   type: 'test'
+2026-10-19T13:39:58.4173224Z   ...
+2026-10-19T13:39:58.4173554Z # Subtest: two saved hair styles produce different hair meshes
+2026-10-19T13:39:58.4174017Z ok 8 - two saved hair styles produce different hair meshes
+2026-10-19T13:39:58.4174322Z   ---
+2026-10-19T13:39:58.4174505Z   duration_ms: 35.36955
+2026-10-19T13:39:58.4174718Z   type: 'test'
+2026-10-19T13:39:58.4174899Z   ...
+2026-10-19T13:39:58.4175219Z # Subtest: two saved looks produce different farmer materials
+2026-10-19T13:39:58.4175667Z ok 9 - two saved looks produce different farmer materials
+2026-10-19T13:39:58.4175973Z   ---
+2026-10-19T13:39:58.4176163Z   duration_ms: 26.165052
+2026-10-19T13:39:58.4176413Z   type: 'test'
+2026-10-19T13:39:58.4176601Z   ...
+2026-10-19T13:39:58.4176876Z # Subtest: live farmer idle update stays finite
+2026-10-19T13:39:58.4177264Z ok 10 - live farmer idle update stays finite
+2026-10-19T13:39:58.4177549Z   ---
+2026-10-19T13:39:58.4177737Z   duration_ms: 17.81362
+2026-10-19T13:39:58.4177971Z   type: 'test'
+2026-10-19T13:39:58.4178150Z   ...
+2026-10-19T13:39:58.4178505Z # Subtest: replacing a rig removes the old group and disposes it
+2026-10-19T13:39:58.4178997Z ok 11 - replacing a rig removes the old group and disposes it
+2026-10-19T13:39:58.4179306Z   ---
+2026-10-19T13:39:58.4179492Z   duration_ms: 51.935168
+2026-10-19T13:39:58.4179731Z   type: 'test'
+2026-10-19T13:39:58.4179912Z   ...
+2026-10-19T13:39:58.4347633Z 1..11
+2026-10-19T13:39:58.4348169Z # tests 11
+2026-10-19T13:39:58.4348453Z # suites 0
+2026-10-19T13:39:58.4348657Z # pass 11
+2026-10-19T13:39:58.4348943Z # fail 0
+2026-10-19T13:39:58.4349640Z # cancelled 0
+2026-10-19T13:39:58.4349885Z # skipped 0
+2026-10-19T13:39:58.4350764Z # todo 0
+2026-10-19T13:39:58.4351291Z # duration_ms 440.099432
+2026-10-19T13:39:58.4398628Z [CI-ISOLATION] END live3d.test.mjs code=0 signal=null elapsed=0.5s
+2026-10-19T13:39:58.4399702Z [CI-ISOLATION] START farmer3d.test.mjs 2026-10-19T13:39:58.439Z
+2026-10-19T13:39:58.4803527Z TAP version 13
+2026-10-19T13:40:00.4976085Z # Subtest: all eight hair styles and all six hat states remain distinct; faces clear in the full matrix
+2026-10-19T13:40:00.4986739Z ok 1 - all eight hair styles and all six hat states remain distinct; faces clear in the full matrix
+2026-10-19T13:40:00.4987472Z   ---
+2026-10-19T13:40:00.4987930Z   duration_ms: 1768.709896
+2026-10-19T13:40:00.4988395Z   type: 'test'
+2026-10-19T13:40:00.4988789Z   ...
+2026-10-19T13:40:00.4994171Z # Subtest: every exposed skin vertex matches the selected tone, including arms and head
+2026-10-19T13:40:00.4996504Z ok 2 - every exposed skin vertex matches the selected tone, including arms and head
+2026-10-19T13:40:00.4997305Z   ---
+2026-10-19T13:40:00.4997513Z   duration_ms: 48.24545
+2026-10-19T13:40:00.4997736Z   type: 'test'
+2026-10-19T13:40:00.4997930Z   ...
+2026-10-19T13:40:00.4999858Z # Subtest: real knees and elbows articulate; planted soles stay on the ground through walk/run at 30/60 Hz
+2026-10-19T13:40:00.5003018Z ok 3 - real knees and elbows articulate; planted soles stay on the ground through walk/run at 30/60 Hz
+2026-10-19T13:40:00.5003887Z   ---
+2026-10-19T13:40:00.5004197Z   duration_ms: 61.923016
+2026-10-19T13:40:00.5004433Z   type: 'test'
+2026-10-19T13:40:00.5004786Z   ...
+2026-10-19T13:40:00.5006737Z # Subtest: equal-distance cadence is frame-rate independent; caller phase and interaction poses are honored
+2026-10-19T13:40:00.5008681Z ok 4 - equal-distance cadence is frame-rate independent; caller phase and interaction poses are honored
+2026-10-19T13:40:00.5009326Z   ---
+2026-10-19T13:40:00.5009768Z   duration_ms: 30.206212
+2026-10-19T13:40:00.5010525Z   type: 'test'
+2026-10-19T13:40:00.5011326Z   ...
+2026-10-19T13:40:00.5018279Z # Subtest: idle head turn and wave return to neutral; villagers have independent skeletons and owned geometry
+2026-10-19T13:40:00.5019398Z ok 5 - idle head turn and wave return to neutral; villagers have independent skeletons and owned geometry
+2026-10-19T13:40:00.5020194Z   ---
+2026-10-19T13:40:00.5020544Z   duration_ms: 16.732749
+2026-10-19T13:40:00.5020956Z   type: 'test'
+2026-10-19T13:40:00.5021287Z   ...
+2026-10-19T13:40:00.5023173Z # Subtest: wardrobe foreground material is local, self-depth is retained and cleanup is idempotent
+2026-10-19T13:40:00.5025680Z ok 6 - wardrobe foreground material is local, self-depth is retained and cleanup is idempotent
+2026-10-19T13:40:00.5026445Z   ---
+2026-10-19T13:40:00.5026762Z   duration_ms: 12.769483
+2026-10-19T13:40:00.5027147Z   type: 'test'
+2026-10-19T13:40:00.5027462Z   ...
+2026-10-19T13:40:00.5203330Z 1..6
+2026-10-19T13:40:00.5203681Z # tests 6
+2026-10-19T13:40:00.5203929Z # suites 0
+2026-10-19T13:40:00.5204276Z # pass 6
+2026-10-19T13:40:00.5204700Z # fail 0
+2026-10-19T13:40:00.5205246Z # cancelled 0
+2026-10-19T13:40:00.5205772Z # skipped 0
+2026-10-19T13:40:00.5206491Z # todo 0
+2026-10-19T13:40:00.5207012Z # duration_ms 2051.962456
+2026-10-19T13:40:00.5252069Z [CI-ISOLATION] END farmer3d.test.mjs code=0 signal=null elapsed=2.1s
+2026-10-19T13:40:00.5252965Z [CI-ISOLATION] START animal-visual.test.mjs :: all six have an exposed 2026-10-19T13:40:00.525Z
+2026-10-19T13:40:00.5891444Z TAP version 13
+2026-10-19T13:40:00.6901674Z # [RAY-DIAG] cow before-create rss=61MiB heap=9MiB external=2MiB
+2026-10-19T13:40:00.7897444Z # [RAY-DIAG] cow created vertices=31728 rss=87MiB heap=20MiB external=4MiB
+2026-10-19T13:40:00.7899376Z # [RAY-DIAG] cow before-neck-raycast rss=87MiB heap=20MiB external=4MiB
+2026-10-19T13:40:00.8305463Z # [RAY-DIAG] cow after-neck-raycast hits=1 rss=103MiB heap=29MiB external=4MiB
+2026-10-19T13:40:00.8308616Z # [RAY-DIAG] cow before-head-raycast rss=103MiB heap=29MiB external=4MiB
+2026-10-19T13:40:00.8501608Z # [RAY-DIAG] cow after-head-raycast rss=101MiB heap=24MiB external=4MiB
+2026-10-19T13:40:00.8506214Z # [RAY-DIAG] cow disposed rss=101MiB heap=24MiB external=4MiB
+2026-10-19T13:40:00.8510381Z # [RAY-DIAG] sheep before-create rss=101MiB heap=24MiB external=4MiB
+2026-10-19T13:40:00.8631320Z # [RAY-DIAG] sheep created vertices=11100 rss=105MiB heap=16MiB external=5MiB
+2026-10-19T13:40:00.8633994Z # [RAY-DIAG] sheep before-neck-raycast rss=105MiB heap=16MiB external=5MiB
+2026-10-19T13:40:00.8758489Z # [RAY-DIAG] sheep after-neck-raycast hits=1 rss=104MiB heap=17MiB external=5MiB
+2026-10-19T13:40:00.8759513Z # [RAY-DIAG] sheep before-head-raycast rss=104MiB heap=17MiB external=5MiB
+2026-10-19T13:40:00.8808137Z # [RAY-DIAG] sheep after-head-raycast rss=104MiB heap=25MiB external=5MiB
+2026-10-19T13:40:00.8810379Z # [RAY-DIAG] sheep disposed rss=104MiB heap=25MiB external=5MiB
+2026-10-19T13:40:00.8811801Z # [RAY-DIAG] horse before-create rss=104MiB heap=25MiB external=5MiB
+2026-10-19T13:40:00.9505144Z # [RAY-DIAG] horse created vertices=16920 rss=112MiB heap=37MiB external=6MiB
+2026-10-19T13:40:00.9506238Z # [RAY-DIAG] horse before-neck-raycast rss=112MiB heap=37MiB external=6MiB
+2026-10-19T13:40:00.9758309Z # [RAY-DIAG] horse after-neck-raycast hits=1 rss=109MiB heap=27MiB external=6MiB
+2026-10-19T13:40:00.9759702Z # [RAY-DIAG] horse before-head-raycast rss=109MiB heap=27MiB external=6MiB
+2026-10-19T13:40:00.9851018Z # [RAY-DIAG] horse after-head-raycast rss=110MiB heap=23MiB external=6MiB
+2026-10-19T13:40:00.9851611Z # [RAY-DIAG] horse disposed rss=110MiB heap=23MiB external=6MiB
+2026-10-19T13:40:00.9852121Z # [RAY-DIAG] dog before-create rss=110MiB heap=23MiB external=6MiB
+2026-10-19T13:40:01.0011079Z # [RAY-DIAG] dog created vertices=11112 rss=117MiB heap=34MiB external=7MiB
+2026-10-19T13:40:01.0015328Z # [RAY-DIAG] dog before-neck-raycast rss=117MiB heap=34MiB external=7MiB
+2026-10-19T13:40:01.0125135Z # [RAY-DIAG] dog after-neck-raycast hits=1 rss=112MiB heap=31MiB external=7MiB
+2026-10-19T13:40:01.0126664Z # [RAY-DIAG] dog before-head-raycast rss=112MiB heap=31MiB external=7MiB
+2026-10-19T13:40:01.0193865Z # [RAY-DIAG] dog after-head-raycast rss=112MiB heap=23MiB external=6MiB
+2026-10-19T13:40:01.0195299Z # [RAY-DIAG] dog disposed rss=112MiB heap=23MiB external=6MiB
+2026-10-19T13:40:01.0196486Z # [RAY-DIAG] cat before-create rss=112MiB heap=23MiB external=6MiB
+2026-10-19T13:40:01.0377427Z # [RAY-DIAG] cat created vertices=11328 rss=118MiB heap=35MiB external=7MiB
+2026-10-19T13:40:01.0378602Z # [RAY-DIAG] cat before-neck-raycast rss=118MiB heap=35MiB external=7MiB
+2026-10-19T13:40:01.0491965Z # [RAY-DIAG] cat after-neck-raycast hits=1 rss=114MiB heap=31MiB external=7MiB
+2026-10-19T13:40:01.0493395Z # [RAY-DIAG] cat before-head-raycast rss=114MiB heap=31MiB external=7MiB
+2026-10-19T13:40:01.0547981Z # [RAY-DIAG] cat after-head-raycast rss=114MiB heap=39MiB external=7MiB
+2026-10-19T13:40:01.0549943Z # [RAY-DIAG] cat disposed rss=114MiB heap=39MiB external=7MiB
+2026-10-19T13:40:01.0552003Z # [RAY-DIAG] chicken before-create rss=114MiB heap=39MiB external=7MiB
+2026-10-19T13:40:01.0623584Z # [RAY-DIAG] chicken created vertices=5796 rss=117MiB heap=30MiB external=7MiB
+2026-10-19T13:40:01.0624785Z # [RAY-DIAG] chicken before-neck-raycast rss=117MiB heap=30MiB external=7MiB
+2026-10-19T13:40:01.0678971Z # [RAY-DIAG] chicken after-neck-raycast hits=1 rss=118MiB heap=38MiB external=7MiB
+2026-10-19T13:40:01.0680632Z # [RAY-DIAG] chicken before-head-raycast rss=118MiB heap=38MiB external=7MiB
+2026-10-19T13:40:01.0709368Z # [RAY-DIAG] chicken after-head-raycast rss=119MiB heap=42MiB external=7MiB
+2026-10-19T13:40:01.0713295Z # [RAY-DIAG] chicken disposed rss=119MiB heap=42MiB external=7MiB
+2026-10-19T13:40:01.0759876Z # Subtest: all six have an exposed connected neck and a pickable head, not just head bones
+2026-10-19T13:40:01.0769432Z ok 1 - all six have an exposed connected neck and a pickable head, not just head bones
+2026-10-19T13:40:01.0770390Z   ---
+2026-10-19T13:40:01.0770718Z   duration_ms: 383.355922
+2026-10-19T13:40:01.0771431Z   type: 'test'
+2026-10-19T13:40:01.0771639Z   ...
+2026-10-19T13:40:01.0929491Z 1..1
+2026-10-19T13:40:01.0929712Z # tests 1
+2026-10-19T13:40:01.0930623Z # suites 0
+2026-10-19T13:40:01.0931151Z # pass 1
+2026-10-19T13:40:01.0931586Z # fail 0
+2026-10-19T13:40:01.0933227Z # cancelled 0
+2026-10-19T13:40:01.0933777Z # skipped 0
+2026-10-19T13:40:01.0934218Z # todo 0
+2026-10-19T13:40:01.0934807Z # duration_ms 517.546908
+2026-10-19T13:40:01.0982131Z [CI-ISOLATION] END animal-visual.test.mjs :: all six have an exposed code=0 signal=null elapsed=0.6s
+2026-10-19T13:40:01.0983708Z [CI-ISOLATION] START animal-visual.test.mjs :: six species keep flat feet 2026-10-19T13:40:01.098Z
+2026-10-19T13:40:01.1577636Z TAP version 13
+2026-10-19T13:40:02.8016335Z # Subtest: six species keep flat feet above ground and planted feet steady at 30/60Hz
+2026-10-19T13:40:02.8024758Z ok 1 - six species keep flat feet above ground and planted feet steady at 30/60Hz
+2026-10-19T13:40:02.8025527Z   ---
+2026-10-19T13:40:02.8025959Z   duration_ms: 1542.738679
+2026-10-19T13:40:02.8026421Z   type: 'test'
+2026-10-19T13:40:02.8026795Z   ...
+2026-10-19T13:40:02.8213264Z 1..1
+2026-10-19T13:40:02.8214170Z # tests 1
+2026-10-19T13:40:02.8214743Z # suites 0
+2026-10-19T13:40:02.8215590Z # pass 1
+2026-10-19T13:40:02.8217319Z # fail 0
+2026-10-19T13:40:02.8218196Z # cancelled 0
+2026-10-19T13:40:02.8218975Z # skipped 0
+2026-10-19T13:40:02.8220531Z # todo 0
+2026-10-19T13:40:02.8221365Z # duration_ms 1676.540073
+2026-10-19T13:40:02.8266612Z [CI-ISOLATION] END animal-visual.test.mjs :: six species keep flat feet code=0 signal=null elapsed=1.7s
+2026-10-19T13:40:02.8267572Z [CI-ISOLATION] START animal-visual.test.mjs :: new rigs preserve distance cadence 2026-10-19T13:40:02.826Z
+2026-10-19T13:40:02.8881605Z TAP version 13
+2026-10-19T13:40:03.2972476Z # Subtest: new rigs preserve distance cadence, turn with travel, and release teleported feet
+2026-10-19T13:40:03.2993901Z ok 1 - new rigs preserve distance cadence, turn with travel, and release teleported feet
+2026-10-19T13:40:03.2995233Z   ---
+2026-10-19T13:40:03.2995653Z   duration_ms: 304.144328
+2026-10-19T13:40:03.2996098Z   type: 'test'
+2026-10-19T13:40:03.2996454Z   ...
+2026-10-19T13:40:03.3149553Z 1..1
+2026-10-19T13:40:03.3153057Z # tests 1
+2026-10-19T13:40:03.3153629Z # suites 0
+2026-10-19T13:40:03.3156470Z # pass 1
+2026-10-19T13:40:03.3160324Z # fail 0
+2026-10-19T13:40:03.3161446Z # cancelled 0
+2026-10-19T13:40:03.3162162Z # skipped 0
+2026-10-19T13:40:03.3163516Z # todo 0
+2026-10-19T13:40:03.3164044Z # duration_ms 440.338505
+2026-10-19T13:40:03.3211508Z [CI-ISOLATION] END animal-visual.test.mjs :: new rigs preserve distance cadence code=0 signal=null elapsed=0.5s
+2026-10-19T13:40:03.3212543Z [CI-ISOLATION] START animal-visual.test.mjs :: actual shin geometry reaches 2026-10-19T13:40:03.321Z
+2026-10-19T13:40:03.3812088Z TAP version 13
+2026-10-19T13:40:04.3961709Z # Subtest: actual shin geometry reaches the feet with no floating sole pieces
+2026-10-19T13:40:04.3969741Z ok 1 - actual shin geometry reaches the feet with no floating sole pieces
+2026-10-19T13:40:04.3970995Z   ---
+2026-10-19T13:40:04.3978602Z   duration_ms: 906.036861
+2026-10-19T13:40:04.3978993Z   type: 'test'
+2026-10-19T13:40:04.3979200Z   ...
+2026-10-19T13:40:04.4118578Z 1..1
+2026-10-19T13:40:04.4120186Z # tests 1
+2026-10-19T13:40:04.4120923Z # suites 0
+2026-10-19T13:40:04.4121720Z # pass 1
+2026-10-19T13:40:04.4123387Z # fail 0
+2026-10-19T13:40:04.4124111Z # cancelled 0
+2026-10-19T13:40:04.4124830Z # skipped 0
+2026-10-19T13:40:04.4126145Z # todo 0
+2026-10-19T13:40:04.4126674Z # duration_ms 1044.133241
+2026-10-19T13:40:04.4173374Z [CI-ISOLATION] END animal-visual.test.mjs :: actual shin geometry reaches code=0 signal=null elapsed=1.1s
+2026-10-19T13:40:04.4174522Z [CI-ISOLATION] START features.test.mjs 2026-10-19T13:40:04.417Z
+2026-10-19T13:40:04.4574519Z TAP version 13
+2026-10-19T13:40:04.5057211Z # Subtest: public site: the verified economy is off, even with a debug URL, a saved setting or the test flag itself
+2026-10-19T13:40:04.5063441Z ok 1 - public site: the verified economy is off, even with a debug URL, a saved setting or the test flag itself
+2026-10-19T13:40:04.5064403Z   ---
+2026-10-19T13:40:04.5088443Z   duration_ms: 8.068034
+2026-10-19T13:40:04.5088901Z   type: 'test'
+2026-10-19T13:40:04.5089229Z   ...
+2026-10-19T13:40:04.5089737Z # Subtest: local test server: off unless the harness set the flag (exactly true) before load
+2026-10-19T13:40:04.5090710Z ok 2 - local test server: off unless the harness set the flag (exactly true) before load
+2026-10-19T13:40:04.5091122Z   ---
+2026-10-19T13:40:04.5091317Z   duration_ms: 2.863599
+2026-10-19T13:40:04.5091543Z   type: 'test'
+2026-10-19T13:40:04.5091733Z   ...
+2026-10-19T13:40:04.5092021Z # Subtest: the switch can't be changed after load
+2026-10-19T13:40:04.5092410Z ok 3 - the switch can't be changed after load
+2026-10-19T13:40:04.5092687Z   ---
+2026-10-19T13:40:04.5092876Z   duration_ms: 0.668824
+2026-10-19T13:40:04.5093093Z   type: 'test'
+2026-10-19T13:40:04.5093286Z   ...
+2026-10-19T13:40:04.5159647Z 1..3
+2026-10-19T13:40:04.5160297Z # tests 3
+2026-10-19T13:40:04.5160899Z # suites 0
+2026-10-19T13:40:04.5162192Z # pass 3
+2026-10-19T13:40:04.5162792Z # fail 0
+2026-10-19T13:40:04.5163367Z # cancelled 0
+2026-10-19T13:40:04.5163924Z # skipped 0
+2026-10-19T13:40:04.5164459Z # todo 0
+2026-10-19T13:40:04.5165013Z # duration_ms 70.200239
+2026-10-19T13:40:04.5213235Z [CI-ISOLATION] END features.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:40:04.5214149Z [CI-ISOLATION] START sdk.test.mjs 2026-10-19T13:40:04.521Z
+2026-10-19T13:40:04.5610625Z TAP version 13
+2026-10-19T13:40:04.6032428Z # Subtest: production, locked browser package and emulator use one exact modular SDK
+2026-10-19T13:40:04.6039204Z ok 1 - production, locked browser package and emulator use one exact modular SDK
+2026-10-19T13:40:04.6040292Z   ---
+2026-10-19T13:40:04.6045664Z   duration_ms: 6.091596
+2026-10-19T13:40:04.6046043Z   type: 'test'
+2026-10-19T13:40:04.6046291Z   ...
+2026-10-19T13:40:04.6127501Z 1..1
+2026-10-19T13:40:04.6129444Z # tests 1
+2026-10-19T13:40:04.6130347Z # suites 0
+2026-10-19T13:40:04.6131066Z # pass 1
+2026-10-19T13:40:04.6132593Z # fail 0
+2026-10-19T13:40:04.6133351Z # cancelled 0
+2026-10-19T13:40:04.6133994Z # skipped 0
+2026-10-19T13:40:04.6135347Z # todo 0
+2026-10-19T13:40:04.6135871Z # duration_ms 63.348803
+2026-10-19T13:40:04.6180564Z [CI-ISOLATION] END sdk.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:40:04.6181528Z [CI-ISOLATION] START scene-polish.test.mjs 2026-10-19T13:40:04.617Z
+2026-10-19T13:40:04.6582290Z TAP version 13
+2026-10-19T13:40:04.7601120Z # Subtest: sculpted hands keep the camera envelope, six draws and bounded geometry
+2026-10-19T13:40:04.7608164Z ok 1 - sculpted hands keep the camera envelope, six draws and bounded geometry
+2026-10-19T13:40:04.7608931Z   ---
+2026-10-19T13:40:04.7621350Z   duration_ms: 29.210489
+2026-10-19T13:40:04.7621899Z   type: 'test'
+2026-10-19T13:40:04.7622316Z   ...
+2026-10-19T13:40:04.7623136Z # Subtest: near animal markers stay readable without filling the first-person view
+2026-10-19T13:40:04.7624154Z ok 2 - near animal markers stay readable without filling the first-person view
+2026-10-19T13:40:04.7624706Z   ---
+2026-10-19T13:40:04.7625068Z   duration_ms: 1.324104
+2026-10-19T13:40:04.7625299Z   type: 'test'
+2026-10-19T13:40:04.7625487Z   ...
+2026-10-19T13:40:04.7710966Z 1..2
+2026-10-19T13:40:04.7712932Z # tests 2
+2026-10-19T13:40:04.7713771Z # suites 0
+2026-10-19T13:40:04.7714584Z # pass 2
+2026-10-19T13:40:04.7715228Z # fail 0
+2026-10-19T13:40:04.7716687Z # cancelled 0
+2026-10-19T13:40:04.7717329Z # skipped 0
+2026-10-19T13:40:04.7718013Z # todo 0
+2026-10-19T13:40:04.7718581Z # duration_ms 124.483178
+2026-10-19T13:40:04.7763776Z [CI-ISOLATION] END scene-polish.test.mjs code=0 signal=null elapsed=0.2s
+2026-10-19T13:40:04.7764386Z [CI-ISOLATION] START asset-policy.test.mjs 2026-10-19T13:40:04.776Z
+2026-10-19T13:40:04.8198903Z TAP version 13
+2026-10-19T13:40:04.8615793Z # Subtest: embedded untextured production-policy fixture passes
+2026-10-19T13:40:04.8623369Z ok 1 - embedded untextured production-policy fixture passes
+2026-10-19T13:40:04.8624270Z   ---
+2026-10-19T13:40:04.8624717Z   duration_ms: 1.922508
+2026-10-19T13:40:04.8625145Z   type: 'test'
+2026-10-19T13:40:04.8625510Z   ...
+2026-10-19T13:40:04.8627454Z # Subtest: truncated and malformed containers fail closed
+2026-10-19T13:40:04.8630763Z ok 2 - truncated and malformed containers fail closed
+2026-10-19T13:40:04.8631363Z   ---
+2026-10-19T13:40:04.8631743Z   duration_ms: 1.291113
+2026-10-19T13:40:04.8632176Z   type: 'test'
+2026-10-19T13:40:04.8632535Z   ...
+2026-10-19T13:40:04.8636168Z # Subtest: external dependencies, unsupported extensions and uncompressed images rejected
+2026-10-19T13:40:04.8638756Z ok 3 - external dependencies, unsupported extensions and uncompressed images rejected
+2026-10-19T13:40:04.8640464Z   ---
+2026-10-19T13:40:04.8651303Z   duration_ms: 0.337849
+2026-10-19T13:40:04.8651802Z   type: 'test'
+2026-10-19T13:40:04.8652165Z   ...
+2026-10-19T13:40:04.8652910Z # Subtest: invalid ranges, missing normals and oversized geometry rejected
+2026-10-19T13:40:04.8653990Z ok 4 - invalid ranges, missing normals and oversized geometry rejected
+2026-10-19T13:40:04.8654663Z   ---
+2026-10-19T13:40:04.8655020Z   duration_ms: 0.282326
+2026-10-19T13:40:04.8655422Z   type: 'test'
+2026-10-19T13:40:04.8655784Z   ...
+2026-10-19T13:40:04.8656366Z # Subtest: root transform and animation contract enforced
+2026-10-19T13:40:04.8657180Z ok 5 - root transform and animation contract enforced
+2026-10-19T13:40:04.8657733Z   ---
+2026-10-19T13:40:04.8658101Z   duration_ms: 0.389315
+2026-10-19T13:40:04.8658515Z   type: 'test'
+2026-10-19T13:40:04.8658865Z   ...
+2026-10-19T13:40:04.8659549Z # Subtest: download, surfaces and materials are independent budgets
+2026-10-19T13:40:04.8660815Z ok 6 - download, surfaces and materials are independent budgets
+2026-10-19T13:40:04.8661443Z   ---
+2026-10-19T13:40:04.8661782Z   duration_ms: 0.420603
+2026-10-19T13:40:04.8670433Z   type: 'test'
+2026-10-19T13:40:04.8670804Z   ...
+2026-10-19T13:40:04.8737374Z 1..6
+2026-10-19T13:40:04.8738080Z # tests 6
+2026-10-19T13:40:04.8738407Z # suites 0
+2026-10-19T13:40:04.8738843Z # pass 6
+2026-10-19T13:40:04.8739409Z # fail 0
+2026-10-19T13:40:04.8740466Z # cancelled 0
+2026-10-19T13:40:04.8760908Z # skipped 0
+2026-10-19T13:40:04.8761289Z # todo 0
+2026-10-19T13:40:04.8761647Z # duration_ms 65.665558
+2026-10-19T13:40:04.8786069Z [CI-ISOLATION] END asset-policy.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:40:04.8787201Z [CI-ISOLATION] START ambient-render-observation.test.mjs 2026-10-19T13:40:04.878Z
+2026-10-19T13:40:04.9208266Z TAP version 13
+2026-10-19T13:40:04.9672939Z # Subtest: elapsed time without a draw cannot pass pause or resume
+2026-10-19T13:40:04.9678051Z ok 1 - elapsed time without a draw cannot pass pause or resume
+2026-10-19T13:40:04.9678709Z   ---
+2026-10-19T13:40:04.9679082Z   duration_ms: 1.66078
+2026-10-19T13:40:04.9679493Z   type: 'test'
+2026-10-19T13:40:04.9679846Z   ...
+2026-10-19T13:40:04.9683363Z # Subtest: an update callback without a completed draw cannot pass
+2026-10-19T13:40:04.9685310Z ok 2 - an update callback without a completed draw cannot pass
+2026-10-19T13:40:04.9690863Z   ---
+2026-10-19T13:40:04.9710941Z   duration_ms: 0.985594
+2026-10-19T13:40:04.9723599Z   type: 'test'
+2026-10-19T13:40:04.9723887Z   ...
+2026-10-19T13:40:04.9724331Z # Subtest: one draw or two draws before 700 ms cannot satisfy observation coverage
+2026-10-19T13:40:04.9724990Z ok 3 - one draw or two draws before 700 ms cannot satisfy observation coverage
+2026-10-19T13:40:04.9725412Z   ---
+2026-10-19T13:40:04.9725624Z   duration_ms: 0.784761
+2026-10-19T13:40:04.9725850Z   type: 'test'
+2026-10-19T13:40:04.9726063Z   ...
+2026-10-19T13:40:04.9726492Z # Subtest: actual stable pause and updating resume pass exact geometry checks
+2026-10-19T13:40:04.9727106Z ok 4 - actual stable pause and updating resume pass exact geometry checks
+2026-10-19T13:40:04.9727506Z   ---
+2026-10-19T13:40:04.9727697Z   duration_ms: 0.32245
+2026-10-19T13:40:04.9727932Z   type: 'test'
+2026-10-19T13:40:04.9728550Z   ...
+2026-10-19T13:40:04.9728839Z # Subtest: a rendered moving pause is rejected
+2026-10-19T13:40:04.9729225Z ok 5 - a rendered moving pause is rejected
+2026-10-19T13:40:04.9729538Z   ---
+2026-10-19T13:40:04.9729725Z   duration_ms: 0.454596
+2026-10-19T13:40:04.9730268Z   type: 'test'
+2026-10-19T13:40:04.9730515Z   ...
+2026-10-19T13:40:04.9730925Z # Subtest: a frozen resume and a resume that updates only once are rejected
+2026-10-19T13:40:04.9731547Z ok 6 - a frozen resume and a resume that updates only once are rejected
+2026-10-19T13:40:04.9731918Z   ---
+2026-10-19T13:40:04.9732121Z   duration_ms: 0.443846
+2026-10-19T13:40:04.9732351Z   type: 'test'
+2026-10-19T13:40:04.9732553Z   ...
+2026-10-19T13:40:04.9732908Z # Subtest: wrong motion state and invalid geometry remain failures
+2026-10-19T13:40:04.9733423Z ok 7 - wrong motion state and invalid geometry remain failures
+2026-10-19T13:40:04.9733776Z   ---
+2026-10-19T13:40:04.9733959Z   duration_ms: 0.489381
+2026-10-19T13:40:04.9734173Z   type: 'test'
+2026-10-19T13:40:04.9734362Z   ...
+2026-10-19T13:40:04.9734766Z # Subtest: early movement cannot disappear when later good receipts roll over
+2026-10-19T13:40:04.9735340Z ok 8 - early movement cannot disappear when later good receipts roll over
+2026-10-19T13:40:04.9735711Z   ---
+2026-10-19T13:40:04.9735890Z   duration_ms: 0.815047
+2026-10-19T13:40:04.9736155Z   type: 'test'
+2026-10-19T13:40:04.9736411Z   ...
+2026-10-19T13:40:04.9789216Z 1..8
+2026-10-19T13:40:04.9789546Z # tests 8
+2026-10-19T13:40:04.9790362Z # suites 0
+2026-10-19T13:40:04.9800822Z # pass 8
+2026-10-19T13:40:04.9810826Z # fail 0
+2026-10-19T13:40:04.9811150Z # cancelled 0
+2026-10-19T13:40:04.9811483Z # skipped 0
+2026-10-19T13:40:04.9811787Z # todo 0
+2026-10-19T13:40:04.9812003Z # duration_ms 70.553093
+2026-10-19T13:40:04.9838865Z [CI-ISOLATION] END ambient-render-observation.test.mjs code=0 signal=null elapsed=0.1s
+2026-10-19T13:40:04.9839593Z [CI-ISOLATION] ALL 38 Node test files and 0 browser suites passed; partition=node.
+2026-10-19T13:40:05.0005193Z ##[group]Run actions/upload-artifact@v5
+2026-10-19T13:40:05.0005524Z with:
+2026-10-19T13:40:05.0015522Z   name: core-partition-node-1
+2026-10-19T13:40:05.0015846Z   path: farm3d/tests/artifacts/
+2026-10-19T13:40:05.0016113Z   if-no-files-found: ignore
+2026-10-19T13:40:05.0016343Z   retention-days: 14
+2026-10-19T13:40:05.0016552Z   compression-level: 6
+2026-10-19T13:40:05.0016762Z   overwrite: false
+2026-10-19T13:40:05.0016971Z   include-hidden-files: false
+2026-10-19T13:40:05.0017207Z ##[endgroup]
+2026-10-19T13:40:05.1661202Z (node:3125) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-19T13:40:05.1662006Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-19T13:40:05.1738608Z With the provided path, there will be 3 files uploaded
+2026-10-19T13:40:05.1743828Z Artifact name is valid!
+2026-10-19T13:40:05.1744697Z Root directory input is valid!
+2026-10-19T13:40:05.4561951Z Beginning upload of artifact content to blob storage
+2026-10-19T13:40:05.4925069Z (node:3125) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-19T13:40:05.7094694Z Uploaded bytes 69567
+2026-10-19T13:40:05.7560704Z Finished uploading artifact content to blob storage!
+2026-10-19T13:40:05.7562484Z SHA256 digest of uploaded artifact zip is 04df74f2e4c825bbf4c3d092132fdc4c4d7488671a0b66bfba11542773736992
+2026-10-19T13:40:05.7563846Z Finalizing artifact upload
+2026-10-19T13:40:06.0151517Z Artifact core-partition-node-1.zip successfully finalized. Artifact ID 12190228405
+2026-10-19T13:40:06.0152985Z Artifact core-partition-node-1 has been successfully uploaded! Final size is 69567 bytes. Artifact ID is 12190228405
+2026-10-19T13:40:06.0159570Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39261488673/artifacts/12190228405
+2026-10-19T13:40:06.0334745Z Post job cleanup.
+2026-10-19T13:40:06.1746554Z Post job cleanup.
+2026-10-19T13:40:06.2620975Z [command]/usr/bin/git version
+2026-10-19T13:40:06.2658027Z git version 2.55.0
+2026-10-19T13:40:06.2699691Z Temporarily overriding HOME='/home/runner/work/_temp/843e4107-c71c-458a-bf32-0c22250751fb' before making global git config changes
+2026-10-19T13:40:06.2701639Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T13:40:06.2706909Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T13:40:06.2739179Z Removing SSH command configuration
+2026-10-19T13:40:06.2747248Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T13:40:06.2786418Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T13:40:06.3041666Z Removing HTTP extra header
+2026-10-19T13:40:06.3048246Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T13:40:06.3088195Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T13:40:06.3338913Z Removing includeIf entries pointing to credentials config files
+2026-10-19T13:40:06.3347882Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T13:40:06.3394941Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T13:40:06.3786200Z Cleaning up orphan processes
+2026-10-19T13:40:06.4084180Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

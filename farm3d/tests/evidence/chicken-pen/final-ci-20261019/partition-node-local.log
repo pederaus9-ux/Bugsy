@@ -1,0 +1,709 @@
+[CI-ISOLATION] START chicken-care.test.mjs 2026-10-19T13:33:20.264Z
+✔ chicken care module is available (0.880094ms)
+✔ one_six_and_zero_chickens (2.612661ms)
+✔ earlier_supply_deadline credits an egg exactly at expiry only (0.357286ms)
+✔ early_topup_quote costs by missing fraction and rejects duplicate revision (1.933442ms)
+✔ pause_and_resume preserves active progress without empty-supply backlog (0.389283ms)
+✔ pallet_boundary_and_barn_room never exceed capacity and collect gold first (11.158936ms)
+✔ clock_partition produces the same batches and RNG as one catch-up (12.776244ms)
+✔ clock_backwards neither credits time nor extends a refill into the past (0.252331ms)
+✔ new_chicken starts fresh with current supplies (0.368412ms)
+✔ legacy_migration_once retains paid ready and future eggs without free feed (0.545312ms)
+✔ unknown_care_version_preserved rejects actions without deleting data (0.342143ms)
+✔ happy_cycles_and_rewards persist and split double eggs without double XP (18.768555ms)
+✔ status is a read-only projection, even before first migration (0.200335ms)
+✔ malformed current-version care is preserved without crashing or paying invalid rewards (0.804143ms)
+✔ a legacy timer written by an older cached client is migrated even when care already exists (0.234505ms)
+✔ overlapping already-paid legacy timers for the same hen are preserved once each (0.176009ms)
+✔ thirty ordinary birds produce720 eggs over12 hours and survive reload (8.061783ms)
+✔ thirty birds retain partition-independent bonuses and pause at1200 eggs (54.262221ms)
+✔ all30 paid legacy timers migrate once, while31 birds remain untouched (0.509489ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209.999812
+[CI-ISOLATION] END chicken-care.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START chicken-care-integration.test.mjs 2026-10-19T13:33:20.538Z
+✔ insufficient_feed_and_duplicate_confirmation (18.873669ms)
+✔ water_is_free_and_pallet_pays_once_with_barn_limit (2.283538ms)
+✔ legacy_chicken_buttons_do_not_bypass_stations (0.763072ms)
+✔ read_only_farms_reject_all_new_mutations (1.27896ms)
+✔ other_species_exact and farm_roundtrip (2.287323ms)
+✔ unowned_and_future_care cannot spend or overwrite appearance (0.174036ms)
+✔ passive clock progress does not dirty an otherwise unchanged cloud snapshot (0.711756ms)
+✔ a stale displayed top-up cost cannot charge more feed than confirmed (0.421409ms)
+✔ malformed existing care blocks chicken purchase without spending (0.684616ms)
+✔ petting after time away cannot retroactively upgrade eggs already earned (1.031106ms)
+✔ buying between outputs never gives the new bird pre-purchase progress (0.600402ms)
+✔ thirty-bird purchase limit, refill charge and whole-flock save are consistent (7.297064ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2520.75394
+[CI-ISOLATION] END chicken-care-integration.test.mjs code=0 signal=null elapsed=2.6s
+[CI-ISOLATION] START chicken-yard.test.mjs 2026-10-19T13:33:23.122Z
+✔ physical coop and distinct reachable stations fit the chicken yard (34.859024ms)
+✔ geometry stays under a bounded component budget (19.188078ms)
+✔ netting encloses the east side and the coop has complete gable faces (20.353463ms)
+✔ pallet center remains selectable through slat gaps with stable station bounds (15.596995ms)
+✔ appearance and status reuse resources and restore preview without affecting footprint (20.649591ms)
+✔ thirty-bird yard has expanded room and a proportionately larger coop (17.111245ms)
+✔ enlarged stations and ramp clear the existing rock and bush collision footprints (21.425449ms)
+✔ default flock resting and spawn fallback point stays clear of enlarged stations (13.006132ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 328.587595
+[CI-ISOLATION] END chicken-yard.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START chicken-yard-interaction.test.mjs 2026-10-19T13:33:23.515Z
+✔ chicken card retains naming and petting without old feeding controls (2.729599ms)
+✔ feed and water trays show exact quote and 12-hour station confirmation (2.684101ms)
+✔ customization offers real color previews, apply, cancel and two roofs (1.188779ms)
+✔ full barn pallet tray reports stored stock and cannot offer a paid pickup (0.859001ms)
+✔ walking taps cannot collect a distant station outside interaction reach (1.728407ms)
+✔ replacing the coop tray discards its uncommitted preview (1.533169ms)
+✔ supply countdown cannot replace customization controls during a gesture (20.750991ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.463292
+[CI-ISOLATION] END chicken-yard-interaction.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START seed-selection.test.mjs 2026-10-19T13:33:23.698Z
+✔ picking a seed plants the selected plot, closes the picker and keeps it equipped (6.331227ms)
+✔ opening seeds discards an uncommitted coop preview (1.805191ms)
+✔ walking Plant repeats the selected crop without reopening its picker (1.949845ms)
+✔ changing the equipped seed does not plant an old pending plot (1.781857ms)
+✔ failed purchase keeps the equipped seed and does not change or charge a plot (2.631663ms)
+✔ opening information and changing view context do not unequip a seed (1.833342ms)
+✔ putting seeds away explicitly clears the selection and target without spending (1.962393ms)
+✔ locked and unknown crops cannot become equipped or call the planting rule (2.226795ms)
+✔ equipped planting cannot modify a visited farm or another blocked mode (8.790786ms)
+✔ walking action label names the equipped crop while keeping its Plant action identity (2.344148ms)
+✔ E and Enter plant once and repeated keydown events do not spend twice (4.514309ms)
+✔ equipped seed chip steps aside while the picker is open and returns when it closes (1.680456ms)
+✔ equipped display does not reuse the picker action attribute (1.619676ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 153.616427
+[CI-ISOLATION] END seed-selection.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START perf.test.mjs 2026-10-19T13:33:23.942Z
+✔ frame intervals: empty, median, nearest-rank p95 and foreground hitch (1.355315ms)
+✔ rolling windows expire old frames and retain bounded ring data (0.211563ms)
+✔ pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap (0.140528ms)
+✔ p95 uses nearest rank across 20 distinct intervals (0.122922ms)
+✔ composer counters include every pass and restore reset policy (0.444899ms)
+✔ display throttles updates, resets visibility gaps and remains collapsible (13.646399ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.305541
+[CI-ISOLATION] END perf.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow3d.test.mjs 2026-10-19T13:33:24.120Z
+✔ actual joints reach hoof targets and keep hooves level in three dimensions (72.950655ms)
+✔ planted feet stay in place through real travel; stationary phase freezes and settles (46.489746ms)
+✔ head turns, independent ears flick, blinking/tail move; sleeping is quieter (16.448069ms)
+✔ skin geometry is shared, animation belongs to each cow, and teleport is not a stride (0.861725ms)
+✔ planted hoof drift stays small at walk and run, then returns to neutral (16.594441ms)
+✔ hips stay parented to the body and do not drop during a full stride (2.097833ms)
+✔ equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns (4.154546ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.147272
+[CI-ISOLATION] END cow3d.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START cow-b17-performance.test.mjs 2026-10-19T13:33:24.495Z
+{"b17Performance":{"cows":12,"seconds":30,"hz":60,"updates":21600,"elapsedMs":157.513,"msPerUpdate":0.007292}}
+✔ B17 production topology stays inside the frozen cow envelope (75.246185ms)
+✔ B17 herd instances share immutable render resources but own animation state (4.362063ms)
+✔ B17 twelve-cow mixed-state soak remains finite and records update cost (162.127316ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 357.597189
+[CI-ISOLATION] END cow-b17-performance.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START cow-anatomy.test.mjs 2026-10-19T13:33:24.920Z
+✔ cow anatomy has outward closed surfaces, finite normalized weights and rigid flat cloven soles (153.097145ms)
+✔ actual neutral cow skin fits the B1 envelope and exposes attached neck/head/limbs (580.009925ms)
+✔ head/neck transitions remain finite and independent; motion algorithm stays externally controlled (60.094544ms)
+✔ udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source (136.609681ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1048.36524
+[CI-ISOLATION] END cow-anatomy.test.mjs code=0 signal=null elapsed=1.1s
+[CI-ISOLATION] START versions.test.mjs 2026-10-19T13:33:26.038Z
+✔ nested authored module versions cannot evade the cache consistency check (3.141247ms)
+✔ every versioned script is imported with one version only (0.423737ms)
+✔ window.__gameVer matches the game.js version it imports (0.207617ms)
+✔ the offline shell caches the same versions the page imports (0.437737ms)
+✔ the cache name is versioned and namespaced away from the 2D game (0.218052ms)
+✔ chicken dependencies of both the page and game rules are cached offline (0.141619ms)
+✔ offline shell contains the complete local JavaScript boot graph (0.841595ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 126.018607
+[CI-ISOLATION] END versions.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-modules.test.mjs 2026-10-19T13:33:26.253Z
+✔ horse hips stay on the body and planted drift stays bounded (134.193793ms)
+✔ dog and cat are not scaled sheep and return to neutral (31.597047ms)
+✔ chicken and farmer modules load and return to neutral (29.826418ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.551116
+[CI-ISOLATION] END animal-modules.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START horse-c1-baseline.test.mjs 2026-10-19T13:33:26.719Z
+{"horseC1":{"triangles":5640,"bones":24,"skinnedMeshes":1,"height":1.85}}
+✔ C1 freezes production horse topology and render structure (105.995624ms)
+✔ C1 horse instances share render resources but own skeleton state (15.652232ms)
+✔ C1 horse runtime is repeatable at the same frame rate and remains finite (448.501541ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 758.071478
+[CI-ISOLATION] END horse-c1-baseline.test.mjs code=0 signal=null elapsed=0.9s
+[CI-ISOLATION] START horse-rebuild.test.mjs 2026-10-19T13:33:27.572Z
+✔ ground-up horse is dedicated, finite, and keeps integration contracts (73.88014ms)
+✔ ground-up horse no longer depends on generic quadruped implementation (9.409669ms)
+✔ dog and cat remain on their unchanged generic production path (30.235127ms)
+✔ horse gait state distinguishes idle walk trot and canter without non-finite joints (74.596135ms)
+✔ horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter (2.632157ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 334.379399
+[CI-ISOLATION] END horse-rebuild.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START horse-r2-anatomy.test.mjs 2026-10-19T13:33:28.003Z
+✔ R2 barrel has a long horizontal torso, not stacked spherical chest (71.13383ms)
+✔ R2 neck rises less than 40 degrees and positions head ahead of withers (4.934147ms)
+✔ R2 muzzle is long and tapered; no pale vertical forehead horn exists (10.209878ms)
+✔ R2 forehips attach forward at shoulders while hoof IK roots remain fixed (5.456517ms)
+✔ ear bases meet actual skull triangles within 5 mm at farm scale (12.145328ms)
+✔ muzzle narrows in width and height while its face slopes downward (2.557247ms)
+✔ authored withers overlaps both actual barrel and neck bounds (1.449775ms)
+✔ resting forelegs reach at least 95 percent without moving hip roots (25.340613ms)
+✔ continuous withers uses body-neck split weights and stays joined at 20 degrees (2.992308ms)
+✔ idle foreknee stays under 15 degrees with fixed hip roots (12.554831ms)
+✔ continuous limbs keep knee and fetlock radius below cannon radius (1.812579ms)
+✔ six-bone tapered tail tip hangs below the hock (2.012764ms)
+✔ fore carpus and hind hock have distinct directional surface contours (0.658901ms)
+✔ tail retains hanging hair volume with a blunt end rather than a needle (0.746759ms)
+✔ head length and resting face angle are horse proportions, not an anteater snout (0.708263ms)
+✔ deep rounded jowl over a narrower muzzle, with a throatlatch notch into the neck (6.706799ms)
+✔ eyes sit a third down the head, below the forehead line, seated on the skull with orbits (47.036197ms)
+✔ nostrils and lips sit on a broad muzzle, not a narrow tube tip (1.830576ms)
+✔ leaf ears stand closer together than the skull edges and are flattened front to back (3.879704ms)
+✔ head, throat, crest and mane share one junction field with normalized weights (5.984044ms)
+✔ junction bends without folding or tearing under head/neck pitch and turns (31.17754ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 429.159998
+[CI-ISOLATION] END horse-r2-anatomy.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START horse-evidence-placement.test.mjs 2026-10-19T13:33:28.496Z
+✔ negative control: raw capture relocation leaves world anchors behind (74.450125ms)
+✔ capture placement resets idle contacts at both horse sizes (11.522161ms)
+✔ capture recentering preserves articulated pose and contacts for all modes (18.303779ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 240.51171
+[CI-ISOLATION] END horse-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START horse-stance-core.test.mjs 2026-10-19T13:33:28.798Z
+✔ world-space stance anchor never drifts when updated (1.223633ms)
+✔ swing captures actual pose, has smooth endpoint velocities and lands without a jump (0.413379ms)
+✔ swing touchdown matches across 30, 60 and 120 Hz (1.019402ms)
+✔ ordinary gait changes do not reset a swinging hoof; teleport explicitly resets it (0.251991ms)
+✔ stopping midway through a fast swing lands vertically without a hoof teleport (0.26463ms)
+✔ high-speed turning footstep respects bounded swing velocity instead of teleporting (0.20358ms)
+✔ gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged (3.352778ms)
+✔ re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks (0.313752ms)
+✔ a late re-aim of a gait swing stays continuous and lands where asked (0.306731ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.012451
+[CI-ISOLATION] END horse-stance-core.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START horse-locomotion-contract.test.mjs 2026-10-19T13:33:28.986Z
+✔ horse hips remain anatomically attached to the body through walk and canter (115.96179ms)
+✔ every hoof trajectory remains continuous through gait change, turn and stop (76.288683ms)
+✔ trot/canter threshold does not chatter under small speed variations (17.890961ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 349.300075
+[CI-ISOLATION] END horse-locomotion-contract.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START horse-contact-feasibility.test.mjs 2026-10-19T13:33:29.406Z
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=10s cgroup=885 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=20s cgroup=920 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=30s cgroup=928 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=40s cgroup=928 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=50s cgroup=1011 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=60s cgroup=1005 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=70s cgroup=1033 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=80s cgroup=1045 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=90s cgroup=1039 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=100s cgroup=1071 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=110s cgroup=1038 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=120s cgroup=1061 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=130s cgroup=1044 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=140s cgroup=1052 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=150s cgroup=1085 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=160s cgroup=1056 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=170s cgroup=1074 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=180s cgroup=1062 MiB / 8192 MiB; processes=
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=190s cgroup=1083 MiB / 8192 MiB; processes=
+✔ horse contact and support invariants hold, h 2.3, 104 scenarios x 30/60/120 Hz (57103.45153ms)
+✔ horse contact and support invariants hold, h 1.6, 104 scenarios x 30/60/120 Hz (58204.592407ms)
+✔ game-like roaming holds every invariant, 56 sessions (review reproductions pinned) (56465.393165ms)
+✔ pinned randomised sequences hold every invariant (3512.28688ms)
+✔ a 90-degree walking turn completes within 1.5 s at 1 and 1.25 m/s, 30/60/120 Hz (425.108563ms)
+✔ tight circles keep every hoof on its target and every invariant (4192.315249ms)
+✔ circles beyond the turn rate, slaloms and a straightened circle hold every invariant (11760.805555ms)
+✔ R6 review reproductions hold every invariant (5211.199422ms)
+✔ a turned walk returns to walk, and walking reversals keep a hoof down (750.296404ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 197801.965539
+[CI-ISOLATION] END horse-contact-feasibility.test.mjs code=0 signal=null elapsed=197.9s
+[CI-ISOLATION] START horse-motion-evidence.test.mjs 2026-10-19T13:36:47.292Z
+✔ motion evidence clips exercise actual gaits, transitions, turns, stops and teleport (844.811669ms)
+✔ slow reversals preserve actual contact without compensatory crouch (865.948824ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1853.954369
+[CI-ISOLATION] END horse-motion-evidence.test.mjs code=0 signal=null elapsed=1.9s
+[CI-ISOLATION] START sheep3d.test.mjs 2026-10-19T13:36:49.212Z
+✔ sheep hips stay on the body and the gait stays finite (24.893601ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.038612
+[CI-ISOLATION] END sheep3d.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START dog-face.test.mjs 2026-10-19T13:36:49.434Z
+✔ dog face correction and later authorized cat regions preserve frozen meshes and rest bones (381.396373ms)
+✔ dog has one embedded central nose, a narrow muzzle, mouth and attached lower jaw (65.778189ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 602.724848
+[CI-ISOLATION] END dog-face.test.mjs code=0 signal=null elapsed=0.7s
+[CI-ISOLATION] START dog-stop-continuity.test.mjs 2026-10-19T13:36:50.110Z
+✔ dog grounded planted paws retain contact on first idle frame h=0.55 hz=30 (33.302277ms)
+✔ dog grounded planted paws retain contact on first idle frame h=0.55 hz=60 (3.790162ms)
+✔ dog grounded planted paws retain contact on first idle frame h=0.55 hz=120 (4.783943ms)
+✔ dog grounded planted paws retain contact on first idle frame h=1.15 hz=30 (2.679441ms)
+✔ dog grounded planted paws retain contact on first idle frame h=1.15 hz=60 (2.249171ms)
+✔ dog grounded planted paws retain contact on first idle frame h=1.15 hz=120 (1.633493ms)
+✔ dog stop recovery holds contacts and lands all actual soles across gait phases (827.453804ms)
+✔ dog stop recovery also preserves contacts after left and right turns (20.248027ms)
+✔ dog recovery caches are per-rig, ignore invalid dt and release on teleport (1.699068ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1069.434143
+[CI-ISOLATION] END dog-stop-continuity.test.mjs code=0 signal=null elapsed=1.2s
+[CI-ISOLATION] START dog-evidence-placement.test.mjs 2026-10-19T13:36:51.263Z
+✔ active dog restart cache follows staging translation (29.003904ms)
+✔ negative control reproduces dog root-only staging errors (1.849875ms)
+✔ negative control reproduces stale recovery targets during neutral stage reset (1.865919ms)
+✔ neutral dog stage reset clears previous recovery at both sizes (4.793497ms)
+✔ stopping dog contacts remain translated on subsequent idle updates (3.042324ms)
+✔ dog evidence translation preserves mesh, pose and contacts at both sizes (78.824814ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 264.394452
+[CI-ISOLATION] END dog-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START cat-visual.test.mjs 2026-10-19T13:36:51.594Z
+✔ cat visual correction preserves other species, cat body/tail/lower legs/paws and every rest bone (316.906079ms)
+✔ cat has compact cheek pads, one triangular nose, whiskers and embedded ears (11.779053ms)
+✔ cat upper legs are continuous and remain attached to actual body across motion (9222.620224ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9758.794957
+[CI-ISOLATION] END cat-visual.test.mjs code=0 signal=null elapsed=9.8s
+[CI-ISOLATION] START cat-stop-continuity.test.mjs 2026-10-19T13:37:01.419Z
+✔ cat grounded planted paws retain contact on first idle frame h=0.4 hz=30 (39.380434ms)
+✔ cat grounded planted paws retain contact on first idle frame h=0.4 hz=60 (5.3577ms)
+✔ cat grounded planted paws retain contact on first idle frame h=0.4 hz=120 (6.599883ms)
+✔ cat grounded planted paws retain contact on first idle frame h=0.85 hz=30 (3.253383ms)
+✔ cat grounded planted paws retain contact on first idle frame h=0.85 hz=60 (0.974871ms)
+✔ cat grounded planted paws retain contact on first idle frame h=0.85 hz=120 (1.024523ms)
+✔ cat stop recovery holds contacts and lands all actual soles across gait phases (1036.017681ms)
+✔ cat stop recovery also preserves contacts after left and right turns (35.620208ms)
+✔ cat recovery caches are per-rig, ignore invalid dt and release on teleport (2.749043ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1354.600446
+[CI-ISOLATION] END cat-stop-continuity.test.mjs code=0 signal=null elapsed=1.4s
+[CI-ISOLATION] START cat-evidence-placement.test.mjs 2026-10-19T13:37:02.853Z
+✔ active cat restart cache follows staging translation (40.034914ms)
+✔ negative control reproduces cat root-only staging errors (3.063344ms)
+✔ negative control reproduces stale recovery targets during neutral stage reset (3.554886ms)
+✔ neutral cat stage reset clears previous recovery at both sizes (4.212179ms)
+✔ stopping cat contacts remain translated on subsequent idle updates (4.950663ms)
+✔ cat evidence translation preserves mesh, pose and contacts at both sizes (116.579405ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 358.002611
+[CI-ISOLATION] END cat-evidence-placement.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START chicken-coordinated-motion.test.mjs 2026-10-19T13:37:03.287Z
+fatal library error, lookup self
+[CI-ISOLATION] RUNNING chicken-coordinated-motion.test.mjs elapsed=10s cgroup=858 MiB / 8192 MiB; processes=
+✔ coordinated chicken meets every original 96-cell turn gate (5903.201714ms)
+✔ seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz (7649.660056ms)
+✔ restart during partial settling retains first-frame continuity (5.70844ms)
+✔ chicken geometry, skinning and factory rest transforms preserve frozen main (3.990088ms)
+✔ real 0.1-second frame cap preserves reachable feet without changing gameplay travel (7.777437ms)
+✔ the same chicken travel produces the same physical feet at 30/60/120 Hz (4.506074ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13742.140221
+[CI-ISOLATION] END chicken-coordinated-motion.test.mjs code=0 signal=null elapsed=13.8s
+[CI-ISOLATION] START chicken-start-turn.test.mjs 2026-10-19T13:37:17.115Z
+✔ chicken first walk frame cannot jump farther than root travel hz=30 (24.805769ms)
+✔ chicken right turn retains real grounded contacts even if a flag resets hz=30 (52.448619ms)
+✔ chicken first walk frame cannot jump farther than root travel hz=60 (0.434364ms)
+✔ chicken right turn retains real grounded contacts even if a flag resets hz=60 (69.521537ms)
+✔ chicken first walk frame cannot jump farther than root travel hz=120 (0.722645ms)
+✔ chicken right turn retains real grounded contacts even if a flag resets hz=120 (147.032589ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.627917
+[CI-ISOLATION] END chicken-start-turn.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START chicken-stop-continuity.test.mjs 2026-10-19T13:37:17.650Z
+✔ chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30 (26.070089ms)
+✔ chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60 (4.175924ms)
+✔ chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120 (2.048109ms)
+✔ chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30 (1.529903ms)
+✔ chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60 (2.046797ms)
+✔ chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120 (2.394555ms)
+✔ chicken stop recovery holds contacts and lands all actual soles across gait phases (786.703587ms)
+✔ chicken stop recovery also preserves contacts after left and right turns (17.051597ms)
+✔ chicken recovery caches are per-rig, ignore invalid dt and release on teleport (2.212499ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1010.37419
+[CI-ISOLATION] END chicken-stop-continuity.test.mjs code=0 signal=null elapsed=1.1s
+[CI-ISOLATION] START chicken-evidence-placement.test.mjs 2026-10-19T13:37:18.731Z
+✔ active chicken restart cache follows staging translation (28.807775ms)
+✔ negative control reproduces chicken root-only staging errors (1.418871ms)
+✔ negative control reproduces stale recovery targets during neutral stage reset (1.776132ms)
+✔ neutral chicken stage reset clears previous recovery at both sizes (4.062559ms)
+✔ stopping chicken contacts remain translated on subsequent idle updates (1.962654ms)
+✔ chicken evidence translation preserves mesh, pose and contacts at both sizes (53.757665ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 246.789711
+[CI-ISOLATION] END chicken-evidence-placement.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START live3d.test.mjs 2026-10-19T13:37:19.052Z
+✔ sheep movement changes the gait (25.906821ms)
+✔ horse movement changes the gait (85.080691ms)
+✔ dog movement changes the gait (12.907759ms)
+✔ cat movement changes the gait (13.224842ms)
+✔ chicken movement changes the gait (8.134538ms)
+✔ horse translated root articulates hip without moving a planted hoof (1.361717ms)
+✔ horse delta without root movement leaves the world contact fixed (0.715324ms)
+✔ two saved hair styles produce different hair meshes (25.326264ms)
+✔ two saved looks produce different farmer materials (18.59886ms)
+✔ live farmer idle update stays finite (12.074383ms)
+✔ replacing a rig removes the old group and disposes it (45.668584ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 413.508933
+[CI-ISOLATION] END live3d.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START farmer3d.test.mjs 2026-10-19T13:37:19.534Z
+✔ all eight hair styles and all six hat states remain distinct; faces clear in the full matrix (1595.915461ms)
+✔ every exposed skin vertex matches the selected tone, including arms and head (48.111061ms)
+✔ real knees and elbows articulate; planted soles stay on the ground through walk/run at 30/60 Hz (53.480393ms)
+✔ equal-distance cadence is frame-rate independent; caller phase and interaction poses are honored (27.658765ms)
+✔ idle head turn and wave return to neutral; villagers have independent skeletons and owned geometry (15.326833ms)
+✔ wardrobe foreground material is local, self-depth is retained and cleanup is idempotent (17.002825ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1902.948202
+[CI-ISOLATION] END farmer3d.test.mjs code=0 signal=null elapsed=2.0s
+[CI-ISOLATION] START animal-visual.test.mjs :: all six have an exposed 2026-10-19T13:37:21.510Z
+[RAY-DIAG] cow before-create rss=44MiB heap=12MiB external=4MiB
+[RAY-DIAG] cow created vertices=31728 rss=86MiB heap=29MiB external=6MiB
+[RAY-DIAG] cow before-neck-raycast rss=85MiB heap=29MiB external=6MiB
+[RAY-DIAG] cow after-neck-raycast hits=1 rss=83MiB heap=26MiB external=6MiB
+[RAY-DIAG] cow before-head-raycast rss=83MiB heap=26MiB external=6MiB
+[RAY-DIAG] cow after-head-raycast rss=90MiB heap=17MiB external=6MiB
+[RAY-DIAG] cow disposed rss=90MiB heap=17MiB external=6MiB
+[RAY-DIAG] sheep before-create rss=90MiB heap=17MiB external=6MiB
+[RAY-DIAG] sheep created vertices=11100 rss=95MiB heap=29MiB external=7MiB
+[RAY-DIAG] sheep before-neck-raycast rss=95MiB heap=29MiB external=7MiB
+[RAY-DIAG] sheep after-neck-raycast hits=1 rss=92MiB heap=26MiB external=7MiB
+[RAY-DIAG] sheep before-head-raycast rss=92MiB heap=26MiB external=7MiB
+[RAY-DIAG] sheep after-head-raycast rss=93MiB heap=33MiB external=7MiB
+[RAY-DIAG] sheep disposed rss=93MiB heap=33MiB external=7MiB
+[RAY-DIAG] horse before-create rss=93MiB heap=33MiB external=7MiB
+[RAY-DIAG] horse created vertices=16920 rss=101MiB heap=39MiB external=8MiB
+[RAY-DIAG] horse before-neck-raycast rss=101MiB heap=39MiB external=8MiB
+[RAY-DIAG] horse after-neck-raycast hits=1 rss=98MiB heap=28MiB external=8MiB
+[RAY-DIAG] horse before-head-raycast rss=98MiB heap=28MiB external=8MiB
+[RAY-DIAG] horse after-head-raycast rss=98MiB heap=24MiB external=8MiB
+[RAY-DIAG] horse disposed rss=98MiB heap=24MiB external=8MiB
+[RAY-DIAG] dog before-create rss=98MiB heap=24MiB external=8MiB
+[RAY-DIAG] dog created vertices=11112 rss=104MiB heap=36MiB external=9MiB
+[RAY-DIAG] dog before-neck-raycast rss=104MiB heap=36MiB external=9MiB
+[RAY-DIAG] dog after-neck-raycast hits=1 rss=101MiB heap=32MiB external=9MiB
+[RAY-DIAG] dog before-head-raycast rss=101MiB heap=32MiB external=9MiB
+[RAY-DIAG] dog after-head-raycast rss=101MiB heap=40MiB external=9MiB
+[RAY-DIAG] dog disposed rss=101MiB heap=40MiB external=9MiB
+[RAY-DIAG] cat before-create rss=101MiB heap=40MiB external=9MiB
+[RAY-DIAG] cat created vertices=11328 rss=106MiB heap=36MiB external=9MiB
+[RAY-DIAG] cat before-neck-raycast rss=106MiB heap=36MiB external=9MiB
+[RAY-DIAG] cat after-neck-raycast hits=1 rss=103MiB heap=32MiB external=9MiB
+[RAY-DIAG] cat before-head-raycast rss=103MiB heap=32MiB external=9MiB
+[RAY-DIAG] cat after-head-raycast rss=103MiB heap=40MiB external=9MiB
+[RAY-DIAG] cat disposed rss=103MiB heap=40MiB external=9MiB
+[RAY-DIAG] chicken before-create rss=103MiB heap=40MiB external=9MiB
+[RAY-DIAG] chicken created vertices=5796 rss=106MiB heap=31MiB external=9MiB
+[RAY-DIAG] chicken before-neck-raycast rss=106MiB heap=31MiB external=9MiB
+[RAY-DIAG] chicken after-neck-raycast hits=1 rss=106MiB heap=39MiB external=9MiB
+[RAY-DIAG] chicken before-head-raycast rss=106MiB heap=39MiB external=9MiB
+[RAY-DIAG] chicken after-head-raycast rss=106MiB heap=43MiB external=9MiB
+[RAY-DIAG] chicken disposed rss=106MiB heap=43MiB external=9MiB
+✔ all six have an exposed connected neck and a pickable head, not just head bones (330.620923ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 483.404431
+[CI-ISOLATION] END animal-visual.test.mjs :: all six have an exposed code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START animal-visual.test.mjs :: six species keep flat feet 2026-10-19T13:37:22.061Z
+✔ six species keep flat feet above ground and planted feet steady at 30/60Hz (1173.445251ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1462.597525
+[CI-ISOLATION] END animal-visual.test.mjs :: six species keep flat feet code=0 signal=null elapsed=1.5s
+[CI-ISOLATION] START animal-visual.test.mjs :: new rigs preserve distance cadence 2026-10-19T13:37:23.598Z
+✔ new rigs preserve distance cadence, turn with travel, and release teleported feet (229.925179ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 371.023618
+[CI-ISOLATION] END animal-visual.test.mjs :: new rigs preserve distance cadence code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START animal-visual.test.mjs :: actual shin geometry reaches 2026-10-19T13:37:24.037Z
+✔ actual shin geometry reaches the feet with no floating sole pieces (698.206676ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 826.480464
+[CI-ISOLATION] END animal-visual.test.mjs :: actual shin geometry reaches code=0 signal=null elapsed=0.9s
+[CI-ISOLATION] START features.test.mjs 2026-10-19T13:37:24.939Z
+✔ public site: the verified economy is off, even with a debug URL, a saved setting or the test flag itself (7.173986ms)
+✔ local test server: off unless the harness set the flag (exactly true) before load (2.061193ms)
+✔ the switch can't be changed after load (0.662598ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.270099
+[CI-ISOLATION] END features.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START sdk.test.mjs 2026-10-19T13:37:25.106Z
+✔ production, locked browser package and emulator use one exact modular SDK (5.518897ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.681962
+[CI-ISOLATION] END sdk.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START scene-polish.test.mjs 2026-10-19T13:37:25.285Z
+✔ sculpted hands keep the camera envelope, six draws and bounded geometry (22.585292ms)
+✔ near animal markers stay readable without filling the first-person view (1.114549ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.625381
+[CI-ISOLATION] END scene-polish.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START asset-policy.test.mjs 2026-10-19T13:37:25.512Z
