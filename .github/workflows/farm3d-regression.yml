@@ -305,9 +305,17 @@ jobs:
       - name: Install Chromium and system dependencies
         working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
-      - name: Care, station controls, native touch, saves and installed update
+      - name: Chicken care and interaction contracts
+        id: chicken-contracts
         working-directory: farm3d/tests
-        run: npm run test:chickens
+        run: node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs
+      - name: Chicken stations and native touch
+        working-directory: farm3d/tests
+        run: node chicken-pen.browser.cjs
+      - name: Installed worker update and offline reboot
+        if: ${{ !cancelled() && steps.chicken-contracts.outcome == 'success' }}
+        working-directory: farm3d/tests
+        run: node chicken-pen-update.browser.cjs
       - name: Preserve actual frames, videos, partial results and failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5

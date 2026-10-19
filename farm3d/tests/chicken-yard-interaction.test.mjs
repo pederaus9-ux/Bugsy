@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
-import {G,reset} from './chicken-game-fixture.mjs';
+import {G,reset,at,T} from './chicken-game-fixture.mjs';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 // Run the actual tray renderer, rather than checking whether source contains
 // strings. A restored old chicken feed button or missing station quote fails.
@@ -10,3 +10,5 @@ test('customization offers real color previews, apply, cancel and two roofs',()=
 test('full barn pallet tray reports stored stock and cannot offer a paid pickup',()=>{const s=reset(1);s.barnCap=G.barnUsed();const {body}=tray({type:'chickenStation',station:'eggs'});assert.match(body,/240/);assert.match(body,/barn/i);assert.doesNotMatch(body,/data-act="sell/);});
 test('walking taps cannot collect a distant station outside interaction reach',()=>{const s=reset(1);s.pens.chicken.list[0]=Date.now()-1;G.save();const c={G,GS:()=>G.S,photoMode:false,wardrobeOn:false,walk:{},thirdPerson:false,chickenPreview:null,hitAt:()=>({type:'chickenStation',station:'eggs',dist:20}),syncChickenYard(){},closeTrays(){},openInfo(){}};vm.createContext(c);vm.runInContext(html.slice(html.indexOf('function onTap('),html.indexOf('// ---------- barn colours')),c);assert.equal(c.onTap({clientX:10,clientY:10}),false);assert.equal(G.have('egg'),0);assert.equal(G.getChickenCareStatus().total,1);});
 test('replacing the coop tray discards its uncommitted preview',()=>{reset();const {c}=tray({type:'chickenStation',station:'coop'});c.infoTray={dataset:{}};c.showInfo=()=>{};c.trayHtml=()=>'<p>New context</p>';c.syncChickenYard=()=>{};vm.runInContext(html.slice(html.indexOf('function openInfo('),html.indexOf('\ninfoTray.addEventListener')),c);c.openInfo({type:'plot',i:0});assert.equal(c.chickenPreview,null);});
+
+test('supply countdown cannot replace customization controls during a gesture',()=>{reset(6);for(const resource of ['feed','water'])G.refillChickens(resource,G.chickenRefillQuote(resource).revision);const {c,body}=tray({type:'chickenStation',station:'coop'});at(T+2000);assert.equal(c.trayHtml(),body,'clock-only ticks must retain the same customization DOM');c.chickenPreview.walls='sage';assert.notEqual(c.trayHtml(),body,'an actual appearance choice still refreshes pressed state');});
