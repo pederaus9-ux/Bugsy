@@ -9,8 +9,9 @@ fs.mkdirSync(artifacts, {recursive:true});
 
 async function start(options = {}) {
   let servedRef=options.ref||null;
+  let keepCurrentWorker=false;
   const sourceCache=new Map();
-  const fileBytes=file=>{if(!servedRef)return fs.readFileSync(file);const relative=path.relative(root,file).split(path.sep).join('/'),key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}));return sourceCache.get(key);};
+  const fileBytes=file=>{const relative=path.relative(root,file).split(path.sep).join('/');if(!servedRef||(keepCurrentWorker&&relative==='farm3d/sw.js'))return fs.readFileSync(file);const key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}));return sourceCache.get(key);};
   const server = http.createServer((req, res) => {
     try {
       let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
@@ -31,7 +32,7 @@ async function start(options = {}) {
   const sessions = [];
   return {
     base,
-    serveRef(ref){servedRef=ref||null;},
+    serveRef(ref,settings={}){servedRef=ref||null;keepCurrentWorker=!!settings.keepCurrentWorker;},
     async setup(viewport, touch, name, mobile = touch) {
       // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
       const context = await browser.newContext({viewport,deviceScaleFactor:options.deviceScaleFactor??.5,hasTouch:touch,isMobile:mobile,serviceWorkers:options.serviceWorkers??'block',...(options.recordVideo?{recordVideo:{dir:options.videoDir??path.join(artifacts,'chicken-pen','video'),size:viewport}}:{})});
