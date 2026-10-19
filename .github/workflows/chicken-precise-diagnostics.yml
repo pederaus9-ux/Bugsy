@@ -1,0 +1,43 @@
+name: Chicken precise boundary diagnostics
+on:
+  push:
+    branches: [diagnostic/chicken-precise-20261019]
+permissions:
+  contents: read
+jobs:
+  precise:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        script: [chicken-pen-update.browser.cjs, scene-polish.browser.cjs]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Fetch exact installed base
+        run: git fetch --depth=1 origin 756df378e7adbe20f34c204dc54172b1030e16bd
+      - name: Install test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install hosted browser
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Deterministic actual-source boundary probes
+        working-directory: farm3d/tests
+        run: node --test precise-boundaries.test.mjs
+      - name: Original test with bounded observation
+        working-directory: farm3d/tests
+        run: node --require ./precise-browser-observer.cjs ${{ matrix.script }}
+      - name: Preserve observations and original failure
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: precise-${{ matrix.script }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          retention-days: 7
