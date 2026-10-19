@@ -13,6 +13,12 @@ const nodeFiles=[
  'asset-policy.test.mjs','ambient-render-observation.test.mjs'
 ];
 const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
+// Keep the default full run. Hosted CI partitions only at the Node/browser
+// boundary so each original suite and its deadlines remain unchanged.
+const partition=process.argv[2]??'all';
+if(process.argv.length>3 || !['all','node','browser'].includes(partition))throw Error('Expected one optional partition: all, node or browser');
+const selectedNodeFiles=partition==='browser'?[]:nodeFiles;
+const selectedBrowserFiles=partition==='node'?[]:browserFiles;
 let active=null;
 function memorySnapshot(){
  let cgroup='unknown';
@@ -53,12 +59,12 @@ const visualNames=[
  'new rigs preserve distance cadence',
  'actual shin geometry reaches'
 ];
-for(const f of nodeFiles){
+for(const f of selectedNodeFiles){
  if(f==='animal-visual.test.mjs'){
   for(const name of visualNames){
    await run(f+' :: '+name,['--max-old-space-size=2048','--test','--test-concurrency=1','--test-name-pattern='+name,f]);
   }
  }else await run(f,['--test','--test-concurrency=1',f]);
 }
-for(const f of browserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
-console.log('[CI-ISOLATION] ALL '+nodeFiles.length+' Node test files and '+browserFiles.length+' browser suites passed.');
+for(const f of selectedBrowserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
+console.log('[CI-ISOLATION] ALL '+selectedNodeFiles.length+' Node test files and '+selectedBrowserFiles.length+' browser suites passed; partition='+partition+'.');

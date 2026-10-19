@@ -1,0 +1,38 @@
+name: Core regression partition qualification
+on:
+  push:
+    branches: [codex/chicken-ci-completion-20261019]
+permissions:
+  contents: read
+jobs:
+  core:
+    name: Core partition (${{ matrix.suite }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [node, browser]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - if: matrix.suite == 'browser'
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Every original suite in the selected partition
+        working-directory: farm3d/tests
+        run: npm run test:core:game -- ${{ matrix.suite }}
+      - name: Retain browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: core-partition-${{ matrix.suite }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
