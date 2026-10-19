@@ -1,0 +1,31 @@
+name: Authored return failure snapshot
+on:
+  push:
+    branches: [diagnostic/authored-return-20261019]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Unchanged authored test; snapshot only after a failure
+        working-directory: farm3d/tests
+        run: node --require ./authored-failure-snapshot.cjs authored-hands.browser.cjs
+      - name: Preserve original result and failure state
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: authored-return-snapshot-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
+          retention-days: 14
