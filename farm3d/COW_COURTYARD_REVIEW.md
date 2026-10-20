@@ -249,3 +249,13 @@ upload/restore pass, but later original delayed-start race hits its unchanged
 are recovered. Added request-hold/release/navigation/boot timing observations
 will distinguish causes; no production auth or recovery assertion changed.
 Full final-head checks and owner gates remain pending.
+
+
+706a98f native390/844 qualification failed before a Milk node existed. The real DOM
+identity contract passed. The trusted Ready-cow tap completed but no cow card
+appeared; this is distinct from the earlier existing Milk-node detach. Portrait
+artifact12303525272 is verified locally (cow-native-run15); original30s limit and
+all journey assertions remain. Input-event/DOM-mutation recording is now added
+to the existing browser test to distinguish missing click delivery from hit/state
+selection, without changing gameplay, tap dispatch or targets. Root cause pending;
+PR90 remains draft, unmerged and not ready.
