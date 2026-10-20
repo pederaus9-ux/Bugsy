@@ -66,7 +66,8 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       const first = await pick(page);
       assert.deepEqual(errorsOf(session), [], f + ' page errors');
       const raw = await page.evaluate(() => { __dbg.G.save(); return localStorage.getItem('sunny-acres-3d-v1'); });
-      assert.ok(raw && JSON.parse(raw).v === 1, f + ' saves back as v1 JSON');
+      if (f.startsWith('3d-v2')) assert.ok(raw && JSON.parse(raw).v === 2, f + ' retains its paid-feature minimum writer2');
+      else assert.ok(raw && JSON.parse(raw).v === 1, f + ' saves back as v1 JSON');
       await page.reload({waitUntil: 'load'});
       await page.waitForFunction(() => window.__dbg && !document.getElementById('loading'), {}, {timeout: 120000});
       const second = await pick(page);
@@ -85,6 +86,11 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
         assert.equal(first.buildings, 6, 'every building present');
         assert.equal(first.owed, 1, 'level 6 farm from before perks gets one pick');
         pass(f + ' opens, keeps progress and is stable', `level ${first.level}, ${first.coins} coins, ${first.plots} fields, ${raw.length} bytes`);
+      } else if (f.startsWith('3d-v2')) {
+        assert.equal(first.level, fx.save.level);assert.equal(first.coins, fx.save.coins);assert.equal(first.wheat, fx.save.barn.wheat);
+        assert.equal(first.chickens,30);assert.equal(first.placed,2);
+        assert.deepEqual(JSON.parse(raw).decor,fx.save.decor,'paid inventory, old tulips and placed lamp orientation survive exactly');
+        pass(f + ' keeps minimum writer2, paid lamps and30 birds across save/reload',raw.length+' bytes');
       } else {
         assert.equal(first.coins, 120, 'coins "120" repaired to the number 120');
         assert.equal(first.types.gems, 'number', 'gems repaired to a number');
