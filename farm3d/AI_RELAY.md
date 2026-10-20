@@ -620,3 +620,35 @@ Owner selected concept4 Dairy Courtyard and requested real beds/shelter sleeping
 
 ## Cow design approved; implementation plans — October20
 Owner Yes at2026-10-20T11:14:27-05:00 approves concept4/specification and shared feed30,water12hours,robot12seconds,tank50gallons,existing5cow cap/rates/prices. Two linked plans cover cow robot/courtyard and subsequent all-animal physical care. Plans self-reviewed for interfaces, save/queue/quality/XP safety, original tests and actual rendered evidence. Native execution by sole lead follows existing repo instruction; no independent audit claim. Product code remains unchanged; plan review is the next gate, no new merge approval. Branch codex/cow-courtyard-20261020 is the single build thread.
+
+
+## Cow courtyard implementation checkpoint — 2026-10-20
+
+The owner approved the concept4 specification and the implementation plans
+(Yes11:14:27, Good11:52:40 America/Chicago). Work continues on the existing
+`codex/cow-courtyard-20261020` branch. Main remains
+`bf404a2a1261f3c7581025b249f2bd00c4539964`; no cow merge/deployment is authorized.
+
+Source checkpoint remote`ec84291554cf359b9a8e60a26cfc1d404bb63c12` has the same
+tree`1ff4de350bec2a99e9787a12649edf31719d3dbc` as local`618c736b93f94350d2b76cd1f44ecd840ec45e31`.
+Authenticated tree-equal publication preserves local commits because shell git
+push has no credentials. Do not reset or recreate this implementation.
+
+85 focused checks pass locally. Completed accounting covers stable IDs, supplied
+cycles, a manual FIFO robot ledger, exact tank/XP credit, writer3 protection and
+legacy paid timers. The scene prototype adds five beds, stocked stations, directed
+trips, opt-in folded-leg poses, and robot/tank controls. Pure/model tests include
+actual skin contact and all five bay center paths through actual model geometry.
+No accepted ordinary cow gait/anatomy file was changed.
+
+Native diagnostic39464917356 passed35 domain tests but stopped at an event popup;
+39465733521 passed37 domain tests and real feed/water touch, then selected the
+tank rather than the ready cow. Both original artifacts/logs are preserved. The
+corrected source is awaiting a hosted runner; no full robot, three-viewport, cloud,
+offline, GPU-rebuild or final full-suite pass is claimed. Local Chrome launch is
+blocked by OS sockets; browser installation success did not establish a pass.
+
+See[COW_COURTYARD_REVIEW.md](COW_COURTYARD_REVIEW.md) and the current state JSON.
+Continue native qualification, correct proven failures without weakening tests,
+then present an actual preview for owner acceptance. Remaining species follow
+the approved separate physical-care plan after the cow gate; they are not done.

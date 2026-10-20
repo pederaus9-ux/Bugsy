@@ -29,7 +29,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Cow domain, occupied site, pose and physical docking contracts
-        run: node --test farm3d/tests/animal-stations.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-milking.test.mjs farm3d/tests/cow-care-integration.test.mjs farm3d/tests/cow-writer-compatibility.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/cow-stations.test.mjs farm3d/tests/cow-scene.test.mjs farm3d/tests/cow-clearings.test.mjs
+        run: node --test farm3d/tests/animal-stations.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-milking.test.mjs farm3d/tests/cow-care-integration.test.mjs farm3d/tests/cow-writer-compatibility.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/cow-stations.test.mjs farm3d/tests/cow-scene.test.mjs farm3d/tests/cow-clearings.test.mjs farm3d/tests/cow-controls.test.mjs farm3d/tests/cow-robot-contact.test.mjs
       - name: Actual input and uninterrupted robot visit
         run: node farm3d/tests/cow-robot.browser.cjs
       - name: Installed52to53 cow writer guard and real offline reboot

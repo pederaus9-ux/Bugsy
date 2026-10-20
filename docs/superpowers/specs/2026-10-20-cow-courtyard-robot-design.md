@@ -1,6 +1,6 @@
 # Cow courtyard, robot milking and physical animal care
 Date: 2026-10-20
-Status: OWNER APPROVED 2026-10-20T11:14:27-05:00 — implementation plan review pending; no product implementation
+Status: OWNER APPROVED 2026-10-20T11:14:27-05:00; plans approved11:52:40 — implementation in progress; native qualification/owner preview pending
 Source baseline: bf404a2a1261f3c7581025b249f2bd00c4539964 (PR89 merged lights).
 Owner-selected visual: concept4, Dairy Courtyard.
 
