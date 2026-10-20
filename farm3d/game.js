@@ -232,8 +232,10 @@ function fresh() {
 // "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
-export const SAVE_VERSION = 1;
-export const MIGRATIONS = {};
+export const SAVE_VERSION = 2;
+// Version 2 reserves a minimum writer for farms that own the new utility lamp.
+// The data shape is unchanged. Existing farms stay v1 until they own that item.
+export const MIGRATIONS = {1:s=>s};
 // (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
 export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
@@ -248,7 +250,9 @@ export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
 // fill in anything a save from an older version (or from the 2D game) is missing
 export function upgrade(saved) {
   // compare against a separate fresh farm: the one being filled in can't also be the reference
-  const def = fresh(), s = Object.assign(fresh(), migrate(saved));
+  // Keep v1 farms writable by existing cached clients; v2 is a writer barrier,
+  // promoted by save() only after utility-lamp ownership. Future versions stay intact.
+  const def = fresh(), s = Object.assign(fresh(), migrate(saved, 1));
   s.buildings = s.buildings || {}; s.pens = s.pens || {};
   for (const k in def.buildings) { const b = s.buildings[k] = s.buildings[k] || def.buildings[k]; b.jobs = Array.isArray(b.jobs) ? b.jobs : []; }
   for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }
@@ -351,6 +355,7 @@ export function save() {
     return false;
   }
   settleChickens();
+  if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
   if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
   catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves

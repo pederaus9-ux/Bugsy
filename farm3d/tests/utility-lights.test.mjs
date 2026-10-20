@@ -17,7 +17,7 @@ test('utility lamp is an ordinary coin purchase; insufficient coins and full pla
  s.coins=1000;buy('utilitylamp');assert.equal(s.coins,750);assert.equal(s.decor.inv.utilitylamp,1);assert.equal(s.decor.placed.length,0);
  G.view.freeDecorSpot=()=>({x:-18,z:8});assert.equal(G.placeDecor('utilitylamp'),true);assert.equal(s.decor.inv.utilitylamp,undefined);
  s.decor.placed[0].rotation=.57;const owned=JSON.stringify(s.decor);G.save();G.load();assert.equal(JSON.stringify(G.S.decor),owned);assert.equal(G.S.pens.chicken.list.length,30);
- G.storeDecor(0);assert.equal(G.S.decor.inv.utilitylamp,1);assert.equal(G.S.coins,750);assert.equal(G.S.v,1);
+ G.storeDecor(0);assert.equal(G.S.decor.inv.utilitylamp,1);assert.equal(G.S.coins,750);assert.equal(G.S.v,2);
 });
 test('utility pole is solid, grounded, within the existing small footprint and owns its resources',()=>{
  assert.equal(typeof createUtilityLamp,'function');const a=createUtilityLamp(),b=createUtilityLamp();a.updateMatrixWorld(true);

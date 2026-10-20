@@ -37,7 +37,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Utility ownership, geometry, light budget and cache contracts
-        run: node --test farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+        run: node --test farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
       - name: Real illuminated farm, trusted input, GPU ownership and installed51to52 update
         run: node farm3d/tests/utility-lights.browser.cjs
       - name: Preserve actual night captures, partial results and failure traces

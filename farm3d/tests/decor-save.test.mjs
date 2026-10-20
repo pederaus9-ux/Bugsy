@@ -5,5 +5,5 @@ test('all54 legacy decor IDs and the utility lamp retain paid counts, positions 
  const s=reset(30),ids=Object.keys(G.DECOR);assert.equal(ids.length,55);assert(ids.includes('utilitylamp'));
  s.decor={inv:Object.fromEntries(ids.map((id,i)=>[id,1+i%3])),placed:ids.map((id,i)=>({id,x:-20+(i%9)*3,z:5+Math.floor(i/9)*3,rotation:.57}))};
  const expected=JSON.stringify(s.decor);G.save();G.load();assert.equal(JSON.stringify(G.S.decor),expected);
- assert.equal(G.S.pens.chicken.list.length,30);assert.equal(G.S.v,1);
+ assert.equal(G.S.pens.chicken.list.length,30);assert.equal(G.S.v,2);
 });
