@@ -2,9 +2,9 @@
 
 Main: `bf404a2a1261f3c7581025b249f2bd00c4539964` (lights remain live).
 Branch: `codex/cow-courtyard-20261020`. No cow PR/merge/deployment yet.
-Latest published source checkpoint: `ec84291554cf359b9a8e60a26cfc1d404bb63c12`,
-tree `1ff4de350bec2a99e9787a12649edf31719d3dbc`, identical to local`618c736`.
-Later drinking/picking/cup and slow-frame travel corrections are being qualified before publication.
+Latest qualified diagnostic checkpoint: `2033544a8fb8f738edb28e40bc2438d37ef39d2c`,
+tree `41fc0b3463d5a9222b564df733ab60756e070169`, identical to local`f1b2447`.
+The expanded herd, covered feed row and recovery/visual matrix are being qualified before publication.
 
 The owner approved concept4 and both plans. Cow care uses the unchanged five-cow
 cap/prices/rates; stocked30-unit feed, free12-hour water, manual12-second robot and
@@ -40,9 +40,9 @@ stable, clear the foundation reversibly, and follow the uninterrupted robot trip
 
 ## Still required
 
-Actual complete native trip and tank pickup;390/844/1280 day/night and physical
-feed/drink/lie/stand footage;20 actual GPU rebuilds with exact warmed baseline;
-installed52to53 offline update/old-writer refusal; authenticated cow recovery;
+390/844/1280 full-resolution day/night and physical feed/drink/lie/stand footage;
+20 actual GPU rebuilds with exact warmed baseline; docked/queued offline reload
+boundaries and partial quality pickup; authenticated cow recovery;
 all final exact-head required workflows; final adversarial author self-review;
 owner visual acceptance and explicit merge approval. Viewports do not establish
 physical-phone sustained performance. No independent external-agent audit exists.
@@ -61,3 +61,26 @@ unchanged. The offline raw-byte assertion remains exact; its fixture now uses
 the same fixed-clock method as the existing lamp writer-barrier test. No timeout,
 contact tolerance or original assertion is relaxed. Historical wardrobe resource
 drop remains unassigned and is not claimed fixed here.
+
+## Successful first native/offline checkpoint
+
+Diagnostic39469981279 passes on2033544:844x390 actual feed/water input,
+ready-cow selection and Milk, measured dock,12-second service, one tank credit,
+exit and native pickup with no repeatedXP. Actual52to53 installed-worker update,
+cached29 byte-preserving refusal, current30 reopen, exact cached-module hashes
+and offline paid-cycle readiness pass. Artifact12287191813 digest
+`af04c7274a890c398e878d6596de7aab04b18e87681ecd14ff23d160cab1d5de`
+was downloaded and its actual dock image/data inspected.
+
+New five-cow testing reproduced skipped supply visits and a two-cow post
+blockage. Cows now wait for stations, keep their own resting bay and yield in
+small collision-checked steps. Paid cycles request their portion even at low
+transient hunger; visual visits never spend feed again. Removal releases
+reservations. These changes pass focused tests and await expanded native QA.
+The shallow covered feed row is attached to the west shelter wing. No land,
+prices, herd cap, recipes or other species' production changed.
+
+Final visuals pin High and record the actual drawing pixel ratio, alongside
+browserDPR1. The earlier automatic-graphics recording alone does not establish
+that its drawing resolution stayed1. Three-size real-time care video and
+fixed-step normal-composer closeups remain distinct evidence categories.

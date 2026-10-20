@@ -1835,7 +1835,7 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
@@ -1870,17 +1870,19 @@ function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
 function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
 function beginCowTask(a,kind){
   const id=cowIdOf(a);if(!id)return false;
-  const token=cowStations.request(id,kind);if(!token)return false;
+  const preferred=kind==='bed'?cowYard.stations.filter(s=>s.kind==='bed')[a.ref.i]?.id:null;
+  const token=cowStations.request(id,kind,preferred);if(!token)return false;
   const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95),waypoints=[...(fromBed&&fromBed.id!==station.id?[fromBed.approach]:[]),station.approach,station.dock];a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
 }
+function waitCowStation(a,label){a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;}
 function chooseCowTask(a){
   if(!cowYardActive)return false;
   const job=cowStatus?.job,id=cowIdOf(a);
   if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();if(job.stage==='milking'&&a.pos.distanceTo(new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]))<=.1){a.cowTask.waypoints=[];a.cowTask.stage='align';}return true;}return false;}
   const paid=cowStatus?.cows[a.ref.i]?.feedCharged&&!cowStatus?.cows[a.ref.i]?.ready;
-  if((cowStatus?.feed>0||paid)&&a.need.hunger>.35&&beginCowTask(a,'feed'))return true;
-  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0)&&beginCowTask(a,'drink'))return true;
-  if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed');
+  if((paid&&a.cowMealCycle!==cowStatus.cows[a.ref.i].cycle)||(cowStatus?.feed>0&&a.need.hunger>.35))return beginCowTask(a,'feed')||waitCowStation(a,'Waiting for a feed space');
+  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink')||waitCowStation(a,'Waiting for the water trough');
+  if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
   return false;
 }
 function updateCowTask(a,dt,t){
@@ -1896,7 +1898,8 @@ function updateCowTaskStep(a,dt,t){
   a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
   const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
   const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
-  const waking=(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
+  const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
+  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
   if(waking||(isRobot&&!currentJob))task.stage='stand';
   const ox=a.g.position.x,oz=a.g.position.z;
   if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){releaseCowTask(a);a.act='idle';a.until=0;}}
@@ -1907,7 +1910,18 @@ function updateCowTaskStep(a,dt,t){
     if(!task.path?.length&&task.waypoints.length){const p=task.waypoints.shift();task.path=route(a.pos,new THREE.Vector2(p[0],p[2]),.42,PENS.courtyard);}
     const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
       const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
-      if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}if(d<.035)task.path.shift();
+      if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}
+      else{
+        // Keep the same body clearance while yielding around a moving or
+        // waiting neighbour. Never jump to a waypoint to break a blockage.
+        const side=task.avoidSide||1;
+        for(const sign of [side,-side]){
+          const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
+          const clear=fitsPen(PENS.courtyard,x,z,.42)&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
+          if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+        }
+      }
+      if(d<.035)task.path.shift();
     }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
@@ -1918,7 +1932,7 @@ function updateCowTaskStep(a,dt,t){
         if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
         if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];task.path=null;}
         a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
-      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){a.need.hunger=0;if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
+      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
     }
   }
   a.g.position.y=COW_YARD_LAYOUT.floor;
@@ -4053,7 +4067,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }

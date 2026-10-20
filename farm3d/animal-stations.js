@@ -5,10 +5,10 @@ export function createStationScheduler(stations){
  let next=1;const occupied=new Map();
  const matches=t=>t&&occupied.get(t.stationId)?.animalId===t.animalId&&occupied.get(t.stationId)?.generation===t.generation;
  return {
-  request(animalId,kind){
+  request(animalId,kind,preferredId=null){
    if(typeof animalId!=='string'||!animalId)return null;
-   const old=[...occupied.values()].find(t=>t.animalId===animalId);if(old)return definitions.get(old.stationId).kind===kind?{...old}:null;
-   const station=stations.find(s=>s.kind===kind&&!occupied.has(s.id));if(!station)return null;
+   const old=[...occupied.values()].find(t=>t.animalId===animalId);if(old)return definitions.get(old.stationId).kind===kind&&(!preferredId||old.stationId===preferredId)?{...old}:null;
+   const station=stations.find(s=>s.kind===kind&&(!preferredId||s.id===preferredId)&&!occupied.has(s.id));if(!station)return null;
    const token={stationId:station.id,animalId,generation:next++,arrived:false};occupied.set(station.id,token);return {...token};
   },
   arrive(token){if(!matches(token))return false;occupied.get(token.stationId).arrived=true;return true;},

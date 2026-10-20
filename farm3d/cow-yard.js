@@ -6,11 +6,11 @@ const station=(id,kind,x,z,ax,az,facing,surface=FLOOR)=>({id,kind,dock:[x,FLOOR,
 // All coordinates are world metres. The old horse/sheep paddock is untouched.
 export const COW_YARD_LAYOUT=Object.freeze({
  polygon:[[-14,-15.2],[-2.1,-15.2],[-2.1,-7.8],[-14,-7.8]],
- footprint:[[-14,-15.2],[1.1,-15.2],[1.1,-7.8],[-14,-7.8]],
+ footprint:[[-14,-15.2],[1.1,-15.2],[1.1,-7.55],[-14,-7.55]],
  gate:[-4.4,-2.1],floor:FLOOR,bed:[-8.9,-13.2,1],
  shelter:{x:[-12.1,-6.4],z:[-13.2,-12.8]},water:[-5.6,-10.4,.8,.7],
  fenceSegments:[[-14,-15.2,-2.1,-15.2],[-14,-15.2,-14,-7.8],[-14,-7.8,-4.4,-7.8],[-2.1,-15.2,-2.1,-7.8]],
- obstacles:[...[[-13.8,-11.45],[-10.8,-11.45],[-5.15,-11.45],[-10.35,-7.95],[-13.8,-7.95]].map(([x,z])=>[x,z,.065,.065]),...[-13.05,-10.55,-8.05,-5.55].map(x=>[x,-13.65,.0275,1.275]),[-12.4,-9.6,1.35,.0275],[-9.5,-15.1,4.5,.1],[-13.9,-11.5,.1,3.7],[-8.2,-8.05,2.7,.22],[-4.8,-10.4,.35,.8],[-4.35,-11.3,.035,1.9],[-2.25,-11.3,.035,1.9],[-1.85,-11.3,.25,.7],[.0,-11.3,1.1,.75]],
+ obstacles:[...[[-13.8,-11.45],[-10.8,-11.45],[-5.15,-11.45],[-10.35,-7.95],[-13.8,-7.95],[-10.95,-7.95],[-5.45,-7.95]].map(([x,z])=>[x,z,.065,.065]),...[-13.05,-10.55,-8.05,-5.55].map(x=>[x,-13.65,.0275,1.275]),[-12.4,-9.6,1.35,.0275],[-9.5,-15.1,4.5,.1],[-13.9,-11.5,.1,3.7],[-8.2,-8.05,2.7,.22],[-4.8,-10.4,.35,.8],[-4.35,-11.3,.035,1.9],[-2.25,-11.3,.035,1.9],[-1.85,-11.3,.25,.7],[.0,-11.3,1.1,.75]],
  robot:{entry:[-3.3,FLOOR,-9],dock:[-3.3,FLOOR,-11.3],exit:[-3.3,FLOOR,-14.2],turn:[-4.95,FLOOR,-14.2],clear:[-4.95,FLOOR,-12]},
  tank:[0,FLOOR,-11.3],
  stations:[station('cow-bed-1','bed',-11.8,-13.2,-11.8,-11.8,0),station('cow-bed-2','bed',-9.3,-13.2,-9.3,-11.8,0),station('cow-bed-3','bed',-6.8,-13.2,-6.8,-11.8,0),station('cow-bed-4','bed',-12.1,-10.7,-10.6,-10.7,Math.PI/2),station('cow-bed-5','bed',-12.1,-8.5,-10.5,-9,Math.PI/2),station('cow-feed-1','feed',-9.5,-9,-9.5,-10.3,0,.53),station('cow-feed-2','feed',-7.2,-9,-7.2,-10.3,0,.53),station('cow-drink','drink',-5.75,-10.4,-7.1,-10.4,Math.PI/2,.6),station('cow-robot','robot',-3.3,-11.3,-3.3,-9,Math.PI)],
@@ -39,7 +39,9 @@ export function createCowYard(){
  box(shelter,8.9,1.65,.14,'blue',-9.5,.9,-15.08);box(shelter,.14,1.65,7.2,'blue',-13.88,.9,-11.5);
  for(const[x,z]of [[-13.8,-11.45],[-10.8,-11.45],[-5.15,-11.45],[-10.35,-7.95],[-13.8,-7.95]])box(shelter,.13,2.7,.13,'cream',x,1.43,z);
  box(shelter,9.1,.17,3.9,'roof',-9.5,2.86,-13.25,0,-.055);box(shelter,3.75,.17,3.65,'roof',-12.15,2.82,-9.65,0,-.055);
- box(shelter,9.1,.2,.16,'cream',-9.5,2.72,-11.34);box(shelter,.16,.2,3.65,'cream',-10.23,2.72,-9.65);merge(shelter);
+ box(shelter,9.1,.2,.16,'cream',-9.5,2.72,-11.34);box(shelter,.16,.2,3.65,'cream',-10.23,2.72,-9.65);
+  // A shallow lean-to from the west wing keeps the feed row dry.
+  box(shelter,5.65,.12,1.6,'cream',-8.2,2.3,-8.52,0,-.06);for(const x of [-10.95,-5.45])box(shelter,.13,2.2,.13,'cream',x,1.18,-7.95);merge(shelter);
  const beds=makeGroup('cow-beds');for(const s of COW_YARD_LAYOUT.stations.filter(s=>s.kind==='bed')){const[x,,z]=s.dock,side=s.facing!==0;box(beds,side?3:2.15,.12,side?1.95:3,'straw',x,FLOOR+.06,z);}
  for(const x of [-13.05,-10.55,-8.05,-5.55]){box(beds,.055,.8,2.55,'metal',x,.55,-13.65);}
  box(beds,2.7,.6,.055,'metal',-12.4,.5,-9.6);merge(beds);
