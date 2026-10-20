@@ -2014,8 +2014,8 @@
       "sampleCapHit": false,
       "livePoseComponentError": 0,
       "finalThreeComponentErrors": [
-        1.1082258566996739e-05,
-        6.739122288546007e-07,
+        0.000011082258566996739,
+        6.739122288546007e-7,
         0
       ],
       "actualFrameGapsSeconds": [
@@ -2229,7 +2229,7 @@
     "base": "8a18715515028904e984012eb3d37c41eb0f2dc2",
     "branch": "codex/farm-utility-lights-20261020",
     "scope": "One250coinutilitylamp; solid fixed orientation; real nearest4nightPointLights; existing controls/saves",
-    "next": "Hosted native renders, light-off/on framebuffer and offline update, then full exact-head qualification",
+    "next": "Full exact-head PR89 qualification after tested glare/GPU-observation and game29 identity corrections; owner actual visual/merge acceptance pending",
     "mergeAuthorized": false
   },
   "marketSalesPublication": {
@@ -2566,5 +2566,63 @@
         }
       ]
     }
+  },
+  "utilityLights": {
+    "status": "FULL_EXACT_HEAD_QUALIFICATION_PENDING",
+    "pr": 89,
+    "base": "8a18715515028904e984012eb3d37c41eb0f2dc2",
+    "diagnosticHead": "ba99bfac218590f3445cfe36865e520ff093728c",
+    "diagnosticRun": 39433716353,
+    "nativeJob": 118665116411,
+    "native": "97 contracts and 6 native groups PASS at390/844/1280DPR1; actual51to52 requested-worker/offline paid lamp persistence",
+    "gpu": {
+      "cycles": 20,
+      "before": {
+        "geometries": 219,
+        "textures": 64
+      },
+      "after": {
+        "geometries": 219,
+        "textures": 64
+      },
+      "observation": "Real GPU fences complete each measured draw; no assertion/deadline relaxation"
+    },
+    "wardrobe": {
+      "job": 118665116015,
+      "result": "Matched sequence PASS; original historical292to281geometry decrease remains unassigned; original test/runtime unchanged",
+      "observed1280": {
+        "before": {
+          "geometries": 292,
+          "textures": 96
+        },
+        "after": {
+          "geometries": 292,
+          "textures": 96
+        },
+        "disposals": 2
+      }
+    },
+    "artifacts": [
+      {
+        "id": 12273095252,
+        "bytes": 7650423,
+        "digest": "sha256:b313593f10fb3973a1431c722ecb1ac9e5b3de0d5cb4cc6e985fd75a8c5516e5"
+      },
+      {
+        "id": 12269328996,
+        "bytes": 19300632,
+        "digest": "sha256:0199ef5c058d90cae5cbac6636ad4a71bde030abb5018cdd0a87c122d79bb896"
+      }
+    ],
+    "scope": "One250coin FarmUtility, automatic night real illumination, nearest4 unshadowed lights; old54models/IDs retained",
+    "visualReview": "Lead inspected actual normal-composer night front/side/back/day/offline renders; glare corrected12intensity/decay1/bulb1",
+    "limitations": [
+      "Diagnostic branch PASS does not clear final PR head",
+      "Historical wardrobe failure unassigned, preserved; no speculative correction",
+      "Original utility desktop60s frame timeout retained; GPU ordering evidence supports measured test correction, exclusive historical cause unproven",
+      "Physical phone sustained performance unverified",
+      "Solo lead self-review, not independent audit"
+    ],
+    "mergeAuthorized": false
   }
 }

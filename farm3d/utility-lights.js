@@ -20,13 +20,15 @@ export function createUtilityLamp(){
  add(new T.SphereGeometry(.105,12,8),bulb,.23,3.145);
  const bolt=new T.CylinderGeometry(.027,.027,.185,6);for(const y of [3.02,3.22]){const b=add(bolt,metal,-.25,y,.025);b.rotation.x=Math.PI/2;}
  const anchor=new T.Object3D();anchor.position.set(.23,3.12,0);g.add(anchor);
- let night=false;const data=g.userData.utilityLamp={anchor,disposed:false,setNight(on){if(night===on)return;night=on;bulb.emissiveIntensity=on?4:.08;}};
+ let night=false;const data=g.userData.utilityLamp={anchor,disposed:false,setNight(on){if(night===on)return;night=on;bulb.emissiveIntensity=on?1:.08;}};
  g.userData.dispose=()=>{if(data.disposed)return;data.disposed=true;for(const resource of owned)resource.dispose();};
  return g;
 }
 
 export function installUtilityLights(scene){
- const lights=Array.from({length:4},()=>{const l=new T.PointLight(0xffd59a,0,10,2);l.name='Placed utility illumination';l.castShadow=false;return l;});
+ // Softer near-field falloff keeps the bracket/post out of bloom clipping.
+ // 12/3.12 is approximately the original 38/(3.12^2) at ground level.
+ const lights=Array.from({length:4},()=>{const l=new T.PointLight(0xffd59a,0,10,1);l.name='Placed utility illumination';l.castShadow=false;return l;});
  let sources=[],disposed=false;const candidates=[],world=new T.Vector3();
  return {lights,
   setLamps(objects){sources=objects.filter(o=>o.userData.utilityLamp&&!o.userData.utilityLamp.disposed).map(o=>({object:o,data:o.userData.utilityLamp,position:new T.Vector3(),distance:0}));for(const light of lights){light.intensity=0;if(sources.length)scene.add(light);else scene.remove(light);}},
@@ -36,7 +38,7 @@ export function installUtilityLights(scene){
     source.data.anchor.getWorldPosition(world);source.position.copy(world);source.distance=(world.x-focus.x)**2+(world.z-focus.z)**2;candidates.push(source);
    }
    candidates.sort((a,b)=>a.distance-b.distance);
-   for(let i=0;i<lights.length;i++){const source=candidates[i],light=lights[i];light.intensity=source?38:0;if(source)light.position.copy(source.position);}
+   for(let i=0;i<lights.length;i++){const source=candidates[i],light=lights[i];light.intensity=source?12:0;if(source)light.position.copy(source.position);}
   },
   dispose(){if(disposed)return;disposed=true;for(const light of lights){scene.remove(light);light.dispose();}sources=[];candidates.length=0;}
  };
