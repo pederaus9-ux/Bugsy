@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts,root}=require('./browser-harness.cjs');
-(async()=>{const harness=await start(),results=[];let failed=true;
+(async()=>{const harness=await start({deviceScaleFactor:.25}),results=[];let failed=true;
 try{for(const width of [844,1280]){
  const s=await harness.setup({width,height:width===844?390:720},width===844,'authored-hands-'+width),p=s.page;
  const source=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8');

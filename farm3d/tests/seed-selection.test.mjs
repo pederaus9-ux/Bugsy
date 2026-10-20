@@ -21,7 +21,7 @@ function element(){
 function fixture(){
   const elements=new Map(),get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
   const S={level:1,coins:10,barn:{wheat:2},gold:{},plots:Array.from({length:4},()=>({crop:null,soil:100})),lastCrop:null};
-  const events={commits:0,toasts:[],keys:new Map()};
+  const events={commits:0,toasts:[],keys:new Map(),previewRestores:0};
   const env={S,events,console,innerWidth:844,innerHeight:390,performance:{now:()=>1000},document:{getElementById:get},
     soilNow:p=>p.soil,now:()=>1000,isRaining:()=>false,sprinkled:()=>false,heatwave:()=>false,
     growTime:()=>20000,toast:m=>events.toasts.push(m),sfx:()=>{},
@@ -30,6 +30,7 @@ function fixture(){
     actBtn:get('actBtn'),xhair:get('xhair'),plots:S.plots.map(()=>({g:{}})),
     farmDrag:null,walk:{},thirdPerson:false,aim:null,aimT:0,inBarn:false,visiting:null,
     photoMode:false,wardrobeOn:false,editMode:null,rotatePaused:false,
+    chickenPreview:null,syncChickenYard:()=>events.previewRestores++,
     squish:()=>{},buildPlants:()=>{},aimScan:()=>{},handPunch:()=>{},
     harvestAt:()=>false,fpBurst:()=>{},syncSoil:()=>{},petFacing:()=>{},enterBarn:()=>{},
     onTap:()=>{throw Error('Equipped walking Plant must not reopen the picker');},
@@ -64,6 +65,10 @@ test('picking a seed plants the selected plot, closes the picker and keeps it eq
   const f=fixture();f.api.openSeeds(0);f.api.pickSeed('wheat');
   assert.equal(f.S.plots[0].crop,'wheat');assert.equal(f.get('seedTray').hidden,true);
   assert.equal(f.api.armed,'wheat');assert.equal(f.api.pending,-1);
+});
+test('opening seeds discards an uncommitted coop preview',()=>{
+  const f=fixture();f.env.chickenPreview={walls:'sage'};f.api.openSeeds(0);
+  assert.equal(f.env.chickenPreview,null);assert.equal(f.events.previewRestores,1);
 });
 
 test('walking Plant repeats the selected crop without reopening its picker',()=>{

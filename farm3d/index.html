@@ -100,6 +100,11 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .tray .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2);flex:none}
 .tray-sub{font-size:13px;font-weight:800;opacity:.8}
 .tray .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 210px);overflow-y:auto;overscroll-behavior:contain}
+#infoTray[data-kind="chickenStation"] button{min-width:44px;min-height:44px;touch-action:manipulation}
+#infoTray[data-kind="chickenStation"] fieldset{border:1px solid var(--wood);border-radius:10px;margin:8px 0;padding:6px}
+#infoTray[data-kind="chickenStation"] [aria-pressed="true"]{outline:3px solid var(--blue-dk);outline-offset:-3px;background:#fff}
+@media(orientation:landscape) and (max-height:520px){#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 90px)}}
 .seeds{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:2px 0 2px;touch-action:none}
 .seed{touch-action:none;flex:none;width:70px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
 .seed img{width:36px;height:36px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
@@ -664,7 +669,8 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=25"; window.__gameVer = 25; // bump this version whenever game.js changes
+import * as G from "./game.js?v=27"; window.__gameVer = 27; // bump this version whenever game.js changes
+import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
 import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
@@ -1379,7 +1385,6 @@ const FENCE_RUNS = [
   [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
   [[10.81, 10.48], [12.6, -1.2], [12.8, -8.4], [4.5, -8.4], [4.5, -5.95]],        // paddock: east, north and back to the barn
   [[4.5, 5.95], [4.5, 8.87]],                                                   // paddock: from the barn's front corner to the path fence
-  [[-4.6, -4.8], [-12, -4.8], [-12, 5], [-4.6, 5]],                               // chicken yard beside the barn's west wall
 ];
 const fenceSegs = [], fences = [];
 for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
@@ -1387,6 +1392,9 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
   scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
+const chickenYard=createChickenYard();scene.add(chickenYard.group);
+CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
+fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);
 // water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
 function makeWaterPan(r) {
   const g = new THREE.Group(), rim = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, .14, 24, 1, true), M.metal || M.fence);
@@ -1509,7 +1517,6 @@ const silo = mergeStatic(makeSilo()); silo.position.set(6.2, 0, -3.5); scene.add
 for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = mergeStatic(makeBale()); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
 contact(-6.4, -2.9, 3, 3.6);
 const trough = mergeStatic(makeTrough()); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
-const henWater = makeWaterPan(.38); henWater.position.set(-9.6, 0, -2.4); scene.add(henWater); contact(-9.6, -2.4, 1.1, 1.1);
 const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
 for (const [x, z, s, sd] of [[-3.0, 9.3, .5, 1], [3.0, 16.9, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
 const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
@@ -1517,7 +1524,7 @@ const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.
 const BLOCKS_EXTRA = [];
 for (const [x, z, r] of [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9], [-3.0, 9.3, .5], [3.0, 16.9, .7], [-12.4, -6.5, 1.1], [-11.2, -5.8, .5], [12.5, 11, .8]]) BLOCKS_EXTRA.push([x, z, r * .8, r * .8]);
 const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
-for (const o of [barn, tree, tree2, silo, trough, lampPost, henWater, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
+for (const o of [barn, tree, tree2, silo, trough, lampPost, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
 
 bootStep("getting the animals ready");
 // ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
@@ -1545,8 +1552,8 @@ const persOf = (name) => { const K = Object.keys(PERSONALITY); let h = 7; for (c
 const PENS = {
   paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:["cow", "horse", "sheep"],
     bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:"the paddock"},
-  yard:{poly:[[-12, -4.8], [-4.9, -4.8], [-4.9, 5], [-12, 5]], kinds:["chicken"],
-    bed:[-8.6, 1.2, 1.8], shelter:{x:[-5.7, -5.3], z:[-1, 4.4]}, water:[-9.6, -2.4, .8, .8], name:"the chicken yard"},
+  yard:{poly:CHICKEN_YARD_LAYOUT.polygon, kinds:["chicken"],
+    bed:CHICKEN_YARD_LAYOUT.bed, shelter:CHICKEN_YARD_LAYOUT.shelter, water:CHICKEN_YARD_LAYOUT.water, name:"the chicken yard"},
 };
 const PEN_LIST = Object.values(PENS);
 const penOf = (kind) => PEN_LIST.find(p => p.kinds.includes(kind)) || null;
@@ -1568,7 +1575,7 @@ function outOfPens(v, margin) {
 }
 
 // where the animals may not walk: [x, z, halfWidth, halfDepth]
-const BLOCKS = [...BLOCKS_EXTRA, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
 BLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet bowl
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
@@ -1805,6 +1812,7 @@ let animals = [];
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
 function syncHerd() {
+  syncChickenYard();
   const want = [];
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
@@ -1817,6 +1825,12 @@ function syncHerd() {
     const pen = penOf(r.kind), p = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
     animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
   }
+}
+let chickenPreview=null;
+function syncChickenYard(){
+  chickenYard.group.visible=!!G.S?.pens.chicken?.owned;
+  chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);
+  chickenYard.setStatus(G.getChickenCareStatus());
 }
 
 bootStep("making the sky");
@@ -2841,7 +2855,7 @@ function aimScan() {
     case "plot": { const p = S.plots[h.i];
       if (!p.crop) { label = "Plant"; icon = "🌱"; } else if (ready(h.i)) { label = "Harvest"; icon = G.ITEMS[p.crop].e; } else if (!p.water) { label = "Water"; icon = "💧"; } break; }
     case "animal": { const an = h.an;
-      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
+      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (an.kind!=="chicken" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
       else { const pt = S.pets[an.ref.j]; if (pt && G.giftReady(pt)) { label = "Gift"; icon = "🎁"; } else { label = "Pet"; icon = "🤚"; } } break; }
     case "barn": label = "Open"; icon = "🚪"; break;
     case "building": label = "Open"; icon = G.BUILDINGS[h.bid].e; break;
@@ -2852,6 +2866,7 @@ function aimScan() {
     case "visitor": label = "Talk"; icon = "💬"; break;
     case "plotSale": label = "Buy"; icon = "🟫"; break;
     case "penSign": label = "Look"; icon = "🪧"; break;
+    case 'chickenStation': label={coop:'Customize',feed:'Fill feed',water:'Fill water',eggs:'Collect eggs'}[h.station];icon={coop:'🏠',feed:'🌾',water:'💧',eggs:'🥚'}[h.station];break;
   }
   if (label) aim = Object.assign(h, {label, icon});
 }
@@ -3312,6 +3327,7 @@ function sensePlayer(a, t) {
 // ---------- the view that game.js talks to ----------
 function keyPos(key) {
   const [type, a, b] = key.split(":");
+  if(type==='chicken'){const target=chickenYard.targets.find(t=>t.kind===a);return target?.object.position.clone().setY(a==='coop'?1.7:a==='eggs'?.2:.6);}
   if (type === "plot") { const P = plots[+a]; return P && P.g.position.clone().setY(.8); }
   if (type === "animal") { const an = animals.find(x => x.ref.type === "pen" && x.ref.kind === a && x.ref.i === +b); return an && an.g.position.clone().setY(an.S.h + .3); }
   if (type === "pet") { const an = animals.find(x => x.ref.type === "pet" && x.ref.j === +a); return an && an.g.position.clone().setY(an.S.h + .3); }
@@ -3386,7 +3402,7 @@ Object.assign(GV, {
 let armed = null, trayFor = null, pendingPlot = -1;
 const seedTray = document.getElementById("seedTray"), infoTray = document.getElementById("infoTray");
 const seedTool = document.getElementById("seedTool"), seedChoice = document.getElementById("seedChoice"), seedIcon = document.getElementById("seedIcon"), seedName = document.getElementById("seedName");
-function closeTrays() { seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; trayFor = null; pendingPlot = -1; updateSeedTool(); }
+function closeTrays() { if(chickenPreview){chickenPreview=null;syncChickenYard();} seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; trayFor = null; pendingPlot = -1; updateSeedTool(); }
 function updateSeedTool() {
   // Equipment belongs to this play session, not to a particular tray or save.
   if (!visiting && armed && (!G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level)) armed = null;
@@ -3411,7 +3427,7 @@ function renderSeeds() {
 }
 // tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
 function openSeeds(i) {
-  G.close(); infoTray.hidden = true; seedTray.classList.remove("away"); seedTray.hidden = false; trayFor = {type:"seeds"};
+  closeTrays(); G.close(); infoTray.hidden = true; seedTray.classList.remove("away"); seedTray.hidden = false; trayFor = {type:"seeds"};
   pendingPlot = i; renderSeeds(); updateSeedTool();
 }
 // while a finger is dragging to plant, the tray steps out of the way so you can see the fields under it.
@@ -3448,13 +3464,22 @@ addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", en
 seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
 seedChoice.addEventListener("click", () => openSeeds(-1));
 document.getElementById("seedPutAway").addEventListener("click", putAwaySeeds);
-function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; pendingPlot = -1; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; updateSeedTool(); }
+function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; pendingPlot = -1; infoTray.dataset.kind=forWhat.type; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; updateSeedTool(); }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
 const cdBtn = (act, label, at, cd, data) => { const l = G.cdLeft(at || 0, cd); return `<button class="btn plain sm" data-w="${act}" ${data} ${l ? "disabled" : ""}>${label}${l ? " · " + G.fmt(l).split(" ")[0] : ""}</button>`; };
 const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
 function trayHtml() {
   const f = trayFor; if (!f) return "";
   const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
+  if(f.type==='chickenStation'){
+    const s=G.getChickenCareStatus(),why={full:'Egg pallet full',feed:'Feed bin empty',water:'Waterer empty','feed-water':'Fill feed and water','no-chickens':'Add a chicken',unavailable:'Update required for this chicken save',unowned:'Buy the chicken coop first'}[s.reason]||'Producing eggs';
+    const summary=`<div class="tray-sub">${s.total}/${G.CHICKEN_CARE.capacity} eggs · ${why}</div><div class="tray-sub">Feed: ${G.fmt(s.feedMs)} · Water: ${G.fmt(s.waterMs)}</div>`;
+    if(f.station==='feed'||f.station==='water'){const q=G.chickenRefillQuote(f.station),isFeed=f.station==='feed';return `<h3><span>${isFeed?'🌾 Feed bin':'💧 Waterer'}</span>${x}</h3>${summary}<p>Full supplies last 12 real hours, including while you are away.</p><div class="row"><button id="chicken-fill" class="btn" data-w="chickenFill" data-resource="${f.station}" data-rev="${q.revision}" data-cost="${q.cost}" ${q.full||q.reason||!GS().pens.chicken.owned?'disabled':''}>${q.full?'Already full':isFeed?'Fill · '+q.cost+' chicken feed':'Fill water · free'}</button></div>`;}
+    if(f.station==='eggs')return `<h3><span>🥚 Egg pallet</span>${x}</h3>${summary}<p>Your barn has room for ${Math.max(0,G.space())}. Tap the pallet to pick up all that fits; remaining eggs stay here.</p>`;
+    const draft=chickenPreview||GS().pens.chicken.appearance||G.CHICKEN_DEFAULT_STYLE;
+    let options='';for(const [part,colors]of Object.entries(G.CHICKEN_PAINT)){options+=`<fieldset><legend>${part[0].toUpperCase()+part.slice(1)}</legend><div class="row">${Object.entries(colors).map(([id,[name,color]])=>`<button id="chicken-${part}-${id}" class="btn plain sm chicken-swatch" data-w="chickenPaint" data-part="${part}" data-value="${id}" aria-pressed="${draft[part]===id}" style="border-bottom:5px solid #${color.toString(16).padStart(6,'0')}">${name}</button>`).join('')}</div></fieldset>`;}
+    return `<h3><span>🏠 Customize coop</span>${x}</h3><p>Free appearance choices · space for ${G.ANIMALS.chicken.max} chickens</p>${options}<fieldset><legend>Roof appearance</legend><div class="row">${[['metal','Metal'],['shingles','Shingles']].map(([id,name])=>`<button id="chicken-roofType-${id}" class="btn plain sm" data-w="chickenPaint" data-part="roofType" data-value="${id}" aria-pressed="${draft.roofType===id}">${name}</button>`).join('')}</div></fieldset><div class="row"><button id="chicken-apply" class="btn" data-w="chickenApply">Apply</button><button id="chicken-cancel" class="btn plain" data-w="chickenCancel">Cancel</button></div>`;
+  }
   if (f.type === "plot") {
     const p = GS().plots[f.i]; if (!p.crop) return ""; const it = G.ITEMS[p.crop], left = p.end - nowMs(), n = G.thirsty();
     const tags = [p.water ? "💧 Watered" : G.heatwave() ? "🥵 Thirsty in the heat" : "Not watered yet", p.fert ? "🧪 Fertilized" : "", G.soilWord(p.soil),
@@ -3468,11 +3493,11 @@ function trayHtml() {
       <div class="row"><button class="btn gold" data-act="plot+">Buy · ${plotCostTxt()}</button></div>`;
   if (f.type === "animal") {
     const an = f.an, k = an.kind, i = an.ref.i, a = G.ANIMALS[k], pen = GS().pens[k], m = G.meta(k, i), end = pen.list[i], t = nowMs();
-    const status = end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
+    const status = k==="chicken"?"Feed and water at the stations · eggs on the outside pallet":end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
     const hungry = pen.list.filter(e => e === 0).length, d = `data-k="${k}" data-i="${i}"`;
     return `<div class="acard"><img src="${ART + k}.webp" alt=""><div class="who"><b class="nm">${esc(m.name)}</b><button class="rn" data-w="rename" aria-label="Rename">✏️</button>
       <div class="hearts">${G.hearts(m)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div><div class="tray-sub">${status}</div></div>${x}</div>
-      <div class="row">${end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
+      <div class="row">${k!=="chicken" && end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
       ${cdBtn("petA", "🤚 Pet", m.petAt, PET_CD, d)}${cdBtn("brushA", "✨ Brush", m.brushAt, BRUSH_CD, d)}${k === "horse" ? cdBtn("rideA", "🏇 Ride", m.playAt, PLAY_CD, d) : ""}
       ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">+ ${a.e} ${a.cost} 🪙</button>` : ""}</div>
       <div class="tray-sub center" style="margin-top:6px">${G.loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
@@ -3489,13 +3514,17 @@ function trayHtml() {
     return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Tap Move, then drag it with one finger</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button><button class="btn sm" data-w="move" data-i="${f.j}">✋ Move</button></div>`; }
   return "";
 }
-function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { infoTray.innerHTML = h; infoTray.dataset.h = h; } } }
-function openInfo(forWhat) { trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
+function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
 infoTray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-w]"); if (!b) return;
   const d = b.dataset, f = trayFor, i = +d.i;
   switch (d.w) {
     case "close": closeTrays(); return;
+    case 'chickenFill': if(G.refillChickens(d.resource,+d.rev,+d.cost))closeTrays();else refreshInfo();return;
+    case 'chickenPaint': if(chickenPreview){chickenPreview[d.part]=d.value;syncChickenYard();refreshInfo();}return;
+    case 'chickenApply': if(chickenPreview&&G.setChickenAppearance(chickenPreview)){chickenPreview=null;closeTrays();}return;
+    case 'chickenCancel': closeTrays();return;
     case "speedPlot": G.speedPlot(i); return;
     case "water": if (G.waterPlot(i)) squish(plots[i].g, .25); break;
     case "waterAll": G.waterAll(); break;
@@ -3520,7 +3549,7 @@ let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const an = ray.intersectObjects(animals.map(a => a.card))[0];
-  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
   let hit = hits[0];
   // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
@@ -3634,12 +3663,13 @@ function onTap(e) {
   if (wardrobeOn) return true; // (drag to turn around your farmer; taps do nothing here)
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
+  if(h.type==='chickenStation'&&walk&&(h.dist??Infinity)>(thirdPerson?8.5:5))return false;
   switch (h.type) {
     case "animal": {
       const an = h.an; squish(an.g, 1.3);
       if (an.ref.type === "pen") {
         const end = GS().pens[an.kind].list[an.ref.i];
-        if (end && end <= nowMs()) { // everyone ready drops what they made
+        if (an.kind!=="chicken" && end && end <= nowMs()) { // everyone ready drops what they made
           const k = an.kind, before = GS().pens[k].list.slice(); G.collectAll(k); an.emote("✨", 1.5); closeTrays();
           for (const a of animals) if (a.ref.type === "pen" && a.kind === k && before[a.ref.i] !== GS().pens[k].list[a.ref.i]) animalDrop(a, G.ANIMALS[k].out);
           return true; }
@@ -3662,6 +3692,10 @@ function onTap(e) {
     case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
     case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
     case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
+    case 'chickenStation': {
+      if(h.station==='eggs'){const n=G.collectChickenEggs();syncChickenYard();if(n){G.toast('Picked up '+n+' eggs. '+G.getChickenCareStatus().total+' remain on the pallet.');closeTrays();return true;}}
+      closeTrays();if(h.station==='coop')chickenPreview={...G.CHICKEN_DEFAULT_STYLE,...GS().pens.chicken.appearance};openInfo({type:'chickenStation',station:h.station});return true;
+    }
     case "decor": squish(h.obj, 1); openInfo({type:"decor", j:h.j}); return true;
     case "barn": squish(barn, .5); G.openPanel("barn"); return true;
   }
@@ -3822,7 +3856,7 @@ function updateGame(t, dt) {
   for (const o of decorObjs) if (o.userData.card) o.userData.card.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   updatePointer();
 }
-setInterval(() => { if (document.hidden) return; syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { if (document.hidden) return; syncChickenYard(); syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
 setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);
 // the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
 setInterval(() => {
@@ -3876,7 +3910,7 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
   get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }

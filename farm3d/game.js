@@ -6,6 +6,8 @@
    can show rewards over things, move the camera and place decorations.
    ============================================================ */
 
+import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
+export {CHICKEN_CARE};
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
   fx(key, text) {}, focus(key) {}, closeTrays() {}, busy() { return false; }, moveDecor(j) {},
@@ -37,7 +39,7 @@ export const CROPS = {
   strawberry:{time:360,xp:4,seed:8}, pumpkin:{time:600,xp:6,seed:12},
 };
 export const ANIMALS = {
-  chicken:{n:"Chicken",e:"🐔",feed:"chicken_feed",out:"egg",time:90,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:6},
+  chicken:{n:"Chicken",e:"🐔",feed:"chicken_feed",out:"egg",time:1800,xp:2,lvl:2,pen:"Chicken coop",penE:"🐔",penCost:100,cost:40,max:CHICKEN_CARE.maxBirds},
   cow:{n:"Cow",e:"🐄",feed:"cow_feed",out:"milk",time:180,xp:3,lvl:4,pen:"Cow pasture",penE:"🐄",penCost:300,cost:120,max:5},
   sheep:{n:"Sheep",e:"🐑",feed:"sheep_feed",out:"wool",time:300,xp:4,lvl:7,pen:"Sheep meadow",penE:"🐑",penCost:500,cost:200,max:5},
   // horses don't make goods: feed them a carrot and they give pony rides to visitors for coins
@@ -346,6 +348,7 @@ export function save() {
     if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
     return false;
   }
+  settleChickens();
   if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
   catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves
@@ -476,7 +479,49 @@ export function speedPlot(i) {
 }
 
 // ---------- animals ----------
+export const CHICKEN_PAINT = {
+  walls:{wood:['Natural wood',0x95683f],sage:['Sage',0x788b62],cream:['Buttercream',0xe4d5ac],red:['Barn red',0x9a3c30],white:['White',0xe8e1cf]},
+  roof:{red:['Muted red',0x934336],charcoal:['Charcoal',0x353b3a],green:['Forest',0x3c5548]},
+  trim:{cream:['Cream',0xeee3cc],white:['White',0xf8f4e7],dark:['Dark wood',0x493729]},
+};
+export const CHICKEN_DEFAULT_STYLE = Object.freeze({walls:'wood',roof:'red',trim:'cream',roofType:'metal'});
+const canCare = () => !!S?.pens.chicken?.owned && !homeS && !restoring && !newerSave && !window.__saHold && (!S.pens.chicken.care || S.pens.chicken.care.v === 1);
+function settleChickens(force=false) {
+  if(!canCare())return null;
+  const pen=S.pens.chicken,old=pen.care,copy=structuredClone(pen),next=settleChickenCare(copy,now());
+  if(!next)return null;
+  // Store production events, not every elapsed second: the saved time anchor
+  // already reconstructs partial progress. Passive ticks must not dirty cloud
+  // snapshots before any goods or player action changed.
+  if(force||!old||next.normal!==old.normal||next.gold!==old.gold||next.legacy.length!==old.legacy.length||next.birds.length!==old.birds.length||copy.list.some((n,i)=>n!==pen.list[i])){pen.care=next;pen.list=copy.list;}
+  return pen.care;
+}
+export const getChickenCareStatus = () => chickenCareStatus(S?.pens.chicken,now());
+export const chickenRefillQuote = resource => quoteChickenRefill(S?.pens.chicken,resource,now());
+export function refillChickens(resource,expectedRevision,expectedCost) {
+  if(!canCare())return false;
+  const t=now(),pen=S.pens.chicken;ensureChickenCare(pen,t);const q=quoteChickenRefill(pen,resource,t);
+  if(q.revision!==expectedRevision||q.reason||(expectedCost!==undefined&&q.cost!==expectedCost)){toast('Supplies changed. Check the bin again.');return false;}
+  if(resource==='feed'&&have('chicken_feed')<q.cost){toast('You need '+q.cost+' chicken feed. Make it at the Feed Mill.');return false;}
+  const result=refillChickenCare(pen,resource,t,expectedRevision);if(!result.ok)return false;
+  if(resource==='feed'&&result.cost){take('chicken_feed',result.cost);pen.list.forEach((_,i)=>addLove(meta('chicken',i),5));}
+  sfx(resource==='feed'?'feed':'water');view.refresh('herd');commit();return true;
+}
+export function collectChickenEggs() {
+  if(!canCare())return 0;
+  if(space()<1){barnFull();return 0;}
+  const got=takeChickenEggs(S.pens.chicken,space(),now()),n=got.normal+got.gold;
+  if(!n){toast('No eggs on the pallet yet. Keep feed and water filled.');return 0;}
+  add('egg',n);if(got.gold)addGold('egg',got.gold);gainXP(got.xp);eventProgress('egg',n);
+  view.fx('chicken:eggs','+'+n+' 🥚');sfx('chicken');view.refresh('herd');commit();return n;
+}
+export function setChickenAppearance(appearance) {
+  if(!canCare()||!ensureChickenCare(S.pens.chicken,now()))return false;
+  if(!appearance||!['metal','shingles'].includes(appearance.roofType)||Object.keys(CHICKEN_PAINT).some(k=>!Object.hasOwn(CHICKEN_PAINT[k],appearance[k])))return false;
+  S.pens.chicken.appearance={walls:appearance.walls,roof:appearance.roof,trim:appearance.trim,roofType:appearance.roofType};view.refresh('herd');commit();return true;
+}
 export function feedOne(kind, i) {
+  if(kind==='chicken'){toast('Fill the feed bin and waterer in the chicken run.');return false;}
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (pen.list[i] !== 0 || have(a.feed) < 1) return false;
   take(a.feed, 1); pen.list[i] = now() + a.time * 1000 * (loveOf(meta(kind, i)) >= 70 ? .8 : 1); // happy animals work faster
@@ -485,6 +530,7 @@ export function feedOne(kind, i) {
   return true;
 }
 export function feedAll(kind) {
+  if(kind==='chicken'){toast('Fill the chicken feed bin for the whole flock.');return 0;}
   const a = ANIMALS[kind], pen = S.pens[kind];
   let n = 0;
   pen.list.forEach((_, i) => { if (feedOne(kind, i)) n++; });
@@ -494,6 +540,7 @@ export function feedAll(kind) {
   return n;
 }
 export function collectAnimal(kind, i) {
+  if(kind==='chicken'){toast('Pick up eggs from the pallet outside the chicken run.');return false;}
   const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];
   if (!end || end > now()) return false;
   const happy = loveOf(meta(kind, i)) >= 70;
@@ -511,6 +558,7 @@ export function collectAnimal(kind, i) {
   return true;
 }
 export function collectAll(kind) {
+  if(kind==='chicken'){toast('Pick up eggs from the pallet outside the chicken run.');return 0;}
   let n = 0;
   S.pens[kind].list.forEach((_, i) => { if (collectAnimal(kind, i)) n++; });
   commit();
@@ -535,6 +583,7 @@ export const cdLeft = (at, cd) => Math.max(0, at + cd - now());
 export function interact(m, sound, act, key) {
   const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], k = act + "At";
   if (cdLeft(m[k] || 0, CD)) return false;
+  if(sound==='chicken')settleChickens(true); // Earned offline cycles precede this new happiness change.
   if (act === "treat") { if (S.coins < 10) { toast("Need 10 🪙"); sfx("error"); return false; } S.coins -= 10; }
   m[k] = t;
   addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
@@ -704,10 +753,12 @@ export function buyPen(kind) {
   return true;
 }
 export function buyAnimal(kind) {
+  if(kind==='chicken'&&(!canCare()||getChickenCareStatus().reason==='unavailable'))return false;
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (!pen.owned || pen.list.length >= a.max) return false;
   if (S.coins < a.cost) { toast("Need " + a.cost + " 🪙"); sfx("error"); return false; }
-  S.coins -= a.cost; pen.list.push(0); sfx(kind); toast("A new " + a.n.toLowerCase() + " joined the farm!"); view.refresh("herd"); commit();
+  if(kind==='chicken')settleChickens(true);
+  S.coins -= a.cost; pen.list.push(0); if(kind==='chicken')ensureChickenCare(pen,now()); sfx(kind); toast("A new " + a.n.toLowerCase() + " joined the farm!"); view.refresh("herd"); commit();
   return true;
 }
 export const dailyReady = () => S.lastDaily !== today();
@@ -1111,7 +1162,8 @@ let awayInfo = null;
 function awaySummary(gap) {
   const t = now(), out = [];
   const fields = S.plots.filter(p => p.crop && p.end <= t).length; if (fields) out.push(["🌾", fields + " field" + (fields > 1 ? "s are" : " is") + " ready to harvest"]);
-  let animals = 0; for (const k in S.pens) animals += S.pens[k].list.filter(e => e && e <= t).length; if (animals) out.push(["🐔", animals + " animal" + (animals > 1 ? "s have" : " has") + " something for you"]);
+  let animals = 0; for (const k in S.pens) if(k!=='chicken') animals += S.pens[k].list.filter(e => e && e <= t).length; if (animals) out.push(["🐄", animals + " animal" + (animals > 1 ? "s have" : " has") + " something for you"]);
+  const eggs=getChickenCareStatus().total;if(eggs)out.push(['🥚',eggs+' eggs are waiting on the chicken pallet']);
   let goods = 0; for (const k in S.buildings) goods += S.buildings[k].jobs.filter(j => j.end <= t).length; if (goods) out.push(["🏭", goods + " batch" + (goods > 1 ? "es" : "") + " of goods finished"]);
   const sold = standSold(); if (sold) out.push(["🏪", sold + " thing" + (sold > 1 ? "s" : "") + " sold at your roadside shop"]);
   const gifts = S.pets.filter(giftReady).length; if (gifts) out.push(["🎁", "Your pet" + (gifts > 1 ? "s have gifts" : " has a gift") + " for you"]);
@@ -1142,7 +1194,8 @@ export async function setReminders(on) {
 function nextThing() { // the soonest thing to finish, and what to say about it
   const t = now(), cands = [];
   for (const p of S.plots) if (p.crop && p.end > t) cands.push([p.end, ITEMS[p.crop].e + " Your " + ITEMS[p.crop].n.toLowerCase() + " is ready to harvest!"]);
-  for (const k in S.pens) for (const e of S.pens[k].list) if (e > t) cands.push([e, ANIMALS[k].e + " Your " + ANIMALS[k].n.toLowerCase() + "s have " + (ANIMALS[k].out ? ITEMS[ANIMALS[k].out].n.toLowerCase() : "earned coins") + " for you!"]);
+  for (const k in S.pens) if(k!=='chicken') for (const e of S.pens[k].list) if (e > t) cands.push([e, ANIMALS[k].e + " Your " + ANIMALS[k].n.toLowerCase() + "s have " + (ANIMALS[k].out ? ITEMS[ANIMALS[k].out].n.toLowerCase() : "earned coins") + " for you!"]);
+  const care=S.pens.chicken?.care;if(care?.v===1)for(const [key,label]of [['feedUntil','feed'],['waterUntil','water']])if(care[key]>t)cands.push([care[key],'🐔 The chicken '+label+' supply needs refilling.']);
   for (const k in S.buildings) for (const j of S.buildings[k].jobs) if (j.end > t) cands.push([j.end, ITEMS[j.r].e + " Your " + ITEMS[j.r].n.toLowerCase() + " is done at the " + BUILDINGS[k].n + "!"]);
   cands.sort((a, b) => a[0] - b[0]);
   return cands[0];
@@ -1624,7 +1677,7 @@ const howTo = () => `<ul class="howto">
   <li>👥 Visit friends and 💧 water their crops, compare on the 🏆 leaderboard, and swap goods at the 🏪 trading post.</li>
   <li>Tap buildings to make feed, bread, cheese, pies and more.</li>
   <li>Sell at the 🏪 roadside shop by the path, at your own price.</li>
-  <li>Tap an animal to feed it, collect from it, pet and brush it. Happy animals make more.</li>
+  <li>Chickens share a feed bin and waterer. Full supplies last 12 hours; eggs collect on the outside pallet. Tap chickens to pet or name them. Other animals keep their own feeding and collection.</li>
   <li>Win decorations in 🎪 special events. Tap a decoration and choose Move to put it somewhere else.</li>
   <li>Drag to turn the camera all the way around, pinch to zoom, two fingers to move.</li></ul>`;
 function panelLevel({lvl, unlocked}) {
@@ -1671,6 +1724,7 @@ function tickTimers() {
 }
 export function tick() {
   const t = now();
+  settleChickens();
   let changed = false;
   S.orders.forEach((o, i) => { if (o.wait && o.wait <= t) { S.orders[i] = genOrder(); changed = true; } });
   if (changed) save();

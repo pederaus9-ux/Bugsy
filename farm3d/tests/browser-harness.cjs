@@ -1,20 +1,26 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const {execFileSync}=require('node:child_process');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '../..');
 const artifacts = path.resolve(process.env.TEST_ARTIFACTS || path.join(__dirname, 'artifacts'));
 fs.mkdirSync(artifacts, {recursive:true});
 
-async function start() {
+async function start(options = {}) {
+  let servedRef=options.ref||null;
+  let keepCurrentWorker=false;
+  const sourceCache=new Map();
+  const fileBytes=file=>{const relative=path.relative(root,file).split(path.sep).join('/');if(!servedRef||(keepCurrentWorker&&relative==='farm3d/sw.js'))return fs.readFileSync(file);const key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}));return sourceCache.get(key);};
   const server = http.createServer((req, res) => {
     try {
       let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
       if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+      if(options.missingFiles?.has(path.relative(root,file).split(path.sep).join('/'))){res.writeHead(404);res.end();return;}
       if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
       res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.webmanifest':'application/manifest+json'})[path.extname(file)] || 'application/octet-stream');
-      res.end(fs.readFileSync(file));
+      res.end(fileBytes(file));
     } catch { res.writeHead(400); res.end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -26,9 +32,10 @@ async function start() {
   const sessions = [];
   return {
     base,
+    serveRef(ref,settings={}){servedRef=ref||null;keepCurrentWorker=!!settings.keepCurrentWorker;},
     async setup(viewport, touch, name, mobile = touch) {
       // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
-      const context = await browser.newContext({viewport,deviceScaleFactor:.5,hasTouch:touch,isMobile:mobile,serviceWorkers:'block'});
+      const context = await browser.newContext({viewport,deviceScaleFactor:options.deviceScaleFactor??.5,hasTouch:touch,isMobile:mobile,serviceWorkers:options.serviceWorkers??'block',...(options.recordVideo?{recordVideo:{dir:options.videoDir??path.join(artifacts,'chicken-pen','video'),size:viewport}}:{})});
       await context.tracing.start({screenshots:true,snapshots:true,sources:true});
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push('pageerror: ' + error.message));

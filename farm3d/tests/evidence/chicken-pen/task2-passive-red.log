@@ -1,0 +1,32 @@
+✖ passive clock progress does not dirty an otherwise unchanged cloud snapshot (28.049977ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.729346
+
+✖ failing tests:
+
+test at farm3d/tests/chicken-care-integration.test.mjs:11:1
+✖ passive clock progress does not dirty an otherwise unchanged cloud snapshot (28.049977ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '{"owned":true,"list":[0],"meta":[{"name":"Hen","love":55,"loveAt":1000000}],"care":{"v":1,"lastAt":1001000,"feedUntil":44200000,"waterUntil":44200000,"birds":[{"progress":1000,"duration":1800000,"happy":false,"startedAt":1000000}],"legacy":[],"batches":[],"normal":0,"gold":0,"rng":1243067293,"revision":3}}'
+  - '{"owned":true,"list":[0],"meta":[{"name":"Hen","love":55,"loveAt":1000000}],"care":{"v":1,"lastAt":1000000,"feedUntil":44200000,"waterUntil":44200000,"birds":[{"progress":0,"duration":1800000,"happy":false,"startedAt":1000000}],"legacy":[],"batches":[],"normal":0,"gold":0,"rng":1243067293,"revision":3}}'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/806d375d2259/sunny-chicken-build-2026-10-18/farm3d/tests/chicken-care-integration.test.mjs:11:311)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{"owned":true,"list":[0],"meta":[{"name":"Hen","love":55,"loveAt":1000000}],"care":{"v":1,"lastAt":1001000,"feedUntil":44200000,"waterUntil":44200000,"birds":[{"progress":1000,"duration":1800000,"happy":false,"startedAt":1000000}],"legacy":[],"batches":[],"normal":0,"gold":0,"rng":1243067293,"revision":3}}',
+    expected: '{"owned":true,"list":[0],"meta":[{"name":"Hen","love":55,"loveAt":1000000}],"care":{"v":1,"lastAt":1000000,"feedUntil":44200000,"waterUntil":44200000,"birds":[{"progress":0,"duration":1800000,"happy":false,"startedAt":1000000}],"legacy":[],"batches":[],"normal":0,"gold":0,"rng":1243067293,"revision":3}}',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

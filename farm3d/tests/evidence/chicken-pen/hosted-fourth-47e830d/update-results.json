@@ -1,0 +1,92 @@
+{
+  "status": "FAIL",
+  "baseRef": "756df378e7adbe20f34c204dc54172b1030e16bd",
+  "serviceWorkersAllowed": true,
+  "acceleratedLegacyTimer": true,
+  "physicalPhone": false,
+  "results": [
+    {
+      "name": "install exact base worker",
+      "pass": true,
+      "details": {
+        "cache": "sa3d-v46"
+      }
+    },
+    {
+      "name": "failed new-module installation preserves installed worker",
+      "pass": true,
+      "details": {
+        "expectedInstallationFailure": true,
+        "originalSaveUnchanged": true
+      }
+    },
+    {
+      "name": "activate candidate worker and verify cached hashes",
+      "pass": true,
+      "details": {
+        "game.js?v=26": "be61ffd4dd049127d2bd8fe11e8e1d888f9cc55d3c671ed74ade410e0f077cfd",
+        "chicken-care.js?v=1": "b910b8691517fee5fc35f02ae6300c669a51904ff9190a729b3067081c4e94b5",
+        "chicken-yard.js?v=1": "4ef6e3ed1769add7296230f2fb06ab539efccc386357678469ed92a96d3b8a75"
+      }
+    },
+    {
+      "name": "new page migrates paid egg exactly once",
+      "pass": true,
+      "details": {
+        "coins": 333,
+        "wheat": 7,
+        "feed": 6,
+        "names": [
+          "Old Hen",
+          "Second"
+        ],
+        "care": {
+          "v": 1,
+          "lastAt": 1792378132576,
+          "feedUntil": 0,
+          "waterUntil": 0,
+          "birds": [
+            {
+              "progress": 0,
+              "duration": 1800000,
+              "happy": false,
+              "startedAt": null
+            },
+            {
+              "progress": 0,
+              "duration": 1800000,
+              "happy": false,
+              "startedAt": null
+            }
+          ],
+          "legacy": [],
+          "batches": [
+            {
+              "n": 1,
+              "gold": false,
+              "xp": 2
+            }
+          ],
+          "normal": 1,
+          "gold": 0,
+          "rng": 1243067293,
+          "revision": 2
+        }
+      }
+    },
+    {
+      "name": "older cached client writes a new paid timer after migration",
+      "pass": true,
+      "details": {
+        "eggs": 2,
+        "feed": 5,
+        "timers": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "stage": "fully offline reboot retains modules and unpaid pallet",
+  "error": "page.waitForFunction: Timeout 90000ms exceeded.\n    at /home/runner/work/Bugsy/Bugsy/farm3d/tests/chicken-pen-update.browser.cjs:20:123"
+}
