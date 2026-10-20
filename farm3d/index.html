@@ -1835,13 +1835,14 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
     if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }
     const pen = penOf(r.kind),bed=r.kind==='cow'&&cowYardActive?cowYard.stations.filter(s=>s.kind==='bed')[r.i]:null,restoredDock=bed&&cowStatus?.job?.cowId===cowStatus?.cows[r.i]?.id&&['milking','exiting'].includes(cowStatus.job.stage),p = restoredDock?new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]):bed?new THREE.Vector2(bed.dock[0],bed.dock[2]):pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
     animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
+    if(r.kind==='cow')animals.at(-1).farmPen=G.S.pens.cow;
     if(bed)animals.at(-1).g.position.y=COW_YARD_LAYOUT.floor;
   }
 }
@@ -1852,7 +1853,7 @@ function syncChickenYard(){
   chickenYard.setStatus(G.getChickenCareStatus());
 }
 function setCowGrass(active){
-  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z,active?1.85:0);if(!active)CLEARS.delete(key);}
+  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z,active?2.65:0);if(!active)CLEARS.delete(key);}
 }
 function syncCowYard(){
   const owned=!!G.S?.pens.cow?.owned;
@@ -3514,6 +3515,7 @@ Object.assign(GV, {
     return true;
   },
   refresh(what) {
+    if (what === "all") applyLayout(); // Saved objects define whether the courtyard can be installed before cows spawn.
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
     if (what === "buildings" || what === "all") syncBuildings();
@@ -3522,7 +3524,7 @@ Object.assign(GV, {
     if (what === "visitor" || what === "all") syncVisitor();
     if (what === "look" || what === "all") buildFarmer();
     if (what === "style" || what === "all") applyStyle();
-    if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout();syncCowYard(); }
+    if (what === "all") { syncPenSigns(); syncBuildings();syncCowYard(); }
   },
   freeDecorSpot(size) {
     const c = cam.target;

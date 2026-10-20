@@ -104,16 +104,15 @@
   },
   "currentProgram": "Physical animal care and robot milking",
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
-  "currentPhase": "COW_COURTYARD_DESIGN",
+  "currentPhase": "COW_COURTYARD_IMPLEMENTATION_QA",
   "currentPhaseTitle": "Concept4 courtyard, beds and robot-to-bulk-tank milking",
-  "phaseStatus": "DESIGN_APPROVED_IMPLEMENTATION_PLAN_REVIEW_PENDING",
+  "phaseStatus": "DRAFT_PR90_RENDERED_AND_FULL_QUALIFICATION_IN_PROGRESS",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": null,
+  "activePullRequest": 90,
   "nextPhases": [
-    "Owner reviews cow and all-animal implementation plans",
-    "Execute native cow milestone on existing branch",
-    "Qualify actual cow robot/bed/feed/water preview and exact-head checks",
-    "After owner gate, complete physical care for all remaining animals"
+    "Finish cow rendered/native/offline/cloud qualification and final exact-head workflows",
+    "Present actual cow preview for owner visual acceptance and explicit merge approval",
+    "After the cow owner/merge gate, execute approved remaining-animal physical-care plan"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -134,7 +133,7 @@
     "stopOnProtectedSystemExpansion": true
   },
   "specialNotes": [
-    "Cow work is frozen under owner instructions; historical cow program metadata is nested under legacyCowProgramRecord.",
+    "Accepted cow anatomy and ordinary gait remain frozen. Owner approved the separate physical-care courtyard overlay and robot plan on October20; remaining species follow only after the cow owner/merge gate.",
     "PR #70, #71 and #72 are closed and merged (GitHub API, verified 2026-10-11): #70 and #71 at 2026-10-10T14:12Z by the owner (#71 = main 205b25d); #72 into #71's branch (af366ec).",
     "Owner authorized next phase after PR #73 merge; lead selected sheep audit. Horse R8 owner positive preview feedback and explicit merge authorization are recorded in the build conversation. Full release/device qualification remains separate.",
     "Owner said all animals are good at 2026-10-12T19:30:47-05:00 and go at 19:31:33-05:00. Current animal visual gate closed; Phase 7N authorized. This is not sustained device, security, cloud-conflict or release acceptance. Preserve accepted animal models/motion unless a new reproducible defect is demonstrated.",
@@ -144,7 +143,7 @@
     "2026-10-14 06:21:41 UTC: owner authorized isolated sound/mute/background-resume checks. Tested immutable d8aed9e; nine groups pass, actual hidden ambient output fails. Focused native-tab reproduction confirms ~10s sustained output and zero muted hidden control. Runtime fix not authorized or performed.",
     "2026-10-14 10:40:41 UTC: owner approved applying/testing the minimal audio master visibility fix. Exact two-line game.js edit at 758c901; original audio suite 10/10 and ten-second native hidden/return/muted regression pass. Only game.js differs among 65 inventoried runtime files; old receipts/animal baselines preserved. Draft PR/hosted gates and owner merge approval remain.",
     "2026-10-14 11:23:24 UTC: owner conditionally approved PR81 merge/publication (If ready). Exact reviewed e92a1ba unchanged, 8/8 successful checks, clean preflight and existing main/root Pages route. Guarded merge e3b59b7 has reviewed tree fbbac30. Main203 all7 and Pages78 passed attempt1; live static GETs5/5 exact merged bytes. No settings/protection/access change, retries, rollback, phone retest or full release. Publication receipts are on separate evidence branch.",
-    "2026-10-14 12:13:04 UTC: owner approved isolated later progression/land/daily/visitors/rush qualification. Exact main e3b59b7 unchanged. Earned9\u201320 from retained earned8 save,3 deeds and later unlocks pass;29/30 behavior groups PASS, one stale expired visitor action FAIL confirmed with native Date. Initial50-coin legitimate event-accounting failure and7 prerequisite cascades retained; continued only unfinished13\u201320 from exact partial state. No runtime changes or prior coverage reruns. Minimal expiry guard requires owner decision.",
+    "2026-10-14 12:13:04 UTC: owner approved isolated later progression/land/daily/visitors/rush qualification. Exact main e3b59b7 unchanged. Earned9–20 from retained earned8 save,3 deeds and later unlocks pass;29/30 behavior groups PASS, one stale expired visitor action FAIL confirmed with native Date. Initial50-coin legitimate event-accounting failure and7 prerequisite cascades retained; continued only unfinished13–20 from exact partial state. No runtime changes or prior coverage reruns. Minimal expiry guard requires owner decision.",
     "2026-10-14 12:39:49 UTC: owner Yes authorizes only minimal visitor expiry guard application/testing. Qualification b3e1c7c and main e3b59b7 unchanged. Committed1877fcb adds end<=now before inventory/reward effects; nine focused native/boundary/reload checks pass.64/65 runtime files equal main, game.js exact one-condition exception; all prior tests/failure evidence frozen. Draft hosted/review gates and separate owner merge approval remain.",
     "2026-10-18 chicken design branch only: PR84 main756df378 verified. Previous top-level planting-pending status is historical. Owner said Looks good now after phone follow-up; no runtime fix or cause proof. Holiday decorations requested next after chickens; bulk milk tank reserved for cow pen. No implementation/launch/merge in this documentation task."
   ],
@@ -1939,7 +1938,7 @@
       "milk": "gallon"
     },
     "quoteWindowRealHours": 6,
-    "priceBounds": "Integer80\u2013120percent of existing perk-adjusted120/dozen and18/gallon base",
+    "priceBounds": "Integer80–120percent of existing perk-adjusted120/dozen and18/gallon base",
     "cowBulkTank": "Deferred explicitly to cow-pen phase",
     "implementation": "Qualified candidate, awaiting owner visual review and direct merge approval; see marketSales"
   },
@@ -2157,7 +2156,7 @@
       "eggDozen": 120,
       "milkGallon": 18
     },
-    "priceBounds": "Integer quotes within80\u2013120percent of existing perk-adjusted base",
+    "priceBounds": "Integer quotes within80–120percent of existing perk-adjusted base",
     "clock": "UTC-aligned deterministic local windows; device clock, not server authority",
     "saveSchemaChange": false,
     "runtime": "Implemented and exact-head qualified; owner review pending",
@@ -2721,6 +2720,32 @@
         "artifact": 12287191813,
         "digest": "sha256:af04c7274a890c398e878d6596de7aab04b18e87681ecd14ff23d160cab1d5de",
         "inspection": "Actual recorded dock image/data inspected; additional close full High/renderPR1 captures pending"
+      },
+      {
+        "run": 39474692376,
+        "head": "ef24375aedaff993b465f35624f1629830967fda",
+        "native": "844x390 touch and1280x720 mouse PASS: full service/tank/pickup plus real-time night feed/drink/bed/stand;390 checkout not executed before superseding source",
+        "visual": "PASS three full drawingPR1 viewports, real Beast care states/five distinct beds;20rebuild exact baseline311geometries/94textures",
+        "offline": "installed52to53/update writer barrier PASS; docked11999ms/offline once-only credit/partial quality pickup PASS before zero-error failure on3uncached world textures; queued case not executed",
+        "artifacts": {
+          "native844": {
+            "id": 12289352342,
+            "digest": "sha256:565635b723b47e301922c30fdf2833e3621c416b15a0085ab3c5c66d04c006cc"
+          },
+          "native1280": {
+            "id": 12289197036,
+            "digest": "sha256:765ba697cc1698c4267e6932bca4a11a1aabe7e6b43e3899ea5db73f0eeda893"
+          },
+          "visual": {
+            "id": 12288413031,
+            "digest": "sha256:8cc38334973be2d16eb81f95ee6465f36a784eadb60d770d07a62ba67f619cb7"
+          },
+          "persistence": {
+            "id": 12288033157,
+            "digest": "sha256:0f541ab0a538222d986c37983394fdd3a0419c991a8bc27369aa9059893a1353"
+          }
+        },
+        "inspection": "Downloaded verified visual/persistence/844 ZIPs; inspected feed/drink/bed/day/night/actual milking images and result data. Feed view obstructed by fence; foundation circle gaps leave flowers; both corrected for new qualification."
       }
     ],
     "limits": [
@@ -2741,6 +2766,32 @@
       "failed": 0,
       "skipped": 0,
       "qualification": "Working-tree sweep, not final immutable-head CI; later picking/cup deltas have separate focused checks"
-    }
+    },
+    "pullRequest": {
+      "number": 90,
+      "url": "https://github.com/pederaus9-ux/Bugsy/pull/90",
+      "draft": true,
+      "mergeAuthorized": false
+    },
+    "publishedCandidate": {
+      "head": "ef24375aedaff993b465f35624f1629830967fda",
+      "tree": "dace967670746c6fd6b9e7be253fe78423b741cb",
+      "diagnosticRun": 39474692376,
+      "regressionRun": 39474713607,
+      "artRun": 39474712835,
+      "releaseRun": 39474713100
+    },
+    "authorReview": {
+      "independent": false,
+      "found": [
+        "Same-count farm recovery/visit retained old cow rig and station reservation; reproduced and corrected with pen identity rebuild",
+        "Saved building/tree layout applied after initial herd site decision; reproduced and corrected order",
+        "Chicken pet VM omitted new cowYardActive dependency; original two assertions restored with false fixture flag",
+        "Actual native render shows flowers in foundation circle gaps; coverage RED reproduced and overlaps enlarged without editing paid objects"
+      ],
+      "validation": "Transition15checks PASS; final hosted qualification pending",
+      "remaining": "Actual captures, full hosted suites and owner acceptance pending"
+    },
+    "offlineFixtureCorrection": "Shot fixture first loads textures before manual worker registration; keep zero errors and all accounting assertions, reopen online under installed controller and assert3actual cached textures before offline. No production worker relaxation and no first-install offline claim."
   }
 }

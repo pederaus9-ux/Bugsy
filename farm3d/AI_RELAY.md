@@ -652,3 +652,33 @@ See[COW_COURTYARD_REVIEW.md](COW_COURTYARD_REVIEW.md) and the current state JSON
 Continue native qualification, correct proven failures without weakening tests,
 then present an actual preview for owner acceptance. Remaining species follow
 the approved separate physical-care plan after the cow gate; they are not done.
+
+
+## Cow courtyard checkpoint — draft PR90 / October20
+
+Owner approved both implementation plans. Draft PR90 uses the existing branch
+`codex/cow-courtyard-20261020`; published checkpoint `ef24375a` has tree
+`dace967670746c6fd6b9e7be253fe78423b741cb`, identical to local`1d7951d`.
+Main remains `bf404a2`. No cow merge/deployment approval exists.
+
+Earlier source2033544 passed actual844x390 supply/Milk/dock/service/tank/exit/
+pickup and installed52to53/cached29 refusal/offline paid-readiness evidence in
+run39469981279; artifact12287191813 digest
+`af04c7274a890c398e878d6596de7aab04b18e87681ecd14ff23d160cab1d5de`.
+This supersedes the earlier statement that no complete native trip had passed.
+
+The expanded checkpoint adds five-cow supply/bed/FIFO tests, covered feed row,
+three High/drawingPR1 real-time viewport jobs, interrupted-job offline recovery,
+actual normal-composer pose captures and20GPU rebuilds. Diagnostic39474692376,
+regression39474713607, art39474712835 and release39474713100 are being checked.
+53 focused contracts passed before publication; full exact-head qualification
+is still pending. The chicken job first failed its two VM ray-view checks on a
+missing cowYardActive binding, before any native chicken check; the original
+assertions are preserved and the fixture dependency is now supplied.
+
+Author self-review reproduced same-count farm recovery retaining the former
+cow rig/reservation, and saved layout being applied after the first courtyard
+site decision. Both now have regression tests and local fixes; transition15
+checks pass. These corrections require a new hosted source checkpoint. No
+independent external-agent audit or physical-phone performance claim exists.
+Historical wardrobe resource decrease remains unassigned.

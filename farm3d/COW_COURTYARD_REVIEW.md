@@ -84,3 +84,30 @@ Final visuals pin High and record the actual drawing pixel ratio, alongside
 browserDPR1. The earlier automatic-graphics recording alone does not establish
 that its drawing resolution stayed1. Three-size real-time care video and
 fixed-step normal-composer closeups remain distinct evidence categories.
+
+
+## Expanded diagnostic checkpoint ef24375a
+
+Run39474692376 passes native844touch and1280mouse at actual drawingPR1,
+including uninterrupted night feed/drink/bed/stand. The fixed-step normal
+composer check passes390/844/1280, five distinct occupied beds, and20rebuilds
+returning exactly311geometries/94textures. Downloaded ZIPs were SHA256 verified;
+feed/drink/bed/day/night and native cluster-to-udder images/data were inspected.
+The first feed closeup is partly fence-obscured; its next camera is inside the
+yard. The actual native image still has flowers in circle-clearance gaps; a new
+coverage RED proves the gap, and overlapping clearings now cover the foundation.
+390native was still in checkout before the source was superseded; it is unqualified.
+
+Installed52to53 and the cached29 writer barrier pass. New interrupted-job checks
+pass docked reload, exact11999ms no-credit, offline one-time credit/XP, and partial
+normal/gold pickup before failing the zero-console/network-error assertion on
+three world textures. This shot fixture registers its worker after first loading
+textures; it now reopens online under the installed controller and asserts all
+three cache entries before going offline. No accounting/error assertion is
+removed. Queued-offline case had not executed after that first-context failure.
+This covers installed/reopened play, not immediate first-install offline use.
+
+Adversarial author review also adds proven regressions for same-count farm
+recovery/visit cleanup and saved layout before courtyard installation. Exact
+predecessor/anatomy/gait/auth/security/light/market production sources remain
+unchanged. Final hosted qualification must run on the corrected source.
