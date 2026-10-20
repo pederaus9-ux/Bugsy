@@ -1977,5 +1977,46 @@
       "nodeFailed": 0,
       "browser": "BLOCKED missing Chromium; no local installation attempted"
     }
+  },
+  "handReturnCausalFix": {
+    "ownerAuthorization": "Owner requested another attempt at fixing the hand-return issue, 2026-10-19T18:47:37-05:00; no merge/deployment",
+    "basePRHead": "2afe7fc8c884f182e1341174eb9d79ed8ad0fdd9",
+    "causalDiagnostic": {
+      "commit": "f9e820488246094615b651e10c77ff6ed799c230",
+      "run": 39344007122,
+      "job": 118372117258,
+      "width844": "PASS",
+      "width1280": "FAIL original ten-second predicate",
+      "samplesAtInput": 2,
+      "sampleCountAtFailure": 11,
+      "postInputUpdates": 9,
+      "sampleCapHit": false,
+      "livePoseComponentError": 0,
+      "finalThreeComponentErrors": [
+        1.1082258566996739e-05,
+        6.739122288546007e-07,
+        0
+      ],
+      "actualFrameGapsSeconds": [
+        1.087,
+        1.1548
+      ],
+      "actualAnimationDt": 0.1,
+      "observerErrors": 0
+    },
+    "cause": "This native reproduction is an insufficient-update deadline under SwiftShader drawing load: count and departure pass, three-sample settled tail fails despite exact live neutral. No collector exhaustion or stuck pose was observed. The two historical jobs still lack their own samples.",
+    "candidate": "Authored-hands bone/interaction suite requests deviceScaleFactor .25 rather than shared harness default .5. CSS dimensions, native controls, GLB, simulation, 71-sample cap, all assertions/tolerances and10000ms deadline unchanged. Production/visual capture suites unchanged.",
+    "qualification": {
+      "commit": "7858572903687c413b7d21d56948276ff2c47991",
+      "run": 39344522666,
+      "status": "HAND_GATE_STEPS_VERIFIED; following unchanged coverage still running; exact-head PR CI required",
+      "observedHandStep": "SUCCESS both844/1280",
+      "uninstrumentedOriginalTestStep": "SUCCESS both844/1280",
+      "followingProductionCapture": "IN_PROGRESS at publication checkpoint; not credited"
+    },
+    "productionRuntimeChanged": false,
+    "physicalPerformanceCleared": false,
+    "originalFailuresPreserved": true,
+    "mergeDeploy": false
   }
 }
