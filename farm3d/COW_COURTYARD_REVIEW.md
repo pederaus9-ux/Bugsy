@@ -259,3 +259,40 @@ all journey assertions remain. Input-event/DOM-mutation recording is now added
 to the existing browser test to distinguish missing click delivery from hit/state
 selection, without changing gameplay, tap dispatch or targets. Root cause pending;
 PR90 remains draft, unmerged and not ready.
+
+
+## Next correction: preserve card headers and isolate the legacy rig probe
+
+At02af01f all5cow diagnostics pass, including trusted390/844/1280 journeys;
+scene/wardrobe original assertions also pass, without assigning the older cause.
+Two separate full-suite failures are retained:
+
+- Core job118915008881, artifact12303803406 (SHA256
+  6d1909e3aea4852c17005e0574172630a3d2ca142492864006aaafa7e4b30c2f):
+  cow3d.browser.cjs:56 distance>0.01 fails at1280 with distance=measured=0.
+  Its live cow already holds a bed task, so the existing care branch correctly
+  overrides the legacy scripted stroll. Smaller sizes moved toward bed and
+  passed incidentally. A real-Beast local reproduction measures0 before setup
+  correction and0.883886m after. The test-only helper releases that reservation,
+  resets the care overlay, and sets the isolated legacy rig in the clear aisle.
+  Original120/180steps,0.01movement,1e-8agreement, blocked phase/amount, direct
+  skin picking, and raw save assertions remain; no production AI change.
+- Chicken job118915009131, artifact12303838561 (SHA256
+  80a6e510719422338631f6c5cbe790694151915ee4a4446fe5060a5ada7765f1):
+  native1280 Rename times out30s, repeatedly detaching during live animal-card
+  updates. The earlier cow-row patch did not preserve headers or chicken cards.
+  The same existing update path now preserves all animal-card buttons and their
+  ancestors through compatible status/attribute changes. It preflights structure
+  and control identity before applying any edits, with the original full rebuild
+  for incompatible identity/structure. Station and non-animal trays are unchanged.
+
+The browser DOM contract now covers cow Milk and header Rename/Close identity,
+live text/disabled state, different cow/bird rebuilds, chicken header controls,
+and no partial edit before a required fallback. Actual native chicken Rename
+and cow journey assertions are untouched. Cache54 remains the unmerged version.
+Original ZIPs, state, screenshots, traces and full logs are in cow-native-run17
+and the ignored handoff folder. Next-head hosted results are still required.
+The706 Ready-cow missing-card failure did not recur on02af01f; its cause is not
+proven fixed. The historical wardrobe cause is also unknown. No merge/deploy.
+
+Final local combined verification:36passed,0failed,0skipped (cow scene/pose/controls, chicken interaction/pet view, version graph and arm integration). Actual inline module and changed browser/helper syntax plus diff checks pass. New browser DOM contract and unchanged native Rename/core assertions still require hosted qualification.

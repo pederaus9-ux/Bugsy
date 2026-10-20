@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-20T21:59:06.681967Z",
+  "lastUpdatedUtc": "2026-10-20T22:32:45.455699+00:00",
   "codeBaseline": {
     "description": "PR89 Farm Utility lights merged/published; postmerge regression successful",
     "mergeCommit": "bf404a2a1261f3c7581025b249f2bd00c4539964",
@@ -106,7 +106,7 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "COW_COURTYARD_IMPLEMENTATION_QA",
   "currentPhaseTitle": "Concept4 courtyard, beds and robot-to-bulk-tank milking",
-  "phaseStatus": "COW_ACTION_IDENTITY_FIX_CACHE54_FINAL_CI_PENDING",
+  "phaseStatus": "ANIMAL_CARD_HEADERS_COW_STROLL_FIXTURE_FINAL_CI_PENDING",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": 90,
   "nextPhases": [
@@ -2673,7 +2673,7 @@
     ],
     "executionMethod": "Native sole lead; adversarial self-review; no independent-agent claim",
     "plansApprovedAt": "2026-10-20T11:52:40-05:00",
-    "status": "COW_ACTION_IDENTITY_FIX_CACHE54_FINAL_CI_PENDING",
+    "status": "ANIMAL_CARD_HEADERS_COW_STROLL_FIXTURE_FINAL_CI_PENDING",
     "branch": "codex/cow-courtyard-20261020",
     "sourceCheckpoint": {
       "local": "d635d7c2f4a7484613a0651457b05c7491409431",
@@ -2935,7 +2935,7 @@
         "skipped": 0,
         "includes": "cow pose, module graph/versions, arm integration and original chicken/cow controls"
       },
-      "qualification": "706a98f DOM identity regression PASS; native390/844 FAIL: trusted Ready-cow tap returns but cow card never appears; no Milk locator. New input-event/mutation diagnostic pending. Distinct from earlier actual Milk-node detach.",
+      "qualification": "02af01f all5cow diagnostics PASS; scene+wardrobe exact original assertions PASS; core and native chicken failed separately; full cloud job still active before next correction",
       "scope": "This is a bounded runtime cow UI control-lifecycle correction; no ledger/auth/economy/picking/animal geometry changes",
       "latestFailure": {
         "head": "706a98fedac97b3f31c82a5a08db5f976f39a512",
@@ -2945,6 +2945,43 @@
         "sha256": "adde3c4aae8986948f38118b8c22a3d530654e8b33d53726f02dd6208ee38db9",
         "evidence": "cow-native-run15/native390-red; original 30s Milk locator timeout retained; no cow card after Ready-cow tap. Root cause not yet proven."
       }
+    },
+    "animalCardHeaderCorrection": {
+      "failedHead": "02af01f0d17b568f1a280609d1ba12d8489d306c",
+      "run": 39505847559,
+      "job": 118915009131,
+      "assertion": "locator.click [data-w=rename]30000ms timeout; repeated actual header button detach at native chicken pet/rename1280",
+      "artifact": 12303838561,
+      "sha256": "80a6e510719422338631f6c5cbe790694151915ee4a4446fe5060a5ada7765f1",
+      "evidence": "cow-native-run17/chicken-red plus full original ZIP; chicken-02af01-red.log retained",
+      "correction": "Extend the existing keyed update to the whole animal card, preserving buttons and ancestors. Plan all DOM changes before applying them; incompatible control identity/structure retains original rebuild. No station/other tray changes. Original native chicken rename assertion and timeout unchanged.",
+      "browserContract": "Cow Milk, header Rename/Close, live text/disabled, different cow, chicken header/buttons, different bird, and no partial mutation on rejected structure. Pending hosted verification.",
+      "cache": 54,
+      "unknownReadyCowTap": "706a98f missing-card failure not reproduced by02af01f; original traces remain, cause still unproven"
+    },
+    "legacyCowStrollFixtureCorrection": {
+      "failedHead": "02af01f0d17b568f1a280609d1ba12d8489d306c",
+      "run": 39505847559,
+      "job": 118915008881,
+      "assertion": "cow3d.browser.cjs:56 assert.ok(integration.distance>.01) failed1280; distance=measured=0",
+      "artifact": 12303803406,
+      "sha256": "6d1909e3aea4852c17005e0574172630a3d2ca142492864006aaafa7e4b30c2f",
+      "cause": "Existing held bed task takes priority over scripted generic stroll.740/844 passed on movement toward bed, not the intended stroll;1280 was already holding its bed.",
+      "correction": "Test-only setup releases that cow reservation, resets care pose/task, and places the legacy rig fixture in the clear aisle before the original scripted stroll. No production AI, movement, picking, native cow trip, thresholds or120/180 step counts changed.",
+      "localProof": {
+        "retainedHeldBedDistance": 0,
+        "correctedDistance": 0.8838860428279578,
+        "measured": 0.8838860428279571,
+        "blockedDistance": 0,
+        "phase": "unchanged",
+        "focusedTests": {
+          "passed": 36,
+          "failed": 0,
+          "skipped": 0,
+          "log": "animal-ui-stroll-focused.log"
+        }
+      },
+      "browserQualification": "PENDING next head; no full-pass claim"
     }
   }
 }

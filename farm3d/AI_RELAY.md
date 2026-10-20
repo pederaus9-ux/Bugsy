@@ -701,3 +701,20 @@ clearing hides stems/heads inside the footprint and restores original bytes on
 removal. Phase7M geometry/color/placement remains unchanged; its only source
 change names stems for this bounded integration, version4 cached in shell53.
 Current66focused checks PASS. Fresh rendered/full final-head results required.
+
+
+## PR90 correction checkpoint — legacy rig fixture and animal card headers
+
+02af01f all5cow diagnostics and scene/wardrobe original assertions PASS. Core
+failed1280 distance>0.01 because the fixture's cow was already holding its bed
+task;740/844 had incidentally measured care movement. The isolated rig fixture
+now releases that reservation/pose and starts its same stroll in the clear aisle.
+Actual Beast reproduction is0 before correction and0.883886m afterward; original
+120/180 steps, distance agreement, blocked phase and picking/save checks remain.
+Native chicken Rename separately timed out30s as its header button detached.
+The existing keyed card update now covers all animal-card controls and parents;
+station/other trays retain their original paths. Current cache54 is unmerged.
+Both original artifacts/logs are verified in cow-native-run17. Hosted contracts
+and full next-head CI are pending.02af01f full cloud job was still active before
+this checkpoint; do not claim a final Firebase/SDK result. The706 missing-card
+tap and older wardrobe cause remain unproven. Keep draft, do not merge/deploy.

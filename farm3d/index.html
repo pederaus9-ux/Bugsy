@@ -3666,26 +3666,31 @@ function trayHtml() {
     return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Tap Move, then drag it with one finger</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button><button class="btn sm" data-w="move" data-i="${f.j}">✋ Move</button></div>`; }
   return "";
 }
-function patchCowInfo(tray, html) {
+function patchAnimalInfo(tray, html) {
   const template=tray.ownerDocument.createElement('template');template.innerHTML=html;
-  const before=[...tray.children],after=[...template.content.children];
-  const row=before.find(n=>n.classList.contains('row')),next=after.find(n=>n.classList.contains('row'));
-  if(!row||!next||before.length!==after.length||before.indexOf(row)!==after.indexOf(next))return false;
-  const controls=[...row.children],incoming=[...next.children];
+  const before=[...tray.childNodes],after=[...template.content.childNodes];
+  const controls=[...tray.querySelectorAll('button')],incoming=[...template.content.querySelectorAll('button')];
   const key=n=>['id','data-w','data-act','data-id','data-k','data-i','data-station'].map(k=>n.getAttribute(k)||'').join('|');
-  if(controls.length!==incoming.length||controls.some((n,i)=>n.tagName!=='BUTTON'||incoming[i].tagName!=='BUTTON'||key(n)!==key(incoming[i])))return false;
-  // Keep each actual action node attached through live activity/countdown updates.
-  // Its disabled state and label still follow the current authoritative markup.
-  controls.forEach((node,i)=>{
-    const fresh=incoming[i];
-    for(const name of node.getAttributeNames())if(!fresh.hasAttribute(name))node.removeAttribute(name);
-    for(const name of fresh.getAttributeNames())if(node.getAttribute(name)!==fresh.getAttribute(name))node.setAttribute(name,fresh.getAttribute(name));
-    if(node.innerHTML!==fresh.innerHTML)node.innerHTML=fresh.innerHTML;
-  });
-  before.forEach((node,i)=>{if(node!==row&&node.outerHTML!==after[i].outerHTML)node.replaceWith(after[i]);});
-  return true;
+  if(before.length!==after.length||controls.length!==incoming.length||controls.some((n,i)=>key(n)!==key(incoming[i])))return false;
+  // Plan before changing anything. A changed control identity or structure uses
+  // the original rebuild; live labels retain buttons and their attached parents.
+  const changes=[],hasControl=n=>n.nodeType===1&&(n.tagName==='BUTTON'||!!n.querySelector('button'));
+  function plan(node,fresh){
+    if(node.nodeType!==fresh.nodeType||node.nodeName!==fresh.nodeName||node.childNodes.length!==fresh.childNodes.length){
+      if(hasControl(node)||hasControl(fresh))return false;
+      changes.push(()=>node.replaceWith(fresh));return true;
+    }
+    if(node.nodeType!==1){if(node.nodeValue!==fresh.nodeValue)changes.push(()=>{node.nodeValue=fresh.nodeValue;});return true;}
+    changes.push(()=>{
+      for(const name of node.getAttributeNames())if(!fresh.hasAttribute(name))node.removeAttribute(name);
+      for(const name of fresh.getAttributeNames())if(node.getAttribute(name)!==fresh.getAttribute(name))node.setAttribute(name,fresh.getAttribute(name));
+    });
+    return [...node.childNodes].every((child,i)=>plan(child,fresh.childNodes[i]));
+  }
+  if(!before.every((node,i)=>plan(node,after[i])))return false;
+  changes.forEach(change=>change());return true;
 }
-function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { if(trayFor.type==='animal'&&trayFor.an?.kind==='cow'&&patchCowInfo(infoTray,h)){infoTray.dataset.h=h;return;}const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { if(trayFor.type==='animal'&&patchAnimalInfo(infoTray,h)){infoTray.dataset.h=h;return;}const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
 function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
 infoTray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-w]"); if (!b) return;

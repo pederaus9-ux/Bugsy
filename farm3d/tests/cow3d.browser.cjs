@@ -9,6 +9,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    await page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
    const integration=await page.evaluate(async()=>{
     const THREE=await import('./lib/three.module.min.js');
+    const {prepareCowStroll}=await import('./tests/cow-rig-fixture.mjs');
     const d=__dbg,before=localStorage.getItem('sunny-acres-3d-v1');d.G.opts.quiet=true;d.renderer.shadowMap.enabled=false;
     const types=d.animals.map(a=>({kind:a.kind,real3d:!!a.rig3d}));
     const a=d.animals.find(a=>a.kind==='cow');
@@ -24,8 +25,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
     // weather transition correctly cancels a fair-weather target at night;
     // restore daylight before testing this explicitly fair-weather stroll.
     d.setPreset('noon');
-    a.mode='fair';a.until=9e15;a.act='idle';a.doing=null;a.need={hunger:0,tired:0,lonely:0};
-    a.go(a.g.position.x+.9,a.g.position.z+.6,false,'Test stroll');
+    const strollFixture=prepareCowStroll(d,a);
     const start=a.rig3d.state.distance;let distance=0;
     const travelSetup={commandedPreset:'noon',mode:a.mode,position:[a.g.position.x,a.g.position.z],target:a.target?.toArray()||null,path:a.path?.map(p=>p.toArray())||[]};
     for(let i=0;i<120;i++){const x=a.g.position.x,z=a.g.position.z;a.update(1/60,d.clock());distance+=Math.hypot(a.g.position.x-x,a.g.position.z-z);if(i===0)travelSetup.firstUpdate={mode:a.mode,act:a.act,target:a.target?.toArray()||null,position:[a.g.position.x,a.g.position.z]};}
@@ -42,7 +42,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
     const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(),d.camera);
     const skinHit=ray.intersectObject(a.card,false).some(h=>h.object===a.card);
     const hit=d.hitAt(innerWidth/2,innerHeight/2);
-    return {types,lighting,meshes,visuals,travelSetup,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,picking:{skinHit,aim:aim.toArray(),act:a.act,task:a.cowTask?.kind,stage:a.cowTask?.stage},hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
+    return {types,lighting,meshes,visuals,travelSetup,strollFixture,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,picking:{skinHit,aim:aim.toArray(),act:a.act,task:a.cowTask?.kind,stage:a.cowTask?.stage},hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
    });
    fs.writeFileSync(path.join(artifacts,'cow3d-'+viewport.width+'-integration.json'),JSON.stringify(integration,null,2));
    const live=new Set(['cow','sheep','horse','dog','cat','chicken']);
@@ -53,6 +53,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    assert.ok(integration.visuals.every(v=>v.parts.filter(p=>p.skinned).length===1),'exactly one skinned cow visual');
    assert.ok(integration.visuals.every(v=>v.parts.filter(p=>p.geo==='PlaneGeometry').length===1),'only the contact decal, no picture card');
    for(const l of integration.lighting)assert.deepEqual(l.cowEmissive,[0,0,0],'3D coat must not inherit untextured picture glow');
+   assert.equal(integration.strollFixture.after.task,null,'legacy stroll must not measure autonomous care');
    assert.ok(integration.distance>.01);assert.ok(Math.abs(integration.distance-integration.measured)<1e-8);
    assert.equal(integration.phase,integration.afterPhase);assert.ok(integration.amount<1e-10);assert.equal(integration.hit,'animal');assert.equal(integration.kind,'cow');assert.ok(integration.savePreserved);
    assert.equal(integration.picking.skinHit,true,'actual skinned cow is picked without the screen-distance fallback');
