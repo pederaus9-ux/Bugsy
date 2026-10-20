@@ -46,3 +46,35 @@ is preserved outside the source checkout. Local npm test was attempted before th
 feature edits and remains incomplete at this checkpoint; it is not a green baseline
 or a green final suite. Exact-head hosted CI must qualify the final candidate.
 Lead implementation and self-review only; no independent external-agent audit.
+
+
+## Later qualification findings
+
+The first390-native failure used outer.panel.scrollWidth; the unchanged close
+button intentionally overhangs it. A same-production-CSS browser counterexample
+confirmed356scroll vs342client, while actual.pbody was342==342 and the close
+button remained inside the390viewport. The observer now measures.pbody like the
+established accessibility suite. Strict viewport and44px requirements remain.
+Full-resolution captures use deviceScaleFactor1 and settled modal geometry.
+
+The next native check expected1426coins but observed1486 after237egg+189milk
+sale proceeds. Actual game replay proved the existing40point season milestone
+adds60coins at42.6points. Native sale-only fixtures now explicitly have a completed
+season track; a separate real-game contract proves that original reward pays once.
+Runtime sale/price/character/animal code is unchanged after the initial candidate.
+
+A surrounding seed browser check failed at740/KeyE (plot2 null rather than wheat,
+coins10 unchanged). Its original fresh-ray/identical-label wait can certify a stale
+cached interaction target; a focused helper counterexample failed then passed
+with stronger readiness. The test-only served debug getter observes the actual
+cached target and requires the requested plot/action while preserving every old
+ray/label/state assertion, native key action and30second deadline. Bounded trusted
+input/cache diagnostics are retained. Production planting/index control code is
+unchanged. The failed historical job did not record that cached target, so its
+exact cause remains unassigned; do not claim the counterexample is historical
+telemetry. Native observations and final exact-head CI remain required.
+
+Latest focused local suite:98/98PASS including new readiness checks. Initial
+local/browser limitations and every failed native sample remain retained. This
+review document is a running checkpoint; a later immutable assessment records
+final refs, actual images and hosted results without changing the tested PR head.
