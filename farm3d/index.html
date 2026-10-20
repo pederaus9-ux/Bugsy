@@ -671,6 +671,7 @@ import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=27"; window.__gameVer = 27; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
+import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
 import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALYTICS_RELEASE;
 import {initFriends} from "./friends.js?v=7";
 import {initVerified} from "./verified.js?v=1";
@@ -2422,7 +2423,7 @@ function syncPenSigns() {
   }
 }
 
-// ---------- decorations: real trees, and standing pictures for everything else ----------
+// ---------- decorations: solid holiday props and trees; existing cards for other prizes ----------
 const decorObjs = [];
 let moving = null; // the decoration being moved: {j, obj, x, z (last free spot), id (finger dragging it), ok}
 const emojiTex = {};
@@ -2438,22 +2439,46 @@ function makePine(seed) {
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return g;
 }
+const decorationGroundRay = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0,-1,0));
+function decorationGroundY(x,z,footprint=1.05) {
+  let y=-Infinity; const r=footprint*.5;
+  for(const [dx,dz] of [[0,0],[-r,-r],[-r,r],[r,-r],[r,r]]) {
+    decorationGroundRay.ray.origin.set(x+dx,25,z+dz);
+    const hit=decorationGroundRay.intersectObject(ground,false)[0];
+    if(hit)y=Math.max(y,hit.point.y);
+  }
+  return Number.isFinite(y)?y:groundY(x,z);
+}
+const decorationClears = new Map();
+function syncDecorationClearings() {
+  const next=new Map();
+  GS().decor.placed.forEach((d,j)=>{if(G.DECOR[d.id]?.hol)next.set('solid-decor:'+j,[d.x,d.z,G.DECOR[d.id].size===2?1.5:.95]);});
+  holidayObjs.forEach((o,j)=>next.set('holiday-prop:'+j,[o.position.x,o.position.z,.8]));
+  for(const [key,[x,z]] of decorationClears)if(!next.has(key)){moveClear(key,x,z,0);CLEARS.delete(key);}
+  for(const [key,value] of next){const old=decorationClears.get(key);if(!old||value.some((n,i)=>n!==old[i]))moveClear(key,...value);}
+  decorationClears.clear();for(const [key,value]of next)decorationClears.set(key,value);
+}
 function makeDecor(d) {
-  const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group();
-  if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); mergeStatic(t, keepCanopy(t)); }
+  const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group(), solid = createHolidayDecoration(d.id,{height:size===2?2.3:1.15,footprint:size===2?2.1:1.05});
+  if (solid) { g.add(solid); g.userData.solidHoliday=true; }
+  else if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); mergeStatic(t, keepCanopy(t)); }
   else if (D.tree === "pine") g.add(mergeStatic(makePine(50 + (d.x * 7 | 0))));
   else {
     const h = size === 2 ? 2.3 : 1.15, m = new THREE.MeshStandardMaterial({map:emojiTexture(D.e), alphaTest:.35, side:THREE.DoubleSide, roughness:.8, emissive:0xffffff, emissiveMap:emojiTexture(D.e), emissiveIntensity:D.glow ? .35 : .15});
     const card = new THREE.Mesh(new THREE.PlaneGeometry(h, h), m); card.position.y = h * .45; card.castShadow = true; g.add(card); g.userData.card = card;
   }
-  contact(0, 0, size * 1.3, size * 1.3, g);
-  g.position.set(d.x, 0, d.z); g.userData.hit = {type:"decor"};
+  const shadow=contact(0, 0, size * 1.3, size * 1.3, g);
+  if(solid){let disposed=false;g.userData.dispose=()=>{if(disposed)return;disposed=true;solid.userData.dispose();shadow.geometry.dispose();};}
+  g.position.set(d.x, solid?decorationGroundY(d.x,d.z,size===2?2.1:1.05):0, d.z);
+  if(solid)g.rotation.y=Number.isFinite(d.rotation)?d.rotation:0;
+  g.userData.hit = {type:"decor"};
   return g;
 }
 function syncDecor() {
-  for (const o of decorObjs) scene.remove(o); decorObjs.length = 0;
+  for (const o of decorObjs) { scene.remove(o); o.userData.dispose?.(); } decorObjs.length = 0;
   GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; o.userData.edit = "d:" + j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
-  if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, .3, moving.z); } else endMove(false); } // the farm changed mid-move
+  syncDecorationClearings();
+  if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, (o.userData.solidHoliday?decorationGroundY(moving.x,moving.z):0)+.3, moving.z); } else endMove(false); } // the farm changed mid-move
 }
 // is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
 function spotFree(x, z, size, skip = -1) {
@@ -3633,19 +3658,19 @@ function startMove(j) {
   const d = GS().decor.placed[j], o = decorObjs[j]; if (!d || !o) return;
   closeTrays(); G.close(); clearTimeout(pressTimer); pressTimer = 0;
   moving = {j, obj:o, x:d.x, z:d.z, id:null, ok:true, moved:false};
-  o.position.y = .3; squish(o, .8); G.sfx("pickup"); focusOn("decor:" + j);
+  o.position.y = (o.userData.solidHoliday?decorationGroundY(d.x,d.z):0)+.3; squish(o, .8); G.sfx("pickup"); focusOn("decor:" + j);
   document.getElementById("moveTitle").textContent = G.decorIcon(d.id) + " Move " + G.DECOR[d.id].n; moveBar.hidden = false;
 }
 function moveTo(x, y) {
   const m = moving, ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const g = ray.intersectObject(ground)[0]; if (!g) return;
   const px = g.point.x, pz = g.point.z, ok = spotFree(px, pz, G.DECOR[GS().decor.placed[m.j].id].size || 1, m.j);
-  m.obj.position.set(px, .3, pz); m.ok = ok; if (ok) { m.x = px; m.z = pz; }
+  m.obj.position.set(px, (m.obj.userData.solidHoliday?decorationGroundY(px,pz):0)+.3, pz); m.ok = ok; if (ok) { m.x = px; m.z = pz; }
   moveHint.textContent = ok ? "Looks good here" : "Can't go here"; moveHint.hidden = false;
 }
 function dropMove() { // finger lifted: a blocked spot springs back to the last free one
   const m = moving; m.id = null; m.moved = false; moveHint.hidden = true;
-  if (!m.ok) { m.obj.position.set(m.x, .3, m.z); m.ok = true; G.toast("That spot is taken, so it went back"); G.sfx("error"); }
+  if (!m.ok) { m.obj.position.set(m.x, (m.obj.userData.solidHoliday?decorationGroundY(m.x,m.z):0)+.3, m.z); m.ok = true; G.toast("That spot is taken, so it went back"); G.sfx("error"); }
   squish(m.obj, .5);
 }
 function endMove(save) {
@@ -3722,15 +3747,16 @@ function applyStyle() {
 }
 
 // ---------- holiday touches: a few themed pieces around the farm ----------
-const HOLIDAY_PROPS = {halloween:"🎃", thanksgiving:"🦃", christmas:"🎄", newyear:"🎉", valentine:"💝", easter:"🥚", stpatrick:"☘️"};
 const holidayObjs = [];
 function syncHoliday() {
-  for (const o of holidayObjs) scene.remove(o); holidayObjs.length = 0;
-  const e = HOLIDAY_PROPS[G.THEME.holiday]; if (!e) return;
-  for (const [x, z] of [[-2.9, 6.6], [2.9, 13.6], [-2.8, 17.8], [2.8, 20.2], [-5.6, 8.6]]) {
-    const m = new THREE.MeshStandardMaterial({map:emojiTexture(e), alphaTest:.35, side:THREE.DoubleSide, emissive:0xffffff, emissiveMap:emojiTexture(e), emissiveIntensity:.3});
-    const c = new THREE.Mesh(new THREE.PlaneGeometry(.8, .8), m); c.position.set(x, .38, z); c.userData.bill = true; scene.add(c); holidayObjs.push(c);
+  for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;
+  const id = HOLIDAY_AMBIENT[G.THEME.holiday]; if (!id) { syncDecorationClearings(); return; }
+  for (const [x, z, yaw] of [[-2.9,6.6,.6],[2.9,13.6,-.8],[-2.8,17.8,.3],[2.8,20.2,-.45],[-5.6,8.6,.9]]) {
+    const o=createHolidayDecoration(id,{height:.8,footprint:.75});
+    o.position.set(x,decorationGroundY(x,z,.75),z);o.rotation.y=yaw;
+    scene.add(o);holidayObjs.push(o);
   }
+  syncDecorationClearings();
 }
 
 // ---------- photo mode: frame the farm, take a picture, share it ----------
@@ -3852,7 +3878,6 @@ function updateGame(t, dt) {
     visitorFace.position.x = Math.sin(t * .9) * .05; visitorFace.rotation.z = Math.sin(t * .6 + 1) * .06 + wig; visitorFace.rotation.y = Math.sin(t * .27) * Math.sin(t * .13) * .3; }
   board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
   gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
-  for (const o of holidayObjs) o.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   for (const o of decorObjs) if (o.userData.card) o.userData.card.rotation.y = Math.atan2(camera.position.x - o.position.x, camera.position.z - o.position.z);
   updatePointer();
 }
@@ -3910,7 +3935,7 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs,
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY,
   get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
