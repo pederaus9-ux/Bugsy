@@ -5,21 +5,20 @@ import {mergeGeometries} from './lib/addons/utils/BufferGeometryUtils.js';
 export const HOLIDAY_DECOR_IDS=Object.freeze(['spider','jack','haunted','leaves','turkey','cornucopia','gifts','snowman','xmastree','confetti','popper','fireworks','heart','letter','chapel','chick','bunny','eggstatue','clover','lucky','tophat']);
 export const HOLIDAY_AMBIENT=Object.freeze({halloween:'jack',thanksgiving:'turkey',christmas:'xmastree',newyear:'popper',valentine:'heart',easter:'eggstatue',stpatrick:'clover'});
 const C={wood:0x68452e,dark:0x242b2a,cream:0xf4e5c1,orange:0xdd7026,green:0x385d3b,red:0xab3e36,gold:0xdca448,white:0xeee9da,blue:0x487d96,pink:0xd67b94};
-const triangle=(x,y,a,b,c)=>{const cross=(p,q)=>(x-q[0])*(p[1]-q[1])-(p[0]-q[0])*(y-q[1]);const v=[cross(a,b),cross(b,c),cross(c,a)];return !(v.some(n=>n<0)&&v.some(n=>n>0));};
 function pumpkinShell(){
- const s=new T.SphereGeometry(1,48,24),p=s.attributes.position,indices=s.index.array,kept=[],edges=new Map();
- for(let i=0;i<indices.length;i+=3){const a=indices[i],b=indices[i+1],c=indices[i+2];
-  const x=(p.getX(a)+p.getX(b)+p.getX(c))/3,y=(p.getY(a)+p.getY(b)+p.getY(c))/3,z=(p.getZ(a)+p.getZ(b)+p.getZ(c))/3;
-  const eye=triangle(x,y,[-.56,.12],[-.17,.12],[-.35,.52])||triangle(x,y,[.17,.12],[.56,.12],[.35,.52]);
-  const mouth=Math.abs(x)<.57&&y<-.12&&y>-.43+.45*x*x&&!(Math.abs(x)<.09&&y>-.25);
-  if(z>.55&&(eye||mouth))continue;
-  kept.push(a,b,c);for(const [u,v]of [[a,b],[b,c],[c,a]]){const key=Math.min(u,v)+':'+Math.max(u,v);if(edges.has(key))edges.delete(key);else edges.set(key,[u,v]);}
- }
- const xyz=[],face=(a,b,c,inner=false)=>{for(const i of [a,b,c]){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),theta=Math.atan2(z,x),rib=1+.065*Math.cos(theta*10),k=inner?.91:1;xyz.push(x*.52*rib*k,y*.43*k,z*.47*rib*k);}};
- for(let i=0;i<kept.length;i+=3){const [a,b,c]=kept.slice(i,i+3);face(a,b,c);face(c,b,a,true);}
- // The opening edges have real thickness; light sits inside, behind the carved shell.
- for(const [a,b]of edges.values())for(const verts of [[[a,false],[b,false],[b,true]],[[a,false],[b,true],[a,true]]])for(const [i,inner]of verts){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),rib=1+.065*Math.cos(Math.atan2(z,x)*10),k=inner?.91:1;xyz.push(x*.52*rib*k,y*.43*k,z*.47*rib*k);}
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(xyz,3));g.computeVertexNormals();s.dispose();return g;
+ const sides=48,sector=Math.PI*2/sides,outline=new T.Shape();
+ for(let i=0;i<sides;i++){const a=i*sector,x=Math.cos(a),y=Math.sin(a);if(i)outline.lineTo(x,y);else outline.moveTo(x,y);}outline.closePath();
+ const path=points=>{const p=new T.Path();points.forEach(([x,y],i)=>i?p.lineTo(x,y):p.moveTo(x,y));p.closePath();return p;};
+ outline.holes.push(path([[-.56,.12],[-.17,.12],[-.35,.52]]),path([[.17,.12],[.56,.12],[.35,.52]]),
+  path([[-.58,-.12],[-.3,-.18],[-.14,-.16],[-.1,-.26],[.09,-.26],[.14,-.16],[.3,-.18],[.58,-.12],[.47,-.39],[.2,-.48],[-.2,-.48],[-.47,-.39]]));
+ const back=outline.clone();back.holes=[];const xyz=[];
+ const point=(p,sign,inner=false)=>{const angle=Math.atan2(p.y,p.x),offset=((angle%sector)+sector)%sector-sector/2,boundary=Math.cos(sector/2)/Math.cos(offset),x=p.x/boundary,y=p.y/boundary,z=sign*Math.sqrt(Math.max(0,1-x*x-y*y)),rib=1+.065*Math.cos(Math.atan2(z,x)*10),k=inner?.91:1;return [x*.52*rib*k,y*.43*k,z*.47*rib*k];};
+ const emit=(a,b,c,sign)=>{const order=sign>0?[a,b,c]:[c,b,a];for(const p of order)xyz.push(...point(p,sign));for(const p of [...order].reverse())xyz.push(...point(p,sign,true));};
+ const subdivide=(a,b,c,n,sign)=>{if(!n){emit(a,b,c,sign);return;}const ab=a.clone().add(b).multiplyScalar(.5),bc=b.clone().add(c).multiplyScalar(.5),ca=c.clone().add(a).multiplyScalar(.5);subdivide(a,ab,ca,n-1,sign);subdivide(ab,b,bc,n-1,sign);subdivide(ca,bc,c,n-1,sign);subdivide(ab,bc,ca,n-1,sign);};
+ for(const [shape,sign]of [[outline,1],[back,-1]]){const g=new T.ShapeGeometry(shape),p=g.attributes.position,idx=g.index.array;for(let i=0;i<idx.length;i+=3)subdivide(...[idx[i],idx[i+1],idx[i+2]].map(j=>new T.Vector2(p.getX(j),p.getY(j))),2,sign);g.dispose();}
+ // Exact polygonal apertures on a curved, ribbed shell, with physical inner rims.
+ for(const hole of outline.holes){const points=hole.getPoints();if(!T.ShapeUtils.isClockWise(points))points.reverse();for(let i=0;i<points.length-1;i++)for(let k=0;k<4;k++){const a=points[i].clone().lerp(points[i+1],k/4),b=points[i].clone().lerp(points[i+1],(k+1)/4),ao=point(a,1),ai=point(a,1,true),bo=point(b,1),bi=point(b,1,true);xyz.push(...ao,...ai,...bi,...ao,...bi,...bo);}}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(xyz,3));g.computeVertexNormals();return g;
 }
 
 export function createHolidayDecoration(id,{height=1.15,footprint=1.05}={}){
@@ -120,7 +119,8 @@ export function createHolidayDecoration(id,{height=1.15,footprint=1.05}={}){
  }
  // Fit existing placement footprints; normalize complete geometry onto the ground.
  body.updateMatrixWorld(true);const bounds=new T.Box3().setFromObject(body),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
- const k=Math.min(height/size.y,footprint/Math.max(size.x,size.z));body.position.set(-center.x*k,-bounds.min.y*k,-center.z*k);body.scale.setScalar(k);body.updateMatrixWorld(true);
+ let radius=0;const vertex=new T.Vector3();body.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){vertex.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);radius=Math.max(radius,Math.hypot(vertex.x-center.x,vertex.z-center.z));}}});
+ const k=Math.min(height/size.y,footprint/(2*radius));body.position.set(-center.x*k,-bounds.min.y*k,-center.z*k);body.scale.setScalar(k);body.updateMatrixWorld(true);
  // Merge by material to bound draw calls. Every resulting resource is owned by this prop.
  const buckets=new Map(),sourceGeometries=new Set();body.traverse(o=>{if(o.isMesh){sourceGeometries.add(o.geometry);const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.deleteAttribute('uv');g.applyMatrix4(o.matrixWorld);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(g);}});
  root.remove(body);for(const [material,geometries]of buckets){const geometry=mergeGeometries(geometries,false);if(!geometry)throw Error('holiday geometry merge failed: '+id);geometries.forEach(g=>g.dispose());const o=new T.Mesh(geometry,material);o.castShadow=true;o.receiveShadow=true;root.add(o);}sourceGeometries.forEach(g=>g.dispose());

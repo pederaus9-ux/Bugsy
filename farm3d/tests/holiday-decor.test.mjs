@@ -38,3 +38,8 @@ test('placed prop cleanup also owns its contact geometry without disposing the b
  shadow.geometry.addEventListener('dispose',()=>geometryDisposals++);shadow.material.addEventListener('dispose',()=>materialDisposals++);
  g.userData.dispose();g.userData.dispose();assert.equal(geometryDisposals,1);assert.equal(materialDisposals,0);
 });
+for(const id of ids)test(id+' fits the existing circular walking/placement clearance',()=>{
+ const g=placed(id);g.position.set(0,0,0);g.updateMatrixWorld(true);const limit=DECOR[id].size===2?1.2:.6,v=new THREE.Vector3();let radius=0;
+ g.traverse(o=>{if(o.isMesh&&!o.userData.contactShadow){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);radius=Math.max(radius,Math.hypot(v.x,v.z));}}});
+ assert.ok(radius<=limit+1e-6,id+' radius '+radius+' exceeds existing clearance '+limit);g.userData.dispose();
+});

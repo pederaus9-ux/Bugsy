@@ -37,7 +37,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Solid geometry, complete silhouettes and disposal contracts
-        run: node --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/versions.test.mjs
+        run: node --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
       - name: Matched old/new orbit, actual guest placement/reload and full-resolution captures
         run: node farm3d/tests/holiday-decor.browser.cjs
       - name: Preserve actual renders, partial results and failure traces

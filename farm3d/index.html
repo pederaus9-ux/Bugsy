@@ -2449,6 +2449,15 @@ function decorationGroundY(x,z,footprint=1.05) {
   }
   return Number.isFinite(y)?y:groundY(x,z);
 }
+const decorationClears = new Map();
+function syncDecorationClearings() {
+  const next=new Map();
+  GS().decor.placed.forEach((d,j)=>{if(G.DECOR[d.id]?.hol)next.set('solid-decor:'+j,[d.x,d.z,G.DECOR[d.id].size===2?1.5:.95]);});
+  holidayObjs.forEach((o,j)=>next.set('holiday-prop:'+j,[o.position.x,o.position.z,.8]));
+  for(const [key,[x,z]] of decorationClears)if(!next.has(key)){moveClear(key,x,z,0);CLEARS.delete(key);}
+  for(const [key,value] of next){const old=decorationClears.get(key);if(!old||value.some((n,i)=>n!==old[i]))moveClear(key,...value);}
+  decorationClears.clear();for(const [key,value]of next)decorationClears.set(key,value);
+}
 function makeDecor(d) {
   const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group(), solid = createHolidayDecoration(d.id,{height:size===2?2.3:1.15,footprint:size===2?2.1:1.05});
   if (solid) { g.add(solid); g.userData.solidHoliday=true; }
@@ -2468,6 +2477,7 @@ function makeDecor(d) {
 function syncDecor() {
   for (const o of decorObjs) { scene.remove(o); o.userData.dispose?.(); } decorObjs.length = 0;
   GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; o.userData.edit = "d:" + j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
+  syncDecorationClearings();
   if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, (o.userData.solidHoliday?decorationGroundY(moving.x,moving.z):0)+.3, moving.z); } else endMove(false); } // the farm changed mid-move
 }
 // is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
@@ -3740,12 +3750,13 @@ function applyStyle() {
 const holidayObjs = [];
 function syncHoliday() {
   for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;
-  const id = HOLIDAY_AMBIENT[G.THEME.holiday]; if (!id) return;
+  const id = HOLIDAY_AMBIENT[G.THEME.holiday]; if (!id) { syncDecorationClearings(); return; }
   for (const [x, z, yaw] of [[-2.9,6.6,.6],[2.9,13.6,-.8],[-2.8,17.8,.3],[2.8,20.2,-.45],[-5.6,8.6,.9]]) {
     const o=createHolidayDecoration(id,{height:.8,footprint:.75});
     o.position.set(x,decorationGroundY(x,z,.75),z);o.rotation.y=yaw;
     scene.add(o);holidayObjs.push(o);
   }
+  syncDecorationClearings();
 }
 
 // ---------- photo mode: frame the farm, take a picture, share it ----------
