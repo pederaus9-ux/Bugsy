@@ -1,4 +1,4 @@
-name: Farm Utility near-field glare diagnostic
+name: Farm Utility GPU and wardrobe observation
 on:
   push:
     branches: [codex/utility-light-native-20261020]
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   utility-lights:
-    name: Matched390old/new utility glare diagnostic
+    name: Utility completed-GPU work and native light regression
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -28,13 +28,40 @@ jobs:
         working-directory: farm3d/tests
       - name: Utility ownership, geometry, light budget and cache contracts
         run: node --test farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
-      - name: Matched old/new actual390 glare views
-        run: node farm3d/tests/utility-visual.browser.cjs
+      - name: Real illuminated farm, trusted input, GPU ownership and installed51to52 update
+        run: node farm3d/tests/utility-lights.browser.cjs
       - name: Preserve actual night captures, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: utility-lights-${{ github.run_attempt }}
           path: farm3d/tests/artifacts/utility-*
+          if-no-files-found: error
+          retention-days: 14
+  wardrobe-observation:
+    name: Matched character sequence with geometry-disposal observation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Original matched character sequence; observe resource retirement without changing original equality
+        working-directory: farm3d/tests
+        run: npm run test:player-motion && node farmer3d.browser.cjs && node farmer3d-walk.browser.cjs && node farmer3d-evidence.browser.cjs && node recovery-startup.browser.cjs && node farmer-depth.browser.cjs && node scene-polish-diagnostic.browser.cjs && node phase7m-color.browser.cjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: wardrobe-resource-observation-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/
           if-no-files-found: error
           retention-days: 14
