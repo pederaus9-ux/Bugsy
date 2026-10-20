@@ -136,6 +136,7 @@ function addFlowerMeadow(root) {
   const stemGeo=new THREE.CylinderGeometry(.018,.026,.42,5); stemGeo.translate(0,.21,0);
   const headGeo=new THREE.IcosahedronGeometry(.075,1);
   const stems=new THREE.InstancedMesh(stemGeo,new THREE.MeshStandardMaterial({color:0x3d8a32,roughness:.9}),count);
+  stems.name="Phase7M flower stems";
   // Instance colors are enabled by setColorAt; this geometry has no vertex colors.
   // Enabling vertexColors as well reads a missing attribute and renders black.
   const heads=new THREE.InstancedMesh(headGeo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.75}),count);

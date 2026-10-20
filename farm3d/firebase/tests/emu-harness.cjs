@@ -90,7 +90,11 @@ async function startEmu(opts = {}) {
   // opts.economy: turn on the dormant Phase 7I economy (features.js) the only way it can be: a test-harness flag set
   // before any game script runs, on this local test server
   const economy = !!opts.economy;
+  const timingPhones = [];
   const server = http.createServer((req, res) => {
+    const timingPhone = req.url.split('?')[0] === '/farm3d/' ? timingPhones.find(p => p.recordRecoveryTiming) : null;
+    timingPhone?.recordRecoveryTiming('server-document-received');
+    if (timingPhone) res.once('finish', () => timingPhone.recordRecoveryTiming?.('server-document-finished'));
     let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
@@ -110,6 +114,7 @@ async function startEmu(opts = {}) {
     const write = (line) => { fs.appendFileSync(logf, stamp() + line + '\n'); if (process.env.FLOW_DEBUG) console.log('[' + name + '] ' + line.slice(0, 300)); };
     page.on('console', m => { const t = m.text(); if (!/WebGL|GPU stall|GL Driver/.test(t)) write(m.type() + ': ' + t); if (/permission|insufficient/i.test(t)) denials.push(name + ': ' + t); });
     page.on('pageerror', e => { write('pageerror: ' + e.message); if (/permission|insufficient/i.test(e.message)) denials.push(name + ': ' + e.message); });
+    page.on('framenavigated',frame=>{if(frame===page.mainFrame()&&p.delayGame)write('delayed-start navigation committed '+frame.url());});
     page.on('load', () => { loads[name] = (loads[name] || 0) + 1; write('--- page load #' + loads[name] + ' ' + page.url()); });
     // every economy call (Phase 7I) and its answer
     page.on('request', r => { if (r.url().startsWith('http://' + FN)) { economyCalls.push({page: name, method: r.method(), url: r.url()}); if (r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); } });
@@ -134,7 +139,7 @@ async function startEmu(opts = {}) {
         if (body.includes('farms/' + p.blockFarmRead)) { p.blockedReads = (p.blockedReads || 0) + 1; write('farm read BLOCKED ' + p.blockFarmRead); return route.abort('failed'); }
       }
       // hold back a file the game awaits before G.start(), so auth.js's sign-in step runs before game.js reads the save
-      if (p.delayGame && /\/cow3d\.js/.test(url)) return new Promise(r => setTimeout(r, p.delayGame)).then(() => route.continue());
+      if (p.delayGame && /\/cow3d\.js/.test(url)) { const began=Date.now(),delay=p.delayGame;write('delayed cow import requested: '+delay+'ms '+url);p.recordRecoveryTiming?.('import-held',{delayMs:delay});return new Promise(r=>setTimeout(r,delay)).then(()=>{write('delayed cow import released after '+(Date.now()-began)+'ms '+url);p.recordRecoveryTiming?.('import-released',{elapsedMs:Date.now()-began});return route.continue();}); }
       // serve a different auth.js (e.g. an older revision) to show what a fix changes
       if (p.authFile && /\/farm3d\/auth\.js/.test(url)) return route.fulfill({contentType: 'text/javascript', body: fs.readFileSync(p.authFile, 'utf8')});
       if (url.startsWith(base) || url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH) || url.startsWith('http://' + FN)) return route.continue();
@@ -150,7 +155,7 @@ async function startEmu(opts = {}) {
     // a slow cloud answer on the next load: auth.js delays its first farm read's answer by this many ms (see readCloud)
     if (economy) await context.addInitScript(() => { window.__saTestEconomy = true; });
     await context.addInitScript(() => { try { const h = localStorage.getItem('__hold_cloud_once'); if (h !== null) { window.__saTestHoldCloudRead = +h; localStorage.removeItem('__hold_cloud_once'); } } catch (e) {} });
-    const p = {name, context, page: null};
+    const p = {name, context, page: null}; timingPhones.push(p);
     await newPage(p); return p;
   }
   async function sleep(p) { if (p.page) { await p.page.close({runBeforeUnload: true}); p.page = null; } }

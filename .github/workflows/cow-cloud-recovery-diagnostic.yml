@@ -1,0 +1,45 @@
+name: Cow cloud recovery qualification
+on:
+  push:
+    branches: [codex/cow-courtyard-20261020]
+    paths:
+      - 'farm3d/firebase/tests/**'
+      - '.github/workflows/cow-cloud-recovery-diagnostic.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cow-cloud-reload-timing
+  cancel-in-progress: true
+jobs:
+  recovery:
+    name: Recovery with old test renderer released
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/firebase
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/firebase
+      - name: Original complete recovery assertions, original30s deadline and25s import delay
+        run: npm run test:recovery
+        working-directory: farm3d/firebase
+      - name: Retain outcome, monotonic timing and browser trace even on failure
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-cloud-reload-timing-${{ github.run_attempt }}
+          path: farm3d/firebase/artifacts/
+          retention-days: 14
+          if-no-files-found: error

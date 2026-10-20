@@ -8,6 +8,7 @@
 
 import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
 import {quoteMarketGoods,MARKET_WINDOW_MS} from './market-sales.js?v=1';
+import {ensureCowCare,validateCowCare,settleCowCare,stockCowFeed,refillCowWater,requestCowMilking,dockCowMilking,finishCowRobotExit,takeCowMilk,acknowledgeCowReward,COW_CARE} from './cow-care.js?v=1';
 export {CHICKEN_CARE};
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
@@ -232,10 +233,10 @@ function fresh() {
 // "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
-export const SAVE_VERSION = 2;
-// Version 2 reserves a minimum writer for farms that own the new utility lamp.
-// The data shape is unchanged. Existing farms stay v1 until they own that item.
-export const MIGRATIONS = {1:s=>s};
+export const SAVE_VERSION = 3;
+// Writer2 protects paid utility lamps; writer3 protects robot/cow-care state.
+// Ordinary farms stay v1; a cow station action activates the new care envelope.
+export const MIGRATIONS = {1:s=>s,2:s=>s};
 // (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
 export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
@@ -354,7 +355,10 @@ export function save() {
     if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
     return false;
   }
+  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now())){notice('Your saved cow care needs recovery or a newer game. This copy will not overwrite it.');return false;}
   settleChickens();
+  settleCows(true);
+  if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
   if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
   if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
@@ -527,8 +531,44 @@ export function setChickenAppearance(appearance) {
   if(!appearance||!['metal','shingles'].includes(appearance.roofType)||Object.keys(CHICKEN_PAINT).some(k=>!Object.hasOwn(CHICKEN_PAINT[k],appearance[k])))return false;
   S.pens.chicken.appearance={walls:appearance.walls,roof:appearance.roof,trim:appearance.trim,roofType:appearance.roofType};view.refresh('herd');commit();return true;
 }
+const canCowCare=()=>!!S?.pens.cow?.owned&&!homeS&&!restoring&&!newerSave&&!window.__saHold&&(!S.pens.cow.care||!!ensureCowCare(structuredClone(S.pens.cow),now()));
+let settlingCows=false;
+export function settleCows(force=false,activate=false){
+ if(!canCowCare()||settlingCows)return null;
+ const pen=S.pens.cow,old=pen.care;if(!old&&!activate)return null;
+ const copy=structuredClone(pen),next=settleCowCare(copy,now());if(!next)return null;
+ if(force||!old||next.revision!==old.revision||next.cows.length!==old.cows.length){pen.care=next;pen.list=copy.list;}
+ settlingCows=true;
+ try{for(const r of [...pen.care.receipts]){if(acknowledgeCowReward(pen,r.id)){gainXP(r.xp);eventProgress('milk',r.n);}}}finally{settlingCows=false;}
+ return pen.care;
+}
+export function getCowCareStatus(){
+ const p=S?.pens.cow,c=p?.owned?settleCowCare(structuredClone(p),now()):null;
+ return c?{...c,capacity:COW_CARE.tankCapacity,reason:canCowCare()?null:'readOnly'}:{cows:[],queue:[],job:null,tank:{normal:0,gold:0},feed:0,waterUntil:0,capacity:COW_CARE.tankCapacity,reason:'unavailable'};
+}
+export function fillCowFeed(units){
+ if(!canCowCare()||!Number.isSafeInteger(units)||units<1)return 0;settleCows(true,true);
+ const n=stockCowFeed(S.pens.cow,Math.min(units,have('cow_feed')),now());if(!n){toast('No room in the feed bunk, or no cow feed in the barn.');return 0;}
+ take('cow_feed',n);sfx('feed');view.refresh('herd');commit();return n;
+}
+export function fillCowWater(){
+ if(!canCowCare())return false;settleCows(true,true);if(!refillCowWater(S.pens.cow,now()))return false;sfx('water');view.refresh('herd');commit();return true;
+}
+export function milkCow(cowId){
+ if(!canCowCare())return false;settleCows(true,true);const r=requestCowMilking(S.pens.cow,cowId,now());
+ if(!r.ok){toast(r.reason==='tankFull'?'Empty the bulk tank first.':r.reason==='alreadyQueued'?'This cow is already waiting for the robot.':'This cow is not ready to milk.');return false;}
+ view.refresh('herd');commit();return true;
+}
+export function reportCowRobotDock(jobId){if(!canCowCare())return false;settleCows(true);if(!dockCowMilking(S.pens.cow,jobId,now()))return false;commit();return true;}
+export function reportCowRobotExit(jobId){if(!canCowCare())return false;settleCows(true);if(!finishCowRobotExit(S.pens.cow,jobId,now()))return false;commit();return true;}
+export function collectCowTank(units){
+ if(!canCowCare()||!Number.isSafeInteger(units)||units<1)return 0;settleCows(true);if(space()<1){barnFull();return 0;}
+ const got=takeCowMilk(S.pens.cow,Math.min(units,space()),now()),n=got.normal+got.gold;if(!n)return 0;
+ add('milk',n);if(got.gold)addGold('milk',got.gold);view.fx('cow:tank','+'+n+' 🥛');sfx('cow');view.refresh('herd');commit();return n;
+}
 export function feedOne(kind, i) {
   if(kind==='chicken'){toast('Fill the feed bin and waterer in the chicken run.');return false;}
+  if(kind==='cow'){toast('Fill the shared cow feed bunk.');return false;}
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (pen.list[i] !== 0 || have(a.feed) < 1) return false;
   take(a.feed, 1); pen.list[i] = now() + a.time * 1000 * (loveOf(meta(kind, i)) >= 70 ? .8 : 1); // happy animals work faster
@@ -538,6 +578,7 @@ export function feedOne(kind, i) {
 }
 export function feedAll(kind) {
   if(kind==='chicken'){toast('Fill the chicken feed bin for the whole flock.');return 0;}
+  if(kind==='cow'){toast('Fill the shared cow feed bunk.');return 0;}
   const a = ANIMALS[kind], pen = S.pens[kind];
   let n = 0;
   pen.list.forEach((_, i) => { if (feedOne(kind, i)) n++; });
@@ -548,6 +589,7 @@ export function feedAll(kind) {
 }
 export function collectAnimal(kind, i) {
   if(kind==='chicken'){toast('Pick up eggs from the pallet outside the chicken run.');return false;}
+  if(kind==='cow'){toast('Send a ready cow to the milking robot, then collect from the bulk tank.');return false;}
   const a = ANIMALS[kind], pen = S.pens[kind], end = pen.list[i];
   if (!end || end > now()) return false;
   const happy = loveOf(meta(kind, i)) >= 70;
@@ -566,6 +608,7 @@ export function collectAnimal(kind, i) {
 }
 export function collectAll(kind) {
   if(kind==='chicken'){toast('Pick up eggs from the pallet outside the chicken run.');return 0;}
+  if(kind==='cow'){toast('Send ready cows to the milking robot.');return 0;}
   let n = 0;
   S.pens[kind].list.forEach((_, i) => { if (collectAnimal(kind, i)) n++; });
   commit();
@@ -591,6 +634,7 @@ export function interact(m, sound, act, key) {
   const t = now(), CD = {pet:PET_CD, brush:BRUSH_CD, play:PLAY_CD, treat:TREAT_CD}[act], k = act + "At";
   if (cdLeft(m[k] || 0, CD)) return false;
   if(sound==='chicken')settleChickens(true); // Earned offline cycles precede this new happiness change.
+  if(sound==='cow')settleCows(true);
   if (act === "treat") { if (S.coins < 10) { toast("Need 10 🪙"); sfx("error"); return false; } S.coins -= 10; }
   m[k] = t;
   addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
@@ -776,11 +820,13 @@ export function buyPen(kind) {
 }
 export function buyAnimal(kind) {
   if(kind==='chicken'&&(!canCare()||getChickenCareStatus().reason==='unavailable'))return false;
+  if(kind==='cow'&&!canCowCare())return false;
   const a = ANIMALS[kind], pen = S.pens[kind];
   if (!pen.owned || pen.list.length >= a.max) return false;
   if (S.coins < a.cost) { toast("Need " + a.cost + " 🪙"); sfx("error"); return false; }
   if(kind==='chicken')settleChickens(true);
-  S.coins -= a.cost; pen.list.push(0); if(kind==='chicken')ensureChickenCare(pen,now()); sfx(kind); toast("A new " + a.n.toLowerCase() + " joined the farm!"); view.refresh("herd"); commit();
+  if(kind==='cow')settleCows(true);
+  S.coins -= a.cost; pen.list.push(0); if(kind==='chicken')ensureChickenCare(pen,now());if(kind==='cow'&&pen.care)ensureCowCare(pen,now()); sfx(kind); toast("A new " + a.n.toLowerCase() + " joined the farm!"); view.refresh("herd"); commit();
   return true;
 }
 export const dailyReady = () => S.lastDaily !== today();
@@ -1773,6 +1819,7 @@ function tickTimers() {
 export function tick() {
   const t = now();
   settleChickens();
+  settleCows();
   let changed = false;
   S.orders.forEach((o, i) => { if (o.wait && o.wait <= t) { S.orders[i] = genOrder(); changed = true; } });
   if (changed) save();
@@ -2004,6 +2051,7 @@ const SOUNDS = {
   place:() => { noise(.1, {vol:.18, freq:380}); tone(300, .12, {type:"triangle", vol:.12, to:210}); },
   truck:() => { tone(440, .12, {type:"square", vol:.04, lp:1400}); tone(554, .16, {type:"square", vol:.04, lp:1400, at:.14}); },
   chicken:() => { tone(1150, .07, {type:"square", vol:.035, to:720, lp:2500}); tone(1250, .09, {type:"square", vol:.035, to:650, lp:2500, at:.11}); },
+  robot:() => {tone(85,.8,{type:'triangle',vol:.018,lp:230,attack:.1});noise(.7,{vol:.009,freq:420,q:.5});},
   cow:() => tone(165, .75, {type:"sawtooth", vol:.09, to:118, lp:700, attack:.12}),
   sheep:() => tone(330, .55, {type:"sawtooth", vol:.06, to:290, lp:1500, attack:.05, vib:9}),
   horse:() => { tone(620, .7, {type:"sawtooth", vol:.05, to:300, lp:2200, attack:.03, vib:14}); noise(.3, {vol:.06, freq:600, at:.6}); },

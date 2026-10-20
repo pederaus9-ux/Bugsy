@@ -13,6 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
+const {startRecoveryTiming} = require('./recovery-timing.cjs');
 
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
@@ -23,7 +24,8 @@ const restWrite = (uid, save, rev) => fetch(fsUrl('farms/' + uid), {method: 'PAT
 const restDelete = (uid) => fetch(fsUrl('farms/' + uid), {method: 'DELETE', headers: {Authorization: 'Bearer owner'}});
 // the farm's real progress (the game re-saves a restored farm straight away with a new lastSeen and orders, so the phone
 // copy is compared on this; the CLOUD copy is compared byte for byte)
-const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats]); } catch (e) { return 'unreadable'; } };
+const cowProgress=o=>{const c=o.pens?.cow?.care;return c?[c.feed,c.waterUntil,c.tank,c.queue,c.job,c.receipts,c.cows.map(b=>[b.id,b.cycle,b.ready]),o.gold?.milk,o.decor]:null;};
+const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o)]); } catch (e) { return 'unreadable'; } };
 const has = (save, token) => typeof save === 'string' && save.includes('"__sentinel":"' + token + '"');
 
 async function main() {
@@ -33,7 +35,7 @@ async function main() {
   const g = await E.phone('grandma');
   const st = () => P(g, (k) => ({sentinel: window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel, level: window.__dbg && window.__dbg.G.S.level,
     coins: window.__dbg && window.__dbg.G.S.coins, recover: localStorage.getItem('sa3d-recover'), sync: localStorage.getItem('sa3d-sync-rev'),
-    kept: localStorage.getItem(k + '-unreadable'), raw: localStorage.getItem(k), user: window.saAuth && window.saAuth.user && window.saAuth.user.email}), SAVE_KEY);
+    boot:localStorage.getItem('sa3d-boot'),ready:!!window.__ready,navigation:performance.getEntriesByType('navigation').map(n=>({duration:n.duration,dom:n.domContentLoadedEventEnd,load:n.loadEventEnd})),kept: localStorage.getItem(k + '-unreadable'), raw: localStorage.getItem(k), user: window.saAuth && window.saAuth.user && window.saAuth.user.email}), SAVE_KEY);
   const loaded = (pred, arg, timeout = 180000) => g.page.waitForFunction(pred, arg, {timeout, polling: 250}).then(() => true, () => false);
   const gameUp = () => loaded(() => window.__ready && window.__dbg && window.__dbg.G.S && window.saAuth && window.saAuth.user);
   // give the farm a fresh sentinel and wait until the cloud holds exactly this phone's save, with nothing pending
@@ -52,7 +54,7 @@ async function main() {
   const standInWrites = (token) => (g.farmWrites || []).filter(w => !has(w.save, token)).length;
   // the next load finds this text as the saved farm (written before any game script runs)
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
-  let failed = false;
+  let failed = false, timing = null;
   try {
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
@@ -81,6 +83,23 @@ async function main() {
     const lampRestored=await P(g,()=>({v:__dbg.G.S.v,decor:__dbg.G.S.decor,birds:__dbg.G.S.pens.chicken.list.length}));
     check('minimum-writer2 paid lamp restores from authenticated snapshot exactly',lampRestored.v===2&&JSON.stringify(lampRestored.decor)===lampDecor&&lampRestored.birds===30);
 
+    // A quiescent approaching job retains its actual tank/queue through cloud
+    // recovery. The synthetic paid lamp occupies the site, so the renderer may
+    // not silently dock/milk it while the upload/reload assertions are running.
+    await P(g,()=>{
+      const G=__dbg.G;G.S.level=Math.max(4,G.S.level);G.S.barnCap=400;G.S.barn.cow_feed=20;G.S.barn.milk=7;G.S.gold.milk=2;
+      G.S.decor.placed.push({id:'utilitylamp',x:-8,z:-10,rotation:.31});
+      G.S.pens.cow={owned:true,list:[Date.now()-1,Date.now()-1],meta:[{name:'Snapshot Bessie',love:50,loveAt:Date.now()},{name:'Snapshot Clover',love:50,loveAt:Date.now()}]};
+      G.view.refresh('all');if(G.fillCowFeed(12)!==12||!G.fillCowWater())throw Error('cow snapshot supplies failed');
+      G.S.pens.cow.care.tank={normal:11,gold:2};
+      const ids=G.getCowCareStatus().cows.map(c=>c.id);if(!G.milkCow(ids[0])||!G.milkCow(ids[1]))throw Error('cow snapshot queue failed');G.commit();
+    });
+    const cowBase=await establish(uid,'cow-writer3'),cowCloud=JSON.parse(cowBase.save);
+    check('cow writer3 uploads paid feed/water, quality tank and manual queue without touching barn milk',cowCloud.v===3&&cowCloud.pens.cow.care.feed===12&&cowCloud.pens.cow.care.waterUntil>Date.now()&&cowCloud.pens.cow.care.tank.normal===11&&cowCloud.pens.cow.care.tank.gold===2&&cowCloud.pens.cow.care.job.stage==='approaching'&&cowCloud.pens.cow.care.queue.length===1&&cowCloud.barn.milk===7&&cowCloud.gold.milk===2&&cowCloud.pens.chicken.list.length===30);
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const cowRestored=await P(g,()=>({save:JSON.parse(JSON.stringify(__dbg.G.S)),site:__dbg.cowYardActive,conflicts:__dbg.cowYardIssues}));
+    check('authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint',JSON.stringify(cowProgress(cowRestored.save))===JSON.stringify(cowProgress(cowCloud))&&cowRestored.save.v===3&&cowRestored.save.pens.cow.meta[0].name==='Snapshot Bessie'&&cowRestored.save.pens.cow.meta[1].name==='Snapshot Clover'&&!cowRestored.site&&cowRestored.conflicts.some(c=>c.type==='decor')&&cowRestored.save.pens.chicken.list.length===30);
+
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;
     // keep its already-paid egg on the pallet through subsequent recovery.
@@ -89,9 +108,17 @@ async function main() {
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
       const base = await establish(uid, 'race'), n0 = loads.grandma || 0; g.farmWrites = [];
+      timing = await startRecoveryTiming(g, artifacts);
+      // The SwiftShader trace proves old-context destruction takes9-19s.
+      // Complete that fixture lifecycle before timing this25s startup race.
+      // Keep the original reload deadline, import delay and recovery assertions.
+      await timing.releaseRenderer();
       g.delayGame = 25000; g.authFile = process.env.AUTH_FILE || null;
       await corruptOnNextLoad('{"race cut');
+      timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
+      timing?.mark('reload-return');
+      if (timing) await timing.stopChromeTrace();
       const sampling = watch(uid, 45000, (c) => c && has(c.save, base.token));
       const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token, 120000);
       const c = await cloud(uid), s = await st(); const bad = await sampling;
@@ -155,6 +182,7 @@ async function main() {
     // Account linking must not clear RECOVER before load() can set it again.
     {
       await restDelete(uid); const n0 = loads.grandma || 0;
+      await timing.releaseRenderer();
       g.delayGame = 25000;
       try {
         await corruptOnNextLoad('{"early missing cloud');
@@ -263,9 +291,11 @@ async function main() {
         `restored ${back}, page loads +${(loads.grandma || 0) - n0}, cloud rev ${c3.rev}`);
     }
   } catch (e) {
+    timing?.mark('recovery-error', {message: e.message});
     failed = true; console.log('RECOVERY ERROR', e.message); try { console.log('STATE', JSON.stringify(await st())); } catch (_) {}
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
+  if (timing) await timing.finish();
   await E.close();
   const bad = results.filter(r => !r.ok);
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);

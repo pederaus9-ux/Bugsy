@@ -612,3 +612,144 @@ Bounded correction uses the already-existing newerSave read-only guard in old cl
 Authenticated emulator recovery includesv2 lamp ownership/30birds.
 
 Final qualification core job118701321125 at82076e4 failed before test execution because depth1 checkout cannot resolve main8a187155 historical game blob (gitshow exit128). No artifact was uploaded because no artifact file existed. New test now reads a frozen copy of that exact already-existing Git blob with SHA256f0e5da372f94ef064140724458907b1ebcb8268f35b529db359fbebaa02a5786 checked before execution; no network/history assumptions or relaxed assertions. Direct local node--test now passes6/6 without git transport shims. Added required synthetic3d-v2-utility-lamp.json fixture, preserving fields/paid ownership/rotation/30 birds. Full latest-head qualification required; earlier heads not credited.
+
+
+## Cow courtyard and physical animal care — October20
+Owner selected concept4 Dairy Courtyard and requested real beds/shelter sleeping and physical eating/drinking at stations for all animals. Ready cows show milk-full symbol; selecting Milk sends that cow to a robot which transfers milk to a bulk tank. Current main bf404a2 is PR89; its postmerge regression39449603350 is SUCCESS. Design-only branch codex/cow-courtyard-20261020 records the specification and proposed supply/tank defaults. No product implementation or new merge authorization. Cow milestone first; all remaining species remain explicitly in rollout scope. See docs/superpowers/specs/2026-10-20-cow-courtyard-robot-design.md. Generated concept4 is a direction, not validation evidence.
+
+
+## Cow design approved; implementation plans — October20
+Owner Yes at2026-10-20T11:14:27-05:00 approves concept4/specification and shared feed30,water12hours,robot12seconds,tank50gallons,existing5cow cap/rates/prices. Two linked plans cover cow robot/courtyard and subsequent all-animal physical care. Plans self-reviewed for interfaces, save/queue/quality/XP safety, original tests and actual rendered evidence. Native execution by sole lead follows existing repo instruction; no independent audit claim. Product code remains unchanged; plan review is the next gate, no new merge approval. Branch codex/cow-courtyard-20261020 is the single build thread.
+
+
+## Cow courtyard implementation checkpoint — 2026-10-20
+
+The owner approved the concept4 specification and the implementation plans
+(Yes11:14:27, Good11:52:40 America/Chicago). Work continues on the existing
+`codex/cow-courtyard-20261020` branch. Main remains
+`bf404a2a1261f3c7581025b249f2bd00c4539964`; no cow merge/deployment is authorized.
+
+Source checkpoint remote`ec84291554cf359b9a8e60a26cfc1d404bb63c12` has the same
+tree`1ff4de350bec2a99e9787a12649edf31719d3dbc` as local`618c736b93f94350d2b76cd1f44ecd840ec45e31`.
+Authenticated tree-equal publication preserves local commits because shell git
+push has no credentials. Do not reset or recreate this implementation.
+
+85 focused checks pass locally. Completed accounting covers stable IDs, supplied
+cycles, a manual FIFO robot ledger, exact tank/XP credit, writer3 protection and
+legacy paid timers. The scene prototype adds five beds, stocked stations, directed
+trips, opt-in folded-leg poses, and robot/tank controls. Pure/model tests include
+actual skin contact and all five bay center paths through actual model geometry.
+No accepted ordinary cow gait/anatomy file was changed.
+
+Native diagnostic39464917356 passed35 domain tests but stopped at an event popup;
+39465733521 passed37 domain tests and real feed/water touch, then selected the
+tank rather than the ready cow. Both original artifacts/logs are preserved. The
+corrected source is awaiting a hosted runner; no full robot, three-viewport, cloud,
+offline, GPU-rebuild or final full-suite pass is claimed. Local Chrome launch is
+blocked by OS sockets; browser installation success did not establish a pass.
+
+See[COW_COURTYARD_REVIEW.md](COW_COURTYARD_REVIEW.md) and the current state JSON.
+Continue native qualification, correct proven failures without weakening tests,
+then present an actual preview for owner acceptance. Remaining species follow
+the approved separate physical-care plan after the cow gate; they are not done.
+
+
+## Cow courtyard checkpoint — draft PR90 / October20
+
+Owner approved both implementation plans. Draft PR90 uses the existing branch
+`codex/cow-courtyard-20261020`; published checkpoint `ef24375a` has tree
+`dace967670746c6fd6b9e7be253fe78423b741cb`, identical to local`1d7951d`.
+Main remains `bf404a2`. No cow merge/deployment approval exists.
+
+Earlier source2033544 passed actual844x390 supply/Milk/dock/service/tank/exit/
+pickup and installed52to53/cached29 refusal/offline paid-readiness evidence in
+run39469981279; artifact12287191813 digest
+`af04c7274a890c398e878d6596de7aab04b18e87681ecd14ff23d160cab1d5de`.
+This supersedes the earlier statement that no complete native trip had passed.
+
+The expanded checkpoint adds five-cow supply/bed/FIFO tests, covered feed row,
+three High/drawingPR1 real-time viewport jobs, interrupted-job offline recovery,
+actual normal-composer pose captures and20GPU rebuilds. Diagnostic39474692376,
+regression39474713607, art39474712835 and release39474713100 are being checked.
+53 focused contracts passed before publication; full exact-head qualification
+is still pending. The chicken job first failed its two VM ray-view checks on a
+missing cowYardActive binding, before any native chicken check; the original
+assertions are preserved and the fixture dependency is now supplied.
+
+Author self-review reproduced same-count farm recovery retaining the former
+cow rig/reservation, and saved layout being applied after the first courtyard
+site decision. Both now have regression tests and local fixes; transition15
+checks pass. These corrections require a new hosted source checkpoint. No
+independent external-agent audit or physical-phone performance claim exists.
+Historical wardrobe resource decrease remains unassigned.
+
+
+## Checkpoint93a47fa results and current corrections
+
+Diagnostic39476066195:390touch/1280mouse, three-size poses/five distinct beds/
+20GPU rebuilds and complete installed/interrupted/queued offline checks PASS.
+844Ready-cow tap FAIL: naturally moving cow left fixed aim; camera-follow probe
+now retains real taps/30s timeout and removes animal-freeze assumptions.
+Art39476072800 all3PASS, conflicts39476072859PASS. Authenticated cow upload
+and restoration pass in39476072804, then the original25s delayed-start race
+hits its original30s load wait; timing diagnostics added without relaxing it.
+
+Correction to earlier clearance diagnosis: clearGrass already uses squares.
+Flowers in captures come from separate Phase7M meadow instances. Restore the
+original1.85 square grass coverage; the new courtyard-only reversible meadow
+clearing hides stems/heads inside the footprint and restores original bytes on
+removal. Phase7M geometry/color/placement remains unchanged; its only source
+change names stems for this bounded integration, version4 cached in shell53.
+Current66focused checks PASS. Fresh rendered/full final-head results required.
+
+
+## PR90 correction checkpoint — legacy rig fixture and animal card headers
+
+02af01f all5cow diagnostics and scene/wardrobe original assertions PASS. Core
+failed1280 distance>0.01 because the fixture's cow was already holding its bed
+task;740/844 had incidentally measured care movement. The isolated rig fixture
+now releases that reservation/pose and starts its same stroll in the clear aisle.
+Actual Beast reproduction is0 before correction and0.883886m afterward; original
+120/180 steps, distance agreement, blocked phase and picking/save checks remain.
+Native chicken Rename separately timed out30s as its header button detached.
+The existing keyed card update now covers all animal-card controls and parents;
+station/other trays retain their original paths. Current cache54 is unmerged.
+Both original artifacts/logs are verified in cow-native-run17. Hosted contracts
+and full next-head CI are pending.02af01f full cloud job was still active before
+this checkpoint; do not claim a final Firebase/SDK result. The706 missing-card
+tap and older wardrobe cause remain unproven. Keep draft, do not merge/deploy.
+
+
+The header correction ateda7cef passes actual390/844/1280 cow journeys and all8
+real-DOM identity/fallback checks, plus the visual job. Core stopped before its
+browser probes: the older isolated weather VM did not bind prepareCowStroll.
+That dependency is now supplied using the real helper and Three vectors; both
+original weather assertions are unchanged. All57core Node files/60isolated
+invocations pass locally, including all4animal-visual checks. Product code is
+unchanged by this follow-up. Final exact-head hosted browser/full CI remains
+required; do not merge, deploy or assign the old missing-card/wardrobe causes.
+
+
+## Ready-cow HUD selection correction — final hosted validation pending
+
+Published1d48b8b native844 job118928368954 failed the original30s #cow-milk
+locator wait after Ready-cow selection. Artifact12305786160 SHA256
+`d65bfc61a238fb2f394a2eb6928e7ab28612b8ea216c691e1ff5b4ad1fa99cd3`
+is verified in cow-native-run19/native844-red (ZIP, results, screenshot, trace,
+video and full original log retained).61 input/mutation records establish that
+trusted pointerdown/up/click reached actBtn labelled Ready cow; each fresh center
+hit was empty. There was no blocking modal/seed tray. Original interact rerays
+onTap at the old center, missing the naturally moving displayed cow and closing
+the tray. This run proves delivered input and the moving-target selection miss.
+
+The bounded runtime correction keeps the displayed cow identity, revalidates its
+current visible torso/marker with the existing hitAt and original reach, and
+requires the same existing, ready, current-farm cow. Occluded/distant/removed/
+spent/former-farm targets remain rejected. It only opens the card; Milk, ledger,
+saves/cloud, ordinary gait and geometry are unchanged. Four actual-Three/actual-
+handler regressions fail before correction and pass afterward; combined focused
+checks35PASS/0fail/0skip, including original seed and chicken input contracts.
+Both native journey and30s assertion remain unchanged; the new tests are added to
+existing core/domain runners. New-head full hosted CI and actual preview still
+required. Older706 missing-card and historical wardrobe causes remain unproven.
+Keep PR90 draft/unmerged; physical-phone performance and owner approval pending.

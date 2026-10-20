@@ -66,7 +66,8 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       const first = await pick(page);
       assert.deepEqual(errorsOf(session), [], f + ' page errors');
       const raw = await page.evaluate(() => { __dbg.G.save(); return localStorage.getItem('sunny-acres-3d-v1'); });
-      if (f.startsWith('3d-v2')) assert.ok(raw && JSON.parse(raw).v === 2, f + ' retains its paid-feature minimum writer2');
+      if (f.startsWith('3d-v3')) assert.ok(raw && JSON.parse(raw).v === 3, f + ' retains its cow-care minimum writer3');
+      else if (f.startsWith('3d-v2')) assert.ok(raw && JSON.parse(raw).v === 2, f + ' retains its paid-feature minimum writer2');
       else assert.ok(raw && JSON.parse(raw).v === 1, f + ' saves back as v1 JSON');
       await page.reload({waitUntil: 'load'});
       await page.waitForFunction(() => window.__dbg && !document.getElementById('loading'), {}, {timeout: 120000});
@@ -86,6 +87,9 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
         assert.equal(first.buildings, 6, 'every building present');
         assert.equal(first.owed, 1, 'level 6 farm from before perks gets one pick');
         pass(f + ' opens, keeps progress and is stable', `level ${first.level}, ${first.coins} coins, ${first.plots} fields, ${raw.length} bytes`);
+      } else if (f.startsWith('3d-v3')) {
+        const saved=JSON.parse(raw);assert.equal(first.coins,fx.save.coins);assert.equal(first.chickens,30);assert.deepEqual(saved.decor,fx.save.decor);assert.deepEqual(saved.pens.cow.care.tank,fx.save.pens.cow.care.tank);assert.equal(saved.barn.milk,fx.save.barn.milk);assert.equal(saved.gold.milk,fx.save.gold.milk);assert.equal(saved.pens.cow.meta[0].name,'Snapshot Cow');
+        pass(f+' preserves paid cow tank/timer, barn quality,30birds and lamp',raw.length+' bytes');
       } else if (f.startsWith('3d-v2')) {
         assert.equal(first.level, fx.save.level);assert.equal(first.coins, fx.save.coins);assert.equal(first.wheat, fx.save.barn.wheat);
         assert.equal(first.chickens,30);assert.equal(first.placed,2);

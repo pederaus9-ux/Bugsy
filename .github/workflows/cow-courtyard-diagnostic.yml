@@ -1,0 +1,112 @@
+name: Cow courtyard diagnostic
+on:
+  push:
+    branches: [codex/cow-courtyard-20261020]
+    paths:
+      - 'farm3d/**'
+      - '.github/workflows/cow-courtyard-diagnostic.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cow-courtyard-diagnostic
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['390x844','844x390','1280x720']
+    env:
+      COW_VIEWPORT: ${{ matrix.viewport }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Cow domain, occupied site, pose and physical docking contracts
+        if: matrix.viewport == '844x390'
+        run: node --test farm3d/tests/animal-stations.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-milking.test.mjs farm3d/tests/cow-care-integration.test.mjs farm3d/tests/cow-writer-compatibility.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/cow-stations.test.mjs farm3d/tests/cow-scene.test.mjs farm3d/tests/cow-clearings.test.mjs farm3d/tests/cow-controls.test.mjs farm3d/tests/cow-ready-action.test.mjs farm3d/tests/cow-robot-contact.test.mjs
+      - name: Actual input and uninterrupted robot visit
+        run: node farm3d/tests/cow-robot.browser.cjs
+      - name: Preserve original failures, actual captures and traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-native-${{ matrix.viewport }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/cow-*
+          retention-days: 14
+          if-no-files-found: warn
+
+  persistence:
+    name: Cow installed update and interrupted-job recovery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Installed52to54 and predecessor writer barrier
+        if: always()
+        run: node farm3d/tests/cow-update.browser.cjs
+      - name: Docked/approaching/queued/offline reload and quality pickup
+        if: always()
+        run: node farm3d/tests/cow-resume.browser.cjs
+      - name: Preserve actual results and original failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-persistence-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/cow-*
+          retention-days: 14
+          if-no-files-found: warn
+
+  visuals:
+    name: Cow actual care at3908441280 and20GPU rebuilds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Full-resolution supported poses and resource ownership
+        if: always()
+        run: node farm3d/tests/cow-visual.browser.cjs
+      - name: Preserve actual results and original failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-visuals-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/cow-*
+          retention-days: 14
+          if-no-files-found: warn
