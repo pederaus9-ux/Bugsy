@@ -408,3 +408,33 @@ Surrounding native seed job118489014725 at740 failed KeyE/plot2 null vs wheat, w
 
 
 Core regression onf77e3bc5 reached43Node invocations/259PASS, regression.browser andshed-switch PASS, then failed cow3d.browser740 distance0>.01 (job118491469566). Raw artifact12246351548/5116b03583fc1fcfe737ad0f6bf18c567527fe38679e1b55ae28656e943488a1 retained; remaining2browser suites not credited. Actual fixture leaves presetNight then forces cowfair/go; productionweather mismatch cancels that target. Actual-fixture/production-branch red/green confirms it. One test-onlysetPreset('noon') restores intended travel conditions afterall5lighting samples. Everyoriginalassertion/threshold/120+180updates remains unchanged; path/first-update snapshots now retained beforeassertions. No cow/actor/render/runtime edits or oldcowprogram reopening.100focused checksPASS; corrected originalnativeprobe andfullfinalheadCI required. No merge/deploy.
+
+
+## Market Sales final qualification — 2026-10-20T07:28:22.173493+00:00
+
+PR87 remains draft/open/unmerged at reviewed head`b39b7242f6cf6e90572316233d637cb2c28474f0`, tree`e99bdfacd052bef22ef3913822e3ea1eb20ac662`,
+base main`2bf6f16a0d0b965df1eda089a3ea6a0f140f6f69`. All18exact-head check runs and all3workflows SUCCESS.
+CI synthetic merge`b123046e0be21749c85f0ce9337527affc9bf59e` has the identical tree. Core completes
+all41Node files/44invocations/261passing Node tests and all5original browser
+suites. Market15nativegroups pass at390/844/1280DPR1, including actual requested
+49to50worker control/module hashes, retained30birds/old stock and offline sale/
+reload. Final native planting22groups pass; historical cached target is missing
+and original cause remains unassigned. The844key telemetry filename was overwritten
+by a later scenario; original844assertions passed but no key telemetry is claimed.
+
+Actual final images are inspected and retain normal scrolling. The enumerated
+protected-file receipt replaces an earlier unsupported117summary count with83
+exact protected production/config/asset blobs under an explicit path scope. Only
+approved sale/menu logic and import/cache identities change; worker algorithms,
+dependencies/lockfile, animal/character/planting runtime and save schema remain exact.
+All4native failure samples/logs/traces and local installer/full-npm limitations
+remain retained. Final cow snapshots preserve the fair-weather first-step target
+and pass original travel/block/pick/save requirements at all3widths without runtime
+cow edits. See[immutable assessment](tests/evidence/market-sales-20261020/final-review/assessment.json).
+
+This evidence branch records qualification without changing the tested PR head.
+Owner actual visual acceptance and direct merge approval are pending. No merge,
+deployment, new phone performance clearance or other phase started. Local100/100
+focused and12800price cases pass; local browser/full-npm are not passing receipts.
+Lead implementation and adversarial self-review only; no independent audit.
+Exact next action: owner reviews actual previews and PR87.
