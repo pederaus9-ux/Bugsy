@@ -54,6 +54,17 @@ test('invalid, fractional, insufficient and unsupported sale requests never spen
  assert.equal(quote('wheat',1),null);assert.equal(G.sellMarketGoods('wheat',1,'anything'),false);
  assert.equal(G.sellMarketGoods('egg',1,undefined),false);assert.equal(JSON.stringify(s),before);
 });
+test('existing season milestone pays exactly once in addition to the quoted sale amounts',()=>{
+ const s=farm(),season=G.THEME.season;at(1792454400000);G.THEME.season='fall';s.event=null;s.coins=1000;s.stats.earned=0;s.perks.sell=0;delete s.seasonTrack;
+ try{
+  const eggs=quote('egg',2);assert.equal(eggs.total,237);assert.equal(sell(eggs),true);assert.equal(s.coins,1237);assert.equal(s.seasonTrack.won,0);
+  const milk=quote('milk',7);assert.equal(milk.total,189);assert.equal(sell(milk),true);
+  assert.equal(s.coins,1000+eggs.total+milk.total+60,'existing first season prize is separate from the sale quote');
+  assert.equal(s.stats.earned,eggs.total+milk.total);assert.equal(s.seasonTrack.won,1);
+  assert.equal(s.seasonTrack.pts,eggs.total*.1+milk.total*.1);
+  const paid=JSON.stringify(s);assert.equal(sell(milk),false);assert.equal(JSON.stringify(s),paid);
+ }finally{G.THEME.season=season;}
+});
 test('visiting, cloud replacement and future-version saves reject market mutations',()=>{
  farm();G.save();G.visitFarm(JSON.parse(localStorage.getItem(G.SAVE_KEY)));let before=JSON.stringify(G.S);assert.equal(sell(quote('milk',1)),false);assert.equal(JSON.stringify(G.S),before);G.leaveVisit();
  window.__saHold=true;before=JSON.stringify(G.S);assert.equal(sell(quote('milk',1)),false);assert.equal(JSON.stringify(G.S),before);delete window.__saHold;

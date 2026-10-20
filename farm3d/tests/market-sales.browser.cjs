@@ -32,7 +32,9 @@ let h,failed=true,stage='launch';save();
  }
  for(const [width,height,touch]of [[390,844,true],[844,390,true],[1280,720,false]]){
   stage='native sales '+width;const s=await h.setup({width,height},touch,'market-sales-'+width),p=s.page;await boot(p,h.base,true);
-  await p.evaluate(()=>{const G=__dbg.G;G.S.barn={egg:29,milk:7,wheat:3};G.S.gold={egg:5,milk:2};G.S.coins=1000;G.S.stats.earned=0;G.S.perks.sell=0;});
+  // Use an explicitly completed season track to isolate exact sale proceeds.
+  // market-sales.test.mjs separately proves the existing first60-coin prize.
+  await p.evaluate(()=>{const G=__dbg.G;G.S.barn={egg:29,milk:7,wheat:3};G.S.gold={egg:5,milk:2};G.S.coins=1000;G.S.stats.earned=0;G.S.perks.sell=0;Object.assign(G.seasonNow(),{pts:1400,won:10});});
   await open(p,touch);const q=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',1));
   await press(p,'[aria-label="More dozens"]',touch);const two=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',2));
   assert((await p.locator('[data-market-total="egg"]').textContent()).includes(String(two.total)));
@@ -56,7 +58,7 @@ let h,failed=true,stage='launch';save();
   assert.equal(await p.evaluate(()=>localStorage.getItem(__dbg.G.SAVE_KEY)),null);assert.deepEqual(s.errors,[]);await s.finish();
  }
  stage='old installed farm';h.serveRef(BASE);const s=await h.setup({width:844,height:390},true,'market-sales-installed'),p=s.page;await boot(p,h.base,false);
- await p.evaluate(()=>{const G=__dbg.G;G.S.barn={egg:29,milk:7,wheat:3,chicken_feed:30};G.S.gold={egg:5,milk:2};G.S.coins=777;G.S.pens.chicken={owned:true,list:Array(30).fill(0),meta:Array.from({length:30},(_,i)=>({name:'Hen '+i,love:50,loveAt:Date.now()}))};G.save();});
+ await p.evaluate(()=>{const G=__dbg.G;G.S.barn={egg:29,milk:7,wheat:3,chicken_feed:30};G.S.gold={egg:5,milk:2};G.S.coins=777;Object.assign(G.seasonNow(),{pts:1400,won:10});G.S.pens.chicken={owned:true,list:Array(30).fill(0),meta:Array.from({length:30},(_,i)=>({name:'Hen '+i,love:50,loveAt:Date.now()}))};G.save();});
  const old=await p.evaluate(()=>{const G=__dbg.G;return {barn:{...G.S.barn},gold:{...G.S.gold},pens:G.S.pens,decor:G.S.decor,plots:G.S.plots,buildings:G.S.buildings,coins:G.S.coins};});
  await p.evaluate(async()=>{await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));});
  assert.equal(await p.evaluate(async()=>(await caches.keys()).includes('sa3d-v49')),true);h.serveRef(null);
