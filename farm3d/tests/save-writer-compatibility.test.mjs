@@ -1,10 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import vm from 'node:vm';
 const current=readFileSync(new URL('../game.js',import.meta.url),'utf8');
-const predecessor=execFileSync('git',['show','8a18715515028904e984012eb3d37c41eb0f2dc2:farm3d/game.js'],{encoding:'utf8'});
+// Frozen exact main8a187155 source: works in shallow CI and offline.
+const predecessor=readFileSync(new URL('fixtures/game-before-utility-writer.js',import.meta.url),'utf8');
+assert.equal(createHash('sha256').update(predecessor).digest('hex'),'f0e5da372f94ef064140724458907b1ebcb8268f35b529db359fbebaa02a5786','predecessor source is immutable');
 // Execute actual whole game modules; DOM/timers and unrelated chicken settlement
 // are boundary shims only. Browser/emulator suites cover real input/care/cloud.
 function load(source,raw){
