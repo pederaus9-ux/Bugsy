@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-20T16:09:57.859Z",
+  "lastUpdatedUtc": "2026-10-20T16:18:10.025Z",
   "codeBaseline": {
     "description": "PR89 Farm Utility lights merged/published; postmerge regression successful",
     "mergeCommit": "bf404a2a1261f3c7581025b249f2bd00c4539964",
@@ -106,14 +106,14 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "COW_COURTYARD_DESIGN",
   "currentPhaseTitle": "Concept4 courtyard, beds and robot-to-bulk-tank milking",
-  "phaseStatus": "DESIGN_SPEC_AWAITING_OWNER_REVIEW",
+  "phaseStatus": "DESIGN_APPROVED_IMPLEMENTATION_PLAN_REVIEW_PENDING",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": null,
   "nextPhases": [
-    "Owner reviews cow-care/robot specification and proposed supply/tank defaults",
-    "Write implementation plan after specification review",
-    "Cow courtyard/robot implementation and actual validation",
-    "Physical feed/water/sleep behavior for all remaining species in reviewable increments"
+    "Owner reviews cow and all-animal implementation plans",
+    "Execute native cow milestone on existing branch",
+    "Qualify actual cow robot/bed/feed/water preview and exact-head checks",
+    "After owner gate, complete physical care for all remaining animals"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -2658,6 +2658,20 @@
       "Cow physically walks to robot; robot milks into bulk tank"
     ],
     "implementationStarted": false,
-    "mergeAuthorized": false
+    "mergeAuthorized": false,
+    "specApprovedAt": "2026-10-20T11:14:27-05:00",
+    "specApproved": true,
+    "approvedDefaults": {
+      "feedCapacity": 30,
+      "waterHours": 12,
+      "robotSeconds": 12,
+      "tankGallons": 50,
+      "maxCows": 5
+    },
+    "plans": [
+      "docs/superpowers/plans/2026-10-20-cow-courtyard-robot.md",
+      "docs/superpowers/plans/2026-10-20-animal-physical-care.md"
+    ],
+    "executionMethod": "Native sole lead; adversarial self-review; no independent-agent claim"
   }
 }

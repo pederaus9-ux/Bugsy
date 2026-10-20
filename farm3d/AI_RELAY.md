@@ -616,3 +616,7 @@ Final qualification core job118701321125 at82076e4 failed before test execution 
 
 ## Cow courtyard and physical animal care — October20
 Owner selected concept4 Dairy Courtyard and requested real beds/shelter sleeping and physical eating/drinking at stations for all animals. Ready cows show milk-full symbol; selecting Milk sends that cow to a robot which transfers milk to a bulk tank. Current main bf404a2 is PR89; its postmerge regression39449603350 is SUCCESS. Design-only branch codex/cow-courtyard-20261020 records the specification and proposed supply/tank defaults. No product implementation or new merge authorization. Cow milestone first; all remaining species remain explicitly in rollout scope. See docs/superpowers/specs/2026-10-20-cow-courtyard-robot-design.md. Generated concept4 is a direction, not validation evidence.
+
+
+## Cow design approved; implementation plans — October20
+Owner Yes at2026-10-20T11:14:27-05:00 approves concept4/specification and shared feed30,water12hours,robot12seconds,tank50gallons,existing5cow cap/rates/prices. Two linked plans cover cow robot/courtyard and subsequent all-animal physical care. Plans self-reviewed for interfaces, save/queue/quality/XP safety, original tests and actual rendered evidence. Native execution by sole lead follows existing repo instruction; no independent audit claim. Product code remains unchanged; plan review is the next gate, no new merge approval. Branch codex/cow-courtyard-20261020 is the single build thread.

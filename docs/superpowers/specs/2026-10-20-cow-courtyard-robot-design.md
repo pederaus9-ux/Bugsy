@@ -1,6 +1,6 @@
 # Cow courtyard, robot milking and physical animal care
 Date: 2026-10-20
-Status: DESIGN FOR OWNER REVIEW — no product implementation
+Status: OWNER APPROVED 2026-10-20T11:14:27-05:00 — implementation plan review pending; no product implementation
 Source baseline: bf404a2a1261f3c7581025b249f2bd00c4539964 (PR89 merged lights).
 Owner-selected visual: concept4, Dairy Courtyard.
 
@@ -31,9 +31,9 @@ Each feed, drink, bed and robot position has an approach point, occupied slot an
 Animals walk to beds/buildings before settling. Cows fold legs into a supported lying pose on straw and stand before moving; preserve approved body proportions and ordinary gait. Sheep/horses settle into their own appropriate bed poses; chickens settle inside their coop; dog/cat curl up in their beds/shelter. No floating, ground penetration, wall walking, snapping or merely standing beneath a sleep icon. Existing contact/gait assertions retain their tolerances.
 Use occupancy queues or alternate free positions. A blocked animal retries safely; a visual teleport must never award production. Weather shelter and sleep requests must not cancel or duplicate a committed milking session.
 
-## Cow care proposal
+## Approved cow care
 Shared stocked feed bunk and water trough replace repeated individual feeding as the preferred cow workflow. Proposed initial rule: store up to30 cow_feed units; consume one unit per cow starting a new production cycle. Keep the existing180second baseline and144second happy cycle. Water refill is free with12real hours of supply. A cycle pauses if required supplies run out, preserves earned partial progress and resumes without a new feed charge. Newborn/breeding/death/veterinary mechanics are not part of this milestone.
-These supply details are proposed defaults for owner review; the owner has not yet explicitly approved the earlier shared-care recommendation. Do not implement them as already-authorized economics.
+The owner approved these supply defaults with Yes at 2026-10-20T11:14:27-05:00. Record any later change explicitly rather than silently changing the economics.
 Eating/drinking visits must correspond to available shared supplies; idle grazing can remain cosmetic but must not grant unpaid production or replace the actual bunk visit.
 
 ## Manual robot workflow
@@ -46,7 +46,7 @@ Eating/drinking visits must correspond to available shared supplies; idle grazin
 7. The readiness symbol clears on successful completion. A new production cycle follows the approved supply rule. The next queued cow can enter only after the previous cow has cleared the exit.
 Manual command is required as the owner requested; do not replace it with unattended automatic dispatch. Existing Collect/Collect All paths must route cow output through the robot rather than bypassing it.
 
-## Tank, rewards and market integration proposal
+## Approved tank, rewards and market integration
 Initial proposed tank capacity50 existing milk units, displayed as gallons using the current Market Sales mapping; do not invent an additional liter conversion. One cow produces its existing normal1-unit batch, including the existing happy double/gold rules, without multiplying throughput. Determine and persist any random quality/double award once per batch so cancel/reload cannot reroll it.
 Tank contents store normal and gold quantities distinctly. Player collects a chosen amount or all available into barn inventory, limited by free barn space, retaining the rest in the tank. Existing dairy recipes and Market Sales continue using barn milk. Direct-from-tank selling is outside this first milestone.
 Grant the existing production XP/event progress once at successful robot completion; tank pickup grants neither again. Preserve already-earned milk, XP and event credit during legacy migration. Show tank-full state clearly; don't lose a ready batch when capacity is reserved by another queued cow.
@@ -73,5 +73,5 @@ Browser viewport tests do not establish physical Android/iPhone heat, battery or
 - Stage2 evidence for every remaining species; do not substitute successful cow footage.
 - No merge without explicit owner approval.
 
-## Review choices
-Owner already chose concept4 and the manual Milk-to-robot interaction. The remaining proposed gameplay defaults for approval are shared cow supplies,30feed storage,12hour water,12second robot service and50gallon tank, with existing rates/cap/prices retained. Changes to herd size, milk value, land, other species' economics or automatic robot dispatch require a separate choice.
+## Approval record
+Owner already chose concept4 and the manual Milk-to-robot interaction. The owner approved shared cow supplies,30feed storage,12hour water,12second robot service and50gallon tank at2026-10-20T11:14:27-05:00, with existing rates/cap/prices retained. Changes to herd size, milk value, land, other species' economics or automatic robot dispatch require a separate choice.
