@@ -1,4 +1,4 @@
-name: Farm Utility targeted native qualification
+name: Farm Utility near-field glare diagnostic
 on:
   push:
     branches: [codex/utility-light-native-20261020]
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   utility-lights:
-    name: Farm Utility real lighting + native touch + offline saves
+    name: Matched390old/new utility glare diagnostic
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -28,8 +28,8 @@ jobs:
         working-directory: farm3d/tests
       - name: Utility ownership, geometry, light budget and cache contracts
         run: node --test farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
-      - name: Real illuminated farm, trusted input, GPU ownership and installed51to52 update
-        run: node farm3d/tests/utility-lights.browser.cjs
+      - name: Matched old/new actual390 glare views
+        run: node farm3d/tests/utility-visual.browser.cjs
       - name: Preserve actual night captures, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
