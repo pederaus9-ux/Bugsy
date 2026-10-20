@@ -500,3 +500,16 @@ silently substituted for the existing paper-lantern item. No new lamp price,
 lighting runtime or renderer rebuild is included in this geometry milestone.
 See ALL_DECORATION_REVIEW.md. Lead implementation/self-review only; preserve all
 failures and show actual game evidence before any separately approved merge.
+
+
+Native attempt1 at2e804feb: all3widths pass actual volume/ground/orientation and
+native buy/move/done/reload/put-away. All31front/side/back renders were inspected;
+no cards or cut-off geometry observed. The separate model study fails cleanup:
+127geometries→0,1texture→1, while the new test incorrectly expected every renderer
+texture to reach0. Actual Three r186 source creates the shared16x16 DFG_LUT for
+standard materials; model factory creates no textures. Next test-only observer
+renders/disposes an independent plain cube before any model, records that LUT
+and baseline, then requires exact model cleanup equality. This preserves zero
+owned-geometry/texture leakage; hosted baseline proof and offline stage remain
+pending. Original exit1/log/artifact retained under native-attempt-1. No runtime
+change follows this test finding, and no whole-job pass is claimed.
