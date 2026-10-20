@@ -1,0 +1,546 @@
+﻿2026-10-19T23:55:28.3494604Z Current runner version: '2.337.0'
+2026-10-19T23:55:28.3528985Z ##[group]Runner Image Provisioner
+2026-10-19T23:55:28.3530248Z Hosted Compute Agent
+2026-10-19T23:55:28.3531245Z Version: 20261012.601
+2026-10-19T23:55:28.3532353Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-19T23:55:28.3533617Z Build Date: 2026-10-12T17:48:21Z
+2026-10-19T23:55:28.3535182Z Worker ID: {2dd25227-6770-4efa-b7fb-135f963fc85d}
+2026-10-19T23:55:28.3536478Z Region: eastus
+2026-10-19T23:55:28.3537450Z Cloud: Azure
+2026-10-19T23:55:28.3538293Z ##[endgroup]
+2026-10-19T23:55:28.3541157Z ##[group]Operating System
+2026-10-19T23:55:28.3542224Z Ubuntu
+2026-10-19T23:55:28.3543112Z 24.04.5
+2026-10-19T23:55:28.3544305Z LTS
+2026-10-19T23:55:28.3545160Z ##[endgroup]
+2026-10-19T23:55:28.3546081Z ##[group]Runner Image
+2026-10-19T23:55:28.3547313Z Image: ubuntu-24.04
+2026-10-19T23:55:28.3548303Z Version: 20261012.334.1
+2026-10-19T23:55:28.3550383Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-19T23:55:28.3553184Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-19T23:55:28.3555250Z ##[endgroup]
+2026-10-19T23:55:28.3557117Z ##[group]GITHUB_TOKEN Permissions
+2026-10-19T23:55:28.3560119Z Contents: read
+2026-10-19T23:55:28.3561233Z Metadata: read
+2026-10-19T23:55:28.3562156Z ##[endgroup]
+2026-10-19T23:55:28.3565447Z Secret source: Actions
+2026-10-19T23:55:28.3567049Z Cache mode: write
+2026-10-19T23:55:28.3568499Z Prepare workflow directory
+2026-10-19T23:55:28.4048369Z Prepare all required actions
+2026-10-19T23:55:28.4119492Z Getting action download info
+2026-10-19T23:55:28.6248616Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-19T23:55:28.7425511Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-19T23:55:28.8769694Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-19T23:55:29.1378310Z Complete job name: observe
+2026-10-19T23:55:29.2234388Z ##[group]Run actions/checkout@v6
+2026-10-19T23:55:29.2235397Z with:
+2026-10-19T23:55:29.2235908Z   persist-credentials: false
+2026-10-19T23:55:29.2236514Z   repository: pederaus9-ux/Bugsy
+2026-10-19T23:55:29.2240687Z   token: ***
+2026-10-19T23:55:29.2241184Z   ssh-strict: true
+2026-10-19T23:55:29.2241677Z   ssh-user: git
+2026-10-19T23:55:29.2242155Z   clean: true
+2026-10-19T23:55:29.2242649Z   sparse-checkout-cone-mode: true
+2026-10-19T23:55:29.2243241Z   fetch-depth: 1
+2026-10-19T23:55:29.2243739Z   fetch-tags: false
+2026-10-19T23:55:29.2244421Z   show-progress: true
+2026-10-19T23:55:29.2244920Z   lfs: false
+2026-10-19T23:55:29.2245394Z   submodules: false
+2026-10-19T23:55:29.2245914Z   set-safe-directory: true
+2026-10-19T23:55:29.2246484Z   allow-unsafe-pr-checkout: false
+2026-10-19T23:55:29.2247327Z ##[endgroup]
+2026-10-19T23:55:29.3275204Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-19T23:55:29.3278225Z ##[group]Getting Git version info
+2026-10-19T23:55:29.3279481Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T23:55:29.3281284Z [command]/usr/bin/git version
+2026-10-19T23:55:29.3415276Z git version 2.55.0
+2026-10-19T23:55:29.3442229Z ##[endgroup]
+2026-10-19T23:55:29.3460745Z Temporarily overriding HOME='/home/runner/work/_temp/c85bf48a-ea56-4311-aab4-8ab82c3c4555' before making global git config changes
+2026-10-19T23:55:29.3468226Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-19T23:55:29.3471224Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-19T23:55:29.3541578Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-19T23:55:29.3547900Z ##[group]Determining repository object format
+2026-10-19T23:55:29.3557183Z ##[endgroup]
+2026-10-19T23:55:29.3566233Z ##[group]Initializing the repository
+2026-10-19T23:55:29.3567816Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-19T23:55:29.3702084Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-19T23:55:29.3704941Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-19T23:55:29.3707468Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-19T23:55:29.3711098Z hint: call:
+2026-10-19T23:55:29.3712409Z hint:
+2026-10-19T23:55:29.3714252Z hint: 	git config --global init.defaultBranch <name>
+2026-10-19T23:55:29.3715867Z hint:
+2026-10-19T23:55:29.3717360Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-19T23:55:29.3719771Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-19T23:55:29.3721893Z hint:
+2026-10-19T23:55:29.3723115Z hint: 	git branch -m <name>
+2026-10-19T23:55:29.3724629Z hint:
+2026-10-19T23:55:29.3726127Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-19T23:55:29.3728662Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-19T23:55:29.3734681Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-19T23:55:29.3809146Z ##[endgroup]
+2026-10-19T23:55:29.3810898Z ##[group]Disabling automatic garbage collection
+2026-10-19T23:55:29.3814672Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-19T23:55:29.3848680Z ##[endgroup]
+2026-10-19T23:55:29.3856206Z ##[group]Setting up auth
+2026-10-19T23:55:29.3859478Z Removing SSH command configuration
+2026-10-19T23:55:29.3861907Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T23:55:29.3898692Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T23:55:29.4343796Z Removing HTTP extra header
+2026-10-19T23:55:29.4351226Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T23:55:29.4420677Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T23:55:29.4666559Z Removing includeIf entries pointing to credentials config files
+2026-10-19T23:55:29.4679126Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T23:55:29.4723383Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T23:55:29.4949385Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-19T23:55:29.4990224Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:29.5024704Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:29.5063093Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:29.5098746Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:29.5136103Z ##[endgroup]
+2026-10-19T23:55:29.5137441Z ##[group]Fetching the repository
+2026-10-19T23:55:29.5143546Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +7858572903687c413b7d21d56948276ff2c47991:refs/remotes/origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:30.9668816Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-19T23:55:30.9672773Z  * [new ref]         7858572903687c413b7d21d56948276ff2c47991 -> origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:30.9678584Z [command]/usr/bin/git branch --list --remote origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:30.9708244Z   origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:30.9717118Z [command]/usr/bin/git rev-parse refs/remotes/origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:30.9744450Z 7858572903687c413b7d21d56948276ff2c47991
+2026-10-19T23:55:30.9750724Z ##[endgroup]
+2026-10-19T23:55:30.9752982Z ##[group]Determining the checkout info
+2026-10-19T23:55:30.9756305Z ##[endgroup]
+2026-10-19T23:55:30.9757852Z [command]/usr/bin/git sparse-checkout disable
+2026-10-19T23:55:30.9812929Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-19T23:55:30.9845345Z ##[group]Checking out the ref
+2026-10-19T23:55:30.9850622Z [command]/usr/bin/git checkout --progress --force -B diagnostic/hand-return-causal-20261019 refs/remotes/origin/diagnostic/hand-return-causal-20261019
+2026-10-19T23:55:31.1235716Z Switched to a new branch 'diagnostic/hand-return-causal-20261019'
+2026-10-19T23:55:31.1243682Z branch 'diagnostic/hand-return-causal-20261019' set up to track 'origin/diagnostic/hand-return-causal-20261019'.
+2026-10-19T23:55:31.1261197Z ##[endgroup]
+2026-10-19T23:55:31.1308770Z [command]/usr/bin/git log -1 --format=%H
+2026-10-19T23:55:31.1337223Z 7858572903687c413b7d21d56948276ff2c47991
+2026-10-19T23:55:31.1348150Z ##[group]Removing auth
+2026-10-19T23:55:31.1349846Z Removing SSH command configuration
+2026-10-19T23:55:31.1352143Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-19T23:55:31.1389828Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-19T23:55:31.1626813Z Removing HTTP extra header
+2026-10-19T23:55:31.1631466Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-19T23:55:31.1669092Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-19T23:55:31.1896319Z Removing includeIf entries pointing to credentials config files
+2026-10-19T23:55:31.1899610Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-19T23:55:31.1930091Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T23:55:31.1932611Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T23:55:31.1935238Z includeif.gitdir:/github/workspace/.git.path
+2026-10-19T23:55:31.1937181Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T23:55:31.1942096Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-19T23:55:31.1967308Z /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.1979169Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2016823Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-19T23:55:31.2044394Z /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2057260Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2098717Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-19T23:55:31.2134983Z /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2142826Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2176238Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-19T23:55:31.2200536Z /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2209786Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config
+2026-10-19T23:55:31.2285836Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-19T23:55:31.2517628Z Removing credentials config '/home/runner/work/_temp/git-credentials-ad5db25e-ac0a-4da1-ac7d-9aeaf84ff4e2.config'
+2026-10-19T23:55:31.2522613Z ##[endgroup]
+2026-10-19T23:55:31.2949721Z ##[group]Run actions/setup-node@v6
+2026-10-19T23:55:31.2950922Z with:
+2026-10-19T23:55:31.2951778Z   node-version: 22
+2026-10-19T23:55:31.2952698Z   cache: npm
+2026-10-19T23:55:31.2953836Z   cache-dependency-path: farm3d/tests/package-lock.json
+2026-10-19T23:55:31.2955534Z   check-latest: false
+2026-10-19T23:55:31.2965064Z   token: ***
+2026-10-19T23:55:31.2966023Z   package-manager-cache: true
+2026-10-19T23:55:31.2967124Z ##[endgroup]
+2026-10-19T23:55:31.4427967Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-19T23:55:31.4432822Z ##[group]Environment details
+2026-10-19T23:55:33.8307939Z node: v22.23.3
+2026-10-19T23:55:33.8308234Z npm: 10.9.9
+2026-10-19T23:55:33.8308452Z yarn: 1.22.22
+2026-10-19T23:55:33.8309131Z ##[endgroup]
+2026-10-19T23:55:33.8326368Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-19T23:55:34.0865960Z /home/runner/.npm
+2026-10-19T23:55:34.1654764Z Cache hit for: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-19T23:55:34.3717245Z Received 4079830 of 4079830 (100.0%), 24.9 MBs/sec
+2026-10-19T23:55:34.3717884Z Cache Size: ~4 MB (4079830 B)
+2026-10-19T23:55:34.3743323Z [command]/usr/bin/tar -xf /home/runner/work/_temp/84b6663c-9389-4f86-b622-f641659ada93/cache.tzst -P -C /home/runner/work/Bugsy/Bugsy --use-compress-program unzstd
+2026-10-19T23:55:34.3870671Z Cache restored successfully
+2026-10-19T23:55:34.3877511Z Cache restored from key: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-19T23:55:34.4028305Z ##[group]Run npm ci --ignore-scripts
+2026-10-19T23:55:34.4028691Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-19T23:55:34.4387997Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:55:34.4388363Z ##[endgroup]
+2026-10-19T23:55:36.1503317Z 
+2026-10-19T23:55:36.1509928Z added 3 packages, and audited 4 packages in 2s
+2026-10-19T23:55:36.1511195Z 
+2026-10-19T23:55:36.1511479Z found 0 vulnerabilities
+2026-10-19T23:55:36.1937028Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-19T23:55:36.1937518Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-19T23:55:36.2000867Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:55:36.2001133Z ##[endgroup]
+2026-10-19T23:55:37.0587576Z Installing dependencies...
+2026-10-19T23:55:37.0664228Z Switching to root user to install dependencies...
+2026-10-19T23:55:37.1595750Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T23:55:37.1951810Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-19T23:55:37.2009008Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-19T23:55:37.2057569Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-19T23:55:37.2088958Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-19T23:55:37.3462799Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+2026-10-19T23:55:37.3636856Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [308 kB]
+2026-10-19T23:55:37.3662484Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+2026-10-19T23:55:37.3758739Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-19T23:55:37.3799621Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-19T23:55:37.3886071Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-19T23:55:37.4365875Z Get:12 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-19T23:55:37.4609869Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+2026-10-19T23:55:37.4670235Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-19T23:55:37.4691687Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-19T23:55:37.4754991Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-19T23:55:37.5124988Z Get:19 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [618 kB]
+2026-10-19T23:55:37.5199986Z Get:20 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [557 kB]
+2026-10-19T23:55:37.5237033Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-19T23:55:37.5261778Z Get:21 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-19T23:55:37.5301200Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-19T23:55:40.6218965Z Fetched 12.5 MB in 1s (9772 kB/s)
+2026-10-19T23:55:41.5681271Z Reading package lists...
+2026-10-19T23:55:41.5928419Z Reading package lists...
+2026-10-19T23:55:41.8300226Z Building dependency tree...
+2026-10-19T23:55:41.8308628Z Reading state information...
+2026-10-19T23:55:42.0425007Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-19T23:55:42.0426050Z libasound2t64 set to manually installed.
+2026-10-19T23:55:42.0426950Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T23:55:42.0427945Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-19T23:55:42.0428774Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T23:55:42.0429484Z libatk1.0-0t64 set to manually installed.
+2026-10-19T23:55:42.0430234Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-19T23:55:42.0430912Z libatspi2.0-0t64 set to manually installed.
+2026-10-19T23:55:42.0431521Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-19T23:55:42.0431921Z libcairo2 set to manually installed.
+2026-10-19T23:55:42.0432364Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-19T23:55:42.0433278Z libcups2t64 set to manually installed.
+2026-10-19T23:55:42.0433740Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-19T23:55:42.0434752Z libdbus-1-3 set to manually installed.
+2026-10-19T23:55:42.0435385Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-19T23:55:42.0435806Z libdrm2 set to manually installed.
+2026-10-19T23:55:42.0436229Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-19T23:55:42.0436634Z libgbm1 set to manually installed.
+2026-10-19T23:55:42.0437063Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-19T23:55:42.0437500Z libglib2.0-0t64 set to manually installed.
+2026-10-19T23:55:42.0438173Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-19T23:55:42.0438623Z libnspr4 set to manually installed.
+2026-10-19T23:55:42.0439042Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-19T23:55:42.0439421Z libnss3 set to manually installed.
+2026-10-19T23:55:42.0439849Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-19T23:55:42.0440478Z libpango-1.0-0 set to manually installed.
+2026-10-19T23:55:42.0440939Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-19T23:55:42.0441585Z libx11-6 set to manually installed.
+2026-10-19T23:55:42.0442199Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-19T23:55:42.0442845Z libxcb1 set to manually installed.
+2026-10-19T23:55:42.0443600Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-19T23:55:42.0444609Z libxcomposite1 set to manually installed.
+2026-10-19T23:55:42.0445081Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-19T23:55:42.0445479Z libxdamage1 set to manually installed.
+2026-10-19T23:55:42.0445870Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-19T23:55:42.0446246Z libxext6 set to manually installed.
+2026-10-19T23:55:42.0446640Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-19T23:55:42.0447185Z libxfixes3 set to manually installed.
+2026-10-19T23:55:42.0447972Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-19T23:55:42.0448733Z libxkbcommon0 set to manually installed.
+2026-10-19T23:55:42.0449420Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-19T23:55:42.0449827Z libxrandr2 set to manually installed.
+2026-10-19T23:55:42.0450336Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-19T23:55:42.0450914Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-19T23:55:42.0451339Z libfontconfig1 set to manually installed.
+2026-10-19T23:55:42.0451791Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-19T23:55:42.0452550Z libfreetype6 set to manually installed.
+2026-10-19T23:55:42.0453313Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-19T23:55:42.0454394Z fonts-liberation set to manually installed.
+2026-10-19T23:55:42.0455153Z The following additional packages will be installed:
+2026-10-19T23:55:42.0455868Z   xfonts-encodings xfonts-utils xserver-common
+2026-10-19T23:55:42.0456488Z Recommended packages:
+2026-10-19T23:55:42.0457035Z   fonts-ipafont-mincho fonts-tlwg-loma xfonts-base
+2026-10-19T23:55:42.0719367Z The following NEW packages will be installed:
+2026-10-19T23:55:42.0720537Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-19T23:55:42.0735960Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-19T23:55:42.0736627Z   xfonts-utils
+2026-10-19T23:55:42.0749974Z The following packages will be upgraded:
+2026-10-19T23:55:42.0750572Z   xserver-common xvfb
+2026-10-19T23:55:42.0973438Z 2 upgraded, 9 newly installed, 0 to remove and 79 not upgraded.
+2026-10-19T23:55:42.0974642Z Need to get 22.0 MB of archives.
+2026-10-19T23:55:42.0975435Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-19T23:55:42.0976333Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-19T23:55:42.1955244Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-19T23:55:42.3591633Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-19T23:55:42.5773111Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-19T23:55:42.6552817Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-19T23:55:42.7571405Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-19T23:55:42.9972150Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-19T23:55:43.0786667Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-19T23:55:43.1556928Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-19T23:55:43.2349262Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-19T23:55:43.3147383Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 xserver-common all 2:21.1.12-1ubuntu1.9 [35.0 kB]
+2026-10-19T23:55:43.3976099Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 xvfb amd64 2:21.1.12-1ubuntu1.9 [877 kB]
+2026-10-19T23:55:43.6541708Z Fetched 22.0 MB in 1s (16.7 MB/s)
+2026-10-19T23:55:43.6782483Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-19T23:55:43.7101551Z (Reading database ... 
+2026-10-19T23:55:43.7102194Z (Reading database ... 5%
+2026-10-19T23:55:43.7102541Z (Reading database ... 10%
+2026-10-19T23:55:43.7102859Z (Reading database ... 15%
+2026-10-19T23:55:43.7103145Z (Reading database ... 20%
+2026-10-19T23:55:43.7103428Z (Reading database ... 25%
+2026-10-19T23:55:43.7103710Z (Reading database ... 30%
+2026-10-19T23:55:43.7104313Z (Reading database ... 35%
+2026-10-19T23:55:43.7104633Z (Reading database ... 40%
+2026-10-19T23:55:43.7105277Z (Reading database ... 45%
+2026-10-19T23:55:43.7105753Z (Reading database ... 50%
+2026-10-19T23:55:43.7148338Z (Reading database ... 55%
+2026-10-19T23:55:43.8212323Z (Reading database ... 60%
+2026-10-19T23:55:44.0253665Z (Reading database ... 65%
+2026-10-19T23:55:44.2140606Z (Reading database ... 70%
+2026-10-19T23:55:44.4111899Z (Reading database ... 75%
+2026-10-19T23:55:44.5649534Z (Reading database ... 80%
+2026-10-19T23:55:44.7662399Z (Reading database ... 85%
+2026-10-19T23:55:44.9268457Z (Reading database ... 90%
+2026-10-19T23:55:45.1208181Z (Reading database ... 95%
+2026-10-19T23:55:45.1208602Z (Reading database ... 100%
+2026-10-19T23:55:45.1209184Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-19T23:55:45.1253828Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-19T23:55:45.1345610Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T23:55:45.3750339Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-19T23:55:45.3880224Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-19T23:55:45.3890113Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T23:55:45.4673785Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-19T23:55:45.4806284Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-19T23:55:45.4815680Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T23:55:45.5021953Z Selecting previously unselected package fonts-unifont.
+2026-10-19T23:55:45.5153450Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-19T23:55:45.5162125Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T23:55:45.6201521Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-19T23:55:45.6332576Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-19T23:55:45.6432976Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T23:55:46.1159070Z Selecting previously unselected package xfonts-encodings.
+2026-10-19T23:55:46.1290397Z Preparing to unpack .../05-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-19T23:55:46.1299377Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T23:55:46.1594310Z Selecting previously unselected package xfonts-utils.
+2026-10-19T23:55:46.1734578Z Preparing to unpack .../06-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-19T23:55:46.1742499Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-19T23:55:46.2103933Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-19T23:55:46.2234791Z Preparing to unpack .../07-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-19T23:55:46.2242098Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T23:55:46.2567877Z Selecting previously unselected package xfonts-scalable.
+2026-10-19T23:55:46.2699781Z Preparing to unpack .../08-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-19T23:55:46.2707132Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T23:55:46.3067014Z Preparing to unpack .../09-xserver-common_2%3a21.1.12-1ubuntu1.9_all.deb ...
+2026-10-19T23:55:46.3089626Z Unpacking xserver-common (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-19T23:55:46.3456462Z Preparing to unpack .../10-xvfb_2%3a21.1.12-1ubuntu1.9_amd64.deb ...
+2026-10-19T23:55:46.3479004Z Unpacking xvfb (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-19T23:55:46.4060566Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-19T23:55:46.4186841Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-19T23:55:46.4208569Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-19T23:55:46.4230649Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-19T23:55:46.4254852Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-19T23:55:46.4325430Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-19T23:55:46.4342317Z Setting up xserver-common (2:21.1.12-1ubuntu1.9) ...
+2026-10-19T23:55:46.4362687Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-19T23:55:46.4383140Z Setting up xvfb (2:21.1.12-1ubuntu1.9) ...
+2026-10-19T23:55:46.4403689Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-19T23:55:46.4449021Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-19T23:55:46.4769989Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-19T23:55:46.5058303Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-19T23:55:46.5081738Z Not building database; man-db/auto-update is not 'true'.
+2026-10-19T23:55:46.5095280Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-19T23:55:47.2555200Z 
+2026-10-19T23:55:47.2556070Z Running kernel seems to be up-to-date.
+2026-10-19T23:55:47.2556575Z 
+2026-10-19T23:55:47.2556920Z No services need to be restarted.
+2026-10-19T23:55:47.2557188Z 
+2026-10-19T23:55:47.2557440Z No containers need to be restarted.
+2026-10-19T23:55:47.2557720Z 
+2026-10-19T23:55:47.2557970Z No user sessions are running outdated binaries.
+2026-10-19T23:55:47.2558289Z 
+2026-10-19T23:55:47.2558712Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-19T23:55:48.2999408Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-19T23:55:49.3022753Z |                                                                                |   0% of 184.3 MiB
+2026-10-19T23:55:49.4726051Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-19T23:55:49.5745233Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-19T23:55:49.6421160Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-19T23:55:49.7169408Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-19T23:55:49.7844440Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-19T23:55:49.8546440Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-19T23:55:49.9213254Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-19T23:55:49.9906767Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-19T23:55:50.0631389Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-19T23:55:50.1317712Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-19T23:55:52.8859126Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-19T23:55:52.8862909Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-19T23:55:53.8705940Z |                                                                                |   0% of 2.3 MiB
+2026-10-19T23:55:53.8868527Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-19T23:55:53.8983446Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-19T23:55:53.9053002Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-19T23:55:53.9119503Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-19T23:55:53.9139281Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-19T23:55:53.9189484Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-19T23:55:53.9205733Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-19T23:55:53.9234499Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-19T23:55:53.9272501Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-19T23:55:53.9281477Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-19T23:55:53.9877702Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-19T23:55:53.9880664Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-19T23:55:54.9624531Z |                                                                                |   0% of 114.7 MiB
+2026-10-19T23:55:55.1274668Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-19T23:55:55.2189757Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-19T23:55:55.2779191Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-19T23:55:55.3298937Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-19T23:55:55.3710907Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-19T23:55:55.4144260Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-19T23:55:55.4605371Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-19T23:55:55.5035350Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-19T23:55:55.5497271Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-19T23:55:55.6026440Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-19T23:55:57.5953812Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-19T23:55:57.6239731Z ##[group]Run node --test farm3d/tests/hand-return-observer.test.cjs
+2026-10-19T23:55:57.6240296Z [36;1mnode --test farm3d/tests/hand-return-observer.test.cjs[0m
+2026-10-19T23:55:57.6241033Z [36;1msha256sum farm3d/tests/authored-hands.browser.cjs farm3d/index.html farm3d/player-motion.js farm3d/assets/hands/hands-candidate.glb[0m
+2026-10-19T23:55:57.6304623Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:55:57.6304902Z ##[endgroup]
+2026-10-19T23:55:57.6797963Z TAP version 13
+2026-10-19T23:55:57.7268075Z # Subtest: update counts remain exact when ring storage is exhausted before input
+2026-10-19T23:55:57.7273035Z ok 1 - update counts remain exact when ring storage is exhausted before input
+2026-10-19T23:55:57.7274570Z   ---
+2026-10-19T23:55:57.7275015Z   duration_ms: 4.212807
+2026-10-19T23:55:57.7275454Z   type: 'test'
+2026-10-19T23:55:57.7275842Z   ...
+2026-10-19T23:55:57.7280933Z # Subtest: untrusted clicks do not establish the trusted input boundary
+2026-10-19T23:55:57.7283061Z ok 2 - untrusted clicks do not establish the trusted input boundary
+2026-10-19T23:55:57.7283883Z   ---
+2026-10-19T23:55:57.7284703Z   duration_ms: 0.847889
+2026-10-19T23:55:57.7285245Z   type: 'test'
+2026-10-19T23:55:57.7285729Z   ...
+2026-10-19T23:55:57.7287115Z # Subtest: last poll is retained separately from later state and observer errors are explicit
+2026-10-19T23:55:57.7289158Z ok 3 - last poll is retained separately from later state and observer errors are explicit
+2026-10-19T23:55:57.7290160Z   ---
+2026-10-19T23:55:57.7290661Z   duration_ms: 1.447887
+2026-10-19T23:55:57.7291230Z   type: 'test'
+2026-10-19T23:55:57.7291736Z   ...
+2026-10-19T23:55:57.7292707Z # Subtest: served instrumentation retains actual dt calculation and original held-frame return
+2026-10-19T23:55:57.7294465Z ok 4 - served instrumentation retains actual dt calculation and original held-frame return
+2026-10-19T23:55:57.7295476Z   ---
+2026-10-19T23:55:57.7295887Z   duration_ms: 4.830056
+2026-10-19T23:55:57.7296454Z   type: 'test'
+2026-10-19T23:55:57.7296847Z   ...
+2026-10-19T23:55:57.7297808Z # Subtest: queued original collector callback remains safe after observer removal
+2026-10-19T23:55:57.7299060Z ok 5 - queued original collector callback remains safe after observer removal
+2026-10-19T23:55:57.7300000Z   ---
+2026-10-19T23:55:57.7300421Z   duration_ms: 1.029117
+2026-10-19T23:55:57.7301033Z   type: 'test'
+2026-10-19T23:55:57.7301554Z   ...
+2026-10-19T23:55:57.7379320Z 1..5
+2026-10-19T23:55:57.7379826Z # tests 5
+2026-10-19T23:55:57.7380215Z # suites 0
+2026-10-19T23:55:57.7380836Z # pass 5
+2026-10-19T23:55:57.7381423Z # fail 0
+2026-10-19T23:55:57.7382212Z # cancelled 0
+2026-10-19T23:55:57.7382578Z # skipped 0
+2026-10-19T23:55:57.7383117Z # todo 0
+2026-10-19T23:55:57.7383769Z # duration_ms 70.342623
+2026-10-19T23:55:57.7462324Z 5387ab6ff29db393e43726f6d055ac925304959be9072844292794176a353be4  farm3d/tests/authored-hands.browser.cjs
+2026-10-19T23:55:57.7464145Z 66b2f8dddf9fc659abc9c4e7a6c7e0b41727b99fb1f6c7efc95c2fba5ff90384  farm3d/index.html
+2026-10-19T23:55:57.7465482Z f91231fa7b07ffbf866d47eebfe2aa03dd8ec4276c2a98323094a1a8f64d16ec  farm3d/player-motion.js
+2026-10-19T23:55:57.7467258Z 18bbcefd808131e7d8040c8f6126e6a18bd3ed0fc5b76c7a6cbd10c70a99e503  farm3d/assets/hands/hands-candidate.glb
+2026-10-19T23:55:57.7503560Z ##[group]Run node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+2026-10-19T23:55:57.7504866Z [36;1mnode farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands[0m
+2026-10-19T23:55:57.7505465Z [36;1mnode farm3d/tests/hands-validator.cjs[0m
+2026-10-19T23:55:57.7505829Z [36;1mnode farm3d/tools/capture-hands-study.cjs[0m
+2026-10-19T23:55:57.7569380Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:55:57.7569656Z ##[endgroup]
+2026-10-19T23:55:57.7947762Z {
+2026-10-19T23:55:57.7948234Z   "errors": [],
+2026-10-19T23:55:57.7948672Z   "stats": {
+2026-10-19T23:55:57.7949097Z     "bytes": 294160,
+2026-10-19T23:55:57.7949547Z     "triangles": 5952,
+2026-10-19T23:55:57.7950022Z     "primitives": 4,
+2026-10-19T23:55:57.7950469Z     "materials": 2,
+2026-10-19T23:55:57.7950911Z     "images": 0
+2026-10-19T23:55:57.7951384Z   }
+2026-10-19T23:55:57.7951737Z }
+2026-10-19T23:55:57.9532444Z Khronos hands validation: zero findings, bound skin surfaces and real bone clips
+2026-10-19T23:56:03.8689279Z PASS exported GLTFLoader: six clips, neutral reset, clone independence, draw budget and cleanup at both viewports
+2026-10-19T23:56:03.9223065Z ##[group]Run node farm3d/tests/authored-hands-diagnostic.browser.cjs
+2026-10-19T23:56:03.9223870Z [36;1mnode farm3d/tests/authored-hands-diagnostic.browser.cjs[0m
+2026-10-19T23:56:03.9305914Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:56:03.9306307Z ##[endgroup]
+2026-10-19T23:56:49.9665620Z HAND_RETURN_DIAGNOSTIC {"observedAt":45202.09999999998,"started":35684.29999999999,"observation":"post-wait snapshot; not the exact timeout instant","nativeNeutral":[-0.11913235485553741,0,0,0.9928783774375916],"neutral":[-0.16860670692458335,0,0,0.9856834018773867],"liveQ":[-0.16860670692458335,0,0,0.9856834018773867],"liveDiff":0,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.78910000000003},"crop":null,"counts":{"entries":12,"totalUpdates":12,"completedUpdates":12,"updatesAtTrustedClick":2,"updatesAfterTrustedClick":10,"samplesAtTrustedClick":2,"sampleCount":12,"capReached":false},"history":{"capacity":256,"stored":12,"dropped":0,"firstRetainedId":1,"updates":[{"id":1,"beginAt":37268.59999999998,"dt":0.1,"t":32.8755,"rawDelta":1.6270999999999773,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":31.248400000000025},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":37269.20000000001,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":2,"beginAt":37286.399999999965,"dt":0.017799999999986937,"t":32.89329999999999,"rawDelta":0.017799999999986937,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":32.8755},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":37286.70000000001,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":3,"beginAt":38324.399999999965,"dt":0.1,"t":33.931299999999986,"rawDelta":1.0379999999999967,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":32.89329999999999},"nativeQ":[-0.2229786217212677,-0.000012052372767357156,-0.001033777603879571,0.9748228192329407],"composedAt":38325.899999999965,"composedQ":[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],"rest":0.06081006262521793,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.1}},{"id":4,"beginAt":39034,"dt":0.1,"t":34.64090000000002,"rawDelta":0.7096000000000373,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":33.931299999999986},"nativeQ":[-0.35743165016174316,0.00030520709697157145,-0.002393377013504505,0.9339361786842346],"composedAt":39034.59999999998,"composedQ":[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],"rest":0.0036978637164829242,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.2}},{"id":5,"beginAt":39706,"dt":0.1,"t":35.31290000000002,"rawDelta":0.671999999999997,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":34.64090000000002},"nativeQ":[-0.30569225549697876,0.00013457296881824732,-0.001870163599960506,0.952128529548645],"composedAt":39706.5,"composedQ":[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],"rest":0.00022486732417884795,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.30000000000000004}},{"id":6,"beginAt":40419,"dt":0.1,"t":36.02590000000002,"rawDelta":0.713000000000001,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":35.31290000000002},"nativeQ":[-0.14979542791843414,-0.000025927314709406346,-0.0003022796881850809,0.9887169599533081],"composedAt":40419.5,"composedQ":[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],"rest":0.000013674196065680921,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.4}},{"id":7,"beginAt":41124.20000000001,"dt":0.1,"t":36.73110000000003,"rawDelta":0.705200000000012,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.02590000000002},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":41124.70000000001,"composedQ":[-0.16560899971955548,0,0,0.9861914872723343],"rest":0.9391907689035012,"action":null,"punch":null},{"id":8,"beginAt":41821.5,"dt":0.1,"t":37.428400000000025,"rawDelta":0.6972999999999914,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.73110000000003},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":41821.899999999965,"composedQ":[-0.16842446039143144,0,0,0.9857145588345467],"rest":0.9963021868488305,"action":null,"punch":null},{"id":9,"beginAt":42487,"dt":0.1,"t":38.093900000000026,"rawDelta":0.6655000000000015,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":37.428400000000025},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":42487.5,"composedQ":[-0.16859562466601635,0,0,0.9856852974961158],"rest":0.999775135750701,"action":null,"punch":null},{"id":10,"beginAt":43178.09999999998,"dt":0.1,"t":38.785,"rawDelta":0.6910999999999703,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.093900000000026},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":43178.5,"composedQ":[-0.1686060330123545,0,0,0.9856835171536386],"rest":0.999986325990918,"action":null,"punch":null},{"id":11,"beginAt":43869.79999999999,"dt":0.1,"t":39.47670000000001,"rawDelta":0.6917000000000115,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.785},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":43870.20000000001,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":12,"beginAt":45182.20000000001,"dt":0.1,"t":40.78910000000003,"rawDelta":1.312400000000025,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":39.47670000000001},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":45182.5,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null}]},"inputs":[{"type":"pointerdown","trusted":true,"eventAt":37305.59999999998,"at":37306.59999999998,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"},{"type":"mousedown","trusted":true,"eventAt":37305.59999999998,"at":37306.59999999998,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"},{"type":"click","trusted":true,"eventAt":37307.20000000001,"at":37307.5,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"}],"samples":[[-0.16860670692458335,0,0,0.9856834018773867],[-0.16860670692458335,0,0,0.9856834018773867],[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],[-0.16560899971955548,0,0,0.9861914872723343],[-0.16842446039143144,0,0,0.9857145588345467],[-0.16859562466601635,0,0,0.9856852974961158],[-0.1686060330123545,0,0,0.9856835171536386],[-0.16860670692458335,0,0,0.9856834018773867],[-0.16860670692458335,0,0,0.9856834018773867]],"sampleMeta":[{"index":0,"at":37284.29999999999,"updateId":1,"completedId":1,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":32.8755}},{"index":1,"at":37296.70000000001,"updateId":2,"completedId":2,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":32.89329999999999}},{"index":2,"at":38345.59999999998,"updateId":3,"completedId":3,"q":[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":33.931299999999986}},{"index":3,"at":39062,"updateId":4,"completedId":4,"q":[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":34.64090000000002}},{"index":4,"at":39722,"updateId":5,"completedId":5,"q":[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":35.31290000000002}},{"index":5,"at":40436.399999999965,"updateId":6,"completedId":6,"q":[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.02590000000002}},{"index":6,"at":41148.09999999998,"updateId":7,"completedId":7,"q":[-0.16560899971955548,0,0,0.9861914872723343],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.73110000000003}},{"index":7,"at":41838.20000000001,"updateId":8,"completedId":8,"q":[-0.16842446039143144,0,0,0.9857145588345467],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":37.428400000000025}},{"index":8,"at":42501.70000000001,"updateId":9,"completedId":9,"q":[-0.16859562466601635,0,0,0.9856852974961158],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.093900000000026}},{"index":9,"at":43193.899999999965,"updateId":10,"completedId":10,"q":[-0.1686060330123545,0,0,0.9856835171536386],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.785}},{"index":10,"at":43883,"updateId":11,"completedId":11,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":39.47670000000001}},{"index":11,"at":45194.29999999999,"updateId":12,"completedId":12,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.78910000000003}}],"polls":[{"at":43194,"totalUpdates":10,"completedUpdates":10,"count":10,"countGt5":true,"departure":true,"tail":false,"pass":false},{"at":43883,"totalUpdates":11,"completedUpdates":11,"count":11,"countGt5":true,"departure":true,"tail":false,"pass":false},{"at":45194.29999999999,"totalUpdates":12,"completedUpdates":12,"count":12,"countGt5":true,"departure":true,"tail":true,"pass":true}],"lastPoll":{"at":45194.29999999999,"totalUpdates":12,"completedUpdates":12,"count":12,"countGt5":true,"departure":true,"tail":true,"pass":true},"errorCount":0,"errors":[],"width":844,"marks":{"clickStartedWall":1792454200414,"clickFinishedWall":1792454202055,"waitStartedWall":1792454202055,"waitFinishedWall":1792454209926},"originalError":null}
+2026-10-19T23:57:00.7495532Z PASS authored game hands: wardrobe, actual harvest, six clip poses, fallback and disposal 844
+2026-10-19T23:57:47.5791502Z HAND_RETURN_DIAGNOSTIC {"observedAt":46574.899999999965,"started":35749.09999999998,"observation":"post-wait snapshot; not the exact timeout instant","nativeNeutral":[-0.11913235485553741,0,0,0.9928783774375916],"neutral":[-0.16860670692458335,0,0,0.9856834018773867],"liveQ":[-0.16860670692458335,0,0,0.9856834018773867],"liveDiff":0,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":43.28220000000001},"crop":null,"counts":{"entries":12,"totalUpdates":12,"completedUpdates":12,"updatesAtTrustedClick":2,"updatesAfterTrustedClick":10,"samplesAtTrustedClick":2,"sampleCount":12,"capReached":false},"history":{"capacity":256,"stored":12,"dropped":0,"firstRetainedId":1,"updates":[{"id":1,"beginAt":37645.29999999999,"dt":0.1,"t":34.374900000000025,"rawDelta":1.9250999999999792,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":32.449800000000046},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":37645.79999999999,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":2,"beginAt":38541,"dt":0.1,"t":35.27060000000004,"rawDelta":0.8957000000000122,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":34.374900000000025},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":38541.29999999999,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":3,"beginAt":39355,"dt":0.1,"t":36.08460000000004,"rawDelta":0.8140000000000001,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":35.27060000000004},"nativeQ":[-0.2229786217212677,-0.000012052372767357156,-0.001033777603879571,0.9748228192329407],"composedAt":39355.899999999965,"composedQ":[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],"rest":0.06081006262521793,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.1}},{"id":4,"beginAt":40167.59999999998,"dt":0.1,"t":36.89720000000001,"rawDelta":0.8125999999999749,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.08460000000004},"nativeQ":[-0.35743165016174316,0.00030520709697157145,-0.002393377013504505,0.9339361786842346],"composedAt":40168,"composedQ":[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],"rest":0.0036978637164829242,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.2}},{"id":5,"beginAt":40973.79999999999,"dt":0.1,"t":37.70340000000002,"rawDelta":0.8062000000000111,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.89720000000001},"nativeQ":[-0.30569225549697876,0.00013457296881824732,-0.001870163599960506,0.952128529548645],"composedAt":40974.29999999999,"composedQ":[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],"rest":0.00022486732417884795,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.30000000000000004}},{"id":6,"beginAt":41784,"dt":0.1,"t":38.51360000000003,"rawDelta":0.8102000000000089,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":37.70340000000002},"nativeQ":[-0.14979542791843414,-0.000025927314709406346,-0.0003022796881850809,0.9887169599533081],"composedAt":41784.399999999965,"composedQ":[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],"rest":0.000013674196065680921,"action":"harvest","punch":{"kind":"reach","authoredKind":"harvest","t":0.4}},{"id":7,"beginAt":42588.399999999965,"dt":0.1,"t":39.318,"rawDelta":0.8043999999999656,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.51360000000003},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":42588.899999999965,"composedQ":[-0.16560899971955548,0,0,0.9861914872723343],"rest":0.9391907689035012,"action":null,"punch":null},{"id":8,"beginAt":43379.79999999999,"dt":0.1,"t":40.10940000000002,"rawDelta":0.7914000000000243,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":39.318},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":43380.29999999999,"composedQ":[-0.16842446039143144,0,0,0.9857145588345467],"rest":0.9963021868488305,"action":null,"punch":null},{"id":9,"beginAt":44165.399999999965,"dt":0.1,"t":40.89490000000002,"rawDelta":0.785499999999999,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.10940000000002},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":44165.79999999999,"composedQ":[-0.16859562466601635,0,0,0.9856852974961158],"rest":0.999775135750701,"action":null,"punch":null},{"id":10,"beginAt":44951.5,"dt":0.1,"t":41.681,"rawDelta":0.7860999999999763,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.89490000000002},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":44952,"composedQ":[-0.1686060330123545,0,0,0.9856835171536386],"rest":0.999986325990918,"action":null,"punch":null},{"id":11,"beginAt":45747.5,"dt":0.1,"t":42.477,"rawDelta":0.7959999999999994,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":41.681},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":45747.79999999999,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null},{"id":12,"beginAt":46552.59999999998,"dt":0.1,"t":43.28220000000001,"rawDelta":0.8052000000000135,"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":42.477},"nativeQ":[-0.11913235485553741,0,0,0.9928783774375916],"composedAt":46553,"composedQ":[-0.16860670692458335,0,0,0.9856834018773867],"rest":1,"action":null,"punch":null}]},"inputs":[{"type":"pointerdown","trusted":true,"eventAt":38573.20000000001,"at":38574.70000000001,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"},{"type":"mousedown","trusted":true,"eventAt":38573.20000000001,"at":38574.70000000001,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"},{"type":"click","trusted":true,"eventAt":38573.399999999965,"at":38575.79999999999,"total":2,"completed":2,"samples":2,"button":"🌾Harvest"}],"samples":[[-0.16860670692458335,0,0,0.9856834018773867],[-0.16860670692458335,0,0,0.9856834018773867],[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],[-0.16560899971955548,0,0,0.9861914872723343],[-0.16842446039143144,0,0,0.9857145588345467],[-0.16859562466601635,0,0,0.9856852974961158],[-0.1686060330123545,0,0,0.9856835171536386],[-0.16860670692458335,0,0,0.9856834018773867],[-0.16860670692458335,0,0,0.9856834018773867]],"sampleMeta":[{"index":0,"at":37654.70000000001,"updateId":1,"completedId":1,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":34.374900000000025}},{"index":1,"at":38562.59999999998,"updateId":2,"completedId":2,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":35.27060000000004}},{"index":2,"at":39372.20000000001,"updateId":3,"completedId":3,"q":[-0.2259415383088852,-0.000008909117858709746,-0.001033809470643063,0.9741403471310432],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.08460000000004}},{"index":3,"at":40186.20000000001,"updateId":4,"completedId":4,"q":[-0.3576043224867046,0.00030564961085312813,-0.0023933205418829482,0.9338700760445653],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":36.89720000000001}},{"index":4,"at":40990.5,"updateId":5,"completedId":5,"q":[-0.30570296060739244,0.00013459399574396598,-0.0018701620867891291,0.9521250924784885],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":37.70340000000002}},{"index":5,"at":41802,"updateId":6,"completedId":6,"q":[-0.14979610391387732,-0.00002592710803781414,-0.00030227970591176944,0.9887168575364744],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":38.51360000000003}},{"index":6,"at":42603.899999999965,"updateId":7,"completedId":7,"q":[-0.16560899971955548,0,0,0.9861914872723343],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":39.318}},{"index":7,"at":43400.79999999999,"updateId":8,"completedId":8,"q":[-0.16842446039143144,0,0,0.9857145588345467],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.10940000000002}},{"index":8,"at":44192.899999999965,"updateId":9,"completedId":9,"q":[-0.16859562466601635,0,0,0.9856852974961158],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":40.89490000000002}},{"index":9,"at":44968.20000000001,"updateId":10,"completedId":10,"q":[-0.1686060330123545,0,0,0.9856835171536386],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":41.681}},{"index":10,"at":45777.29999999999,"updateId":11,"completedId":11,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":42.477}},{"index":11,"at":46566.70000000001,"updateId":12,"completedId":12,"q":[-0.16860670692458335,0,0,0.9856834018773867],"state":{"hidden":false,"visibility":"visible","hold":false,"visible":true,"clock":43.28220000000001}}],"polls":[{"at":44968.20000000001,"totalUpdates":10,"completedUpdates":10,"count":10,"countGt5":true,"departure":true,"tail":false,"pass":false},{"at":45777.399999999965,"totalUpdates":11,"completedUpdates":11,"count":11,"countGt5":true,"departure":true,"tail":false,"pass":false},{"at":46566.70000000001,"totalUpdates":12,"completedUpdates":12,"count":12,"countGt5":true,"departure":true,"tail":true,"pass":true}],"lastPoll":{"at":46566.70000000001,"totalUpdates":12,"completedUpdates":12,"count":12,"countGt5":true,"departure":true,"tail":true,"pass":true},"errorCount":0,"errors":[],"width":1280,"marks":{"clickStartedWall":1792454256714,"clickFinishedWall":1792454259559,"waitStartedWall":1792454259559,"waitFinishedWall":1792454267534},"originalError":null}
+2026-10-19T23:57:59.5055628Z PASS authored game hands: wardrobe, actual harvest, six clip poses, fallback and disposal 1280
+2026-10-19T23:57:59.7844992Z ##[group]Run node farm3d/tests/authored-hands.browser.cjs
+2026-10-19T23:57:59.7845513Z [36;1mnode farm3d/tests/authored-hands.browser.cjs[0m
+2026-10-19T23:57:59.7907733Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:57:59.7908001Z ##[endgroup]
+2026-10-19T23:58:56.2106309Z PASS authored game hands: wardrobe, actual harvest, six clip poses, fallback and disposal 844
+2026-10-19T23:59:55.5837190Z PASS authored game hands: wardrobe, actual harvest, six clip poses, fallback and disposal 1280
+2026-10-19T23:59:55.7013355Z ##[group]Run node farm3d/tests/hands-production.browser.cjs
+2026-10-19T23:59:55.7013870Z [36;1mnode farm3d/tests/hands-production.browser.cjs[0m
+2026-10-19T23:59:55.7014603Z [36;1mnode farm3d/tools/capture-hands-game.cjs[0m
+2026-10-19T23:59:55.7078083Z shell: /usr/bin/bash -e {0}
+2026-10-19T23:59:55.7078415Z ##[endgroup]
+2026-10-20T00:00:28.4175565Z PASS normal farm pending model fallback
+2026-10-20T00:02:25.6018998Z PASS normal save/wardrobe and actual controlled offline reload
+2026-10-20T00:02:25.6104818Z Checking real missing asset
+2026-10-20T00:03:21.5640753Z PASS real missing asset fallback and save
+2026-10-20T00:03:21.5648572Z Checking real missing module
+2026-10-20T00:04:15.4064994Z PASS real missing module fallback and save
+2026-10-20T00:04:15.4125372Z PASS normal hands: pending/ready/fallback, save/wardrobe, actual SW migration and offline reload
+2026-10-20T00:06:47.2038932Z PASS full CSS drawing resolution: overview hides hands; Walk idle/harvest/pet at both viewports
+2026-10-20T00:06:47.3331601Z ##[group]Run actions/upload-artifact@v5
+2026-10-20T00:06:47.3331928Z with:
+2026-10-20T00:06:47.3332143Z   name: hand-return-causal-1
+2026-10-20T00:06:47.3332884Z   path: farm3d/tests/artifacts/authored-hands*
+farm3d/tests/artifacts/hands-study/
+farm3d/tests/artifacts/hands-production*
+farm3d/tests/artifacts/hands-game-captures/
+
+2026-10-20T00:06:47.3333614Z   retention-days: 14
+2026-10-20T00:06:47.3333838Z   if-no-files-found: warn
+2026-10-20T00:06:47.3334276Z   compression-level: 6
+2026-10-20T00:06:47.3334505Z   overwrite: false
+2026-10-20T00:06:47.3334743Z   include-hidden-files: false
+2026-10-20T00:06:47.3334992Z ##[endgroup]
+2026-10-20T00:06:47.5043824Z (node:3953) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-20T00:06:47.5045433Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-20T00:06:47.5220254Z With the provided path, there will be 39 files uploaded
+2026-10-20T00:06:47.5221445Z Artifact name is valid!
+2026-10-20T00:06:47.5222029Z Root directory input is valid!
+2026-10-20T00:06:47.7075573Z Beginning upload of artifact content to blob storage
+2026-10-20T00:06:48.0423642Z (node:3953) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-20T00:06:48.2320256Z Uploaded bytes 8388608
+2026-10-20T00:06:48.2620423Z Uploaded bytes 9134220
+2026-10-20T00:06:48.2796652Z Finished uploading artifact content to blob storage!
+2026-10-20T00:06:48.2798512Z SHA256 digest of uploaded artifact zip is 119c0c1e778d033efb51a7ea071200cc96e31c633d2c86af427e0c09ded8aa02
+2026-10-20T00:06:48.2800406Z Finalizing artifact upload
+2026-10-20T00:06:48.4822365Z Artifact hand-return-causal-1.zip successfully finalized. Artifact ID 12231091075
+2026-10-20T00:06:48.4824517Z Artifact hand-return-causal-1 has been successfully uploaded! Final size is 9134220 bytes. Artifact ID is 12231091075
+2026-10-20T00:06:48.4831191Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39344522666/artifacts/12231091075
+2026-10-20T00:06:48.5021191Z Post job cleanup.
+2026-10-20T00:06:48.6223554Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90, not saving cache.
+2026-10-20T00:06:48.6357979Z Post job cleanup.
+2026-10-20T00:06:48.7354962Z [command]/usr/bin/git version
+2026-10-20T00:06:48.7415324Z git version 2.55.0
+2026-10-20T00:06:48.7469413Z Temporarily overriding HOME='/home/runner/work/_temp/5a22806a-054b-491a-bbd3-c1dedf5e1996' before making global git config changes
+2026-10-20T00:06:48.7476462Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T00:06:48.7478008Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-20T00:06:48.7496114Z Removing SSH command configuration
+2026-10-20T00:06:48.7504199Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T00:06:48.7548115Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T00:06:48.7835101Z Removing HTTP extra header
+2026-10-20T00:06:48.7836685Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T00:06:48.7898711Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T00:06:48.8176707Z Removing includeIf entries pointing to credentials config files
+2026-10-20T00:06:48.8184429Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T00:06:48.8255737Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T00:06:48.8677264Z Cleaning up orphan processes
+2026-10-20T00:06:48.8986201Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

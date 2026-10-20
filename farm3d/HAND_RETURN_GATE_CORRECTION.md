@@ -39,3 +39,18 @@ Evidence directory: `tests/evidence/hand-return-causal-20261019/`. Raw failed ar
 No engine, production animation, character geometry, save, cloud, worker, chicken/other-species, economy or release setting changes. Existing chicken/scene/cloud qualification on2afe remains historical credit, not exact-head CI clearance of a later commit. The cancelled original core job and separately prepared CI partition/aggregate correction remain separate work. Owner30-bird visual acceptance, explicit merge authority and broader performance/capture/device gates remain open. No merge or deployment.
 
 This is lead implementation and adversarial self-review, not an independent external audit.
+
+
+## Completed controlled qualification (supersedes pending checkpoint above)
+
+Run39344522666/job118373798545 completed SUCCESS and uploaded artifact12231091075 (SHA256119c0c1e778d033efb51a7ea071200cc96e31c633d2c86af427e0c09ded8aa02). Observed waits were7871ms at844 and7975ms at1280; both retained ten post-input updates and three settled tail samples with zero observer errors. Every shared before/after quaternion component matches exactly (maximum difference0); the difference is available rendered-update cadence, not a changed pose.
+
+The original uninstrumented test also passes844/1280 on this candidate. Original subsequent normal/pending/ready/asset-failure/module-failure checks, guest save/wardrobe, actual service-worker migration/offline reload, and full CSS-resolution captures all pass. Render receipts show844x390 and1280x720 buffers at pr1/High, including hidden overview and visible idle/harvest/pet. Four representative actual renders were inspected; these are not new owner acceptance or physical-device performance evidence.
+
+PR85 now contains the one-line test correction and publication-checkpoint evidence at3251c754375428edf161e92ae9f3b75bf63513c0. Exact PR-head art39345911273/authored118378334290 is running at this checkpoint, alongside regression/release checks; do not infer its result from the controlled branch. Later receipts are kept on an evidence branch to preserve the tested PR head.
+
+## Exact PR-head qualification
+
+Run39345911273/job118378334290 completed SUCCESS on PR head3251c754375428edf161e92ae9f3b75bf63513c0. The original authored test passed844 and1280. Asset validation/study, pending/ready/missing-asset/missing-module paths, guest save/wardrobe, actual worker migration/offline reload, and full CSS drawing-resolution overview/Walk idle/harvest/pet captures all passed. Artifact12230884748 is9128542bytes, SHA256aa4fbd7feb912e524d0da630854a9242ada069ae91fd494d086a579631189349; downloaded bytes and ZIP integrity verified. Exact-head log and result JSONs are retained beside the timestamped CI snapshot.
+
+At that snapshot, fresh Farm3D regression, old-save checks, six-species review, both30-bird touch widths, installed-update/30-bird offline save and same-account conflicting-save checks also report SUCCESS. Other jobs remain running; no whole-PR clearance is asserted. The original timed-out core run remains a historical failure; the prepared CI partition/aggregate branches were not integrated or changed in this task. Keep PR85 draft/unmerged; owner visual acceptance, physical-device/performance checks and explicit merge approval remain separate.
