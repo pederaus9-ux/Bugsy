@@ -1840,7 +1840,7 @@ function syncHerd() {
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
     if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }
-    const pen = penOf(r.kind),bed=r.kind==='cow'&&cowYardActive?cowYard.stations.filter(s=>s.kind==='bed')[r.i]:null,p = bed?new THREE.Vector2(bed.dock[0],bed.dock[2]):pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
+    const pen = penOf(r.kind),bed=r.kind==='cow'&&cowYardActive?cowYard.stations.filter(s=>s.kind==='bed')[r.i]:null,restoredDock=bed&&cowStatus?.job?.cowId===cowStatus?.cows[r.i]?.id&&['milking','exiting'].includes(cowStatus.job.stage),p = restoredDock?new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]):bed?new THREE.Vector2(bed.dock[0],bed.dock[2]):pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
     animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
     if(bed)animals.at(-1).g.position.y=COW_YARD_LAYOUT.floor;
   }
@@ -1851,6 +1851,9 @@ function syncChickenYard(){
   chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);
   chickenYard.setStatus(G.getChickenCareStatus());
 }
+function setCowGrass(active){
+  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z,active?1.85:0);if(!active)CLEARS.delete(key);}
+}
 function syncCowYard(){
   const owned=!!G.S?.pens.cow?.owned;
   const blocks=BLOCKS.filter(b=>!cowBlocks.includes(b));
@@ -1859,7 +1862,7 @@ function syncCowYard(){
   // existing herd across the farm merely because a decoration was moved.
   if(cowYardChecked&&!cowYardActive&&owned&&animals.some(a=>a.kind==='cow'))cowYardNeedsReload=true;
   const active=owned&&!cowYardIssues.length&&!cowYardNeedsReload;
-  if(active!==cowYardActive){cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
+  if(active!==cowYardActive){setCowGrass(active);cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
   cowYardChecked=true;cowYard.group.visible=active;
   cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);
 }
@@ -1868,12 +1871,12 @@ function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.tok
 function beginCowTask(a,kind){
   const id=cowIdOf(a);if(!id)return false;
   const token=cowStations.request(id,kind);if(!token)return false;
-  const station=cowStationById.get(token.stationId);a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints:[station.approach,station.dock]};a.target=null;a.vel.set(0,0);return true;
+  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95),waypoints=[...(fromBed&&fromBed.id!==station.id?[fromBed.approach]:[]),station.approach,station.dock];a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.target=null;a.vel.set(0,0);return true;
 }
 function chooseCowTask(a){
   if(!cowYardActive)return false;
   const job=cowStatus?.job,id=cowIdOf(a);
-  if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();return true;}return false;}
+  if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();if(job.stage==='milking'&&a.pos.distanceTo(new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]))<=.1){a.cowTask.waypoints=[];a.cowTask.stage='align';}return true;}return false;}
   if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed');
   if(cowStatus?.feed>0&&a.need.hunger>.35)return beginCowTask(a,'feed');
   if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink');
@@ -1891,7 +1894,7 @@ function updateCowTask(a,dt,t){
   else if(task.stage==='approach'||task.stage==='exit'){
     // Docked jobs restored from disk resume their physical approach without a
     // second credit. Approaching/queued jobs still require a fresh dock proof.
-    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.clear];}
+    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];}
     if(!task.path?.length&&task.waypoints.length){const p=task.waypoints.shift();task.path=route(a.pos,new THREE.Vector2(p[0],p[2]),.42,PENS.courtyard);}
     const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
       const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
@@ -1904,7 +1907,7 @@ function updateCowTask(a,dt,t){
     if(task.stage==='hold'){
       if(isRobot&&currentJob){
         if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
-        if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.clear];task.path=null;}
+        if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];task.path=null;}
         a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
       }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){a.need.hunger=0;a.cowDrinkAt=t+35;task.stage='stand';}}
     }
@@ -2962,7 +2965,7 @@ function aimScan() {
     case "plot": { const p = S.plots[h.i];
       if (!p.crop) { label = "Plant"; icon = "🌱"; } else if (ready(h.i)) { label = "Harvest"; icon = G.ITEMS[p.crop].e; } else if (!p.water) { label = "Water"; icon = "💧"; } break; }
     case "animal": { const an = h.an;
-      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
+      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if(an.kind==="cow"&&cowStatus?.cows[an.ref.i]?.ready){label="Ready cow";icon="🥛";}else if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
       else { const pt = S.pets[an.ref.j]; if (pt && G.giftReady(pt)) { label = "Gift"; icon = "🎁"; } else { label = "Pet"; icon = "🤚"; } } break; }
     case "barn": label = "Open"; icon = "🚪"; break;
     case "building": label = "Open"; icon = G.BUILDINGS[h.bid].e; break;

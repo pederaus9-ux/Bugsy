@@ -61,13 +61,13 @@ let h,failed=true;save();
  {const s=await h.setup({width:844,height:390},true,'utility-installed-update'),p=s.page;await boot(p,h.base);const old=await state(p);
   await p.evaluate(()=>navigator.serviceWorker.register('./sw.js').then(r=>window.__utilityRegistration=r));
   await p.waitForFunction(()=>{const r=window.__utilityRegistration;return !!(r?.active?.state==='activated'&&!r.installing&&!r.waiting&&navigator.serviceWorker.controller===r.active);},null,{timeout:90000});assert(await p.evaluate(()=>caches.has('sa3d-v51')));pass('actual predecessor51 controls the old paid farm',old);
-  h.serveRef(null);const transition=await updateWorker(p);assert(transition.requestedWorkerControls);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),29);assert.deepEqual(await state(p),old);
+  h.serveRef(null);const transition=await updateWorker(p);assert(transition.requestedWorkerControls);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),30);assert.deepEqual(await state(p),old);
   await view(p); // Purchase in the same unobstructed west meadow after reload.
   await press(p,'[data-p="decor"]',true);await press(p,'[data-act="buyDecor"][data-id="utilitylamp"]',true);await p.waitForFunction(()=>!!__dbg.moving);await press(p,'#moveBar [data-m="done"]',true);await p.evaluate(()=>{__dbg.G.S.decor.placed[0].rotation=.57;__dbg.G.save();});const purchased=await state(p);
   const purchasedRaw=await p.evaluate(()=>localStorage.getItem(__dbg.G.SAVE_KEY));assert.equal(JSON.parse(purchasedRaw).v,2);
   h.serveRef(BASE,{keepCurrentWorker:true});await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),28);
   const blocked=await p.evaluate(()=>{const G=__dbg.G;G.S.coins+=1;return {saved:G.save(),raw:localStorage.getItem(G.SAVE_KEY)};});assert.equal(blocked.saved,false);assert.equal(blocked.raw,purchasedRaw);
-  h.serveRef(null);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),29);assert.deepEqual(await state(p),purchased);
+  h.serveRef(null);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),30);assert.deepEqual(await state(p),purchased);
   pass('older cached28 cannot overwrite paid lamp; current writer recovers exact farm',{oldWriteBlocked:true,rawUnchanged:true,version:2});
 
   const hashes=await p.evaluate(async()=>{const c=await caches.open('sa3d-v53'),out={};for(const file of ['utility-lights.js?v=1','game.js?v=30']){const r=await c.match(new URL(file,location.href));if(!r)throw Error('offline module missing '+file);out[file]=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),n=>n.toString(16).padStart(2,'0')).join('');}return out;});for(const [file,hash]of Object.entries(hashes))assert.equal(hash,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'farm3d',file.split('?')[0]))).digest('hex'));
