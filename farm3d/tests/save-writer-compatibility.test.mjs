@@ -46,7 +46,7 @@ test('future-version farms remain byte-for-byte protected by the actual save gua
  future.G.S.coins+=100;assert.equal(future.G.save(),false);assert.equal(rawOf(future),raw);assert.deepEqual(future.events,[]);
 });
 test('writer-barrier migration is shape-preserving and upgrade remains idempotent',()=>{
- const x=farm(),s=plain(x.G.S),m=x.G.migrate(structuredClone(s));assert.equal(m.v,2);assert.deepEqual({...plain(m),v:1},s);
+ const x=farm(),s=plain(x.G.S),m=x.G.migrate(structuredClone(s),2);assert.equal(m.v,2);assert.deepEqual({...plain(m),v:1},s);
  const a=plain(x.G.upgrade(structuredClone(s))),b=plain(x.G.upgrade(structuredClone(a)));assert.deepEqual(a,b);assert.equal(a.v,1);
  assert.equal(typeof x.G.MIGRATIONS[1],'function');
 });
