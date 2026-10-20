@@ -13,6 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
+const {startRecoveryTiming} = require('./recovery-timing.cjs');
 
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
@@ -53,7 +54,7 @@ async function main() {
   const standInWrites = (token) => (g.farmWrites || []).filter(w => !has(w.save, token)).length;
   // the next load finds this text as the saved farm (written before any game script runs)
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
-  let failed = false;
+  let failed = false, timing = null;
   try {
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
@@ -107,9 +108,17 @@ async function main() {
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
       const base = await establish(uid, 'race'), n0 = loads.grandma || 0; g.farmWrites = [];
+      if (process.env.RECOVERY_TIMING === '1') timing = await startRecoveryTiming(g, artifacts);
+      // Experimental precondition, qualified separately before any default change.
+      if (process.env.RECOVERY_DRAIN_GPU === '1') {
+        if (!timing) throw new Error('GPU comparison requires retained recovery timing');
+        await timing.drainGpu();
+      }
       g.delayGame = 25000; g.authFile = process.env.AUTH_FILE || null;
       await corruptOnNextLoad('{"race cut');
+      timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
+      timing?.mark('reload-return');
       const sampling = watch(uid, 45000, (c) => c && has(c.save, base.token));
       const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token, 120000);
       const c = await cloud(uid), s = await st(); const bad = await sampling;
@@ -281,9 +290,11 @@ async function main() {
         `restored ${back}, page loads +${(loads.grandma || 0) - n0}, cloud rev ${c3.rev}`);
     }
   } catch (e) {
+    timing?.mark('recovery-error', {message: e.message});
     failed = true; console.log('RECOVERY ERROR', e.message); try { console.log('STATE', JSON.stringify(await st())); } catch (_) {}
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
+  if (timing) await timing.finish();
   await E.close();
   const bad = results.filter(r => !r.ok);
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);
