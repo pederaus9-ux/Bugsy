@@ -1,0 +1,921 @@
+﻿2026-10-20T02:12:29.8375731Z Current runner version: '2.337.0'
+2026-10-20T02:12:29.8392335Z ##[group]Runner Image Provisioner
+2026-10-20T02:12:29.8393000Z Hosted Compute Agent
+2026-10-20T02:12:29.8393437Z Version: 20261012.601
+2026-10-20T02:12:29.8393885Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-20T02:12:29.8394410Z Build Date: 2026-10-12T17:48:21Z
+2026-10-20T02:12:29.8394879Z Worker ID: {b50d2fb9-d3de-476a-b42b-1177123ffb25}
+2026-10-20T02:12:29.8395383Z Region: centralus
+2026-10-20T02:12:29.8395774Z Cloud: Azure
+2026-10-20T02:12:29.8396142Z ##[endgroup]
+2026-10-20T02:12:29.8397079Z ##[group]Operating System
+2026-10-20T02:12:29.8397483Z Ubuntu
+2026-10-20T02:12:29.8397817Z 24.04.5
+2026-10-20T02:12:29.8398207Z LTS
+2026-10-20T02:12:29.8398580Z ##[endgroup]
+2026-10-20T02:12:29.8398963Z ##[group]Runner Image
+2026-10-20T02:12:29.8399361Z Image: ubuntu-24.04
+2026-10-20T02:12:29.8399747Z Version: 20261012.334.1
+2026-10-20T02:12:29.8400647Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-20T02:12:29.8402016Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-20T02:12:29.8402670Z ##[endgroup]
+2026-10-20T02:12:29.8403414Z ##[group]GITHUB_TOKEN Permissions
+2026-10-20T02:12:29.8404936Z Contents: read
+2026-10-20T02:12:29.8405310Z Metadata: read
+2026-10-20T02:12:29.8405707Z ##[endgroup]
+2026-10-20T02:12:29.8407060Z Secret source: Actions
+2026-10-20T02:12:29.8407760Z Cache mode: write
+2026-10-20T02:12:29.8408226Z Prepare workflow directory
+2026-10-20T02:12:29.8663402Z Prepare all required actions
+2026-10-20T02:12:29.8697830Z Getting action download info
+2026-10-20T02:12:30.0794411Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-20T02:12:30.1737104Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-20T02:12:30.2596017Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-20T02:12:30.4465748Z Complete job name: Solid holiday decorations + orientation + saves
+2026-10-20T02:12:30.5027972Z ##[group]Run actions/checkout@v6
+2026-10-20T02:12:30.5028576Z with:
+2026-10-20T02:12:30.5029004Z   persist-credentials: false
+2026-10-20T02:12:30.5029402Z   fetch-depth: 0
+2026-10-20T02:12:30.5029747Z   repository: pederaus9-ux/Bugsy
+2026-10-20T02:12:30.5032473Z   token: ***
+2026-10-20T02:12:30.5032842Z   ssh-strict: true
+2026-10-20T02:12:30.5033311Z   ssh-user: git
+2026-10-20T02:12:30.5033761Z   clean: true
+2026-10-20T02:12:30.5034121Z   sparse-checkout-cone-mode: true
+2026-10-20T02:12:30.5034597Z   fetch-tags: false
+2026-10-20T02:12:30.5034962Z   show-progress: true
+2026-10-20T02:12:30.5035311Z   lfs: false
+2026-10-20T02:12:30.5035650Z   submodules: false
+2026-10-20T02:12:30.5036182Z   set-safe-directory: true
+2026-10-20T02:12:30.5036689Z   allow-unsafe-pr-checkout: false
+2026-10-20T02:12:30.5037421Z ##[endgroup]
+2026-10-20T02:12:30.5766477Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-20T02:12:30.5768298Z ##[group]Getting Git version info
+2026-10-20T02:12:30.5769287Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-20T02:12:30.5770264Z [command]/usr/bin/git version
+2026-10-20T02:12:30.5855725Z git version 2.55.0
+2026-10-20T02:12:30.5875583Z ##[endgroup]
+2026-10-20T02:12:30.5885464Z Temporarily overriding HOME='/home/runner/work/_temp/c2c7ce57-466b-4732-8143-65abf38b3f52' before making global git config changes
+2026-10-20T02:12:30.5886740Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T02:12:30.5890335Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-20T02:12:30.5946044Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-20T02:12:30.5952042Z ##[group]Determining repository object format
+2026-10-20T02:12:30.5953137Z ##[endgroup]
+2026-10-20T02:12:30.5953869Z ##[group]Initializing the repository
+2026-10-20T02:12:30.5954419Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-20T02:12:30.6029221Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T02:12:30.6038235Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T02:12:30.6038963Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T02:12:30.6039573Z hint: call:
+2026-10-20T02:12:30.6039922Z hint:
+2026-10-20T02:12:30.6040323Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T02:12:30.6040798Z hint:
+2026-10-20T02:12:30.6041250Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T02:12:30.6042174Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T02:12:30.6042741Z hint:
+2026-10-20T02:12:30.6043077Z hint: 	git branch -m <name>
+2026-10-20T02:12:30.6043448Z hint:
+2026-10-20T02:12:30.6043961Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T02:12:30.6044639Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-20T02:12:30.6045880Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-20T02:12:30.6089256Z ##[endgroup]
+2026-10-20T02:12:30.6090073Z ##[group]Disabling automatic garbage collection
+2026-10-20T02:12:30.6092628Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T02:12:30.6125995Z ##[endgroup]
+2026-10-20T02:12:30.6127109Z ##[group]Setting up auth
+2026-10-20T02:12:30.6127780Z Removing SSH command configuration
+2026-10-20T02:12:30.6132483Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T02:12:30.6158089Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T02:12:30.6416700Z Removing HTTP extra header
+2026-10-20T02:12:30.6422715Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T02:12:30.6444897Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T02:12:30.6582861Z Removing includeIf entries pointing to credentials config files
+2026-10-20T02:12:30.6588676Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T02:12:30.6612090Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T02:12:30.6755916Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T02:12:30.6782876Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:30.6808873Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:30.6837074Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:30.6860772Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:30.6881898Z ##[endgroup]
+2026-10-20T02:12:30.6882517Z ##[group]Fetching the repository
+2026-10-20T02:12:30.6888628Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +98e07e0172a902d468169d29b646bc9e09938f8c:refs/remotes/pull/86/merge
+2026-10-20T02:12:57.3202267Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-20T02:12:57.3210480Z  * [new branch]      antigravity/cow-b10-hoof-contact         -> origin/antigravity/cow-b10-hoof-contact
+2026-10-20T02:12:57.3211939Z  * [new branch]      antigravity/cow-b11-turning              -> origin/antigravity/cow-b11-turning
+2026-10-20T02:12:57.3212852Z  * [new branch]      antigravity/cow-b12-transitions          -> origin/antigravity/cow-b12-transitions
+2026-10-20T02:12:57.3213682Z  * [new branch]      antigravity/cow-b9-gait-retiming         -> origin/antigravity/cow-b9-gait-retiming
+2026-10-20T02:12:57.3214467Z  * [new branch]      chatgpt/ai-relay-protocol                -> origin/chatgpt/ai-relay-protocol
+2026-10-20T02:12:57.3215216Z  * [new branch]      chatgpt/animal-visual-verification       -> origin/chatgpt/animal-visual-verification
+2026-10-20T02:12:57.3216099Z  * [new branch]      chatgpt/cloud-recovery-startup           -> origin/chatgpt/cloud-recovery-startup
+2026-10-20T02:12:57.3216980Z  * [new branch]      chatgpt/cow-b1-b8-anatomy                -> origin/chatgpt/cow-b1-b8-anatomy
+2026-10-20T02:12:57.3217646Z  * [new branch]      chatgpt/cow-reconstruction-b0            -> origin/chatgpt/cow-reconstruction-b0
+2026-10-20T02:12:57.3218275Z  * [new branch]      chatgpt/cow-reconstruction-b1            -> origin/chatgpt/cow-reconstruction-b1
+2026-10-20T02:12:57.3219141Z  * [new branch]      chatgpt/phase7i-firebase-sdk             -> origin/chatgpt/phase7i-firebase-sdk
+2026-10-20T02:12:57.3219849Z  * [new branch]      chatgpt/phase7j-player-summaries         -> origin/chatgpt/phase7j-player-summaries
+2026-10-20T02:12:57.3220496Z  * [new branch]      chatgpt/phase7k-measured-performance     -> origin/chatgpt/phase7k-measured-performance
+2026-10-20T02:12:57.3221645Z  * [new branch]      chatgpt/phase7l-mobile-accessibility     -> origin/chatgpt/phase7l-mobile-accessibility
+2026-10-20T02:12:57.3222974Z  * [new branch]      chatgpt/phase7m-max-wow                  -> origin/chatgpt/phase7m-max-wow
+2026-10-20T02:12:57.3224281Z  * [new branch]      chatgpt/phase7mx-asset-foundation        -> origin/chatgpt/phase7mx-asset-foundation
+2026-10-20T02:12:57.3225783Z  * [new branch]      chatgpt/phase7mx-authored-hands          -> origin/chatgpt/phase7mx-authored-hands
+2026-10-20T02:12:57.3226776Z  * [new branch]      chatgpt/phase7mx-barn-candidate          -> origin/chatgpt/phase7mx-barn-candidate
+2026-10-20T02:12:57.3227726Z  * [new branch]      chatgpt/stage-b-farmer-recovery          -> origin/chatgpt/stage-b-farmer-recovery
+2026-10-20T02:12:57.3228750Z  * [new branch]      chatgpt/sunny-acres-phase7g-entry        -> origin/chatgpt/sunny-acres-phase7g-entry
+2026-10-20T02:12:57.3229808Z  * [new branch]      claude/hayday-style-game-currency-hq3vi4 -> origin/claude/hayday-style-game-currency-hq3vi4
+2026-10-20T02:12:57.3230964Z  * [new branch]      claude/iracing-paint-template-0xa9nq     -> origin/claude/iracing-paint-template-0xa9nq
+2026-10-20T02:12:57.3232305Z  * [new branch]      claude/project-thread-m47o2i             -> origin/claude/project-thread-m47o2i
+2026-10-20T02:12:57.3233421Z  * [new branch]      claude/project-thread-wra5fq             -> origin/claude/project-thread-wra5fq
+2026-10-20T02:12:57.3234403Z  * [new branch]      claude/sunny-acres-7g-doc-reconcile      -> origin/claude/sunny-acres-7g-doc-reconcile
+2026-10-20T02:12:57.3235431Z  * [new branch]      claude/sunny-acres-phase7g-firebase      -> origin/claude/sunny-acres-phase7g-firebase
+2026-10-20T02:12:57.3236483Z  * [new branch]      claude/sunny-acres-phase7h-fixes         -> origin/claude/sunny-acres-phase7h-fixes
+2026-10-20T02:12:57.3237441Z  * [new branch]      claude/sunny-acres-phase7h-saves         -> origin/claude/sunny-acres-phase7h-saves
+2026-10-20T02:12:57.3238456Z  * [new branch]      claude/sunny-acres-phase7i               -> origin/claude/sunny-acres-phase7i
+2026-10-20T02:12:57.3239522Z  * [new branch]      claude/ue5-viral-game-concepts-k6hy3j    -> origin/claude/ue5-viral-game-concepts-k6hy3j
+2026-10-20T02:12:57.3240469Z  * [new branch]      codex/3d-cow-prototype                   -> origin/codex/3d-cow-prototype
+2026-10-20T02:12:57.3241714Z  * [new branch]      codex/3d-cows-default                    -> origin/codex/3d-cows-default
+2026-10-20T02:12:57.3242795Z  * [new branch]      codex/accepted-character-owner-review-20261018 -> origin/codex/accepted-character-owner-review-20261018
+2026-10-20T02:12:57.3243919Z  * [new branch]      codex/ambient-full-sequence-diagnostic   -> origin/codex/ambient-full-sequence-diagnostic
+2026-10-20T02:12:57.3244979Z  * [new branch]      codex/ambient-motion-resume-diagnosis    -> origin/codex/ambient-motion-resume-diagnosis
+2026-10-20T02:12:57.3246041Z  * [new branch]      codex/ambient-render-stage-diagnostic    -> origin/codex/ambient-render-stage-diagnostic
+2026-10-20T02:12:57.3247034Z  * [new branch]      codex/ambient-rendered-motion-check      -> origin/codex/ambient-rendered-motion-check
+2026-10-20T02:12:57.3248099Z  * [new branch]      codex/ambient-rendered-motion-evidence   -> origin/codex/ambient-rendered-motion-evidence
+2026-10-20T02:12:57.3249065Z  * [new branch]      codex/cat-contact-audit                  -> origin/codex/cat-contact-audit
+2026-10-20T02:12:57.3249993Z  * [new branch]      codex/cat-merged-checkpoint              -> origin/codex/cat-merged-checkpoint
+2026-10-20T02:12:57.3250938Z  * [new branch]      codex/chicken-ci-completion-20261019     -> origin/codex/chicken-ci-completion-20261019
+2026-10-20T02:12:57.3252086Z  * [new branch]      codex/chicken-ci-gate-20261019           -> origin/codex/chicken-ci-gate-20261019
+2026-10-20T02:12:57.3253035Z  * [new branch]      codex/chicken-contact-audit              -> origin/codex/chicken-contact-audit
+2026-10-20T02:12:57.3253955Z  * [new branch]      codex/chicken-coordinated-motion         -> origin/codex/chicken-coordinated-motion
+2026-10-20T02:12:57.3254964Z  * [new branch]      codex/chicken-lift-validation            -> origin/codex/chicken-lift-validation
+2026-10-20T02:12:57.3256081Z  * [new branch]      codex/chicken-pen-design-20261018        -> origin/codex/chicken-pen-design-20261018
+2026-10-20T02:12:57.3257274Z  * [new branch]      codex/chicken-pen-evidence-20261019      -> origin/codex/chicken-pen-evidence-20261019
+2026-10-20T02:12:57.3258269Z  * [new branch]      codex/chicken-pen-v1-20261018            -> origin/codex/chicken-pen-v1-20261018
+2026-10-20T02:12:57.3259198Z  * [new branch]      codex/chicken-pr78-review-evidence       -> origin/codex/chicken-pr78-review-evidence
+2026-10-20T02:12:57.3260235Z  * [new branch]      codex/chicken-update-evidence-20261019   -> origin/codex/chicken-update-evidence-20261019
+2026-10-20T02:12:57.3261272Z  * [new branch]      codex/chicken-update-fix-20261019        -> origin/codex/chicken-update-fix-20261019
+2026-10-20T02:12:57.3262476Z  * [new branch]      codex/chicken30-evidence-20261019        -> origin/codex/chicken30-evidence-20261019
+2026-10-20T02:12:57.3263443Z  * [new branch]      codex/cow-b13-microbehavior              -> origin/codex/cow-b13-microbehavior
+2026-10-20T02:12:57.3264618Z  * [new branch]      codex/cow-b14-microbehavior-refinement   -> origin/codex/cow-b14-microbehavior-refinement
+2026-10-20T02:12:57.3265902Z  * [new branch]      codex/cow-b15-final-microbehavior        -> origin/codex/cow-b15-final-microbehavior
+2026-10-20T02:12:57.3266897Z  * [new branch]      codex/cow-b16-long-duration-validation   -> origin/codex/cow-b16-long-duration-validation
+2026-10-20T02:12:57.3267915Z  * [new branch]      codex/cow-b17-regression-performance     -> origin/codex/cow-b17-regression-performance
+2026-10-20T02:12:57.3268834Z  * [new branch]      codex/cow-motion-ci-gates                -> origin/codex/cow-motion-ci-gates
+2026-10-20T02:12:57.3269648Z  * [new branch]      codex/dog-merged-checkpoint              -> origin/codex/dog-merged-checkpoint
+2026-10-20T02:12:57.3270487Z  * [new branch]      codex/dog-stop-contact                   -> origin/codex/dog-stop-contact
+2026-10-20T02:12:57.3271624Z  * [new branch]      codex/hand-return-evidence-20261019-3251c75 -> origin/codex/hand-return-evidence-20261019-3251c75
+2026-10-20T02:12:57.3272841Z  * [new branch]      codex/holiday-depth-20261019             -> origin/codex/holiday-depth-20261019
+2026-10-20T02:12:57.3273789Z  * [new branch]      codex/horse-c1-production-baseline       -> origin/codex/horse-c1-production-baseline
+2026-10-20T02:12:57.3274740Z  * [new branch]      codex/horse-c2-anatomy-silhouette        -> origin/codex/horse-c2-anatomy-silhouette
+2026-10-20T02:12:57.3275692Z  * [new branch]      codex/horse-r2-anatomical-silhouette     -> origin/codex/horse-r2-anatomical-silhouette
+2026-10-20T02:12:57.3276633Z  * [new branch]      codex/horse-r2-evidence-placement        -> origin/codex/horse-r2-evidence-placement
+2026-10-20T02:12:57.3277550Z  * [new branch]      codex/horse-r8-validated-integration     -> origin/codex/horse-r8-validated-integration
+2026-10-20T02:12:57.3278505Z  * [new branch]      codex/horse-rebuild-ground-up            -> origin/codex/horse-rebuild-ground-up
+2026-10-20T02:12:57.3279363Z  * [new branch]      codex/phase7n-audio-fix                  -> origin/codex/phase7n-audio-fix
+2026-10-20T02:12:57.3280204Z  * [new branch]      codex/phase7n-audio-fix-review           -> origin/codex/phase7n-audio-fix-review
+2026-10-20T02:12:57.3281098Z  * [new branch]      codex/phase7n-audio-publication          -> origin/codex/phase7n-audio-publication
+2026-10-20T02:12:57.3282140Z  * [new branch]      codex/phase7n-audio-qualification        -> origin/codex/phase7n-audio-qualification
+2026-10-20T02:12:57.3283061Z  * [new branch]      codex/phase7n-conflict-evidence          -> origin/codex/phase7n-conflict-evidence
+2026-10-20T02:12:57.3284045Z  * [new branch]      codex/phase7n-connected-qualification    -> origin/codex/phase7n-connected-qualification
+2026-10-20T02:12:57.3285040Z  * [new branch]      codex/phase7n-homestead-renderer-preview -> origin/codex/phase7n-homestead-renderer-preview
+2026-10-20T02:12:57.3286123Z  * [new branch]      codex/phase7n-later-progression-qualification -> origin/codex/phase7n-later-progression-qualification
+2026-10-20T02:12:57.3287309Z  * [new branch]      codex/phase7n-makeover-layout-plan       -> origin/codex/phase7n-makeover-layout-plan
+2026-10-20T02:12:57.3288290Z  * [new branch]      codex/phase7n-qualification-reconcile    -> origin/codex/phase7n-qualification-reconcile
+2026-10-20T02:12:57.3289270Z  * [new branch]      codex/phase7n-release-qualification      -> origin/codex/phase7n-release-qualification
+2026-10-20T02:12:57.3290222Z  * [new branch]      codex/phase7n-visitor-expiry-fix         -> origin/codex/phase7n-visitor-expiry-fix
+2026-10-20T02:12:57.3291199Z  * [new branch]      codex/phase7n-visitor-expiry-publication -> origin/codex/phase7n-visitor-expiry-publication
+2026-10-20T02:12:57.3292277Z  * [new branch]      codex/phase7n-visitor-expiry-review      -> origin/codex/phase7n-visitor-expiry-review
+2026-10-20T02:12:57.3293223Z  * [new branch]      codex/phase7n-visual-style-audit         -> origin/codex/phase7n-visual-style-audit
+2026-10-20T02:12:57.3294228Z  * [new branch]      codex/planting-publication-record-20261018 -> origin/codex/planting-publication-record-20261018
+2026-10-20T02:12:57.3295229Z  * [new branch]      codex/sheep-evidence-baseline            -> origin/codex/sheep-evidence-baseline
+2026-10-20T02:12:57.3296488Z  * [new branch]      codex/sheep-evidence-reset-fix           -> origin/codex/sheep-evidence-reset-fix
+2026-10-20T02:12:57.3297549Z  * [new branch]      codex/sheep-merged-checkpoint            -> origin/codex/sheep-merged-checkpoint
+2026-10-20T02:12:57.3298583Z  * [new branch]      codex/sheep-post-reset-checkpoint        -> origin/codex/sheep-post-reset-checkpoint
+2026-10-20T02:12:57.3299685Z  * [new branch]      codex/sheep-stop-diagnosis               -> origin/codex/sheep-stop-diagnosis
+2026-10-20T02:12:57.3300623Z  * [new branch]      codex/sticky-seed-planting-20261018      -> origin/codex/sticky-seed-planting-20261018
+2026-10-20T02:12:57.3301983Z  * [new branch]      codex/sunny-acres-perf                   -> origin/codex/sunny-acres-perf
+2026-10-20T02:12:57.3302912Z  * [new branch]      codex/sunny-acres-phase7a                -> origin/codex/sunny-acres-phase7a
+2026-10-20T02:12:57.3303900Z  * [new branch]      codex/sunny-acres-regression-ci          -> origin/codex/sunny-acres-regression-ci
+2026-10-20T02:12:57.3304838Z  * [new branch]      codex/sunny-acres-shed-switch            -> origin/codex/sunny-acres-shed-switch
+2026-10-20T02:12:57.3305822Z  * [new branch]      diagnostic-evidence/chicken-precise-20261019 -> origin/diagnostic-evidence/chicken-precise-20261019
+2026-10-20T02:12:57.3306883Z  * [new branch]      diagnostic/authored-return-20261019      -> origin/diagnostic/authored-return-20261019
+2026-10-20T02:12:57.3307798Z  * [new branch]      diagnostic/chicken-precise-20261019      -> origin/diagnostic/chicken-precise-20261019
+2026-10-20T02:12:57.3308727Z  * [new branch]      diagnostic/hand-return-causal-20261019   -> origin/diagnostic/hand-return-causal-20261019
+2026-10-20T02:12:57.3309532Z  * [new branch]      grok/horse-head-neck                     -> origin/grok/horse-head-neck
+2026-10-20T02:12:57.3310227Z  * [new branch]      grok/horse-r2-head                       -> origin/grok/horse-r2-head
+2026-10-20T02:12:57.3311060Z  * [new branch]      grok/stage-a-live3d-smoke                -> origin/grok/stage-a-live3d-smoke
+2026-10-20T02:12:57.3312187Z  * [new branch]      grok/sunny-acres-cow-hip-gap             -> origin/grok/sunny-acres-cow-hip-gap
+2026-10-20T02:12:57.3313190Z  * [new branch]      grok/sunny-acres-live-3d-integration     -> origin/grok/sunny-acres-live-3d-integration
+2026-10-20T02:12:57.3314232Z  * [new branch]      grok/sunny-acres-sheep-3d                -> origin/grok/sunny-acres-sheep-3d
+2026-10-20T02:12:57.3315065Z  * [new branch]      main                                     -> origin/main
+2026-10-20T02:12:57.3315726Z  * [new ref]         98e07e0172a902d468169d29b646bc9e09938f8c -> pull/86/merge
+2026-10-20T02:12:57.3318233Z ##[endgroup]
+2026-10-20T02:12:57.3319063Z ##[group]Determining the checkout info
+2026-10-20T02:12:57.3319823Z ##[endgroup]
+2026-10-20T02:12:57.3320358Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T02:12:57.3321900Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T02:12:57.3323225Z ##[group]Checking out the ref
+2026-10-20T02:12:57.3323846Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/86/merge
+2026-10-20T02:12:57.4591084Z Note: switching to 'refs/remotes/pull/86/merge'.
+2026-10-20T02:12:57.4591842Z 
+2026-10-20T02:12:57.4592107Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-20T02:12:57.4592967Z changes and commit them, and you can discard any commits you make in this
+2026-10-20T02:12:57.4593644Z state without impacting any branches by switching back to a branch.
+2026-10-20T02:12:57.4594065Z 
+2026-10-20T02:12:57.4594348Z If you want to create a new branch to retain commits you create, you may
+2026-10-20T02:12:57.4594955Z do so (now or later) by using -c with the switch command. Example:
+2026-10-20T02:12:57.4595349Z 
+2026-10-20T02:12:57.4595543Z   git switch -c <new-branch-name>
+2026-10-20T02:12:57.4595741Z 
+2026-10-20T02:12:57.4596072Z Or undo this operation with:
+2026-10-20T02:12:57.4596298Z 
+2026-10-20T02:12:57.4596413Z   git switch -
+2026-10-20T02:12:57.4596604Z 
+2026-10-20T02:12:57.4596799Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-20T02:12:57.4597135Z 
+2026-10-20T02:12:57.4597471Z HEAD is now at 98e07e0 Merge 27468da945ded15b887148fb5cd7106e8139e8ac into c17d563886cca786391c8aaa401498437dfca0e7
+2026-10-20T02:12:57.4602737Z ##[endgroup]
+2026-10-20T02:12:57.4636890Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T02:12:57.4660385Z 98e07e0172a902d468169d29b646bc9e09938f8c
+2026-10-20T02:12:57.4668982Z ##[group]Removing auth
+2026-10-20T02:12:57.4669537Z Removing SSH command configuration
+2026-10-20T02:12:57.4672164Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T02:12:57.4698651Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T02:12:57.4854742Z Removing HTTP extra header
+2026-10-20T02:12:57.4858938Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T02:12:57.4880781Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T02:12:57.5020776Z Removing includeIf entries pointing to credentials config files
+2026-10-20T02:12:57.5024160Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T02:12:57.5039583Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-20T02:12:57.5040399Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-20T02:12:57.5040977Z includeif.gitdir:/github/workspace/.git.path
+2026-10-20T02:12:57.5041688Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T02:12:57.5047185Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-20T02:12:57.5063458Z /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5071731Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5100230Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-20T02:12:57.5116176Z /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5122632Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5152044Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-20T02:12:57.5171472Z /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5177210Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5203876Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T02:12:57.5219044Z /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5228909Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config
+2026-10-20T02:12:57.5258828Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T02:12:57.5396695Z Removing credentials config '/home/runner/work/_temp/git-credentials-9edbc88f-95dc-42bc-943c-dcf96f3fcc63.config'
+2026-10-20T02:12:57.5405436Z ##[endgroup]
+2026-10-20T02:12:57.5599814Z ##[group]Run actions/setup-node@v6
+2026-10-20T02:12:57.5600132Z with:
+2026-10-20T02:12:57.5600407Z   node-version: 22
+2026-10-20T02:12:57.5600643Z   cache: npm
+2026-10-20T02:12:57.5600953Z   cache-dependency-path: farm3d/tests/package-lock.json
+2026-10-20T02:12:57.5601279Z   check-latest: false
+2026-10-20T02:12:57.5603313Z   token: ***
+2026-10-20T02:12:57.5603598Z   package-manager-cache: true
+2026-10-20T02:12:57.5603860Z ##[endgroup]
+2026-10-20T02:12:57.6629051Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-20T02:12:57.6631062Z ##[group]Environment details
+2026-10-20T02:12:57.9688192Z node: v22.23.3
+2026-10-20T02:12:57.9688813Z npm: 10.9.9
+2026-10-20T02:12:57.9689161Z yarn: 1.22.22
+2026-10-20T02:12:57.9690682Z ##[endgroup]
+2026-10-20T02:12:57.9705718Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-20T02:12:58.0477947Z /home/runner/.npm
+2026-10-20T02:12:58.2040271Z Cache hit for: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-20T02:12:59.0119286Z Received 4079830 of 4079830 (100.0%), 5.9 MBs/sec
+2026-10-20T02:12:59.0119817Z Cache Size: ~4 MB (4079830 B)
+2026-10-20T02:12:59.0161698Z [command]/usr/bin/tar -xf /home/runner/work/_temp/fddeca41-09f2-41cd-a741-9a7e19c0f25c/cache.tzst -P -C /home/runner/work/Bugsy/Bugsy --use-compress-program unzstd
+2026-10-20T02:12:59.0254113Z Cache restored successfully
+2026-10-20T02:12:59.0259464Z Cache restored from key: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-20T02:12:59.0378401Z ##[group]Run npm ci --ignore-scripts
+2026-10-20T02:12:59.0378822Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-20T02:12:59.0552204Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:12:59.0552599Z ##[endgroup]
+2026-10-20T02:12:59.7011470Z 
+2026-10-20T02:12:59.7015973Z added 3 packages, and audited 4 packages in 602ms
+2026-10-20T02:12:59.7016726Z 
+2026-10-20T02:12:59.7017137Z found 0 vulnerabilities
+2026-10-20T02:12:59.7208887Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-20T02:12:59.7209264Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-20T02:12:59.7245398Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:12:59.7245735Z ##[endgroup]
+2026-10-20T02:13:00.2146199Z Installing dependencies...
+2026-10-20T02:13:00.2198557Z Switching to root user to install dependencies...
+2026-10-20T02:13:00.2750971Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-20T02:13:00.3162863Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-20T02:13:00.3203346Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-20T02:13:00.3204659Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-20T02:13:00.3242941Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-20T02:13:00.3244021Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-20T02:13:00.3991893Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+2026-10-20T02:13:00.4100300Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [308 kB]
+2026-10-20T02:13:00.4104324Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+2026-10-20T02:13:00.4177739Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-20T02:13:00.4197141Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-20T02:13:00.4271632Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-20T02:13:00.4671226Z Get:13 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [618 kB]
+2026-10-20T02:13:00.4722189Z Get:14 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-20T02:13:00.4759836Z Get:15 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [557 kB]
+2026-10-20T02:13:00.4964161Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+2026-10-20T02:13:00.5004080Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-20T02:13:00.5015200Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-20T02:13:00.5055163Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-20T02:13:00.5503065Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-20T02:13:00.5555907Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-20T02:13:05.5319625Z Fetched 12.5 MB in 1s (12.4 MB/s)
+2026-10-20T02:13:06.1832394Z Reading package lists...
+2026-10-20T02:13:06.2042760Z Reading package lists...
+2026-10-20T02:13:06.3307214Z Building dependency tree...
+2026-10-20T02:13:06.3312859Z Reading state information...
+2026-10-20T02:13:06.4609091Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-20T02:13:06.4609733Z libasound2t64 set to manually installed.
+2026-10-20T02:13:06.4610211Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-20T02:13:06.4610721Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-20T02:13:06.4611193Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-20T02:13:06.4611852Z libatk1.0-0t64 set to manually installed.
+2026-10-20T02:13:06.4612308Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-20T02:13:06.4612765Z libatspi2.0-0t64 set to manually installed.
+2026-10-20T02:13:06.4613251Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-20T02:13:06.4613689Z libcairo2 set to manually installed.
+2026-10-20T02:13:06.4614121Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-20T02:13:06.4614937Z libcups2t64 set to manually installed.
+2026-10-20T02:13:06.4615439Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-20T02:13:06.4615892Z libdbus-1-3 set to manually installed.
+2026-10-20T02:13:06.4616393Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-20T02:13:06.4616790Z libdrm2 set to manually installed.
+2026-10-20T02:13:06.4617123Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-20T02:13:06.4617544Z libgbm1 set to manually installed.
+2026-10-20T02:13:06.4617894Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+2026-10-20T02:13:06.4618253Z libglib2.0-0t64 set to manually installed.
+2026-10-20T02:13:06.4618629Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-20T02:13:06.4618953Z libnspr4 set to manually installed.
+2026-10-20T02:13:06.4619318Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-20T02:13:06.4619652Z libnss3 set to manually installed.
+2026-10-20T02:13:06.4620017Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-20T02:13:06.4620361Z libpango-1.0-0 set to manually installed.
+2026-10-20T02:13:06.4620778Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-20T02:13:06.4621115Z libx11-6 set to manually installed.
+2026-10-20T02:13:06.4621569Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-20T02:13:06.4621949Z libxcb1 set to manually installed.
+2026-10-20T02:13:06.4622291Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-20T02:13:06.4622668Z libxcomposite1 set to manually installed.
+2026-10-20T02:13:06.4623087Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-20T02:13:06.4623417Z libxdamage1 set to manually installed.
+2026-10-20T02:13:06.4623750Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-20T02:13:06.4624090Z libxext6 set to manually installed.
+2026-10-20T02:13:06.4624460Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-20T02:13:06.4624787Z libxfixes3 set to manually installed.
+2026-10-20T02:13:06.4625165Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-20T02:13:06.4625500Z libxkbcommon0 set to manually installed.
+2026-10-20T02:13:06.4625832Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-20T02:13:06.4626226Z libxrandr2 set to manually installed.
+2026-10-20T02:13:06.4626613Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-20T02:13:06.4627055Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-20T02:13:06.4627424Z libfontconfig1 set to manually installed.
+2026-10-20T02:13:06.4627810Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-20T02:13:06.4628175Z libfreetype6 set to manually installed.
+2026-10-20T02:13:06.4628549Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-20T02:13:06.4629068Z fonts-liberation set to manually installed.
+2026-10-20T02:13:06.4629413Z The following additional packages will be installed:
+2026-10-20T02:13:06.4629810Z   xfonts-encodings xfonts-utils xserver-common
+2026-10-20T02:13:06.4630108Z Recommended packages:
+2026-10-20T02:13:06.4630379Z   fonts-ipafont-mincho fonts-tlwg-loma xfonts-base
+2026-10-20T02:13:06.4760512Z The following NEW packages will be installed:
+2026-10-20T02:13:06.4761082Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-20T02:13:06.4766107Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-20T02:13:06.4766521Z   xfonts-utils
+2026-10-20T02:13:06.4775192Z The following packages will be upgraded:
+2026-10-20T02:13:06.4775535Z   xserver-common xvfb
+2026-10-20T02:13:06.4899464Z 2 upgraded, 9 newly installed, 0 to remove and 79 not upgraded.
+2026-10-20T02:13:06.4899921Z Need to get 22.0 MB of archives.
+2026-10-20T02:13:06.4900308Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-20T02:13:06.4900772Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-20T02:13:06.5674014Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-20T02:13:06.6368082Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-20T02:13:06.7224256Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-20T02:13:06.7565475Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-20T02:13:06.8220976Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-20T02:13:06.9386968Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-20T02:13:06.9783792Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-20T02:13:07.0116473Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-20T02:13:07.0434132Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-20T02:13:07.0747518Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 xserver-common all 2:21.1.12-1ubuntu1.9 [35.0 kB]
+2026-10-20T02:13:07.1049489Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 xvfb amd64 2:21.1.12-1ubuntu1.9 [877 kB]
+2026-10-20T02:13:07.3160970Z Fetched 22.0 MB in 1s (35.1 MB/s)
+2026-10-20T02:13:07.3353693Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-20T02:13:07.3536730Z (Reading database ... 
+2026-10-20T02:13:07.3537191Z (Reading database ... 5%
+2026-10-20T02:13:07.3537480Z (Reading database ... 10%
+2026-10-20T02:13:07.3537832Z (Reading database ... 15%
+2026-10-20T02:13:07.3538159Z (Reading database ... 20%
+2026-10-20T02:13:07.3538418Z (Reading database ... 25%
+2026-10-20T02:13:07.3538778Z (Reading database ... 30%
+2026-10-20T02:13:07.3539161Z (Reading database ... 35%
+2026-10-20T02:13:07.3539559Z (Reading database ... 40%
+2026-10-20T02:13:07.3539965Z (Reading database ... 45%
+2026-10-20T02:13:07.3540300Z (Reading database ... 50%
+2026-10-20T02:13:07.3567783Z (Reading database ... 55%
+2026-10-20T02:13:07.4838185Z (Reading database ... 60%
+2026-10-20T02:13:07.6746096Z (Reading database ... 65%
+2026-10-20T02:13:07.8786623Z (Reading database ... 70%
+2026-10-20T02:13:08.0818790Z (Reading database ... 75%
+2026-10-20T02:13:08.2282558Z (Reading database ... 80%
+2026-10-20T02:13:08.4299380Z (Reading database ... 85%
+2026-10-20T02:13:08.5697558Z (Reading database ... 90%
+2026-10-20T02:13:08.7438980Z (Reading database ... 95%
+2026-10-20T02:13:08.7439805Z (Reading database ... 100%
+2026-10-20T02:13:08.7440477Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-20T02:13:08.7484621Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-20T02:13:08.7634688Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-20T02:13:09.0094532Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-20T02:13:09.0203385Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-20T02:13:09.0216061Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-20T02:13:09.1105688Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-20T02:13:09.1209920Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-20T02:13:09.1219877Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-20T02:13:09.1393714Z Selecting previously unselected package fonts-unifont.
+2026-10-20T02:13:09.1496282Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-20T02:13:09.1510668Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-20T02:13:09.3342726Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-20T02:13:09.3448010Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-20T02:13:09.3529957Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-20T02:13:09.8314057Z Selecting previously unselected package xfonts-encodings.
+2026-10-20T02:13:09.8414508Z Preparing to unpack .../05-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-20T02:13:09.8424370Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-20T02:13:09.8627134Z Selecting previously unselected package xfonts-utils.
+2026-10-20T02:13:09.8723322Z Preparing to unpack .../06-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-20T02:13:09.8733836Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-20T02:13:09.9011859Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-20T02:13:09.9106926Z Preparing to unpack .../07-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-20T02:13:09.9117059Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-20T02:13:09.9329038Z Selecting previously unselected package xfonts-scalable.
+2026-10-20T02:13:09.9410929Z Preparing to unpack .../08-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-20T02:13:09.9421057Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-20T02:13:09.9670486Z Preparing to unpack .../09-xserver-common_2%3a21.1.12-1ubuntu1.9_all.deb ...
+2026-10-20T02:13:09.9698251Z Unpacking xserver-common (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-20T02:13:09.9982593Z Preparing to unpack .../10-xvfb_2%3a21.1.12-1ubuntu1.9_amd64.deb ...
+2026-10-20T02:13:10.0013157Z Unpacking xvfb (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-20T02:13:10.0574942Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-20T02:13:10.0684874Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-20T02:13:10.0712651Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-20T02:13:10.0737227Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-20T02:13:10.0764570Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-20T02:13:10.0820173Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-20T02:13:10.0839672Z Setting up xserver-common (2:21.1.12-1ubuntu1.9) ...
+2026-10-20T02:13:10.0868508Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-20T02:13:10.0894564Z Setting up xvfb (2:21.1.12-1ubuntu1.9) ...
+2026-10-20T02:13:10.0923248Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-20T02:13:10.0966471Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-20T02:13:10.1188508Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-20T02:13:10.1385921Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-20T02:13:10.1407198Z Not building database; man-db/auto-update is not 'true'.
+2026-10-20T02:13:10.1422386Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-20T02:13:10.6342482Z 
+2026-10-20T02:13:10.6343466Z Running kernel seems to be up-to-date.
+2026-10-20T02:13:10.6343697Z 
+2026-10-20T02:13:10.6343967Z No services need to be restarted.
+2026-10-20T02:13:10.6344180Z 
+2026-10-20T02:13:10.6344323Z No containers need to be restarted.
+2026-10-20T02:13:10.6344504Z 
+2026-10-20T02:13:10.6344683Z No user sessions are running outdated binaries.
+2026-10-20T02:13:10.6344867Z 
+2026-10-20T02:13:10.6345109Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-20T02:13:11.3004712Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-20T02:13:12.2648344Z |                                                                                |   0% of 184.3 MiB
+2026-10-20T02:13:12.6300893Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-20T02:13:12.6954785Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-20T02:13:12.7541827Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-20T02:13:12.8279683Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-20T02:13:12.9092367Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-20T02:13:12.9883013Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-20T02:13:13.0590814Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-20T02:13:13.1337274Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-20T02:13:13.2185019Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-20T02:13:13.2842268Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-20T02:13:15.8373609Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-20T02:13:15.8376818Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-20T02:13:16.7716544Z |                                                                                |   0% of 2.3 MiB
+2026-10-20T02:13:16.8083478Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-20T02:13:16.8239354Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-20T02:13:16.8365961Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-20T02:13:16.8486338Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-20T02:13:16.8517273Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-20T02:13:16.8632781Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-20T02:13:16.8645340Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-20T02:13:16.8662465Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-20T02:13:16.8764378Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-20T02:13:16.8774891Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-20T02:13:16.9217871Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-20T02:13:16.9220119Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-20T02:13:17.8805184Z |                                                                                |   0% of 114.7 MiB
+2026-10-20T02:13:18.1803977Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-20T02:13:18.2212906Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-20T02:13:18.2528150Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-20T02:13:18.2837918Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-20T02:13:18.3087949Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-20T02:13:18.3443024Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-20T02:13:18.3696489Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-20T02:13:18.3952220Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-20T02:13:18.4210196Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-20T02:13:18.4450386Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-20T02:13:20.4614678Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-20T02:13:20.4804826Z ##[group]Run node --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+2026-10-20T02:13:20.4805660Z [36;1mnode --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs[0m
+2026-10-20T02:13:20.4843284Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:13:20.4843754Z ##[endgroup]
+2026-10-20T02:13:20.5264514Z TAP version 13
+2026-10-20T02:13:20.5872907Z # Subtest: holiday placements clear overlapping grass and restore the old footprint on move/put-away
+2026-10-20T02:13:20.5892793Z ok 1 - holiday placements clear overlapping grass and restore the old footprint on move/put-away
+2026-10-20T02:13:20.5893707Z   ---
+2026-10-20T02:13:20.5894470Z   duration_ms: 3.189019
+2026-10-20T02:13:20.5895028Z   type: 'test'
+2026-10-20T02:13:20.5895443Z   ...
+2026-10-20T02:13:20.5896271Z # Subtest: ambient themes release their clearing without erasing another prop or fixed building
+2026-10-20T02:13:20.5897509Z ok 2 - ambient themes release their clearing without erasing another prop or fixed building
+2026-10-20T02:13:20.5898309Z   ---
+2026-10-20T02:13:20.5898734Z   duration_ms: 1.958968
+2026-10-20T02:13:20.5899243Z   type: 'test'
+2026-10-20T02:13:20.5899703Z   ...
+2026-10-20T02:13:20.8281690Z # Subtest: spider is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8322484Z ok 3 - spider is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8323611Z   ---
+2026-10-20T02:13:20.8342377Z   duration_ms: 21.560068
+2026-10-20T02:13:20.8362295Z   type: 'test'
+2026-10-20T02:13:20.8362891Z   ...
+2026-10-20T02:13:20.8363818Z # Subtest: jack is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8364852Z ok 4 - jack is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8365558Z   ---
+2026-10-20T02:13:20.8366068Z   duration_ms: 27.114025
+2026-10-20T02:13:20.8366578Z   type: 'test'
+2026-10-20T02:13:20.8367155Z   ...
+2026-10-20T02:13:20.8367901Z # Subtest: haunted is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8368865Z ok 5 - haunted is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8369567Z   ---
+2026-10-20T02:13:20.8370022Z   duration_ms: 5.023
+2026-10-20T02:13:20.8370591Z   type: 'test'
+2026-10-20T02:13:20.8371036Z   ...
+2026-10-20T02:13:20.8371920Z # Subtest: leaves is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8372887Z ok 6 - leaves is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8373525Z   ---
+2026-10-20T02:13:20.8374009Z   duration_ms: 6.410166
+2026-10-20T02:13:20.8374520Z   type: 'test'
+2026-10-20T02:13:20.8374970Z   ...
+2026-10-20T02:13:20.8375647Z # Subtest: turkey is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8376685Z ok 7 - turkey is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8377369Z   ---
+2026-10-20T02:13:20.8377834Z   duration_ms: 3.420061
+2026-10-20T02:13:20.8378344Z   type: 'test'
+2026-10-20T02:13:20.8378774Z   ...
+2026-10-20T02:13:20.8379562Z # Subtest: cornucopia is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8380555Z ok 8 - cornucopia is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8381272Z   ---
+2026-10-20T02:13:20.8381999Z   duration_ms: 3.351815
+2026-10-20T02:13:20.8382508Z   type: 'test'
+2026-10-20T02:13:20.8382955Z   ...
+2026-10-20T02:13:20.8383692Z # Subtest: gifts is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8384646Z ok 9 - gifts is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8385317Z   ---
+2026-10-20T02:13:20.8385787Z   duration_ms: 2.566115
+2026-10-20T02:13:20.8386299Z   type: 'test'
+2026-10-20T02:13:20.8386734Z   ...
+2026-10-20T02:13:20.8387823Z # Subtest: snowman is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8388851Z ok 10 - snowman is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8389563Z   ---
+2026-10-20T02:13:20.8389992Z   duration_ms: 2.385522
+2026-10-20T02:13:20.8390427Z   type: 'test'
+2026-10-20T02:13:20.8390946Z   ...
+2026-10-20T02:13:20.8392040Z # Subtest: xmastree is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8393055Z ok 11 - xmastree is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8393904Z   ---
+2026-10-20T02:13:20.8394982Z   duration_ms: 4.009986
+2026-10-20T02:13:20.8395443Z   type: 'test'
+2026-10-20T02:13:20.8395862Z   ...
+2026-10-20T02:13:20.8396507Z # Subtest: confetti is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8397469Z ok 12 - confetti is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8398029Z   ---
+2026-10-20T02:13:20.8398375Z   duration_ms: 2.786592
+2026-10-20T02:13:20.8398813Z   type: 'test'
+2026-10-20T02:13:20.8399149Z   ...
+2026-10-20T02:13:20.8399816Z # Subtest: popper is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8400699Z ok 13 - popper is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8401207Z   ---
+2026-10-20T02:13:20.8401745Z   duration_ms: 5.23914
+2026-10-20T02:13:20.8402156Z   type: 'test'
+2026-10-20T02:13:20.8402528Z   ...
+2026-10-20T02:13:20.8403152Z # Subtest: fireworks is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8404583Z ok 14 - fireworks is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8405145Z   ---
+2026-10-20T02:13:20.8405494Z   duration_ms: 2.297387
+2026-10-20T02:13:20.8405925Z   type: 'test'
+2026-10-20T02:13:20.8406254Z   ...
+2026-10-20T02:13:20.8406857Z # Subtest: heart is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8407681Z ok 15 - heart is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8408314Z   ---
+2026-10-20T02:13:20.8408638Z   duration_ms: 2.660785
+2026-10-20T02:13:20.8408983Z   type: 'test'
+2026-10-20T02:13:20.8409353Z   ...
+2026-10-20T02:13:20.8409962Z # Subtest: letter is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8410792Z ok 16 - letter is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8411623Z   ---
+2026-10-20T02:13:20.8412030Z   duration_ms: 3.633554
+2026-10-20T02:13:20.8412417Z   type: 'test'
+2026-10-20T02:13:20.8412789Z   ...
+2026-10-20T02:13:20.8413411Z # Subtest: chapel is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8414219Z ok 17 - chapel is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8414805Z   ---
+2026-10-20T02:13:20.8415132Z   duration_ms: 3.342817
+2026-10-20T02:13:20.8415511Z   type: 'test'
+2026-10-20T02:13:20.8415916Z   ...
+2026-10-20T02:13:20.8416506Z # Subtest: chick is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8417334Z ok 18 - chick is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8417935Z   ---
+2026-10-20T02:13:20.8418338Z   duration_ms: 5.823892
+2026-10-20T02:13:20.8418707Z   type: 'test'
+2026-10-20T02:13:20.8419044Z   ...
+2026-10-20T02:13:20.8420105Z # Subtest: bunny is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8420961Z ok 19 - bunny is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8421706Z   ---
+2026-10-20T02:13:20.8422036Z   duration_ms: 2.683965
+2026-10-20T02:13:20.8422443Z   type: 'test'
+2026-10-20T02:13:20.8422853Z   ...
+2026-10-20T02:13:20.8423610Z # Subtest: eggstatue is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8424775Z ok 20 - eggstatue is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8425386Z   ---
+2026-10-20T02:13:20.8425718Z   duration_ms: 1.693214
+2026-10-20T02:13:20.8426170Z   type: 'test'
+2026-10-20T02:13:20.8426483Z   ...
+2026-10-20T02:13:20.8427037Z # Subtest: clover is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8427925Z ok 21 - clover is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8428663Z   ---
+2026-10-20T02:13:20.8429003Z   duration_ms: 1.994709
+2026-10-20T02:13:20.8429410Z   type: 'test'
+2026-10-20T02:13:20.8429748Z   ...
+2026-10-20T02:13:20.8430423Z # Subtest: lucky is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8431508Z ok 22 - lucky is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8432120Z   ---
+2026-10-20T02:13:20.8432446Z   duration_ms: 2.828435
+2026-10-20T02:13:20.8432864Z   type: 'test'
+2026-10-20T02:13:20.8433211Z   ...
+2026-10-20T02:13:20.8433848Z # Subtest: tophat is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8434735Z ok 23 - tophat is a complete above-ground volume rather than a camera-facing card
+2026-10-20T02:13:20.8435268Z   ---
+2026-10-20T02:13:20.8435610Z   duration_ms: 1.771292
+2026-10-20T02:13:20.8436003Z   type: 'test'
+2026-10-20T02:13:20.8436369Z   ...
+2026-10-20T02:13:20.8436932Z # Subtest: refresh disposal releases only the solid prop resources exactly once
+2026-10-20T02:13:20.8437722Z ok 24 - refresh disposal releases only the solid prop resources exactly once
+2026-10-20T02:13:20.8438338Z   ---
+2026-10-20T02:13:20.8438738Z   duration_ms: 35.455449
+2026-10-20T02:13:20.8439216Z   type: 'test'
+2026-10-20T02:13:20.8439534Z   ...
+2026-10-20T02:13:20.8440091Z # Subtest: unrelated shop/event/seasonal IDs retain their existing renderer
+2026-10-20T02:13:20.8440800Z ok 25 - unrelated shop/event/seasonal IDs retain their existing renderer
+2026-10-20T02:13:20.8441254Z   ---
+2026-10-20T02:13:20.8441818Z   duration_ms: 0.121159
+2026-10-20T02:13:20.8442173Z   type: 'test'
+2026-10-20T02:13:20.8442487Z   ...
+2026-10-20T02:13:20.8443194Z # Subtest: placed prop cleanup also owns its contact geometry without disposing the borrowed shadow material
+2026-10-20T02:13:20.8444294Z ok 26 - placed prop cleanup also owns its contact geometry without disposing the borrowed shadow material
+2026-10-20T02:13:20.8444914Z   ---
+2026-10-20T02:13:20.8445245Z   duration_ms: 13.003692
+2026-10-20T02:13:20.8445713Z   type: 'test'
+2026-10-20T02:13:20.8446013Z   ...
+2026-10-20T02:13:20.8446563Z # Subtest: spider fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8447402Z ok 27 - spider fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8448062Z   ---
+2026-10-20T02:13:20.8448453Z   duration_ms: 2.947604
+2026-10-20T02:13:20.8448847Z   type: 'test'
+2026-10-20T02:13:20.8449181Z   ...
+2026-10-20T02:13:20.8449699Z # Subtest: jack fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8450418Z ok 28 - jack fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8450972Z   ---
+2026-10-20T02:13:20.8451291Z   duration_ms: 10.251595
+2026-10-20T02:13:20.8452066Z   type: 'test'
+2026-10-20T02:13:20.8452400Z   ...
+2026-10-20T02:13:20.8452925Z # Subtest: haunted fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8453738Z ok 29 - haunted fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8454259Z   ---
+2026-10-20T02:13:20.8454655Z   duration_ms: 1.560409
+2026-10-20T02:13:20.8455005Z   type: 'test'
+2026-10-20T02:13:20.8455408Z   ...
+2026-10-20T02:13:20.8455912Z # Subtest: leaves fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8456615Z ok 30 - leaves fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8457158Z   ---
+2026-10-20T02:13:20.8457483Z   duration_ms: 2.177929
+2026-10-20T02:13:20.8457880Z   type: 'test'
+2026-10-20T02:13:20.8458255Z   ...
+2026-10-20T02:13:20.8459004Z # Subtest: turkey fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8459844Z ok 31 - turkey fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8460359Z   ---
+2026-10-20T02:13:20.8460713Z   duration_ms: 2.627381
+2026-10-20T02:13:20.8461097Z   type: 'test'
+2026-10-20T02:13:20.8461719Z   ...
+2026-10-20T02:13:20.8462311Z # Subtest: cornucopia fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8463170Z ok 32 - cornucopia fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8463862Z   ---
+2026-10-20T02:13:20.8464339Z   duration_ms: 1.939657
+2026-10-20T02:13:20.8464739Z   type: 'test'
+2026-10-20T02:13:20.8465145Z   ...
+2026-10-20T02:13:20.8465673Z # Subtest: gifts fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8466374Z ok 33 - gifts fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8466905Z   ---
+2026-10-20T02:13:20.8467230Z   duration_ms: 2.273656
+2026-10-20T02:13:20.8467589Z   type: 'test'
+2026-10-20T02:13:20.8467986Z   ...
+2026-10-20T02:13:20.8468461Z # Subtest: snowman fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8469076Z ok 34 - snowman fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8469588Z   ---
+2026-10-20T02:13:20.8469872Z   duration_ms: 1.905088
+2026-10-20T02:13:20.8470194Z   type: 'test'
+2026-10-20T02:13:20.8470509Z   ...
+2026-10-20T02:13:20.8470974Z # Subtest: xmastree fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8472075Z ok 35 - xmastree fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8472590Z   ---
+2026-10-20T02:13:20.8472914Z   duration_ms: 2.97007
+2026-10-20T02:13:20.8473238Z   type: 'test'
+2026-10-20T02:13:20.8473594Z   ...
+2026-10-20T02:13:20.8474083Z # Subtest: confetti fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8474778Z ok 36 - confetti fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8475268Z   ---
+2026-10-20T02:13:20.8475733Z   duration_ms: 1.801095
+2026-10-20T02:13:20.8476114Z   type: 'test'
+2026-10-20T02:13:20.8476410Z   ...
+2026-10-20T02:13:20.8476946Z # Subtest: popper fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8477528Z ok 37 - popper fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8478024Z   ---
+2026-10-20T02:13:20.8478456Z   duration_ms: 2.439893
+2026-10-20T02:13:20.8478864Z   type: 'test'
+2026-10-20T02:13:20.8479243Z   ...
+2026-10-20T02:13:20.8479875Z # Subtest: fireworks fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8480849Z ok 38 - fireworks fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8481743Z   ---
+2026-10-20T02:13:20.8482136Z   duration_ms: 1.340923
+2026-10-20T02:13:20.8482541Z   type: 'test'
+2026-10-20T02:13:20.8482896Z   ...
+2026-10-20T02:13:20.8483634Z # Subtest: heart fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8484395Z ok 39 - heart fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8484920Z   ---
+2026-10-20T02:13:20.8485332Z   duration_ms: 1.272839
+2026-10-20T02:13:20.8485749Z   type: 'test'
+2026-10-20T02:13:20.8486166Z   ...
+2026-10-20T02:13:20.8486765Z # Subtest: letter fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8487538Z ok 40 - letter fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8488136Z   ---
+2026-10-20T02:13:20.8488535Z   duration_ms: 1.515557
+2026-10-20T02:13:20.8489053Z   type: 'test'
+2026-10-20T02:13:20.8489396Z   ...
+2026-10-20T02:13:20.8489965Z # Subtest: chapel fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8490841Z ok 41 - chapel fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8491922Z   ---
+2026-10-20T02:13:20.8492330Z   duration_ms: 2.299562
+2026-10-20T02:13:20.8492776Z   type: 'test'
+2026-10-20T02:13:20.8493127Z   ...
+2026-10-20T02:13:20.8493727Z # Subtest: chick fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8494699Z ok 42 - chick fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8495362Z   ---
+2026-10-20T02:13:20.8495743Z   duration_ms: 1.344786
+2026-10-20T02:13:20.8496236Z   type: 'test'
+2026-10-20T02:13:20.8496629Z   ...
+2026-10-20T02:13:20.8497132Z # Subtest: bunny fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8497980Z ok 43 - bunny fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8498591Z   ---
+2026-10-20T02:13:20.8499010Z   duration_ms: 1.721719
+2026-10-20T02:13:20.8499426Z   type: 'test'
+2026-10-20T02:13:20.8499843Z   ...
+2026-10-20T02:13:20.8500458Z # Subtest: eggstatue fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8501205Z ok 44 - eggstatue fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8501973Z   ---
+2026-10-20T02:13:20.8502307Z   duration_ms: 1.432797
+2026-10-20T02:13:20.8502690Z   type: 'test'
+2026-10-20T02:13:20.8503073Z   ...
+2026-10-20T02:13:20.8503594Z # Subtest: clover fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8504377Z ok 45 - clover fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8504920Z   ---
+2026-10-20T02:13:20.8505291Z   duration_ms: 1.623245
+2026-10-20T02:13:20.8505662Z   type: 'test'
+2026-10-20T02:13:20.8506056Z   ...
+2026-10-20T02:13:20.8506672Z # Subtest: lucky fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8507392Z ok 46 - lucky fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8508013Z   ---
+2026-10-20T02:13:20.8508472Z   duration_ms: 1.792866
+2026-10-20T02:13:20.8509023Z   type: 'test'
+2026-10-20T02:13:20.8509615Z   ...
+2026-10-20T02:13:20.8510293Z # Subtest: tophat fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8511146Z ok 47 - tophat fits the existing circular walking/placement clearance
+2026-10-20T02:13:20.8511831Z   ---
+2026-10-20T02:13:20.8512430Z   duration_ms: 1.985432
+2026-10-20T02:13:20.8512819Z   type: 'test'
+2026-10-20T02:13:20.8513171Z   ...
+2026-10-20T02:13:20.8513848Z # Subtest: curved pumpkin skin shades continuously across shared back-surface vertices
+2026-10-20T02:13:20.8514733Z ok 48 - curved pumpkin skin shades continuously across shared back-surface vertices
+2026-10-20T02:13:20.8515354Z   ---
+2026-10-20T02:13:20.8515761Z   duration_ms: 11.285171
+2026-10-20T02:13:20.8516160Z   type: 'test'
+2026-10-20T02:13:20.8516515Z   ...
+2026-10-20T02:13:20.8555377Z # Subtest: nested authored module versions cannot evade the cache consistency check
+2026-10-20T02:13:20.8556230Z ok 49 - nested authored module versions cannot evade the cache consistency check
+2026-10-20T02:13:20.8556688Z   ---
+2026-10-20T02:13:20.8557030Z   duration_ms: 1.416381
+2026-10-20T02:13:20.8557334Z   type: 'test'
+2026-10-20T02:13:20.8557621Z   ...
+2026-10-20T02:13:20.8558122Z # Subtest: every versioned script is imported with one version only
+2026-10-20T02:13:20.8558701Z ok 50 - every versioned script is imported with one version only
+2026-10-20T02:13:20.8559122Z   ---
+2026-10-20T02:13:20.8559420Z   duration_ms: 0.469416
+2026-10-20T02:13:20.8559816Z   type: 'test'
+2026-10-20T02:13:20.8560086Z   ...
+2026-10-20T02:13:20.8560518Z # Subtest: window.__gameVer matches the game.js version it imports
+2026-10-20T02:13:20.8561078Z ok 51 - window.__gameVer matches the game.js version it imports
+2026-10-20T02:13:20.8561635Z   ---
+2026-10-20T02:13:20.8561964Z   duration_ms: 0.210108
+2026-10-20T02:13:20.8562265Z   type: 'test'
+2026-10-20T02:13:20.8562541Z   ...
+2026-10-20T02:13:20.8562989Z # Subtest: the offline shell caches the same versions the page imports
+2026-10-20T02:13:20.8563543Z ok 52 - the offline shell caches the same versions the page imports
+2026-10-20T02:13:20.8563957Z   ---
+2026-10-20T02:13:20.8564204Z   duration_ms: 0.375851
+2026-10-20T02:13:20.8564521Z   type: 'test'
+2026-10-20T02:13:20.8564775Z   ...
+2026-10-20T02:13:20.8565224Z # Subtest: the cache name is versioned and namespaced away from the 2D game
+2026-10-20T02:13:20.8565928Z ok 53 - the cache name is versioned and namespaced away from the 2D game
+2026-10-20T02:13:20.8566264Z   ---
+2026-10-20T02:13:20.8566483Z   duration_ms: 0.268088
+2026-10-20T02:13:20.8566766Z   type: 'test'
+2026-10-20T02:13:20.8566983Z   ...
+2026-10-20T02:13:20.8567379Z # Subtest: chicken dependencies of both the page and game rules are cached offline
+2026-10-20T02:13:20.8567968Z ok 54 - chicken dependencies of both the page and game rules are cached offline
+2026-10-20T02:13:20.8568354Z   ---
+2026-10-20T02:13:20.8568566Z   duration_ms: 0.156335
+2026-10-20T02:13:20.8568832Z   type: 'test'
+2026-10-20T02:13:20.8569040Z   ...
+2026-10-20T02:13:20.8569375Z # Subtest: offline shell contains the complete local JavaScript boot graph
+2026-10-20T02:13:20.8569900Z ok 55 - offline shell contains the complete local JavaScript boot graph
+2026-10-20T02:13:20.8570224Z   ---
+2026-10-20T02:13:20.8570441Z   duration_ms: 0.244678
+2026-10-20T02:13:20.8570698Z   type: 'test'
+2026-10-20T02:13:20.8570912Z   ...
+2026-10-20T02:13:20.8571149Z 1..55
+2026-10-20T02:13:20.8571522Z # tests 55
+2026-10-20T02:13:20.8571773Z # suites 0
+2026-10-20T02:13:20.8571986Z # pass 55
+2026-10-20T02:13:20.8572288Z # fail 0
+2026-10-20T02:13:20.8572630Z # cancelled 0
+2026-10-20T02:13:20.8572853Z # skipped 0
+2026-10-20T02:13:20.8573099Z # todo 0
+2026-10-20T02:13:20.8573356Z # duration_ms 343.29749
+2026-10-20T02:13:20.8656190Z ##[group]Run node farm3d/tests/holiday-decor.browser.cjs
+2026-10-20T02:13:20.8656604Z [36;1mnode farm3d/tests/holiday-decor.browser.cjs[0m
+2026-10-20T02:13:20.8692340Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:13:20.8692731Z ##[endgroup]
+2026-10-20T02:13:55.2333323Z PASS baseline reproduces camera-facing placed and ambient pumpkin cards
+2026-10-20T02:14:24.7359734Z PASS 390 full-resolution geometry stays fixed through front/side/back camera views
+2026-10-20T02:14:58.3705399Z PASS 390 native place/move/put-away/reload keeps inventory and farm save
+2026-10-20T02:15:27.2992850Z PASS 844 full-resolution geometry stays fixed through front/side/back camera views
+2026-10-20T02:16:01.6323159Z PASS 844 native place/move/put-away/reload keeps inventory and farm save
+2026-10-20T02:16:41.0853320Z PASS 1280 full-resolution geometry stays fixed through front/side/back camera views
+2026-10-20T02:16:55.8413445Z PASS repeated real theme refreshes dispose old GPU resources
+2026-10-20T02:17:30.0941607Z PASS 1280 native place/move/put-away/reload keeps inventory and farm save
+2026-10-20T02:17:40.2040395Z ##[group]Run actions/upload-artifact@v5
+2026-10-20T02:17:40.2040690Z with:
+2026-10-20T02:17:40.2040983Z   name: holiday-depth-1
+2026-10-20T02:17:40.2041231Z   path: farm3d/tests/artifacts/holiday*
+2026-10-20T02:17:40.2041846Z   retention-days: 14
+2026-10-20T02:17:40.2042105Z   if-no-files-found: warn
+2026-10-20T02:17:40.2042391Z   compression-level: 6
+2026-10-20T02:17:40.2042617Z   overwrite: false
+2026-10-20T02:17:40.2042844Z   include-hidden-files: false
+2026-10-20T02:17:40.2043089Z ##[endgroup]
+2026-10-20T02:17:40.3217982Z (node:3361) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-20T02:17:40.3218565Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-20T02:17:40.3292616Z With the provided path, there will be 19 files uploaded
+2026-10-20T02:17:40.3294408Z Artifact name is valid!
+2026-10-20T02:17:40.3295121Z Root directory input is valid!
+2026-10-20T02:17:40.6008234Z Beginning upload of artifact content to blob storage
+2026-10-20T02:17:40.8350119Z (node:3361) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-20T02:17:41.3935483Z Uploaded bytes 8388608
+2026-10-20T02:17:41.5751839Z Uploaded bytes 16777216
+2026-10-20T02:17:41.6859072Z Uploaded bytes 19574693
+2026-10-20T02:17:41.7302779Z Finished uploading artifact content to blob storage!
+2026-10-20T02:17:41.7303655Z SHA256 digest of uploaded artifact zip is 0135405f459ac023afddb3900c87597c43629e5b3782287b5308f6099350679a
+2026-10-20T02:17:41.7304273Z Finalizing artifact upload
+2026-10-20T02:17:41.9507757Z Artifact holiday-depth-1.zip successfully finalized. Artifact ID 12236360556
+2026-10-20T02:17:41.9508766Z Artifact holiday-depth-1 has been successfully uploaded! Final size is 19574693 bytes. Artifact ID is 12236360556
+2026-10-20T02:17:41.9515726Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39357633489/artifacts/12236360556
+2026-10-20T02:17:41.9684033Z Post job cleanup.
+2026-10-20T02:17:42.0646829Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90, not saving cache.
+2026-10-20T02:17:42.0755812Z Post job cleanup.
+2026-10-20T02:17:42.1433504Z [command]/usr/bin/git version
+2026-10-20T02:17:42.1471220Z git version 2.55.0
+2026-10-20T02:17:42.1506878Z Temporarily overriding HOME='/home/runner/work/_temp/39c273a5-72a2-45cf-82f4-354936d0ea4c' before making global git config changes
+2026-10-20T02:17:42.1507554Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T02:17:42.1512917Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-20T02:17:42.1539061Z Removing SSH command configuration
+2026-10-20T02:17:42.1544916Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T02:17:42.1576023Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T02:17:42.1746210Z Removing HTTP extra header
+2026-10-20T02:17:42.1750811Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T02:17:42.1782180Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T02:17:42.1950020Z Removing includeIf entries pointing to credentials config files
+2026-10-20T02:17:42.1958125Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T02:17:42.1985532Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T02:17:42.2298453Z Cleaning up orphan processes
+2026-10-20T02:17:42.2555944Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
