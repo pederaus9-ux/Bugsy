@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');
+const {planChickenPetView}=require('./chicken-pet-view.cjs');
 const {execFileSync}=require('node:child_process');
 const out=path.join(artifacts,'chicken-pen');fs.mkdirSync(out,{recursive:true});
 const BASE='756df378e7adbe20f34c204dc54172b1030e16bd';
@@ -35,6 +36,7 @@ let h,activePage,failed=true,stage='launch';save();
   if(touch){const before=await p.evaluate(()=>__dbg.walk.yaw),c=await s.context.newCDPSession(p);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:width*.55,y:height*.35}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:width*.65,y:height*.35}]});await c.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await p.waitForFunction(before=>Math.abs(__dbg.walk.yaw-before)>.02,before);await c.detach();pass(width+' native touch drag turns the view');}else{const before=await p.evaluate(()=>__dbg.walk.yaw);await p.keyboard.down('ArrowLeft');try{await p.waitForFunction(before=>__dbg.walk.yaw>before+.02,before);}finally{await p.keyboard.up('ArrowLeft');}pass('desktop keyboard turns the view');}
   await focus(p,'water');await photo(p,'stations-stocked-'+width);
   if(width===1280){await focus(p,'coop');await photo(p,'coop-close-up-sage');await press(p,'#povBtn',false);await photo(p,'third-person-chicken-run');await p.keyboard.press('Escape');await p.waitForFunction(()=>!__dbg.walk);await overview(p,2.6);await photo(p,'whole-pen-opposite-noon');
+   stage='1280 native chicken pet and rename';const petView=await p.evaluate(planChickenPetView);receipt.petVisibilityPlan=petView;save();assert.notEqual(petView.yaw,null,'pet fixture requires an unobstructed actual native bird hit');await overview(p,petView.yaw);
    const spotHandle=await p.waitForFunction(()=>{const d=__dbg;for(const a of d.animals.filter(a=>a.kind==='chicken')){const v=a.g.position.clone().setY(a.S.h*.5).project(d.camera),x=(v.x+1)*innerWidth/2,y=(1-v.y)*innerHeight/2,h=d.hitAt(x,y);if(x>120&&x<innerWidth-180&&y>70&&y<innerHeight-120&&h?.type==='animal'&&h.an===a&&document.elementFromPoint(x,y)===d.renderer.domElement)return{x,y,i:a.ref.i};}return null;},null,{timeout:30000});const spot=await spotHandle.jsonValue();await p.mouse.click(spot.x,spot.y);await p.locator('[data-w="petA"]').click();assert.ok(await p.evaluate(i=>__dbg.G.meta('chicken',i).petAt>0,spot.i));await p.locator('[data-w="rename"]').click();await p.locator('#nameBox').fill('Review Clover');await p.locator('[data-act="nameOk"]').click();assert.equal(await p.evaluate(i=>__dbg.G.meta('chicken',i).name,spot.i),'Review Clover');pass('real chicken card still pets and renames birds');
    await p.evaluate(()=>__dbg.setPreset('night'));await overview(p,2.6);await photo(p,'whole-pen-opposite-night');}
   assert.deepEqual(s.errors,[]);await s.finish();
