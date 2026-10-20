@@ -753,3 +753,27 @@ Both native journey and30s assertion remain unchanged; the new tests are added t
 existing core/domain runners. New-head full hosted CI and actual preview still
 required. Older706 missing-card and historical wardrobe causes remain unproven.
 Keep PR90 draft/unmerged; physical-phone performance and owner approval pending.
+
+
+## Owner-approved PR90 merge/publication — October20,18:42Chicago
+
+Owner said I approve after actual mobile preview and25/25successful exact-head
+checks. Guarded merge33b6118282f4aebabcc4cc0e56fe82147619aaa4 has exactly
+approveda366dbf tree6b59b6e5b33f931774d128b44fb1472ad2158be1; main confirmed.
+Pages39516722769SUCCESS. Anonymous HTTP200entry plus9module/page/worker GETs
+match approved bytes. Earlier old-entry response before Pages completed is kept
+separately. See tests/evidence/cow-courtyard-merge-20261020/receipt.json.
+
+All25premergechecks PASS: core58Nodefiles+5browser suites, cloud22/22+SDK,
+real native390/844/1280care/robot/tank, installed/offline/writer barrier, original
+scene/wardrobe and chickenRename. First core cancellation and all earlier red
+evidence retained; one isolated retry passed unchanged. No test assertions,
+timeouts, limits or production files change in this receipt. Owner approval does
+not establish physical-phone sustained performance or historical706/wardrobe
+causes. Sole-author review remains distinct from an independent audit.
+
+Automatic postmerge regression39516723469 is in progress, not a passing receipt.
+Workspace fetched/synced from mergedmain; existing feature branches, checkouts,
+all raw artifacts and logs preserved. This evidence branch updates coordination
+without changing the deployed/tested tree. Other species care remains the next
+approved plan; no new implementation started by this merge approval.
