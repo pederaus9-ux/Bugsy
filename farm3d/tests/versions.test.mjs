@@ -66,3 +66,5 @@ test('offline shell contains the complete local JavaScript boot graph',()=>{
  assert.deepEqual(missing.sort(),[],'offline startup modules missing from installed shell');
  for(const name of ['EffectComposer','RenderPass','UnrealBloomPass','OutputPass','ShaderPass'])assert.ok(shell.includes('lib/addons/postprocessing/'+name+'.js'),name+' is required by the real offline failure trace');
 });
+
+test('native scene-polish fixture imports the same scenery version as the page',()=>{const probe=read('tests/scene-polish.browser.cjs'),runtime=imports.find(i=>i.file==='phase7m.js');const tested=versionedImports(probe).filter(i=>i.file==='phase7m.js');assert(tested.length>0);for(const x of tested)assert.equal(x.v,runtime.v,'native fixture loads a second stale scenery module');});
