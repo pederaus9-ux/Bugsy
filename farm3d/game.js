@@ -7,6 +7,7 @@
    ============================================================ */
 
 import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
+import {quoteMarketGoods,MARKET_WINDOW_MS} from './market-sales.js?v=1';
 export {CHICKEN_CARE};
 export const opts = {quiet:false}; // test pictures: never pop up menus by themselves
 export const view = {
@@ -717,6 +718,21 @@ function discard(i) {
 }
 
 // ---------- barn / shop ----------
+export function marketSalesQuote(id,lots=1) {
+  if(id!=='egg'&&id!=='milk')return null;
+  return quoteMarketGoods({id,lots,stock:have(id),gold:S.gold[id]||0,unitPrice:sellPrice(id),at:now()});
+}
+export function sellMarketGoods(id,lots,revision) {
+  if(homeS||restoring||newerSave||window.__saHold)return false;
+  const q=marketSalesQuote(id,lots);
+  if(!q?.canSell||q.revision!==revision||!Number.isSafeInteger(S.coins+q.total)||!Number.isSafeInteger(S.stats.earned+q.total)){
+    toast('Stock or prices changed. Check the refreshed quote before selling.');if(panel)renderPanel();return false;
+  }
+  S.gold[id]=goldOf(id)-q.goldItems;take(id,q.items);
+  S.coins+=q.total;S.stats.earned+=q.total;eventProgress('market',q.total);sfx('coin');
+  toast('Sold '+lots+' '+q.unit+(lots===1?'':'s')+' '+(id==='egg'?'of eggs':'of milk')+' for '+q.total+' 🪙');
+  commit();return true;
+}
 function sell(id, n) {
   n = Math.min(n, have(id));
   if (!n) return;
@@ -1443,7 +1459,7 @@ function panelBarn() {
   if (selItem && !have(selItem)) selItem = null;
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
     <b style="font-family:var(--fun);font-weight:400;font-size:18px">${used} / ${S.barnCap}</b>
-    <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn plain sm" data-act="wardrobe">👕 Wardrobe</button><button class="btn gold sm" data-act="barnUp">Upgrade +25 · ${barnCost()} 🪙</button></span></div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn gold sm" data-act="open" data-p="marketSales">🏪 Market Sales</button><button class="btn plain sm" data-act="wardrobe">👕 Wardrobe</button><button class="btn gold sm" data-act="barnUp">Upgrade +25 · ${barnCost()} 🪙</button></span></div>
     <div class="cap ${used >= S.barnCap ? "full" : ""}"><i style="width:${Math.min(100, used / S.barnCap * 100)}%"></i></div>`;
   if (!ids.length) return {title:"Barn", body:h + `<p class="center muted" style="font-weight:800">Your barn is empty. Go harvest something!</p>`};
   h += `<div class="inv">` + ids.map(id => `<button class="islot slot ${selItem === id ? "sel" : ""}" data-act="selItem" data-id="${id}" title="${ITEMS[id].n}"><span class="e">${ITEMS[id].e}</span><span class="q out">${have(id)}</span>${goldOf(id) ? `<span class="gq">🥇${goldOf(id)}</span>` : ""}</button>`).join("") + `</div>`;
@@ -1454,6 +1470,31 @@ function panelBarn() {
       ${have(selItem) > 1 ? `<button class="btn gold sm" data-act="sell" data-id="${selItem}" data-n="${have(selItem)}">Sell all · ${sellPrice(selItem) * (have(selItem) + goldOf(selItem))} 🪙</button>` : ""}</div>`;
   } else h += `<p class="center muted" style="font-weight:800;margin:12px 0 0">Tap an item to sell it</p>`;
   return {title:"Barn", body:h};
+}
+
+const marketQuantities={egg:1,milk:1};
+function panelMarketSales() {
+  const t=now(),blocked=!!homeS||restoring||newerSave||!!window.__saHold;
+  let h=`<p class="center muted" style="font-weight:800">Instant sales from your barn. Prices stay fixed for six real hours.</p>
+    <p class="center" style="font-weight:800">Next prices in <span data-end="${(Math.floor(t/MARKET_WINDOW_MS)+1)*MARKET_WINDOW_MS}">${fmt((Math.floor(t/MARKET_WINDOW_MS)+1)*MARKET_WINDOW_MS-t)}</span></p>`;
+  for(const id of ['egg','milk']){
+    const info=marketSalesQuote(id,1);if(!info)continue;
+    const qty=marketQuantities[id]=Math.max(1,Math.min(marketQuantities[id],info.maxLots||1));
+    const q=marketSalesQuote(id,qty),all=marketSalesQuote(id,info.maxLots),disabled=blocked||!q.canSell;
+    h+=`<section class="picker slot" style="margin:12px 0;padding:14px" aria-label="${id==='egg'?'Egg':'Milk'} sales">
+      <div class="prow"><b>${ITEMS[id].e} ${id==='egg'?'Eggs':'Milk'}</b><b>${info.rate} 🪙 / ${info.unit}</b></div>
+      <p class="muted" style="font-weight:800">${have(id)} ${id==='egg'?'eggs':'gallons'} in barn${id==='egg'?` · ${info.maxLots} whole dozen · ${info.leftover} left over`:''}</p>
+      <div class="prow"><span>${id==='egg'?'Dozens':'Gallons'}</span><div class="stepper">
+        <button class="btn plain" data-act="marketQty" data-id="${id}" data-d="-1" aria-label="Fewer ${info.unit}s" ${qty<=1?'disabled':''}>−</button><b data-market-qty="${id}">${qty}</b>
+        <button class="btn plain" data-act="marketQty" data-id="${id}" data-d="1" aria-label="More ${info.unit}s" ${qty>=info.maxLots?'disabled':''}>+</button></div></div>
+      <p style="font-weight:800" data-market-total="${id}">You receive ${q.total} 🪙${q.bonus?` · includes ${q.bonus} 🪙 gold bonus`:''}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="marketSell" data-id="${id}" data-n="${qty}" data-quote="${q.revision}" ${disabled?'disabled':''}>Sell ${qty} ${info.unit}${qty===1?'':'s'}</button>
+        <button class="btn plain" data-act="marketSell" data-id="${id}" data-n="${info.maxLots}" data-quote="${all.revision}" ${blocked||!all.canSell?'disabled':''}>Sell All · ${all.total} 🪙</button></div>
+      ${!info.maxLots?`<p class="muted">${id==='egg'?'Collect at least 12 eggs into your barn. Leftover eggs stay yours.':'Collect milk into your barn to sell it.'}</p>`:''}</section>`;
+  }
+  if(blocked)h+='<p class="center">Sales are unavailable while this farm is read-only.</p>';
+  h+='<p class="center muted">Gold goods earn double their share. Haggler is included in the quote. Eggs on the pallet must be collected first.</p><p class="center"><button class="btn plain" data-act="open" data-p="barn">Back to Barn</button></p>';
+  return {title:'Market Sales',body:h};
 }
 
 let standUI = null; // {slot, id, qty, price} while choosing what to sell
@@ -1696,12 +1737,13 @@ function panelSig() {
   if (panel.type === "building") return S.buildings[panel.arg].jobs.map(j => f(j.end)).join("");
   if (panel.type === "orders") return S.orders.map(o => f(o.wait)).join("") + (S.rush ? "r" : "");
   if (panel.type === "stand") return S.stand.list.map(L => L ? f(L.sellAt) : "-").join("");
+  if (panel.type === 'marketSales') return [Math.floor(t/MARKET_WINDOW_MS),have('egg'),have('milk'),goldOf('egg'),goldOf('milk'),S.perks.sell,!!homeS,restoring,newerSave,!!window.__saHold].join(':');
   return "";
 }
 export function renderPanel() {
   if (!panel) return;
   const v = {backup:panelBackup, event:panelEvent, prize:panelPrize, decor:panelDecor, weather:panelWeather, stand:panelStand, building:panelBuilding, lot:panelLot, penLot:panelPenLot,
-    orders:panelOrders, barn:panelBarn, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D,
+    orders:panelOrders, barn:panelBarn, marketSales:panelMarketSales, shop:panelShop, settings:panelSettings, level:panelLevel, welcome:panelWelcome, confirm:panelConfirm, rename:panelRename, import2d:panelImport2D,
     quests:panelQuests, perk:panelPerk, visitor:panelVisitor, daily:panelDaily, away:panelAway}[panel.type](panel.arg);
   const old = document.querySelector(".pbody"), scroll = old ? old.scrollTop : 0;
   const focused = document.activeElement;
@@ -1800,6 +1842,8 @@ document.addEventListener("click", (e) => {
     case "deliver": deliver(i); break;
     case "discard": discard(i); break;
     case "selItem": selItem = d.id; renderPanel(); break;
+    case 'marketQty': if(d.id==='egg'||d.id==='milk'){marketQuantities[d.id]=Math.max(1,Math.min(marketQuantities[d.id]+Number(d.d),marketSalesQuote(d.id,1).maxLots||1));sfx('tick');renderPanel();}break;
+    case 'marketSell': sellMarketGoods(d.id,Number(d.n),d.quote);break;
     case "standPick": standUI = {slot:+d.s}; renderPanel(); break;
     case "standBack": standUI = null; renderPanel(); break;
     case "standItem": {

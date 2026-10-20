@@ -1,18 +1,30 @@
 // Real page controls on disposable farms. External services are blocked by the
 // existing harness. CSS sizes are exact; its declared drawing scale is 0.5.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {start,artifacts}=require('./browser-harness.cjs');
+const {start,artifacts,root}=require('./browser-harness.cjs');
 const out=path.join(artifacts,'seed-selection');fs.mkdirSync(out,{recursive:true});
 const receipt={status:'RUNNING',drawingScale:.5,physicalDeviceTest:false,results:[],screenshots:[]};
 const save=()=>fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(receipt,null,2)+'\n');
 function passed(name,details){receipt.results.push({name,pass:true,details});save();console.log('PASS',name);}
-async function state(p){return p.evaluate(()=>({crop:__dbg.G.S.plots.map(p=>p.crop),coins:__dbg.G.S.coins,wheat:__dbg.G.have('wheat'),corn:__dbg.G.have('corn'),armed:__dbg.armed,picker:!document.getElementById('seedTray').hidden,tool:!document.getElementById('seedTool').hidden}));}
+async function targetDiagnostics(p){const data=await p.evaluate(()=>({width:innerWidth,focus:window.__seedFocusObservations||[],inputs:window.__seedInputs||[]}));fs.writeFileSync(path.join(out,'target-readiness-'+data.width+'.json'),JSON.stringify(data,null,2));}
+async function state(p){const value=await p.evaluate(()=>({crop:__dbg.G.S.plots.map(p=>p.crop),coins:__dbg.G.S.coins,wheat:__dbg.G.have('wheat'),corn:__dbg.G.have('corn'),armed:__dbg.armed,picker:!document.getElementById('seedTray').hidden,tool:!document.getElementById('seedTool').hidden}));await targetDiagnostics(p);return value;}
 async function focusPlot(p,i,label){
   await p.evaluate(i=>{const d=__dbg,v=d.plots[i].g.position,w=d.walk;w.pos.set(v.x,v.z+1.7);w.vel.set(0,0);w.yaw=0;w.pitch=-Math.atan2(1.6,1.7);},i);
   await p.waitForFunction(({i,label})=>{const d=__dbg,h=d.hitAt(innerWidth/2,innerHeight/2),b=document.getElementById('actBtn');
-    return h?.type==='plot'&&h.i===i&&!b.hidden&&b.getAttribute('aria-label')===label;},{i,label},{timeout:30000});
+    const originalReady=h?.type==='plot'&&h.i===i&&!b.hidden&&b.getAttribute('aria-label')===label;
+    const cached=d.seedTestAim,action=label.startsWith('Plant ')?'Plant':label,ready=originalReady&&cached?.type==='plot'&&cached.i===i&&cached.label===action;
+    if(originalReady&&!ready){const log=window.__seedFocusObservations||=[];if(log.length<64)log.push({requested:i,fresh:h.i,cached:cached?{type:cached.type,i:cached.i,label:cached.label}:null,label,clock:d.clock(),perfNow:performance.now()});}
+    return ready;},{i,label},{timeout:30000});
+  await targetDiagnostics(p);
 }
 async function boot(p,base,sandbox){
+  // Read-only observer in this test's served HTML. Production index.html is
+  // unchanged; a current ray and repeated Plant label do not identify the
+  // frame-cached target actually consumed by E/Enter and the action button.
+  const source=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8'),anchor='get armed() { return armed; },';
+  assert.equal(source.split(anchor).length,2);
+  await p.route('**/farm3d/?*',route=>route.fulfill({contentType:'text/html',body:source.replace(anchor,'get seedTestAim() { return aim; }, '+anchor)}));
+  await p.addInitScript(()=>{window.__seedInputs=[];window.__seedFocusObservations=[];addEventListener('keydown',e=>{if(!['KeyE','Enter'].includes(e.code)||window.__seedInputs.length>=64)return;const d=window.__dbg;if(!d)return;const a=d.seedTestAim,h=d.hitAt(innerWidth/2,innerHeight/2);window.__seedInputs.push({code:e.code,trusted:e.isTrusted,repeat:e.repeat,target:e.target.tagName,clock:d.clock(),perfNow:performance.now(),cached:a?{type:a.type,i:a.i,label:a.label}:null,fresh:h?{type:h.type,i:h.i}:null,panel:d.G.panel?.type||null,armed:d.armed});},{capture:true});});
   await p.addInitScript(()=>localStorage.setItem('sa3d-pov','eyes'));
   await p.goto(base+'farm3d/?debug&portrait&preset=noon'+(sandbox?'&testfarm':''));
   await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
