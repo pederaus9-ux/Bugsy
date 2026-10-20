@@ -58,8 +58,16 @@ async function startRecoveryTiming(phone, artifacts) {
       mark('renderer-release-call');
       const result = await phone.page.evaluate(async () => {
         const renderer = window.__dbg.renderer, gl = renderer.getContext();
+        if (gl.isContextLost()) throw new Error('Recovery fixture renderer was already lost');
         if (!gl.getExtension('WEBGL_lose_context')) throw new Error('Recovery fixture cannot release its WebGL context');
-        const lost = new Promise(resolve => renderer.domElement.addEventListener('webglcontextlost', resolve, {once: true}));
+        const lost = new Promise((resolve, reject) => {
+          const onLost = () => { clearTimeout(deadline); resolve(); };
+          const deadline = setTimeout(() => {
+            renderer.domElement.removeEventListener('webglcontextlost', onLost);
+            reject(new Error('Recovery fixture renderer release exceeded30000ms'));
+          }, 30000);
+          renderer.domElement.addEventListener('webglcontextlost', onLost, {once: true});
+        });
         const began = performance.now();
         renderer.forceContextLoss();
         await lost;
@@ -67,17 +75,6 @@ async function startRecoveryTiming(phone, artifacts) {
       });
       mark('renderer-release-return', result);
       if (!result.contextLost) throw new Error('Recovery fixture WebGL context was not released');
-    },
-    async drainGpu() {
-      mark('gpu-drain-call');
-      const result = await phone.page.evaluate(() => {
-        const gl = window.__dbg.renderer.getContext(), began = performance.now();
-        gl.finish(); // Wait for this document's actual GPU commands; do not pause or fake the renderer.
-        return {gpuFinishMs: performance.now() - began, contextLost: gl.isContextLost()};
-      });
-      mark('gpu-drain-return', result);
-      if (result.contextLost) throw new Error('Recovery precondition: renderer context is lost');
-      return result;
     },
     async finish() {
       await stopChromeTrace();

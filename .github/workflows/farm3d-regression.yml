@@ -350,8 +350,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Rules, economy functions, real game flows and save recovery against the Firestore + Auth + Functions emulators
         working-directory: farm3d/firebase
-        env:
-          RECOVERY_TIMING: '1'
         run: npm test
       - name: Exact production SDK browser modules and blocked-storage sign-in boot
         working-directory: farm3d/tests

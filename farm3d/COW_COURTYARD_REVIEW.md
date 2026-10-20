@@ -1,10 +1,69 @@
-# Cow courtyard — implementation checkpoint, not merge-ready
+# Cow courtyard — PR #90 validation
 
-Main: `bf404a2a1261f3c7581025b249f2bd00c4539964` (lights remain live).
-Branch: `codex/cow-courtyard-20261020`. No cow PR/merge/deployment yet.
-Latest qualified diagnostic checkpoint: `2033544a8fb8f738edb28e40bc2438d37ef39d2c`,
-tree `41fc0b3463d5a9222b564df733ab60756e070169`, identical to local`f1b2447`.
-The expanded herd, covered feed row and recovery/visual matrix are being qualified before publication.
+PR #90 is draft and unmerged. Main remains
+`bf404a2a1261f3c7581025b249f2bd00c4539964`; the cow feature is not deployed.
+Branch: `codex/cow-courtyard-20261020`.
+
+The completed validation checkpoint `f5ebd1148affca6fbebfd3967e3148bd5fb4d0a7`
+passed24/25 hosted jobs. The scene fixture now imports sceneryv4, matching the
+page:844/1280 scene checks, exact wardrobe geometry/texture equality and legacy
+mode pass. All cow diagnostics, installed/offline recovery, lights, market,
+core regression, art and same-account save-conflict checks pass at that head.
+Authenticated cow upload/restoration pass, but the later delayed-start cloud
+race fails the original30-second reload deadline; its recovery assertion is not
+reached. This is not a full recovery-suite pass or merge-ready verdict.
+
+## Cloud fixture correction and qualification
+
+The trace at`04b437a` proves a prompt1ms server response and1.5ms headers,
+followed by19seconds in renderer Frame::Detach, including17seconds in GPU
+DestroyCommandBuffer. The Node event-loop max gap was105ms. Simple GPU command
+completion was not the correction:gl.finish took0.6ms and the original failure
+remained. That failed experiment and its traces remain retained.
+
+The old software-rendered test document must finish releasing its WebGL context
+before the artificial25-second startup-race clock begins. The fixture now calls
+the renderer's existing context-loss API and awaits its actual context-lost event
+before each of the two deliberately delayed reloads. An already-lost context,
+unsupported release API or release taking more than30seconds is an error. It
+makes no account/save/hold/rules writes. No production renderer API or runtime
+source changes as part of this correction.
+
+Qualification source`2fd0500fbdf16f49571b932c6d5ab120c0322aff`, recovery run
+39498083956/job118888244948, passes all22 original recovery assertions. The
+measured old-context release took9881ms; subsequent document commit took43ms
+and the reload25381ms within the unchanged30000ms deadline, including the
+unchanged25000ms module hold. Cloud race revision7 stayed7, with0bad cloud
+samples and0stand-in writes; the missing-cloud delayed-start case also passes.
+Artifact12299491740 SHA256
+`4463b7dd82ba34e521d82d2431f0f4cfc598e7bb0fe508b064efe18fac0f676f`
+was downloaded, verified and inspected, including recovery.json22/22.
+
+The final fixture adopts that qualified precondition without experiment flags;
+`npm run test:recovery` exercises it directly. It retains browser/network timing
+and original failures for future diagnosis. This is a headless test-fixture
+correction; sustained physical-phone reload performance remains unverified.
+All required workflows must pass on the final exact PR head before merge
+readiness is claimed. The PR head/CI result is resolved from GitHub rather than
+embedding a self-referential commit hash in this review document.
+
+Actual render evidence retained under the local`cow-native-run8` captures
+includes day/night, feed/drink/lie/stand, five occupied beds, robot teat contact
+and bulk-tank pickup at390/844/1280; installed52to53/cached29 refusal and
+queued/approaching/docked offline boundaries pass. The runtime is unchanged by
+the later scene-fixture and timing diagnostics, so those previews remain valid.
+Viewports and software-GPU timings do not establish sustained physical-phone
+performance. Review is by the sole author/lead, not an independent external audit.
+
+Remaining gates: all required checks on the final exact head, followed by owner
+visual/product approval and explicit merge approval. Other species' physical-care work stays gated after this cow
+milestone. Historical cow-tap and wardrobe resource failures remain separate;
+later passes do not establish their original causes.
+
+## Historical implementation checkpoints
+
+The following notes retain earlier evidence and superseded status. The current
+qualification summary above takes precedence.
 
 The owner approved concept4 and both plans. Cow care uses the unchanged five-cow
 cap/prices/rates; stocked30-unit feed, free12-hour water, manual12-second robot and

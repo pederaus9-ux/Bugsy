@@ -1,4 +1,4 @@
-name: Cow cloud reload timing comparison
+name: Cow cloud recovery qualification
 on:
   push:
     branches: [codex/cow-courtyard-20261020]
@@ -11,14 +11,10 @@ concurrency:
   group: cow-cloud-reload-timing
   cancel-in-progress: true
 jobs:
-  gpu-precondition:
+  recovery:
     name: Recovery with old test renderer released
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    env:
-      RECOVERY_TIMING: '1'
-      RECOVERY_DRAIN_GPU: '0'
-      RECOVERY_RELEASE_RENDERER: '1'
     steps:
       - uses: actions/checkout@v6
         with:
