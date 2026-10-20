@@ -550,3 +550,65 @@ The full test receives the exact synchronous readiness fix. Diagnostic workflow
 and subset script remain on the separate branch; they are not added to this PR.
 No product source changes follow any of these fixture corrections. One full
 final PR-head native run and all19checks are still required before owner review.
+
+
+## Final exact-head qualification — 2026-10-20
+
+PR88 head f0a043f620d634c164f94c27ddd546609d7f32c2, tree
+5d912e6a5489133a1076c911f20073ba38f8945a. CI merge65c0e30e6e98efbbdd6b174b2fd5f2a748f75fd5 has the identical tree.
+All19 checks and all3 workflows39423140872/39423140835/39423140795 SUCCESS.
+Core job118629370887:296 Node assertions across43 files/46 processes, all5
+original browser suites ENDcode0, full completion footer. Catalog job118629370830
+passes10 native groups and91 Node contracts. Actual final artifact12264844029
+SHA25646ff4eff8a2d5c09c2aa7ceeda128886867f452d4a365d8eaf0aad2fe10b8473.
+
+All31 front/side/back actual model studies and actual390sunflower/844lantern/
+1280maple farm orbits reviewed. Models are complete, grounded and fixed in world
+orientation. Real buy/move/done/reload/put-away and50->51worker online/offline
+paid-save retention pass.127 owned geometries are released; exact memory returns
+to independently warmed0geometry/1sharedDFG_LUT texture baseline.
+
+The third fixture failure was an async polling predicate returning a truthy
+Promise before activation; retained source counterexample uses actual installed
+Playwright polling semantics. Synchronous Boolean registration/activation/control
+wait fixes the observer. No runtime change, assertion relaxation, timeout
+extension or skipped original test followed any fixture correction.
+
+All previous pending fields above are historical checkpoints superseded here.
+Failure logs/traces and cancelled partial result are retained. Physical phones
+remain untested. This is lead self-review, not owner acceptance. Farm Utility
+real-light feature remains next, separate from this PR. PR88 stays draft/open/
+unmerged pending owner appearance acceptance and explicit merge approval.
+Final evidence is on a separate branch so the tested PR head remains unchanged.
+
+
+## Owner-approved PR88 publication — October20
+Owner instructed Merge at08:03:41Chicago. PR88 merged13:04:10Z as8a18715515028904e984012eb3d37c41eb0f2dc2. Tree5d912e6a5489133a1076c911f20073ba38f8945a is identical to qualified headf0a043f6. Pages39427285408 SUCCESS; anonymous postdeploy index,decor-models,sw,game GETs all200 and byte-identical to reviewed files. Earlier predeployment old responses retained separately. Postmerge regression39427286563 remains inprogress at this checkpoint, not claimed as complete. Physical phones untested. Farm Utility buyable lighting is next separate scope. Prior owner-pending fields are historical, superseded by this approval/publication record.
+
+
+## Current: Farm Utility lighting — October20
+PR88 is owner-approved, merged and published as8a187155; exact tree and Pages publication receipts are in ec525a65 evidence branch. Owner now authorizes lighting implementation. See FARM_UTILITY_LIGHT_REVIEW.md. Focused97PASS; native real illumination/touch/offline and full final-head CI pending. Current light feature not merged/deployed; owner must see actual night renders before approval.
+
+
+## Farm Utility qualification follow-up —2026-10-20
+
+Owner requested preparing PR89 for merge at09:42Chicago, not merging it. Main remains8a18715515028904e984012eb3d37c41eb0f2dc2. Recovering from scratch workspace maintenance uses exact GitHub blobs and verified artifacts, not reconstructed guesses.
+
+First PR-head a798409 had three retained failures: Market Sales expected obsolete game28 despite intentional29 (test identity corrected only); scene-polish1280 geometry292to281 (cause remains unassigned, no runtime or original-test change); utility1280 frame+3 wait timed out60s after20 queued manual renders, followed by screenshot timeout (trace retained, no failurePNG claimed). The earlier native run passed automation but normal390 side/back renders had excessive bloom glare. Corrected new-lamp-only12intensity/decay1/bulb1 preserves warm ground coverage and readable solid bracket/post; existing lighting is untouched.
+
+Isolated diagnostic ba99bfac218590f3445cfe36865e520ff093728c/run39433716353: utility job118665116411 SUCCESS,97Node contracts and6native groups including390/844/1280DPR1 actual purchase/move/rotation/day-night/save/put-away and old51to52 requested-worker/offline. Actual brightened pixels outside entire model bounds133032/121784/370377.20 real rebuilds after GPU completion retain219geometries/64textures exactly; per-draw GPU waits about3.5–3.8s justify completing measured GPU work rather than queuing20draws before preset change. All original60/90s readiness deadlines,20cycles and exact equality remain. This supports corrected test observation ordering, not exclusive historical root-cause attribution.
+
+Matched character diagnostic job118665116015 SUCCESS, including original wardrobe equality at844283/97 and1280292/96 before/after. Two observed disposed geometries belong to farmer rebuild/hitproxy. No11-geometry loss reproduced; historical cause remains unknown. Original scene-polish test and production characters are unchanged. Passing diagnostic is a non-reproduction, not a fix claim.
+
+Verified artifact12269328996 SHA0199ef5c058d90cae5cbac6636ad4a71bde030abb5018cdd0a87c122d79bb896 (19300632bytes); wardrobe12273095252 SHAb313593f10fb3973a1431c722ecb1ac9e5b3de0d5cb4cc6e985fd75a8c5516e5 (7650423bytes). Both ZIP CRC/path checks PASS. Lead inspected actual normal-composer front/side/back/day/offline captures. No physical-phone or independent external audit claim. Full new PR-head checks required, no merge/deploy. Diagnostic workflow/copy remains separate.
+
+
+## Paid-light writer compatibility — final review blocker and bounded correction
+
+Final pre-release source audit reproduced actual main game28 silently removing a newly placed utilitylamp from a v1 save and save() returningtrue, overwriting paid ownership. This is now a merge blocker independently of earlier CI passes. The exact whole old/new game-module probe and6new regression contracts are included. Original unguarded source fails the new protection expectations; corrected disposable source passes all6. DOM/timers and unrelated chicken settlement are boundary shims; original game load/upgrade/save functions execute unmodified by the harness. Local gitshow transport uses the exact main source fetched via GitHub because scratch maintenance removed the checkout; hosted test uses gitshow directly.
+
+Bounded correction uses the already-existing newerSave read-only guard in old clients: current code supports version2 (identity migration, no changed data fields); ordinary farms remain v1 and old-client chicken-timer workflows stay writable. Only owning a utilitylamp, placed or in inventory, promotes the saved v marker to2. Older code can display its known farm but refuses every save and preserves the raw paid farm exactly; reopening updated code restores the lamp. Versions newer than2 remain read-only. No Firebase/worker algorithm or chicken/character/other gameplay changes. Native test adds actual cached28 write-refusal/raw-byte retention/current29 reopen before the original requested-worker/offline scenario. Existing ordinary-farm v1 assertions remain unchanged; only lamp-owning tests expect2. Full exact new-head hosted native/regression required before readiness; no merge/deploy.
+
+Authenticated emulator recovery includesv2 lamp ownership/30birds.
+
+Final qualification core job118701321125 at82076e4 failed before test execution because depth1 checkout cannot resolve main8a187155 historical game blob (gitshow exit128). No artifact was uploaded because no artifact file existed. New test now reads a frozen copy of that exact already-existing Git blob with SHA256f0e5da372f94ef064140724458907b1ebcb8268f35b529db359fbebaa02a5786 checked before execution; no network/history assumptions or relaxed assertions. Direct local node--test now passes6/6 without git transport shims. Added required synthetic3d-v2-utility-lamp.json fixture, preserving fields/paid ownership/rotation/30 birds. Full latest-head qualification required; earlier heads not credited.

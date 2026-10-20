@@ -18,6 +18,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  utility-lights:
+    name: Farm Utility real lighting + native touch + offline saves
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Utility ownership, geometry, light budget and cache contracts
+        run: node --test farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+      - name: Real illuminated farm, trusted input, GPU ownership and installed51to52 update
+        run: node farm3d/tests/utility-lights.browser.cjs
+      - name: Preserve actual night captures, partial results and failure traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: utility-lights-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/utility-*
+          if-no-files-found: error
+          retention-days: 14
   market-sales:
     name: Market Sales + six-hour quotes + offline saves
     runs-on: ubuntu-24.04

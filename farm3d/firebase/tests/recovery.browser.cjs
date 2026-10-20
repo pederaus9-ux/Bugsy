@@ -71,6 +71,16 @@ async function main() {
     const chickenRestored=await P(g,()=>__dbg.G.S.pens.chicken);
     check('chicken snapshot restores without losing supplies, stock or appearance',JSON.stringify(chickenRestored.care)===JSON.stringify(chickenCloud.care)&&JSON.stringify(chickenRestored.appearance)===JSON.stringify(chickenCloud.appearance)&&chickenRestored.meta[0].name==='Snapshot Hen'&&chickenRestored.meta[29].name==='Snapshot Hen 29'&&chickenRestored.list.length===30);
 
+    // Exercise the new minimum-writer marker through actual Auth/Firestore,
+    // then retain it through the original corruption/race recovery scenarios.
+    await P(g,()=>{const G=__dbg.G;G.S.decor.inv.utilitylamp=1;G.S.decor.placed.push({id:'utilitylamp',x:-18,z:8,rotation:.57});G.view.refresh('decor');G.commit();});
+    const lampBase=await establish(uid,'utility-writer');
+    const lampCloud=JSON.parse(lampBase.save),lampDecor=JSON.stringify(lampCloud.decor);
+    check('paid utility lamp uploads through authenticated cloud with minimum writer2 and30 birds',lampCloud.v===2&&lampCloud.decor.inv.utilitylamp===1&&lampCloud.decor.placed.some(d=>d.id==='utilitylamp'&&d.rotation===.57)&&lampCloud.pens.chicken.list.length===30);
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const lampRestored=await P(g,()=>({v:__dbg.G.S.v,decor:__dbg.G.S.decor,birds:__dbg.G.S.pens.chicken.list.length}));
+    check('minimum-writer2 paid lamp restores from authenticated snapshot exactly',lampRestored.v===2&&JSON.stringify(lampRestored.decor)===lampDecor&&lampRestored.birds===30);
+
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;
     // keep its already-paid egg on the pallet through subsequent recovery.

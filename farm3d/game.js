@@ -124,6 +124,7 @@ export const DECOR = {
   tulips:{n:"Tulip bed", e:"🌷", cost:30}, sunflowers:{n:"Sunflowers", e:"🌻", cost:40}, roses:{n:"Rose bush", e:"🌹", cost:50},
   oak:{n:"Oak tree", tree:"oak", cost:60}, pine:{n:"Pine tree", tree:"pine", cost:60},
   mailbox:{n:"Mailbox", e:"📫", cost:70}, bench:{n:"Bench", e:"🪑", cost:80}, lantern:{n:"Lantern", e:"🏮", cost:90, glow:true},
+  utilitylamp:{n:"Farm Utility light", e:"💡", cost:250, light:true},
   statue:{n:"Stone statue", e:"🗿", cost:300}, fountain:{n:"Fountain", e:"⛲", cost:450, size:2},
   mushroom:{n:"Giant mushroom", e:"🍄", rare:1}, flamingo:{n:"Flamingo", e:"🦩", rare:1}, balloons:{n:"Balloons", e:"🎈", rare:1}, cactus:{n:"Cactus", e:"🌵", rare:1},
   unicorn:{n:"Unicorn", e:"🦄", rare:2}, trophy:{n:"Gold trophy", e:"🏆", rare:2}, tent:{n:"Circus tent", e:"🎪", rare:2, size:2}, rainbow:{n:"Rainbow arch", e:"🌈", rare:2, size:2},
@@ -231,8 +232,10 @@ function fresh() {
 // "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
-export const SAVE_VERSION = 1;
-export const MIGRATIONS = {};
+export const SAVE_VERSION = 2;
+// Version 2 reserves a minimum writer for farms that own the new utility lamp.
+// The data shape is unchanged. Existing farms stay v1 until they own that item.
+export const MIGRATIONS = {1:s=>s};
 // (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
 export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
@@ -247,7 +250,9 @@ export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
 // fill in anything a save from an older version (or from the 2D game) is missing
 export function upgrade(saved) {
   // compare against a separate fresh farm: the one being filled in can't also be the reference
-  const def = fresh(), s = Object.assign(fresh(), migrate(saved));
+  // Keep v1 farms writable by existing cached clients; v2 is a writer barrier,
+  // promoted by save() only after utility-lamp ownership. Future versions stay intact.
+  const def = fresh(), s = Object.assign(fresh(), migrate(saved, 1));
   s.buildings = s.buildings || {}; s.pens = s.pens || {};
   for (const k in def.buildings) { const b = s.buildings[k] = s.buildings[k] || def.buildings[k]; b.jobs = Array.isArray(b.jobs) ? b.jobs : []; }
   for (const k in def.pens) { const p = s.pens[k] = s.pens[k] || def.pens[k]; p.owned = !!p.owned; p.list = Array.isArray(p.list) ? p.list : []; if (p.owned && !p.list.length) p.list.push(0); }
@@ -350,6 +355,7 @@ export function save() {
     return false;
   }
   settleChickens();
+  if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
   if (!document.hidden) S.lastSeen = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
   catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves
@@ -1564,7 +1570,7 @@ function panelDecor() {
       <button class="btn sm" data-act="placeDecor" data-id="${id}">Place</button></div>`).join("") + `</div>`
     : `<p class="muted" style="font-weight:800;margin:0">Nothing waiting to be placed. Buy some below, or win them in events!</p>`;
   h += `<h4>Buy decorations</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => D.cost).map(([id, D]) =>
-    `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${D.n}${D.size === 2 ? "<small class=muted>big</small>" : ""}<button class="btn gold sm" data-act="buyDecor" data-id="${id}">${D.cost} 🪙</button></div>`).join("") + `</div>`;
+    `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${D.n}${D.light ? "<small class=muted>Lights up at night</small>" : ""}${D.size === 2 ? "<small class=muted>big</small>" : ""}<button class="btn gold sm" data-act="buyDecor" data-id="${id}">${D.cost} 🪙</button></div>`).join("") + `</div>`;
   const won = new Set([...Object.keys(S.decor.inv), ...S.decor.placed.map(d => d.id)]);
   h += `<h4>Win in events</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => !D.cost).map(([id, D]) =>
     `<div class="dcard slot ${won.has(id) ? "" : "locked"}"><span class="e">${decorIcon(id)}</span>${D.n}${decorTag(D)}</div>`).join("") + `</div>`;
