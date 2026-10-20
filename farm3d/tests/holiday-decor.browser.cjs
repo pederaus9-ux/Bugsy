@@ -12,10 +12,11 @@ async function boot(p,base){
  await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  if(await p.locator('#authGuest').isVisible())await p.locator('#authGuest').click();
  await p.evaluate(()=>{const d=__dbg;d.G.close();d.G.opts.quiet=true;d.G.S.tut=99;d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;
-  d.G.S.decor={inv:{jack:2,spider:1,haunted:1},placed:[{id:'jack',x:4,z:17.8},{id:'haunted',x:7,z:20},{id:'spider',x:7,z:16}]};d.G.view.refresh('decor');d.G.save();d.G.view.setQuality('high');
+  d.cam.target.set(-18,.65,8);d.G.S.decor={inv:{jack:2,spider:1,haunted:1},placed:[]};const spot=d.G.view.freeDecorSpot(1);if(!spot)throw Error('no valid review placement');window.__decorReviewSpot=spot;d.G.S.decor.placed.push({id:'jack',x:spot.x,z:spot.z});d.G.view.refresh('decor');d.G.save();d.G.view.setQuality('high');
  });
+ await p.mouse.click(10,10); // Dismiss the normal first-gesture camera hint through native input.
 }
-async function view(p,yaw){const f=await p.evaluate(yaw=>{const d=__dbg;d.cam.target.set(4,.65,17.8);d.cam.dist=10;d.cam.pitch=.25;d.cam.yaw=yaw;Object.assign(d.view,{yaw,pitch:.25,dist:10});d.view.target.copy(d.cam.target);return d.renderer.info.render.frame;},yaw);await p.waitForFunction(f=>__dbg.renderer.info.render.frame>=f+3,f,{timeout:60000});}
+async function view(p,yaw){const f=await p.evaluate(yaw=>{const d=__dbg;d.cam.target.set(window.__decorReviewSpot.x,.65,window.__decorReviewSpot.z);d.cam.dist=10;d.cam.pitch=.5;d.cam.yaw=yaw;Object.assign(d.view,{yaw,pitch:.5,dist:10});d.view.target.copy(d.cam.target);return d.renderer.info.render.frame;},yaw);await p.waitForFunction(f=>__dbg.renderer.info.render.frame>=f+3,f,{timeout:60000});}
 const poses=p=>p.evaluate(()=>({placed:__dbg.decorObjs[0].rotation.toArray(),children:__dbg.decorObjs[0].children.filter(o=>!o.material?.transparent).map(o=>o.rotation.toArray()),ambient:(__dbg.holidayObjs||__dbg.scene.children.filter(o=>o.userData.bill)).map(o=>o.rotation.toArray())}));
 const press=async(p,selector,touch)=>touch?p.locator(selector).tap():p.locator(selector).click();
 (async()=>{let h,failed=true;try{
@@ -26,7 +27,7 @@ const press=async(p,selector,touch)=>touch?p.locator(selector).tap():p.locator(s
  h.serveRef(null);
  for(const [width,height,touch]of [[390,844,true],[844,390,true],[1280,720,false]]){
   const s=await h.setup({width,height},touch,'holiday-candidate-'+width),p=s.page;await boot(p,h.base);await view(p,0);const before=await poses(p);await photo(p,'after-front-'+width);
-  const measurement=await p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js');const record=o=>{o.updateMatrixWorld(true);const b=new T.Box3().setFromObject(o);return {position:o.position.toArray(),depth:b.max.z-b.min.z,base:b.min.y,ground:d.decorationGroundY(o.position.x,o.position.z,d.holidayObjs.includes(o)?.75:1.05),rotation:o.rotation.toArray()};};return {placed:record(d.decorObjs[0]),ambient:d.holidayObjs.map(record),buffer:d.renderer.getDrawingBufferSize(new T.Vector2()).toArray(),quality:{...d.QUALITY}};});
+  const measurement=await p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js');const record=o=>{o.updateMatrixWorld(true);const model=o.children.find(c=>c.userData.holidayId)||o,b=new T.Box3().setFromObject(model);return {position:o.position.toArray(),depth:b.max.z-b.min.z,base:b.min.y,ground:d.decorationGroundY(o.position.x,o.position.z,d.holidayObjs.includes(o)?.75:1.05),rotation:o.rotation.toArray()};};return {placed:record(d.decorObjs[0]),ambient:d.holidayObjs.map(record),buffer:d.renderer.getDrawingBufferSize(new T.Vector2()).toArray(),quality:{...d.QUALITY}};});
   assert.deepEqual(measurement.buffer,[width,height]);assert.ok(measurement.placed.depth>.5);assert.ok(measurement.placed.base>=measurement.placed.ground-1e-5);
   for(const o of measurement.ambient){assert.ok(o.depth>.1);assert.ok(o.base>=o.ground-1e-5);}
   await view(p,Math.PI/2);assert.deepEqual(await poses(p),before);await photo(p,'after-side-'+width);await view(p,Math.PI);assert.deepEqual(await poses(p),before);await photo(p,'after-back-'+width);
