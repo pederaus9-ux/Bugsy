@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-20T11:44:08.029290+00:00",
+  "lastUpdatedUtc": "2026-10-20T13:19:03.442389+00:00",
   "codeBaseline": {
     "description": "Owner-authorized Market Sales PR87 merged and published; four live static files match reviewed bytes",
     "mergeCommit": "9214e564f64c43ab4ccf3eb1175a075d34e32a70",
@@ -98,15 +98,10 @@
   "currentProgram": "All world decoration depth",
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "ALL_DECORATION_DEPTH",
-  "currentPhaseTitle": "Extend accepted solid/fixed-orientation treatment to31remaining world decorations",
-  "phaseStatus": "IMPLEMENTED_LOCALLY_NATIVE_QUALIFICATION_PENDING",
+  "currentPhaseTitle": "Farm Utility buyable lighting",
+  "phaseStatus": "UTILITY_LIGHT_IMPLEMENTED_NATIVE_REVIEW_PENDING",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
-  "activePullRequest": {
-    "number": 88,
-    "url": "https://github.com/pederaus9-ux/Bugsy/pull/88",
-    "draft": true,
-    "merged": false
-  },
+  "activePullRequest": null,
   "nextPhases": [
     "Owner checks published Barn → Market Sales",
     "Record post-merge regression outcome when completed; do not equate running with passing",
@@ -995,7 +990,7 @@
       }
     }
   },
-  "workingBranch": "codex/all-decoration-depth-20261020",
+  "workingBranch": "codex/farm-utility-lights-20261020",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -2230,10 +2225,11 @@
     }
   },
   "activeWork": {
-    "phase": "All decoration depth implementation/native qualification",
-    "base": "9214e564f64c43ab4ccf3eb1175a075d34e32a70",
-    "branch": "codex/all-decoration-depth-20261020",
-    "next": "Exact-head hosted native captures and all original checks; owner sees actual renders before merge",
+    "phase": "Farm Utility real illumination",
+    "base": "8a18715515028904e984012eb3d37c41eb0f2dc2",
+    "branch": "codex/farm-utility-lights-20261020",
+    "scope": "One250coinutilitylamp; solid fixed orientation; real nearest4nightPointLights; existing controls/saves",
+    "next": "Hosted native renders, light-off/on framebuffer and offline update, then full exact-head qualification",
     "mergeAuthorized": false
   },
   "marketSalesPublication": {
@@ -2285,7 +2281,7 @@
   "streetStyleLightingIdea": {
     "requestedAtLocal": "2026-10-20T06:14:11-05:00",
     "ownerRequest": "Buyable street-style lights so players can add light to dark parts of their farm",
-    "status": "STYLE_SELECTED_SEPARATE_LIGHTING_FEATURE",
+    "status": "IMPLEMENTED_NATIVE_QUALIFICATION_PENDING",
     "confirmedRequirements": [
       "Street-style lights",
       "Buyable by players",
@@ -2297,10 +2293,14 @@
       "Placement/moving controls and night/day behavior",
       "Mobile lighting/shadow budget"
     ],
-    "implementationStarted": false,
+    "implementationStarted": true,
     "separation": "Not part of PR87 merge; preserve saves/accepted assets and inspect actual lighting before implementation",
     "styleSelected": "Farm Utility (option2)",
-    "styleSelectedAtLocal": "2026-10-20T06:27:54-05:00"
+    "styleSelectedAtLocal": "2026-10-20T06:27:54-05:00",
+    "draftPriceCoins": 250,
+    "scope": "One Farm Utility model, automatic night, nearest4real unshadowed lights, old placement/save format",
+    "ownerStart": "2026-10-20T08:10:34-05:00",
+    "mergeAuthorized": false
   },
   "allDecorationDepth": {
     "ownerRequestAtLocal": "2026-10-20T06:27:54-05:00",
@@ -2316,10 +2316,10 @@
     "confirmedCause": "makeDecor fallback makes emoji PlaneGeometry; per-frame decorObjs loop rotates cards toward camera",
     "scope": "Extend existing visual consumer; unchanged IDs/costs/inventory/positions/game.js; existing holiday models/trees retained",
     "local": "101focusedPASS; initial blossom6540trianglefail retained, reducedto5940 without changing6500cap",
-    "native": "31modelviews/orbit/ownership/GPU passed; isolated actual50to51worker/hash/offlinesave PASS atcc2274; integrate identical syncBoolean wait then require19finalPR-head checks. No game/model changes afterinitial implementation.",
+    "native": "Final exact PR-head all19checks/3workflowsSUCCESS;10nativegroups/91contracts; actual renders reviewed. Owner acceptance/merge pending.",
     "cache": "50to51 addsdecor-models1; worker algorithms/game28unchanged",
     "streetlight": "FarmUtility selected; new buyable real-light feature remains separate next scope",
-    "mergeAuthorized": false,
+    "mergeAuthorized": true,
     "protected": [
       "Saves/paid inventory and earned outputs",
       "Game economy/recipes/market",
@@ -2425,6 +2425,146 @@
         "scope": "Isolated diagnostic validates identical offline block/helpers; not full PR-head CI qualification",
         "productionUnchangedFromPRf9": true
       }
+    },
+    "finalQualification": {
+      "status": "QUALIFIED_OWNER_REVIEW_PENDING",
+      "checkedAtUtc": "2026-10-20T12:57:39.917771+00:00",
+      "repository": "pederaus9-ux/Bugsy",
+      "pr": 88,
+      "draft": true,
+      "merged": false,
+      "base": "9214e564f64c43ab4ccf3eb1175a075d34e32a70",
+      "head": "f0a043f620d634c164f94c27ddd546609d7f32c2",
+      "tree": "5d912e6a5489133a1076c911f20073ba38f8945a",
+      "checks": {
+        "success": 19,
+        "failed": 0,
+        "pending": 0
+      },
+      "workflows": [
+        39423140872,
+        39423140835,
+        39423140795
+      ],
+      "core": {
+        "ends": 51,
+        "nodeProcesses": 46,
+        "browsers": [
+          {
+            "file": "regression.browser.cjs",
+            "code": 0,
+            "signal": "null"
+          },
+          {
+            "file": "shed-switch.browser.cjs",
+            "code": 0,
+            "signal": "null"
+          },
+          {
+            "file": "cow3d.browser.cjs",
+            "code": 0,
+            "signal": "null"
+          },
+          {
+            "file": "cow-anatomy.browser.cjs",
+            "code": 0,
+            "signal": "null"
+          },
+          {
+            "file": "settings-motion.browser.cjs",
+            "code": 0,
+            "signal": "null"
+          }
+        ],
+        "pass": 296,
+        "footer": "2026-10-20T12:53:07.0836315Z [CI-ISOLATION] ALL 43 Node test files and 5 browser suites passed."
+      },
+      "catalog": {
+        "total": 54,
+        "retainedHoliday": 21,
+        "retainedTrees": 2,
+        "newSolidModels": 31,
+        "nativeGroups": 10,
+        "nodeContracts": 91,
+        "nativeArtifact": 12264844029,
+        "rawSha256": "46ff4eff8a2d5c09c2aa7ceeda128886867f452d4a365d8eaf0aad2fe10b8473",
+        "rawBytes": 20977355,
+        "views": "Actual Three.js all31 asset studies and actual synthetic farm390/844/1280 orbit captures",
+        "offline": "Actual old50 -> requested51 activation/control, exact cached module hash, paid inventory and farm retained online/offline; placed lantern card=false rotation=.57"
+      },
+      "protected": "69 enumerated existing production/config/asset blobs byte-identical; worker algorithms unchanged except cache identity and new module entry",
+      "priorAttempts": {
+        "attempt1": "Exit1: test conflated shared renderer DFG_LUT with model-owned textures; independent warmup baseline now proves exact disposal equality",
+        "attempt2": "Cancelled after8 passing groups; incomplete RUNNING result retained. HTTP fixture had not explicitly registered worker; no numeric Node exit receipt",
+        "attempt3": "Exit1: async predicate Promise truthiness returned before worker activation; exact installed Playwright polling counterexample and native isolated follow-up retained",
+        "isolatedOffline": "Passed separate branch cc2274; not counted as final PR qualification. Identical correction validated again in final full catalog job"
+      },
+      "limitations": [
+        "Physical Android/iPhone performance is not established by hosted Chromium/SwiftShader",
+        "Lead self-review; no independent external-agent audit or owner visual acceptance claimed",
+        "Farm Utility is selected for a separate new buyable-light feature; no new lamps/prices/real illumination in this PR",
+        "Existing lantern glow remains cosmetic",
+        "Offline PNG is a wide rendered farm boot; close lantern geometry/rotation state is evidenced by native JSON",
+        "Local full npm test exited1 without final completion; hosted final core log supplies full qualification"
+      ],
+      "approval": "Owner appearance acceptance and explicit approval for PR88 merge remain pending; nothing merged/deployed"
+    },
+    "publication": {
+      "ownerApproval": "2026-10-20T08:03:41-05:00 Merge",
+      "pr": 88,
+      "reviewedHead": "f0a043f620d634c164f94c27ddd546609d7f32c2",
+      "base": "9214e564f64c43ab4ccf3eb1175a075d34e32a70",
+      "merge": "8a18715515028904e984012eb3d37c41eb0f2dc2",
+      "mergeTree": "5d912e6a5489133a1076c911f20073ba38f8945a",
+      "identicalToQualifiedTree": true,
+      "mergedAt": "2026-10-20T13:04:10Z",
+      "premergeChecks": "19/19 SUCCESS; all3 workflows SUCCESS; full core and catalog proof in final assessment",
+      "pages": {
+        "id": 39427285408,
+        "status": "completed",
+        "conclusion": "success"
+      },
+      "postmergeRegression": {
+        "id": 39427286563,
+        "status": "in_progress",
+        "conclusion": null
+      },
+      "scope": "All remaining31 solid decorations; total54catalogIDs covered. FarmUtility buyable lighting remains next separate feature.",
+      "limitations": [
+        "Physical phones not established",
+        "Public static GETs before Pages completion served old index/worker and404newmodule; retained separately. Do not label live before deployment and byte verification."
+      ],
+      "liveVerified": true,
+      "liveFiles": [
+        {
+          "path": "index.html",
+          "status": 200,
+          "bytes": 332865,
+          "sha256": "17f94b0c5ead4195f4332f36d1dc142327fc669a57347a797d3b1b6ff7be4e29",
+          "matchesReviewedBytes": true
+        },
+        {
+          "path": "decor-models.js",
+          "status": 200,
+          "bytes": 16313,
+          "sha256": "81d49f5e3a7f4717df4653b3c577ebc569359b3c45267a81a521fc6ad9705dd7",
+          "matchesReviewedBytes": true
+        },
+        {
+          "path": "sw.js",
+          "status": 200,
+          "bytes": 2571,
+          "sha256": "9c1f4d9cc559a9965168f795d41f5d004c9b89aedfb511aa873b226df83a339f",
+          "matchesReviewedBytes": true
+        },
+        {
+          "path": "game.js",
+          "status": 200,
+          "bytes": 161380,
+          "sha256": "f0e5da372f94ef064140724458907b1ebcb8268f35b529db359fbebaa02a5786",
+          "matchesReviewedBytes": true
+        }
+      ]
     }
   }
 }

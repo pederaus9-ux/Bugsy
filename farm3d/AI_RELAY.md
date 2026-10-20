@@ -550,3 +550,41 @@ The full test receives the exact synchronous readiness fix. Diagnostic workflow
 and subset script remain on the separate branch; they are not added to this PR.
 No product source changes follow any of these fixture corrections. One full
 final PR-head native run and all19checks are still required before owner review.
+
+
+## Final exact-head qualification — 2026-10-20
+
+PR88 head f0a043f620d634c164f94c27ddd546609d7f32c2, tree
+5d912e6a5489133a1076c911f20073ba38f8945a. CI merge65c0e30e6e98efbbdd6b174b2fd5f2a748f75fd5 has the identical tree.
+All19 checks and all3 workflows39423140872/39423140835/39423140795 SUCCESS.
+Core job118629370887:296 Node assertions across43 files/46 processes, all5
+original browser suites ENDcode0, full completion footer. Catalog job118629370830
+passes10 native groups and91 Node contracts. Actual final artifact12264844029
+SHA25646ff4eff8a2d5c09c2aa7ceeda128886867f452d4a365d8eaf0aad2fe10b8473.
+
+All31 front/side/back actual model studies and actual390sunflower/844lantern/
+1280maple farm orbits reviewed. Models are complete, grounded and fixed in world
+orientation. Real buy/move/done/reload/put-away and50->51worker online/offline
+paid-save retention pass.127 owned geometries are released; exact memory returns
+to independently warmed0geometry/1sharedDFG_LUT texture baseline.
+
+The third fixture failure was an async polling predicate returning a truthy
+Promise before activation; retained source counterexample uses actual installed
+Playwright polling semantics. Synchronous Boolean registration/activation/control
+wait fixes the observer. No runtime change, assertion relaxation, timeout
+extension or skipped original test followed any fixture correction.
+
+All previous pending fields above are historical checkpoints superseded here.
+Failure logs/traces and cancelled partial result are retained. Physical phones
+remain untested. This is lead self-review, not owner acceptance. Farm Utility
+real-light feature remains next, separate from this PR. PR88 stays draft/open/
+unmerged pending owner appearance acceptance and explicit merge approval.
+Final evidence is on a separate branch so the tested PR head remains unchanged.
+
+
+## Owner-approved PR88 publication — October20
+Owner instructed Merge at08:03:41Chicago. PR88 merged13:04:10Z as8a18715515028904e984012eb3d37c41eb0f2dc2. Tree5d912e6a5489133a1076c911f20073ba38f8945a is identical to qualified headf0a043f6. Pages39427285408 SUCCESS; anonymous postdeploy index,decor-models,sw,game GETs all200 and byte-identical to reviewed files. Earlier predeployment old responses retained separately. Postmerge regression39427286563 remains inprogress at this checkpoint, not claimed as complete. Physical phones untested. Farm Utility buyable lighting is next separate scope. Prior owner-pending fields are historical, superseded by this approval/publication record.
+
+
+## Current: Farm Utility lighting — October20
+PR88 is owner-approved, merged and published as8a187155; exact tree and Pages publication receipts are in ec525a65 evidence branch. Owner now authorizes lighting implementation. See FARM_UTILITY_LIGHT_REVIEW.md. Focused97PASS; native real illumination/touch/offline and full final-head CI pending. Current light feature not merged/deployed; owner must see actual night renders before approval.

@@ -124,6 +124,7 @@ export const DECOR = {
   tulips:{n:"Tulip bed", e:"🌷", cost:30}, sunflowers:{n:"Sunflowers", e:"🌻", cost:40}, roses:{n:"Rose bush", e:"🌹", cost:50},
   oak:{n:"Oak tree", tree:"oak", cost:60}, pine:{n:"Pine tree", tree:"pine", cost:60},
   mailbox:{n:"Mailbox", e:"📫", cost:70}, bench:{n:"Bench", e:"🪑", cost:80}, lantern:{n:"Lantern", e:"🏮", cost:90, glow:true},
+  utilitylamp:{n:"Farm Utility light", e:"💡", cost:250, light:true},
   statue:{n:"Stone statue", e:"🗿", cost:300}, fountain:{n:"Fountain", e:"⛲", cost:450, size:2},
   mushroom:{n:"Giant mushroom", e:"🍄", rare:1}, flamingo:{n:"Flamingo", e:"🦩", rare:1}, balloons:{n:"Balloons", e:"🎈", rare:1}, cactus:{n:"Cactus", e:"🌵", rare:1},
   unicorn:{n:"Unicorn", e:"🦄", rare:2}, trophy:{n:"Gold trophy", e:"🏆", rare:2}, tent:{n:"Circus tent", e:"🎪", rare:2, size:2}, rainbow:{n:"Rainbow arch", e:"🌈", rare:2, size:2},
@@ -1564,7 +1565,7 @@ function panelDecor() {
       <button class="btn sm" data-act="placeDecor" data-id="${id}">Place</button></div>`).join("") + `</div>`
     : `<p class="muted" style="font-weight:800;margin:0">Nothing waiting to be placed. Buy some below, or win them in events!</p>`;
   h += `<h4>Buy decorations</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => D.cost).map(([id, D]) =>
-    `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${D.n}${D.size === 2 ? "<small class=muted>big</small>" : ""}<button class="btn gold sm" data-act="buyDecor" data-id="${id}">${D.cost} 🪙</button></div>`).join("") + `</div>`;
+    `<div class="dcard slot"><span class="e">${decorIcon(id)}</span>${D.n}${D.light ? "<small class=muted>Lights up at night</small>" : ""}${D.size === 2 ? "<small class=muted>big</small>" : ""}<button class="btn gold sm" data-act="buyDecor" data-id="${id}">${D.cost} 🪙</button></div>`).join("") + `</div>`;
   const won = new Set([...Object.keys(S.decor.inv), ...S.decor.placed.map(d => d.id)]);
   h += `<h4>Win in events</h4><div class="decor">` + Object.entries(DECOR).filter(([, D]) => !D.cost).map(([id, D]) =>
     `<div class="dcard slot ${won.has(id) ? "" : "locked"}"><span class="e">${decorIcon(id)}</span>${D.n}${decorTag(D)}</div>`).join("") + `</div>`;
