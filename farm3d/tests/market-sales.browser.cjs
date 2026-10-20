@@ -5,7 +5,7 @@ const {start,artifacts,root}=require('./browser-harness.cjs');
 const {updateWorker}=require('./worker-transition.cjs');
 const BASE='2bf6f16a0d0b965df1eda089a3ea6a0f140f6f69',WINDOW=21600000,NOW=1792454400000;
 const out=path.join(artifacts,'market-sales');fs.mkdirSync(out,{recursive:true});
-const receipt={status:'RUNNING',base:BASE,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),drawingScale:.5,physicalDevice:false,results:[],captures:[]};
+const receipt={status:'RUNNING',base:BASE,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),drawingScale:1,physicalDevice:false,results:[],captures:[]};
 const save=()=>fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(receipt,null,2));
 const pass=(name,details)=>{receipt.results.push({name,details});save();console.log('PASS',name);};
 const press=(p,selector,touch)=>touch?p.locator(selector).tap():p.locator(selector).click();
@@ -16,7 +16,7 @@ async function boot(p,base,sandbox){await p.addInitScript(now=>{window.__marketN
 async function open(p,touch){await press(p,'.dock [data-p="barn"]',touch);await press(p,'.panel [data-p="marketSales"]',touch);await p.waitForFunction(()=>__dbg.G.panel?.type==='marketSales');}
 let h,failed=true,stage='launch';save();
 (async()=>{try{
- h=await start({serviceWorkers:'allow'});
+ h=await start({serviceWorkers:'allow',deviceScaleFactor:1});
  // Counterexample for the first observer: the existing close button intentionally
  // projects outside .panel. Its scrollWidth is not the scrollable content width.
  // Use the unchanged production CSS to prove that distinction before game tests.
@@ -36,6 +36,7 @@ let h,failed=true,stage='launch';save();
   await open(p,touch);const q=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',1));
   await press(p,'[aria-label="More dozens"]',touch);const two=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',2));
   assert((await p.locator('[data-market-total="egg"]').textContent()).includes(String(two.total)));
+  await p.waitForFunction(()=>[...document.querySelector('.panel').getAnimations()].every(a=>a.playState==='finished'),null,{timeout:30000});
   const bounds=await p.locator('.panel').evaluate(el=>{const r=el.getBoundingClientRect(),body=el.querySelector('.pbody'),close=el.querySelector('.xbtn').getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,overflow:body.scrollWidth>body.clientWidth+1,bodyScroll:body.scrollWidth,bodyClient:body.clientWidth,rootScroll:el.scrollWidth,rootClient:el.clientWidth,closeRight:close.right};});
   receipt.layout=bounds;save();
   assert(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.w<=width+1&&bounds.y+bounds.h<=height+1&&!bounds.overflow);
