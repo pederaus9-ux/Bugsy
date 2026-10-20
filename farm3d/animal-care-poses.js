@@ -15,11 +15,11 @@ export function getAnimalCarePose(kind,r){
   nodes.forEach((n,i)=>{const s=saved[i];s.p.copy(n.position);s.q.copy(n.quaternion);s.s.copy(n.scale);s.m.copy(n.matrix);s.auto=n.matrixAutoUpdate;});active=true;
   if(mode==='lie'){
    r.body.position.y=mix(r.body.position.y,1.03-.58,w);r.body.rotation.z*=1-w;r.neck.position.y-=.47*w;r.neck.rotation.x=mix(r.neck.rotation.x,.18,w);r.head.rotation.y*=1-w;r.tail[0].position.y-=.58*w;r.tail[0].rotation.x=mix(r.tail[0].rotation.x,1.1,w);r.body.updateMatrix();inv.copy(r.body.matrix).invert();
-   const c=COW_GAIT,y=c.hip-.58-c.hoof;
-   for(const l of r.legs){const sign=l.z<0?1:-1,tz=sign*.12,d=Math.hypot(y,tz),alpha=-Math.atan2(tz,y),delta=Math.acos(clamp((c.upper*c.upper+d*d-c.lower*c.lower)/(2*c.upper*d),-1,1)),bend=Math.acos(clamp((d*d-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
-    q.setFromAxisAngle(AXIS,alpha-sign*delta);root.compose(v.set(l.x,c.hip-.58,l.z),q,scale.set(1,1,1));targetMatrix.copy(inv).multiply(root);blendMatrix(l.hip,targetMatrix,w);
-    qa.setFromAxisAngle(AXIS,sign*bend);targetMatrix.compose(v.set(0,-c.upper,0),qa,scale);blendMatrix(l.knee,targetMatrix,w);
-    q.setFromAxisAngle(AXIS,-(alpha-sign*delta+sign*bend));targetMatrix.compose(v.set(0,-c.lower,0),q,scale);blendMatrix(l.foot,targetMatrix,w);
+   const c=COW_GAIT,y=c.hip-.58*w-c.hoof;
+   for(const l of r.legs){const sign=l.z<0?1:-1,tz=sign*.12*w,d=Math.hypot(y,tz),alpha=-Math.atan2(tz,y),delta=Math.acos(clamp((c.upper*c.upper+d*d-c.lower*c.lower)/(2*c.upper*d),-1,1)),bend=Math.acos(clamp((d*d-c.upper*c.upper-c.lower*c.lower)/(2*c.upper*c.lower),-1,1));
+    q.setFromAxisAngle(AXIS,alpha-sign*delta);root.compose(v.set(l.x,c.hip-.58*w,l.z),q,scale.set(1,1,1));targetMatrix.copy(inv).multiply(root);blendMatrix(l.hip,targetMatrix,1);
+    qa.setFromAxisAngle(AXIS,sign*bend);targetMatrix.compose(v.set(0,-c.upper,0),qa,scale);blendMatrix(l.knee,targetMatrix,1);
+    q.setFromAxisAngle(AXIS,-(alpha-sign*delta+sign*bend));targetMatrix.compose(v.set(0,-c.lower,0),q,scale);blendMatrix(l.foot,targetMatrix,1);
    }
   }else if(target){
    r.g.updateMatrixWorld(true);v.copy(target);r.model.worldToLocal(v);

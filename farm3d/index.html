@@ -669,7 +669,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=29"; window.__gameVer = 29; // bump this version whenever game.js changes
+import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
 import {createCowYard,COW_YARD_LAYOUT,cowYardConflicts} from './cow-yard.js?v=1';
 import {createStationScheduler} from './animal-stations.js?v=1';
@@ -1896,7 +1896,7 @@ function updateCowTask(a,dt,t){
     const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
       const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
       if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}if(d<.035)task.path.shift();
-    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob)G.reportCowRobotExit(job.id);releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
     const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
