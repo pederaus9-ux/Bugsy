@@ -296,3 +296,23 @@ The706 Ready-cow missing-card failure did not recur on02af01f; its cause is not
 proven fixed. The historical wardrobe cause is also unknown. No merge/deploy.
 
 Final local combined verification:36passed,0failed,0skipped (cow scene/pose/controls, chicken interaction/pet view, version graph and arm integration). Actual inline module and changed browser/helper syntax plus diff checks pass. New browser DOM contract and unchanged native Rename/core assertions still require hosted qualification.
+
+
+## Weather VM dependency follow-up
+
+eda7cef core job118925071341 failed before browser execution with
+ReferenceError:prepareCowStroll is not defined in cow-test-preset.test.mjs.
+The browser helper exists; its older weather-only VM did not bind the newly
+shared setup function. The fixture now imports the real helper and supplies
+real Three vectors. Both original weather-transition assertions are unchanged.
+All57core Node files pass locally in60isolated invocations, including all4
+animal-visual checks, using the unchanged core file list/isolation settings.
+This follow-up changes no product code. Hosted full browser results are pending.
+
+eda7cef's actual390/844/1280 cow journeys, all8DOM identity/fallback checks and
+visual job pass. Verified844artifact12305180554 SHA256
+a0ce39e6744d9d155d27055fd78e2f2d9853bf94f12c54bdc833f911e595ebec
+is retained under cow-native-run18/native844, including128trusted input/mutation
+records. These successful records establish delivery/selection in that run;
+they do not prove why706failed. Original chicken Rename remains an unchanged
+required hosted gate. No merge/deploy or physical-phone performance claim.

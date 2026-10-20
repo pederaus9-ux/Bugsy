@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-20T22:32:45.455699+00:00",
+  "lastUpdatedUtc": "2026-10-20T22:40:49.772190+00:00",
   "codeBaseline": {
     "description": "PR89 Farm Utility lights merged/published; postmerge regression successful",
     "mergeCommit": "bf404a2a1261f3c7581025b249f2bd00c4539964",
@@ -2957,7 +2957,8 @@
       "correction": "Extend the existing keyed update to the whole animal card, preserving buttons and ancestors. Plan all DOM changes before applying them; incompatible control identity/structure retains original rebuild. No station/other tray changes. Original native chicken rename assertion and timeout unchanged.",
       "browserContract": "Cow Milk, header Rename/Close, live text/disabled, different cow, chicken header/buttons, different bird, and no partial mutation on rejected structure. Pending hosted verification.",
       "cache": 54,
-      "unknownReadyCowTap": "706a98f missing-card failure not reproduced by02af01f; original traces remain, cause still unproven"
+      "unknownReadyCowTap": "706a98f missing-card failure not reproduced by02af01f; original traces remain, cause still unproven",
+      "qualification": "eda7cef native390/844/1280 and visual jobPASS. All8 realDOM assertions true; original native chicken Rename and final full suite still pending. Actual844 input records retained for successful comparison, no cause assigned to706missing-card."
     },
     "legacyCowStrollFixtureCorrection": {
       "failedHead": "02af01f0d17b568f1a280609d1ba12d8489d306c",
@@ -2981,7 +2982,23 @@
           "log": "animal-ui-stroll-focused.log"
         }
       },
-      "browserQualification": "PENDING next head; no full-pass claim"
+      "browserQualification": "PENDING next head; no full-pass claim",
+      "vmDependencyCorrection": {
+        "failedHead": "eda7cef0982c8eb577d1f6c76f379b5746f089cc",
+        "run": 39508957502,
+        "job": 118925071341,
+        "assertion": "cow-test-preset.test.mjs ReferenceError: prepareCowStroll is not defined; before browser execution",
+        "correction": "Import the real helper into the existing isolated weather VM and use its real Vector2/Vector3 boundary. Both original weather assertions remain unchanged. No product-code change.",
+        "localPreflight": {
+          "files": 57,
+          "invocations": 60,
+          "failures": 0,
+          "isolatedVisualChecks": 4,
+          "browser": "not run locally because OSsocket blocked; hosted full CI required",
+          "log": "all-core-node-preflight.log",
+          "logCaveat": "Retained TAP file contains only first33 invocations; final terminal completion returned exit0 and all57files passed. Separate completion receipt retained; do not infer individual assertion totals from partial TAP."
+        }
+      }
     }
   }
 }

@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import * as THREE from '../lib/three.module.min.js';
+import {prepareCowStroll} from './cow-rig-fixture.mjs';
 
 // Exercise the actual integration fixture and production weather-transition
 // branch. Night must cancel a fair-weather target; a fair-weather stroll must
@@ -12,9 +14,9 @@ function part(s,a,b){const i=s.indexOf(a),j=s.indexOf(b,i);assert(i>=0&&j>i);ret
 const prepare=part(browser,'const lighting=','const start=');
 const transition=part(html,'const mode = PRESET.night','if (this.act === "sleeping" && Math.floor');
 function fixture(){
- const a={card:{material:{emissive:{toArray:()=>[0,0,0]}}},g:{position:{x:1,z:1}},target:null,
-  go(x,z){this.target={x,z};this.act='moving';},emote(){}};
- const env={a,PRESET:{night:false,rain:false,snowing:false}};
+ const a={card:{material:{emissive:{toArray:()=>[0,0,0]}}},g:{position:new THREE.Vector3(1,0,1)},vel:new THREE.Vector2(),lastPos:new THREE.Vector2(1,1),cowTask:null,target:null,
+  go(x,z){this.target=new THREE.Vector2(x,z);this.act='moving';},emote(){}};
+ const env={a,prepareCowStroll,PRESET:{night:false,rain:false,snowing:false}};
  env.d={setPreset(name){env.PRESET={night:name==='night',rain:name==='rain',snowing:name==='snow'};}};
  vm.createContext(env);const reset=vm.runInContext('(function(){'+transition+'})',env);
  return {a,env,reset};

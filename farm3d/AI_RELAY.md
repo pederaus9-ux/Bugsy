@@ -718,3 +718,13 @@ Both original artifacts/logs are verified in cow-native-run17. Hosted contracts
 and full next-head CI are pending.02af01f full cloud job was still active before
 this checkpoint; do not claim a final Firebase/SDK result. The706 missing-card
 tap and older wardrobe cause remain unproven. Keep draft, do not merge/deploy.
+
+
+The header correction ateda7cef passes actual390/844/1280 cow journeys and all8
+real-DOM identity/fallback checks, plus the visual job. Core stopped before its
+browser probes: the older isolated weather VM did not bind prepareCowStroll.
+That dependency is now supplied using the real helper and Three vectors; both
+original weather assertions are unchanged. All57core Node files/60isolated
+invocations pass locally, including all4animal-visual checks. Product code is
+unchanged by this follow-up. Final exact-head hosted browser/full CI remains
+required; do not merge, deploy or assign the old missing-card/wardrobe causes.
