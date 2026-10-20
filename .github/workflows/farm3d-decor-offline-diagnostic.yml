@@ -1,0 +1,32 @@
+name: Sunny Acres isolated decoration offline diagnostic
+on:
+  push:
+    branches: [codex/decor-offline-diagnostic-20261020]
+permissions:
+  contents: read
+jobs:
+  offline-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Source counterexamples and isolated real predecessor update
+        run: |
+          node farm3d/tests/evidence/decor-catalog-20261020/localhost-worker-probe.cjs
+          node farm3d/tests/decor-offline-diagnostic.browser.cjs
+      - name: Retain partial results and actual failure trace
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: decor-offline-diagnostic-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/decor-*
+          retention-days: 14

@@ -1,0 +1,17 @@
+{
+  "purpose": "Target only real old50 predecessor activation, new51 requested-worker control, modulehash, exactsave retention and offlineboot before another full qualification run",
+  "sourceHead": "f9becbbee988a1e472122ca48cce007fed772ea5",
+  "sourceTree": "1145671bae92f78e2311366ca019aacf9b5eb223",
+  "failedRun": 39421019720,
+  "failedJob": 118622131347,
+  "artifact": 12264265846,
+  "artifactSha256": "8a4fca626e0c81aa68ecfdf353c876a75844919484819341a714d6991a468d6d",
+  "actual": "page.evaluate TypeError r.active null, line70; exit1 after8nativePASSgroups",
+  "trace": "call@1355 async wait returns JSHandle after5.206ms; call@1357 receipt observes r.active null",
+  "confirmedCause": "Actual installed Playwright poll checks const success=predicate(); if(success)fulfill(success) without awaiting truthiness. Async false is a truthy Promise, so the observer returns before activation. Source-VM executes this exact condition and reproduces it. Earlier VM awaited the predicate and missed this hazard; superseded by corrected probe.",
+  "patch": "Test-only keep explicit register, store resolved registration in window; synchronous Boolean predicate requires activeactivated/noinstall/noqueue/controlleridentity under unchanged90s deadline. No production code change.",
+  "diagnosticBranch": "codex/decor-offline-diagnostic-20261020",
+  "diagnosticScript": "farm3d/tests/decor-offline-diagnostic.browser.cjs executes identical offline block/helpers from corrected fulltest; no assertions removed from fulltest",
+  "fullPRUnchangedWhileDiagnosticRuns": true,
+  "nativeResult": "PENDING"
+}

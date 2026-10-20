@@ -526,3 +526,16 @@ worker, registration policy, save assertion or update assertion changes. Native
 proof of the corrected offline path remains pending; source-VM proof is not a
 browser result. Thef122hosted job was still running when this guaranteed setup
 hang was identified; preserve its eventual cancellation/timeout logs separately.
+
+
+Native attempt3 atf9becbbee fails only in the offline fixture receipt after8native
+PASSgroups, including exact independent LUT baseline/cleanup. Tracecall@1355's
+async wait returns after5.206ms; call@1357 observes r.active null. Actual locked
+Playwright poll checks Promise truthiness without awaiting its Boolean result.
+The prior VM probe awaited the callback and missed this; the corrected probe
+executes the real installed polling condition and proves asyncfalse succeeds
+prematurely. Use a stored registration and synchronous Boolean readiness check,
+keeping90sdeadline/all existing assertions. A separate isolated offline diagnostic
+branch qualifies this corrected setup before another full PR-head qualification.
+No production model/worker/save change follows these test bugs. Final offline
+acceptance remains pending; original exit1/log/PNG/trace retained.
