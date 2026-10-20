@@ -391,3 +391,12 @@ Publication follow-up: automatic Pages39349973730 completed SUCCESS on merged ma
 ## Holiday decoration depth —owner authorization2026-10-19 20:03:12 Chicago
 
 Owner: “Chicken pen looks good lets do decorations.” This accepts the30-bird pen qualitatively and authorizes the existing depth/clipping/fixed-pumpkin-orientation scope. Fresh mainc17d563 verified; new isolated branchcodex/holiday-depth-20261019. Existing placed inventory/positions, saves, chicken and other species care, characters, Firebase/economy and shelved work remain protected. Actual source confirms emoji PlaneGeometry and camera-facing rotation. Replace holiday visual consumers only, retain old IDs/placement paths, align with actual ground, capture orbit and mobile/desktop/save/resource evidence. No merge/deploy authorized for this new task.
+
+
+## Market Sales — owner-approved bounded implementation,2026-10-20
+
+Owner approved the short in-chat design at01:10Chicago: barn Market Sales, eggs/dozen, existing milk item/gallon,120/18base coins before perks/gold, quotes within±20percent every six real hours, quantity/Sell All, preserve existing selling. Fresh main2bf6f16a0d0b965df1eda089a3ea6a0f140f6f69 is PR86's actual merge; automatic Pages39366606202 and post-merge regression39366607070 both SUCCESS. This supersedes older draft/unmerged decoration statements without changing their evidence. New isolated branchcodex/market-sales-20261020.
+
+Pure deterministic UTC six-hour pricing adds no save fields. Instant barn-only sales validate live stock/gold/perk/window before confirmation, preserve leftovers and accepted quality/perk bonuses, reject duplicate/stale/read-only mutations. Worker algorithms unchanged; cache50 precaches market-sales1 and game28. Existing cache identity pins follow these intentional versions only. Runtime changes are limited to approved sale/menu integration; animal/character/chicken/recipes/cloud/save schema/worker algorithms remain protected. Cow bulk tank, other pens, recorder and normal optimization stay deferred.
+
+See MARKET_SALES_REVIEW.md. New local fail-first API/menu contracts and15focused market/cache checks pass; actual native multi-layout, installed/offline and full exact-head CI are pending. Local browser download failed and local complete npm test remains incomplete, neither credited as success. No merge, deployment, owner visual acceptance or physical-phone performance clearance is authorized or claimed. Review actual hosted renders and exact-head results before owner review.

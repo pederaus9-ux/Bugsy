@@ -18,6 +18,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  market-sales:
+    name: Market Sales + six-hour quotes + offline saves
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Price, stock, quality, stale-confirmation and read-only contracts
+        run: node --test farm3d/tests/market-sales.test.mjs farm3d/tests/versions.test.mjs
+      - name: Native sales at390/844/1280 and actual49-to50 installed offline update
+        run: node farm3d/tests/market-sales.browser.cjs
+      - name: Preserve actual previews, partial results and failure traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: market-sales-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/market-sales*
+          if-no-files-found: error
+          retention-days: 14
   holiday-decor:
     name: Solid holiday decorations + orientation + saves
     runs-on: ubuntu-24.04
