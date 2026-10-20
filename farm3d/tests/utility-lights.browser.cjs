@@ -36,11 +36,13 @@ let h,failed=true;save();
   const pixels=await p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js');window.__utilityCaptureHold=true;
    const size=d.renderer.getDrawingBufferSize(new T.Vector2()),target=new T.WebGLRenderTarget(size.x,size.y),old=d.renderer.getRenderTarget(),lights=d.utilityLights.lights,values=lights.map(l=>l.intensity);
    const read=()=>{const b=new Uint8Array(size.x*size.y*4);d.renderer.setRenderTarget(target);d.renderer.render(d.scene,d.camera);d.renderer.readRenderTargetPixels(target,0,0,size.x,size.y,b);return b;};
-   try{lights.forEach(l=>l.intensity=0);const off=read();lights.forEach((l,i)=>l.intensity=values[i]);const on=read();let brighterPixels=0,delta=0;
-    for(let i=0;i<off.length;i+=4){const difference=(on[i]+on[i+1]+on[i+2]-off[i]-off[i+1]-off[i+2])/3;if(difference>=4)brighterPixels++;delta+=Math.max(0,difference);}
-    return {brighterPixels,meanPositiveDelta:delta/(size.x*size.y),sameFrame:true,onlyPointLightsToggled:true,width:size.x,height:size.y};
+   try{lights.forEach(l=>l.intensity=0);const off=read();lights.forEach((l,i)=>l.intensity=values[i]);const on=read();let brighterPixels=0,delta=0,outsideModelBrighterPixels=0;
+    const box=new T.Box3().setFromObject(d.decorObjs[0]),corners=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]){const v=new T.Vector3(x,y,z).project(d.camera);corners.push([(v.x+1)*size.x/2,(v.y+1)*size.y/2]);}
+    const modelRect={left:Math.min(...corners.map(v=>v[0]))-4,right:Math.max(...corners.map(v=>v[0]))+4,bottom:Math.min(...corners.map(v=>v[1]))-4,top:Math.max(...corners.map(v=>v[1]))+4};
+    for(let i=0;i<off.length;i+=4){const difference=(on[i]+on[i+1]+on[i+2]-off[i]-off[i+1]-off[i+2])/3,x=(i/4)%size.x,y=Math.floor(i/4/size.x);if(difference>=4){brighterPixels++;if(x<modelRect.left||x>modelRect.right||y<modelRect.bottom||y>modelRect.top)outsideModelBrighterPixels++;}delta+=Math.max(0,difference);}
+    return {brighterPixels,outsideModelBrighterPixels,modelRect,meanPositiveDelta:delta/(size.x*size.y),sameFrame:true,onlyPointLightsToggled:true,width:size.x,height:size.y};
    }finally{lights.forEach((l,i)=>l.intensity=values[i]);d.renderer.setRenderTarget(old);target.dispose();}
-  });result.lastPixelComparison=pixels;save();assert(pixels.brighterPixels>=200,'real surfaces, not just the emissive bulb, receive utility light');assert(pixels.meanPositiveDelta>.1);
+  });result.lastPixelComparison=pixels;save();assert(pixels.brighterPixels>=200,'real surfaces, not just the emissive bulb, receive utility light');assert(pixels.outsideModelBrighterPixels>=200,'nearby world surfaces outside the entire pole/fixture/contact bounds must receive actual light');assert(pixels.meanPositiveDelta>.1);
   // Matched actual-game direct renders show the same scene with/without real light.
   await p.evaluate(()=>{const d=__dbg;window.__utilityIntensities=d.utilityLights.lights.map(l=>l.intensity);d.utilityLights.lights.forEach(l=>l.intensity=0);d.renderer.render(d.scene,d.camera);});await photo(p,'night-real-light-off-'+width);
   await p.evaluate(()=>{const d=__dbg;d.utilityLights.lights.forEach((l,i)=>l.intensity=__utilityIntensities[i]);d.renderer.render(d.scene,d.camera);});await photo(p,'night-real-light-on-'+width);await p.evaluate(()=>window.__utilityCaptureHold=false);
