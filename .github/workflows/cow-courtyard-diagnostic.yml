@@ -1,0 +1,42 @@
+name: Cow courtyard diagnostic
+on:
+  push:
+    branches: [codex/cow-courtyard-20261020]
+    paths:
+      - 'farm3d/**'
+      - '.github/workflows/cow-courtyard-diagnostic.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cow-courtyard-diagnostic
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Cow domain, occupied site, pose and physical docking contracts
+        run: node --test farm3d/tests/animal-stations.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-milking.test.mjs farm3d/tests/cow-care-integration.test.mjs farm3d/tests/cow-writer-compatibility.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/cow-stations.test.mjs
+      - name: Actual input and uninterrupted robot visit
+        run: node farm3d/tests/cow-robot.browser.cjs
+      - name: Preserve original failures, actual captures and traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-courtyard-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/cow-*
+          retention-days: 14
+          if-no-files-found: warn

@@ -671,6 +671,10 @@ import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=29"; window.__gameVer = 29; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
+import {createCowYard,COW_YARD_LAYOUT,cowYardConflicts} from './cow-yard.js?v=1';
+import {createStationScheduler} from './animal-stations.js?v=1';
+import {getAnimalCarePose} from './animal-care-poses.js?v=1';
+import {createCowDockGate} from './cow-stations.js?v=1';
 import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
 import {createFarmDecoration} from './decor-models.js?v=1';
 import {createUtilityLamp,installUtilityLights} from './utility-lights.js?v=1';
@@ -1396,6 +1400,10 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
 const chickenYard=createChickenYard();scene.add(chickenYard.group);
+const cowYard=createCowYard();cowYard.group.visible=false;scene.add(cowYard.group);
+let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null;
+const cowStations=createStationScheduler(cowYard.stations),cowStationById=new Map(cowYard.stations.map(s=>[s.id,s]));
+const cowSurfaces=new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:-4.8,s.surface,s.kind==='feed'?-8.05:s.dock[2])]));
 CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
 fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);
 // water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
@@ -1553,13 +1561,14 @@ const persOf = (name) => { const K = Object.keys(PERSONALITY); let h = 7; for (c
 // where each kind lives: cows, horses and sheep share the paddock, hens have their yard, the dog and cat go anywhere outside the pens.
 // Pens are convex outlines, counter-clockwise, matching the fence runs (the paddock's west side is the barn wall).
 const PENS = {
+  courtyard:{poly:COW_YARD_LAYOUT.polygon,kinds:[],bed:COW_YARD_LAYOUT.bed,shelter:COW_YARD_LAYOUT.shelter,water:COW_YARD_LAYOUT.water,name:"the dairy courtyard"},
   paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:["cow", "horse", "sheep"],
     bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:"the paddock"},
   yard:{poly:CHICKEN_YARD_LAYOUT.polygon, kinds:["chicken"],
     bed:CHICKEN_YARD_LAYOUT.bed, shelter:CHICKEN_YARD_LAYOUT.shelter, water:CHICKEN_YARD_LAYOUT.water, name:"the chicken yard"},
 };
-const PEN_LIST = Object.values(PENS);
-const penOf = (kind) => PEN_LIST.find(p => p.kinds.includes(kind)) || null;
+const PEN_LIST = Object.values(PENS).filter(p=>p!==PENS.courtyard);
+const penOf = (kind) => kind==='cow'&&cowYardActive?PENS.courtyard:PEN_LIST.find(p => p.kinds.includes(kind)) || null;
 // signed distance from each edge (positive = inside); a point is inside when every edge is at least `margin` away
 function edgeDepths(poly, x, z) {
   return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
@@ -1579,6 +1588,8 @@ function outOfPens(v, margin) {
 
 // where the animals may not walk: [x, z, halfWidth, halfDepth]
 const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05])];
+const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
 BLOCKS.push([-9.6, -2.4, .4, .4], [-3.1, 7.1, .25, .25]); // hen water pan, pet bowl
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
@@ -1602,7 +1613,7 @@ function route(from, to, pad, pen) {
   if (hitsBlock(from, to, pad, both) < 0) return [to];
   const nodes = [from, to];
   for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
-    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM + 2 && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+    if (!OBST.some(q => insideObst(q, c, pad)) && Math.hypot(c.x - HOME.x, c.y - HOME.y) < (pen===PENS.courtyard?24:ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
   const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
   const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
@@ -1655,6 +1666,7 @@ class Beast {
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
+    if(this.kind==='cow'&&chooseCowTask(this))return;
     const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
     const pen = this.pen, lerp = THREE.MathUtils.lerp;
     // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
@@ -1706,6 +1718,8 @@ class Beast {
     this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
   }
   update(dt, t) {
+    if(this.kind==='cow'&&cowYardActive&&!this.cowTask&&cowStatus?.job?.cowId===cowIdOf(this))chooseCowTask(this);
+    if(this.kind==='cow'&&cowYardActive&&this.cowTask){updateCowTask(this,dt,t);return;}
     const ox = this.g.position.x, oz = this.g.position.z;
     const N = this.need, P = this.P;
     N.hunger = Math.min(1, N.hunger + dt * .012 * (.5 + P.hunger)); N.tired = Math.min(1, N.tired + dt * .01 * (1.5 - P.energy)); N.lonely = Math.min(1, N.lonely + dt * .01 * (.3 + P.social));
@@ -1816,6 +1830,7 @@ let animals = [];
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
 function syncHerd() {
   syncChickenYard();
+  syncCowYard();
   const want = [];
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
@@ -1825,8 +1840,9 @@ function syncHerd() {
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
     if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }
-    const pen = penOf(r.kind), p = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
+    const pen = penOf(r.kind),bed=r.kind==='cow'&&cowYardActive?cowYard.stations.filter(s=>s.kind==='bed')[r.i]:null,p = bed?new THREE.Vector2(bed.dock[0],bed.dock[2]):pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
     animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
+    if(bed)animals.at(-1).g.position.y=COW_YARD_LAYOUT.floor;
   }
 }
 let chickenPreview=null;
@@ -1834,6 +1850,70 @@ function syncChickenYard(){
   chickenYard.group.visible=!!G.S?.pens.chicken?.owned;
   chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);
   chickenYard.setStatus(G.getChickenCareStatus());
+}
+function syncCowYard(){
+  const owned=!!G.S?.pens.cow?.owned;
+  const blocks=BLOCKS.filter(b=>!cowBlocks.includes(b));
+  cowYardIssues=cowYardConflicts({blocks,decor:(G.S?.decor.placed||[]).map(d=>({...d,r:G.DECOR[d.id]?.size===2?1.2:.6}))});
+  // A newly cleared site installs on reload, before cows spawn. Never snap an
+  // existing herd across the farm merely because a decoration was moved.
+  if(cowYardChecked&&!cowYardActive&&owned&&animals.some(a=>a.kind==='cow'))cowYardNeedsReload=true;
+  const active=owned&&!cowYardIssues.length&&!cowYardNeedsReload;
+  if(active!==cowYardActive){cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
+  cowYardChecked=true;cowYard.group.visible=active;
+  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);
+}
+function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
+function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
+function beginCowTask(a,kind){
+  const id=cowIdOf(a);if(!id)return false;
+  const token=cowStations.request(id,kind);if(!token)return false;
+  const station=cowStationById.get(token.stationId);a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints:[station.approach,station.dock]};a.target=null;a.vel.set(0,0);return true;
+}
+function chooseCowTask(a){
+  if(!cowYardActive)return false;
+  const job=cowStatus?.job,id=cowIdOf(a);
+  if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();return true;}return false;}
+  if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed');
+  if(cowStatus?.feed>0&&a.need.hunger>.35)return beginCowTask(a,'feed');
+  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink');
+  return false;
+}
+function updateCowTask(a,dt,t){
+  const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
+  a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
+  const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
+  const supplies=task.kind==='feed'?cowStatus.feed>0:task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
+  const waking=(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
+  if(waking||(isRobot&&!currentJob))task.stage='stand';
+  const ox=a.g.position.x,oz=a.g.position.z;
+  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){releaseCowTask(a);a.act='idle';a.until=0;}}
+  else if(task.stage==='approach'||task.stage==='exit'){
+    // Docked jobs restored from disk resume their physical approach without a
+    // second credit. Approaching/queued jobs still require a fresh dock proof.
+    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.clear];}
+    if(!task.path?.length&&task.waypoints.length){const p=task.waypoints.shift();task.path=route(a.pos,new THREE.Vector2(p[0],p[2]),.42,PENS.courtyard);}
+    const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+      const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
+      if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}if(d<.035)task.path.shift();
+    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob)G.reportCowRobotExit(job.id);releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+    a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
+  }else if(task.stage==='align'||task.stage==='hold'){
+    const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
+    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
+    if(task.stage==='hold'){
+      if(isRobot&&currentJob){
+        if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
+        if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.clear];task.path=null;}
+        a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
+      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){a.need.hunger=0;a.cowDrinkAt=t+35;task.stage='stand';}}
+    }
+  }
+  a.g.position.y=COW_YARD_LAYOUT.floor;
+  const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
+  Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
+  if(task.weight>0)a.carePose.apply({mode:task.kind==='bed'?'lie':task.kind==='feed'?'feed':'drink',weight:task.weight,target:cowSurfaces.get(task.station.id)});
+  if(a.cowTask===null){a.carePose.reset();a.need.tired=0;}
 }
 
 bootStep("making the sky");
@@ -2485,6 +2565,7 @@ function syncDecor() {
 function spotFree(x, z, size, skip = -1) {
   const r = size === 2 ? 1.2 : .6;
   if (Math.hypot(x - HOME.x, z - HOME.y) > 24) return false;
+  if(cowYardActive&&cowYardConflicts({decor:[{x,z,r}]}).length)return false;
   if (BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + r && Math.abs(z - bz) < hd + r)) return false;
   if (PEN_LIST.some(p => inPen(p, x, z, -r - .3))) return false;
   if (Math.abs(x) < 2.3 + r && z > 5.5 && z < 24) return false; // the path
@@ -2881,7 +2962,7 @@ function aimScan() {
     case "plot": { const p = S.plots[h.i];
       if (!p.crop) { label = "Plant"; icon = "🌱"; } else if (ready(h.i)) { label = "Harvest"; icon = G.ITEMS[p.crop].e; } else if (!p.water) { label = "Water"; icon = "💧"; } break; }
     case "animal": { const an = h.an;
-      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (an.kind!=="chicken" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
+      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
       else { const pt = S.pets[an.ref.j]; if (pt && G.giftReady(pt)) { label = "Gift"; icon = "🎁"; } else { label = "Pet"; icon = "🤚"; } } break; }
     case "barn": label = "Open"; icon = "🚪"; break;
     case "building": label = "Open"; icon = G.BUILDINGS[h.bid].e; break;
@@ -2892,6 +2973,7 @@ function aimScan() {
     case "visitor": label = "Talk"; icon = "💬"; break;
     case "plotSale": label = "Buy"; icon = "🟫"; break;
     case "penSign": label = "Look"; icon = "🪧"; break;
+    case 'cowStation': label={feed:'Fill feed',water:'Fill water',robot:'Robot',tank:'Bulk tank'}[h.station];icon={feed:'🌾',water:'💧',robot:'⚙️',tank:'🥛'}[h.station];break;
     case 'chickenStation': label={coop:'Customize',feed:'Fill feed',water:'Fill water',eggs:'Collect eggs'}[h.station];icon={coop:'🏠',feed:'🌾',water:'💧',eggs:'🥚'}[h.station];break;
   }
   if (label) aim = Object.assign(h, {label, icon});
@@ -3099,6 +3181,7 @@ function editValid(key, x, z) {
   const [t, id] = key.split(":");
   if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
   const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
+  if(cowYardActive&&cowYardConflicts({blocks:[[x,z,hw,hd]]}).length)return false;
   if (Math.hypot(x - HOME.x, z - HOME.y) > 23) return false;                                   // stay on the farm
   if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
@@ -3353,6 +3436,7 @@ function sensePlayer(a, t) {
 // ---------- the view that game.js talks to ----------
 function keyPos(key) {
   const [type, a, b] = key.split(":");
+  if(type==='cow'){const pos={feed:[-8.2,.7,-8.05],water:[-4.8,.7,-10.4],robot:[-3.3,1.3,-11.3],tank:[0,1.5,-11.3]}[a];return pos?new THREE.Vector3(...pos):null;}
   if(type==='chicken'){const target=chickenYard.targets.find(t=>t.kind===a);return target?.object.position.clone().setY(a==='coop'?1.7:a==='eggs'?.2:.6);}
   if (type === "plot") { const P = plots[+a]; return P && P.g.position.clone().setY(.8); }
   if (type === "animal") { const an = animals.find(x => x.ref.type === "pen" && x.ref.kind === a && x.ref.i === +b); return an && an.g.position.clone().setY(an.S.h + .3); }
@@ -3412,7 +3496,7 @@ Object.assign(GV, {
     if (what === "visitor" || what === "all") syncVisitor();
     if (what === "look" || what === "all") buildFarmer();
     if (what === "style" || what === "all") applyStyle();
-    if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout(); }
+    if (what === "all") { syncPenSigns(); syncBuildings(); applyLayout();syncCowYard(); }
   },
   freeDecorSpot(size) {
     const c = cam.target;
@@ -3497,6 +3581,16 @@ const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 
 function trayHtml() {
   const f = trayFor; if (!f) return "";
   const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
+  if(f.type==='cowStation'){
+    const s=cowStatus||G.getCowCareStatus(),total=s.tank.normal+s.tank.gold,job=s.job;
+    const summary=`<div class="tray-sub">Feed: ${s.feed}/30 · Water: ${G.fmt(Math.max(0,s.waterUntil-nowMs()))}</div><div class="tray-sub">Bulk tank: ${total}/50 gallons · ${s.tank.gold} gold</div>`;
+    if(!cowYardActive)return `<h3><span>Dairy courtyard</span>${x}</h3><p>${cowYardIssues.length?'Make space north of the chicken yard. Move the objects shown there, then reload to install the courtyard.':'Reload to install the cleared courtyard before using its stations.'}</p>`;
+    if(f.station==='feed')return `<h3><span>🌾 Cow feed bunk</span>${x}</h3>${summary}<p>One cow feed starts one cow cycle. Production pauses when water runs out.</p><button id="cow-fill-feed" class="btn" data-w="cowFeed" ${s.feed>=30||!G.have('cow_feed')?'disabled':''}>Stock feed · up to ${Math.min(30-s.feed,G.have('cow_feed'))} (${G.have('cow_feed')} in barn)</button>`;
+    if(f.station==='water')return `<h3><span>💧 Cow water trough</span>${x}</h3>${summary}<button id="cow-fill-water" class="btn" data-w="cowWater">Refill water · 12 hours · free</button>`;
+    if(f.station==='tank')return `<h3><span>🥛 Bulk milk tank</span>${x}</h3>${summary}<p>Collect into your barn to use recipes or sell at the market. Barn room: ${Math.max(0,G.space())}.</p><div class="row"><button id="cow-pickup-one" class="btn plain" data-w="cowTank" data-n="1" ${total?'':'disabled'}>Collect 1 gallon</button><button id="cow-pickup-all" class="btn" data-w="cowTank" data-n="50" ${total?'':'disabled'}>Collect all that fits</button></div>`;
+    const name=job?G.meta('cow',s.cows.findIndex(c=>c.id===job.cowId)).name:'';
+    return `<h3><span>⚙️ Robot milker</span>${x}</h3>${summary}<p>${job?esc(name)+' · '+({approaching:'Walking to robot',milking:'Milking · '+Math.round(Math.min(100,(nowMs()-job.startedAt)/120))+'%',exiting:'Leaving robot'}[job.stage]):'Select a ready cow, then press Milk.'}</p><p>${s.queue.length} waiting · ${total>=50?'Empty the bulk tank first':'12 seconds per docked cow'}</p>`;
+  }
   if(f.type==='chickenStation'){
     const s=G.getChickenCareStatus(),why={full:'Egg pallet full',feed:'Feed bin empty',water:'Waterer empty','feed-water':'Fill feed and water','no-chickens':'Add a chicken',unavailable:'Update required for this chicken save',unowned:'Buy the chicken coop first'}[s.reason]||'Producing eggs';
     const summary=`<div class="tray-sub">${s.total}/${G.CHICKEN_CARE.capacity} eggs · ${why}</div><div class="tray-sub">Feed: ${G.fmt(s.feedMs)} · Water: ${G.fmt(s.waterMs)}</div>`;
@@ -3519,11 +3613,14 @@ function trayHtml() {
       <div class="row"><button class="btn gold" data-act="plot+">Buy · ${plotCostTxt()}</button></div>`;
   if (f.type === "animal") {
     const an = f.an, k = an.kind, i = an.ref.i, a = G.ANIMALS[k], pen = GS().pens[k], m = G.meta(k, i), end = pen.list[i], t = nowMs();
-    const status = k==="chicken"?"Feed and water at the stations · eggs on the outside pallet":end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
+    const cs=k==='cow'?(cowStatus||G.getCowCareStatus()):null,cow=cs?.cows[i],cj=cs?.job&&cs.job.cowId===cow?.id?cs.job:null,cqueued=cs?.queue.includes(cow?.id);
+    const cowText=cs?(!cowYardActive?'Make space for the dairy courtyard':cj?({approaching:'Walking to robot',milking:'Robot milking',exiting:'Leaving robot'}[cj.stage]):cqueued?'Queued for robot':cow?.ready?'Ready to milk':cow?.feedCharged?'Making milk · '+G.fmt(Math.max(0,cow.duration-cow.progress)):'Stock the feed bunk and water trough'):'';
+    const status = k==='cow'?cowText:k==="chicken"?"Feed and water at the stations · eggs on the outside pallet":end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
     const hungry = pen.list.filter(e => e === 0).length, d = `data-k="${k}" data-i="${i}"`;
     return `<div class="acard"><img src="${ART + k}.webp" alt=""><div class="who"><b class="nm">${esc(m.name)}</b><button class="rn" data-w="rename" aria-label="Rename">✏️</button>
       <div class="hearts">${G.hearts(m)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div><div class="tray-sub">${status}</div></div>${x}</div>
-      <div class="row">${k!=="chicken" && end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
+      <div class="row">${k!=="chicken" && k!=="cow" && end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
+      ${k==='cow'?`<button id="cow-milk" class="btn" data-w="cowMilk" data-id="${cow?.id||''}" ${!cowYardActive||!cow?.ready||cj||cqueued?'disabled':''}>🥛 Milk</button><button class="btn plain sm" data-w="cowStation" data-station="feed">Feed bunk</button><button class="btn plain sm" data-w="cowStation" data-station="tank">Bulk tank</button>`:''}
       ${cdBtn("petA", "🤚 Pet", m.petAt, PET_CD, d)}${cdBtn("brushA", "✨ Brush", m.brushAt, BRUSH_CD, d)}${k === "horse" ? cdBtn("rideA", "🏇 Ride", m.playAt, PLAY_CD, d) : ""}
       ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">+ ${a.e} ${a.cost} 🪙</button>` : ""}</div>
       <div class="tray-sub center" style="margin-top:6px">${G.loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
@@ -3540,13 +3637,18 @@ function trayHtml() {
     return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Tap Move, then drag it with one finger</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button><button class="btn sm" data-w="move" data-i="${f.j}">✋ Move</button></div>`; }
   return "";
 }
-function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
 function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
 infoTray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-w]"); if (!b) return;
   const d = b.dataset, f = trayFor, i = +d.i;
   switch (d.w) {
     case "close": closeTrays(); return;
+    case 'cowStation':openInfo({type:'cowStation',station:d.station});return;
+    case 'cowFeed':if(cowYardActive)G.fillCowFeed(30);syncCowYard();refreshInfo();return;
+    case 'cowWater':if(cowYardActive)G.fillCowWater();syncCowYard();refreshInfo();return;
+    case 'cowMilk':if(cowYardActive)G.milkCow(d.id);syncCowYard();refreshInfo();return;
+    case 'cowTank':if(cowYardActive)G.collectCowTank(+d.n);syncCowYard();refreshInfo();return;
     case 'chickenFill': if(G.refillChickens(d.resource,+d.rev,+d.cost))closeTrays();else refreshInfo();return;
     case 'chickenPaint': if(chickenPreview){chickenPreview[d.part]=d.value;syncChickenYard();refreshInfo();}return;
     case 'chickenApply': if(chickenPreview&&G.setChickenAppearance(chickenPreview)){chickenPreview=null;closeTrays();}return;
@@ -3575,7 +3677,7 @@ let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
   const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const an = ray.intersectObjects(animals.map(a => a.card))[0];
-  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]),...(cowYardActive?cowYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
   let hit = hits[0];
   // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
@@ -3689,13 +3791,13 @@ function onTap(e) {
   if (wardrobeOn) return true; // (drag to turn around your farmer; taps do nothing here)
   const h = hitAt(e.clientX, e.clientY);
   if (!h) { closeTrays(); return false; }
-  if(h.type==='chickenStation'&&walk&&(h.dist??Infinity)>(thirdPerson?8.5:5))return false;
+  if((h.type==='chickenStation'||h.type==='cowStation')&&walk&&(h.dist??Infinity)>(thirdPerson?8.5:5))return false;
   switch (h.type) {
     case "animal": {
-      const an = h.an; squish(an.g, 1.3);
+      const an = h.an;if(an.kind!=="cow")squish(an.g, 1.3);
       if (an.ref.type === "pen") {
         const end = GS().pens[an.kind].list[an.ref.i];
-        if (an.kind!=="chicken" && end && end <= nowMs()) { // everyone ready drops what they made
+        if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { // everyone ready drops what they made
           const k = an.kind, before = GS().pens[k].list.slice(); G.collectAll(k); an.emote("✨", 1.5); closeTrays();
           for (const a of animals) if (a.ref.type === "pen" && a.kind === k && before[a.ref.i] !== GS().pens[k].list[a.ref.i]) animalDrop(a, G.ANIMALS[k].out);
           return true; }
@@ -3718,6 +3820,7 @@ function onTap(e) {
     case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
     case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
     case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
+    case 'cowStation':closeTrays();openInfo({type:'cowStation',station:h.station});return true;
     case 'chickenStation': {
       if(h.station==='eggs'){const n=G.collectChickenEggs();syncChickenYard();if(n){G.toast('Picked up '+n+' eggs. '+G.getChickenCareStatus().total+' remain on the pallet.');closeTrays();return true;}}
       closeTrays();if(h.station==='coop')chickenPreview={...G.CHICKEN_DEFAULT_STYLE,...GS().pens.chicken.appearance};openInfo({type:'chickenStation',station:h.station});return true;
@@ -3858,13 +3961,15 @@ function updatePointer() {
 // ---------- every frame: crops grow, bubbles show what's ready ----------
 function updateGame(t, dt) {
   updatePlots(t); updateBuildings(t, dt);
+  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);}
   const T = nowMs();
   if (walk && !thirdPerson) camera.updateMatrixWorld();
   for (const a of animals) {
     let e = null;
     if (a.ref.type === "pen") { const end = GS().pens[a.kind].list[a.ref.i]; if (end && end <= T) e = G.ANIMALS[a.kind].out ? G.ITEMS[G.ANIMALS[a.kind].out].e : "🪙"; }
     else { const p = GS().pets[a.ref.j]; if (p && G.giftReady(p)) e = "🎁"; }
-    a.status.visible = !!e && a.act !== "sleeping"; if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
+    if(a.kind==='cow'){const c=cowStatus?.cows[a.ref.i];e=c?.ready?'🥛':null;}
+    a.status.visible = !!e && (a.kind==='cow'||a.act !== "sleeping"); if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
     if (e) a.status.position.y = a.S.h + .5 + Math.sin(t * 3 + a.phase) * .06;
     fitMarker(a.status, .7, camera, innerHeight, !!walk && !thirdPerson); fitMarker(a.bubble, .55, camera, innerHeight, !!walk && !thirdPerson);
   }
@@ -3881,7 +3986,7 @@ function updateGame(t, dt) {
   gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
   updatePointer();
 }
-setInterval(() => { if (document.hidden) return; syncChickenYard(); syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { if (document.hidden) return; syncChickenYard();syncCowYard(); syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
 setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);
 // the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
 setInterval(() => {
@@ -3936,7 +4041,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
