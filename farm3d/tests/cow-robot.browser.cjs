@@ -1,6 +1,28 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');const {start,artifacts}=require('./browser-harness.cjs');const {execFileSync}=require('node:child_process');
 const out=path.join(artifacts,'cow-robot');fs.mkdirSync(out,{recursive:true});const result={status:'RUNNING',head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),workingDiff:execFileSync('git',['diff','--stat'],{encoding:'utf8'}),physicalPhone:false,dpr:1,browser:process.env.CHROME_PATH||'CI pinned Chromium',checks:[],screenshots:[]};const save=()=>fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));let h,p,failed=true;save();
-(async()=>{try{h=await start({deviceScaleFactor:1,recordVideo:true,videoDir:path.join(out,'video')});for(const[width,height]of [String(process.env.COW_VIEWPORT||'844x390').split('x').map(Number)]){const touch=width<1000,s=await h.setup({width,height},touch,'cow-robot-'+width,touch);p=s.page;const press=selector=>touch?p.locator(selector).tap():p.locator(selector).click();await p.addInitScript(()=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');const nativeNow=Date.now.bind(Date);window.__cowOffset=0;Date.now=()=>nativeNow()+window.__cowOffset;});await p.goto(h.base+'farm3d/?debug&portrait&preset=noon&testfarm');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
+async function verifyCowActionIdentity(page){
+ const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+ const patch=html.slice(html.indexOf('function patchCowInfo('),html.indexOf('\nfunction refreshInfo('));
+ const refresh=html.slice(html.indexOf('function refreshInfo('),html.indexOf('\nfunction openInfo('));
+ const observed=await page.evaluate(({patch,refresh})=>{
+  const tray=document.createElement('div');tray.hidden=false;
+  const markup=(activity,disabled=false,id='cow-1',pet='Pet')=>`<div class="acard">${activity}</div><div class="row"><button id="cow-milk" data-w="cowMilk" data-id="${id}" ${disabled?'disabled':''}>Milk</button><button data-w="petA" data-k="cow" data-i="0">${pet}</button></div><div class="tray-sub">Live cow</div>`;
+  let next=markup('Eating');tray.innerHTML=next;tray.dataset.h=next;
+  const patchFn=new Function('return ('+patch+');')();
+  const refreshFn=new Function('infoTray','trayHtml','trayFor','closeTrays','patchCowInfo','return ('+refresh+');')(tray,()=>next,{type:'animal',an:{kind:'cow'}},()=>{},patchFn);
+  const milk=tray.querySelector('#cow-milk');let clicks=0;milk.addEventListener('click',()=>clicks++);
+  next=markup('Walking to water',false,'cow-1','Pet 3s');refreshFn();milk.click();
+  const stable=tray.querySelector('#cow-milk')===milk&&clicks===1;
+  const live=tray.querySelector('.acard').textContent==='Walking to water'&&tray.querySelector('[data-w="petA"]').textContent==='Pet 3s';
+  next=markup('Robot milking',true,'cow-1','Pet 2s');refreshFn();
+  const disabled=tray.querySelector('#cow-milk')===milk&&milk.disabled;
+  next=markup('Different cow',false,'cow-2');refreshFn();
+  return {stable,live,disabled,differentCow:tray.querySelector('#cow-milk')!==milk&&tray.querySelector('#cow-milk').dataset.id==='cow-2'};
+ },{patch,refresh});
+ assert.deepEqual(observed,{stable:true,live:true,disabled:true,differentCow:true});
+ result.actionIdentity=observed;result.checks.push('live cow activity retains action nodes and updates labels/disabled state; farm/cow switch rebuilds');save();
+}
+(async()=>{try{h=await start({deviceScaleFactor:1,recordVideo:true,videoDir:path.join(out,'video')});for(const[width,height]of [String(process.env.COW_VIEWPORT||'844x390').split('x').map(Number)]){const touch=width<1000,s=await h.setup({width,height},touch,'cow-robot-'+width,touch);p=s.page;const press=selector=>touch?p.locator(selector).tap():p.locator(selector).click();await p.addInitScript(()=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');const nativeNow=Date.now.bind(Date);window.__cowOffset=0;Date.now=()=>nativeNow()+window.__cowOffset;});await p.goto(h.base+'farm3d/?debug&portrait&preset=noon&testfarm');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});await verifyCowActionIdentity(p);
 await p.evaluate(()=>{const d=__dbg,G=d.G;G.close();G.PREFS.quality='high';G.view.setQuality('high');G.S.event=null;G.S.rush=null;G.S.visitor=null;G.opts.quiet=true;G.S.tut=99;G.S.nextEventAt=G.S.nextRushAt=G.S.nextVisitorAt=9e15;G.S.level=12;G.S.barnCap=400;G.S.barn={cow_feed:30,milk:7};G.S.pens.cow={owned:true,list:[0],meta:[{name:'Review Bessie',love:50,loveAt:Date.now()}]};G.view.refresh('all');});
 const site=await p.evaluate(()=>({active:__dbg.cowYardActive,issues:__dbg.cowYardIssues}));result.site=site;save();assert(site.active,'yard site unavailable: '+JSON.stringify(site.issues));
 await p.evaluate(()=>{const d=__dbg;d.cam.target.set(-7,1,-11);d.cam.dist=13;d.cam.pitch=.65;d.cam.yaw=1.6;Object.assign(d.view,{dist:13,pitch:.65,yaw:1.6});d.view.target.copy(d.cam.target);});const frame=await p.evaluate(()=>__dbg.renderer.info.render.frame);await p.waitForFunction(frame=>__dbg.renderer.info.render.frame>=frame+9,frame);await p.screenshot({path:path.join(out,'day-'+width+'.png')});result.screenshots.push('day-'+width+'.png');result.renderQuality=await p.evaluate(()=>({dpr:devicePixelRatio,pixelRatio:__dbg.renderer.getPixelRatio(),buffer:[__dbg.renderer.domElement.width,__dbg.renderer.domElement.height],quality:__quality()}));assert.equal(result.renderQuality.pixelRatio,1);save();

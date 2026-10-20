@@ -69,11 +69,37 @@ Original failure artifact12301871422 SHA256
 and screenshots/trace are retained in`cow-native-run13`. A new final exact-head
 browser/core run must qualify the corrected fixture before readiness is claimed.
 
+## Cow action identity during live updates
+
+On`086d589`, native390x844 supplies pass, then the unchanged30-second tap on
+`#cow-milk` times out. The cow remains ready with no queued job/tank credit.
+Artifact12301478162 SHA256
+`e3346bdc6229f518b1c574da4c234d40f56e52feff32d3b95a467a10988abdf2`
+retains screenshots, video and the action trace. It records repeated button
+replacement as activity changes from walking-to-water to off-to-graze, while
+`refreshInfo` rebuilds the entire card even though its Milk action is unchanged.
+This failure is tracked separately from the older Ready-cow/actBtn tap.
+
+A cow-only patch now retains actual action nodes by stable control identity and
+updates their attributes/disabled state/text in place. Activity/status remain
+live; changing the cow/control set still rebuilds. Other tray types keep their
+original refresh behavior. A real-browser DOM regression checks button/listener
+identity across activity and cooldown changes, live disabled state, and a
+new-cow rebuild. The original trusted native taps, timeouts, robot/XP/tank and
+care assertions remain unchanged. This runtime UI correction needs fresh native
+qualification; the DOM check is not substituted for the real journey.
+
+Cache54 delivers the changed inline page. Existing exact installed/offline,
+old-writer refusal and raw-save assertions are retained with their current-cache
+pins moved from53to54; the cow update also compares cached index.html bytes.
+The initial23 focused version/graph, actual-pose and original chicken/cow-control
+checks pass. Final native/full CI and owner approval remain required.
+
 Actual render evidence retained under the local`cow-native-run8` captures
 includes day/night, feed/drink/lie/stand, five occupied beds, robot teat contact
 and bulk-tank pickup at390/844/1280; installed52to53/cached29 refusal and
-queued/approaching/docked offline boundaries pass. The runtime is unchanged by
-the later scene-fixture and timing diagnostics, so those previews remain valid.
+queued/approaching/docked offline boundaries pass. The courtyard geometry/materials remain unchanged by the later validation and
+control-lifecycle corrections; final native CI must qualify the updated controls.
 Viewports and software-GPU timings do not establish sustained physical-phone
 performance. Review is by the sole author/lead, not an independent external audit.
 
