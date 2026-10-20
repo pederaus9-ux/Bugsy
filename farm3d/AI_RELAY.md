@@ -513,3 +513,16 @@ and baseline, then requires exact model cleanup equality. This preserves zero
 owned-geometry/texture leakage; hosted baseline proof and offline stage remain
 pending. Original exit1/log/artifact retained under native-attempt-1. No runtime
 change follows this test finding, and no whole-job pass is claimed.
+
+
+Offline setup correction: the native script atf122b8e waits on serviceWorker.ready
+on the harness HTTP origin without registering any worker. The unchanged page
+auto-registers only when location.protocol is HTTPS. A source-VM counterexample
+executes the actual page guard and test callbacks: HTTP auto-register0, HTTPS1;
+old setup reads ready with0register calls and never resolves. The corrected test
+explicitly registers sw.js, as existing installed-update suites do, then waits
+up to90seconds for the activated predecessor to control the page. No production
+worker, registration policy, save assertion or update assertion changes. Native
+proof of the corrected offline path remains pending; source-VM proof is not a
+browser result. Thef122hosted job was still running when this guaranteed setup
+hang was identified; preserve its eventual cancellation/timeout logs separately.
