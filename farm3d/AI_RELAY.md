@@ -580,3 +580,7 @@ remain untested. This is lead self-review, not owner acceptance. Farm Utility
 real-light feature remains next, separate from this PR. PR88 stays draft/open/
 unmerged pending owner appearance acceptance and explicit merge approval.
 Final evidence is on a separate branch so the tested PR head remains unchanged.
+
+
+## Owner-approved PR88 publication — October20
+Owner instructed Merge at08:03:41Chicago. PR88 merged13:04:10Z as8a18715515028904e984012eb3d37c41eb0f2dc2. Tree5d912e6a5489133a1076c911f20073ba38f8945a is identical to qualified headf0a043f6. Pages39427285408 SUCCESS; anonymous postdeploy index,decor-models,sw,game GETs all200 and byte-identical to reviewed files. Earlier predeployment old responses retained separately. Postmerge regression39427286563 remains inprogress at this checkpoint, not claimed as complete. Physical phones untested. Farm Utility buyable lighting is next separate scope. Prior owner-pending fields are historical, superseded by this approval/publication record.
