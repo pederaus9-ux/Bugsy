@@ -39,13 +39,35 @@ Artifact12299491740 SHA256
 `4463b7dd82ba34e521d82d2431f0f4cfc598e7bb0fe508b064efe18fac0f676f`
 was downloaded, verified and inspected, including recovery.json22/22.
 
-The final fixture adopts that qualified precondition without experiment flags;
+The adopted default at`fcb91e9` also passes22/22 in run39500639998, including
+the strict context-release guard. The final fixture adopts that qualified
+precondition without experiment flags;
 `npm run test:recovery` exercises it directly. It retains browser/network timing
 and original failures for future diagnosis. This is a headless test-fixture
 correction; sustained physical-phone reload performance remains unverified.
 All required workflows must pass on the final exact PR head before merge
 readiness is claimed. The PR head/CI result is resolved from GitHub rather than
 embedding a self-referential commit hash in this review document.
+
+## Pose-aware integration fixture
+
+The later full run on`fcb91e9` fails the legacy cow integration ray at1280:
+`cow3d.browser.cjs:50` expects`animal`, receives`undefined`. Its fixed camera
+looks at standing height0.9 even when natural courtyard care has folded the cow.
+The same actual lying mesh reproduces0triangle hits from that ray. With the
+production38-degree camera, the fallback point is18.731/20.292/37.462pixels away
+at740/844/1280 respectively; the unchanged34-pixel fallback only covers the two
+small views. This is distinct from the historical moving-cow tap failure.
+
+The fixture now aims at the actual animated torso and additionally requires a
+direct skinned-mesh hit, preserving the existing`animal`/`cow`, phase, distance,
+resource and sandbox-save assertions. The real torso ray hits3triangles in all
+three views; six actual-pose geometry tests pass locally. Production picking,
+pose geometry, fallback radius and trusted-input/native tests are unchanged.
+Original failure artifact12301871422 SHA256
+`82955c5a6c16f0c5de1e5d1cde882b754c976403e9426cfe60025bdff1397961`
+and screenshots/trace are retained in`cow-native-run13`. A new final exact-head
+browser/core run must qualify the corrected fixture before readiness is claimed.
 
 Actual render evidence retained under the local`cow-native-run8` captures
 includes day/night, feed/drink/lie/stand, five occupied beds, robot teat contact

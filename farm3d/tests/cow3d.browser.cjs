@@ -7,7 +7,8 @@ const {start,artifacts}=require('./browser-harness.cjs');
    const s=await h.setup(viewport,true,'cow3d-'+viewport.width,viewport.width<1000),{page,errors}=s;
    await page.goto(h.base+'farm3d/?testfarm&debug&portrait&shot&sim=0');
    await page.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
-   const integration=await page.evaluate(()=>{
+   const integration=await page.evaluate(async()=>{
+    const THREE=await import('./lib/three.module.min.js');
     const d=__dbg,before=localStorage.getItem('sunny-acres-3d-v1');d.G.opts.quiet=true;d.renderer.shadowMap.enabled=false;
     const types=d.animals.map(a=>({kind:a.kind,real3d:!!a.rig3d}));
     const a=d.animals.find(a=>a.kind==='cow');
@@ -33,9 +34,15 @@ const {start,artifacts}=require('./browser-harness.cjs');
     const phase=a.rig3d.state.phase;for(let i=0;i<180;i++)a.update(1/60,d.clock());a.fit=fit;
     // Pick the real rig from a clear test position: nearby roaming animals can
     // legitimately occlude this cow in its pen and win the same center ray.
-    a.g.position.set(40,0,40);d.camera.position.set(42,1.6,37);d.camera.lookAt(40,.9,40);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
+    a.g.position.set(40,0,40);d.camera.position.set(42,1.6,37);d.scene.updateMatrixWorld(true);a.card.skeleton.update();
+    // The courtyard can legitimately have folded this cow onto its bed. Aim
+    // at the actual animated torso, rather than an empty standing-height point.
+    const aim=a.rig3d.body.getWorldPosition(new THREE.Vector3());
+    d.camera.lookAt(aim);d.camera.updateMatrixWorld(true);
+    const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(),d.camera);
+    const skinHit=ray.intersectObject(a.card,false).some(h=>h.object===a.card);
     const hit=d.hitAt(innerWidth/2,innerHeight/2);
-    return {types,lighting,meshes,visuals,travelSetup,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
+    return {types,lighting,meshes,visuals,travelSetup,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,picking:{skinHit,aim:aim.toArray(),act:a.act,task:a.cowTask?.kind,stage:a.cowTask?.stage},hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
    });
    fs.writeFileSync(path.join(artifacts,'cow3d-'+viewport.width+'-integration.json'),JSON.stringify(integration,null,2));
    const live=new Set(['cow','sheep','horse','dog','cat','chicken']);
@@ -48,6 +55,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
    for(const l of integration.lighting)assert.deepEqual(l.cowEmissive,[0,0,0],'3D coat must not inherit untextured picture glow');
    assert.ok(integration.distance>.01);assert.ok(Math.abs(integration.distance-integration.measured)<1e-8);
    assert.equal(integration.phase,integration.afterPhase);assert.ok(integration.amount<1e-10);assert.equal(integration.hit,'animal');assert.equal(integration.kind,'cow');assert.ok(integration.savePreserved);
+   assert.equal(integration.picking.skinHit,true,'actual skinned cow is picked without the screen-distance fallback');
    assert.deepEqual(errors,[]);console.log('PASS 3D cow farm travel, blocking, picking and sandbox save',viewport.width);
    await page.goto(h.base+'farm3d/characters3d.html?capture&debug');await page.waitForFunction(()=>window.cowPreview,null,{timeout:30000});
    for(const mode of ['idle','walk','run','eat']){

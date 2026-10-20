@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-20T21:27:01.444689Z",
+  "lastUpdatedUtc": "2026-10-20T21:45:54.445594Z",
   "codeBaseline": {
     "description": "PR89 Farm Utility lights merged/published; postmerge regression successful",
     "mergeCommit": "bf404a2a1261f3c7581025b249f2bd00c4539964",
@@ -106,7 +106,7 @@
   "completedThrough": "Cow, horse, sheep, dog, cat and chicken integrated; owner accepted all current animals on 2026-10-12",
   "currentPhase": "COW_COURTYARD_IMPLEMENTATION_QA",
   "currentPhaseTitle": "Concept4 courtyard, beds and robot-to-bulk-tank milking",
-  "phaseStatus": "CLOUD_FIX_QUALIFIED22_FINAL_EXACT_HEAD_CI_AND_OWNER_PENDING",
+  "phaseStatus": "CLOUD_FIX_QUALIFIED22_POSE_PICKING_FIX_FINAL_CI_PENDING",
   "visualAcceptance": "ALL_CURRENT_ANIMALS_OWNER_ACCEPTED",
   "activePullRequest": 90,
   "nextPhases": [
@@ -2673,7 +2673,7 @@
     ],
     "executionMethod": "Native sole lead; adversarial self-review; no independent-agent claim",
     "plansApprovedAt": "2026-10-20T11:52:40-05:00",
-    "status": "CLOUD_FIX_QUALIFIED22_FINAL_EXACT_HEAD_CI_AND_OWNER_PENDING",
+    "status": "CLOUD_FIX_QUALIFIED22_POSE_PICKING_FIX_FINAL_CI_PENDING",
     "branch": "codex/cow-courtyard-20261020",
     "sourceCheckpoint": {
       "local": "d635d7c2f4a7484613a0651457b05c7491409431",
@@ -2808,7 +2808,7 @@
         "Actual floor flowers are separate Phase7M scenery, not grass gaps; restore original1.85 square clearings and reversibly hide original meadow instances only within yard, with byte-identical removal restoration"
       ],
       "validation": "Source-specific22/22 original recovery assertions PASS with original30s reload/25s import hold; all pre-existing check expressions and timing windows retained. f5ebd11 full CI24/25, with only the now-diagnosed cloud fixture timeout failing. Final-head CI pending.",
-      "remaining": "Final exact-head required CI and owner actual-preview/merge approval"
+      "remaining": "Exact final-head CI including stricter cow skin pick, full cloud recovery/SDK and owner actual-preview/merge approval"
     },
     "offlineFixtureCorrection": "Shot fixture first loads textures before manual worker registration; keep zero errors and all accounting assertions, reopen online under installed controller and assert3actual cached textures before offline. No production worker relaxation and no first-install offline claim.",
     "historicalSourceCheckpoint": {
@@ -2892,6 +2892,28 @@
       "evidence": "cow-native-run12/cloud-lifecycle; ignored cloud-lifecycle-2fd0500-green.log",
       "scope": "Test fixture lifecycle qualification; physical-phone teardown performance not measured"
     },
-    "finalCandidateRequirement": "PR90 stays draft and unmerged. Resolve final head from GitHub, require every final-head workflow, retain original failure artifacts and publish the actual preview for owner approval."
+    "finalCandidateRequirement": "PR90 stays draft and unmerged. Resolve final head from GitHub, require every final-head workflow, retain original failure artifacts and publish the actual preview for owner approval.",
+    "corePickingFixtureCorrection": {
+      "failedHead": "fcb91e9de0f1d1c048c7ee35223ecbb67e103ad5",
+      "run": 39500649259,
+      "job": 118897194957,
+      "assertion": "cow3d.browser.cjs:50 expected hit='animal', actual undefined,1280px",
+      "artifact": 12301871422,
+      "sha256": "82955c5a6c16f0c5de1e5d1cde882b754c976403e9426cfe60025bdff1397961",
+      "reproduction": "Actual folded cow torso y0.425; old standing-height ray hits0triangles. Exact38degree camera fallback distance18.731px at740,20.292px at844,37.462px at1280 vs unchanged34px radius. Actual torso ray hits3triangles at every viewport.",
+      "correction": "Aim fixture at actual animated torso and require direct skinned-mesh ray hit, preserving original hit/kind and movement/save/resource assertions. No production picking, pose, thresholds or cow freezes changed.",
+      "local": "Six pose/geometry testsPASS; browser syntax/diffchecksPASS; browser full qualification pending",
+      "separateFrom": [
+        "Earlier native Ready-cow tap/fpsPad failure",
+        "Historical wardrobe resource-count decrease",
+        "Cloud old-context teardown timeout"
+      ]
+    },
+    "cloudFixDefaultQualification": {
+      "head": "fcb91e9de0f1d1c048c7ee35223ecbb67e103ad5",
+      "run": 39500639998,
+      "job": 118896940904,
+      "result": "PASS original recovery22/22 with adopted default and strict release guard; detailed full rules/functions/SDK job still active when picking fixture correction prepared"
+    }
   }
 }
