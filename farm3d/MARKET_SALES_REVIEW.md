@@ -78,3 +78,24 @@ Latest focused local suite:98/98PASS including new readiness checks. Initial
 local/browser limitations and every failed native sample remain retained. This
 review document is a running checkpoint; a later immutable assessment records
 final refs, actual images and hosted results without changing the tested PR head.
+
+
+## Cow integration fixture precondition
+
+Current-head core job118491469566 completed43Node invocations/259assertions and
+regression.browser/shed-switch, then failed cow3d.browser at740: distance0 vs>.01.
+Trace return also records measured0; the last two core browser suites were not
+reached and are not credited. Artifact12246351548 SHA2565116b03583fc1fcfe737ad0f6bf18c567527fe38679e1b55ae28656e943488a1
+and its original trace/log are retained. The screenshot is teardown evidence,
+not an exact snapshot of the synchronous travel probe.
+
+Actual fixture code ends its lighting inspection with setPreset('night'), forces
+the cow mode to'fair', then requests a stroll. Actual Actor.update clears that
+target when it detects the fair→night mismatch. A fail-first fixture/production-
+branch counterexample proves the conflict. Restoring noon after all five lighting
+samples establishes the intended fair-weather travel precondition. Every old
+assertion/threshold,120travel and180blocked updates, native controls and budget
+remain intact. Integration snapshots now persist requested path and first-step
+mode/target on failure. Cow/actor/renderer/game runtime is unchanged; no old cow
+program or performance/recorder work is reopened.100focused local checks pass.
+The corrected original native cow probe and complete exact-head CI are pending.

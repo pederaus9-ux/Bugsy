@@ -19,10 +19,15 @@ const {start,artifacts}=require('./browser-harness.cjs');
       return {parts,proxy:c.card===c.rig3d.card,skinned:!!(c.card&&c.card.isSkinnedMesh)};
     });
     const lighting=['noon','golden','rain','snow','night'].map(preset=>{d.setPreset(preset);return {preset,cowEmissive:a.card.material.emissive.toArray()};});
+    // The preceding inspection deliberately ends at Night. The production
+    // weather transition correctly cancels a fair-weather target at night;
+    // restore daylight before testing this explicitly fair-weather stroll.
+    d.setPreset('noon');
     a.mode='fair';a.until=9e15;a.act='idle';a.doing=null;a.need={hunger:0,tired:0,lonely:0};
     a.go(a.g.position.x+.9,a.g.position.z+.6,false,'Test stroll');
     const start=a.rig3d.state.distance;let distance=0;
-    for(let i=0;i<120;i++){const x=a.g.position.x,z=a.g.position.z;a.update(1/60,d.clock());distance+=Math.hypot(a.g.position.x-x,a.g.position.z-z);}
+    const travelSetup={commandedPreset:'noon',mode:a.mode,position:[a.g.position.x,a.g.position.z],target:a.target?.toArray()||null,path:a.path?.map(p=>p.toArray())||[]};
+    for(let i=0;i<120;i++){const x=a.g.position.x,z=a.g.position.z;a.update(1/60,d.clock());distance+=Math.hypot(a.g.position.x-x,a.g.position.z-z);if(i===0)travelSetup.firstUpdate={mode:a.mode,act:a.act,target:a.target?.toArray()||null,position:[a.g.position.x,a.g.position.z]};}
     const measured=a.rig3d.state.distance-start;
     const x=a.g.position.x,z=a.g.position.z,fit=a.fit;a.fit=v=>v.set(x,z);a.target=a.pos.addScalar(5);a.until=9e15;
     const phase=a.rig3d.state.phase;for(let i=0;i<180;i++)a.update(1/60,d.clock());a.fit=fit;
@@ -30,8 +35,9 @@ const {start,artifacts}=require('./browser-harness.cjs');
     // legitimately occlude this cow in its pen and win the same center ray.
     a.g.position.set(40,0,40);d.camera.position.set(42,1.6,37);d.camera.lookAt(40,.9,40);d.camera.updateMatrixWorld(true);d.scene.updateMatrixWorld(true);
     const hit=d.hitAt(innerWidth/2,innerHeight/2);
-    return {types,lighting,meshes,visuals,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
+    return {types,lighting,meshes,visuals,travelSetup,distance,measured,phase,afterPhase:a.rig3d.state.phase,amount:a.rig3d.state.amount,hit:hit?.type,kind:hit?.an?.kind,savePreserved:localStorage.getItem('sunny-acres-3d-v1')===before};
    });
+   fs.writeFileSync(path.join(artifacts,'cow3d-'+viewport.width+'-integration.json'),JSON.stringify(integration,null,2));
    const live=new Set(['cow','sheep','horse','dog','cat','chicken']);
    assert.ok(integration.types.some(a=>a.kind==='cow'&&a.real3d));
    for(const a of integration.types)assert.equal(a.real3d,live.has(a.kind));
