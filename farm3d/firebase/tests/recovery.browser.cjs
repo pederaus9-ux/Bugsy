@@ -119,6 +119,7 @@ async function main() {
       timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
       timing?.mark('reload-return');
+      if (timing) await timing.stopChromeTrace();
       const sampling = watch(uid, 45000, (c) => c && has(c.save, base.token));
       const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token, 120000);
       const c = await cloud(uid), s = await st(); const bad = await sampling;

@@ -12,12 +12,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   gpu-precondition:
-    name: Recovery with measured GPU completion precondition
+    name: Recovery document request and response timing
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       RECOVERY_TIMING: '1'
-      RECOVERY_DRAIN_GPU: '1'
+      RECOVERY_DRAIN_GPU: '0'
     steps:
       - uses: actions/checkout@v6
         with:

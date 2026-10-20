@@ -90,7 +90,11 @@ async function startEmu(opts = {}) {
   // opts.economy: turn on the dormant Phase 7I economy (features.js) the only way it can be: a test-harness flag set
   // before any game script runs, on this local test server
   const economy = !!opts.economy;
+  const timingPhones = [];
   const server = http.createServer((req, res) => {
+    const timingPhone = req.url.split('?')[0] === '/farm3d/' ? timingPhones.find(p => p.recordRecoveryTiming) : null;
+    timingPhone?.recordRecoveryTiming('server-document-received');
+    if (timingPhone) res.once('finish', () => timingPhone.recordRecoveryTiming?.('server-document-finished'));
     let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
@@ -151,7 +155,7 @@ async function startEmu(opts = {}) {
     // a slow cloud answer on the next load: auth.js delays its first farm read's answer by this many ms (see readCloud)
     if (economy) await context.addInitScript(() => { window.__saTestEconomy = true; });
     await context.addInitScript(() => { try { const h = localStorage.getItem('__hold_cloud_once'); if (h !== null) { window.__saTestHoldCloudRead = +h; localStorage.removeItem('__hold_cloud_once'); } } catch (e) {} });
-    const p = {name, context, page: null};
+    const p = {name, context, page: null}; timingPhones.push(p);
     await newPage(p); return p;
   }
   async function sleep(p) { if (p.page) { await p.page.close({runBeforeUnload: true}); p.page = null; } }
