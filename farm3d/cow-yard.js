@@ -26,6 +26,14 @@ export function cowYardConflicts({blocks=[],decor=[]}={}){
  return hits;
 }
 
+// The scenery meadow is separate from the game's grass-clearing ownership.
+// Keep its original instance bytes so visiting/removing this yard restores it.
+export function createCowYardPlantClearing(meshes){
+ const parts=meshes.filter(m=>m?.isInstancedMesh).map(mesh=>({mesh,original:mesh.instanceMatrix.array.slice()}));
+ const p=COW_YARD_LAYOUT.footprint,x0=p[0][0],x1=p[1][0],z0=p[0][1],z1=p[2][1];let active=false;
+ return {setActive(value){value=!!value;if(value===active)return;active=value;for(const{mesh,original}of parts){const a=mesh.instanceMatrix.array;a.set(original);if(active)for(let i=0;i<mesh.count;i++){const o=i*16,x=original[o+12],z=original[o+14];if(x>=x0&&x<=x1&&z>=z0&&z<=z1)for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;}}};
+}
+
 export function createCowYard(){
  const group=new THREE.Group();group.name='cow-yard';
  const materials=Object.fromEntries(Object.entries({blue:0x7fabb7,cream:0xeae0c7,roof:0x506e7c,metal:0x9baaaa,dark:0x3a4949,straw:0xbfa257,feed:0xb58d43,water:0x507f89,concrete:0xaaa998,grass:0x748b49,milk:0xf2e9cf}).map(([k,color])=>[k,new THREE.MeshStandardMaterial({color,roughness:k==='metal'?.4:.85,metalness:k==='metal'?.4:0})]));

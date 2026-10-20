@@ -682,3 +682,22 @@ site decision. Both now have regression tests and local fixes; transition15
 checks pass. These corrections require a new hosted source checkpoint. No
 independent external-agent audit or physical-phone performance claim exists.
 Historical wardrobe resource decrease remains unassigned.
+
+
+## Checkpoint93a47fa results and current corrections
+
+Diagnostic39476066195:390touch/1280mouse, three-size poses/five distinct beds/
+20GPU rebuilds and complete installed/interrupted/queued offline checks PASS.
+844Ready-cow tap FAIL: naturally moving cow left fixed aim; camera-follow probe
+now retains real taps/30s timeout and removes animal-freeze assumptions.
+Art39476072800 all3PASS, conflicts39476072859PASS. Authenticated cow upload
+and restoration pass in39476072804, then the original25s delayed-start race
+hits its original30s load wait; timing diagnostics added without relaxing it.
+
+Correction to earlier clearance diagnosis: clearGrass already uses squares.
+Flowers in captures come from separate Phase7M meadow instances. Restore the
+original1.85 square grass coverage; the new courtyard-only reversible meadow
+clearing hides stems/heads inside the footprint and restores original bytes on
+removal. Phase7M geometry/color/placement remains unchanged; its only source
+change names stems for this bounded integration, version4 cached in shell53.
+Current66focused checks PASS. Fresh rendered/full final-head results required.

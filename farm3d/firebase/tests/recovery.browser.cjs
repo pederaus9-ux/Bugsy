@@ -34,7 +34,7 @@ async function main() {
   const g = await E.phone('grandma');
   const st = () => P(g, (k) => ({sentinel: window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel, level: window.__dbg && window.__dbg.G.S.level,
     coins: window.__dbg && window.__dbg.G.S.coins, recover: localStorage.getItem('sa3d-recover'), sync: localStorage.getItem('sa3d-sync-rev'),
-    kept: localStorage.getItem(k + '-unreadable'), raw: localStorage.getItem(k), user: window.saAuth && window.saAuth.user && window.saAuth.user.email}), SAVE_KEY);
+    boot:localStorage.getItem('sa3d-boot'),ready:!!window.__ready,navigation:performance.getEntriesByType('navigation').map(n=>({duration:n.duration,dom:n.domContentLoadedEventEnd,load:n.loadEventEnd})),kept: localStorage.getItem(k + '-unreadable'), raw: localStorage.getItem(k), user: window.saAuth && window.saAuth.user && window.saAuth.user.email}), SAVE_KEY);
   const loaded = (pred, arg, timeout = 180000) => g.page.waitForFunction(pred, arg, {timeout, polling: 250}).then(() => true, () => false);
   const gameUp = () => loaded(() => window.__ready && window.__dbg && window.__dbg.G.S && window.saAuth && window.saAuth.user);
   // give the farm a fresh sentinel and wait until the cloud holds exactly this phone's save, with nothing pending

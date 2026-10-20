@@ -671,7 +671,7 @@ import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
-import {createCowYard,COW_YARD_LAYOUT,cowYardConflicts} from './cow-yard.js?v=1';
+import {createCowYard,COW_YARD_LAYOUT,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=1';
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {getAnimalCarePose} from './animal-care-poses.js?v=1';
 import {createCowDockGate} from './cow-stations.js?v=1';
@@ -685,7 +685,7 @@ import {FEATURES} from "./features.js?v=1";
 import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=2";
 import {installPlayerMotion} from "./player-motion.js?v=1";
 import {installArmAttachment} from "./player-arm-attachment.js?v=1";
-import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=3";
+import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=4";
 const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
 
 const qs = new URLSearchParams(location.search);
@@ -1401,7 +1401,7 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
 }
 const chickenYard=createChickenYard();scene.add(chickenYard.group);
 const cowYard=createCowYard();cowYard.group.visible=false;scene.add(cowYard.group);
-let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0;
+let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0,cowPlantClearing=null;
 const cowStations=createStationScheduler(cowYard.stations),cowStationById=new Map(cowYard.stations.map(s=>[s.id,s]));
 const cowSurfaces=new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:-4.8,s.surface,s.kind==='feed'?-8.05:s.dock[2])]));
 CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
@@ -1853,7 +1853,8 @@ function syncChickenYard(){
   chickenYard.setStatus(G.getChickenCareStatus());
 }
 function setCowGrass(active){
-  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z,active?2.65:0);if(!active)CLEARS.delete(key);}
+  cowPlantClearing?.setActive(active);
+  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z,active?1.85:0);if(!active)CLEARS.delete(key);}
 }
 function syncCowYard(){
   const owned=!!G.S?.pens.cow?.owned;
@@ -4060,6 +4061,7 @@ if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 
 updatePlots(0);
 bootStep("setting the weather and time of day");
 installWorld(scene, renderer);
+cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")]);cowPlantClearing.setActive(cowYardActive);
 const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
   getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
 const armAttachment = installArmAttachment({THREE,camera,fallback:hands,

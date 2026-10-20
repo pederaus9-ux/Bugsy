@@ -110,6 +110,7 @@ async function startEmu(opts = {}) {
     const write = (line) => { fs.appendFileSync(logf, stamp() + line + '\n'); if (process.env.FLOW_DEBUG) console.log('[' + name + '] ' + line.slice(0, 300)); };
     page.on('console', m => { const t = m.text(); if (!/WebGL|GPU stall|GL Driver/.test(t)) write(m.type() + ': ' + t); if (/permission|insufficient/i.test(t)) denials.push(name + ': ' + t); });
     page.on('pageerror', e => { write('pageerror: ' + e.message); if (/permission|insufficient/i.test(e.message)) denials.push(name + ': ' + e.message); });
+    page.on('framenavigated',frame=>{if(frame===page.mainFrame()&&p.delayGame)write('delayed-start navigation committed '+frame.url());});
     page.on('load', () => { loads[name] = (loads[name] || 0) + 1; write('--- page load #' + loads[name] + ' ' + page.url()); });
     // every economy call (Phase 7I) and its answer
     page.on('request', r => { if (r.url().startsWith('http://' + FN)) { economyCalls.push({page: name, method: r.method(), url: r.url()}); if (r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); } });
@@ -134,7 +135,7 @@ async function startEmu(opts = {}) {
         if (body.includes('farms/' + p.blockFarmRead)) { p.blockedReads = (p.blockedReads || 0) + 1; write('farm read BLOCKED ' + p.blockFarmRead); return route.abort('failed'); }
       }
       // hold back a file the game awaits before G.start(), so auth.js's sign-in step runs before game.js reads the save
-      if (p.delayGame && /\/cow3d\.js/.test(url)) return new Promise(r => setTimeout(r, p.delayGame)).then(() => route.continue());
+      if (p.delayGame && /\/cow3d\.js/.test(url)) { const began=Date.now(),delay=p.delayGame;write('delayed cow import requested: '+delay+'ms '+url);return new Promise(r=>setTimeout(r,delay)).then(()=>{write('delayed cow import released after '+(Date.now()-began)+'ms '+url);return route.continue();}); }
       // serve a different auth.js (e.g. an older revision) to show what a fix changes
       if (p.authFile && /\/farm3d\/auth\.js/.test(url)) return route.fulfill({contentType: 'text/javascript', body: fs.readFileSync(p.authFile, 'utf8')});
       if (url.startsWith(base) || url.startsWith('http://' + FS) || url.startsWith('http://' + AUTH) || url.startsWith('http://' + FN)) return route.continue();

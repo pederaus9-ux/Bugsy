@@ -111,3 +111,34 @@ Adversarial author review also adds proven regressions for same-count farm
 recovery/visit cleanup and saved layout before courtyard installation. Exact
 predecessor/anatomy/gait/auth/security/light/market production sources remain
 unchanged. Final hosted qualification must run on the corrected source.
+
+
+## Corrected review of checkpoint93a47fa
+
+The earlier circle-gap explanation was wrong: existing grass clearings are
+squares. Its enlarged radius did not remove the visible flowers. Actual scene
+inspection identifies separate Phase7M meadow stems/heads. The candidate now
+restores original1.85 square clearings and adds a reversible instance-only
+clearing within the courtyard. The meadow geometry/colors/placements outside
+remain unchanged; removing the yard restores original instance bytes. Phase7M
+adds only a stable stem name, with page/worker import updated to4. Native checks
+now assert zero visible meadow instances within the yard at all three sizes.
+
+Current focused checks:66PASS,0fail/skip.93a47fa passes390touch,1280mouse, all
+three normal-composer poses/five beds/20GPU rebuilds, installed update and all
+interrupted-job/queued offline cases. Its844Ready-cow tap fails when the cow
+leaves the fixed camera aim; no job or milk is manufactured. The probe now follows
+the moving cow with its camera throughout the trusted tap, removing its old
+animal-freeze assumptions. Original30-second tap timeout and real input remain.
+
+Matched static1280 High software-GPU frames average11.01ms without the yard
+and11.54ms with it (10samples each, PR1). This is not physical-phone performance.
+Warm20rebuilds return exactly315geometries/95textures within that run.
+
+Art39476072800 (3jobs) and conflicts39476072859 pass. Authenticated cow
+upload/restore pass, but later original delayed-start race hits its unchanged
+30-second load timeout. Its original cloud log/artifact12289419079 digest
+`93908ba81922b8448682f7ea9cc892d2e02e602f0df204039b388bd6bf4f8112`
+are recovered. Added request-hold/release/navigation/boot timing observations
+will distinguish causes; no production auth or recovery assertion changed.
+Full final-head checks and owner gates remain pending.
