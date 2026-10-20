@@ -13,18 +13,28 @@ for(const protocol of ['http:','https:']){
 }
 const before=original.match(/await p\.evaluate\((async\(\)=>\{const r=await navigator\.serviceWorker\.getRegistration\(\);await navigator\.serviceWorker\.ready;[^\n]*?\})\);await p\.reload/)[1];
 const explicit=current.match(/await p\.evaluate\((\(\)=>\{window\.__decorRegistrationError=null;[^\n]*?\})\);/)[1];
-const predicate=current.match(/await p\.waitForFunction\((async\(\)=>\{if\(window\.__decorRegistrationError\)[^\n]*?\}),null,\{timeout:90000\}\);/)[1];
+const predicate=current.match(/await p\.waitForFunction\((\(\)=>\{if\(window\.__decorRegistrationError\)[^\n]*?\}),null,\{timeout:90000\}\);/)[1];
+// Execute the installed Playwright polling condition, not an invented async wait.
+const playwright=fs.readFileSync(path.join(root,'farm3d/tests/node_modules/playwright-core/lib/coreBundle.js'),'utf8');
+const poll=playwright.match(/const success = predicate\(\);\s*if \(success\) \{\s*fulfill\(success\);\s*return;\s*\}/)[0];
+let premature=0;const asyncFalse=Promise.resolve(false);
+vm.runInNewContext('(function(){'+poll+'})()',{predicate:()=>asyncFalse,fulfill(){premature++;}});
+assert.equal(premature,1,'the actual Playwright poll considers a Promise truthy');
 (async()=>{
  let registerCalls=0,readyReads=0,registration,oldResolved=false;
  const never=new Promise(()=>{}),worker={state:'activated'};
- const serviceWorker={controller:null,async getRegistration(){return registration;},register(){registerCalls++;registration={active:worker,installing:null,waiting:null};this.controller=worker;return Promise.resolve(registration);},get ready(){readyReads++;return never;}};
+ const serviceWorker={controller:null,async getRegistration(){return registration;},register(){registerCalls++;registration={active:null,installing:worker,waiting:null};return Promise.resolve(registration);},get ready(){readyReads++;return never;}};
  const context={window:{},navigator:{serviceWorker},Error};
  vm.runInNewContext('('+before+')()',context).then(()=>oldResolved=true);
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(registerCalls,0);assert.equal(readyReads,1);assert.equal(oldResolved,false);
  const blocked={registerCalls,readyReads,promiseResolved:oldResolved};
- assert.equal(await vm.runInNewContext('('+predicate+')()',context),false);
+ assert.equal(vm.runInNewContext('('+predicate+')()',context),false);
  vm.runInNewContext('('+explicit+')()',context);
- assert.equal(registerCalls,1);assert.equal(await vm.runInNewContext('('+predicate+')()',context),true);
- console.log(JSON.stringify({kind:'SOURCE_VM_COUNTEREXAMPLE_NOT_NATIVE_BROWSER',automaticRegistration:outcomes,originalLocalhostSetup:blocked,correctedSetup:{explicitRegisterCalls:registerCalls,controlledPredecessorObserved:true,waitDeadlineMs:90000},unchangedProduction:true},null,2));
+ assert.equal(registerCalls,1);assert.equal(vm.runInNewContext('('+predicate+')()',context),false,'register Promise is not activation');
+ await Promise.resolve();assert.equal(vm.runInNewContext('('+predicate+')()',context),false,'installation is not activation');
+ registration.active=worker;registration.installing=null;serviceWorker.controller=worker;
+ const success=vm.runInNewContext('('+predicate+')()',context);assert.equal(typeof success,'boolean');assert.equal(success,true);
+ assert.equal(await asyncFalse,false);
+ console.log(JSON.stringify({kind:'SOURCE_VM_COUNTEREXAMPLE_NOT_NATIVE_BROWSER',automaticRegistration:outcomes,originalLocalhostSetup:blocked,playwrightPromiseHazard:{prematurePollSuccessCalls:premature,actualAwaitedValue:false},correctedSetup:{explicitRegisterCalls:registerCalls,waitsThroughRegistrationAndInstallation:true,predicateReturnsBoolean:true,controlledPredecessorObserved:true,waitDeadlineMs:90000},unchangedProduction:true},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});

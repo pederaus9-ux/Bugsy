@@ -526,3 +526,27 @@ worker, registration policy, save assertion or update assertion changes. Native
 proof of the corrected offline path remains pending; source-VM proof is not a
 browser result. Thef122hosted job was still running when this guaranteed setup
 hang was identified; preserve its eventual cancellation/timeout logs separately.
+
+
+Native attempt3 atf9becbbee fails only in the offline fixture receipt after8native
+PASSgroups, including exact independent LUT baseline/cleanup. Tracecall@1355's
+async wait returns after5.206ms; call@1357 observes r.active null. Actual locked
+Playwright poll checks Promise truthiness without awaiting its Boolean result.
+The prior VM probe awaited the callback and missed this; the corrected probe
+executes the real installed polling condition and proves asyncfalse succeeds
+prematurely. Use a stored registration and synchronous Boolean readiness check,
+keeping90sdeadline/all existing assertions. A separate isolated offline diagnostic
+branch qualifies this corrected setup before another full PR-head qualification.
+No production model/worker/save change follows these test bugs. Final offline
+acceptance remains pending; original exit1/log/PNG/trace retained.
+
+
+Isolated native offline proof now passes atcc2274bd, run39422484072/job118626666214
+(exit0, artifact12265065857/SHA256851a76f83c514020898eed68fe64dff5cf761fa4ec23e7ee484b63dc91b2136d).
+The actual50worker is activated and controls localhost; requested51worker then
+replaces it, cached moduleSHA256matches81d49f5e3a7f4717df4653b3c577ebc569359b3c45267a81a521fc6ad9705dd7,
+and online/offline reload preserves paid inventory, stocks, farm and rotation.
+The full test receives the exact synchronous readiness fix. Diagnostic workflow
+and subset script remain on the separate branch; they are not added to this PR.
+No product source changes follow any of these fixture corrections. One full
+final PR-head native run and all19checks are still required before owner review.

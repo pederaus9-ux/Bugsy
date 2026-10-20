@@ -62,3 +62,14 @@ worker, registration policy, save assertion or update assertion changes. Native
 proof of the corrected offline path remains pending; source-VM proof is not a
 browser result. Thef122hosted job was still running when this guaranteed setup
 hang was identified; preserve its eventual cancellation/timeout logs separately.
+
+
+Isolated native offline proof now passes atcc2274bd, run39422484072/job118626666214
+(exit0, artifact12265065857/SHA256851a76f83c514020898eed68fe64dff5cf761fa4ec23e7ee484b63dc91b2136d).
+The actual50worker is activated and controls localhost; requested51worker then
+replaces it, cached moduleSHA256matches81d49f5e3a7f4717df4653b3c577ebc569359b3c45267a81a521fc6ad9705dd7,
+and online/offline reload preserves paid inventory, stocks, farm and rotation.
+The full test receives the exact synchronous readiness fix. Diagnostic workflow
+and subset script remain on the separate branch; they are not added to this PR.
+No product source changes follow any of these fixture corrections. One full
+final PR-head native run and all19checks are still required before owner review.
