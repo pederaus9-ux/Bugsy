@@ -48,6 +48,35 @@ jobs:
           path: farm3d/tests/artifacts/market-sales*
           if-no-files-found: error
           retention-days: 14
+  decor-catalog:
+    name: All54 decor coverage +31 solid models + native saves
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Geometry, fixed orientation, all54 save IDs and grass contracts
+        run: node --test farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+      - name: Actual31model gallery, native buy/move/save and real50to51 offline update
+        run: node farm3d/tests/decor-catalog.browser.cjs
+      - name: Retain real captures, partial results and failure traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: decor-catalog-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/decor-*
+          retention-days: 14
   holiday-decor:
     name: Solid holiday decorations + orientation + saves
     runs-on: ubuntu-24.04

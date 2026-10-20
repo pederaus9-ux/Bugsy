@@ -408,3 +408,95 @@ Surrounding native seed job118489014725 at740 failed KeyE/plot2 null vs wheat, w
 
 
 Core regression onf77e3bc5 reached43Node invocations/259PASS, regression.browser andshed-switch PASS, then failed cow3d.browser740 distance0>.01 (job118491469566). Raw artifact12246351548/5116b03583fc1fcfe737ad0f6bf18c567527fe38679e1b55ae28656e943488a1 retained; remaining2browser suites not credited. Actual fixture leaves presetNight then forces cowfair/go; productionweather mismatch cancels that target. Actual-fixture/production-branch red/green confirms it. One test-onlysetPreset('noon') restores intended travel conditions afterall5lighting samples. Everyoriginalassertion/threshold/120+180updates remains unchanged; path/first-update snapshots now retained beforeassertions. No cow/actor/render/runtime edits or oldcowprogram reopening.100focused checksPASS; corrected originalnativeprobe andfullfinalheadCI required. No merge/deploy.
+
+
+## Market Sales final qualification — 2026-10-20T07:28:22.173493+00:00
+
+PR87 remains draft/open/unmerged at reviewed head`b39b7242f6cf6e90572316233d637cb2c28474f0`, tree`e99bdfacd052bef22ef3913822e3ea1eb20ac662`,
+base main`2bf6f16a0d0b965df1eda089a3ea6a0f140f6f69`. All18exact-head check runs and all3workflows SUCCESS.
+CI synthetic merge`b123046e0be21749c85f0ce9337527affc9bf59e` has the identical tree. Core completes
+all41Node files/44invocations/261passing Node tests and all5original browser
+suites. Market15nativegroups pass at390/844/1280DPR1, including actual requested
+49to50worker control/module hashes, retained30birds/old stock and offline sale/
+reload. Final native planting22groups pass; historical cached target is missing
+and original cause remains unassigned. The844key telemetry filename was overwritten
+by a later scenario; original844assertions passed but no key telemetry is claimed.
+
+Actual final images are inspected and retain normal scrolling. The enumerated
+protected-file receipt replaces an earlier unsupported117summary count with83
+exact protected production/config/asset blobs under an explicit path scope. Only
+approved sale/menu logic and import/cache identities change; worker algorithms,
+dependencies/lockfile, animal/character/planting runtime and save schema remain exact.
+All4native failure samples/logs/traces and local installer/full-npm limitations
+remain retained. Final cow snapshots preserve the fair-weather first-step target
+and pass original travel/block/pick/save requirements at all3widths without runtime
+cow edits. See[immutable assessment](tests/evidence/market-sales-20261020/final-review/assessment.json).
+
+This evidence branch records qualification without changing the tested PR head.
+Owner actual visual acceptance and direct merge approval are pending. No merge,
+deployment, new phone performance clearance or other phase started. Local100/100
+focused and12800price cases pass; local browser/full-npm are not passing receipts.
+Lead implementation and adversarial self-review only; no independent audit.
+Exact next action: owner reviews actual previews and PR87.
+
+
+## Owner-authorized Market Sales merge — 2026-10-20T11:15:02Z
+
+Owner instruction at2026-10-20T06:14:11-05:00: “I approve merge that.” Fresh
+preflight verified unchanged PR87 head`b39b7242f6cf6e90572316233d637cb2c28474f0`, unchanged base main2bf6f16,
+all18exact-head checks SUCCESS and clean mergeability. Marked ready and merged
+with expected-head guard. Actual merge/main`9214e564f64c43ab4ccf3eb1175a075d34e32a70` has tree`e99bdfacd052bef22ef3913822e3ea1eb20ac662`, identical
+to the reviewed head and CI synthetic merge. Prior failure samples remain frozen.
+
+Automatic Pages39413607315 started and main regression39413608502 queued. No
+manual deploy was triggered. Record later workflow results separately; no physical
+phone performance, new save/player operation or live-static-byte result is claimed.
+This record supersedes earlier PR87 pending-merge statements, without rewriting
+those historical receipts. Evidence remains separate from tested/published main.
+
+The owner also requested buyable street-style lights so players can add light to
+dark farm areas. This is recorded as the next separate decor idea in the state
+and[idea note](STREET_STYLE_LIGHTING_IDEA.md). No light model, runtime, placement,
+save, price or performance-budget change is included in the Market Sales merge.
+Price/style/range/night behavior and mobile light budget need scoped design.
+Exact next action: verify automatic Pages publication, then discuss the streetlight
+decor scope. Keep accepted animals/characters/chickens/saves and shelved work intact.
+
+Publication follow-up: automatic Pages39413607315 completed SUCCESS. Anonymous
+static GETs of index.html, sw.js, market-sales.js and game.js all return HTTP200
+and exactly match reviewed/published bytes (4/4) at2026-10-20T11:16:49Z. No game
+execution, owner profile, cookies or save access used. Main regression39413608502
+is in progress and is not a passing post-merge receipt. Market Sales is published;
+owner game review and separate streetlight scoping are next. See publication
+merge/live-static evidence. No lighting implementation or new device claim.
+
+
+## All world decoration depth — owner instruction2026-10-20 at06:27Chicago
+
+Fresh main9214e564 is the actual Market Sales merge, with successful Pages and
+4/4live-static identity receipts. Owner selected Farm Utility lamp option2 and
+reported more flat/camera-following decorations (lantern/maple/sunflowers). Source
+catalog audit finds54IDs:21holiday solid models,2existing procedural trees and31
+emoji planes. Existing makeDecor fallback and camera-facing update assign the cause.
+
+New isolated branchcodex/all-decoration-depth-20261020 extends the same solid,
+fixed-orientation visual treatment to the31remaining shop/event/season props.
+The accepted holiday module and2tree appearances remain intact. Game.js, IDs,
+prices, saved ownership/positions, saves/auth/animal/character paths stay protected.
+A new pure model module owns/merges/disposes its resources; complete geometry is
+fitted to existing circular placement bounds and terrain. Grass clearing extends
+to the new solid props and restores on move/put-away. Cache51 adds the new module;
+worker algorithms and game28 remain exact. Cache-identity pins follow51 only.
+
+101focused local tests pass, with initial billboard/pose and6540triangle blossom
+failures retained. Blossom is simplified to5940 under the unchanged6500cap.
+All54paidcounts/IDs/positions/rotations survive the actual save/load path. Actual
+native31model galleries, front/side/back views, native purchase/movement/reload,
+50to51requested-worker/offline boot and full exact-head CI are pending. No actual
+appearance, phone hardware performance or merge clearance is claimed.
+
+Farm Utility is the selected style for the separate new-light feature. It is not
+silently substituted for the existing paper-lantern item. No new lamp price,
+lighting runtime or renderer rebuild is included in this geometry milestone.
+See ALL_DECORATION_REVIEW.md. Lead implementation/self-review only; preserve all
+failures and show actual game evidence before any separately approved merge.
