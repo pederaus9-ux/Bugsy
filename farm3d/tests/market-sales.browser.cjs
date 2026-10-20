@@ -17,13 +17,27 @@ async function open(p,touch){await press(p,'.dock [data-p="barn"]',touch);await 
 let h,failed=true,stage='launch';save();
 (async()=>{try{
  h=await start({serviceWorkers:'allow'});
+ // Counterexample for the first observer: the existing close button intentionally
+ // projects outside .panel. Its scrollWidth is not the scrollable content width.
+ // Use the unchanged production CSS to prove that distinction before game tests.
+ {
+  const s=await h.setup({width:390,height:844},true,'market-sales-fit-counterexample'),p=s.page;
+  const css=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8').match(/<style>([\s\S]*?)<\/style>/)[1];
+  await p.setContent('<meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style><div class="scrim"><div class="panel"><button class="xbtn">×</button><div class="pbody">Existing dialog</div></div></div>');
+  await p.waitForFunction(()=>[...document.querySelector('.panel').getAnimations()].every(a=>a.playState==='finished'));
+  const fit=await p.evaluate(()=>{const panel=document.querySelector('.panel'),body=document.querySelector('.pbody'),close=document.querySelector('.xbtn'),r=panel.getBoundingClientRect(),b=close.getBoundingClientRect();return {rootScroll:panel.scrollWidth,rootClient:panel.clientWidth,bodyScroll:body.scrollWidth,bodyClient:body.clientWidth,panelRight:r.right,closeRight:b.right};});
+  assert(fit.rootScroll>fit.rootClient+1,'original observer counts the intentional close-button overhang');
+  assert.equal(fit.bodyScroll,fit.bodyClient);assert(fit.closeRight<=390&&fit.closeRight>fit.panelRight);
+  pass('unchanged production CSS proves root scrollWidth misclassifies the intentional close-button overhang',fit);await s.finish();
+ }
  for(const [width,height,touch]of [[390,844,true],[844,390,true],[1280,720,false]]){
   stage='native sales '+width;const s=await h.setup({width,height},touch,'market-sales-'+width),p=s.page;await boot(p,h.base,true);
   await p.evaluate(()=>{const G=__dbg.G;G.S.barn={egg:29,milk:7,wheat:3};G.S.gold={egg:5,milk:2};G.S.coins=1000;G.S.stats.earned=0;G.S.perks.sell=0;});
   await open(p,touch);const q=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',1));
   await press(p,'[aria-label="More dozens"]',touch);const two=await p.evaluate(()=>__dbg.G.marketSalesQuote('egg',2));
   assert((await p.locator('[data-market-total="egg"]').textContent()).includes(String(two.total)));
-  const bounds=await p.locator('.panel').evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,overflow:el.scrollWidth>el.clientWidth+1};});
+  const bounds=await p.locator('.panel').evaluate(el=>{const r=el.getBoundingClientRect(),body=el.querySelector('.pbody'),close=el.querySelector('.xbtn').getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,overflow:body.scrollWidth>body.clientWidth+1,bodyScroll:body.scrollWidth,bodyClient:body.clientWidth,rootScroll:el.scrollWidth,rootClient:el.clientWidth,closeRight:close.right};});
+  receipt.layout=bounds;save();
   assert(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.w<=width+1&&bounds.y+bounds.h<=height+1&&!bounds.overflow);
   const targets=await p.locator('[data-act="marketQty"],[data-act="marketSell"]').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height};}));assert(targets.every(r=>r.width>=44&&r.height>=44));
   await photo(p,'market-sales-'+width);pass(width+' responsive native controls and exact gold-inclusive quote',{bounds,targets,quote:two});
