@@ -355,7 +355,7 @@ export function save() {
     if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
     return false;
   }
-  if(S.pens.cow?.care&&!validateCowCare(S.pens.cow.care)){notice('Your saved cow care needs recovery or a newer game. This copy will not overwrite it.');return false;}
+  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now())){notice('Your saved cow care needs recovery or a newer game. This copy will not overwrite it.');return false;}
   settleChickens();
   settleCows(true);
   if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
@@ -531,7 +531,7 @@ export function setChickenAppearance(appearance) {
   if(!appearance||!['metal','shingles'].includes(appearance.roofType)||Object.keys(CHICKEN_PAINT).some(k=>!Object.hasOwn(CHICKEN_PAINT[k],appearance[k])))return false;
   S.pens.chicken.appearance={walls:appearance.walls,roof:appearance.roof,trim:appearance.trim,roofType:appearance.roofType};view.refresh('herd');commit();return true;
 }
-const canCowCare=()=>!!S?.pens.cow?.owned&&!homeS&&!restoring&&!newerSave&&!window.__saHold&&(!S.pens.cow.care||validateCowCare(S.pens.cow.care));
+const canCowCare=()=>!!S?.pens.cow?.owned&&!homeS&&!restoring&&!newerSave&&!window.__saHold&&(!S.pens.cow.care||!!ensureCowCare(structuredClone(S.pens.cow),now()));
 let settlingCows=false;
 export function settleCows(force=false,activate=false){
  if(!canCowCare()||settlingCows)return null;
@@ -2051,6 +2051,7 @@ const SOUNDS = {
   place:() => { noise(.1, {vol:.18, freq:380}); tone(300, .12, {type:"triangle", vol:.12, to:210}); },
   truck:() => { tone(440, .12, {type:"square", vol:.04, lp:1400}); tone(554, .16, {type:"square", vol:.04, lp:1400, at:.14}); },
   chicken:() => { tone(1150, .07, {type:"square", vol:.035, to:720, lp:2500}); tone(1250, .09, {type:"square", vol:.035, to:650, lp:2500, at:.11}); },
+  robot:() => {tone(85,.8,{type:'triangle',vol:.018,lp:230,attack:.1});noise(.7,{vol:.009,freq:420,q:.5});},
   cow:() => tone(165, .75, {type:"sawtooth", vol:.09, to:118, lp:700, attack:.12}),
   sheep:() => tone(330, .55, {type:"sawtooth", vol:.06, to:290, lp:1500, attack:.05, vib:9}),
   horse:() => { tone(620, .7, {type:"sawtooth", vol:.05, to:300, lp:2200, attack:.03, vib:14}); noise(.3, {vol:.06, freq:600, at:.6}); },

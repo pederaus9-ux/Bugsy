@@ -100,11 +100,11 @@ body.walking .side,body.walking .chips,body.walking #hint,body.editing .side,bod
 .tray .x{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--wood-dk);font-weight:800;box-shadow:0 2px 0 var(--parch2);flex:none}
 .tray-sub{font-size:13px;font-weight:800;opacity:.8}
 .tray .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
-#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 210px);overflow-y:auto;overscroll-behavior:contain}
-#infoTray[data-kind="chickenStation"] button{min-width:44px;min-height:44px;touch-action:manipulation}
+#infoTray[data-kind="cowStation"],#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 210px);overflow-y:auto;overscroll-behavior:contain}
+#infoTray[data-kind="cowStation"] button,#infoTray[data-kind="chickenStation"] button{min-width:44px;min-height:44px;touch-action:manipulation}
 #infoTray[data-kind="chickenStation"] fieldset{border:1px solid var(--wood);border-radius:10px;margin:8px 0;padding:6px}
 #infoTray[data-kind="chickenStation"] [aria-pressed="true"]{outline:3px solid var(--blue-dk);outline-offset:-3px;background:#fff}
-@media(orientation:landscape) and (max-height:520px){#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 90px)}}
+@media(orientation:landscape) and (max-height:520px){#infoTray[data-kind="cowStation"],#infoTray[data-kind="chickenStation"]{max-height:calc(100dvh - 90px)}}
 .seeds{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:2px 0 2px;touch-action:none}
 .seed{touch-action:none;flex:none;width:70px;border:3px solid transparent;border-radius:16px;background:var(--parch2);padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:1px}
 .seed img{width:36px;height:36px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
@@ -1401,7 +1401,7 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
 }
 const chickenYard=createChickenYard();scene.add(chickenYard.group);
 const cowYard=createCowYard();cowYard.group.visible=false;scene.add(cowYard.group);
-let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null;
+let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0;
 const cowStations=createStationScheduler(cowYard.stations),cowStationById=new Map(cowYard.stations.map(s=>[s.id,s]));
 const cowSurfaces=new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:-4.8,s.surface,s.kind==='feed'?-8.05:s.dock[2])]));
 CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
@@ -1877,16 +1877,17 @@ function chooseCowTask(a){
   if(!cowYardActive)return false;
   const job=cowStatus?.job,id=cowIdOf(a);
   if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();if(job.stage==='milking'&&a.pos.distanceTo(new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]))<=.1){a.cowTask.waypoints=[];a.cowTask.stage='align';}return true;}return false;}
+  const paid=cowStatus?.cows[a.ref.i]?.feedCharged&&!cowStatus?.cows[a.ref.i]?.ready;
+  if((cowStatus?.feed>0||paid)&&a.need.hunger>.35&&beginCowTask(a,'feed'))return true;
+  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0)&&beginCowTask(a,'drink'))return true;
   if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed');
-  if(cowStatus?.feed>0&&a.need.hunger>.35)return beginCowTask(a,'feed');
-  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink');
   return false;
 }
 function updateCowTask(a,dt,t){
   const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
   a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
   const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
-  const supplies=task.kind==='feed'?cowStatus.feed>0:task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
+  const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
   const waking=(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
   if(waking||(isRobot&&!currentJob))task.stage='stand';
   const ox=a.g.position.x,oz=a.g.position.z;
@@ -3964,7 +3965,7 @@ function updatePointer() {
 // ---------- every frame: crops grow, bubbles show what's ready ----------
 function updateGame(t, dt) {
   updatePlots(t); updateBuildings(t, dt);
-  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);}
+  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(new THREE.Vector3(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}
   const T = nowMs();
   if (walk && !thirdPerson) camera.updateMatrixWorld();
   for (const a of animals) {

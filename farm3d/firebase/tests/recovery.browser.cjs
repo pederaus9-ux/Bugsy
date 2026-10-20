@@ -23,7 +23,8 @@ const restWrite = (uid, save, rev) => fetch(fsUrl('farms/' + uid), {method: 'PAT
 const restDelete = (uid) => fetch(fsUrl('farms/' + uid), {method: 'DELETE', headers: {Authorization: 'Bearer owner'}});
 // the farm's real progress (the game re-saves a restored farm straight away with a new lastSeen and orders, so the phone
 // copy is compared on this; the CLOUD copy is compared byte for byte)
-const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats]); } catch (e) { return 'unreadable'; } };
+const cowProgress=o=>{const c=o.pens?.cow?.care;return c?[c.feed,c.waterUntil,c.tank,c.queue,c.job,c.receipts,c.cows.map(b=>[b.id,b.cycle,b.ready]),o.gold?.milk,o.decor]:null;};
+const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o)]); } catch (e) { return 'unreadable'; } };
 const has = (save, token) => typeof save === 'string' && save.includes('"__sentinel":"' + token + '"');
 
 async function main() {
@@ -80,6 +81,23 @@ async function main() {
     await g.page.reload({waitUntil:'load'});await gameUp();
     const lampRestored=await P(g,()=>({v:__dbg.G.S.v,decor:__dbg.G.S.decor,birds:__dbg.G.S.pens.chicken.list.length}));
     check('minimum-writer2 paid lamp restores from authenticated snapshot exactly',lampRestored.v===2&&JSON.stringify(lampRestored.decor)===lampDecor&&lampRestored.birds===30);
+
+    // A quiescent approaching job retains its actual tank/queue through cloud
+    // recovery. The synthetic paid lamp occupies the site, so the renderer may
+    // not silently dock/milk it while the upload/reload assertions are running.
+    await P(g,()=>{
+      const G=__dbg.G;G.S.level=Math.max(4,G.S.level);G.S.barnCap=400;G.S.barn.cow_feed=20;G.S.barn.milk=7;G.S.gold.milk=2;
+      G.S.decor.placed.push({id:'utilitylamp',x:-8,z:-10,rotation:.31});
+      G.S.pens.cow={owned:true,list:[Date.now()-1,Date.now()-1],meta:[{name:'Snapshot Bessie',love:50,loveAt:Date.now()},{name:'Snapshot Clover',love:50,loveAt:Date.now()}]};
+      G.view.refresh('all');if(G.fillCowFeed(12)!==12||!G.fillCowWater())throw Error('cow snapshot supplies failed');
+      G.S.pens.cow.care.tank={normal:11,gold:2};
+      const ids=G.getCowCareStatus().cows.map(c=>c.id);if(!G.milkCow(ids[0])||!G.milkCow(ids[1]))throw Error('cow snapshot queue failed');G.commit();
+    });
+    const cowBase=await establish(uid,'cow-writer3'),cowCloud=JSON.parse(cowBase.save);
+    check('cow writer3 uploads paid feed/water, quality tank and manual queue without touching barn milk',cowCloud.v===3&&cowCloud.pens.cow.care.feed===12&&cowCloud.pens.cow.care.waterUntil>Date.now()&&cowCloud.pens.cow.care.tank.normal===11&&cowCloud.pens.cow.care.tank.gold===2&&cowCloud.pens.cow.care.job.stage==='approaching'&&cowCloud.pens.cow.care.queue.length===1&&cowCloud.barn.milk===7&&cowCloud.gold.milk===2&&cowCloud.pens.chicken.list.length===30);
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const cowRestored=await P(g,()=>({save:JSON.parse(JSON.stringify(__dbg.G.S)),site:__dbg.cowYardActive,conflicts:__dbg.cowYardIssues}));
+    check('authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint',JSON.stringify(cowProgress(cowRestored.save))===JSON.stringify(cowProgress(cowCloud))&&cowRestored.save.v===3&&cowRestored.save.pens.cow.meta[0].name==='Snapshot Bessie'&&cowRestored.save.pens.cow.meta[1].name==='Snapshot Clover'&&!cowRestored.site&&cowRestored.conflicts.some(c=>c.type==='decor')&&cowRestored.save.pens.chicken.list.length===30);
 
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;

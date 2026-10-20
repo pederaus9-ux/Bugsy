@@ -22,3 +22,4 @@ test('cow actions are read-only during a visit and stable IDs survive purchase a
 test('untouched legacy cow farm retains its writer1 and paid timer until a cow station action',()=>{
  const s=reset(1);s.pens.cow={owned:true,list:[T+180000],meta:[{name:'Legacy',love:20,loveAt:T}]};G.save();assert.equal(s.v,1);assert.equal(s.pens.cow.care,undefined);assert.equal(s.pens.cow.list[0],T+180000);G.fillCowWater();assert.equal(s.v,3);assert.equal(s.pens.cow.care.cows[0].legacyAt,T+180000);
 });
+test('a mixed legacy timer beside active cow care refuses overwriting the valuable raw farm',()=>{const s=farm();G.save();const raw=localStorage.getItem(G.SAVE_KEY);s.pens.cow.list[0]=T+180000;assert.equal(G.save(),false);assert.equal(localStorage.getItem(G.SAVE_KEY),raw);assert.equal(G.fillCowWater(),false);});

@@ -24,7 +24,7 @@ export function getAnimalCarePose(kind,r){
   }else if(target){
    r.g.updateMatrixWorld(true);v.copy(target);r.model.worldToLocal(v);
    const rz=v.z+.59,L=Math.hypot(.07,.56),desiredY=-Math.sqrt(Math.max(0,L*L-rz*rz)),pitch=Math.atan2(desiredY,-rz)-Math.atan2(.07,.56);
-   r.neck.rotation.x=mix(r.neck.rotation.x,clamp(pitch,-1.4,.1),w);r.neck.position.y=mix(r.neck.position.y,v.y-desiredY,w);r.neck.rotation.y*=1-w;r.head.rotation.y*=1-w;r.head.rotation.z*=1-w;r.jaw.rotation.x*=1-w;r.jaw.rotation.y*=1-w;
+   r.neck.rotation.x=mix(r.neck.rotation.x,clamp(pitch,-1.4,.1),w);r.neck.position.y=mix(r.neck.position.y,v.y-desiredY,w);r.neck.rotation.y*=1-w;r.head.rotation.y*=1-w;r.head.rotation.z*=1-w;if(mode==='drink'){r.jaw.rotation.x=mix(r.jaw.rotation.x,.012+Math.sin(r.state.time*4)*.006,w);r.jaw.rotation.y*=1-w;}
   }
  }};
 }
