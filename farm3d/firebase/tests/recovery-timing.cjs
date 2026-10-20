@@ -54,6 +54,20 @@ async function startRecoveryTiming(phone, artifacts) {
   return {
     mark,
     stopChromeTrace,
+    async releaseRenderer() {
+      mark('renderer-release-call');
+      const result = await phone.page.evaluate(async () => {
+        const renderer = window.__dbg.renderer, gl = renderer.getContext();
+        if (!gl.getExtension('WEBGL_lose_context')) throw new Error('Recovery fixture cannot release its WebGL context');
+        const lost = new Promise(resolve => renderer.domElement.addEventListener('webglcontextlost', resolve, {once: true}));
+        const began = performance.now();
+        renderer.forceContextLoss();
+        await lost;
+        return {releaseMs: performance.now() - began, contextLost: gl.isContextLost()};
+      });
+      mark('renderer-release-return', result);
+      if (!result.contextLost) throw new Error('Recovery fixture WebGL context was not released');
+    },
     async drainGpu() {
       mark('gpu-drain-call');
       const result = await phone.page.evaluate(() => {

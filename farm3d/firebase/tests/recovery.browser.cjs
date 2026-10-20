@@ -114,6 +114,10 @@ async function main() {
         if (!timing) throw new Error('GPU comparison requires retained recovery timing');
         await timing.drainGpu();
       }
+      if (process.env.RECOVERY_RELEASE_RENDERER === '1') {
+        if (!timing) throw new Error('Renderer lifecycle comparison requires retained recovery timing');
+        await timing.releaseRenderer();
+      }
       g.delayGame = 25000; g.authFile = process.env.AUTH_FILE || null;
       await corruptOnNextLoad('{"race cut');
       timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
@@ -183,6 +187,7 @@ async function main() {
     // Account linking must not clear RECOVER before load() can set it again.
     {
       await restDelete(uid); const n0 = loads.grandma || 0;
+      if (process.env.RECOVERY_RELEASE_RENDERER === '1') await timing.releaseRenderer();
       g.delayGame = 25000;
       try {
         await corruptOnNextLoad('{"early missing cloud');
