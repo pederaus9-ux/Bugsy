@@ -3015,6 +3015,20 @@ function updateAim(t) {
   if (aim) { const planting = aim.label === "Plant" && armed, label = planting ? "Plant " + G.ITEMS[armed].n : aim.label, icon = planting ? G.ITEMS[armed].e : aim.icon;
     const h = `<span class="ai">${icon}</span><span class="al">${label}</span>`; if (actBtn.dataset.h !== h) { actBtn.innerHTML = h; actBtn.dataset.h = h; actBtn.setAttribute("aria-label", label); } }
 }
+function openReadyCow(an) {
+  // The HUD names this cow. Natural movement during a tap must not retarget
+  // another animal or require the old crosshair to hit the same moving mesh.
+  if(!an||an.kind!=='cow'||an.gone||!an.g.visible||!animals.includes(an)||an.farmPen!==GS().pens.cow||!cowStatus?.cows[an.ref.i]?.ready)return false;
+  const reach=(thirdPerson?8.5:5)+1;
+  for(const node of [an.rig3d?.body,an.status.visible?an.status:null]){
+    if(!node)continue;
+    const point=toScreen(node.getWorldPosition(new THREE.Vector3()));
+    if(!point||point.x<0||point.x>innerWidth||point.y<0||point.y>innerHeight)continue;
+    const current=hitAt(point.x,point.y);
+    if(current?.type==='animal'&&current.an===an&&current.dist<=reach){G.sfx('cow');openInfo({type:'animal',an});return true;}
+  }
+  return false;
+}
 function interact() {
   if (visiting || editMode || photoMode || wardrobeOn || inBarn || G.panel || !seedTray.hidden) return false;
   const h = aim; if (!h) return false;
@@ -3022,6 +3036,7 @@ function interact() {
   if (h.type === "plot" && h.label === "Harvest") { const crop = GS().plots[h.i].crop; if (harvestAt(h.i) === true) fpBurst(h.i, crop); return true; }
   if (h.type === "plot" && h.label === "Water") { if (G.waterPlot(h.i)) { squish(plots[h.i].g, .25); syncSoil(); } return true; }
   if (h.type === "plot" && h.label === "Plant" && armed) { closeTrays(); plantAt(h.i); return true; }
+  if (h.type === "animal" && h.label === "Ready cow" && h.an?.kind === "cow") return openReadyCow(h.an);
   if (h.type === "animal" && h.label === "Pet") { petFacing(h.an); return true; }
   if (h.type === "barn") { enterBarn(); return true; }
   return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view

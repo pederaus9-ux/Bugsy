@@ -728,3 +728,28 @@ original weather assertions are unchanged. All57core Node files/60isolated
 invocations pass locally, including all4animal-visual checks. Product code is
 unchanged by this follow-up. Final exact-head hosted browser/full CI remains
 required; do not merge, deploy or assign the old missing-card/wardrobe causes.
+
+
+## Ready-cow HUD selection correction — final hosted validation pending
+
+Published1d48b8b native844 job118928368954 failed the original30s #cow-milk
+locator wait after Ready-cow selection. Artifact12305786160 SHA256
+`d65bfc61a238fb2f394a2eb6928e7ab28612b8ea216c691e1ff5b4ad1fa99cd3`
+is verified in cow-native-run19/native844-red (ZIP, results, screenshot, trace,
+video and full original log retained).61 input/mutation records establish that
+trusted pointerdown/up/click reached actBtn labelled Ready cow; each fresh center
+hit was empty. There was no blocking modal/seed tray. Original interact rerays
+onTap at the old center, missing the naturally moving displayed cow and closing
+the tray. This run proves delivered input and the moving-target selection miss.
+
+The bounded runtime correction keeps the displayed cow identity, revalidates its
+current visible torso/marker with the existing hitAt and original reach, and
+requires the same existing, ready, current-farm cow. Occluded/distant/removed/
+spent/former-farm targets remain rejected. It only opens the card; Milk, ledger,
+saves/cloud, ordinary gait and geometry are unchanged. Four actual-Three/actual-
+handler regressions fail before correction and pass afterward; combined focused
+checks35PASS/0fail/0skip, including original seed and chicken input contracts.
+Both native journey and30s assertion remain unchanged; the new tests are added to
+existing core/domain runners. New-head full hosted CI and actual preview still
+required. Older706 missing-card and historical wardrobe causes remain unproven.
+Keep PR90 draft/unmerged; physical-phone performance and owner approval pending.
