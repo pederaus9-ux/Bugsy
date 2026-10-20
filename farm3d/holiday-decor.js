@@ -1,5 +1,5 @@
 import * as T from './lib/three.module.min.js';
-import {mergeGeometries} from './lib/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries, mergeVertices} from './lib/addons/utils/BufferGeometryUtils.js';
 
 // Visual consumers only. Existing game IDs, inventories and placed records stay authoritative.
 export const HOLIDAY_DECOR_IDS=Object.freeze(['spider','jack','haunted','leaves','turkey','cornucopia','gifts','snowman','xmastree','confetti','popper','fireworks','heart','letter','chapel','chick','bunny','eggstatue','clover','lucky','tophat']);
@@ -18,7 +18,7 @@ function pumpkinShell(){
  for(const [shape,sign]of [[outline,1],[back,-1]]){const g=new T.ShapeGeometry(shape),p=g.attributes.position,idx=g.index.array;for(let i=0;i<idx.length;i+=3)subdivide(...[idx[i],idx[i+1],idx[i+2]].map(j=>new T.Vector2(p.getX(j),p.getY(j))),2,sign);g.dispose();}
  // Exact polygonal apertures on a curved, ribbed shell, with physical inner rims.
  for(const hole of outline.holes){const points=hole.getPoints();if(!T.ShapeUtils.isClockWise(points))points.reverse();for(let i=0;i<points.length-1;i++)for(let k=0;k<4;k++){const a=points[i].clone().lerp(points[i+1],k/4),b=points[i].clone().lerp(points[i+1],(k+1)/4),ao=point(a,1),ai=point(a,1,true),bo=point(b,1),bi=point(b,1,true);xyz.push(...ao,...ai,...bi,...ao,...bi,...bo);}}
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(xyz,3));g.computeVertexNormals();return g;
+ const raw=new T.BufferGeometry();raw.setAttribute('position',new T.Float32BufferAttribute(xyz,3));const g=mergeVertices(raw,1e-5);raw.dispose();g.computeVertexNormals();return g;
 }
 
 export function createHolidayDecoration(id,{height=1.15,footprint=1.05}={}){

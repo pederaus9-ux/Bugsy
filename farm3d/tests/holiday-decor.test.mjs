@@ -43,3 +43,8 @@ for(const id of ids)test(id+' fits the existing circular walking/placement clear
  g.traverse(o=>{if(o.isMesh&&!o.userData.contactShadow){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);radius=Math.max(radius,Math.hypot(v.x,v.z));}}});
  assert.ok(radius<=limit+1e-6,id+' radius '+radius+' exceeds existing clearance '+limit);g.userData.dispose();
 });
+test('curved pumpkin skin shades continuously across shared back-surface vertices',()=>{
+ const g=createHolidayDecoration('jack'),seen=new Map();let duplicates=0,worst=0;
+ g.traverse(o=>{if(o.isMesh&&o.material.color.getHex()===0xdd7026){const p=o.geometry.attributes.position,n=o.geometry.attributes.normal;for(let i=0;i<p.count;i++){if(p.getZ(i)>=-.1)continue;const key=[p.getX(i),p.getY(i),p.getZ(i)].join(','),value=[n.getX(i),n.getY(i),n.getZ(i)];if(seen.has(key)){duplicates++;worst=Math.max(worst,...value.map((v,k)=>Math.abs(v-seen.get(key)[k])));}else seen.set(key,value);}}});
+ assert.ok(duplicates>50,'exercise connected curved skin');assert.ok(worst<1e-6,'visible normal seam '+worst);g.userData.dispose();
+});
