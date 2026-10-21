@@ -1,0 +1,31 @@
+UNCHANGED MAIN INTERIOR PROOF {"before":[-11.488431411754865,0.67305,-3.52508110069141],"after":[-11.90599800065321,0.67305,-4.003657135916587],"goal":[-12.299999999999999,0.67305,-3.85],"next":[-11.6,0.67305,-3.85],"sleepingNeighbour":[-11.6,0.67305,-3.85],"stage":"approach","blocked":2.1}
+✖ captured late interior entry reaches its unoccupied bed with a sleeping neighbour (560.807115ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 702.331042
+
+✖ failing tests:
+
+test at farm3d/tests/chicken-interior-baseline-proof.mjs:13:1
+✖ captured late interior entry reaches its unoccupied bed with a sleeping neighbour (560.807115ms)
+  AssertionError [ERR_ASSERTION]: unchanged main cannot reach free bed behind an occupied authored waypoint
+  
+  'approach' !== 'hold'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/chicken-baseline-proof/farm3d/tests/chicken-interior-baseline-proof.mjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'approach',
+    expected: 'hold',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
