@@ -10,6 +10,7 @@ test('stone path joins the main farm to the northern gate without crossing fixed
  assert.deepEqual(p.points[0],[-1.4,8.1]);assert.deepEqual(p.points.at(-1),[(l.gate[0]+l.gate[1])/2,l.polygon[2][1]-.08]);
  for(const[x,z]of p.samples){assert(onFarm(x,z));assert(!(Math.abs(x)<4.75&&Math.abs(z)<6.25),'path crosses barn');assert(!(x> -16.85&&x< -4.55&&z> -6.15&&z<5.35),'path crosses chicken enclosure');}
  assert(p.group.children[0].geometry.attributes.normal.getY(0)>.9,'paving bed faces below the ground');
+ assert.equal(p.group.children[0].material.polygonOffset,false,'base depth bias hides raised paving at wide farm zoom');
  assert(p.stones.count>200&&p.stones.count<600);assert.equal(p.group.children.length,2,'path must stay batched');
  const m=new THREE.Matrix4();for(let i=0;i<p.stones.count;i++){p.stones.getMatrixAt(i,m);const[x,y,z]=[m.elements[12],m.elements[13],m.elements[14]];assert(Math.abs(y-farmGroundY(x,z)-.052)<1e-5);}
  p.dispose();

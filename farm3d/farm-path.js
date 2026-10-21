@@ -33,7 +33,9 @@ export function createDairyPath({layout,groundY,material}){
   travelled+=len;
  }
  const bedGeo=new THREE.BufferGeometry();bedGeo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));bedGeo.setIndex(indices);bedGeo.computeVertexNormals();
- const bedMat=new THREE.MeshStandardMaterial({color:0x827e71,roughness:1,polygonOffset:true,polygonOffsetFactor:-2});
+ // The bed is already above the terrain. A negative polygon offset can pull it
+ // in front of the raised stones at the normal wide farm camera distance.
+ const bedMat=new THREE.MeshStandardMaterial({color:0x827e71,roughness:1});
  const bed=new THREE.Mesh(bedGeo,bedMat);bed.receiveShadow=true;group.add(bed);
  const stones=new THREE.InstancedMesh(stoneGeo,stoneMat,stonesAt.length),matrix=new THREE.Matrix4(),rotation=new THREE.Quaternion(),scale=new THREE.Vector3(),colour=new THREE.Color();
  for(let i=0;i<stonesAt.length;i++){
