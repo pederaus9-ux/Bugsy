@@ -3,6 +3,25 @@ import assert from 'node:assert/strict';
 import * as THREE from '../lib/three.module.min.js';
 import {createCowYard,cowYardConflicts} from '../cow-yard.js';
 let land={};try{land=await import('../farm-land.js');}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;}
+test('northern cow entrance rejects buildings and paid decorations on its outside approach',()=>{
+ const y=createCowYard({north:25}),l=y.layout,x=(l.gate[0]+l.gate[1])/2,z=l.polygon[2][1]+2;
+ const decor=[{id:'utilitylamp',x,z,r:.6}],blocks=[[x,z,1.9,1.7]],before=structuredClone({decor,blocks});
+ assert.equal(cowYardConflicts({layout:l,decor}).length,1,'entrance can be blocked by a paid decoration');
+ assert.equal(cowYardConflicts({layout:l,blocks}).length,1,'entrance can be blocked by a moved building');
+ assert.deepEqual({decor,blocks},before,'checking access must preserve saved objects');
+ assert.deepEqual(cowYardConflicts({layout:l,decor:[{id:'outside',x:x+4,z,r:.6}]}),[],'land beside the approach stays usable');
+ y.dispose();
+});
+test('northern cow entrance opens toward clear farm ground with a full-height walkable gap',()=>{
+ const y=createCowYard({north:25}),l=y.layout,x=(l.gate[0]+l.gate[1])/2,z=l.polygon[2][1];
+ assert(z<-30);assert(-5.9-z>25,'entrance must clear the back of the main barn');
+ y.group.updateMatrixWorld(true);
+ for(const dx of [-.4,0,.4])for(const height of [.3,1,1.7]){
+  const ray=new THREE.Raycaster(new THREE.Vector3(x+dx,height,z+4),new THREE.Vector3(0,0,-1),0,5);
+  assert.equal(ray.intersectObject(y.group,true).length,0,'cow entrance approach hits actual model geometry');
+ }
+ y.dispose();
+});
 test('usable land extends exactly25 metres north and preserves every former placement',()=>{
  assert.equal(land.NORTH_EXTENSION,25);
  for(const radius of [23,24,40]){

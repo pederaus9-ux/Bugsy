@@ -20,7 +20,8 @@ export const COW_YARD_LAYOUT=Object.freeze({
 // Callers preserve the original enclosure until the reported conflicts are cleared.
 export function cowYardConflicts({blocks=[],decor=[],layout=COW_YARD_LAYOUT}={}){
  const p=layout.footprint,x0=p[0][0],x1=p[1][0],z0=p[0][1],z1=p[2][1],hits=[];
- const hit=(x,z,hw,hd)=>x+hw>x0&&x-hw<x1&&z+hd>z0&&z-hd<z1;
+ const areas=[[x0,x1,z0,z1],...(layout.access?[layout.access]:[])];
+ const hit=(x,z,hw,hd)=>areas.some(([ax,bx,az,bz])=>x+hw>ax&&x-hw<bx&&z+hd>az&&z-hd<bz);
  for(const b of blocks)if(hit(...b))hits.push({type:'block',bounds:[...b]});
  for(const d of decor)if(hit(d.x,d.z,d.r??.6,d.r??.6))hits.push({type:'decor',id:d.id,x:d.x,z:d.z});
  return hits;
@@ -38,6 +39,9 @@ export function cowYardLayout(north=0){
  if(!north)return COW_YARD_LAYOUT;
  const l=structuredClone(COW_YARD_LAYOUT),p2=p=>[p[0],p[1]-north],p3=p=>[p[0],p[1],p[2]-north];
  l.polygon=l.polygon.map(p2);l.footprint=l.footprint.map(p2);l.bed[1]-=north;l.shelter.z=l.shelter.z.map(z=>z-north);l.water[1]-=north;
+ // Keep four metres of open approach outside the south-facing entrance.
+ // The existing site/placement guards also reserve this space on saved farms.
+ l.access=[l.gate[0],l.gate[1],l.polygon[2][1],l.polygon[2][1]+4];
  l.fenceSegments=l.fenceSegments.map(([x,z,bx,bz])=>[x,z-north,bx,bz-north]);l.obstacles=l.obstacles.map(([x,z,w,d])=>[x,z-north,w,d]);
  l.robot=Object.fromEntries(Object.entries(l.robot).map(([k,p])=>[k,p3(p)]));l.tank=p3(l.tank);
  l.stations=l.stations.map(s=>({...s,dock:p3(s.dock),approach:p3(s.approach)}));return l;

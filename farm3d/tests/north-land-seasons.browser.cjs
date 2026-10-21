@@ -17,6 +17,15 @@ async function frame(p,target,distance=35){await p.evaluate(({target,distance})=
   const row={width,height};result.viewports.push(row);
   row.state=await p.evaluate(()=>{const d=__dbg,G=d.G,cows=d.animals.filter(a=>a.kind==='cow');return{active:d.cowYardActive,issues:d.cowYardIssues,layout:G.S.layout,decor:G.S.decor.placed,pen:cows.every(a=>a.pen.poly===d.cowYard.layout.polygon||a.pen.poly[0][1]===d.cowYard.layout.polygon[0][1]),positions:cows.map(a=>a.g.position.toArray()),season:G.THEME.season,registry:d.seasonalLeaves.size,flat:d.groundY(-8,-36),place:d.spotFree(7,-35,1),edit:d.editValid('b:feedmill',7,-35),walk:d.collideWalker(new(d.cam.target.constructor)(7,-35,0)).toArray(),dpr:d.renderer.getPixelRatio()};});
   assert(row.state.active,JSON.stringify(row.state.issues));assert(row.state.pen);assert(row.state.positions.every(p=>p[2]<-30));assert.equal(row.state.flat,0);assert(row.state.place&&row.state.edit);assert.equal(row.state.dpr,1);assert.equal(row.state.season,'fall');assert.deepEqual(row.state.walk.slice(0,2),[7,-35]);assert.deepEqual(row.state.layout.b,fixture.layout.b);assert.deepEqual(row.state.layout.t,fixture.layout.t);assert.deepEqual(row.state.decor,fixture.decor.placed);
+  // Check the real walker collider across the open gate, including after reload.
+  async function entrance(){return p.evaluate(()=>{
+   const d=__dbg,l=d.cowYard.layout,V=d.cam.target.constructor,x=(l.gate[0]+l.gate[1])/2,z=l.polygon[2][1],samples=[];
+   for(let step=0;step<=50;step++){const wanted=[x,z+4-step*.1],actual=d.collideWalker(new V(...wanted)).toArray();samples.push({wanted,actual});}
+   return {samples,decorAllowed:d.spotFree(x,z+2,1),buildingAllowed:d.editValid('b:feedmill',x,z+2)};
+  });}
+  row.entrance=await entrance();
+  for(const s of row.entrance.samples)assert(Math.hypot(s.wanted[0]-s.actual[0],s.wanted[1]-s.actual[1])<1e-6,'cow entrance walking approach is blocked');
+  assert.equal(row.entrance.decorAllowed,false);assert.equal(row.entrance.buildingAllowed,false);
   // Actual render, with the existing occupied site still visible in the farm view.
   await frame(p,[-5,.5,-25],width<height?68:46);await p.screenshot({path:path.join(out,'expanded-fall-'+width+'.png')});
   await frame(p,[-6,.6,-36],width<height?44:22);await p.screenshot({path:path.join(out,'dairy-day-'+width+'.png')});
@@ -33,6 +42,7 @@ async function frame(p,target,distance=35){await p.evaluate(({target,distance})=
   // Reopen the genuine saved layout; do not reconstruct or reposition it after load.
   await p.evaluate(()=>__dbg.G.save());await p.reload();await ready(p);
   row.reload=await p.evaluate(()=>({layout:__dbg.G.S.layout,decor:__dbg.G.S.decor.placed,active:__dbg.cowYardActive}));assert(row.reload.active);assert.deepEqual(row.reload.layout.b,fixture.layout.b);assert.deepEqual(row.reload.layout.t,fixture.layout.t);assert.deepEqual(row.reload.decor,fixture.decor.placed);
+  row.entranceReload=await entrance();assert.deepEqual(row.entranceReload,row.entrance);
   assert.deepEqual(session.errors,[]);save();await session.finish();
  }
  failed=false;result.status='PASS';save();
