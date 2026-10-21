@@ -6,6 +6,7 @@ import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 // inventory, clock, save or production API is reachable from this module.
 export function createChickenStationController({yard,route,neighbours,updateRig,clearPoint=()=>true}){
  const scheduler=createStationScheduler(yard.stations),byId=new Map(yard.stations.map(s=>[s.id,s])),tasks=new Map();let lane=null;
+ const steering=Array.from({length:64},(_,i)=>[Math.cos(i*Math.PI/32),Math.sin(i*Math.PI/32)]);
  const pos=a=>new T.Vector2(a.g.position.x,a.g.position.z),world=p=>new T.Vector2(p[0],p[2]);
  const eligible=t=>t.kind==='bed'&&['waiting','waitExit'].includes(t.stage);
  function nextLane(){const all=[...tasks.values()].filter(eligible),exiting=all.filter(t=>t.stage==='waitExit');return (exiting.length?exiting.sort((a,b)=>b.order-a.order):all.sort((a,b)=>a.order-b.order))[0];}
@@ -55,7 +56,7 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
      return other.every(b=>Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.34||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-6);
     };
     if(clear(nx,nz)){a.g.position.x=nx;a.g.position.z=nz;task.blocked=0;}else{
-     task.blocked+=dt;if(task.blocked>1&&here.height===0&&(task.replans||0)<3){task.path=[...pathTo(a,p,other.filter(b=>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)<3)),...task.path.slice(1)];task.replans=(task.replans||0)+1;task.blocked=0;}for(const sign of [task.side||1,-(task.side||1)]){const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;if(clear(x,z)){a.g.position.x=x;a.g.position.z=z;task.side=sign;break;}}
+     task.blocked+=dt;if(task.blocked>1&&here.height===0&&(task.replans||0)<3){task.path=[...pathTo(a,p,other.filter(b=>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)<3)),...task.path.slice(1)];task.replans=(task.replans||0)+1;task.blocked=0;}let best=null,bestScore=-Infinity;for(const [ux,uz]of steering){const x=ox+ux*step,z=oz+uz*step,score=ux*dx+uz*dz;if(score>bestScore&&clear(x,z)){best=[x,z];bestScore=score;}}if(best){a.g.position.x=best[0];a.g.position.z=best[1];}
     }
     if(d<.008)task.path.shift();
    }else if(task.stage==='exit'){release(a);a.need.tired=0;a.act='idle';a.until=t+1;}
