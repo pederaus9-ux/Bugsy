@@ -1,0 +1,43 @@
+✔ all four actual cluster cup openings contain the rendered teat centers at the physical dock (113.615771ms)
+COW RIG FIXTURE RED/GREEN {"red":{"distance":0,"measured":0},"green":{"distance":0.8838860428279578,"measured":0.8838860428279571},"setup":{"before":{"position":[-11.8,0.08,-13.186666666666666],"task":"bed","stage":"hold"},"after":{"position":[-8.2,0.08,-11.2],"task":null,"target":[-7.299999999999999,-10.6],"path":[]}}}
+✔ actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking (4483.706292ms)
+✔ restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry (8.288635ms)
+✔ a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit (205.316111ms)
+✔ eating cannot satisfy the separate drinking visit before the cow goes to bed (25.622421ms)
+✔ slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach (6.432903ms)
+✔ display removal releases the departing cow reservation before disposing its rig (4.764024ms)
+✔ all five hungry cows complete distinct feed and water visits before settling into nighttime beds (226.066649ms)
+✔ a newly paid production cycle gets a real feed visit even when transient hunger is low (5.938716ms)
+✔ five manual requests pass the actual moving herd through the single robot in FIFO order (1021.066078ms)
+✔ switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations (6.045908ms)
+✔ legacy rig stroll releases a held bed instead of measuring care approach movement (41.990728ms)
+✖ expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles (1173.78298ms)
+✔ expanded northern herd clears all five robot requests in FIFO order (1271.232689ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8670.684529
+
+✖ failing tests:
+
+test at farm3d/tests/cow-scene.test.mjs:38:1
+✖ expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles (1173.78298ms)
+  AssertionError [ERR_ASSERTION]: northern herd failed cycle 1: [{"i":0,"pos":[-11.8,0.08,-38.2],"kind":"bed","stage":"hold"},{"i":1,"pos":[-7.8,0.08,-38.2],"kind":"bed","stage":"hold"},{"i":2,"pos":[-3.8,0.08,-38.2],"kind":"bed","stage":"hold"},{"i":3,"pos":[0.2,0.08,-38.2],"kind":"bed","stage":"hold"},{"i":4,"pos":[4.2,0.08,-38.2]}]
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/cow-room-work/farm3d/tests/cow-scene.test.mjs:47:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

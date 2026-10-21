@@ -671,7 +671,7 @@ import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=4';
-import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=2';
+import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=3';
 import {createDairyPath} from './farm-path.js?v=1';
 import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
@@ -1418,7 +1418,7 @@ const chickenYard=createChickenYard();scene.add(chickenYard.group);
 const cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
 let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0,cowPlantClearing=null;
 const cowStations=createStationScheduler(cowYard.stations),cowStationById=new Map(cowYard.stations.map(s=>[s.id,s]));
-const cowSurfaces=new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:-4.8,s.surface,s.kind==='feed'?-8.05-NORTH_EXTENSION:s.dock[2])]));
+const cowSurfaces=(()=>{cowYard.group.updateMatrixWorld(true);const centers=new Map(cowYard.targets.filter(t=>t.kind==='feed'||t.kind==='water').map(t=>[t.kind,new THREE.Box3().setFromObject(t.object).getCenter(new THREE.Vector3())]));return new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:centers.get('water').x,s.surface,s.kind==='feed'?centers.get('feed').z:s.dock[2])]));})();
 CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
 fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);
 // water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
@@ -1643,7 +1643,11 @@ const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x
 // a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
 const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
 function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
-  if(pen===PENS.courtyard){cx=(pen.poly[0][0]+pen.poly[1][0])/2;cz=(pen.poly[0][1]+pen.poly[2][1])/2;rad=3;}
+  if(pen===PENS.courtyard){
+    const [x0,z0]=pen.poly[0],x1=pen.poly[1][0],z1=pen.poly[2][1];
+    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5)&&fitsPen(pen,x,z,.7))return new THREE.Vector2(x,z);}
+    return new THREE.Vector2(pen.bed[0],pen.bed[1]);
+  }
   for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if ((pen===PENS.courtyard?!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5):!blocked(x,z)) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
   if (pen) return new THREE.Vector2(pen.bed[0], pen.bed[1]);
   return new THREE.Vector2(HOME.x, HOME.y + 8);
@@ -1875,7 +1879,8 @@ function syncChickenYard(){
 }
 function setCowGrass(active){
   cowPlantClearing?.setActive(active);
-  let i=0;for(const x of [-12.15,-8.45,-4.75,-1.05])for(const z of [-13.35,-9.65]){const key='cow-yard:'+i++;moveClear(key,x,z+COW_YARD_LAYOUT.footprint[0][1]+15.2,active?1.85:0);if(!active)CLEARS.delete(key);}
+  const p=COW_YARD_LAYOUT.footprint,[x0,z0]=p[0],x1=p[1][0],z1=p[2][1],cols=Math.ceil((x1-x0)/3.7),rows=Math.ceil((z1-z0)/3.7);
+  let i=0;for(let col=0;col<cols;col++)for(let row=0;row<rows;row++){const x=Math.min(x0+1.85+col*3.7,x1-1.85),z=Math.min(z0+1.85+row*3.7,z1-1.85),key='cow-yard:'+i++;moveClear(key,x,z,active?1.85:0);if(!active)CLEARS.delete(key);}
 }
 function syncCowYard(){
   const owned=!!G.S?.pens.cow?.owned;
@@ -1962,7 +1967,7 @@ function updateCowTaskStep(a,dt,t){
   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
   Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
   if(task.weight>0)a.carePose.apply({mode:task.kind==='bed'?'lie':task.kind==='feed'?'feed':'drink',weight:task.weight,target:cowSurfaces.get(task.station.id)});
-  if(a.cowTask===null){a.carePose.reset();a.need.tired=0;}
+  if(a.cowTask===null){a.carePose.reset();a.need.tired=0;a.act='idle';}
 }
 
 bootStep("making the sky");
@@ -3506,7 +3511,7 @@ function sensePlayer(a, t) {
 // ---------- the view that game.js talks to ----------
 function keyPos(key) {
   const [type, a, b] = key.split(":");
-  if(type==='cow'){const pos={feed:[-8.2,.7,-8.05],water:[-4.8,.7,-10.4],robot:[-3.3,1.3,-11.3],tank:[0,1.5,-11.3]}[a];return pos?new THREE.Vector3(pos[0],pos[1],pos[2]-NORTH_EXTENSION):null;}
+  if(type==='cow'){const target=cowYard.targets.find(t=>t.kind===a);if(!target)return null;cowYard.group.updateMatrixWorld(true);const pos=a==='robot'?new THREE.Vector3(...cowYard.layout.robot.dock):new THREE.Box3().setFromObject(target.object).getCenter(new THREE.Vector3());return pos.setY({feed:.7,water:.7,robot:1.3,tank:1.5}[a]);}
   if(type==='chicken'){const target=chickenYard.targets.find(t=>t.kind===a);return target?.object.position.clone().setY(a==='coop'?1.7:a==='eggs'?.2:.6);}
   if (type === "plot") { const P = plots[+a]; return P && P.g.position.clone().setY(.8); }
   if (type === "animal") { const an = animals.find(x => x.ref.type === "pen" && x.ref.kind === a && x.ref.i === +b); return an && an.g.position.clone().setY(an.S.h + .3); }
