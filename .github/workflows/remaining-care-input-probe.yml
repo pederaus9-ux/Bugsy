@@ -1,0 +1,44 @@
+name: Remaining care trusted input timing probe
+on:
+  push:
+    branches: [codex/remaining-care-input-probe-20261021]
+permissions:
+  contents: read
+jobs:
+  input-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['390x844','844x390']
+    env:
+      REMAINING_VIEWPORT: ${{ matrix.viewport }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Fetch fixed installed predecessor and frozen production reference
+        run: |
+          git fetch --depth=1 origin 393cb849b258852b3cd2ec92342004051785c5e2
+          git fetch --depth=1 origin d4ccb347960b3a3609b328804b6b2b8e89fc3954
+          git diff --exit-code d4ccb347960b3a3609b328804b6b2b8e89fc3954 -- farm3d/index.html farm3d/sw.js farm3d/game.js farm3d/remaining-care-controller.js farm3d/remaining-care-navigation.js farm3d/remaining-care-layout.js farm3d/remaining-care-yard.js farm3d/quadruped-care-poses.js
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Trusted50ms native gestures with actual delivered timing and original care assertions
+        run: node farm3d/tests/remaining-care.browser.cjs
+      - name: Preserve actual input samples, full results and original failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: remaining-input-${{ matrix.viewport }}
+          path: farm3d/tests/artifacts/remaining-care-*
+          retention-days: 14
+          if-no-files-found: error
