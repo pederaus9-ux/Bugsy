@@ -86,3 +86,16 @@ test('the longest expanded robot approach meets the original60s deadline on2.4s 
   assert(docked,'robot still approaching after60s: '+JSON.stringify(a.g.position.toArray()));
  }finally{a.rig3d.dispose();y.dispose();}
 });
+
+test('offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames',()=>{
+ const rows=[];
+ for(const paused of [false,true]){const {c,y}=scene(1,25),a=c.animals[0];
+  try{assert(G.milkCow(c.cowStatus.cows[0].id));assert(G.reportCowRobotDock(G.getCowCareStatus().job.id));at(T+300000);G.settleCows(true);c.syncCowYard();assert.equal(c.cowStatus.job.stage,'exiting');a.g.position.set(...y.layout.robot.dock);assert(c.chooseCowTask(a));const start=a.rig3d.state.distance;
+   for(let i=0;i<3;i++){c.clockT=paused?0:(i+1)*3;c.updateCowTask(a,paused?0:.1,c.clockT);}
+   const s=G.getCowCareStatus(),distance=a.rig3d.state.distance-start;assert.equal(s.tank.normal,1);assert.equal(G.S.xp,3);
+   if(paused){assert.equal(distance,0);assert.equal(s.job.stage,'exiting');}else{assert(distance>6,'exiting cow did not actually walk the exit route');assert.equal(s.job,null);}
+   rows.push({paused,distance,job:s.job?.stage??null,tank:s.tank.normal,xp:G.S.xp});
+  }finally{a.rig3d.dispose();y.dispose();}
+ }
+ console.log('OFFLINE BOOT CLOCK PROOF',JSON.stringify(rows));
+});
