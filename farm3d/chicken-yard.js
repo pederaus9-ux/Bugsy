@@ -7,8 +7,8 @@ const PAINT={walls:{wood:0x95683f,sage:0x788b62,cream:0xe4d5ac,red:0x9a3c30,whit
 export const CHICKEN_YARD_LAYOUT=Object.freeze({
   polygon:[[-16.5,-5.8],[-4.9,-5.8],[-4.9,5],[-16.5,5]],gate:[-6.8,-5.3],
   fenceSegments:[[-16.5,-5.8,-4.9,-5.8],[-16.5,-5.8,-16.5,5],[-16.5,5,-6.8,5],[-5.3,5,-4.9,5],[-4.9,-5.8,-4.9,5]],
-  obstacles:[[-11.5,-2.2,3.1,3.05],[-11.6,1.55,.82,1.63],[-7.1,3.65,.65,.65],[-6,2.6,.65,.65],[-7.6,6.3,1.15,.88],[-9.5,1.2,.82,1.3]],
-  bed:[-7.85,1.3,1.5],shelter:{x:[-8.7,-8.3],z:[-3.4,-1]},water:[-6,2.6,1.1,1.1],
+  obstacles:[[-11.2,-2.2,3.1,3.05],[-11.6,1.55,.82,1.63],[-7.1,3.65,.65,.65],[-6,2.6,.65,.65],[-7.6,6.3,1.15,.88],[-9.5,1.2,.82,1.3]],
+  bed:[-7.85,1.5,1.5],shelter:{x:[-8.7,-8.3],z:[-3.4,-1]},water:[-6,2.6,1.1,1.1],
 });
 export function createChickenYard(){
   const group=new THREE.Group();group.name='chicken-yard';
@@ -21,7 +21,7 @@ export function createChickenYard(){
   box(coop,2.8,.17,3,'wood',0,.55,0);
   box(coop,2.8,.006,3,'feed',0,.638,0); // shared straw floor; no new texture or material
   for(const x of [-1.22,1.22])for(const z of [-1.25,1.25])box(coop,.16,.58,.16,'wood',x,.28,z);
-  const doorCenters=[(-11.6+11.5)/2.2,(-9.5+11.5)/2.2],doorHalf=.31;
+  const doorCenters=[(-11.6+11.2)/2.2,(-9.5+11.2)/2.2],doorHalf=.31;
   for(let i=0;i<14;i++)box(coop,.185,1.7,.12,'walls',-1.3+i*.2,1.45,-1.4);
   let edge=-1.4;for(const x of doorCenters){const end=x-doorHalf;if(end>edge)box(coop,end-edge,1.7,.12,'walls',(edge+end)/2,1.45,1.4);box(coop,doorHalf*2,.5,.12,'walls',x,2.05,1.4);edge=x+doorHalf;}
   box(coop,1.4-edge,1.7,.12,'walls',(edge+1.4)/2,1.45,1.4);
@@ -34,8 +34,8 @@ export function createChickenYard(){
   for(const side of [-1,1])box(coop,1.65,.12,3.25,'roof',side*.7,2.55,0,0,-side*.38);
   box(coop,.12,.13,3.27,'trim',0,2.9,0);
   box(coop,1.15,.55,.55,'wood',1,1,-1.6);box(coop,1.25,.1,.66,'roof',1,1.32,-1.6,-.1);
-  box(coop,.35,.1,2.2,'roof',1.45,2.1,0,0,-.12); // covered side shelter, clear of the walking lane
-  merge(coop);coop.scale.set(2.2,1.05,1.7);coop.position.set(-11.5,0,-2.2);group.add(coop);
+  box(coop,.35,.1,2.2,'roof',1.35,2.1,0,0,-.12); // covered side shelter, clear of the walking lane
+  merge(coop);coop.scale.set(2.2,1.05,1.7);coop.position.set(-11.2,0,-2.2);group.add(coop);
   const roofDetails={};for(const kind of ['metal','shingles']){const details=new THREE.Group();const count=kind==='metal'?11:5;for(const side of [-1,1])for(let i=0;i<count;i++)box(details,kind==='metal'?1.65:.025,.025,kind==='metal'?.022:3.12,'roof',kind==='metal'?side*.7:side*(.13+i*.29),kind==='metal'?2.62:2.9-(.13+i*.29)*.4,kind==='metal'?-1.48+i*.296:0,0,-side*.38);merge(details);details.position.copy(coop.position);details.scale.copy(coop.scale);group.add(details);roofDetails[kind]=details;}
   const floor=.641*1.05;
   const accesses=[[-11.6,2.99,3.55,1],[-9.5,2.1,2.75,5]].map(([x,start,outside,obstacle],i)=>({id:'coop-door-'+i,floor,rampStart:[x,0,start],rampEnd:[x,floor,.35],entry:[x,floor,-.38],outside:[x,0,outside],obstacle}));
@@ -51,7 +51,7 @@ export function createChickenYard(){
   function sampleStationSupport(id,x,z){
     if(!stations.some(s=>s.id===id))return {height:0,normal:[0,1,0],inside:false};
     for(const A of accesses)if(Math.abs(x-A.entry[0])<=.6&&z>=A.rampEnd[2]-1e-8&&z<=A.rampStart[2]+1e-8)return {height:floor*Math.max(0,Math.min(1,(A.rampStart[2]-z)/(A.rampStart[2]-A.rampEnd[2]))),normal:[0,Math.cos(A.pitch),Math.sin(A.pitch)],inside:true};
-    if(x>=-14.35&&x<=-8.65&&z>=-4.58&&z<=.35)return {height:floor,normal:[0,1,0],inside:true};
+    if(x>=-14.05&&x<=-8.35&&z>=-4.58&&z<=.35)return {height:floor,normal:[0,1,0],inside:true};
     return {height:0,normal:[0,1,0],inside:false};
   }
   const fence=new THREE.Group(),wireEdges=[],seen=new Set();
