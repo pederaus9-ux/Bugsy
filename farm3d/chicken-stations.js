@@ -56,7 +56,8 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
     const other=neighbours().filter(b=>b!==a&&!b.gone),here=yard.sampleStationSupport(s.id,ox,oz),clear=(x,z)=>{
      const next=yard.sampleStationSupport(s.id,x,z);if((!task.access&&next.height>1e-8)||Math.abs(next.height-here.height)>.08||!clearPoint(x,z))return false;
      if(x<-16.2||x>-5.2||z<-5.5||z>4.7)return false;
-     if(yard.layout.obstacles.some(([bx,bz,hw,hd],i)=>!(i===0&&next.inside&&here.inside)&&!(i===1&&((next.inside&&here.inside)||(Math.abs(x+11.6)<=.6&&z>=yard.access.rampEnd[2]&&z<=yard.access.outside[2])))&&Math.abs(x-bx)<hw+.18&&Math.abs(z-bz)<hd+.18))return false;
+     const rampGoal=p[0]===yard.access.rampStart[0]&&p[2]===yard.access.rampStart[2],outsideGoal=p[0]===yard.access.outside[0]&&p[2]===yard.access.outside[2],accessLeg=task.access||rampGoal||(outsideGoal&&z>=oz-1e-8);
+     if(yard.layout.obstacles.some(([bx,bz,hw,hd],i)=>!(i===0&&next.inside&&here.inside)&&!(i===1&&accessLeg&&((next.inside&&here.inside)||(Math.abs(x+11.6)<=.6&&z>=yard.access.rampEnd[2]&&z<=yard.access.outside[2])))&&Math.abs(x-bx)<hw+.18&&Math.abs(z-bz)<hd+.18))return false;
      return other.every(b=>Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.34||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-6);
     };
     // Keep a safe detour briefly; greedy per-frame choices can oscillate at an edge.
