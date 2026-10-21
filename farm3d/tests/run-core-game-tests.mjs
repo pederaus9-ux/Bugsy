@@ -7,13 +7,16 @@ import {dirname} from 'node:path';
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
  'north-land.test.mjs','farm-path.test.mjs','seasonal-leaves.test.mjs','animal-stations.test.mjs','cow-yard.test.mjs','cow-rest-pose.test.mjs','cow-stations.test.mjs','cow-scene.test.mjs','cow-clearings.test.mjs','cow-controls.test.mjs','cow-ready-action.test.mjs','cow-robot-contact.test.mjs','cow-care.test.mjs','cow-milking.test.mjs','cow-care-integration.test.mjs','cow-writer-compatibility.test.mjs','save-writer-compatibility.test.mjs','utility-lights.test.mjs','decor-models.test.mjs','decor-save.test.mjs','market-sales.test.mjs','seed-target-readiness.test.mjs','cow-test-preset.test.mjs',
- 'chicken-care.test.mjs','chicken-care-integration.test.mjs','chicken-yard.test.mjs','chicken-yard-interaction.test.mjs','seed-selection.test.mjs','perf.test.mjs','cow3d.test.mjs','cow-b17-performance.test.mjs','cow-anatomy.test.mjs',
+ 'chicken-stations.test.mjs','chicken-care-controller.test.mjs','chicken-care.test.mjs','chicken-care-integration.test.mjs','chicken-yard.test.mjs','chicken-yard-interaction.test.mjs','seed-selection.test.mjs','perf.test.mjs','cow3d.test.mjs','cow-b17-performance.test.mjs','cow-anatomy.test.mjs',
  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
  'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','horse-contact-feasibility.test.mjs','horse-motion-evidence.test.mjs','sheep3d.test.mjs','dog-face.test.mjs','dog-stop-continuity.test.mjs','dog-evidence-placement.test.mjs','cat-visual.test.mjs','cat-stop-continuity.test.mjs','cat-evidence-placement.test.mjs','chicken-coordinated-motion.test.mjs','chicken-start-turn.test.mjs','chicken-stop-continuity.test.mjs','chicken-evidence-placement.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
  'animal-visual.test.mjs','features.test.mjs','sdk.test.mjs','scene-polish.test.mjs',
  'asset-policy.test.mjs','ambient-render-observation.test.mjs'
 ];
 const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
+const group=process.env.FARM3D_CORE_GROUP||'all';
+if(!['all','node','browser'].includes(group))throw Error('Unknown core test group: '+group);
+const selectedNodes=group==='browser'?[]:nodeFiles,selectedBrowsers=group==='node'?[]:browserFiles;
 let active=null;
 function memorySnapshot(){
  let cgroup='unknown';
@@ -54,12 +57,12 @@ const visualNames=[
  'new rigs preserve distance cadence',
  'actual shin geometry reaches'
 ];
-for(const f of nodeFiles){
+for(const f of selectedNodes){
  if(f==='animal-visual.test.mjs'){
   for(const name of visualNames){
    await run(f+' :: '+name,['--max-old-space-size=2048','--test','--test-concurrency=1','--test-name-pattern='+name,f]);
   }
  }else await run(f,['--test','--test-concurrency=1',f]);
 }
-for(const f of browserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
-console.log('[CI-ISOLATION] ALL '+nodeFiles.length+' Node test files and '+browserFiles.length+' browser suites passed.');
+for(const f of selectedBrowsers)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
+console.log('[CI-ISOLATION] ALL '+selectedNodes.length+' Node test files and '+selectedBrowsers.length+' browser suites passed (group '+group+').');

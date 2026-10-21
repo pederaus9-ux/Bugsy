@@ -1,0 +1,45 @@
+name: Chicken physical care diagnostic
+on:
+  push:
+    branches: [codex/chicken-physical-care-20261020]
+    paths: ['farm3d/**', '.github/workflows/chicken-physical-care-diagnostic.yml']
+permissions:
+  contents: read
+concurrency:
+  group: chicken-physical-care-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['390x844','844x390','1280x720']
+    env:
+      CHICKEN_VIEWPORT: ${{ matrix.viewport }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Physical stations, full flock and protected care/motion
+        run: node --test farm3d/tests/chicken-stations.test.mjs farm3d/tests/chicken-care-controller.test.mjs farm3d/tests/chicken-care.test.mjs farm3d/tests/chicken-care-integration.test.mjs farm3d/tests/chicken-yard.test.mjs farm3d/tests/chicken-coordinated-motion.test.mjs farm3d/tests/chicken-start-turn.test.mjs farm3d/tests/chicken-stop-continuity.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/versions.test.mjs
+      - name: Actual approach, contact, ramp, sleep, wake and offline reload
+        run: node farm3d/tests/chicken-care-physical.browser.cjs
+      - name: Retain actual captures, partial results and original failure trace
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: chicken-physical-${{ matrix.viewport }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/chicken-physical-*
+          retention-days: 14
+          if-no-files-found: warn
