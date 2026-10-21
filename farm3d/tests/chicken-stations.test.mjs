@@ -8,9 +8,17 @@ import {getAnimalCarePose} from '../animal-care-poses.js';
 
 function skinBounds(r){r.g.updateMatrixWorld(true);r.card.skeleton.update();const b=new T.Box3(),v=new T.Vector3();for(let i=0;i<r.card.geometry.attributes.position.count;i++){r.card.getVertexPosition(i,v);b.expandByPoint(v.applyMatrix4(r.card.matrixWorld));}return b;}
 function stations(y){assert.ok(Array.isArray(y.stations),'yard must expose physical care stations');return y.stations;}
+test('both coop doors are real openings with independent continuous supported ramps',()=>{
+ const y=createChickenYard();try{assert.equal(y.accesses?.length,2,'two physical doorways are required');y.group.updateMatrixWorld(true);const coop=y.targets.find(t=>t.kind==='coop').object;
+ for(const A of y.accesses){const beds=y.stations.filter(s=>s.kind==='bed'&&s.lane===A.id);assert.equal(beds.length,15);for(const dx of [-.3,0,.3])for(const h of [.8,1.1,1.5])assert.equal(new T.Raycaster(new T.Vector3(A.entry[0]+dx,h,.9),new T.Vector3(0,0,-1),0,1.3).intersectObject(coop,true).length,0,'actual wall blocks doorway');
+  for(let n=0;n<=100;n++){const z=A.rampStart[2]+(A.rampEnd[2]-A.rampStart[2])*n/100,p=y.sampleStationSupport(beds[0].id,A.rampStart[0],z),hits=new T.Raycaster(new T.Vector3(A.rampStart[0],2,z),new T.Vector3(0,-1,0)).intersectObject(y.group,true).filter(h=>h.point.y<1);assert(p.inside);assert.ok(Math.abs(p.height-A.floor*n/100)<1e-8);assert(hits.length);assert.ok(Math.abs(hits[0].point.y-p.height)<.012);}
+ }
+ const floor=new T.Box3().setFromObject(coop);assert.ok(floor.getSize(new T.Vector3()).x>6,'larger coop must give the two doorways room');
+ }finally{y.dispose();}
+});
 test('thirty separately reserved resting places fit inside the raised coop',()=>{
  const y=createChickenYard();try{const beds=stations(y).filter(s=>s.kind==='bed');assert.equal(beds.length,30);assert.equal(new Set(beds.map(s=>s.id)).size,30);const scheduler=createStationScheduler(y.stations);
- for(let i=0;i<30;i++){const s=beds[i];assert.equal(scheduler.request('hen-'+i,'bed',s.id).stationId,s.id);assert.ok(s.dock[1]>.6);assert.ok(s.dock[0]>-13.8&&s.dock[0]<-9.4);assert.ok(s.dock[2]>-4.25&&s.dock[2]<-.1);for(let j=0;j<i;j++)assert.ok(Math.hypot(s.dock[0]-beds[j].dock[0],s.dock[2]-beds[j].dock[2])>=.66);assert.equal(y.sampleStationSupport(s.id,s.dock[0],s.dock[2]).height,s.dock[1]);}
+ for(let i=0;i<30;i++){const s=beds[i];assert.equal(scheduler.request('hen-'+i,'bed',s.id).stationId,s.id);assert.ok(s.dock[1]>.6);assert.ok(s.dock[0]>-14.35&&s.dock[0]<-8.65);assert.ok(s.dock[2]>-4.25&&s.dock[2]<-.1);for(let j=0;j<i;j++)assert.ok(Math.hypot(s.dock[0]-beds[j].dock[0],s.dock[2]-beds[j].dock[2])>=.66);assert.equal(y.sampleStationSupport(s.id,s.dock[0],s.dock[2]).height,s.dock[1]);}
  assert.equal(scheduler.request('overflow','bed'),null);
  }finally{y.dispose();}
 });

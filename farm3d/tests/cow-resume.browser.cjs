@@ -4,7 +4,7 @@ async function ready(p){await p.waitForFunction(()=>window.__done&&window.__dbg&
 async function warmInstalledWorld(p){
  // Initial textures loaded before manual worker registration in this shot
  // fixture. Reopen online under its installed controller before going offline.
- await p.reload();await ready(p);await p.waitForFunction(async()=>{const c=await caches.open('sa3d-v56');for(const f of ['tex/leaves.webp','tex/bark.jpg','tex/grass.jpg'])if(!await c.match(new URL(f,location.href)))return false;return true;},null,{timeout:90000});
+ await p.reload();await ready(p);await p.waitForFunction(async()=>{const c=await caches.open('sa3d-v57');for(const f of ['tex/leaves.webp','tex/bark.jpg','tex/grass.jpg'])if(!await c.match(new URL(f,location.href)))return false;return true;},null,{timeout:90000});
  result.checks.push('installed online reopen caches all three world textures before offline return');save();
 }
 async function offset(p,ms){await p.evaluate(ms=>{sessionStorage.setItem('__cowResumeOffset',String(ms));__dbg.G.save();},ms);return ready(p);}

@@ -14,6 +14,9 @@ const nodeFiles=[
  'asset-policy.test.mjs','ambient-render-observation.test.mjs'
 ];
 const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
+const group=process.env.FARM3D_CORE_GROUP||'all';
+if(!['all','node','browser'].includes(group))throw Error('Unknown core test group: '+group);
+const selectedNodes=group==='browser'?[]:nodeFiles,selectedBrowsers=group==='node'?[]:browserFiles;
 let active=null;
 function memorySnapshot(){
  let cgroup='unknown';
@@ -54,12 +57,12 @@ const visualNames=[
  'new rigs preserve distance cadence',
  'actual shin geometry reaches'
 ];
-for(const f of nodeFiles){
+for(const f of selectedNodes){
  if(f==='animal-visual.test.mjs'){
   for(const name of visualNames){
    await run(f+' :: '+name,['--max-old-space-size=2048','--test','--test-concurrency=1','--test-name-pattern='+name,f]);
   }
  }else await run(f,['--test','--test-concurrency=1',f]);
 }
-for(const f of browserFiles)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
-console.log('[CI-ISOLATION] ALL '+nodeFiles.length+' Node test files and '+browserFiles.length+' browser suites passed.');
+for(const f of selectedBrowsers)await run(f,[...(f==='regression.browser.cjs'?['--experimental-vm-modules']:[]),f]);
+console.log('[CI-ISOLATION] ALL '+selectedNodes.length+' Node test files and '+selectedBrowsers.length+' browser suites passed (group '+group+').');
