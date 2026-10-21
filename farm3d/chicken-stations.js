@@ -159,6 +159,11 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   if(task.stage==='waiting')yieldToEntrants(a,task,dt,t);
   if(task.stage==='approach'||task.stage==='exit'){
    if(!task.path){task.groundGoal=s.approach;task.groundTail=[s.dock];task.path=[...pathTo(a,s.approach),s.dock];}
+   // Late bed allocations can put an occupied bed on an authored interior
+   // waypoint. Aim beyond that intermediate point; the same physical steps
+   // still steer around the sleeper, walls and support edges. Never skip docks
+   // or height transitions needed for the doorway/ramp.
+   if(task.stage==='approach'&&task.kind==='bed'&&task.groundLeg===false&&a.g.position.y>.1)while(task.path.length>1){const p=task.path[0],next=task.path[1];if(p[1]<=.1||p[1]!==next[1]||!neighbours().some(b=>b!==a&&b.chickenTask?.kind==='bed'&&b.chickenTask.stage==='hold'&&Math.abs(b.g.position.y-p[1])<.08&&Math.hypot(b.g.position.x-p[0],b.g.position.z-p[2])<.34))break;task.path.shift();task.detour=null;}
    const p=task.path[0];task.access=task.kind==='bed'&&((p?.[1]||0)>0||a.g.position.y>1e-6);
    if(p){const d=Math.hypot(p[0]-ox,p[2]-oz);walk(a,task,p,dt,t);if(d<.008){task.path.shift();task.detour=null;if(task.kind==='bed'&&p===A.rampStart)task.groundLeg=false;if(task.stage==='exit'&&p===A.outside)task.groundLeg=true;}}
    else if(task.stage==='exit'){release(a);a.need.tired=0;a.act='idle';a.until=t+1;}

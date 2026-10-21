@@ -35,9 +35,22 @@ export function createCowYardPlantClearing(meshes,layout=COW_YARD_LAYOUT){
  return {setActive(value){value=!!value;if(value===active)return;active=value;for(const{mesh,original}of parts){const a=mesh.instanceMatrix.array;a.set(original);if(active)for(let i=0;i<mesh.count;i++){const o=i*16,x=original[o+12],z=original[o+14];if(x>=x0&&x<=x1&&z>=z0&&z<=z1)for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;}}};
 }
 
+// The installed northern courtyard has room to grow east without moving its
+// stone-path entrance. Keep the original local layout for frozen legacy probes.
+function wideCowLayout(){
+ const l=structuredClone(COW_YARD_LAYOUT),east=11.9;
+ l.polygon=[[-14,-15.2],[9.8,-15.2],[9.8,-7.8],[-14,-7.8]];
+ l.footprint=[[-14,-15.2],[13,-15.2],[13,-7.55],[-14,-7.55]];
+ l.bed=[-3.8,-13.2,1];l.shelter.x=[-13.3,5.7];l.water[0]+=east;
+ l.fenceSegments=[[-14,-15.2,9.8,-15.2],[-14,-15.2,-14,-7.8],[-14,-7.8,-4.4,-7.8],[-2.1,-7.8,9.8,-7.8],[9.8,-15.2,9.8,-7.8]];
+ l.obstacles=[...[-13.8,-9.8,-5.8,-1.8,2.2,6.2].map(x=>[x,-11.45,.065,.065]),...[-10.95,-5.45].map(x=>[x,-7.95,.065,.065]),...[-13.8,-9.8,-5.8,-1.8,2.2,6.2].map(x=>[x,-13.65,.0275,1.275]),[-3.6,-15.1,10.3,.1],[-13.9,-11.5,.1,3.7],[-8.2,-8.05,2.7,.22],[-4.8+east,-10.4,.35,.8],[-4.35+east,-11.3,.035,1.9],[-2.25+east,-11.3,.035,1.9],[-1.85+east,-11.3,.25,.7],[east,-11.3,1.1,.75]];
+ l.robot=Object.fromEntries(Object.entries(l.robot).map(([k,p])=>[k,[p[0]+east,p[1],p[2]]]));l.tank[0]+=east;
+ l.stations=[...[-11.8,-7.8,-3.8,.2,4.2].map((x,i)=>station('cow-bed-'+(i+1),'bed',x,-13.2,x,-11.8,0)),...l.stations.filter(s=>s.kind==='feed'),...l.stations.filter(s=>s.kind==='drink'||s.kind==='robot').map(s=>({...s,dock:[s.dock[0]+east,s.dock[1],s.dock[2]],approach:[s.approach[0]+east,s.approach[1],s.approach[2]]}))];
+ return l;
+}
 export function cowYardLayout(north=0){
  if(!north)return COW_YARD_LAYOUT;
- const l=structuredClone(COW_YARD_LAYOUT),p2=p=>[p[0],p[1]-north],p3=p=>[p[0],p[1],p[2]-north];
+ const l=wideCowLayout(),p2=p=>[p[0],p[1]-north],p3=p=>[p[0],p[1],p[2]-north];
  l.polygon=l.polygon.map(p2);l.footprint=l.footprint.map(p2);l.bed[1]-=north;l.shelter.z=l.shelter.z.map(z=>z-north);l.water[1]-=north;
  // Keep four metres of open approach outside the south-facing entrance.
  // The existing site/placement guards also reserve this space on saved farms.
@@ -47,25 +60,25 @@ export function cowYardLayout(north=0){
  l.stations=l.stations.map(s=>({...s,dock:p3(s.dock),approach:p3(s.approach)}));return l;
 }
 export function createCowYard({north=0}={}){
- const layout=cowYardLayout(north),group=new THREE.Group();group.name='cow-yard';group.position.z=-north;
+ const roomy=!!north,east=roomy?11.9:0,local=roomy?wideCowLayout():COW_YARD_LAYOUT,layout=cowYardLayout(north),group=new THREE.Group();group.name='cow-yard';group.position.z=-north;
  const materials=Object.fromEntries(Object.entries({blue:0x7fabb7,cream:0xeae0c7,roof:0x506e7c,metal:0x9baaaa,dark:0x3a4949,straw:0xbfa257,feed:0xb58d43,water:0x507f89,concrete:0xaaa998,grass:0x748b49,milk:0xf2e9cf}).map(([k,color])=>[k,new THREE.MeshStandardMaterial({color,roughness:k==='metal'?.4:.85,metalness:k==='metal'?.4:0})]));
  const makeGroup=name=>{const g=new THREE.Group();g.name=name;group.add(g);return g;};
  function box(g,w,h,d,m,x,y,z,ry=0,rx=0){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,ry,0);g.add(o);return o;}
  function cylinder(g,r,h,m,x,y,z,rx=0,rz=0){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,0,rz);g.add(o);return o;}
  function merge(g){const buckets=new Map();g.updateMatrix();for(const o of [...g.children])if(o.isMesh){o.updateMatrix();const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=mesh.receiveShadow=true;g.add(mesh);}}
- const foundation=makeGroup('cow-foundation');box(foundation,11.9,.6,7.4,'concrete',-8.05,-.22,-11.5);merge(foundation);
- const grazing=makeGroup('cow-grazing');box(grazing,3.8,.025,1.65,'grass',-8.2,FLOOR+.0125,-10.9);merge(grazing);
+ const foundation=makeGroup('cow-foundation');box(foundation,roomy?23.8:11.9,.6,7.4,'concrete',roomy?-2.1:-8.05,-.22,-11.5);merge(foundation);
+ const grazing=makeGroup('cow-grazing');box(grazing,roomy?11:3.8,.025,roomy?2.8:1.65,'grass',roomy?-.5:-8.2,FLOOR+.0125,-10.9);merge(grazing);
  const shelter=makeGroup('cow-shelter');
- box(shelter,8.9,1.65,.14,'blue',-9.5,.9,-15.08);box(shelter,.14,1.65,7.2,'blue',-13.88,.9,-11.5);
- for(const[x,z]of [[-13.8,-11.45],[-10.8,-11.45],[-5.15,-11.45],[-10.35,-7.95],[-13.8,-7.95]])box(shelter,.13,2.7,.13,'cream',x,1.43,z);
- box(shelter,9.1,.17,3.9,'roof',-9.5,2.86,-13.25,0,-.055);box(shelter,3.75,.17,3.65,'roof',-12.15,2.82,-9.65,0,-.055);
- box(shelter,9.1,.2,.16,'cream',-9.5,2.72,-11.34);box(shelter,.16,.2,3.65,'cream',-10.23,2.72,-9.65);
+ box(shelter,roomy?20.6:8.9,1.65,.14,'blue',roomy?-3.6:-9.5,.9,-15.08);box(shelter,.14,1.65,7.2,'blue',-13.88,.9,-11.5);
+ for(const[x,z]of roomy?[-13.8,-9.8,-5.8,-1.8,2.2,6.2].map(x=>[x,-11.45]):[[-13.8,-11.45],[-10.8,-11.45],[-5.15,-11.45],[-10.35,-7.95],[-13.8,-7.95]])box(shelter,.13,2.7,.13,'cream',x,1.43,z);
+ box(shelter,roomy?20.8:9.1,.17,3.9,'roof',roomy?-3.6:-9.5,2.86,-13.25,0,-.055);if(!roomy)box(shelter,3.75,.17,3.65,'roof',-12.15,2.82,-9.65,0,-.055);
+ box(shelter,roomy?20.8:9.1,.2,.16,'cream',roomy?-3.6:-9.5,2.72,-11.34);if(!roomy)box(shelter,.16,.2,3.65,'cream',-10.23,2.72,-9.65);
   // A shallow lean-to from the west wing keeps the feed row dry.
   box(shelter,5.65,.12,1.6,'cream',-8.2,2.3,-8.52,0,-.06);for(const x of [-10.95,-5.45])box(shelter,.13,2.2,.13,'cream',x,1.18,-7.95);merge(shelter);
- const beds=makeGroup('cow-beds');for(const s of COW_YARD_LAYOUT.stations.filter(s=>s.kind==='bed')){const[x,,z]=s.dock,side=s.facing!==0;box(beds,side?3:2.15,.12,side?1.95:3,'straw',x,FLOOR+.06,z);}
- for(const x of [-13.05,-10.55,-8.05,-5.55]){box(beds,.055,.8,2.55,'metal',x,.55,-13.65);}
- box(beds,2.7,.6,.055,'metal',-12.4,.5,-9.6);merge(beds);
- const fence=makeGroup('cow-fence');for(const[ax,az,bx,bz]of COW_YARD_LAYOUT.fenceSegments){const len=Math.hypot(bx-ax,bz-az),a=Math.atan2(bz-az,bx-ax),n=Math.ceil(len/2);for(let i=0;i<=n;i++)box(fence,.1,1.2,.1,'cream',ax+(bx-ax)*i/n,.68,az+(bz-az)*i/n);for(const y of [.55,1.05])box(fence,len,.075,.075,'metal',(ax+bx)/2,y,(az+bz)/2,-a);}merge(fence);
+ const beds=makeGroup('cow-beds');for(const s of local.stations.filter(s=>s.kind==='bed')){const[x,,z]=s.dock,side=s.facing!==0;box(beds,side?3:roomy?3.3:2.15,.12,side?1.95:3,'straw',x,FLOOR+.06,z);}
+ for(const x of roomy?[-13.8,-9.8,-5.8,-1.8,2.2,6.2]:[-13.05,-10.55,-8.05,-5.55]){box(beds,.055,.8,2.55,'metal',x,.55,-13.65);}
+ if(!roomy)box(beds,2.7,.6,.055,'metal',-12.4,.5,-9.6);merge(beds);
+ const fence=makeGroup('cow-fence');for(const[ax,az,bx,bz]of local.fenceSegments){const len=Math.hypot(bx-ax,bz-az),a=Math.atan2(bz-az,bx-ax),n=Math.ceil(len/2);for(let i=0;i<=n;i++)box(fence,.1,1.2,.1,'cream',ax+(bx-ax)*i/n,.68,az+(bz-az)*i/n);for(const y of [.55,1.05])box(fence,len,.075,.075,'metal',(ax+bx)/2,y,(az+bz)/2,-a);}merge(fence);
  const feed=makeGroup('cow-feed');box(feed,5.4,.12,.65,'dark',-8.2,.3,-8.05);for(const z of [-8.37,-7.73])box(feed,5.4,.4,.08,'metal',-8.2,.47,z);merge(feed);
  const grain=box(feed,5.15,.06,.48,'feed',-8.2,.53,-8.05);
  const water=makeGroup('cow-water');box(water,.7,.1,1.65,'dark',-4.8,.28,-10.4);for(const x of [-5.16,-4.44])box(water,.07,.48,1.7,'metal',x,.48,-10.4);for(const z of [-11.22,-9.58])box(water,.7,.48,.07,'metal',-4.8,.48,z);merge(water);
@@ -80,8 +93,10 @@ export function createCowYard({north=0}={}){
  const gauge=box(tank,.5,.01,.06,'milk',0,.97,-10.535);
  // Batch fixed pieces across logical components; their groups remain stable
  // anchors for inspection, interaction and moving robot attachments.
- const fixed=makeGroup('cow-static');for(const g of [foundation,grazing,shelter,beds,fence,pipe,robot]){g.userData.bounds=new THREE.Box3().setFromObject(g);for(const o of [...g.children])if(o.isMesh)fixed.add(o);}merge(fixed);
- const robotBounds=new THREE.Box3(new THREE.Vector3(-4.5,.08,-13.5-north),new THREE.Vector3(-1.6,2.7,-9.1-north)),point=new THREE.Vector3();
+ for(const g of [water,robot,pipe,tank])g.position.x=east;
+ group.updateMatrixWorld(true);
+ const fixed=makeGroup('cow-static');for(const g of [foundation,grazing,shelter,beds,fence,pipe,robot]){g.userData.bounds=new THREE.Box3().setFromObject(g);for(const o of [...g.children])if(o.isMesh)fixed.attach(o);}merge(fixed);
+ const robotBounds=new THREE.Box3(new THREE.Vector3(-4.5+east,.08,-13.5-north),new THREE.Vector3(-1.6+east,2.7,-9.1-north)),point=new THREE.Vector3();
  robot.raycast=function(raycaster,hits){if(!raycaster.ray.intersectBox(robotBounds,point))return;const distance=raycaster.ray.origin.distanceTo(point);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:point.clone(),object:robot});};
  const targets=[{kind:'feed',object:feed},{kind:'water',object:water},{kind:'robot',object:robot},{kind:'tank',object:tank}];for(const t of targets)t.object.userData.hit={type:'cowStation',station:t.kind};
  let disposed=false;

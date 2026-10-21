@@ -1,10 +1,14 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');const{start,artifacts}=require('./browser-harness.cjs');const out=path.join(artifacts,'cow-resume');fs.mkdirSync(out,{recursive:true});const result={status:'RUNNING',physicalPhone:false,checks:[],source:'native docked fixture plus generated approaching FIFO fixture'};const save=()=>fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));const docked=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/cow-native-docked.json'),'utf8')),base=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/saves/3d-v3-cow-robot.json'),'utf8')).save;let h,failed=true;save();
-async function boot(s,farm,name){const p=s.page;await p.addInitScript(({farm,T,name})=>{Date.now=()=>T+Number(sessionStorage.getItem('__cowResumeOffset')||0);if(sessionStorage.getItem(name))return;sessionStorage.setItem(name,'1');localStorage.setItem('sunny-acres-3d-v1',JSON.stringify(farm));localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');},{farm,T:docked.at,name});await p.goto(h.base+'farm3d/?debug&portrait&shot&sim=0&preset=noon');await ready(p);return p;}
+async function boot(s,farm,name){const p=s.page;await p.addInitScript(({farm,T,name})=>{
+ // This snapshot verifies the ledger before physical exit. Its three startup
+ // draws must not advance locomotion by a machine-dependent shader-load time.
+ Object.defineProperty(performance,'now',{value:()=>0,configurable:true});
+ Date.now=()=>T+Number(sessionStorage.getItem('__cowResumeOffset')||0);if(sessionStorage.getItem(name))return;sessionStorage.setItem(name,'1');localStorage.setItem('sunny-acres-3d-v1',JSON.stringify(farm));localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');},{farm,T:docked.at,name});await p.goto(h.base+'farm3d/?debug&portrait&shot&sim=0&preset=noon');await ready(p);return p;}
 async function ready(p){await p.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});return p.evaluate(()=>{const G=__dbg.G;G.close();G.opts.quiet=true;G.S.tut=99;G.S.event=null;G.S.nextEventAt=G.S.nextRushAt=G.S.nextVisitorAt=9e15;G.save();return{care:G.getCowCareStatus(),xp:G.S.xp,milk:G.have('milk'),gold:G.S.gold.milk,birds:G.S.pens.chicken.list.length,decor:G.S.decor,raw:localStorage.getItem(G.SAVE_KEY)};});}
 async function warmInstalledWorld(p){
  // Initial textures loaded before manual worker registration in this shot
  // fixture. Reopen online under its installed controller before going offline.
- await p.reload();await ready(p);await p.waitForFunction(async()=>{const c=await caches.open('sa3d-v59');for(const f of ['tex/leaves.webp','tex/bark.jpg','tex/grass.jpg'])if(!await c.match(new URL(f,location.href)))return false;return true;},null,{timeout:90000});
+ await p.reload();await ready(p);await p.waitForFunction(async()=>{const c=await caches.open('sa3d-v62');for(const f of ['tex/leaves.webp','tex/bark.jpg','tex/grass.jpg'])if(!await c.match(new URL(f,location.href)))return false;return true;},null,{timeout:90000});
  result.checks.push('installed online reopen caches all three world textures before offline return');save();
 }
 async function offset(p,ms){await p.evaluate(ms=>{sessionStorage.setItem('__cowResumeOffset',String(ms));__dbg.G.save();},ms);return ready(p);}
