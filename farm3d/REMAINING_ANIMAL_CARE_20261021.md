@@ -36,3 +36,14 @@ Actual skin tests caught unsupported legs, tail penetration and incorrect two-li
 Local browser launch blocked by missing Chromium executable. No unchanged download retry or local browser-pass claim. New four-view hosted diagnostic exercises eleven maximum animals, physical contact, three nights, trusted existing feed/pet input, night save/reload, installed offline boot and20GPU rebuilds. Existing cow9/chicken3 diagnostics and all standard PR gates will also run on this branch.
 
 Cache63 adds exactly four new physical-care modules; all20 frozen protected runtime files remain byte-identical to393cb84. Existing cache assertions are advanced from candidate62to63, preserving every assertion and deadline. Cow VM fixture supplies a no-op for the new unrelated remaining-species sync hook; all cow assertions remain unchanged.
+
+## Initial hosted failure and corrected candidate
+Initial head81dbc4c, tree0755980, PR95 draft. All4 remaining-care jobs in39672156102FAIL at boot: cat furniture overlaps the unchanged order board `[3.3,11.4,1.5,.6]` and its support `[1.9,12.3,.4,.4]`. No rendered care/recovery success is inferred. All4 original ZIPs downloaded and API SHA256 verified, raw job logs committed, original complete bundle preserved as Sunny-Acres-PR95-Initial-Failure-Evidence-81dbc4c.zip. Full-world snapshot retained in tests/fixtures/remaining-care-initial-world.json.
+
+The complete world (including the large reserved field block) showed the front of the barn cannot hold a second pet area without occupying existing objects/path. Both new pet nooks move to open flat space behind the barn. No existing board, field, tree, path, saved object or building moves. The new pet-location test now requires stations behind the barn (`z<-6.2`) to retain the original main-door clearance guarantee, rather than the initial unapproved front-only assumption. Full actual-world site testRED→GREEN.
+
+Self-review independently reproduced a final stand-up frame that began exiting immediately after weight reachedzero. The controller now waits for the next frame; strict new regressionRED→GREEN, no deadline/clearance/assertion relaxation. Feed overlay adds a small real mouth motion; actual head-skinned vertices remain at the surface. Four-species motion testsRED→GREEN.
+
+Final focused43/43PASS after corrections, with30/60/120Hz three-night maximum-herd cases, all original skin/contact and immutable20-file proofs. Completed local69-file integrated sweepPASS, explicitly diagnostic/mixed-source; final exact-head hosted sweep remains required. Browser speed assertion applies to actual care frames; ordinary accepted free-roaming animals may legitimately run faster than station walking, so it no longer mislabels those unrelated movements as a care teleport. Physical-care bound and500sim-second deadline remain unchanged.
+
+Earlier hosted/source greens do not qualify this revised candidate. No owner visual/release approval is inferred.

@@ -26,7 +26,7 @@ export function createQuadrupedCarePose(r){
    if(correction===undefined){r.g.updateMatrixWorld(true);r.card.skeleton.update();let bottom=Infinity;for(let i=0;i<r.card.geometry.attributes.position.count;i++){r.card.getVertexPosition(i,v);v.applyMatrix4(r.card.matrixWorld);bottom=Math.min(bottom,v.y);}correction=r.g.position.y+surface*w-bottom;supportCorrections.set(key,correction);}
    r.model.position.y+=correction;
   }else if(target){
-   r.g.updateMatrixWorld(true);v.copy(target);r.body.worldToLocal(v);v.sub(r.neck.position);
+   r.g.updateMatrixWorld(true);v.copy(target);v.y+=mode==='feed'?Math.max(0,Math.sin(r.state.time*6))*.012:Math.max(0,Math.sin(r.state.time*4))*.004;r.body.worldToLocal(v);v.sub(r.neck.position);
    const hy=r.head.position.y,hz=r.head.position.z,L1=Math.hypot(hy,hz),L2=Math.hypot(tip.y,tip.z),d=Math.max(.0001,Math.hypot(v.y,v.z)),theta=Math.atan2(v.y,-v.z),a=theta+Math.acos(clamp((L1*L1+d*d-L2*L2)/(2*L1*d),-1,1)),b=theta-Math.acos(clamp((L2*L2+d*d-L1*L1)/(2*L2*d),-1,1));
    r.neck.rotation.x=(a-Math.atan2(hy,-hz))*w;r.head.rotation.x=(b-(a-Math.atan2(hy,-hz))-Math.atan2(tip.y,-tip.z))*w;
   }

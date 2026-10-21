@@ -56,8 +56,9 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   }
   if(task.stage==='settle'){task.weight=Math.min(1,task.weight+dt/1.2);if(task.weight===1)task.stage='hold';}
   if(task.stage==='hold'){task.held+=dt;if(task.kind==='bed')a.need.tired=Math.max(0,a.need.tired-dt*.08);else if(task.kind==='feed')a.need.hunger=Math.max(0,a.need.hunger-dt*.14);}
+  const finishingStand=task.stage==='stand';
   if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/1.2);if(task.weight===0){task.stage='exit';task.path=null;}}
-  if(task.stage==='exit'&&move(a,task,l.turnouts[slot(a)],dt,t)){
+  if(task.stage==='exit'&&!finishingStand&&move(a,task,l.turnouts[slot(a)],dt,t)){
    if(task.kind==='bed'){a.need.tired=0;a.remainingNapAt=t+60;}if(task.kind==='feed')a.remainingMealAt=t+40;if(task.kind==='drink')a.remainingDrinkAt=t+45;release(a);
   }
   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.vel.set(dx/Math.max(dt,.001),dz/Math.max(dt,.001));a.lastSpd=a.vel.length();

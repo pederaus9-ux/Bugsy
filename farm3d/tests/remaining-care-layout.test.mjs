@@ -21,9 +21,11 @@ test('new sites do not intersect the accepted dairy footprint or stone path',()=
 });
 test('pet beds and separate bowls are distinct, attainable, and never occupy the main doorway',()=>{
  assert.equal(typeof M.remainingCareLayouts,'function');const l=M.remainingCareLayouts();
- for(const k of ['dog','cat']){assert.equal(l[k].capacity,1);assert.deepEqual(l[k].stations.map(s=>s.kind).sort(),['bed','drink','feed']);for(const s of l[k].stations){assert(Math.abs(s.dock[0])>1.4,'keep central entry route clear');assert(s.dock[2]>6.2);}}
+ for(const k of ['dog','cat']){assert.equal(l[k].capacity,1);assert.deepEqual(l[k].stations.map(s=>s.kind).sort(),['bed','drink','feed']);for(const s of l[k].stations){assert(s.dock[2]<-6.2,'keep every pet station behind the barn and clear of the main entrance');}}
  const a=l.dog.stations.find(s=>s.kind==='bed').dock,b=l.cat.stations.find(s=>s.kind==='bed').dock;assert(Math.hypot(a[0]-b[0],a[2]-b[2])>2);
 });
 test('paid-object conflicts are reported without editing any saved object',()=>{
  assert.equal(typeof M.remainingCareConflicts,'function');const l=M.remainingCareLayouts().horse,d={id:'bench',x:-20,z:-30,r:.6,rotation:.7},saved=structuredClone(d);assert(M.remainingCareConflicts(l,{decor:[d]}).length);assert.deepEqual(d,saved);assert.equal(M.remainingCareConflicts(l,{decor:[{id:'bench',x:0,z:12,r:.6}]}).length,0);
 });
+import fs from 'node:fs';
+test('all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle',()=>{const f=JSON.parse(fs.readFileSync(new URL('./fixtures/remaining-care-initial-world.json',import.meta.url),'utf8')),before=JSON.stringify(f.existingBlocks);for(const [kind,l]of Object.entries(M.remainingCareLayouts()))assert.deepEqual(M.remainingCareConflicts(l,{blocks:f.existingBlocks}),[],kind+' overlaps existing farm');assert.equal(JSON.stringify(f.existingBlocks),before);});
