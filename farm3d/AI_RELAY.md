@@ -753,3 +753,60 @@ Both native journey and30s assertion remain unchanged; the new tests are added t
 existing core/domain runners. New-head full hosted CI and actual preview still
 required. Older706 missing-card and historical wardrobe causes remain unproven.
 Keep PR90 draft/unmerged; physical-phone performance and owner approval pending.
+
+
+## Owner-approved PR90 merge/publication — October20,18:42Chicago
+
+Owner said I approve after actual mobile preview and25/25successful exact-head
+checks. Guarded merge33b6118282f4aebabcc4cc0e56fe82147619aaa4 has exactly
+approveda366dbf tree6b59b6e5b33f931774d128b44fb1472ad2158be1; main confirmed.
+Pages39516722769SUCCESS. Anonymous HTTP200entry plus9module/page/worker GETs
+match approved bytes. Earlier old-entry response before Pages completed is kept
+separately. See tests/evidence/cow-courtyard-merge-20261020/receipt.json.
+
+All25premergechecks PASS: core58Nodefiles+5browser suites, cloud22/22+SDK,
+real native390/844/1280care/robot/tank, installed/offline/writer barrier, original
+scene/wardrobe and chickenRename. First core cancellation and all earlier red
+evidence retained; one isolated retry passed unchanged. No test assertions,
+timeouts, limits or production files change in this receipt. Owner approval does
+not establish physical-phone sustained performance or historical706/wardrobe
+causes. Sole-author review remains distinct from an independent audit.
+
+Automatic postmerge regression39516723469 is in progress, not a passing receipt.
+Workspace fetched/synced from mergedmain; existing feature branches, checkouts,
+all raw artifacts and logs preserved. This evidence branch updates coordination
+without changing the deployed/tested tree. Other species care remains the next
+approved plan; no new implementation started by this merge approval.
+
+
+## Northern expansion and seasonal trees — October21 UTC
+Owner approved the proposed northern extension with25metres instead of15, and requested seasonal tree leaves with natural autumn colours now. Latest owner screenshot proves the old dairy site is conflict-blocked, not a stale build. Work continues on the same checkout, dedicated branch codex/north-land-seasons-20261021, base33b6118282f4aebabcc4cc0e56fe82147619aaa4. Prior evidence branch00912f2 preserved. Main automatic postmerge regression39516723469 now16/16SUCCESS.
+The existing courtyard is translated25metres north into newly usable land; no saved objects are moved. Terrain height is preserved on old farm coordinates, with a smooth flat northern extension. Camera, edit/decor bounds and walking use the expanded area; cow stations, robot selection, approaches and clearings use matching world coordinates. Existing horse/sheep/chicken care, accepted rigs, game rules, economy, save schema and cloud/auth are protected. A new cache55 includes the two new modules and yard2.
+Tree canopies, purchased oaks and decorative deciduous trees use the existing season calendar; autumn gold/orange/red/brown, spring/summer greens and winter bare canopies. Pines/Christmas trees remain evergreen. Colours reuse geometry/colour buffers and distant woods stay batched; no added lights or tree count. Actual rendered evidence and phone performance are not yet verified.
+New contracts5/5 and integration28/28 passed. Broader probe93 included two old failures (B13 chew fade regex; B16 30Hz terminal phase0.6439902652569154 versus0.6336422291556492); source cow3d.js and these test dependencies unchanged from base. Preserve them separately; do not claim repaired. Two clearing VM-fixture dependencies corrected with original assertions preserved. Full required/hosted gates pending. Sole-lead self-review, no external independent audit. New preview and owner explicit merge gate remain open.
+
+
+### PR91 runtime evidence and isolated fixture correction
+Draft PR91 published cf2cf8983add89a5668a76abd64197468e6c34c8 with treecb837a21bea3525bafee400a9245f508ffc31691, identical to localddd886b7c47731f926ad2459a2fffb3c23d8bd60. All6 cow/land/season diagnostic jobs39521279018 SUCCESS: native390/844/1280 care+robot, interrupted/offline recovery, supported poses/20GPU rebuilds and expanded land/fourseasons/saved-layout reload. Actual day/night mobile/desktop renders inspected; all4seasons inspected.21GPU samples retain321geometries/95textures at drawingPR1. Physical-phone sustained performance remains unverified.
+Three initial full-regression jobs stopped on the same test-fixture ReferenceError seasonalLeaves is not defined (blossom,maple,orientation assertions). Original logs retained; the fixture now imports and instantiates the real controller with fall season. No assertions/deadlines changed.49affected local checks PASS; the complete canonical60Nodefiles PASS in259.65seconds. This correction changes test setup and coordination/evidence only, no product bytes. Publishing it will run full hosted gates on the corrected head; keep draft and unmerged until those pass and owner approves. Historical B13/B16 and earlier tap/wardrobe failures remain separately tracked, not repaired by these results.
+
+
+### PR91 retained station countdown detachment
+da5325e final regression chicken job118968541202 failed at740wide final Close after full/repeated egg pickup. Exact error locator.scrollIntoViewIfNeeded: Element is not attached to the DOM. Artifact12311437104 SHA25625de67f53185f581c3b7955f42867f2a94d1714fc9a0e052686ac308d4d630de downloaded and retained. Trace after@call@405 through before@call@413 shows water9h59m->9h58m rebuilding the egg-pallet tray/header/Close during actionability wait; egg12->24/repeated pickup assertions already passed. This establishes a station countdown control-lifetime defect, not historical cow tap/wardrobe causes.
+One conditional extends the existing atomic control-preserving patch from animal cards to cow/chicken station cards; labels, disabled/revision attributes update on the same buttons/ancestors, structural changes retain original rebuild fallback. No new interaction design, chicken gameplay, save/economy/auth changes. Native chicken test remains byte-identical to base. Existing real-DOM cow action identity probe adds both station types. Browser qualification pending before any repair claim. HTML network-first entry changes, module graph/cache55 unchanged.
+
+
+### Owner-requested cow entrance access — October20 Chicago
+Owner reports the cow barn faces the back of the main barn on Amber's farm, and narrows this request to cows. Source inspection confirms the legacy south gate z=-7.8 is only1.9m behind the barn rear z=-5.9. Existing PR91 relocation puts that gate atz=-32.8,26.9m clear of the barn. This request additionally reserves4m of open outside approach between gate x=-4.4..-2.1 andz=-32.8..-28.8. The existing site-conflict and edit/decor placement consumers use the same guard; no existing saved objects move or disappear.
+New fail-first paid-decoration obstruction regression reproduces the gap on unmodifieda34da33. Minimal guard passes10/10 north-land/cow-yard tests plus2syntax checks; actual-model rays at3heights/3lateral positions clear the entrance. Existing legacy layout/model contracts remain intact. Browser probe adds51actual walker-collider positions across approach/gate, build/decor rejection and identical results after saved-layout reload at all3viewports. Hosted and actual rendered confirmation remain pending on the new head. A partial exact-blob local checkout was recovered after scratch loss; no complete local npm suite result is claimed. Original artifacts and initial failure log retained. Protected game/save/cloud/economy/rig/movement code and chicken coop unchanged. Keep PR91 draft/unmerged pending exact-head CI, owner preview and explicit merge authority.
+
+
+### Owner-requested stone path to the northern courtyard
+Owner asks for a stone path from the main farm to the new dairy. Continue PR91 from exact head76c101ab24cfc36f016d04d1325253095cc57dc8; preserve all earlier branches and evidence. A roughly1.8m-wide grey flagstone path connects the front farm path, passes west around the chicken enclosure, then meets the south dairy gate. Two batched meshes, shared existing stone texture, ground-conforming heights; no lights, save fields, animal movement, cloud or economy changes. Grass/meadow clear only over paving; future building/decor placement protects the path while existing saved objects remain untouched.
+Two new contracts fail before implementation and pass afterward; combined27focused Node checks pass with no assertion relaxation. Existing land/season browser probe now checks the entire real walker route, placement protection, identical reload results and actual mobile/desktop path captures. Hosted/rendered validation pending. PR91 remains draft and unmerged. Earlier a34cloud failure retained: test fixture still puts its blocking lamp at old(-8,-10), while asserting the relocated site remains blocked. This path change does not repair or conceal that separate fixture failure.
+
+
+### Stone preview verified; relocated-world fixture corrections
+Final runtime7c2483ac295ec8ebc42d8c850b7700702cb6f4f8 removes only paving-bed polygon depth bias after the first wide captures hid the raised stones. Matched new390/844/1280captures show stone detail at normal wide view. Hosted land/path118984259817SUCCESS:378stones/twodraws,65actual collision samples per viewport,placementprotection and identical reload/layouts. Artifact12312884454 SHA4f5ac1ac0e2065ab757654110bf29f40e52f38b7fd48c493684c9aafb73ba7e2 downloaded/verified, captures inspected. Physical-phone FPS remains unverified.
+FullCI separately exposed decor native-drag failures118984294064/118984294103. Both retained traces show start(-17.65,10.37), original input, Can't go here and That spot is taken, so it went back. Catalog844 exact camera/ground ray reproduces an endpoint inside the existing field clearance. New path protection changes the old west-meadow free placement, so the test's formerly free drag area is no longer valid. Test setup now uses open northern meadow(7,-22), adds an actual-ground-ray destination-valid precondition, and retains every original native gesture, movement threshold, ownership/save/reload assertion and timeout. Utility shares this old camera fixture and is updated consistently. Hosted qualification pending, no drag repair claim.
+The separate authenticated cow snapshot fixture now locates its deliberately blocking lamp from the current physical courtyard footprint, with a new strict inactive-site/decor-conflict precondition. Real layout proof: oldlamp(-8,-10) yields0conflicts while currentcenter(-6.45,-36.375)yields1decorconflict. All original cloud equality/recovery assertions and timings remain unchanged; no runtime/cloud/auth/save edits. Earlier failure does not establish save-data loss. Exact final-head hosted checks remain required; keepPR91draft/unmerged.

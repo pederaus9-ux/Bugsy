@@ -88,9 +88,11 @@ async function main() {
     // not silently dock/milk it while the upload/reload assertions are running.
     await P(g,()=>{
       const G=__dbg.G;G.S.level=Math.max(4,G.S.level);G.S.barnCap=400;G.S.barn.cow_feed=20;G.S.barn.milk=7;G.S.gold.milk=2;
-      G.S.decor.placed.push({id:'utilitylamp',x:-8,z:-10,rotation:.31});
+      const site=__dbg.cowYard.layout.footprint;
+      G.S.decor.placed.push({id:'utilitylamp',x:(site[0][0]+site[1][0])/2,z:(site[0][1]+site[2][1])/2,rotation:.31});
       G.S.pens.cow={owned:true,list:[Date.now()-1,Date.now()-1],meta:[{name:'Snapshot Bessie',love:50,loveAt:Date.now()},{name:'Snapshot Clover',love:50,loveAt:Date.now()}]};
-      G.view.refresh('all');if(G.fillCowFeed(12)!==12||!G.fillCowWater())throw Error('cow snapshot supplies failed');
+      G.view.refresh('all');if(__dbg.cowYardActive||!__dbg.cowYardIssues.some(c=>c.type==='decor'))throw Error('cow snapshot fixture must occupy the current courtyard');
+      if(G.fillCowFeed(12)!==12||!G.fillCowWater())throw Error('cow snapshot supplies failed');
       G.S.pens.cow.care.tank={normal:11,gold:2};
       const ids=G.getCowCareStatus().cows.map(c=>c.id);if(!G.milkCow(ids[0])||!G.milkCow(ids[1]))throw Error('cow snapshot queue failed');G.commit();
     });

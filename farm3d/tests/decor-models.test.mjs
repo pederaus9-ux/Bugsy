@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import * as THREE from '../lib/three.module.min.js';
 import {createHolidayDecoration} from '../holiday-decor.js';
 import {createUtilityLamp} from '../utility-lights.js';
+import {createSeasonalLeaves} from '../seasonal-leaves.js';
 let createFarmDecoration;
 try {({createFarmDecoration}=await import('../decor-models.js'));}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;}
 const page=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -12,8 +13,9 @@ const game=fs.readFileSync(new URL('../game.js',import.meta.url),'utf8');
 const DECOR=vm.runInNewContext('('+game.match(/export const DECOR = (\{[\s\S]*?\n\});/)[1]+')');
 const ids=Object.keys(DECOR).filter(id=>!DECOR[id].hol&&!DECOR[id].tree);
 function placed(id){
- const context={THREE,G:{DECOR},createHolidayDecoration,createFarmDecoration,createUtilityLamp,groundY:()=>.37,decorationGroundY:()=>.37,
+ const context={THREE,seasonalLeaves:createSeasonalLeaves(),G:{DECOR},createHolidayDecoration,createFarmDecoration,createUtilityLamp,groundY:()=>.37,decorationGroundY:()=>.37,
   emojiTexture:()=>new THREE.Texture(),contact:(x,z,w,d,parent)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({transparent:true}));m.userData.contactShadow=true;m.rotation.x=-Math.PI/2;m.position.y=.02;parent.add(m);return m;}};
+ context.seasonalLeaves.setSeason('fall');
  return vm.runInNewContext(page.slice(page.indexOf('function makeDecor(d)'),page.indexOf('function syncDecor()'))+'\nmakeDecor({id:'+JSON.stringify(id)+',x:2,z:3,rotation:.57});',context);
 }
 test('the catalog audit preserves all54 legacy IDs and adds one utility lamp',()=>{

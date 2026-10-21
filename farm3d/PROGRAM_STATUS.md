@@ -230,3 +230,6 @@ A scheduled continuation is attached to the current chat (15-minute heartbeat,
 this current work, verify fresh main/PR/checks and never create competing branches.
 The desktop app and PC must remain running for local continuation. Stop the
 schedule once the whole accepted program is actually finished.
+
+
+Owner-authorized next milestone:25m northern land and seasonal trees. Branch codex/north-land-seasons-20261021 from33b6118; local5new contracts and28focused checks passed, hosted/actual preview pending. No new merge/deploy approval. Main39516723469 all16jobsSUCCESS.
