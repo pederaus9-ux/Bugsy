@@ -1,10 +1,11 @@
 import * as T from './lib/three.module.min.js';
 import {createStationScheduler} from './animal-stations.js?v=1';
+import {careSegmentClear} from './remaining-care-navigation.js?v=1';
 import {createQuadrupedCarePose} from './quadruped-care-poses.js?v=1';
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]),angle=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 // Physical care is ephemeral. No save, supplies, production, reward or wall-clock API.
-export function createRemainingCareController({layouts,neighbours,active,obstacles,updateRig,segments=()=>[],clearPoint=()=>true}){
- const scheduler=createStationScheduler(Object.values(layouts).flatMap(l=>l.stations)),tasks=new Map();
+export function createRemainingCareController({layouts,neighbours,active,obstacles,updateRig,segments=()=>[],clearPoint=()=>true,forbiddenPolygons=()=>[],groundY=()=>0}){
+ const scheduler=createStationScheduler(Object.values(layouts).flatMap(l=>l.stations)),tasks=new Map();let wakeUntil=-Infinity,now=0,bedPriority=false;
  const slot=a=>a.ref.type==='pet'?0:a.ref.i,id=a=>a.ref.type==='pet'?'pet-'+a.kind:a.kind+'-'+a.ref.i;
  function inside(l,x,z,pad){return !l.polygon||l.polygon.every(([ax,az],i)=>{const[bx,bz]=l.polygon[(i+1)%l.polygon.length];return ((bx-ax)*(z-az)-(bz-az)*(x-ax))/Math.hypot(bx-ax,bz-az)>=pad-1e-8;});}
  function free(a,x,z,escape=false){const l=layouts[a.kind],ox=a.g.position.x,oz=a.g.position.z,pad=l.margin;
@@ -14,9 +15,12 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   for(const b of neighbours()){if(b===a||b.gone)continue;const min=pad+(layouts[b.kind]?.margin??Math.min(b.S?.r??.3,.8)),d=Math.hypot(x-b.g.position.x,z-b.g.position.z);if(d<min-1e-8&&!(escape&&d>Math.hypot(ox-b.g.position.x,oz-b.g.position.z)+1e-9))return false;}
   return true;
  }
- function line(a,from,to,escape=false){const d=distance(from,to),n=Math.max(1,Math.ceil(d/.08));for(let i=1;i<=n;i++)if(!free(a,from[0]+(to[0]-from[0])*i/n,from[2]+(to[2]-from[2])*i/n,escape))return false;return true;}
+ function line(a,from,to,escape=false){const l=layouts[a.kind],circles=neighbours().filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:l.margin+(layouts[b.kind]?.margin??Math.min(b.S?.r??.3,.8))}));
+  if(!careSegmentClear(from,to,{pad:l.margin,rectangles:obstacles(a),segments:segments(),circles,polygons:forbiddenPolygons(a),escape}))return false;
+  const d=distance(from,to),n=Math.max(1,Math.ceil(d/.08));for(let i=1;i<=n;i++){const x=from[0]+(to[0]-from[0])*i/n,z=from[2]+(to[2]-from[2])*i/n;if(!inside(l,x,z,l.margin)||!clearPoint(a,x,z))return false;}return true;
+ }
  function plan(a,goal){
-  const from=a.g.position.toArray(),l=layouts[a.kind];if(line(a,from,goal,true))return [goal];
+  const from=a.g.position.toArray(),l=layouts[a.kind];if(!free(a,goal[0],goal[2]))return [];if(line(a,from,goal,true))return [goal];
   const p=l.polygon||[[-20,-15],[20,-15],[20,23],[-20,23]],x0=Math.min(...p.map(v=>v[0]))+.05,z0=Math.min(...p.map(v=>v[1]))+.05,x1=Math.max(...p.map(v=>v[0]))-.05,z1=Math.max(...p.map(v=>v[1]))-.05,step=.3,nx=Math.ceil((x1-x0)/step),nz=Math.ceil((z1-z0)/step),n=nx*nz,dist=new Float64Array(n).fill(Infinity),prev=new Int32Array(n).fill(-1),closed=new Uint8Array(n),valid=new Int8Array(n),heap=[];
   const xy=i=>[x0+(i%nx)*step,0,z0+Math.floor(i/nx)*step],ok=i=>{if(!valid[i]){const q=xy(i);valid[i]=free(a,q[0],q[2])?1:-1;}return valid[i]===1;};
   function push(i,g){let at=heap.length;const item={i,f:g+distance(xy(i),goal)};heap.push(item);while(at){const parent=(at-1)>>1;if(heap[parent].f<=item.f)break;heap[at]=heap[parent];at=parent;}heap[at]=item;}
@@ -28,24 +32,30 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
  }
  function release(a){const task=a.remainingTask;if(!task)return;a.remainingPose?.reset();scheduler.release(task.token);tasks.delete(id(a));a.remainingTask=null;a.target=null;a.path=null;a.act='idle';a.doing=null;a.vel.set(0,0);}
  function request(a,kind){
-  const l=layouts[a.kind];if(!l||!active(a.kind)||!a.rig3d||a.remainingTask)return false;const s=l.stations.find(s=>s.kind===kind&&s.slot===slot(a));if(!s)return false;const token=scheduler.request(id(a),kind,s.id);if(!token)return false;
+  const l=layouts[a.kind];if(!l||!active(a.kind)||!a.rig3d||a.remainingTask||now<wakeUntil&&!(kind==='bed'&&bedPriority))return false;const s=l.stations.find(s=>s.kind===kind&&s.slot===slot(a));if(!s)return false;const token=scheduler.request(id(a),kind,s.id);if(!token)return false;
   const task={kind,station:s,token,stage:'approach',weight:0,held:0,path:null,blocked:0,nextPlan:0};tasks.set(id(a),task);a.remainingTask=task;a.remainingPose??=createQuadrupedCarePose(a.rig3d);a.target=null;a.path=null;a.doing=null;a.vel.set(0,0);return true;
  }
  function move(a,task,goal,dt,t){
-  if(!task.path||!task.path.length||task.blocked>.6&&t>=task.nextPlan){task.path=plan(a,goal);task.nextPlan=t+1;task.blocked=0;}
+  if((!task.path||!task.path.length||task.blocked>.6)&&t>=task.nextPlan){task.path=plan(a,goal);task.nextPlan=t+1;task.blocked=0;}
   const p=task.path[0];if(!p){task.blocked+=dt;return false;}const ox=a.g.position.x,oz=a.g.position.z,dx=p[0]-ox,dz=p[2]-oz,d=Math.hypot(dx,dz),step=Math.min(d,layouts[a.kind].speed*dt),x=ox+dx/(d||1)*step,z=oz+dz/(d||1)*step;
   if(d<.002){task.path.shift();return distance(a.g.position.toArray(),goal)<.008;}
-  if(free(a,x,z,true)){a.g.position.x=x;a.g.position.z=z;task.blocked=0;}else task.blocked+=dt;
+  if(free(a,x,z,true)){
+   const budget=layouts[a.kind].speed*dt,oy=a.g.position.y,at=u=>[ox+(x-ox)*u,oz+(z-oz)*u];let fraction=1;
+   if(Math.hypot(x-ox,groundY(x,z)-oy,z-oz)>budget){let lo=0,hi=1;for(let i=0;i<24;i++){const u=(lo+hi)/2,[xx,zz]=at(u);if(Math.hypot(xx-ox,groundY(xx,zz)-oy,zz-oz)<=budget)lo=u;else hi=u;}fraction=lo;}
+   const [xx,zz]=at(fraction);a.g.position.set(xx,groundY(xx,zz),zz);task.blocked=0;
+  }else task.blocked+=dt;
   return distance(a.g.position.toArray(),goal)<.008;
  }
+ function ageEmote(a,dt){if(a.emoteT>0){a.emoteT=Math.max(0,a.emoteT-dt);if(a.bubble){a.bubble.visible=a.emoteT>0;a.bubble.material.opacity=Math.min(1,a.emoteT*2);}}}
  function tick(a,dt,t,env){
-  const l=layouts[a.kind];if(!l||!active(a.kind)){release(a);return false;}const wantsBed=!!(env.night||env.wet);
+  const l=layouts[a.kind];if(!l||!active(a.kind)){release(a);return false;}const wantsBed=!!(env.night||env.wet);now=t;bedPriority=wantsBed;
+  if(!wantsBed&&[...tasks.values()].some(task=>task.kind==='bed'&&!task.nap))wakeUntil=t+2;
   if(!a.remainingTask){
-   if(wantsBed||a.need.tired>.9){if(request(a,'bed'))a.remainingTask.nap=!wantsBed;}
+   if(wantsBed||a.need.tired>.9&&t>(a.remainingNapAt??0)){if(request(a,'bed'))a.remainingTask.nap=!wantsBed;}
    else if(a.need.hunger>.35&&t>(a.remainingMealAt??0)||env.feedStamp&&env.feedStamp!==a.remainingFeedStamp){if(request(a,'feed'))a.remainingFeedStamp=env.feedStamp;}
    else if(t>(a.remainingDrinkAt??30+slot(a)))request(a,'drink');
   }
-  const task=a.remainingTask;if(!task)return false;
+  const task=a.remainingTask;if(!task){if(!wantsBed&&t<wakeUntil){a.target=null;a.path=null;a.act='idle';a.label='Making room for waking animals';a.vel.set(0,0);updateRig(a.rig3d,0,0,dt);ageEmote(a,dt);return true;}return false;}
   a.remainingPose.reset();const s=task.station,ox=a.g.position.x,oz=a.g.position.z;
   if(wantsBed&&task.kind==='bed')task.nap=false;
   if(task.kind==='bed'&&!wantsBed&&!task.nap&&['approach','align'].includes(task.stage)){task.stage='exit';task.path=null;}
@@ -65,7 +75,7 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   const aligned=['align','settle','hold','stand'].includes(task.stage),yaw=a.rig3d.model.rotation.y;
   updateRig(a.rig3d,dx,dz,dt);if(aligned)a.rig3d.model.rotation.y=yaw;
   if(a.remainingTask){a.remainingPose.apply({mode:task.kind==='bed'?'lie':task.kind,weight:task.weight,surface:l.bedSurface,target:s.contact?new T.Vector3(...s.contact):null});a.act=task.stage==='hold'?(task.kind==='bed'?'sleeping':'eating'):'moving';a.label=task.stage==='hold'?(task.kind==='bed'?'Resting in a bed':task.kind==='feed'?'Eating at the feeder':'Drinking water'):task.stage==='exit'?'Making room at the care stations':'Heading to '+(task.kind==='bed'?'bed':task.kind==='feed'?'food':'water');}
-  if(a.emoteT>0){a.emoteT=Math.max(0,a.emoteT-dt);if(a.bubble){a.bubble.visible=a.emoteT>0;a.bubble.material.opacity=Math.min(1,a.emoteT*2);}}
+  ageEmote(a,dt);
   return true;
  }
  function update(a,dt,t,env){if(!layouts[a.kind]||!active(a.kind)){release(a);return false;}if(!(dt>0)||!Number.isFinite(dt))return !!a.remainingTask;let consumed=false;for(let left=dt;left>1e-9;){const step=Math.min(1/30,left);consumed=tick(a,step,t-left+step,env)||consumed;left-=step;}return consumed;}

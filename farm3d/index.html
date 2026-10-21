@@ -672,9 +672,9 @@ import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=4';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=3';
-import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=1';
-import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=1';
-import {createRemainingCareController} from './remaining-care-controller.js?v=1';
+import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=2';
+import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=2';
+import {createRemainingCareController} from './remaining-care-controller.js?v=2';
 import {createDairyPath} from './farm-path.js?v=1';
 import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
@@ -1711,6 +1711,9 @@ class Beast {
     ];
     let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
     for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active&&(pick==='rest'||pick==='drink')){
+      const kind=pick==='rest'?'bed':'drink',after=kind==='bed'?(this.remainingNapAt??0):(this.remainingDrinkAt??0);if(clockT<after){this.stay('Taking in the view',2);return;}if(remainingCare.request(this,kind)){if(kind==='bed')this.remainingTask.nap=true;return;}this.stay('Making room at the care stations',.5);return;
+    }
     switch (pick) {
       case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, "Going for a stroll"); }
       case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
@@ -1792,6 +1795,7 @@ class Beast {
       }
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
     if (this.rig3d) {
+      if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active)this.g.position.y=groundY(this.g.position.x,this.g.position.z);
       if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
       if (this.kind === "cow") Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
       else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act, this.running);
@@ -1859,7 +1863,7 @@ function locoParade(t) {
 let animals = [];
 let chickenSupplies={feedMs:0,waterMs:0};
 const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!CHICKEN_YARD_LAYOUT.obstacles.includes(b)&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
-const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
+const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,groundY,forbiddenPolygons:a=>a.pen?[]:PEN_LIST.map(p=>p.poly),clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
 function syncHerd() {

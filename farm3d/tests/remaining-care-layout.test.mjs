@@ -29,3 +29,4 @@ test('paid-object conflicts are reported without editing any saved object',()=>{
 });
 import fs from 'node:fs';
 test('all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle',()=>{const f=JSON.parse(fs.readFileSync(new URL('./fixtures/remaining-care-initial-world.json',import.meta.url),'utf8')),before=JSON.stringify(f.existingBlocks);for(const [kind,l]of Object.entries(M.remainingCareLayouts()))assert.deepEqual(M.remainingCareConflicts(l,{blocks:f.existingBlocks}),[],kind+' overlaps existing farm');assert.equal(JSON.stringify(f.existingBlocks),before);});
+test('saved buildings outside the sheep fence cannot silently seal its usable gate approach',()=>{const l=M.remainingCareLayouts().sheep,building=[13,-19,1.9,1.7],saved=[...building];assert(M.remainingCareConflicts(l,{blocks:[building]}).length>0,'outside gate approach is unprotected');assert.deepEqual(building,saved);});

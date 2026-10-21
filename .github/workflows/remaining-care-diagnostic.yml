@@ -22,6 +22,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Fetch the exact live62 predecessor for the installed update check
+        if: matrix.viewport == '844x390'
+        run: git fetch --depth=1 origin 393cb849b258852b3cd2ec92342004051785c5e2
       - uses: actions/setup-node@v6
         with:
           node-version: '22'

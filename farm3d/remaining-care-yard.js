@@ -1,6 +1,6 @@
 import * as T from './lib/three.module.min.js';
 import {mergeGeometries} from './lib/addons/utils/BufferGeometryUtils.js';
-import {remainingCareLayouts} from './remaining-care-layout.js?v=1';
+import {remainingCareLayouts} from './remaining-care-layout.js?v=2';
 export function createRemainingCareYards(){
  return Object.fromEntries(Object.values(remainingCareLayouts()).map(layout=>{
   const {kind}=layout,group=new T.Group();group.name=kind+'-physical-care';
