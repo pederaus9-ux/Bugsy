@@ -1,0 +1,11 @@
+{
+  "instruction": "One thing id like to add is make all animal pens expandable by player so they can add fence ahjust fence or move buildings to diffrent areas",
+  "source": "Owner steering during PR95 postmerge verification on 2026-10-21",
+  "scope": "Player editing for every animal enclosure: expand boundaries, add/adjust fences and gates, relocate animal buildings. Preserve animal care and saves.",
+  "currentAction": "Read-only discovery while PR95 postmerge verification remains active. No new feature runtime, save schema, backend or pen layout changed.",
+  "finding": "Existing Edit mode moves production buildings/trees/decor using saved layout.b/t. Chicken/cow/horse/sheep enclosures, station docks, support surfaces and routes use fixed world layouts. Fence visuals alone cannot safely satisfy request.",
+  "recommendedDirection": "Extend existing Edit mode with draft pen boundary/fence/gate edits and animal-building relocation. Apply validates an entire draft and updates saved layout, geometry, collision, station docks, animal containment and routes as one operation. Cancel preserves previous farm. Existing farms default to accepted layouts.",
+  "designClassification": "Architectural: new shared saved-layout and coordinated runtime rebuild interfaces. Design approval/spec/implementation gates remain; no new-feature implementation or release approval inferred from PR95 Merge.",
+  "assumptionsForReview": ["Cows, chickens, horses and sheep each retain separate pens", "Dog/cat care nooks can move while pets retain free roaming", "New floor area stays on owned playable land", "Accepted animal capacity and costs stay unchanged unless separately specified", "Existing buildings can be repositioned without purchase; fence pricing to follow approved product design"],
+  "acceptanceToDesign": ["Actual native phone/tablet/desktop editing", "Old-save/load/offline/cloud recovery", "Cancel and invalid geometry cannot partially apply or spend", "Usable gates and all bed/feed/drink/robot routes after resizing and relocation", "Repeated all-animal care and sleep/wake cycles after edits", "No overlap with existing farm buildings, crops, paths or neighbouring pens"]
+}
