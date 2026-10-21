@@ -12,7 +12,7 @@ async function boot(p,base){
  await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  if(await p.locator('#authGuest').isVisible())await p.locator('#authGuest').click();
  await p.evaluate(()=>{const d=__dbg;d.G.close();d.G.opts.quiet=true;d.G.S.tut=99;d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;
-  d.cam.target.set(-18,.65,8);d.G.S.decor={inv:{jack:2,spider:1,haunted:1},placed:[]};const spot=d.G.view.freeDecorSpot(1);if(!spot)throw Error('no valid review placement');window.__decorReviewSpot=spot;d.G.S.decor.placed.push({id:'jack',x:spot.x,z:spot.z});d.G.view.refresh('decor');d.G.save();d.G.view.setQuality('high');
+  d.cam.target.set(7,.65,-22);d.G.S.decor={inv:{jack:2,spider:1,haunted:1},placed:[]};const spot=d.G.view.freeDecorSpot(1);if(!spot)throw Error('no valid review placement');window.__decorReviewSpot=spot;d.G.S.decor.placed.push({id:'jack',x:spot.x,z:spot.z});d.G.view.refresh('decor');d.G.save();d.G.view.setQuality('high');
  });
  await p.mouse.click(10,10); // Dismiss the normal first-gesture camera hint through native input.
 }
@@ -48,6 +48,8 @@ const press=async(p,selector,touch)=>touch?p.locator(selector).tap():p.locator(s
   await view(p,0);const target=await p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js'),v=new T.Box3().setFromObject(d.decorObjs[0]).getCenter(new T.Vector3()).project(d.camera),x=(v.x+1)*innerWidth/2,y=(1-v.y)*innerHeight/2,h=d.hitAt(x,y);return {x,y,hit:h&&{type:h.type,j:h.j}};});assert.deepEqual(target.hit,{type:'decor',j:0});
   if(touch)await p.touchscreen.tap(target.x,target.y);else await p.mouse.click(target.x,target.y);await press(p,'#infoTray [data-w="store"]',touch);await press(p,'[data-p="decor"]',touch);await press(p,'[data-act="placeDecor"][data-id="jack"]',touch);await p.waitForFunction(()=>!!__dbg.moving);
   const moveStart=await p.evaluate(()=>({x:__dbg.moving.x,z:__dbg.moving.z}));
+  const dragDestination=await p.evaluate(async({x,y})=>{const d=__dbg,T=await import('./lib/three.module.min.js'),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2(x/innerWidth*2-1,1-y/innerHeight*2),d.camera);const hit=ray.intersectObject(d.ground)[0],j=d.moving.j,size=d.G.DECOR[d.G.S.decor.placed[j].id].size||1;return hit?{x:hit.point.x,z:hit.point.z,valid:d.spotFree(hit.point.x,hit.point.z,size,j),path:d.dairyPath?.contains(hit.point.x,hit.point.z,size===2?1.2:.6)}:{valid:false,reason:'no ground hit'};},{x:width*.55,y:height*.6});
+  assert(dragDestination.valid,'native drag fixture destination must be free: '+JSON.stringify(dragDestination));
   if(touch){const c=await s.context.newCDPSession(p);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:width*.45,y:height*.55}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:width*.55,y:height*.6}]});await c.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await c.detach();}
   else{await p.mouse.move(width*.45,height*.55);await p.mouse.down();await p.mouse.move(width*.55,height*.6);await p.mouse.up();}
   await press(p,'#moveBar [data-m="done"]',touch);assert.equal(await p.evaluate(()=>!!__dbg.moving),false);
