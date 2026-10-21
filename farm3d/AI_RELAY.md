@@ -864,3 +864,10 @@ Recovery result: all39focused checksPASS, including all30birds through three sle
 
 
 Final local checkpoint: combined41/41PASS plus mixed daytime nap entry/waking exit1/1PASS. The short-circuit initially used door-lane occupancy; two retained forced-exit tests caught that assumption. It now checks the empty care-task map, preserving those tests; red and targeted/full green logs retained. Original assertions, tolerances and deadlines unchanged. Nine frozen runtime files byte-identical to main. Previous ab61c9a hosted total is29SUCCESS/1portraitFAIL, superseding earlier running counts. All30new-head jobs and fresh actual preview remain required. No owner visual acceptance, merge or deployment.
+
+
+### Tablet wake failure — nap intent crossing nightfall
+
+Owner repeated When ready merge in the active conversation. Actual9303c2a preview shown; all3phone/desktop physical runsPASS, archivesSHA-verified, rendersinspected, syntheticmergetree=headtree. 25of30canonicaljobsPASS/5running at this checkpoint, but extra pinned768x1024tabletFAILawake; no merge. Run39601313812/job119226239552/artifact12346352907 SHA2565c746673a3a47fc34ea5c3d19fb6a8305128937ec0516ffce3cea0a2d714bd76 retained, consoleempty.
+
+Existing day naps retained nap=true overnight; the wake barrier only includes non-naps. New generation46–87 feed/nap admissions reopen while original sleepers still depart, causing competing internal routes. Isolated day-to-night testRED. Three-line production correction promotes bed intent at night/wet; existing barrier now includes the full overnight flock. Local43/43PASS, including original queues and three cycles at30/60/120Hz. Physical browser now settles an actual daytime nap before first night and asserts promotion, without removing earlier assertions or changing deadlines. Cache59/controller4 align. Prior head greens are historical; all30new-head checks and pinned tablet must pass before the authorized merge. Original failure trace/log/results preserved. No independent audit or physical device test.

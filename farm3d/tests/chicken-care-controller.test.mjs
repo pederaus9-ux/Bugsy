@@ -118,3 +118,15 @@ test('one doorway can admit a daytime nap while the other releases a waking bird
   assert(mixed,'entry and exit must coexist in different doorways');assert(arrived,'nap reaches its supported bed');assert(x.hens.every(bird=>!bird.chickenTask));assert.equal(x.care.scheduler.snapshot().length,0);
  }finally{x.dispose();}
 });
+
+test('a daytime nap joins the overnight flock and wake exits exclude new care admissions',()=>{
+ const x=setup(3),a=x.hens[0],supplies={feedMs:100000,waterMs:100000};try{
+  a.need.tired=1;for(let n=0;n<3000;n++){x.care.update(a,.1,n*.1,{night:false,wet:false,supplies});if(a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99)break;}
+  assert.equal(a.chickenTask?.stage,'hold');assert.equal(a.chickenTask.nap,true);
+  for(let n=0;n<18000;n++){for(const bird of x.hens)x.care.update(bird,.1,300+n*.1,{night:true,wet:false,supplies});if(x.hens.every(bird=>bird.chickenTask?.stage==='hold'&&bird.chickenTask.weight>.99))break;}
+  assert.equal(a.chickenTask.nap,false,'nightfall must promote an existing day nap to overnight rest');
+  for(const bird of x.hens){bird.need.hunger=1;bird.chickenDrinkAt=0;}
+  for(let n=0;n<18000;n++){for(const bird of x.hens)x.care.update(bird,.1,2100+n*.1,{night:false,wet:false,supplies});if(x.hens.some(bird=>bird.chickenTask?.kind==='bed'))assert(x.hens.every(bird=>!bird.chickenTask||bird.chickenTask.kind==='bed'),'no new care while overnight flock still leaving');if(x.hens.every(bird=>!bird.chickenTask))break;}
+  assert(x.hens.every(bird=>!bird.chickenTask),'the complete overnight flock wakes and exits');assert.equal(x.care.scheduler.snapshot().length,0);
+ }finally{x.dispose();}
+});

@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-21T12:35:11.679789+00:00",
+  "lastUpdatedUtc": "2026-10-21T12:52:19.074933+00:00",
   "codeBaseline": {
     "description": "PR91 merged and live, owner qualitative acceptance Looks good / All are good; all16 automatic main checks SUCCESS.",
     "mergeCommit": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
@@ -120,7 +120,7 @@
   "completedThrough": "Cow courtyard/robot plus25m north expansion, seasonal foliage and stone approach merged and live; PR91 automatic16/16SUCCESS",
   "currentPhase": "CHICKEN_PHYSICAL_CARE",
   "currentPhaseTitle": "Larger two-door coop: physical queue and boundary-route qualification",
-  "phaseStatus": "LOCAL42_PASS_EXACT_HEAD_HOSTED_AND_PREVIEW_PENDING",
+  "phaseStatus": "DAY_NAP_NIGHT_PROMOTION_LOCAL43_PASS_HOSTED_PENDING",
   "visualAcceptance": "ACTUAL_REVISED_COOP_PREVIEW_REQUIRED_BEFORE_MERGE",
   "activePullRequest": 92,
   "nextPhases": [
@@ -2248,10 +2248,10 @@
   "activeWork": {
     "phase": "Chicken two-door coop recovery and physical queue qualification",
     "base": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
-    "recoveredHead": "ab61c9a7ff8eaaa8223b888f33a851d0886716ee",
+    "recoveredHead": "9303c2a18799bc8bb4649689f7de183e3e69ddba",
     "branch": "codex/chicken-physical-care-20261020",
     "pr": 92,
-    "next": "Publish corrected PR92 head, qualify all30hosted jobs and inspect/show actual390/844/1280 captures",
+    "next": "Publish bounded nap-to-night correction and qualify new source in all30hosted jobs plus tablet; owner explicitly repeated When ready merge.",
     "mergeAuthorized": "Conditional owner merge-when-ready; visual acceptance and passing exact-head checks still required"
   },
   "marketSalesPublication": {
@@ -3698,6 +3698,24 @@
       "protected": "Nine frozen runtime files byte-identical to main; other projects untouched; no earlier workspace mutations",
       "review": "Sole-author self-review; no independent agent audit",
       "previousCI": "Recovered ab61c9a completed29/30SUCCESS; only physical390FAIL. Earlier in_progress reports are superseded. These are prior-head receipts."
+    },
+    "napNightTransition": {
+      "priorHead": "9303c2a18799bc8bb4649689f7de183e3e69ddba",
+      "priorCI": "25/30SUCCESS,5running at patch preparation; extra pinned tablet FAILawake, never waived. All three physical phone/desktop runs PASS.",
+      "owner": "Current owner repeated When ready merge after recovery; actual new-head preview was shown before any merge. No qualitative physical-device acceptance invented.",
+      "failure": {
+        "run": 39601313812,
+        "job": 119226239552,
+        "artifact": 12346352907,
+        "sha256": "5c746673a3a47fc34ea5c3d19fb6a8305128937ec0516ffce3cea0a2d714bd76",
+        "console": []
+      },
+      "cause": "Daytime nap intent persists through nightfall; overnight wake barrier excludes those original sleepers and care reopens before whole flock leaves. New isolated RED proves the state error.",
+      "fix": "Promote existing bed task when night/wet; three production lines including comments. No movement/collision/speed/save/rule change.",
+      "tests": "43/43focusedPASS, four targeted nap/wake/mixed checks and cache59contractsPASS. Native script adds a deterministic real day-nap-before-night setup and promotion assertion while preserving all earlier goals/deadlines.",
+      "cache": "59/controller4",
+      "evidence": "tests/evidence/coop-nap-transition-20261021/; immutable fixtures/chicken-care-tablet-wake.json; original ZIP and job log preserved.",
+      "gate": "New-head all30hosted jobs and pinned tablet pending; keep draft, no merge/deploy."
     }
   }
 }

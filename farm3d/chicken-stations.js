@@ -123,6 +123,9 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
  function ageEmote(a,dt,t){if(a.emoteT>0){a.emoteT=Math.max(0,a.emoteT-dt);if(a.bubble){a.bubble.visible=a.emoteT>0;a.bubble.material.opacity=Math.min(1,a.emoteT*2);if(Number.isFinite(a.S?.h))a.bubble.position.y=a.S.h+.35+Math.sin(t*3)*.04;}}}
  function update(a,dt,t,{night,wet,supplies}){
   if(!a.rig3d)return false;
+  // Existing daytime naps become part of the overnight/sheltering flock.
+  // Otherwise the wake barrier can end while those same birds still depart.
+  if((night||wet)&&a.chickenTask?.kind==='bed')a.chickenTask.nap=false;
   // Departing sleepers have the lane first; cosmetic visits resume afterward.
   if(!night&&!wet&&[...tasks.values()].some(task=>task.kind==='bed'&&!task.nap))wakeUntil=t+2;
   if(!a.chickenTask&&t>wakeUntil){

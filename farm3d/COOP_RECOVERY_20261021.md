@@ -40,3 +40,11 @@ All39focused checksPASS, including three complete sleep/wake cycles for all30chi
 Final combined41/41PASS and additional mixed one-door nap entry/other-door waking exit1/1PASS. The idle scan shortcut initially assumed an occupied lane; forced-exit tests caught that before publication. Checking the empty task map preserves those states, with failure and final green retained. All original tests and limits remain intact. Tested source hashes are retained with the logs. Nine protected runtime files match main byte for byte. Existing headab61c9a now has29successful hosted jobs and only the portrait physical failure; none count as qualification of this amendment.
 
 Next: publish the fast-forward amendment to PR92 with an expected-head lease, run the automatic exact-head30job gate, inspect actual renders and show the owner the revised coop. Keep draft/unmerged pending visual acceptance and every required check. Local Chromium remains unavailable; no physical phone/tablet test has been performed.
+
+## Tablet gate: day nap crossing nightfall
+
+9303c2a phone390/844 and desktop1280 physical runsPASS, original ZIPSHAverified and actual images inspected. Additional exact-source tablet768x1024 fails awake (run39601313812), so the authorized merge remains blocked. Its original ZIP, trace, complete job log and results are retained.
+
+A daytime nap already in progress stays marked nap=true after nightfall. The overnight wake barrier therefore excludes that original sleeper. Fresh feed/drink/nap reservations can restart while old sleepers still depart, producing conflicting interior routes. New isolated day-to-night reproductionRED. The bounded correction promotes existing bed intent when night/wet; no change to speed, clearance, geometry or paid state. All43focused checksPASS. The real browser flow additionally settles a real day nap before night and verifies overnight promotion, retaining all earlier assertions and deadlines. Cache59/controller4.
+
+Requalify the new head in all30canonical jobs and the pinned tablet. Current owner explicitly repeated When ready merge; actual preview has been shown. Do not infer physical-device performance or qualitative owner acceptance. No merge/deployment yet.
