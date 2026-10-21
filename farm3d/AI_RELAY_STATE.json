@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-21T03:16:09.699799+00:00",
+  "lastUpdatedUtc": "2026-10-21T03:28:43.083244+00:00",
   "codeBaseline": {
     "description": "PR91 merged and live, owner qualitative acceptance Looks good / All are good; all16 automatic main checks SUCCESS.",
     "mergeCommit": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
@@ -120,7 +120,7 @@
   "completedThrough": "Cow courtyard/robot plus25m north expansion, seasonal foliage and stone approach merged and live; PR91 automatic16/16SUCCESS",
   "currentPhase": "CHICKEN_PHYSICAL_CARE",
   "currentPhaseTitle": "Task1: physical feeder/waterer visits, supported coop ramp and thirty sleeping places",
-  "phaseStatus": "RETAINED_NEIGHBOUR_OVERLAP_STEERING_CORRECTION_BROWSER_PENDING",
+  "phaseStatus": "WAKE_ACCESS_PRIORITY_EMOTE_CORRECTION_LOCAL24PASS_BROWSER_PENDING",
   "visualAcceptance": "ACTUAL_CHICKEN_PREVIEW_PENDING",
   "activePullRequest": null,
   "nextPhases": [
@@ -3417,6 +3417,75 @@
       "local": "exact captured overlap RED then GREEN at30/60/120Hz plus prior controller regressions",
       "visuals": "feed closeup now shows beak contact; ramp camera was behind existing bush and is moved to a clear east-side view; no scenery removed",
       "scope": "No extra care/reward systems or schema changes"
+    },
+    "thirdNative": {
+      "head": "46c80ad7fd6147b3312bffc72be7a360edb33141",
+      "run": 39537703228,
+      "result": "all3FAIL at wake; feed/drink/ramp/all30settledbeds PASS at all3sizes",
+      "assertion": "Physical chicken goal awake not reached",
+      "artifacts": [
+        {
+          "id": 12318417439,
+          "name": "chicken-physical-844x390-1",
+          "size_in_bytes": 5627750,
+          "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12318417439",
+          "archive_download_url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12318417439/zip",
+          "expired": false,
+          "created_at": "2026-10-21T03:18:24Z",
+          "expires_at": "2026-11-04T03:18:23Z",
+          "updated_at": "2026-10-21T03:18:24Z",
+          "digest": "sha256:b1c4225d0d41a7aad60eb1bc932d27ab74c4513a36ce2a3abc77b65e785f7cea",
+          "workflow_run": {
+            "id": 39537703228,
+            "repository_id": 1388310894,
+            "head_repository_id": 1388310894,
+            "head_branch": "codex/chicken-physical-care-20261020",
+            "head_sha": "46c80ad7fd6147b3312bffc72be7a360edb33141"
+          }
+        },
+        {
+          "id": 12318197898,
+          "name": "chicken-physical-390x844-1",
+          "size_in_bytes": 5666271,
+          "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12318197898",
+          "archive_download_url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12318197898/zip",
+          "expired": false,
+          "created_at": "2026-10-21T03:18:43Z",
+          "expires_at": "2026-11-04T03:18:42Z",
+          "updated_at": "2026-10-21T03:18:43Z",
+          "digest": "sha256:a399f4322245ae33729c622ee410a01d6c3a244370b7a2c20fac135ab7eaa990",
+          "workflow_run": {
+            "id": 39537703228,
+            "repository_id": 1388310894,
+            "head_repository_id": 1388310894,
+            "head_branch": "codex/chicken-physical-care-20261020",
+            "head_sha": "46c80ad7fd6147b3312bffc72be7a360edb33141"
+          }
+        },
+        {
+          "id": 12317832597,
+          "name": "chicken-physical-1280x720-1",
+          "size_in_bytes": 8323598,
+          "url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12317832597",
+          "archive_download_url": "https://api.github.com/repos/pederaus9-ux/Bugsy/actions/artifacts/12317832597/zip",
+          "expired": false,
+          "created_at": "2026-10-21T03:18:54Z",
+          "expires_at": "2026-11-04T03:18:53Z",
+          "updated_at": "2026-10-21T03:18:54Z",
+          "digest": "sha256:bbc8f8eb96d5f9062873a4ab6ff66a7754085b27e637b54ac0305d18ab79a822",
+          "workflow_run": {
+            "id": 39537703228,
+            "repository_id": 1388310894,
+            "head_repository_id": 1388310894,
+            "head_branch": "codex/chicken-physical-care-20261020",
+            "head_sha": "46c80ad7fd6147b3312bffc72be7a360edb33141"
+          }
+        }
+      ],
+      "fixture": "chicken-care-exit-access.json",
+      "diagnosis": "A ground return could re-enter the ramp and stick at the raised edge. Access sampling/carving now stays opt-in to explicit bed access legs. A safe detour persists briefly to avoid greedy direction oscillation. Wake exits precede new automatic cosmetic admissions; emotes expire during care.",
+      "local": "three new originalRED cases -> full24PASS including no height on ground return, all original sleep reservations released, visits resume, and emote expiry",
+      "visuals": "Actual ramp and30-place coop inspected. Frozen emotebubbles obscured interior; the real lifetime defect is corrected, not hidden for capture. No concept artwork."
     }
   }
 }
