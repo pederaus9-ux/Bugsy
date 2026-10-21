@@ -23,6 +23,16 @@ async function frame(p,target,distance=35){await p.evaluate(({target,distance})=
    for(let step=0;step<=50;step++){const wanted=[x,z+4-step*.1],actual=d.collideWalker(new V(...wanted)).toArray();samples.push({wanted,actual});}
    return {samples,decorAllowed:d.spotFree(x,z+2,1),buildingAllowed:d.editValid('b:feedmill',x,z+2)};
   });}
+  async function pathState(){return p.evaluate(()=>{
+   const d=__dbg,V=d.cam.target.constructor,path=d.dairyPath;
+   return {points:path.points,stones:path.stones.count,draws:path.group.children.length,visible:path.group.visible,
+    samples:path.samples.filter((_,i)=>i%2===0).map(wanted=>({wanted,actual:d.collideWalker(new V(...wanted)).toArray()})),
+    decorAllowed:d.spotFree(-18.4,-12,1),buildingAllowed:d.editValid('b:feedmill',-18.4,-12)};
+  });}
+  row.path=await pathState();assert(row.path.visible);assert(row.path.stones>200&&row.path.stones<600);assert.equal(row.path.draws,2);
+  for(const s of row.path.samples)assert(Math.hypot(s.wanted[0]-s.actual[0],s.wanted[1]-s.actual[1])<1e-6,'stone path walking route is blocked');
+  assert.equal(row.path.decorAllowed,false);assert.equal(row.path.buildingAllowed,false);
+  await frame(p,[-8,.5,-12],width<height?78:66);await p.screenshot({path:path.join(out,'stone-path-'+width+'.png')});
   row.entrance=await entrance();
   for(const s of row.entrance.samples)assert(Math.hypot(s.wanted[0]-s.actual[0],s.wanted[1]-s.actual[1])<1e-6,'cow entrance walking approach is blocked');
   assert.equal(row.entrance.decorAllowed,false);assert.equal(row.entrance.buildingAllowed,false);
@@ -43,6 +53,7 @@ async function frame(p,target,distance=35){await p.evaluate(({target,distance})=
   await p.evaluate(()=>__dbg.G.save());await p.reload();await ready(p);
   row.reload=await p.evaluate(()=>({layout:__dbg.G.S.layout,decor:__dbg.G.S.decor.placed,active:__dbg.cowYardActive}));assert(row.reload.active);assert.deepEqual(row.reload.layout.b,fixture.layout.b);assert.deepEqual(row.reload.layout.t,fixture.layout.t);assert.deepEqual(row.reload.decor,fixture.decor.placed);
   row.entranceReload=await entrance();assert.deepEqual(row.entranceReload,row.entrance);
+  row.pathReload=await pathState();assert.deepEqual(row.pathReload,row.path);
   assert.deepEqual(session.errors,[]);save();await session.finish();
  }
  failed=false;result.status='PASS';save();

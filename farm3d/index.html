@@ -672,6 +672,7 @@ import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=2';
+import {createDairyPath} from './farm-path.js?v=1';
 import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 const COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
@@ -1234,6 +1235,8 @@ ground.receiveShadow = true; scene.add(ground);
   const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, normalMap:pathNormal, normalScale:new THREE.Vector2(.13,.13), alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
   pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
 
+const dairyPath=createDairyPath({layout:COW_YARD_LAYOUT,groundY:farmGroundY,material:M.stone});scene.add(dairyPath.group);
+
 bootStep("growing the grass");
 // ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
 const windU = {uTime:{value:0}, uWind:{value:.3}};
@@ -1331,6 +1334,9 @@ function moveClear(key, x, z, r) {
   fm.onBeforeCompile = (sh) => { fmPrev(sh); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 uvOff;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvMapUv = vMapUv * .5 + uvOff;"); };
   flowers.receiveShadow = true; scene.add(flowers);
 }
+
+// Keep paving readable; register clearings so moved objects cannot regrow grass on it.
+for(const[i,[x,z]]of dairyPath.samples.entries())clearGrass(x,z,1.02,'dairy-path:'+i);
 
 // soft dark "contact shadow" right under each object, so nothing looks like it floats
 const contactTex = radial("rgba(0,0,0,.55)");
@@ -2607,7 +2613,7 @@ function syncDecor() {
 // is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
 function spotFree(x, z, size, skip = -1) {
   const r = size === 2 ? 1.2 : .6;
-  if (!onFarm(x,z,24)) return false;
+  if (!onFarm(x,z,24)||dairyPath.contains(x,z,r)) return false;
   if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,decor:[{x,z,r}]}).length)return false;
   if (BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + r && Math.abs(z - bz) < hd + r)) return false;
   if (PEN_LIST.some(p => inPen(p, x, z, -r - .3))) return false;
@@ -3240,7 +3246,7 @@ function editValid(key, x, z) {
   if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
   const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
   if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[[x,z,hw,hd]]}).length)return false;
-  if (!onFarm(x,z,23)) return false;                                   // stay on the farm
+  if (!onFarm(x,z,23)||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;                                   // stay on the farm
   if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
   if (t === "b") {
@@ -4115,6 +4121,11 @@ if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 
 updatePlots(0);
 bootStep("setting the weather and time of day");
 installWorld(scene, renderer);
+// The later meadow owns separate instances; clear only those over the stone path.
+for(const name of ['Phase7M flower stems','Phase7M flower heads']){
+ const mesh=scene.getObjectByName(name);if(!mesh?.isInstancedMesh)continue;
+ const a=mesh.instanceMatrix.array;for(let i=0;i<mesh.count;i++){const o=i*16;if(dairyPath.contains(a[o+12],a[o+14],.2))for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;
+}
 cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")],COW_YARD_LAYOUT);cowPlantClearing.setActive(cowYardActive);
 const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
   getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
@@ -4125,7 +4136,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }

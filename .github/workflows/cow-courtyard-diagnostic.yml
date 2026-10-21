@@ -126,7 +126,7 @@ jobs:
         working-directory: farm3d/tests
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
-      - run: node --test farm3d/tests/north-land.test.mjs farm3d/tests/seasonal-leaves.test.mjs
+      - run: node --test farm3d/tests/north-land.test.mjs farm3d/tests/farm-path.test.mjs farm3d/tests/seasonal-leaves.test.mjs
       - run: node farm3d/tests/north-land-seasons.browser.cjs
       - if: always()
         uses: actions/upload-artifact@v5
