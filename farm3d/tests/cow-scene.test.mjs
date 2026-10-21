@@ -99,3 +99,22 @@ test('offline snapshot assertions distinguish ledger settlement from physical mo
  }
  console.log('OFFLINE BOOT CLOCK PROOF',JSON.stringify(rows));
 });
+
+test('a seeded herd clears care docks while waiting through three nights and full forty-second wakes',()=>{
+ for(const initialSeed of [1,4242,21,390]){const {c,y}=fullHerdScene(25);let tick=0,seed=initialSeed;c.rnd=()=>((seed=seed*16807%2147483647)/2147483647);
+ try{for(let cycle=0;cycle<3;cycle++){
+  c.PRESET={night:true};for(const a of c.animals){a.need.hunger=1;a.need.tired=1;a.cowDrinkAt=0;}let settled=false;
+  for(let n=0;n<15000;n++){c.clockT=++tick/30;for(const a of c.animals)a.update(1/30,c.clockT);if(c.animals.every(a=>a.cowTask?.kind==='bed'&&a.cowTask.stage==='hold'&&a.cowTask.weight>.99)){settled=true;break;}}
+  assert(settled,'waiting cows block released docks on night '+cycle+': '+JSON.stringify(c.animals.map(a=>({i:a.ref.i,p:a.g.position.toArray(),kind:a.cowTask?.kind,stage:a.cowTask?.stage,label:a.label}))));assert.equal(new Set(c.animals.map(a=>a.cowTask.station.id)).size,5);
+  c.PRESET={night:false};for(let n=0;n<1200;n++){c.clockT=++tick/30;for(const a of c.animals)a.update(1/30,c.clockT);}assert(c.animals.every(a=>a.cowTask?.kind!=='bed'),'wake retained a bed');
+ }}finally{for(const a of c.animals){a.carePose?.reset();a.rig3d.dispose();}y.dispose();}}
+});
+
+test('a waiting cow physically clears a released feed dock without a new reservation or save mutation',()=>{
+ const {c,y}=fullHerdScene(25),a=c.animals[2];
+ try{c.clockT=1;c.PRESET={night:true};assert(c.beginCowTask(c.animals[1],'feed'));assert(c.beginCowTask(c.animals[0],'feed'));a.g.position.set(-7.2,.08,-34);const before=a.g.position.clone(),reservations=JSON.stringify(c.cowStations.snapshot()),save=JSON.stringify(G.S);
+  assert(c.waitCowStation(a,'Waiting for a feed space'));assert.deepEqual(a.g.position.toArray(),before.toArray(),'waiting cannot teleport');assert(a.target,'released dock must begin clearing');assert.equal(a.running,false,'waiting must use normal walking');assert.equal(a.cowTask,undefined);assert.equal(JSON.stringify(c.cowStations.snapshot()),reservations);assert.equal(JSON.stringify(G.S),save);
+  for(let n=0;n<300;n++){const p=a.g.position.clone();c.clockT+=1/30;a.update(1/30,c.clockT);assert(a.g.position.distanceTo(p)<.1,'waiting walk jumped');if(Math.hypot(a.g.position.x-before.x,a.g.position.z-before.z)>1.1)break;}
+  assert(a.g.position.distanceTo(before)>1.1,'waiting cow kept blocking the feed dock');assert.equal(JSON.stringify(G.S),save,'cosmetic waiting changed saved state');
+ }finally{for(const b of c.animals){b.carePose?.reset();b.rig3d.dispose();}y.dispose();}
+});

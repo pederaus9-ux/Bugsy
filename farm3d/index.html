@@ -1902,7 +1902,22 @@ function beginCowTask(a,kind){
   const token=cowStations.request(id,kind,preferred);if(!token)return false;
   const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95),waypoints=[...(fromBed&&fromBed.id!==station.id?[fromBed.approach]:[]),station.approach,station.dock];a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
 }
-function waitCowStation(a,label){a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;}
+function waitCowStation(a,label){
+  // A released dock is still physically occupied until its former visitor
+  // walks away. Waiting for a different busy station must clear that corridor.
+  const corridors=cowYard.stations.map(s=>[s.approach[0],s.approach[2],s.dock[0],s.dock[2]]);
+  for(const b of animals)if(b!==a&&b.kind==='cow'&&['approach','exit'].includes(b.cowTask?.stage)){
+    let x=b.g.position.x,z=b.g.position.z;
+    for(const p of [...(b.cowTask.path||[]).map(v=>[v.x,v.y]),...(b.cowTask.waypoints||[]).map(v=>[v[0],v[2]])]){corridors.push([x,z,p[0],p[1]]);x=p[0];z=p[1];}
+  }
+  const nearCare=(x,z)=>corridors.some(([px,pz,qx,qz])=>{const dx=qx-px,dz=qz-pz,u=THREE.MathUtils.clamp(((x-px)*dx+(z-pz)*dz)/(dx*dx+dz*dz||1),0,1);return Math.hypot(x-px-u*dx,z-pz-u*dz)<1.1;});
+  if(nearCare(a.g.position.x,a.g.position.z))for(const radius of [1.4,2.1,2.8,4.2,5.6])for(let k=0;k<24;k++){
+    const x=a.g.position.x+Math.cos(k*Math.PI/12)*radius,z=a.g.position.z+Math.sin(k*Math.PI/12)*radius;
+    if(!fitsPen(PENS.courtyard,x,z,.7)||nearCare(x,z)||COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.65&&Math.abs(z-bz)<hd+.65)||animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(x-b.g.position.x,z-b.g.position.z)<1.3))continue;
+    a.go(x,z,false,'Making room at the care stations');return true;
+  }
+  a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;
+}
 function chooseCowTask(a){
   if(!cowYardActive)return false;
   const job=cowStatus?.job,id=cowIdOf(a);
