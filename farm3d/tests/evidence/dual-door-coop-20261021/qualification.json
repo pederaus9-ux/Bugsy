@@ -1,0 +1,52 @@
+{
+  "ownerRequest": "Make the coop bigger with two doors to allow two entrances/exits",
+  "base": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
+  "previousPRHead": "a4d1e764c4705785905084e74b87088cf58078ae",
+  "pr": 92,
+  "status": "LOCAL_PASS_NATIVE_AND_FULL_CI_PENDING",
+  "localFocused": 37,
+  "protectedRuntime": [
+    "game.js",
+    "auth.js",
+    "chicken-care.js",
+    "cow-care.js",
+    "cow3d.js",
+    "sheep3d.js",
+    "horse3d.js",
+    "dog3d.js",
+    "cat3d.js"
+  ],
+  "changes": [
+    "About42percent more floor area; two real openings and supported ramps",
+    "Two exclusive lanes;15beds each; concurrent entrances and exits",
+    "Waiting birds yield physically; original0.65m/s and0.34m bird clearance retained",
+    "Chicken-only ground path validation with bounded4416cell fallback; default shared route untouched",
+    "Feeder/waterer repositioned within pen to keep both ramps and every supply slot reachable",
+    "Cache57; yard4/controller2",
+    "Core CI split into Node/browser jobs with every original probe and20min budget retained"
+  ],
+  "originalFailuresPreserved": {
+    "secondBedtimeRun": 39539858959,
+    "assertion": "Physical chicken goal beds not reached",
+    "artifact844": 12319366401,
+    "digest": "717361f4d054cf9b76e74450b71a775e1932f9d745ad883a9f54815df712315b",
+    "recovered": "chicken-physical-run5-recovered/original-844",
+    "coreRun": 39539863435,
+    "coreJob": 119024899361,
+    "core": "Cancelled at20minute job budget during final settings browser; preceding63Nodefiles and first4browser suites complete; no full success claimed"
+  },
+  "testFixtureNote": "The original15second ground-return reproduction retains its original single-door world from immutable a4d1e76; source archived with only import-path adjustments. Assertions and deadline unchanged. New current-world full30sleep/wake/concurrency/crowd and all supply slots are separate real-controller tests. Other frozen blockers replace only owned yard geometry with current footprint; original captured data unchanged.",
+  "limits": [
+    "Actual final captures and full exact-head CI pending",
+    "Physical-phone sustained performance unmeasured",
+    "Lead self-review, no independent external audit",
+    "Older cowtap/wardrobe causes unproven; B13/B16 separate"
+  ],
+  "wallClearanceReview": {
+    "found": "Posed hen-bed-3 skin reaches-8.59923 while inner side wall is-8.662: 0.06277m overlap",
+    "red": "New actual skin vs real wall ray assertion fails at hen-bed-3",
+    "correction": "Coop body shifts0.3m east; door/ramp/bed world positions unchanged, awning/default fallback/support/collision footprint align",
+    "local": "38/38PASS including all original current-world and frozen-ground-return tests",
+    "native": "Prior aa94a24 still running; no final-head/native clearance claim"
+  }
+}

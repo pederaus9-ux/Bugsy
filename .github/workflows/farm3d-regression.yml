@@ -137,9 +137,15 @@ jobs:
           path: farm3d/tests/artifacts/holiday*
           retention-days: 14
   regression:
-    name: Farm3D regression
+    name: Farm3D regression (${{ matrix.group }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [node, browser]
+    env:
+      FARM3D_CORE_GROUP: ${{ matrix.group }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -162,7 +168,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-regression-${{ github.run_attempt }}
+          name: farm3d-regression-${{ matrix.group }}-${{ github.run_attempt }}
           path: farm3d/tests/artifacts/
           if-no-files-found: ignore
           retention-days: 7

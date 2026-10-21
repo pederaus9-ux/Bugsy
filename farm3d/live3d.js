@@ -2,7 +2,7 @@ import {createSheep3D, updateSheep3D} from './sheep3d.js';
 import {createHorse3D, updateHorse3D} from './horse3d.js';
 import {createDog3D, updateDog3D} from './dog3d.js';
 import {createCat3D, updateCat3D} from './cat3d.js';
-import {createChicken3D, updateChicken3D} from './chicken3d.js';
+import {createChicken3D, updateChicken3D} from './chicken3d.js?v=1';
 import {createFarmer3D, updateFarmer3D, createVillager3D} from './farmer3d.js';
 const makers = {sheep:[createSheep3D, updateSheep3D], horse:[createHorse3D, updateHorse3D], dog:[createDog3D, updateDog3D], cat:[createCat3D, updateCat3D], chicken:[createChicken3D, updateChicken3D]};
 export function createLiveAnimal(kind, height, x, z) {

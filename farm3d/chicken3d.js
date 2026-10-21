@@ -82,12 +82,14 @@ function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose,holdResume){
   let desired=r.model.rotation.y;
   if(speed>.02){desired=Math.atan2(-dx,-dz);const delta=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(delta),Math.cos(delta))*(1-Math.exp(-dt*12));}
   const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),ground=r.g.position.y+c.hoof*scale;
+  const support=(x,z)=>r.sampleSupport?r.sampleSupport(x,z)+c.hoof*scale:ground;
+  if(r.sampleSupport)for(const f of p.feet)if(f.state==='stance')f.y=support(f.x,f.z);
   if(!moving){
     if(s.lastChickenMoving){
       const stop=r.chickenStopCache||={elapsed:0,legs:r.legs.map(()=>({}))};stop.elapsed=0;s.chickenStop=stop;s.chickenResume=null;
       for(let i=0;i<2;i++){const f=p.feet[i],t=stop.legs[i];t.x=f.x;t.z=f.z;t.y=f.y;t.duration=Math.max(dt,f.duration-f.elapsed);t.yaw=f.yaw;}
     }
-    if(s.chickenStop){const stop=s.chickenStop;stop.elapsed+=dt;for(let i=0;i<2;i++){const f=p.feet[i],t=stop.legs[i];f.x=t.x;f.z=t.z;f.y=t.y+(ground-t.y)*smooth(Math.min(1,stop.elapsed/t.duration));f.state=f.y-ground<1e-8?'stance':'settle';}}
+    if(s.chickenStop){const stop=s.chickenStop;stop.elapsed+=dt;for(let i=0;i<2;i++){const f=p.feet[i],t=stop.legs[i];f.x=t.x;f.z=t.z;const y=support(f.x,f.z);f.y=t.y+(y-t.y)*smooth(Math.min(1,stop.elapsed/t.duration));f.state=f.y-y<1e-8?'stance':'settle';}}
   }else{
     if(s.chickenStop){const resume=r.chickenResumeCache||={elapsed:0,legs:[]};resume.elapsed=0;resume.duration=.15;s.chickenResume=resume;s.chickenStop=null;}
     if(s.chickenResume){s.chickenResume.elapsed+=dt;if(s.chickenResume.elapsed>=s.chickenResume.duration)s.chickenResume=null;}
@@ -111,8 +113,8 @@ function stepChickenController(r,dx,dz,dt,mode,rootX,rootZ,pose,holdResume){
       // interpolated path in the current frame rather than sampled guesses.
       x=f.fromX+(x-f.fromX)*blend;z=f.fromZ+(z-f.fromZ)*blend;
       const radius=.135*scale,len=Math.hypot(x-hx,z-hz);if(len>radius){x=hx+(x-hx)*radius/len;z=hz+(z-hz)*radius/len;}
-      f.x=x;f.z=z;f.y=ground+(f.fromY-ground)*(1-blend)+c.lift*scale*16*u*u*(1-u)*(1-u);f.yaw=yaw;
-      if(u===1){f.state='stance';f.y=ground;p.next=1-i;}
+      const landing=support(x,z);f.x=x;f.z=z;f.y=landing+(f.fromY-landing)*(1-blend)+c.lift*scale*16*u*u*(1-u)*(1-u);f.yaw=yaw;
+      if(u===1){f.state='stance';f.y=landing;p.next=1-i;}
     }
     if(p.feet[0].state==='stance'&&p.feet[1].state==='stance'){
       // A grounded contact is released only after the opposite foot has landed.
