@@ -29,9 +29,18 @@ async function verifyCowActionIdentity(page){
   const atomicFallback=patchFn(tray,bad)===false&&tray.innerHTML===saved;
   next=birdMarkup('Another bird',1);refreshFn();
   const birdSwitch=tray.querySelector('[data-w=petA]')!==birdButtons[2]&&tray.querySelector('[data-w=petA]').dataset.i==='1';
-  return {stable,headerStable,live,disabled,differentCow,birdControlsStable,atomicFallback,birdSwitch};
+  const stationControls={};
+  for(const type of ['chickenStation','cowStation']){
+   selected.type=type;const prefix=type==='chickenStation'?'chicken':'cow';
+   const stationMarkup=(minute,disabled=false)=>`<h3><span>Station</span><button data-w="close">Close</button></h3><div class="tray-sub">Water: 9h ${minute}m</div><button id="${prefix}-fill" data-w="${prefix}Fill" data-rev="${minute}" ${disabled?'disabled':''}>Refill</button>`;
+   next=stationMarkup(59);tray.innerHTML=next;tray.dataset.h=next;
+   const oldButtons=[...tray.querySelectorAll('button')],oldHeader=tray.querySelector('h3');let closeClicks=0;oldButtons[0].addEventListener('click',()=>closeClicks++);
+   next=stationMarkup(58,true);refreshFn();oldButtons[0].click();
+   stationControls[type]=oldButtons.every((n,i)=>tray.querySelectorAll('button')[i]===n)&&tray.querySelector('h3')===oldHeader&&closeClicks===1&&oldButtons[1].disabled&&oldButtons[1].dataset.rev==='58'&&tray.querySelector('.tray-sub').textContent==='Water: 9h 58m';
+  }
+  return {stable,headerStable,live,disabled,differentCow,birdControlsStable,atomicFallback,birdSwitch,stationControls};
  },{patch,refresh});
- assert.deepEqual(observed,{stable:true,headerStable:true,live:true,disabled:true,differentCow:true,birdControlsStable:true,atomicFallback:true,birdSwitch:true});
+ assert.deepEqual(observed,{stable:true,headerStable:true,live:true,disabled:true,differentCow:true,birdControlsStable:true,atomicFallback:true,birdSwitch:true,stationControls:{chickenStation:true,cowStation:true}});
  result.actionIdentity=observed;result.checks.push('live animal activity retains header, Rename/Close and action nodes; labels/disabled update; farm/cow switch rebuilds');save();
 }
 (async()=>{try{h=await start({deviceScaleFactor:1,recordVideo:true,videoDir:path.join(out,'video')});for(const[width,height]of [String(process.env.COW_VIEWPORT||'844x390').split('x').map(Number)]){const touch=width<1000,s=await h.setup({width,height},touch,'cow-robot-'+width,touch);p=s.page;const press=selector=>touch?p.locator(selector).tap():p.locator(selector).click();await p.addInitScript(()=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');const nativeNow=Date.now.bind(Date);window.__cowOffset=0;Date.now=()=>nativeNow()+window.__cowOffset;});await p.goto(h.base+'farm3d/?debug&portrait&preset=noon&testfarm');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});await verifyCowActionIdentity(p);

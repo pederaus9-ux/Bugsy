@@ -3720,7 +3720,7 @@ function patchAnimalInfo(tray, html) {
   if(!before.every((node,i)=>plan(node,after[i])))return false;
   changes.forEach(change=>change());return true;
 }
-function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { if(trayFor.type==='animal'&&patchAnimalInfo(infoTray,h)){infoTray.dataset.h=h;return;}const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { if(['animal','cowStation','chickenStation'].includes(trayFor.type)&&patchAnimalInfo(infoTray,h)){infoTray.dataset.h=h;return;}const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
 function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
 infoTray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-w]"); if (!b) return;
