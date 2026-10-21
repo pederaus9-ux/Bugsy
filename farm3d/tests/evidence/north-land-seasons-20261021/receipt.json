@@ -1,0 +1,105 @@
+{
+  "pr": 91,
+  "base": "33b6118282f4aebabcc4cc0e56fe82147619aaa4",
+  "runtimeHead": "cf2cf8983add89a5668a76abd64197468e6c34c8",
+  "runtimeTree": "cb837a21bea3525bafee400a9245f508ffc31691",
+  "diagnosticRun": 39521279018,
+  "jobs": "6/6SUCCESS",
+  "localCompleteNode": {
+    "files": 60,
+    "failures": 0,
+    "seconds": 259.65
+  },
+  "affectedFixtureChecks": "49/49PASS",
+  "initialFullRegressionFailures": {
+    "jobs": [
+      118965516006,
+      118965516067,
+      118965516205
+    ],
+    "assertions": [
+      "blossom geometry",
+      "maple geometry",
+      "placed orientation"
+    ],
+    "error": "ReferenceError: seasonalLeaves is not defined",
+    "cause": "isolated decoration fixture missing real seasonal controller",
+    "correction": "import createSeasonalLeaves; instantiate in context; set fall; original assertions unchanged"
+  },
+  "actualRenderReview": {
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        1280,
+        720
+      ]
+    ],
+    "seasons": [
+      "spring",
+      "summer",
+      "fall",
+      "winter"
+    ],
+    "dayNight": true,
+    "testFarm": true,
+    "physicalPhone": false,
+    "previewPaths": [
+      "north-land/expanded-fall-844.png",
+      "north-land/fall-trees-1280.png",
+      "cow-visual/feed-844.png",
+      "cow-visual/bed-844.png"
+    ]
+  },
+  "resources": {
+    "warmSamples": 21,
+    "geometries": 321,
+    "textures": 95,
+    "drawingPixelRatio": 1
+  },
+  "artifacts": [
+    {
+      "id": 12311164331,
+      "name": "north-land-seasons-1",
+      "sha256": "d78f81fd586c992c44f9b571f27ac0853934b1ba55cda087aa3411c244781477"
+    },
+    {
+      "id": 12311590383,
+      "name": "cow-visuals-1",
+      "sha256": "4bf9b62e3672bc41e4cc51a349861c500358a41825a6a4a8874c55d0292132a2"
+    },
+    {
+      "id": 12312305144,
+      "name": "cow-persistence-1",
+      "sha256": "9c6ab44afdf89185754a80364e6ab11957505e53308caffad9de2e04b75de8f8"
+    },
+    {
+      "id": 12311795187,
+      "name": "cow-native-390x844-1",
+      "sha256": "777f864844f35c9e05caa3f19add3bee8cd4bade110c20eef050feb00350c157"
+    },
+    {
+      "id": 12311625312,
+      "name": "cow-native-844x390-1",
+      "sha256": "84b2c8a531af301431dd150efae768aa43790e1b4a87ecb6d0fbac7061d90021"
+    },
+    {
+      "id": 12311525793,
+      "name": "cow-native-1280x720-1",
+      "sha256": "8476c4239a4059f5f1429c70f25721553faef09f75f0c040d06ccbe6d5e7bb5f"
+    }
+  ],
+  "historicalFailures": [
+    "B13 chew-fade regex and B16 terminal30Hz phase against unchanged cow rig",
+    "Earlier cow tap/wardrobe causes remain unproven"
+  ],
+  "finalCorrectedHeadCI": "PENDING",
+  "mergeAuthorized": false,
+  "deployed": false
+}

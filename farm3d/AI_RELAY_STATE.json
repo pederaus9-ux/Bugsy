@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-21T00:24:13.172038+00:00",
+  "lastUpdatedUtc": "2026-10-21T00:33:55.800808+00:00",
   "codeBaseline": {
     "description": "PR90 owner-approved, merged and published; automatic main regression39516723469 now16/16SUCCESS.",
     "mergeCommit": "33b6118282f4aebabcc4cc0e56fe82147619aaa4",
@@ -113,13 +113,12 @@
   "completedThrough": "Cow courtyard/physical care/robot-to-bulk-tank owner-approved, merged and published; remaining species physical-care rollout not started",
   "currentPhase": "NORTH_25M_SEASONAL_TREES",
   "currentPhaseTitle": "Owner-requested25metre northern extension, clear dairy site and calendar-based foliage",
-  "phaseStatus": "IMPLEMENTED_LOCAL_VERIFICATION_HOSTED_PENDING",
+  "phaseStatus": "RUNTIME_DIAGNOSTICS_PASS_TEST_FIX_FINAL_CI_PENDING",
   "visualAcceptance": "ACTUAL_NEW_PREVIEW_PENDING",
-  "activePullRequest": null,
+  "activePullRequest": 91,
   "nextPhases": [
-    "Publish dedicated branch based on33b6118282f4aebabcc4cc0e56fe82147619aaa4 and run hosted browser/full gates",
-    "Review actual rendered expanded farm and four seasons, preserve occupied old layout and offline save",
-    "Owner preview acceptance and explicit merge approval; no new merge authorization"
+    "Complete hosted gates on corrected final head; do not rerun unchanged failures without cause",
+    "Owner actual preview acceptance and explicit merge approval; no merge/deploy authorized"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -3220,6 +3219,9 @@
     "northMetres": 25,
     "ownerRequest": "25 metres for comfort room, all trees follow seasons; natural fall colours now",
     "protected": "game.js,save schema,cloud/auth,economy,cow anatomy/gait and other-animal care unchanged",
-    "tests": "New contracts5/5; focused integration28/28 before expanded all-bay probe. Hosted pending. Broader historical probe93 tests:89passed,4failed; two clearing-fixture dependencies corrected and reverified, B13 chew fade and B16 terminal frame-rate failures retained against unchanged cow rig."
+    "tests": "Complete canonical60Nodefiles PASS after supplying the real seasonal controller to the isolated decoration fixture. All6 hosted cow/land/season diagnostic jobs39521279018 SUCCESS on published runtime. Actual rendered day/night3viewports and4seasons reviewed. Three initial regression jobs failed only because that fixture lacked seasonalLeaves; logs retained and original assertions unchanged. Final corrected-head full hosted gates pending.",
+    "publishedRuntimeHead": "cf2cf8983add89a5668a76abd64197468e6c34c8",
+    "runtimeTree": "cb837a21bea3525bafee400a9245f508ffc31691",
+    "artifacts": "All6 ZIPs under scratch north-run1, checksum against GitHub API; renders also retained by diagnostic run39521279018. New correction is test fixture + coordination/evidence only; product bytes unchanged."
   }
 }
