@@ -670,14 +670,15 @@ import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
-import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=2';
+import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=3';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=2';
 import {createDairyPath} from './farm-path.js?v=1';
 import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 const COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
-import {getAnimalCarePose} from './animal-care-poses.js?v=1';
+import {createChickenStationController} from './chicken-stations.js?v=1';
+import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 import {createCowDockGate} from './cow-stations.js?v=1';
 import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
 import {createFarmDecoration} from './decor-models.js?v=1';
@@ -694,7 +695,7 @@ const GV = G.view; // what the game rules (game.js) use to show things in the 3D
 
 const qs = new URLSearchParams(location.search);
 const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=5"); // 3D cows on the regular link; optional artwork fallback for comparisons
-const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=2");
+const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=3");
 const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
 bootStep("loading the 3D engine");
 // animal pictures live next to the 2D game in the repo, or beside the page when published on its own
@@ -1613,23 +1614,24 @@ const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, 
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
 const insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
-function hitsBlock(a, b, pad, skip) {
-  for (const k of OBST.keys()) { if (skip && skip.has(k)) continue; const o = OBST[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
+function hitsBlock(a, b, pad, skip, obstacles = OBST) {
+  for (const k of obstacles.keys()) { if (skip && skip.has(k)) continue; const o = obstacles[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
     let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;
     const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
     if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }
   return -1;
 }
 // shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
-function route(from, to, pad, pen) {
-  const skipA = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], from, pad))), skipB = new Set([...OBST.keys()].filter(k => insideObst(OBST[k], to, pad)));
+function route(from, to, pad, pen, avoid = []) {
+  const obstacles = avoid.length ? [...OBST, ...avoid] : OBST;
+  const skipA = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], from, pad))), skipB = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], to, pad)));
   const both = new Set([...skipA, ...skipB]);
-  if (hitsBlock(from, to, pad, both) < 0) return [to];
+  if (hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
   const nodes = [from, to];
-  for (const o of OBST) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
-    if (!OBST.some(q => insideObst(q, c, pad)) && (pen===PENS.courtyard||Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+  for (const o of obstacles) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
+    if (!obstacles.some(q => insideObst(q, c, pad)) && (pen===PENS.courtyard||Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
   const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
-  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null) < 0;
+  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
     if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
     for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
@@ -1733,6 +1735,7 @@ class Beast {
     this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
   }
   update(dt, t) {
+    if(this.kind==='chicken'&&chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies}))return;
     if(this.kind==='cow'&&cowYardActive&&!this.cowTask&&cowStatus?.job?.cowId===cowIdOf(this))chooseCowTask(this);
     if(this.kind==='cow'&&cowYardActive&&this.cowTask){updateCowTask(this,dt,t);return;}
     const ox = this.g.position.x, oz = this.g.position.z;
@@ -1841,6 +1844,8 @@ function locoParade(t) {
   a.go(p.x, p.y, run, run ? "Showing off a run" : "Out for a walk");
 }
 let animals = [];
+let chickenSupplies={feedMs:0,waterMs:0};
+const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!CHICKEN_YARD_LAYOUT.obstacles.includes(b)&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
 function syncHerd() {
@@ -1850,7 +1855,7 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
@@ -1865,7 +1870,7 @@ let chickenPreview=null;
 function syncChickenYard(){
   chickenYard.group.visible=!!G.S?.pens.chicken?.owned;
   chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);
-  chickenYard.setStatus(G.getChickenCareStatus());
+  chickenSupplies=G.getChickenCareStatus();chickenYard.setStatus(chickenSupplies);
 }
 function setCowGrass(active){
   cowPlantClearing?.setActive(active);
@@ -4135,7 +4140,7 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, chickenYard, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
   get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
