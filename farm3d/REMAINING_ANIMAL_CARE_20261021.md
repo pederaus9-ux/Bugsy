@@ -7,12 +7,12 @@ Base: 393cb849b258852b3cd2ec92342004051785c5e2. Existing worktrees and untracked
 ## Acceptance checkpoints
 
 - [x] Recovery: exact main, owner scope, instructions, old work, active processes inspected.
-- [x] Layout (local contracts; hosted render pending): separate generous northern horse/sheep pens, four/five beds, real shelters, feed/water surfaces, accessible gates and routes; dog/cat each have food, water and bed. No saved object moved/deleted. Site conflicts retain old farm until cleared/reloaded.
-- [x] Motion (local actual rig/controller proofs; native pending): actual accepted rigs physically walk, align, eat/drink at the surfaces, fold into supported beds, stand and clear approaches. Fixed per-animal places; no overlapping slots, teleports, doorway queues or deadlocks.
-- [x] Cycles (local complete AI and rate tests; hosted pending): maximum four horses/five sheep plus dog/cat repeat three full sleep/wake cycles (including second bedtime), at30/60/120Hz; simultaneous feed/wake/weather changes; movement/clearance assertions retained.
-- [ ] Recovery: save/reload and installed offline reopening preserve all paid state. Runtime reservations rebuild from ownership, never saved as production progress. Visitor/read-only farms cannot mutate care ledgers.
-- [ ] Regression: all existing Node/browser/cloud and care tests on exact head; existing horse/sheep/dog/cat rigs, cow/chicken systems, land/path, auth, saves and rewards unchanged. Dedicated overlay only changes care poses during visits.
-- [ ] Visual: actual phone portrait/landscape, tablet, desktop renders and resource ownership verified. Show owner real preview. No physical-device claim, generated concept evidence or independent review claim.
+- [x] Layout (local contracts and all four actual hosted views PASS): separate generous northern horse/sheep pens, four/five beds, real shelters, feed/water surfaces, accessible gates and routes; dog/cat each have food, water and bed. No saved object moved/deleted. Site conflicts retain old farm until cleared/reloaded.
+- [x] Motion (local actual rig/controller proofs and native input PASS): actual accepted rigs physically walk, align, eat/drink at the surfaces, fold into supported beds, stand and clear approaches. Fixed per-animal places; no overlapping slots, teleports, doorway queues or deadlocks.
+- [x] Cycles (local complete AI/rates and four hosted views PASS): maximum four horses/five sheep plus dog/cat repeat three full sleep/wake cycles (including second bedtime), at30/60/120Hz; simultaneous feed/wake/weather changes; movement/clearance assertions retained.
+- [x] Recovery: save/reload and installed offline reopening preserve all paid state. Runtime reservations rebuild from ownership, never saved as production progress. Visitor/read-only farms cannot mutate care ledgers.
+- [x] Regression: all existing Node/browser/cloud and care tests on exact head; existing horse/sheep/dog/cat rigs, cow/chicken systems, land/path, auth, saves and rewards unchanged. Dedicated overlay only changes care poses during visits.
+- [x] Visual: actual phone portrait/landscape, tablet, desktop renders and resource ownership verified. Show owner real preview. No physical-device claim, generated concept evidence or independent review claim.
 - [ ] Release: owner preview/merge gates and exact-head hosted checks before merge; main/deployment/live hashes and postmerge checks afterward.
 
 ## Implementation plan
@@ -84,3 +84,6 @@ One separate d4cow844job119516196325 failed before game launch: Chromium CDN ret
 
 
 Final-head checkpoint2a8a64d/tree77d5e45, syntheticmerge8b23abb samewhole tree. All4care viewsPASS; original4archives downloaded/API SHA256verified, actual390/844/768/1280renders inspected and final4speciespreview shown. Three nights/full40swakes each, actualtrusted Feed-all/Pet,all9paidfeedervisits, nightreload/installed62to63/offlinepaidstate equality and11beds844,20GPUrebuilds1280 allPASS. Cow9 andchicken3PASS. Broader qualification remains active; all37mustfinishSUCCESS. Soleauthor/selfreview;physicaldevices untested;ownerfinalvisual/releaseapprovalpending. This evidencebranch doesnotchange reviewedPRruntime.
+
+
+Final qualification complete:2a8a64d/tree77d5e45, syntheticmerge8b23abb identicaltree, main393cb84unchanged. All37exact-headcheck-runs completedSUCCESS (0failed/0active);72Node filesPASS; cloud22/22andactualSDK12.19.0storage false/truePASS. Four actual care archives SHA256verified, four views inspected, final combined preview shown; all10preview/evidence saves succeeded. All27runtime digests frozen;20protectedfiles exactmain; no unrelatedproject change; originalworktrees/untrackedchickenproof preserved. Soleauthor/selfreview;emulatedphone/tablet,physicalperformance unverified. PR95remainsdraft/unmerged. Ownerfinalvisual/releaseapproval is the onlyremaininggate. No build/test process or automation active. After approval: merge frozenhead, verifyPages/livefilehashes and all17postmerge gates. Separateevidencebranch changesnotes/receiptsonly; no claimofowneracceptance ordeployment.
