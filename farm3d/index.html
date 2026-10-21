@@ -1905,7 +1905,7 @@ function syncRemainingCareYards(){
   }
   site.checked=true;yard.group.visible=active;
  }
- const petActive=remainingSites.dog.active||remainingSites.cat.active;petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+ const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
 }
 function syncChickenYard(){
   chickenYard.group.visible=!!G.S?.pens.chicken?.owned;
