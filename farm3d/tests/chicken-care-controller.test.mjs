@@ -130,3 +130,24 @@ test('a daytime nap joins the overnight flock and wake exits exclude new care ad
   assert(x.hens.every(bird=>!bird.chickenTask),'the complete overnight flock wakes and exits');assert.equal(x.care.scheduler.snapshot().length,0);
  }finally{x.dispose();}
 });
+
+
+// Actual native844 failure: a late allocation behind a sleeping neighbour.
+test('late interior entry reaches its free bed without traversing a sleeping neighbour',()=>{
+ const f=JSON.parse(fs.readFileSync(new URL('./fixtures/chicken-care-interior-late-entry.json',import.meta.url),'utf8')).failureState;
+ const active=f.hens.find(h=>h.i===8),sleeper=f.hens.find(h=>h.i===2),x=setup(2,true,f.blocks),a=x.hens[0],b=x.hens[1];
+ try{assert(x.care.scheduler.restore([{stationId:'hen-bed-0',animalId:'hen-0',generation:1,arrived:false},{stationId:'hen-bed-4',animalId:'hen-1',generation:2,arrived:true}]));a.g.position.fromArray(active.p);b.g.position.fromArray(sleeper.p);assert(x.care.request(a,'bed'));assert(x.care.request(b,'bed'));Object.assign(a.chickenTask,{stage:'approach',path:structuredClone(active.path),groundLeg:false,access:true});Object.assign(b.chickenTask,{stage:'hold',weight:1,held:100,access:true});
+  assert(a.g.position.distanceTo(b.g.position)>=.34);for(let n=0;n<18000;n++){const before=a.g.position.clone();x.care.update(a,.1,n*.1,{night:true,wet:false,supplies:{feedMs:0,waterMs:0}});x.care.update(b,.1,n*.1,{night:true,wet:false,supplies:{feedMs:0,waterMs:0}});assert(a.g.position.distanceTo(before)<=.06500001,'no interior teleport');assert(a.g.position.distanceTo(b.g.position)>=.34-1e-9,'sleeping body clearance');if(a.chickenTask?.stage==='hold')break;}
+  assert.equal(a.chickenTask?.stage,'hold','late entrant remains blocked by occupied authored waypoint: '+JSON.stringify({p:a.g.position.toArray(),path:a.chickenTask?.path}));assert.equal(b.chickenTask.stage,'hold');assert.deepEqual(b.g.position.toArray(),sleeper.p,'sleeper must stay in its own bed');
+ }finally{x.dispose();}
+});
+
+test('the complete captured late-entry flock reaches all thirty separate beds',()=>{
+ const f=JSON.parse(fs.readFileSync(new URL('./fixtures/chicken-care-interior-late-entry.json',import.meta.url),'utf8')).failureState,x=setup(30,true,f.blocks);
+ try{assert(x.care.scheduler.restore(f.stations));for(const h of f.hens)x.hens[h.i].g.position.fromArray(h.p);
+  for(const h of f.hens){const a=x.hens[h.i];assert(x.care.request(a,h.kind));assert.equal(a.chickenTask.station.id,f.stations.find(s=>s.animalId==='hen-'+h.i).stationId);Object.assign(a.chickenTask,{stage:h.stage,path:structuredClone(h.path),returnPoint:structuredClone(h.returnPoint),weight:h.stage==='hold'?1:0,held:h.stage==='hold'?100:0,groundLeg:h.p[1]<.1,access:h.p[1]>.1});}
+  const entrant=x.hens[8],observed=f.hens.find(h=>h.i===8);entrant.chickenTask.stage='waiting';x.care.update(entrant,0,0,{night:true,wet:false,supplies:{feedMs:100000,waterMs:100000}});assert.equal(entrant.chickenTask.stage,'approach');Object.assign(entrant.chickenTask,{path:structuredClone(observed.path),groundLeg:false,access:true});
+  for(let n=0;n<18000;n++){for(const a of x.hens){const before=a.g.position.clone();x.care.update(a,.1,n*.1,{night:true,wet:false,supplies:{feedMs:100000,waterMs:100000}});assert(Math.hypot(a.g.position.x-before.x,a.g.position.z-before.z)<=.06500001,'original horizontal speed');assert(a.g.position.distanceTo(before)<.12,'no ramp teleport');}if(x.hens.every(a=>a.chickenTask?.kind==='bed'&&a.chickenTask.stage==='hold'&&a.chickenTask.weight>.99))break;}
+  assert(x.hens.every(a=>a.chickenTask?.kind==='bed'&&a.chickenTask.stage==='hold'),'captured late-entry flock remains blocked: '+JSON.stringify(x.hens.filter(a=>a.chickenTask?.stage!=='hold').map(a=>({i:a.ref.i,p:a.g.position.toArray(),path:a.chickenTask?.path}))));assert.equal(new Set(x.hens.map(a=>a.chickenTask.station.id)).size,30);
+ }finally{x.dispose();}
+});
