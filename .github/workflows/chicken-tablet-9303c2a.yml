@@ -1,0 +1,37 @@
+name: PR92 exact-source tablet qualification
+on:
+  push:
+    branches: [evidence/chicken-pr92-9303c2a]
+    paths: ['.github/workflows/chicken-tablet-9303c2a.yml']
+permissions:
+  contents: read
+jobs:
+  tablet:
+    name: Physical care tablet768x1024 at9303c2a
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CHICKEN_VIEWPORT: 768x1024
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 9303c2a18799bc8bb4649689f7de183e3e69ddba
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Exact-source actual tablet care and repeated sleep/offline save
+        run: node farm3d/tests/chicken-care-physical.browser.cjs
+      - name: Preserve actual tablet renders and original failure evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: chicken-tablet-9303c2a
+          path: farm3d/tests/artifacts/chicken-physical-*
+          retention-days: 14
