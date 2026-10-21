@@ -922,3 +922,10 @@ Pages39648076561 and automatic main regression39648078531 are active; neither is
 
 
 Deployment checkpoint: Pages39648076561 completed3/3SUCCESS. Eleven live files plus entry and plain unqueried game URL match merged393cb84 exactly bySHA256. This includes index, cow-yard, chicken controller, worker, game/auth/care ledgers and land/path/seasons. Live cache62 is verified; no paid-state schema change. Main regression39648078531 is1/17PASS,16active at this checkpoint, not completed. No local test/build process.
+
+
+### PR94 publication gate closed — all17 postmerge checks PASS
+
+Owner-approved393cb849b258852b3cd2ec92342004051785c5e2 remains main. Pages39648076561 completed3/3SUCCESS;11livefiles plus the plain game entry match merged bytes bySHA256. Main regression39648078531 completed17/17SUCCESS, including64Nodefiles, original browser/animal/care/input/offline/save/lighting/decor/market checks and cloud recovery22/22 plus actualSDK12.19.0 blocked-storagefalse/true. Full postmerge Node/cloud logs, job receipts and merge-tree proof retained under tests/evidence/cow-room-merge-20261021/. No failed check waived or deadline extended; no runtime edits after approved4128054.
+
+Farm subtree matches the exact approved/tested source; dashboardPR93 is preserved. Original failure artifacts and all prior worktrees remain intact. Cow footprint176.12m², five wider beds, clear aisle and actual waiting routes are live. Owner Merge supplied the missing visual/merge authorization after the real preview; it is not an instrumented physical-device result. Phone/tablet views were emulated; review was sole-author. Current milestone is complete. No active build/test process or automation; future horse/sheep/dog/cat care and other projects are untouched and not started. See receipt.json for exact identities, source/live hashes and next action.
