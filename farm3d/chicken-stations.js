@@ -27,8 +27,8 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   a.chickenTask=t;tasks.set(token.animalId,t);a.chickenPose??=getAnimalCarePose('chicken',a.rig3d);a.rig3d.sampleSupport=(x,z)=>yard.sampleStationSupport(station.id,x,z).height;a.target=null;a.path=null;a.vel.set(0,0);
   return true;
  }
- function pathTo(a,p,avoid=[]){return route(pos(a),world(p),.26,a.pen,avoid.map(b=>({x:b.g.position.x,z:b.g.position.z,hw:.17,hd:.17,c:1,s:0}))).map(v=>[v.x,0,v.y]);}
- function exitPath(a,task){const p=a.g.position,A=yard.access,avoid=neighbours().filter(b=>b!==a&&b.g.position.y<.1).map(b=>({x:b.g.position.x,z:b.g.position.z,hw:.17,hd:.17,c:1,s:0})),back=route(world(A.outside),world(task.returnPoint),.26,a.pen,avoid).map(v=>[v.x,0,v.y]);return [...(p.z>A.rampEnd[2]?[[A.rampStart[0],0,Math.max(p.z,A.rampStart[2])]]:[[-11.6,A.floor,p.z],A.entry,A.rampEnd,A.rampStart]),A.outside,...back];}
+ function pathTo(a,p,avoid=neighbours().filter(b=>b!==a&&!b.gone&&b.g.position.y<.1)){return route(pos(a),world(p),.26,a.pen,avoid.map(b=>({x:b.g.position.x,z:b.g.position.z,hw:.08,hd:.08,radius:.08,c:1,s:0}))).map(v=>[v.x,0,v.y]);}
+ function exitPath(a,task){const p=a.g.position,A=yard.access,avoid=neighbours().filter(b=>b!==a&&b.g.position.y<.1).map(b=>({x:b.g.position.x,z:b.g.position.z,hw:.08,hd:.08,radius:.08,c:1,s:0})),back=route(world(A.outside),world(task.returnPoint),.26,a.pen,avoid).map(v=>[v.x,0,v.y]);return [...(p.z>A.rampEnd[2]?[[A.rampStart[0],0,Math.max(p.z,A.rampStart[2])]]:[[-11.6,A.floor,p.z],A.entry,A.rampEnd,A.rampStart]),A.outside,...back];}
  function update(a,dt,t,{night,wet,supplies}){
   if(!a.rig3d)return false;
   if(!a.chickenTask){

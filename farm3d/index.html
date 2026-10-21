@@ -1613,9 +1613,10 @@ const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
 const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
-const insideObst = (o, p, pad) => { const L = toLocal(o, p); return Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
+const insideObst = (o, p, pad) => { const L = toLocal(o, p); return o.radius!==undefined ? Math.hypot(L.x,L.y)<o.radius+pad-1e-8 : Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
 function hitsBlock(a, b, pad, skip, obstacles = OBST) {
   for (const k of obstacles.keys()) { if (skip && skip.has(k)) continue; const o = obstacles[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
+    if(o.radius!==undefined){const dx=B.x-A.x,dz=B.y-A.y,u=THREE.MathUtils.clamp(-(A.x*dx+A.y*dz)/(dx*dx+dz*dz||1),0,1);if(Math.hypot(A.x+dx*u,A.y+dz*u)<o.radius+pad-1e-8)return k;continue;}
     let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;
     const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
     if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }
