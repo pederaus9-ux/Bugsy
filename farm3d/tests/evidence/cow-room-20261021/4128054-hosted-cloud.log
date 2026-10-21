@@ -1,0 +1,1687 @@
+﻿2026-10-21T15:43:46.4760226Z Current runner version: '2.338.0'
+2026-10-21T15:43:46.4788087Z ##[group]Runner Image Provisioner
+2026-10-21T15:43:46.4788872Z Hosted Compute Agent
+2026-10-21T15:43:46.4789455Z Version: 20261012.601
+2026-10-21T15:43:46.4790052Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-21T15:43:46.4790688Z Build Date: 2026-10-12T17:48:21Z
+2026-10-21T15:43:46.4791334Z Worker ID: {7787d43a-1a4d-48d2-b1e1-5fd55bc77cd9}
+2026-10-21T15:43:46.4791962Z Region: centralus
+2026-10-21T15:43:46.4792439Z Cloud: Azure
+2026-10-21T15:43:46.4793090Z ##[endgroup]
+2026-10-21T15:43:46.4794610Z ##[group]Operating System
+2026-10-21T15:43:46.4795431Z Ubuntu
+2026-10-21T15:43:46.4795884Z 24.04.5
+2026-10-21T15:43:46.4796379Z LTS
+2026-10-21T15:43:46.4796878Z ##[endgroup]
+2026-10-21T15:43:46.4797359Z ##[group]Runner Image
+2026-10-21T15:43:46.4797960Z Image: ubuntu-24.04
+2026-10-21T15:43:46.4798449Z Version: 20261012.334.1
+2026-10-21T15:43:46.4799718Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-21T15:43:46.4801173Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-21T15:43:46.4802108Z ##[endgroup]
+2026-10-21T15:43:46.4803138Z ##[group]GITHUB_TOKEN Permissions
+2026-10-21T15:43:46.4805829Z Contents: read
+2026-10-21T15:43:46.4806391Z Metadata: read
+2026-10-21T15:43:46.4806991Z ##[endgroup]
+2026-10-21T15:43:46.4809171Z Secret source: Actions
+2026-10-21T15:43:46.4809957Z Cache mode: write
+2026-10-21T15:43:46.4811079Z Prepare workflow directory
+2026-10-21T15:43:46.5574097Z Prepare all required actions
+2026-10-21T15:43:46.5619783Z Getting action download info
+2026-10-21T15:43:46.8216918Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-21T15:43:47.1553625Z Download action repository 'actions/setup-java@v5' (SHA:b6effb05e454b25005698d916606bdc6ffcbf961)
+2026-10-21T15:43:47.8314065Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-21T15:43:47.9862651Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-21T15:43:48.2623603Z Complete job name: Firestore rules + economy functions + game flows + save recovery (emulator)
+2026-10-21T15:43:48.3221405Z ##[group]Run actions/checkout@v6
+2026-10-21T15:43:48.3222269Z with:
+2026-10-21T15:43:48.3222830Z   persist-credentials: false
+2026-10-21T15:43:48.3223491Z   repository: pederaus9-ux/Bugsy
+2026-10-21T15:43:48.3228669Z   token: ***
+2026-10-21T15:43:48.3229233Z   ssh-strict: true
+2026-10-21T15:43:48.3229813Z   ssh-user: git
+2026-10-21T15:43:48.3230355Z   clean: true
+2026-10-21T15:43:48.3230926Z   sparse-checkout-cone-mode: true
+2026-10-21T15:43:48.3231641Z   fetch-depth: 1
+2026-10-21T15:43:48.3232226Z   fetch-tags: false
+2026-10-21T15:43:48.3232840Z   show-progress: true
+2026-10-21T15:43:48.3233419Z   lfs: false
+2026-10-21T15:43:48.3233956Z   submodules: false
+2026-10-21T15:43:48.3234561Z   set-safe-directory: true
+2026-10-21T15:43:48.3235328Z   allow-unsafe-pr-checkout: false
+2026-10-21T15:43:48.3236076Z ##[endgroup]
+2026-10-21T15:43:48.3947872Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-21T15:43:48.3950590Z ##[group]Getting Git version info
+2026-10-21T15:43:48.3952077Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-21T15:43:48.3954002Z [command]/usr/bin/git version
+2026-10-21T15:43:48.3999080Z git version 2.55.0
+2026-10-21T15:43:48.4012999Z ##[endgroup]
+2026-10-21T15:43:48.4097331Z Temporarily overriding HOME='/home/runner/work/_temp/0439e637-69cd-4b4a-bed3-1beb2c6adf94' before making global git config changes
+2026-10-21T15:43:48.4099959Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T15:43:48.4101791Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-21T15:43:48.4124608Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-21T15:43:48.4129567Z ##[group]Determining repository object format
+2026-10-21T15:43:48.4131314Z ##[endgroup]
+2026-10-21T15:43:48.4132390Z ##[group]Initializing the repository
+2026-10-21T15:43:48.4135762Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-21T15:43:48.4296630Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-21T15:43:48.4299595Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-21T15:43:48.4300893Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-21T15:43:48.4302133Z hint: call:
+2026-10-21T15:43:48.4303035Z hint:
+2026-10-21T15:43:48.4304004Z hint: 	git config --global init.defaultBranch <name>
+2026-10-21T15:43:48.4305281Z hint:
+2026-10-21T15:43:48.4306360Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-21T15:43:48.4308050Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-21T15:43:48.4308957Z hint:
+2026-10-21T15:43:48.4309411Z hint: 	git branch -m <name>
+2026-10-21T15:43:48.4310028Z hint:
+2026-10-21T15:43:48.4310789Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-21T15:43:48.4312044Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-21T15:43:48.4314673Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-21T15:43:48.4361964Z ##[endgroup]
+2026-10-21T15:43:48.4363315Z ##[group]Disabling automatic garbage collection
+2026-10-21T15:43:48.4364527Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-21T15:43:48.4401350Z ##[endgroup]
+2026-10-21T15:43:48.4402516Z ##[group]Setting up auth
+2026-10-21T15:43:48.4403427Z Removing SSH command configuration
+2026-10-21T15:43:48.4407606Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T15:43:48.4441192Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T15:43:48.4715476Z Removing HTTP extra header
+2026-10-21T15:43:48.4720564Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T15:43:48.4750084Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T15:43:48.4922141Z Removing includeIf entries pointing to credentials config files
+2026-10-21T15:43:48.4926487Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T15:43:48.4954947Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T15:43:48.5151005Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-21T15:43:48.5187619Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:48.5219188Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:48.5253776Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:48.5286360Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:48.5313708Z ##[endgroup]
+2026-10-21T15:43:48.5315135Z ##[group]Fetching the repository
+2026-10-21T15:43:48.5321066Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +afd612930f28956b7e56fa4c9efa8112dd60323a:refs/remotes/pull/94/merge
+2026-10-21T15:43:51.4769221Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-21T15:43:51.4770439Z  * [new ref]         afd612930f28956b7e56fa4c9efa8112dd60323a -> pull/94/merge
+2026-10-21T15:43:51.4774365Z ##[endgroup]
+2026-10-21T15:43:51.4774941Z ##[group]Determining the checkout info
+2026-10-21T15:43:51.4775552Z ##[endgroup]
+2026-10-21T15:43:51.4780457Z [command]/usr/bin/git sparse-checkout disable
+2026-10-21T15:43:51.4824994Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-21T15:43:51.4873648Z ##[group]Checking out the ref
+2026-10-21T15:43:51.4876580Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/94/merge
+2026-10-21T15:43:51.6068529Z Note: switching to 'refs/remotes/pull/94/merge'.
+2026-10-21T15:43:51.6068889Z 
+2026-10-21T15:43:51.6069105Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T15:43:51.6069580Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T15:43:51.6070105Z state without impacting any branches by switching back to a branch.
+2026-10-21T15:43:51.6070419Z 
+2026-10-21T15:43:51.6070702Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T15:43:51.6071145Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T15:43:51.6071380Z 
+2026-10-21T15:43:51.6071509Z   git switch -c <new-branch-name>
+2026-10-21T15:43:51.6071679Z 
+2026-10-21T15:43:51.6071960Z Or undo this operation with:
+2026-10-21T15:43:51.6072129Z 
+2026-10-21T15:43:51.6072228Z   git switch -
+2026-10-21T15:43:51.6072395Z 
+2026-10-21T15:43:51.6072615Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T15:43:51.6072898Z 
+2026-10-21T15:43:51.6073233Z HEAD is now at afd6129 Merge 4128054693b4887bf85825a6abd0d3292b87fc4b into be8babf86bf0177dfb26d7490633c7a81105087f
+2026-10-21T15:43:51.6089019Z ##[endgroup]
+2026-10-21T15:43:51.6127630Z [command]/usr/bin/git log -1 --format=%H
+2026-10-21T15:43:51.6151463Z afd612930f28956b7e56fa4c9efa8112dd60323a
+2026-10-21T15:43:51.6158745Z ##[group]Removing auth
+2026-10-21T15:43:51.6159053Z Removing SSH command configuration
+2026-10-21T15:43:51.6161448Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T15:43:51.6188161Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T15:43:51.6366552Z Removing HTTP extra header
+2026-10-21T15:43:51.6368395Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T15:43:51.6396257Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T15:43:51.6569797Z Removing includeIf entries pointing to credentials config files
+2026-10-21T15:43:51.6572598Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T15:43:51.6597001Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-21T15:43:51.6597531Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-21T15:43:51.6597834Z includeif.gitdir:/github/workspace/.git.path
+2026-10-21T15:43:51.6598098Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T15:43:51.6604101Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-21T15:43:51.6625688Z /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6634501Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6668642Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-21T15:43:51.6689343Z /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6695609Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6725840Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-21T15:43:51.6746960Z /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6753639Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6790177Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T15:43:51.6815272Z /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6817902Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config
+2026-10-21T15:43:51.6848612Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T15:43:51.7022832Z Removing credentials config '/home/runner/work/_temp/git-credentials-d78c99fc-20be-43e4-babd-33c3a92c1aa6.config'
+2026-10-21T15:43:51.7062330Z ##[endgroup]
+2026-10-21T15:43:51.7283939Z ##[group]Run actions/setup-java@v5
+2026-10-21T15:43:51.7284146Z with:
+2026-10-21T15:43:51.7284296Z   distribution: temurin
+2026-10-21T15:43:51.7284450Z   java-version: 21
+2026-10-21T15:43:51.7284597Z   java-package: jdk
+2026-10-21T15:43:51.7284746Z   check-latest: false
+2026-10-21T15:43:51.7285163Z   set-default: true
+2026-10-21T15:43:51.7285316Z   verify-signature: false
+2026-10-21T15:43:51.7285493Z   server-id: github
+2026-10-21T15:43:51.7285647Z   server-username: GITHUB_ACTOR
+2026-10-21T15:43:51.7285825Z   server-password: GITHUB_TOKEN
+2026-10-21T15:43:51.7285998Z   overwrite-settings: true
+2026-10-21T15:43:51.7286164Z   job-status: success
+2026-10-21T15:43:51.7287609Z   token: ***
+2026-10-21T15:43:51.7287761Z   show-download-progress: false
+2026-10-21T15:43:51.7287941Z ##[endgroup]
+2026-10-21T15:43:51.8335173Z ##[group]Installed distributions
+2026-10-21T15:43:51.8525150Z Resolved Java 21.0.12+1 from tool-cache
+2026-10-21T15:43:51.8525678Z Setting Java 21.0.12+1 as the default
+2026-10-21T15:43:51.8533160Z Creating toolchains.xml for JDK version 21 from temurin
+2026-10-21T15:43:51.8582298Z Writing to /home/runner/.m2/toolchains.xml
+2026-10-21T15:43:51.8582815Z 
+2026-10-21T15:43:51.8583022Z Java configuration:
+2026-10-21T15:43:51.8583333Z   Distribution: temurin
+2026-10-21T15:43:51.8583619Z   Version: 21.0.12+1
+2026-10-21T15:43:51.8584004Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:43:51.8584358Z 
+2026-10-21T15:43:51.8584737Z ##[endgroup]
+2026-10-21T15:43:51.8618611Z Creating settings.xml with server-id: github
+2026-10-21T15:43:51.8619131Z Writing to /home/runner/.m2/settings.xml
+2026-10-21T15:43:51.8619988Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-10-21T15:43:51.8797459Z ##[group]Run actions/setup-node@v6
+2026-10-21T15:43:51.8797831Z with:
+2026-10-21T15:43:51.8798116Z   node-version: 22
+2026-10-21T15:43:51.8798405Z   cache: npm
+2026-10-21T15:43:51.8798745Z   cache-dependency-path: farm3d/firebase/package-lock.json
+2026-10-21T15:43:51.8799143Z   check-latest: false
+2026-10-21T15:43:51.8801390Z   token: ***
+2026-10-21T15:43:51.8801553Z   package-manager-cache: true
+2026-10-21T15:43:51.8801787Z env:
+2026-10-21T15:43:51.8802034Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:43:51.8802560Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:43:51.8802833Z   MAVEN_ARGS: -ntp
+2026-10-21T15:43:51.8802991Z ##[endgroup]
+2026-10-21T15:43:51.9792612Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-21T15:43:51.9805531Z ##[group]Environment details
+2026-10-21T15:43:52.2714653Z node: v22.23.3
+2026-10-21T15:43:52.2715389Z npm: 10.9.9
+2026-10-21T15:43:52.2715590Z yarn: 1.22.22
+2026-10-21T15:43:52.2716319Z ##[endgroup]
+2026-10-21T15:43:52.2731361Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-21T15:43:52.3561028Z /home/runner/.npm
+2026-10-21T15:43:52.5276760Z Cache hit for: node-cache-Linux-x64-npm-6a0540fe25ddb8f783a223b00999b2ee117648feff724c2d0abb51b36368ecc6
+2026-10-21T15:43:53.6695789Z Received 117440512 of 121457520 (96.7%), 111.9 MBs/sec
+2026-10-21T15:43:53.7024681Z Received 121457520 of 121457520 (100.0%), 112.0 MBs/sec
+2026-10-21T15:43:53.7025521Z Cache Size: ~116 MB (121457520 B)
+2026-10-21T15:43:53.7120434Z [command]/usr/bin/tar -xf /home/runner/work/_temp/9d9643ce-dd5e-4c54-83cd-eebb241658e2/cache.tzst -P -C /home/runner/work/Bugsy/Bugsy --use-compress-program unzstd
+2026-10-21T15:43:53.9459259Z Cache restored successfully
+2026-10-21T15:43:53.9515213Z Cache restored from key: node-cache-Linux-x64-npm-6a0540fe25ddb8f783a223b00999b2ee117648feff724c2d0abb51b36368ecc6
+2026-10-21T15:43:53.9682586Z ##[group]Run npm ci --ignore-scripts
+2026-10-21T15:43:53.9682822Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-21T15:43:53.9891347Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:43:53.9891516Z env:
+2026-10-21T15:43:53.9891707Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:43:53.9891984Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:43:53.9892200Z   MAVEN_ARGS: -ntp
+2026-10-21T15:43:53.9892323Z ##[endgroup]
+2026-10-21T15:43:57.2055368Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-21T15:43:57.2641898Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-10-21T15:43:57.3582874Z npm warn deprecated json-ptr@3.1.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+2026-10-21T15:43:57.5202166Z npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+2026-10-21T15:43:57.5718565Z npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+2026-10-21T15:43:57.6221862Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-21T15:44:13.4083141Z 
+2026-10-21T15:44:13.4083809Z added 832 packages, and audited 833 packages in 19s
+2026-10-21T15:44:13.4083996Z 
+2026-10-21T15:44:13.4084224Z 100 packages are looking for funding
+2026-10-21T15:44:13.4084411Z   run `npm fund` for details
+2026-10-21T15:44:13.5999282Z 
+2026-10-21T15:44:13.6000064Z 23 vulnerabilities (9 moderate, 13 high, 1 critical)
+2026-10-21T15:44:13.6000250Z 
+2026-10-21T15:44:13.6000380Z To address issues that do not require attention, run:
+2026-10-21T15:44:13.6000668Z   npm audit fix
+2026-10-21T15:44:13.6000753Z 
+2026-10-21T15:44:13.6000881Z To address all issues (including breaking changes), run:
+2026-10-21T15:44:13.6001110Z   npm audit fix --force
+2026-10-21T15:44:13.6001196Z 
+2026-10-21T15:44:13.6001274Z Run `npm audit` for details.
+2026-10-21T15:44:13.6987469Z ##[group]Run npm ci --ignore-scripts
+2026-10-21T15:44:13.6987690Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-21T15:44:13.7043155Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:44:13.7043309Z env:
+2026-10-21T15:44:13.7043489Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:13.7043771Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:13.7043989Z   MAVEN_ARGS: -ntp
+2026-10-21T15:44:13.7044114Z ##[endgroup]
+2026-10-21T15:44:14.4748745Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-10-21T15:44:14.5983864Z npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+2026-10-21T15:44:15.0393882Z 
+2026-10-21T15:44:15.0394683Z added 252 packages, and audited 253 packages in 1s
+2026-10-21T15:44:15.0395257Z 
+2026-10-21T15:44:15.0395445Z 39 packages are looking for funding
+2026-10-21T15:44:15.0395735Z   run `npm fund` for details
+2026-10-21T15:44:15.0461162Z 
+2026-10-21T15:44:15.0461819Z 8 moderate severity vulnerabilities
+2026-10-21T15:44:15.0462065Z 
+2026-10-21T15:44:15.0462280Z To address issues that do not require attention, run:
+2026-10-21T15:44:15.0462592Z   npm audit fix
+2026-10-21T15:44:15.0462712Z 
+2026-10-21T15:44:15.0462918Z To address all issues (including breaking changes), run:
+2026-10-21T15:44:15.0463242Z   npm audit fix --force
+2026-10-21T15:44:15.0463367Z 
+2026-10-21T15:44:15.0463480Z Run `npm audit` for details.
+2026-10-21T15:44:15.0646387Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-21T15:44:15.0646650Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-21T15:44:15.0698384Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:44:15.0698531Z env:
+2026-10-21T15:44:15.0698709Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:15.0698995Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:15.0699205Z   MAVEN_ARGS: -ntp
+2026-10-21T15:44:15.0699325Z ##[endgroup]
+2026-10-21T15:44:15.5649569Z Installing dependencies...
+2026-10-21T15:44:15.5692776Z Switching to root user to install dependencies...
+2026-10-21T15:44:15.6373363Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T15:44:15.6721632Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-21T15:44:15.6897692Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-21T15:44:15.6930605Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-21T15:44:15.7029591Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-21T15:44:15.7040631Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-21T15:44:15.7260134Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [628 kB]
+2026-10-21T15:44:15.7416336Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [565 kB]
+2026-10-21T15:44:15.7473657Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-21T15:44:15.8107543Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1400 kB]
+2026-10-21T15:44:15.8178124Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [309 kB]
+2026-10-21T15:44:15.8206174Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1706 kB]
+2026-10-21T15:44:15.8238834Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-21T15:44:15.8257635Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-21T15:44:15.8325006Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-21T15:44:15.8962281Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+2026-10-21T15:44:15.9015045Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-21T15:44:15.9020580Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-21T15:44:15.9066079Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-21T15:44:15.9542563Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-21T15:44:15.9605565Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-21T15:44:21.0510064Z Fetched 12.5 MB in 1s (12.6 MB/s)
+2026-10-21T15:44:21.7055610Z Reading package lists...
+2026-10-21T15:44:21.7250171Z Reading package lists...
+2026-10-21T15:44:21.9019735Z Building dependency tree...
+2026-10-21T15:44:21.9025239Z Reading state information...
+2026-10-21T15:44:22.0484218Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-21T15:44:22.0485162Z libasound2t64 set to manually installed.
+2026-10-21T15:44:22.0485707Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:44:22.0486242Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-21T15:44:22.0486792Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:44:22.0487297Z libatk1.0-0t64 set to manually installed.
+2026-10-21T15:44:22.0487854Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:44:22.0488374Z libatspi2.0-0t64 set to manually installed.
+2026-10-21T15:44:22.0489468Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-21T15:44:22.0489874Z libcairo2 set to manually installed.
+2026-10-21T15:44:22.0490365Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-21T15:44:22.0490902Z libcups2t64 set to manually installed.
+2026-10-21T15:44:22.0491474Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-21T15:44:22.0491935Z libdbus-1-3 set to manually installed.
+2026-10-21T15:44:22.0492410Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-21T15:44:22.0492839Z libdrm2 set to manually installed.
+2026-10-21T15:44:22.0493285Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-21T15:44:22.0493724Z libgbm1 set to manually installed.
+2026-10-21T15:44:22.0494170Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-21T15:44:22.0494600Z libnspr4 set to manually installed.
+2026-10-21T15:44:22.0495176Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-21T15:44:22.0495504Z libnss3 set to manually installed.
+2026-10-21T15:44:22.0495839Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-21T15:44:22.0496179Z libpango-1.0-0 set to manually installed.
+2026-10-21T15:44:22.0496508Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-21T15:44:22.0496790Z libx11-6 set to manually installed.
+2026-10-21T15:44:22.0496993Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-21T15:44:22.0497197Z libxcb1 set to manually installed.
+2026-10-21T15:44:22.0497455Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-21T15:44:22.0497704Z libxcomposite1 set to manually installed.
+2026-10-21T15:44:22.0497961Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-21T15:44:22.0498168Z libxdamage1 set to manually installed.
+2026-10-21T15:44:22.0498382Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-21T15:44:22.0498579Z libxext6 set to manually installed.
+2026-10-21T15:44:22.0498913Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-21T15:44:22.0499187Z libxfixes3 set to manually installed.
+2026-10-21T15:44:22.0499404Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-21T15:44:22.0499619Z libxkbcommon0 set to manually installed.
+2026-10-21T15:44:22.0499833Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-21T15:44:22.0500340Z libxrandr2 set to manually installed.
+2026-10-21T15:44:22.0500603Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-21T15:44:22.0500904Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-21T15:44:22.0501142Z libfontconfig1 set to manually installed.
+2026-10-21T15:44:22.0501532Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-21T15:44:22.0501766Z libfreetype6 set to manually installed.
+2026-10-21T15:44:22.0501992Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-21T15:44:22.0502213Z fonts-liberation set to manually installed.
+2026-10-21T15:44:22.0502434Z The following additional packages will be installed:
+2026-10-21T15:44:22.0502715Z   gir1.2-glib-2.0 libglib2.0-bin libglib2.0-data xfonts-encodings xfonts-utils
+2026-10-21T15:44:22.0502945Z   xserver-common
+2026-10-21T15:44:22.0503126Z Suggested packages:
+2026-10-21T15:44:22.0503315Z   low-memory-monitor
+2026-10-21T15:44:22.0503517Z Recommended packages:
+2026-10-21T15:44:22.0503769Z   fonts-ipafont-mincho fonts-tlwg-loma xfonts-base
+2026-10-21T15:44:22.0683851Z The following NEW packages will be installed:
+2026-10-21T15:44:22.0684544Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-21T15:44:22.0689067Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-21T15:44:22.0689487Z   xfonts-utils
+2026-10-21T15:44:22.0691691Z The following packages will be upgraded:
+2026-10-21T15:44:22.0695739Z   gir1.2-glib-2.0 libglib2.0-0t64 libglib2.0-bin libglib2.0-data
+2026-10-21T15:44:22.0696393Z   xserver-common xvfb
+2026-10-21T15:44:22.0835282Z 6 upgraded, 9 newly installed, 0 to remove and 88 not upgraded.
+2026-10-21T15:44:22.0835559Z Need to get 23.9 MB of archives.
+2026-10-21T15:44:22.0835814Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-21T15:44:22.0836218Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T15:44:22.1434180Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-21T15:44:22.2152307Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-data all 2.80.0-6ubuntu3.10 [50.2 kB]
+2026-10-21T15:44:22.2505799Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-bin amd64 2.80.0-6ubuntu3.10 [97.9 kB]
+2026-10-21T15:44:22.2904358Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 gir1.2-glib-2.0 amd64 2.80.0-6ubuntu3.10 [183 kB]
+2026-10-21T15:44:22.3300383Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-0t64 amd64 2.80.0-6ubuntu3.10 [1548 kB]
+2026-10-21T15:44:22.3885596Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-21T15:44:22.5007840Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-21T15:44:22.5397949Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-21T15:44:22.6018138Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-21T15:44:22.7224157Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-21T15:44:22.7669538Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-21T15:44:22.8063821Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-21T15:44:22.8503973Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-21T15:44:22.8929582Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 xserver-common all 2:21.1.12-1ubuntu1.9 [35.0 kB]
+2026-10-21T15:44:22.9352531Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 xvfb amd64 2:21.1.12-1ubuntu1.9 [877 kB]
+2026-10-21T15:44:23.1411792Z Fetched 23.9 MB in 1s (27.5 MB/s)
+2026-10-21T15:44:23.1572884Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-21T15:44:23.1778219Z (Reading database ... 
+2026-10-21T15:44:23.1778484Z (Reading database ... 5%
+2026-10-21T15:44:23.1778645Z (Reading database ... 10%
+2026-10-21T15:44:23.1778797Z (Reading database ... 15%
+2026-10-21T15:44:23.1778944Z (Reading database ... 20%
+2026-10-21T15:44:23.1779081Z (Reading database ... 25%
+2026-10-21T15:44:23.1779220Z (Reading database ... 30%
+2026-10-21T15:44:23.1779398Z (Reading database ... 35%
+2026-10-21T15:44:23.1779535Z (Reading database ... 40%
+2026-10-21T15:44:23.1779670Z (Reading database ... 45%
+2026-10-21T15:44:23.1779804Z (Reading database ... 50%
+2026-10-21T15:44:23.1802767Z (Reading database ... 55%
+2026-10-21T15:44:23.2795112Z (Reading database ... 60%
+2026-10-21T15:44:23.4702116Z (Reading database ... 65%
+2026-10-21T15:44:23.6748431Z (Reading database ... 70%
+2026-10-21T15:44:23.8758147Z (Reading database ... 75%
+2026-10-21T15:44:24.0267420Z (Reading database ... 80%
+2026-10-21T15:44:24.2236590Z (Reading database ... 85%
+2026-10-21T15:44:24.3650676Z (Reading database ... 90%
+2026-10-21T15:44:24.5361336Z (Reading database ... 95%
+2026-10-21T15:44:24.5361615Z (Reading database ... 100%
+2026-10-21T15:44:24.5361870Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-21T15:44:24.5398466Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-21T15:44:24.6345223Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-21T15:44:25.1689906Z Preparing to unpack .../01-libglib2.0-data_2.80.0-6ubuntu3.10_all.deb ...
+2026-10-21T15:44:25.2100257Z Unpacking libglib2.0-data (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:44:25.4585579Z Preparing to unpack .../02-libglib2.0-bin_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:44:25.4998182Z Unpacking libglib2.0-bin (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:44:25.7696295Z Preparing to unpack .../03-gir1.2-glib-2.0_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:44:25.7812993Z Unpacking gir1.2-glib-2.0:amd64 (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:44:25.8502335Z Preparing to unpack .../04-libglib2.0-0t64_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:44:25.8917505Z Unpacking libglib2.0-0t64:amd64 (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:44:26.0399299Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-21T15:44:26.0502698Z Preparing to unpack .../05-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-21T15:44:26.0515946Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-21T15:44:26.2883798Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-21T15:44:26.2998638Z Preparing to unpack .../06-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-21T15:44:26.3096284Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-21T15:44:26.3688113Z Selecting previously unselected package fonts-unifont.
+2026-10-21T15:44:26.3800892Z Preparing to unpack .../07-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-21T15:44:26.4098389Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-21T15:44:26.6789761Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-21T15:44:26.6887207Z Preparing to unpack .../08-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-21T15:44:26.7059119Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-21T15:44:27.2000326Z Selecting previously unselected package xfonts-encodings.
+2026-10-21T15:44:27.2098844Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-21T15:44:27.2188057Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-21T15:44:27.7494608Z Selecting previously unselected package xfonts-utils.
+2026-10-21T15:44:27.7591782Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-21T15:44:27.7597659Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-21T15:44:27.7859960Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-21T15:44:27.7957542Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-21T15:44:27.7964105Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-21T15:44:27.8224734Z Selecting previously unselected package xfonts-scalable.
+2026-10-21T15:44:27.8322138Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-21T15:44:27.8328106Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-21T15:44:27.8720005Z Preparing to unpack .../13-xserver-common_2%3a21.1.12-1ubuntu1.9_all.deb ...
+2026-10-21T15:44:27.8735417Z Unpacking xserver-common (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-21T15:44:27.9027338Z Preparing to unpack .../14-xvfb_2%3a21.1.12-1ubuntu1.9_amd64.deb ...
+2026-10-21T15:44:27.9043035Z Unpacking xvfb (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-21T15:44:28.0728980Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-21T15:44:28.0821390Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-21T15:44:28.0836679Z Setting up libglib2.0-0t64:amd64 (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:44:28.0924706Z Setting up libglib2.0-data (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:44:28.0939169Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-21T15:44:28.0953651Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-21T15:44:28.0969990Z Setting up gir1.2-glib-2.0:amd64 (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:44:28.0984626Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-21T15:44:28.1035905Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-21T15:44:28.1048638Z Setting up xserver-common (2:21.1.12-1ubuntu1.9) ...
+2026-10-21T15:44:28.1063650Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-21T15:44:28.1079128Z Setting up xvfb (2:21.1.12-1ubuntu1.9) ...
+2026-10-21T15:44:28.1093342Z Setting up libglib2.0-bin (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:44:28.1107353Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-21T15:44:28.1141495Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-21T15:44:28.1380364Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-21T15:44:28.1792661Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-10-21T15:44:28.3535779Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-21T15:44:28.3559089Z Not building database; man-db/auto-update is not 'true'.
+2026-10-21T15:44:28.3570495Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-21T15:44:28.8171621Z 
+2026-10-21T15:44:28.8172299Z Running kernel seems to be up-to-date.
+2026-10-21T15:44:28.8172548Z 
+2026-10-21T15:44:28.8172658Z Restarting services...
+2026-10-21T15:44:28.8500759Z  systemctl restart packagekit.service php8.3-fpm.service polkit.service udisks2.service
+2026-10-21T15:44:28.9475497Z 
+2026-10-21T15:44:28.9476209Z Service restarts being deferred:
+2026-10-21T15:44:28.9476579Z  systemctl restart ModemManager.service
+2026-10-21T15:44:28.9476946Z  systemctl restart networkd-dispatcher.service
+2026-10-21T15:44:28.9477155Z 
+2026-10-21T15:44:28.9477303Z No containers need to be restarted.
+2026-10-21T15:44:28.9477465Z 
+2026-10-21T15:44:28.9477621Z No user sessions are running outdated binaries.
+2026-10-21T15:44:28.9477808Z 
+2026-10-21T15:44:28.9478062Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-21T15:44:29.5869095Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-21T15:44:30.4916337Z |                                                                                |   0% of 184.3 MiB
+2026-10-21T15:44:30.7834001Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-21T15:44:30.8361807Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-21T15:44:30.8753751Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-21T15:44:30.9860047Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-21T15:44:31.0457528Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-21T15:44:31.1381719Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-21T15:44:31.2673384Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-21T15:44:31.3184132Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-21T15:44:31.3685648Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-21T15:44:31.4209367Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-21T15:44:33.2237234Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-21T15:44:33.2238787Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-21T15:44:34.1034761Z |                                                                                |   0% of 2.3 MiB
+2026-10-21T15:44:34.1442380Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-21T15:44:34.1601746Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-21T15:44:34.1740848Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-21T15:44:34.1788293Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-21T15:44:34.1889028Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-21T15:44:34.2009110Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-21T15:44:34.2025855Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-21T15:44:34.2041896Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-21T15:44:34.2145102Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-21T15:44:34.2155566Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-21T15:44:34.2527448Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-21T15:44:34.2529713Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-21T15:44:35.1689027Z |                                                                                |   0% of 114.7 MiB
+2026-10-21T15:44:35.5047741Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-21T15:44:35.5476271Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-21T15:44:35.5807774Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-21T15:44:35.6112749Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-21T15:44:35.6436277Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-21T15:44:35.6706394Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-21T15:44:35.6980237Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-21T15:44:35.7299744Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-21T15:44:35.7854399Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-21T15:44:35.8058378Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-21T15:44:37.0563209Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-21T15:44:37.0771529Z ##[group]Run npm test
+2026-10-21T15:44:37.0771782Z [36;1mnpm test[0m
+2026-10-21T15:44:37.0835002Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:44:37.0835175Z env:
+2026-10-21T15:44:37.0835361Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:37.0835640Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T15:44:37.0835883Z   MAVEN_ARGS: -ntp
+2026-10-21T15:44:37.0836008Z ##[endgroup]
+2026-10-21T15:44:37.1621838Z 
+2026-10-21T15:44:37.1622506Z > sunny-acres-firestore-rules-tests@1.0.0 test
+2026-10-21T15:44:37.1624036Z > firebase emulators:exec --only firestore,auth,functions --project demo-sunny-acres "node --test tests/rules.test.mjs && node --test tests/economy.test.mjs && node --test tests/canon.test.mjs && node tests/flows.browser.cjs && ECONOMY=1 node tests/flows.browser.cjs && node tests/recovery.browser.cjs"
+2026-10-21T15:44:37.1625478Z 
+2026-10-21T15:44:39.4899021Z [36m[1mi  emulators:[22m[39m Starting emulators: auth, functions, firestore
+2026-10-21T15:44:39.4900224Z [36m[1mi  emulators:[22m[39m Detected demo project ID "demo-sunny-acres", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+2026-10-21T15:44:39.5062574Z [33m[1m⚠ [22m[39m It appears you are running in a CI environment. You can avoid downloading the Firestore Emulator repeatedly by caching the /home/runner/.cache/firebase/emulators directory.
+2026-10-21T15:44:39.5063695Z [36m[1mi  firestore:[22m[39m downloading cloud-firestore-emulator-v1.19.8.jar...
+2026-10-21T15:44:40.1756548Z 
+2026-10-21T15:44:40.7742846Z [36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+2026-10-21T15:44:42.3836843Z [32m[1m✔  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+2026-10-21T15:44:45.4019738Z [36m[1mi  functions:[22m[39m Watching "/home/runner/work/Bugsy/Bugsy/farm3d/firebase/functions" for Cloud Functions...
+2026-10-21T15:44:45.7131614Z [33m[1m⚠ [22m[39m [1m[33mfunctions: [39m[22mpackage.json indicates an outdated version of firebase-functions. Please upgrade using [1mnpm install --save firebase-functions@latest[22m in your functions directory.
+2026-10-21T15:44:45.7132353Z [33m[1m⚠ [22m[39m [1m[33mfunctions: [39m[22mPlease note that there will be breaking changes when you upgrade.
+2026-10-21T15:44:45.7137619Z [32m[1m✔  functions:[22m[39m Using node@22 from host.
+2026-10-21T15:44:45.7822028Z Serving at port 8115
+2026-10-21T15:44:45.7822392Z 
+2026-10-21T15:44:49.8922676Z [32m[1m✔  functions:[22m[39m Loaded functions definitions from source: economyAct.
+2026-10-21T15:44:49.8926595Z [32m[1m✔  functions[us-central1-economyAct]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-sunny-acres/us-central1/economyAct).
+2026-10-21T15:44:49.8943507Z [36m[1mi [22m[39m Running script: [1mnode --test tests/rules.test.mjs && node --test tests/economy.test.mjs && node --test tests/canon.test.mjs && node tests/flows.browser.cjs && ECONOMY=1 node tests/flows.browser.cjs && node tests/recovery.browser.cjs[22m
+2026-10-21T15:44:49.9229465Z TAP version 13
+2026-10-21T15:44:51.5853049Z # Subtest: farms: owner saves, reads and updates with the revision transaction
+2026-10-21T15:44:51.5868251Z ok 1 - farms: owner saves, reads and updates with the revision transaction
+2026-10-21T15:44:51.5895591Z   ---
+2026-10-21T15:44:51.5913969Z   duration_ms: 1553.148914
+2026-10-21T15:44:51.5924952Z   type: 'test'
+2026-10-21T15:44:51.5925377Z   ...
+2026-10-21T15:44:51.6749741Z # Subtest: farms: a save from before revisions (no rev field) can still be updated
+2026-10-21T15:44:51.6752644Z ok 2 - farms: a save from before revisions (no rev field) can still be updated
+2026-10-21T15:44:51.6753327Z   ---
+2026-10-21T15:44:51.6753754Z   duration_ms: 88.571651
+2026-10-21T15:44:51.6754016Z   type: 'test'
+2026-10-21T15:44:51.6754206Z   ...
+2026-10-21T15:44:51.7772145Z # [2026-10-21T15:44:51.776Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5578 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.7772927Z # false for 'create' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.7990867Z # [2026-10-21T15:44:51.798Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5579 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.7991686Z # false for 'create' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.8167148Z # [2026-10-21T15:44:51.816Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc557a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.8168039Z # false for 'delete' @ L49
+2026-10-21T15:44:51.8454372Z # Subtest: farms: nobody else, and nobody signed out, can read or write
+2026-10-21T15:44:51.8455547Z ok 3 - farms: nobody else, and nobody signed out, can read or write
+2026-10-21T15:44:51.8455852Z   ---
+2026-10-21T15:44:51.8456049Z   duration_ms: 172.607875
+2026-10-21T15:44:51.8456305Z   type: 'test'
+2026-10-21T15:44:51.8456489Z   ...
+2026-10-21T15:44:51.8893388Z # [2026-10-21T15:44:51.888Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc557d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.8894989Z # evaluation error at L43:32 for 'create' @ L43, evaluation error at L43:32 for 'update' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.9050188Z # [2026-10-21T15:44:51.903Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc557e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.9062841Z # evaluation error at L43:32 for 'create' @ L43, evaluation error at L43:32 for 'update' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.9152087Z # [2026-10-21T15:44:51.912Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc557f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.9159585Z # false for 'create' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.9239592Z # [2026-10-21T15:44:51.923Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5580 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.9242187Z # false for 'create' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.9821231Z # [2026-10-21T15:44:51.981Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5581 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:51.9821764Z # false for 'create' @ L43, false for 'update' @ L43
+2026-10-21T15:44:51.9965261Z # Subtest: farms: rev must move forward by exactly one; shape and size are checked
+2026-10-21T15:44:51.9965907Z ok 4 - farms: rev must move forward by exactly one; shape and size are checked
+2026-10-21T15:44:51.9966234Z   ---
+2026-10-21T15:44:51.9966430Z   duration_ms: 151.005501
+2026-10-21T15:44:51.9966642Z   type: 'test'
+2026-10-21T15:44:51.9966819Z   ...
+2026-10-21T15:44:52.0852061Z # Subtest: farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+2026-10-21T15:44:52.0855626Z ok 5 - farms: nobody can list or count farms, not even the owner (a count needs list, and list returns every save)
+2026-10-21T15:44:52.0856082Z   ---
+2026-10-21T15:44:52.0865600Z   duration_ms: 88.672257
+2026-10-21T15:44:52.0865993Z   type: 'test'
+2026-10-21T15:44:52.0866466Z   ...
+2026-10-21T15:44:52.6979094Z # Subtest: authorization matrix: get, list and count for every collection and role
+2026-10-21T15:44:52.6980040Z ok 6 - authorization matrix: get, list and count for every collection and role
+2026-10-21T15:44:52.6980551Z   ---
+2026-10-21T15:44:52.6980940Z   duration_ms: 612.499701
+2026-10-21T15:44:52.6981163Z   type: 'test'
+2026-10-21T15:44:52.6981394Z   ...
+2026-10-21T15:44:52.8360377Z # Subtest: owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+2026-10-21T15:44:52.8361853Z ok 7 - owner check: only the owner's UID; the owner email on any other account, verified or not, is refused
+2026-10-21T15:44:52.8362366Z   ---
+2026-10-21T15:44:52.8362582Z   duration_ms: 138.113983
+2026-10-21T15:44:52.8362846Z   type: 'test'
+2026-10-21T15:44:52.8363029Z   ...
+2026-10-21T15:44:52.8936844Z # [2026-10-21T15:44:52.892Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55ca error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:52.8937666Z # false for 'create' @ L56, false for 'update' @ L56
+2026-10-21T15:44:52.9167252Z # [2026-10-21T15:44:52.914Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55cb error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:52.9195974Z # false for 'create' @ L56, false for 'update' @ L56
+2026-10-21T15:44:52.9326078Z # [2026-10-21T15:44:52.931Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55cc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:52.9335986Z # evaluation error at L56:32 for 'create' @ L56, evaluation error at L56:32 for 'update' @ L56, false for 'update' @ L56
+2026-10-21T15:44:52.9506868Z # [2026-10-21T15:44:52.948Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55cd error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:52.9535763Z # evaluation error at L56:32 for 'create' @ L56, evaluation error at L56:32 for 'update' @ L56, false for 'update' @ L56
+2026-10-21T15:44:52.9927867Z # Subtest: presence: heartbeat by its own player; only the owner reads it
+2026-10-21T15:44:52.9928602Z ok 8 - presence: heartbeat by its own player; only the owner reads it
+2026-10-21T15:44:52.9929051Z   ---
+2026-10-21T15:44:52.9929291Z   duration_ms: 156.717701
+2026-10-21T15:44:52.9929533Z   type: 'test'
+2026-10-21T15:44:52.9929722Z   ...
+2026-10-21T15:44:53.1058319Z # Subtest: usernames: claim, re-save, and rename all work through the game's transaction
+2026-10-21T15:44:53.1059314Z ok 9 - usernames: claim, re-save, and rename all work through the game's transaction
+2026-10-21T15:44:53.1059917Z   ---
+2026-10-21T15:44:53.1060232Z   duration_ms: 112.738132
+2026-10-21T15:44:53.1060567Z   type: 'test'
+2026-10-21T15:44:53.1060858Z   ...
+2026-10-21T15:44:53.1671539Z # [2026-10-21T15:44:53.165Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.1672535Z # evaluation error at L88:24 for 'create' @ L88, evaluation error at L93:24 for 'update' @ L93, false for 'update' @ L93
+2026-10-21T15:44:53.1763417Z # [2026-10-21T15:44:53.175Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e5 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.1764493Z # evaluation error at L98:24 for 'delete' @ L98, false for 'delete' @ L98
+2026-10-21T15:44:53.1882425Z # [2026-10-21T15:44:53.187Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.1883881Z # evaluation error at L93:24 for 'update' @ L93, false for 'update' @ L93
+2026-10-21T15:44:53.2062765Z # [2026-10-21T15:44:53.205Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.2071857Z # false for 'create' @ L88, false for 'update' @ L93
+2026-10-21T15:44:53.2341846Z # [2026-10-21T15:44:53.233Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e8 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.2354341Z # evaluation error at L98:24 for 'delete' @ L98, false for 'delete' @ L98
+2026-10-21T15:44:53.2356251Z # Subtest: usernames: a name somebody else has can't be taken or deleted
+2026-10-21T15:44:53.2356912Z ok 10 - usernames: a name somebody else has can't be taken or deleted
+2026-10-21T15:44:53.2357378Z   ---
+2026-10-21T15:44:53.2357718Z   duration_ms: 129.96971
+2026-10-21T15:44:53.2358078Z   type: 'test'
+2026-10-21T15:44:53.2358394Z   ...
+2026-10-21T15:44:53.2650779Z # [2026-10-21T15:44:53.263Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55e9 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.2652356Z # evaluation error at L88:24 for 'create' @ L88, evaluation error at L93:24 for 'update' @ L93, Service call error. Function: [getAfter], Argument: [path_value {
+2026-10-21T15:44:53.2653152Z #   segments {
+2026-10-21T15:44:53.2653542Z #     simple: "databases"
+2026-10-21T15:44:53.2653908Z #   }
+2026-10-21T15:44:53.2654225Z #   segments {
+2026-10-21T15:44:53.2654573Z #     simple: "(default)"
+2026-10-21T15:44:53.2655068Z #   }
+2026-10-21T15:44:53.2655377Z #   segments {
+2026-10-21T15:44:53.2655721Z #     simple: "documents"
+2026-10-21T15:44:53.2656068Z #   }
+2026-10-21T15:44:53.2656367Z #   segments {
+2026-10-21T15:44:53.2656714Z #     simple: "players"
+2026-10-21T15:44:53.2657051Z #   }
+2026-10-21T15:44:53.2657355Z #   segments {
+2026-10-21T15:44:53.2657816Z #     simple: "alice"
+2026-10-21T15:44:53.2658479Z #   }
+2026-10-21T15:44:53.2658917Z # }
+2026-10-21T15:44:53.2661788Z # ]. for 'create' @ L88
+2026-10-21T15:44:53.2746408Z # [2026-10-21T15:44:53.273Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55ea error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.2747999Z # evaluation error at L68:32 for 'create' @ L68, evaluation error at L68:32 for 'update' @ L68, Service call error. Function: [getAfter], Argument: [path_value {
+2026-10-21T15:44:53.2749438Z #   segments {
+2026-10-21T15:44:53.2749912Z #     simple: "databases"
+2026-10-21T15:44:53.2750393Z #   }
+2026-10-21T15:44:53.2750785Z #   segments {
+2026-10-21T15:44:53.2751309Z #     simple: "(default)"
+2026-10-21T15:44:53.2751744Z #   }
+2026-10-21T15:44:53.2752132Z #   segments {
+2026-10-21T15:44:53.2768749Z #     simple: "documents"
+2026-10-21T15:44:53.2769268Z #   }
+2026-10-21T15:44:53.2769816Z #   segments {
+2026-10-21T15:44:53.2770307Z #     simple: "usernames"
+2026-10-21T15:44:53.2770736Z #   }
+2026-10-21T15:44:53.2771224Z #   segments {
+2026-10-21T15:44:53.2771726Z #     simple: "ghost"
+2026-10-21T15:44:53.2772193Z #   }
+2026-10-21T15:44:53.2772575Z # }
+2026-10-21T15:44:53.2773064Z # ]. for 'create' @ L68
+2026-10-21T15:44:53.3225960Z # Subtest: usernames + players: both halves must agree, with a valid name
+2026-10-21T15:44:53.3235845Z ok 11 - usernames + players: both halves must agree, with a valid name
+2026-10-21T15:44:53.3236545Z   ---
+2026-10-21T15:44:53.3236918Z   duration_ms: 86.741167
+2026-10-21T15:44:53.3237285Z   type: 'test'
+2026-10-21T15:44:53.3237551Z   ...
+2026-10-21T15:44:53.4101378Z # [2026-10-21T15:44:53.409Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55f6 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.4102256Z # false for 'create' @ L68, false for 'update' @ L68
+2026-10-21T15:44:53.4235540Z # [2026-10-21T15:44:53.422Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55f7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.4238461Z # false for 'delete' @ L72
+2026-10-21T15:44:53.4294731Z # [2026-10-21T15:44:53.428Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55f8 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.4295965Z # false for 'update' @ L68
+2026-10-21T15:44:53.4303252Z # Subtest: players: profiles are readable and searchable by signed-in players only, writable by their owner only
+2026-10-21T15:44:53.4304635Z ok 12 - players: profiles are readable and searchable by signed-in players only, writable by their owner only
+2026-10-21T15:44:53.4305549Z   ---
+2026-10-21T15:44:53.4306127Z   duration_ms: 107.925435
+2026-10-21T15:44:53.4306648Z   type: 'test'
+2026-10-21T15:44:53.4306926Z   ...
+2026-10-21T15:44:53.4817156Z # [2026-10-21T15:44:53.480Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55fc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.4818501Z # false for 'create' @ L77, false for 'update' @ L77
+2026-10-21T15:44:53.4972266Z # [2026-10-21T15:44:53.496Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55fe error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.4972814Z # false for 'delete' @ L76
+2026-10-21T15:44:53.5006643Z # [2026-10-21T15:44:53.500Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55f9 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5007777Z # false for 'create' @ L77, false for 'update' @ L77
+2026-10-21T15:44:53.5050752Z # [2026-10-21T15:44:53.504Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc55ff error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5051458Z # false for 'create' @ L77, false for 'update' @ L77
+2026-10-21T15:44:53.5101267Z # [2026-10-21T15:44:53.509Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5600 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5102148Z # false for 'create' @ L77, false for 'update' @ L77
+2026-10-21T15:44:53.5109636Z # Subtest: friends: your own list only
+2026-10-21T15:44:53.5110076Z ok 13 - friends: your own list only
+2026-10-21T15:44:53.5110501Z   ---
+2026-10-21T15:44:53.5110737Z   duration_ms: 80.764282
+2026-10-21T15:44:53.5111065Z   type: 'test'
+2026-10-21T15:44:53.5111326Z   ...
+2026-10-21T15:44:53.5603626Z # [2026-10-21T15:44:53.559Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5604 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5605200Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.5702404Z # [2026-10-21T15:44:53.569Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5605 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5703263Z # false for 'delete' @ L115
+2026-10-21T15:44:53.5869709Z # [2026-10-21T15:44:53.584Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5606 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.5870907Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.6020963Z # [2026-10-21T15:44:53.600Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5607 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.6022009Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.6188397Z # [2026-10-21T15:44:53.614Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5608 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.6209374Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.6850197Z # [2026-10-21T15:44:53.684Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5609 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.6852761Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.6976275Z # [2026-10-21T15:44:53.697Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc560a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.6977157Z # false for 'create' @ L107, false for 'update' @ L107
+2026-10-21T15:44:53.6987041Z # Subtest: showcase: publish your own, friends can visit, nobody can overwrite yours
+2026-10-21T15:44:53.6987617Z ok 14 - showcase: publish your own, friends can visit, nobody can overwrite yours
+2026-10-21T15:44:53.6987965Z   ---
+2026-10-21T15:44:53.6988184Z   duration_ms: 187.254254
+2026-10-21T15:44:53.6988409Z   type: 'test'
+2026-10-21T15:44:53.6988639Z   ...
+2026-10-21T15:44:53.7676795Z # [2026-10-21T15:44:53.766Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5610 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.7677718Z # false for 'delete' @ L121
+2026-10-21T15:44:53.7764957Z # [2026-10-21T15:44:53.775Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5611 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.7765500Z # false for 'update' @ L130
+2026-10-21T15:44:53.7879456Z # [2026-10-21T15:44:53.787Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5612 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.7880589Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.7888661Z # Subtest: help: a friend waters your crops; only you read and clear the notes
+2026-10-21T15:44:53.7889501Z ok 15 - help: a friend waters your crops; only you read and clear the notes
+2026-10-21T15:44:53.7889940Z   ---
+2026-10-21T15:44:53.7890273Z   duration_ms: 90.315979
+2026-10-21T15:44:53.7890573Z   type: 'test'
+2026-10-21T15:44:53.7890908Z   ...
+2026-10-21T15:44:53.8047709Z # [2026-10-21T15:44:53.804Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5613 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8048424Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8091972Z # [2026-10-21T15:44:53.808Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5614 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8092635Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8180885Z # [2026-10-21T15:44:53.817Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5615 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8182393Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8227749Z # [2026-10-21T15:44:53.822Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5616 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8228764Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8294141Z # [2026-10-21T15:44:53.828Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5617 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8295802Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8374494Z # [2026-10-21T15:44:53.836Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5618 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8375587Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8431586Z # [2026-10-21T15:44:53.842Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5619 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.8432585Z # false for 'create' @ L122, false for 'update' @ L130
+2026-10-21T15:44:53.8437027Z # Subtest: help: no forged senders, self-help or oversized notes
+2026-10-21T15:44:53.8437852Z ok 16 - help: no forged senders, self-help or oversized notes
+2026-10-21T15:44:53.8438238Z   ---
+2026-10-21T15:44:53.8438621Z   duration_ms: 55.093025
+2026-10-21T15:44:53.8438967Z   type: 'test'
+2026-10-21T15:44:53.8439151Z   ...
+2026-10-21T15:44:53.9023111Z # Subtest: market (7I-C): signed-in players can read listings; signed-out visitors can't
+2026-10-21T15:44:53.9036259Z ok 17 - market (7I-C): signed-in players can read listings; signed-out visitors can't
+2026-10-21T15:44:53.9036957Z   ---
+2026-10-21T15:44:53.9037276Z   duration_ms: 58.265368
+2026-10-21T15:44:53.9037617Z   type: 'test'
+2026-10-21T15:44:53.9037987Z   ...
+2026-10-21T15:44:53.9156338Z # [2026-10-21T15:44:53.915Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc561f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9157608Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9195781Z # [2026-10-21T15:44:53.919Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5620 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9196537Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9243306Z # [2026-10-21T15:44:53.923Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5621 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9244242Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9329857Z # [2026-10-21T15:44:53.932Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5622 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9330576Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9472045Z # [2026-10-21T15:44:53.946Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5623 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9472629Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9507548Z # [2026-10-21T15:44:53.950Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5624 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9508543Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9545877Z # [2026-10-21T15:44:53.954Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5625 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9584922Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9586013Z # [2026-10-21T15:44:53.958Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5626 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9587390Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9652836Z # [2026-10-21T15:44:53.964Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5627 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9653743Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9707124Z # [2026-10-21T15:44:53.970Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5628 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9708108Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9772062Z # [2026-10-21T15:44:53.976Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5629 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9773066Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9840854Z # [2026-10-21T15:44:53.981Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9865662Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9895437Z # [2026-10-21T15:44:53.989Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9897476Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:53.9958268Z # [2026-10-21T15:44:53.995Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:53.9960254Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0011969Z # [2026-10-21T15:44:54.000Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0013985Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0064307Z # [2026-10-21T15:44:54.006Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0066421Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0128887Z # [2026-10-21T15:44:54.012Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc562f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0137307Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0186683Z # [2026-10-21T15:44:54.017Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5630 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0187707Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0241295Z # [2026-10-21T15:44:54.023Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5631 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0244232Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.0250289Z # Subtest: market (7I-C): no client can create a listing, not even a well-formed one in their own name
+2026-10-21T15:44:54.0262029Z ok 18 - market (7I-C): no client can create a listing, not even a well-formed one in their own name
+2026-10-21T15:44:54.0262585Z   ---
+2026-10-21T15:44:54.0262903Z   duration_ms: 122.66462
+2026-10-21T15:44:54.0263234Z   type: 'test'
+2026-10-21T15:44:54.0263524Z   ...
+2026-10-21T15:44:54.0693341Z # [2026-10-21T15:44:54.067Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5635 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0715434Z # false for 'update' @ L158
+2026-10-21T15:44:54.0855943Z # [2026-10-21T15:44:54.084Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5636 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0867322Z # false for 'update' @ L158
+2026-10-21T15:44:54.0894118Z # [2026-10-21T15:44:54.089Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5637 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0895053Z # false for 'update' @ L158
+2026-10-21T15:44:54.0941396Z # [2026-10-21T15:44:54.093Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5638 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0948818Z # false for 'update' @ L158
+2026-10-21T15:44:54.0988215Z # [2026-10-21T15:44:54.098Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5639 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.0989081Z # false for 'update' @ L158
+2026-10-21T15:44:54.1033442Z # [2026-10-21T15:44:54.103Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc563a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1035382Z # false for 'update' @ L158
+2026-10-21T15:44:54.1081440Z # [2026-10-21T15:44:54.107Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc563b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1089979Z # false for 'update' @ L158
+2026-10-21T15:44:54.1146643Z # [2026-10-21T15:44:54.114Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc563c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1153573Z # false for 'update' @ L158
+2026-10-21T15:44:54.1198841Z # [2026-10-21T15:44:54.119Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc563d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1199807Z # false for 'update' @ L158
+2026-10-21T15:44:54.1309124Z # [2026-10-21T15:44:54.130Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc563e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1310034Z # false for 'update' @ L158
+2026-10-21T15:44:54.1498541Z # [2026-10-21T15:44:54.147Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5640 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1499229Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.1619488Z # [2026-10-21T15:44:54.161Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5642 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1620234Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.1856958Z # [2026-10-21T15:44:54.184Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5644 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.1858021Z # false for 'delete' @ L162
+2026-10-21T15:44:54.2127791Z # [2026-10-21T15:44:54.212Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5649 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.2128863Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.2369014Z # [2026-10-21T15:44:54.234Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc564b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.2369815Z # false for 'update' @ L158
+2026-10-21T15:44:54.2526540Z # [2026-10-21T15:44:54.249Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc564d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.2555448Z # false for 'update' @ L158
+2026-10-21T15:44:54.2662978Z # [2026-10-21T15:44:54.265Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc564f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.2663396Z # false for 'update' @ L158
+2026-10-21T15:44:54.2667320Z # Subtest: market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+2026-10-21T15:44:54.2668048Z ok 19 - market (7I-C): no client can buy, take back, collect, reprice or delete a listing
+2026-10-21T15:44:54.2668907Z   ---
+2026-10-21T15:44:54.2669148Z   duration_ms: 241.902637
+2026-10-21T15:44:54.2669410Z   type: 'test'
+2026-10-21T15:44:54.2669644Z   ...
+2026-10-21T15:44:54.3256743Z # [2026-10-21T15:44:54.322Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5656 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.3258124Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.3553093Z # [2026-10-21T15:44:54.354Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5658 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.3555288Z # false for 'delete' @ L162
+2026-10-21T15:44:54.3843777Z # [2026-10-21T15:44:54.383Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc565a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.3844538Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.3989866Z # [2026-10-21T15:44:54.398Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5651 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.3990607Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.4149006Z # [2026-10-21T15:44:54.414Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc565d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4155607Z # evaluation error at L162:24 for 'delete' @ L162, false for 'delete' @ L162
+2026-10-21T15:44:54.4192827Z # [2026-10-21T15:44:54.418Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc565e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4199744Z # false for 'create' @ L158, false for 'update' @ L158
+2026-10-21T15:44:54.4343803Z # [2026-10-21T15:44:54.433Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5660 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4344928Z # false for 'update' @ L158
+2026-10-21T15:44:54.4377893Z # [2026-10-21T15:44:54.437Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5661 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4378734Z # false for 'update' @ L158
+2026-10-21T15:44:54.4442210Z # [2026-10-21T15:44:54.443Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5662 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4444939Z # evaluation error at L162:24 for 'delete' @ L162, false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.4484266Z # [2026-10-21T15:44:54.448Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5663 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.4486321Z # evaluation error at L162:24 for 'delete' @ L162, false for 'create' @ L143, false for 'update' @ L143
+2026-10-21T15:44:54.4620783Z # Subtest: market (Spark): a seller may delete ONLY their own pre-7I listing; nothing else, and nothing canonical with it
+2026-10-21T15:44:54.4625431Z ok 20 - market (Spark): a seller may delete ONLY their own pre-7I listing; nothing else, and nothing canonical with it
+2026-10-21T15:44:54.4626655Z   ---
+2026-10-21T15:44:54.4626989Z   duration_ms: 194.721629
+2026-10-21T15:44:54.4627319Z   type: 'test'
+2026-10-21T15:44:54.4627613Z   ...
+2026-10-21T15:44:54.5031261Z # [2026-10-21T15:44:54.502Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5666 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5033341Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.5077004Z # [2026-10-21T15:44:54.507Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5667 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5080315Z # false for 'update' @ L138
+2026-10-21T15:44:54.5127078Z # [2026-10-21T15:44:54.512Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5668 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5129092Z # false for 'delete' @ L138
+2026-10-21T15:44:54.5194563Z # [2026-10-21T15:44:54.519Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5669 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5196395Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.5247595Z # [2026-10-21T15:44:54.524Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5248526Z # false for 'create' @ L143, false for 'update' @ L143
+2026-10-21T15:44:54.5299467Z # [2026-10-21T15:44:54.528Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5300351Z # false for 'delete' @ L143
+2026-10-21T15:44:54.5351915Z # [2026-10-21T15:44:54.534Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566c error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:54.5408500Z # [2026-10-21T15:44:54.540Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5409329Z # false for 'update' @ L148
+2026-10-21T15:44:54.5466922Z # [2026-10-21T15:44:54.545Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5470299Z # false for 'create' @ L148, false for 'update' @ L148
+2026-10-21T15:44:54.5503710Z # [2026-10-21T15:44:54.550Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc566f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5505474Z # false for 'delete' @ L148
+2026-10-21T15:44:54.5900401Z # [2026-10-21T15:44:54.587Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5671 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5903767Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.5947329Z # [2026-10-21T15:44:54.594Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5672 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5948998Z # false for 'update' @ L138
+2026-10-21T15:44:54.5994654Z # [2026-10-21T15:44:54.599Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5673 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.5996122Z # false for 'delete' @ L138
+2026-10-21T15:44:54.6040911Z # [2026-10-21T15:44:54.603Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5674 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6042687Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.6098097Z # [2026-10-21T15:44:54.609Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5675 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6099093Z # false for 'create' @ L143, false for 'update' @ L143
+2026-10-21T15:44:54.6141557Z # [2026-10-21T15:44:54.613Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5676 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6143315Z # false for 'delete' @ L143
+2026-10-21T15:44:54.6195927Z # [2026-10-21T15:44:54.619Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5677 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:54.6248316Z # [2026-10-21T15:44:54.624Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5678 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6250177Z # false for 'update' @ L148
+2026-10-21T15:44:54.6299851Z # [2026-10-21T15:44:54.629Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5679 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6302191Z # false for 'create' @ L148, false for 'update' @ L148
+2026-10-21T15:44:54.6346373Z # [2026-10-21T15:44:54.634Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc567a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6348063Z # false for 'delete' @ L148
+2026-10-21T15:44:54.6614714Z # [2026-10-21T15:44:54.659Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc567c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6615912Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.6638471Z # [2026-10-21T15:44:54.663Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc567d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6639293Z # false for 'update' @ L138
+2026-10-21T15:44:54.6683496Z # [2026-10-21T15:44:54.667Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc567e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6693729Z # false for 'delete' @ L138
+2026-10-21T15:44:54.6729829Z # [2026-10-21T15:44:54.672Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc567f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6745676Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.6777820Z # [2026-10-21T15:44:54.677Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5680 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6778735Z # false for 'create' @ L143, false for 'update' @ L143
+2026-10-21T15:44:54.6811229Z # [2026-10-21T15:44:54.680Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5681 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6811889Z # false for 'delete' @ L143
+2026-10-21T15:44:54.6848708Z # [2026-10-21T15:44:54.684Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5682 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:54.6896105Z # [2026-10-21T15:44:54.688Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5683 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6909144Z # false for 'update' @ L148
+2026-10-21T15:44:54.6952461Z # [2026-10-21T15:44:54.694Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5684 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6953524Z # false for 'create' @ L148, false for 'update' @ L148
+2026-10-21T15:44:54.6980213Z # [2026-10-21T15:44:54.697Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5685 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.6980940Z # false for 'delete' @ L148
+2026-10-21T15:44:54.7230813Z # [2026-10-21T15:44:54.722Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5687 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7232936Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.7264987Z # [2026-10-21T15:44:54.726Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5688 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7265873Z # false for 'update' @ L138
+2026-10-21T15:44:54.7295941Z # [2026-10-21T15:44:54.729Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5689 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7297850Z # false for 'delete' @ L138
+2026-10-21T15:44:54.7332646Z # [2026-10-21T15:44:54.732Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7339574Z # false for 'create' @ L138, false for 'update' @ L138
+2026-10-21T15:44:54.7376640Z # [2026-10-21T15:44:54.737Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7378894Z # false for 'create' @ L143, false for 'update' @ L143
+2026-10-21T15:44:54.7413147Z # [2026-10-21T15:44:54.741Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7415145Z # false for 'delete' @ L143
+2026-10-21T15:44:54.7441926Z # [2026-10-21T15:44:54.743Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568d error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:54.7483037Z # [2026-10-21T15:44:54.748Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568e error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7483830Z # false for 'update' @ L148
+2026-10-21T15:44:54.7529230Z # [2026-10-21T15:44:54.752Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc568f error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7530171Z # false for 'create' @ L148, false for 'update' @ L148
+2026-10-21T15:44:54.7577525Z # [2026-10-21T15:44:54.757Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5690 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.7579288Z # false for 'delete' @ L148
+2026-10-21T15:44:54.7764391Z # Subtest: economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+2026-10-21T15:44:54.7769120Z ok 21 - economy, ledger, plots (7I): no client can create, change or delete them, not even for their own account
+2026-10-21T15:44:54.7769693Z   ---
+2026-10-21T15:44:54.7770017Z   duration_ms: 314.602201
+2026-10-21T15:44:54.7770345Z   type: 'test'
+2026-10-21T15:44:54.7770803Z   ...
+2026-10-21T15:44:54.8210775Z # [2026-10-21T15:44:54.820Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5697 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8303798Z # false for 'create' @ L168
+2026-10-21T15:44:54.8308515Z # [2026-10-21T15:44:54.830Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5698 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8309140Z # false for 'create' @ L168
+2026-10-21T15:44:54.8399415Z # [2026-10-21T15:44:54.839Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc5699 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8400300Z # false for 'create' @ L168
+2026-10-21T15:44:54.8493792Z # [2026-10-21T15:44:54.849Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc569a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8494571Z # false for 'create' @ L168
+2026-10-21T15:44:54.8581717Z # [2026-10-21T15:44:54.857Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc569b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8582604Z # false for 'create' @ L168
+2026-10-21T15:44:54.8697618Z # [2026-10-21T15:44:54.869Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc569c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.8698234Z # false for 'create' @ L168
+2026-10-21T15:44:54.9067597Z # [2026-10-21T15:44:54.904Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a0 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.9068710Z # false for 'update' @ L172
+2026-10-21T15:44:54.9123056Z # [2026-10-21T15:44:54.911Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a1 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.9123743Z # false for 'delete' @ L172
+2026-10-21T15:44:54.9249299Z # Subtest: events: guests and players can add a milestone; nothing else, and only the owner reads
+2026-10-21T15:44:54.9249993Z ok 22 - events: guests and players can add a milestone; nothing else, and only the owner reads
+2026-10-21T15:44:54.9250641Z   ---
+2026-10-21T15:44:54.9250863Z   duration_ms: 148.612983
+2026-10-21T15:44:54.9251133Z   type: 'test'
+2026-10-21T15:44:54.9251310Z   ...
+2026-10-21T15:44:54.9563447Z # [2026-10-21T15:44:54.955Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a3 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.9563966Z # false for 'create' @ L168, false for 'update' @ L172, false for 'update' @ L172
+2026-10-21T15:44:54.9595306Z # [2026-10-21T15:44:54.959Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a5 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.9595775Z # false for 'create' @ L168, false for 'update' @ L172
+2026-10-21T15:44:54.9625917Z # [2026-10-21T15:44:54.962Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+2026-10-21T15:44:54.9626921Z # false for 'create' @ L168, false for 'update' @ L172
+2026-10-21T15:44:54.9954420Z # Subtest: analytics v2: existing rules accept compact reports, refuse identifiers and retries, owner can page by date
+2026-10-21T15:44:54.9956634Z ok 23 - analytics v2: existing rules accept compact reports, refuse identifiers and retries, owner can page by date
+2026-10-21T15:44:54.9957175Z   ---
+2026-10-21T15:44:54.9957435Z   duration_ms: 70.169955
+2026-10-21T15:44:54.9957716Z   type: 'test'
+2026-10-21T15:44:54.9957953Z   ...
+2026-10-21T15:44:55.0082693Z # [2026-10-21T15:44:55.007Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56a9 error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:55.0270335Z # [2026-10-21T15:44:55.026Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56ab error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:55.0356276Z # [2026-10-21T15:44:55.035Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x44bc56ac error. Code: 7 Message: 7 PERMISSION_DENIED: No matching allow statements
+2026-10-21T15:44:55.0360212Z # RULES CHECKS: 85 allow + 282 deny = 367
+2026-10-21T15:44:55.0519616Z # Subtest: unknown collections are closed
+2026-10-21T15:44:55.0524712Z ok 24 - unknown collections are closed
+2026-10-21T15:44:55.0536055Z   ---
+2026-10-21T15:44:55.0536338Z   duration_ms: 41.053819
+2026-10-21T15:44:55.0536581Z   type: 'test'
+2026-10-21T15:44:55.0536771Z   ...
+2026-10-21T15:44:55.0912814Z 1..24
+2026-10-21T15:44:55.0913611Z # tests 24
+2026-10-21T15:44:55.0913807Z # suites 0
+2026-10-21T15:44:55.0913982Z # pass 24
+2026-10-21T15:44:55.0914150Z # fail 0
+2026-10-21T15:44:55.0914336Z # cancelled 0
+2026-10-21T15:44:55.0914532Z # skipped 0
+2026-10-21T15:44:55.0914701Z # todo 0
+2026-10-21T15:44:55.0915051Z # duration_ms 5175.162556
+2026-10-21T15:44:55.1197382Z TAP version 13
+2026-10-21T15:44:55.4516861Z # Subtest: core: an accepted action writes its effect and its ledger row together; a replay returns the stored result and changes nothing
+2026-10-21T15:44:55.4519656Z ok 1 - core: an accepted action writes its effect and its ledger row together; a replay returns the stored result and changes nothing
+2026-10-21T15:44:55.4520035Z   ---
+2026-10-21T15:44:55.4520176Z   duration_ms: 256.675603
+2026-10-21T15:44:55.4520319Z   type: 'test'
+2026-10-21T15:44:55.4520434Z   ...
+2026-10-21T15:44:55.4956001Z # Subtest: core: a refused action (NOT_MATURE_YET) writes nothing and does NOT use up its key; the same key succeeds later
+2026-10-21T15:44:55.4957138Z ok 2 - core: a refused action (NOT_MATURE_YET) writes nothing and does NOT use up its key; the same key succeeds later
+2026-10-21T15:44:55.4957752Z   ---
+2026-10-21T15:44:55.4958065Z   duration_ms: 43.227197
+2026-10-21T15:44:55.4958407Z   type: 'test'
+2026-10-21T15:44:55.4958709Z   ...
+2026-10-21T15:44:59.0218009Z # Subtest: core: ten simultaneous calls with one key apply exactly once
+2026-10-21T15:44:59.0219509Z ok 3 - core: ten simultaneous calls with one key apply exactly once
+2026-10-21T15:44:59.0220223Z   ---
+2026-10-21T15:44:59.0220429Z   duration_ms: 3526.966874
+2026-10-21T15:44:59.0220636Z   type: 'test'
+2026-10-21T15:44:59.0220804Z   ...
+2026-10-21T15:44:59.0714530Z # Subtest: core: balances never go negative, fractional or unknown; a refused spend changes nothing
+2026-10-21T15:44:59.0715767Z ok 4 - core: balances never go negative, fractional or unknown; a refused spend changes nothing
+2026-10-21T15:44:59.0716329Z   ---
+2026-10-21T15:44:59.0716514Z   duration_ms: 39.300638
+2026-10-21T15:44:59.0716763Z   type: 'test'
+2026-10-21T15:44:59.0716942Z   ...
+2026-10-21T15:44:59.5901839Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.5958453Z [90m> [39m {"verifications":{"app":"MISSING","auth":"MISSING"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.5974497Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 7.13287ms
+2026-10-21T15:44:59.6150871Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6165024Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6175798Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 2.200963ms
+2026-10-21T15:44:59.6191388Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6201669Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6207850Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 1.557772ms
+2026-10-21T15:44:59.6220459Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6228921Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6236003Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 1.20506ms
+2026-10-21T15:44:59.6247591Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6261498Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6265896Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 1.762742ms
+2026-10-21T15:44:59.6326019Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6349930Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6351012Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 1.831175ms
+2026-10-21T15:44:59.6353128Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6361360Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.6366157Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 1.197408ms
+2026-10-21T15:44:59.6382988Z # Subtest: callable economyAct: signed out is refused; unknown and test-only actions are refused
+2026-10-21T15:44:59.6384068Z ok 5 - callable economyAct: signed out is refused; unknown and test-only actions are refused
+2026-10-21T15:44:59.6384732Z   ---
+2026-10-21T15:44:59.6385219Z   duration_ms: 576.601743
+2026-10-21T15:44:59.6385573Z   type: 'test'
+2026-10-21T15:44:59.6385894Z   ...
+2026-10-21T15:44:59.6541479Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.6555600Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.7955396Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 141.246829ms
+2026-10-21T15:44:59.8120496Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:44:59.8136745Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:44:59.8216584Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 9.596571ms
+2026-10-21T15:44:59.8271770Z # Subtest: cutover is zero: a hacked legacy save (1e9 coins, 999999 wheat) is not copied; nothing is granted; no starter document
+2026-10-21T15:44:59.8272728Z ok 6 - cutover is zero: a hacked legacy save (1e9 coins, 999999 wheat) is not copied; nothing is granted; no starter document
+2026-10-21T15:44:59.8273201Z   ---
+2026-10-21T15:44:59.8273406Z   duration_ms: 187.898592
+2026-10-21T15:44:59.8273650Z   type: 'test'
+2026-10-21T15:44:59.8273828Z   ...
+2026-10-21T15:44:59.8274290Z # Subtest: catalog: the server's crop rules match game.js exactly (grow time, seed price, sale price)
+2026-10-21T15:44:59.8275060Z ok 7 - catalog: the server's crop rules match game.js exactly (grow time, seed price, sale price)
+2026-10-21T15:44:59.8275295Z   ---
+2026-10-21T15:44:59.8275410Z   duration_ms: 1.473065
+2026-10-21T15:44:59.8275551Z   type: 'test'
+2026-10-21T15:44:59.8275660Z   ...
+2026-10-21T15:44:59.8731747Z # Subtest: bootstrap: a new canonical account plants ONE wheat free; it costs 0; a retry returns the original; a second is refused
+2026-10-21T15:44:59.8732617Z ok 8 - bootstrap: a new canonical account plants ONE wheat free; it costs 0; a retry returns the original; a second is refused
+2026-10-21T15:44:59.8744001Z   ---
+2026-10-21T15:44:59.8744217Z   duration_ms: 45.853613
+2026-10-21T15:44:59.8744432Z   type: 'test'
+2026-10-21T15:44:59.8744602Z   ...
+2026-10-21T15:44:59.9403923Z # Subtest: bootstrap: only wheat; a refused attempt (other crop, busy plot) does not use it up
+2026-10-21T15:44:59.9404648Z ok 9 - bootstrap: only wheat; a refused attempt (other crop, busy plot) does not use it up
+2026-10-21T15:44:59.9405154Z   ---
+2026-10-21T15:44:59.9405357Z   duration_ms: 66.915436
+2026-10-21T15:44:59.9405565Z   type: 'test'
+2026-10-21T15:44:59.9405728Z   ...
+2026-10-21T15:45:03.4729046Z # Subtest: bootstrap: two devices at the same moment (different requests, different plots): exactly one free planting
+2026-10-21T15:45:03.4730167Z ok 10 - bootstrap: two devices at the same moment (different requests, different plots): exactly one free planting
+2026-10-21T15:45:03.4730564Z   ---
+2026-10-21T15:45:03.4730708Z   duration_ms: 3532.583435
+2026-10-21T15:45:03.4730856Z   type: 'test'
+2026-10-21T15:45:03.4730971Z   ...
+2026-10-21T15:45:03.5597749Z # Subtest: economy bootstraps itself: free wheat -> harvest 2 -> replant with 1 wheat -> harvest -> 3 wheat, 0 coins, no more free plants
+2026-10-21T15:45:03.5598718Z ok 11 - economy bootstraps itself: free wheat -> harvest 2 -> replant with 1 wheat -> harvest -> 3 wheat, 0 coins, no more free plants
+2026-10-21T15:45:03.5599193Z   ---
+2026-10-21T15:45:03.5599362Z   duration_ms: 87.010479
+2026-10-21T15:45:03.5599507Z   type: 'test'
+2026-10-21T15:45:03.5599627Z   ...
+2026-10-21T15:45:03.6226425Z # Subtest: harvest: server time only; early, wrong crop, wrong or unknown generation are refused and use nothing up
+2026-10-21T15:45:03.6227494Z ok 12 - harvest: server time only; early, wrong crop, wrong or unknown generation are refused and use nothing up
+2026-10-21T15:45:03.6227766Z   ---
+2026-10-21T15:45:03.6227900Z   duration_ms: 62.744545
+2026-10-21T15:45:03.6228041Z   type: 'test'
+2026-10-21T15:45:03.6228162Z   ...
+2026-10-21T15:45:06.9166475Z # Subtest: harvest: replays and an old generation never grant twice; two devices harvesting one generation get one grant
+2026-10-21T15:45:06.9167359Z ok 13 - harvest: replays and an old generation never grant twice; two devices harvesting one generation get one grant
+2026-10-21T15:45:06.9167804Z   ---
+2026-10-21T15:45:06.9167998Z   duration_ms: 3292.200201
+2026-10-21T15:45:06.9168207Z   type: 'test'
+2026-10-21T15:45:06.9168379Z   ...
+2026-10-21T15:45:06.9202964Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:06.9219456Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:06.9403253Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 19.897248ms
+2026-10-21T15:45:06.9418127Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:06.9428078Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:06.9537522Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 11.884495ms
+2026-10-21T15:45:28.4359322Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:28.4377335Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:28.4528504Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 16.825475ms
+2026-10-21T15:45:28.4557188Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:28.4566612Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:28.4621567Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 6.291139ms
+2026-10-21T15:45:28.4662423Z # Subtest: callable, real time: plant online, wait offline past maturity (nothing sent), harvest later: granted once
+2026-10-21T15:45:28.4665039Z ok 14 - callable, real time: plant online, wait offline past maturity (nothing sent), harvest later: granted once
+2026-10-21T15:45:28.4667008Z   ---
+2026-10-21T15:45:28.4667229Z   duration_ms: 21551.009196
+2026-10-21T15:45:28.4667479Z   type: 'test'
+2026-10-21T15:45:28.4667698Z   ...
+2026-10-21T15:45:28.4722101Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:28.4731561Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:28.4878146Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 15.491144ms
+2026-10-21T15:45:29.5959171Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:29.5974026Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:29.6101088Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 14.133851ms
+2026-10-21T15:45:29.6168255Z # Subtest: callable: sign out and back in, a new device, or an edited legacy save cannot bring the bootstrap back
+2026-10-21T15:45:29.6169055Z ok 15 - callable: sign out and back in, a new device, or an edited legacy save cannot bring the bootstrap back
+2026-10-21T15:45:29.6169468Z   ---
+2026-10-21T15:45:29.6169662Z   duration_ms: 1149.123358
+2026-10-21T15:45:29.6169874Z   type: 'test'
+2026-10-21T15:45:29.6170055Z   ...
+2026-10-21T15:45:29.7682337Z # Subtest: market: the server creates the listing and holds the goods; refusals change nothing
+2026-10-21T15:45:29.7683130Z ok 16 - market: the server creates the listing and holds the goods; refusals change nothing
+2026-10-21T15:45:29.7683616Z   ---
+2026-10-21T15:45:29.7683919Z   duration_ms: 151.811067
+2026-10-21T15:45:29.7684222Z   type: 'test'
+2026-10-21T15:45:29.7684471Z   ...
+2026-10-21T15:45:29.8179767Z # Subtest: market: buying is one atomic step: buyer pays, seller is paid at once (no collect), goods move, listing is gone
+2026-10-21T15:45:29.8180716Z ok 17 - market: buying is one atomic step: buyer pays, seller is paid at once (no collect), goods move, listing is gone
+2026-10-21T15:45:29.8181236Z   ---
+2026-10-21T15:45:29.8181472Z   duration_ms: 50.591803
+2026-10-21T15:45:29.8181681Z   type: 'test'
+2026-10-21T15:45:29.8181856Z   ...
+2026-10-21T15:45:29.8891604Z # Subtest: market: self-buy, not enough canonical coins, legacy wealth and legacy listings are refused without side effects
+2026-10-21T15:45:29.8892705Z ok 18 - market: self-buy, not enough canonical coins, legacy wealth and legacy listings are refused without side effects
+2026-10-21T15:45:29.8893419Z   ---
+2026-10-21T15:45:29.8893732Z   duration_ms: 71.143729
+2026-10-21T15:45:29.8894067Z   type: 'test'
+2026-10-21T15:45:29.8894364Z   ...
+2026-10-21T15:45:33.1320997Z # Subtest: market: two buyers at the same moment: exactly one gets it; the seller is paid once
+2026-10-21T15:45:33.1321840Z ok 19 - market: two buyers at the same moment: exactly one gets it; the seller is paid once
+2026-10-21T15:45:33.1322275Z   ---
+2026-10-21T15:45:33.1322492Z   duration_ms: 3242.660422
+2026-10-21T15:45:33.1322715Z   type: 'test'
+2026-10-21T15:45:33.1322902Z   ...
+2026-10-21T15:45:33.2242649Z # Subtest: market: the seller takes back an unsold listing (goods return); nobody else can; a sold one is gone
+2026-10-21T15:45:33.2255687Z ok 20 - market: the seller takes back an unsold listing (goods return); nobody else can; a sold one is gone
+2026-10-21T15:45:33.2256136Z   ---
+2026-10-21T15:45:33.2256330Z   duration_ms: 91.83413
+2026-10-21T15:45:33.2256550Z   type: 'test'
+2026-10-21T15:45:33.2256734Z   ...
+2026-10-21T15:45:33.2349023Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:33.2359121Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:33.2600437Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 24.989306ms
+2026-10-21T15:45:33.2621365Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:33.2647910Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:33.2823360Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 19.705929ms
+2026-10-21T15:45:33.2924636Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:33.2934052Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:33.3028023Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 10.238439ms
+2026-10-21T15:45:33.3041159Z # Subtest: market end to end through the callable: one player lists canonical wheat, another buys it, self-buy refused
+2026-10-21T15:45:33.3042335Z ok 21 - market end to end through the callable: one player lists canonical wheat, another buys it, self-buy refused
+2026-10-21T15:45:33.3042921Z   ---
+2026-10-21T15:45:33.3043177Z   duration_ms: 80.328267
+2026-10-21T15:45:33.3043384Z   type: 'test'
+2026-10-21T15:45:33.3043555Z   ...
+2026-10-21T15:45:33.3075420Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:45:33.3084949Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:45:33.3171603Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 9.493499ms
+2026-10-21T15:45:33.3252360Z # Subtest: the server writes to the game's database (named "default"), not to the admin SDK's unnamed "(default)" one
+2026-10-21T15:45:33.3253071Z ok 22 - the server writes to the game's database (named "default"), not to the admin SDK's unnamed "(default)" one
+2026-10-21T15:45:33.3253338Z   ---
+2026-10-21T15:45:33.3253468Z   duration_ms: 21.156104
+2026-10-21T15:45:33.3253605Z   type: 'test'
+2026-10-21T15:45:33.3253724Z   ...
+2026-10-21T15:45:33.3700595Z # Subtest: sell: verified crops sell at the base price for verified coins; legacy goods can't be sold; replays pay once
+2026-10-21T15:45:33.3701688Z ok 23 - sell: verified crops sell at the base price for verified coins; legacy goods can't be sold; replays pay once
+2026-10-21T15:45:33.3701992Z   ---
+2026-10-21T15:45:33.3702124Z   duration_ms: 45.133157
+2026-10-21T15:45:33.3702261Z   type: 'test'
+2026-10-21T15:45:33.3702378Z   ...
+2026-10-21T15:45:33.4220422Z # Subtest: the bootstrap path B: free wheat -> harvest 2 -> sell 2 (4 coins) -> buy a wheat seed (1 coin) -> 3 coins left
+2026-10-21T15:45:33.4221227Z ok 24 - the bootstrap path B: free wheat -> harvest 2 -> sell 2 (4 coins) -> buy a wheat seed (1 coin) -> 3 coins left
+2026-10-21T15:45:33.4221701Z   ---
+2026-10-21T15:45:33.4221851Z   duration_ms: 51.419813
+2026-10-21T15:45:33.4221994Z   type: 'test'
+2026-10-21T15:45:33.4222116Z   ...
+2026-10-21T15:45:33.4869289Z # Subtest: legacy close-out: a 7G listing goes back to the PHONE farm only; nothing canonical moves; it can't be closed twice
+2026-10-21T15:45:33.4869993Z ok 25 - legacy close-out: a 7G listing goes back to the PHONE farm only; nothing canonical moves; it can't be closed twice
+2026-10-21T15:45:33.4875511Z   ---
+2026-10-21T15:45:33.4875737Z   duration_ms: 65.515977
+2026-10-21T15:45:33.4876453Z   type: 'test'
+2026-10-21T15:45:33.4876663Z   ...
+2026-10-21T15:45:33.4998399Z 1..25
+2026-10-21T15:45:33.4998608Z # tests 25
+2026-10-21T15:45:33.4998786Z # suites 0
+2026-10-21T15:45:33.5005409Z # pass 25
+2026-10-21T15:45:33.5015454Z # fail 0
+2026-10-21T15:45:33.5015775Z # cancelled 0
+2026-10-21T15:45:33.5015972Z # skipped 0
+2026-10-21T15:45:33.5016144Z # todo 0
+2026-10-21T15:45:33.5016396Z # duration_ms 38387.123404
+2026-10-21T15:45:33.5293335Z TAP version 13
+2026-10-21T15:45:33.7663863Z # Subtest: planting needs a connection: offline it is refused on the device and nothing reaches the server
+2026-10-21T15:45:33.7666449Z ok 1 - planting needs a connection: offline it is refused on the device and nothing reaches the server
+2026-10-21T15:45:33.7667152Z   ---
+2026-10-21T15:45:33.7667346Z   duration_ms: 165.408619
+2026-10-21T15:45:33.7667541Z   type: 'test'
+2026-10-21T15:45:33.7667723Z   ...
+2026-10-21T15:45:33.7915984Z # Subtest: a planting whose answer was lost is re-sent with the same request id: one plot, one generation, one free bootstrap
+2026-10-21T15:45:33.7917192Z ok 2 - a planting whose answer was lost is re-sent with the same request id: one plot, one generation, one free bootstrap
+2026-10-21T15:45:33.7917549Z   ---
+2026-10-21T15:45:33.7917718Z   duration_ms: 25.450106
+2026-10-21T15:45:33.7917936Z   type: 'test'
+2026-10-21T15:45:33.7918054Z   ...
+2026-10-21T15:45:33.8229916Z # Subtest: offline harvest: queued and shown as provisional; confirmed once on reconnect; the queue empties
+2026-10-21T15:45:33.8231549Z ok 3 - offline harvest: queued and shown as provisional; confirmed once on reconnect; the queue empties
+2026-10-21T15:45:33.8232175Z   ---
+2026-10-21T15:45:33.8232610Z   duration_ms: 30.604545
+2026-10-21T15:45:33.8232869Z   type: 'test'
+2026-10-21T15:45:33.8233058Z   ...
+2026-10-21T15:45:33.8596122Z # Subtest: a harvest sent too early stays queued (NOT_MATURE_YET is temporary) and succeeds later
+2026-10-21T15:45:33.8605704Z ok 4 - a harvest sent too early stays queued (NOT_MATURE_YET is temporary) and succeeds later
+2026-10-21T15:45:33.8621990Z   ---
+2026-10-21T15:45:33.8622265Z   duration_ms: 35.601033
+2026-10-21T15:45:33.8622483Z   type: 'test'
+2026-10-21T15:45:33.8622658Z   ...
+2026-10-21T15:45:36.6621494Z # Subtest: two devices harvest the same crop offline: on reconnect there is ONE grant, and both queues clear
+2026-10-21T15:45:36.6622268Z ok 5 - two devices harvest the same crop offline: on reconnect there is ONE grant, and both queues clear
+2026-10-21T15:45:36.6622734Z   ---
+2026-10-21T15:45:36.6622934Z   duration_ms: 2803.89201
+2026-10-21T15:45:36.6623160Z   type: 'test'
+2026-10-21T15:45:36.6623339Z   ...
+2026-10-21T15:45:36.7143962Z # Subtest: a stale device: its old queued harvest replays after the crop was harvested and replanted elsewhere; no second grant
+2026-10-21T15:45:36.7144918Z ok 6 - a stale device: its old queued harvest replays after the crop was harvested and replanted elsewhere; no second grant
+2026-10-21T15:45:36.7145326Z   ---
+2026-10-21T15:45:36.7145767Z   duration_ms: 52.271594
+2026-10-21T15:45:36.7146032Z   type: 'test'
+2026-10-21T15:45:36.7439295Z   ...
+2026-10-21T15:45:36.7439890Z # Subtest: a provisional harvest the server refuses for good is dropped, and its provisional grant disappears
+2026-10-21T15:45:36.7440574Z ok 7 - a provisional harvest the server refuses for good is dropped, and its provisional grant disappears
+2026-10-21T15:45:36.7440832Z   ---
+2026-10-21T15:45:36.7440989Z   duration_ms: 29.818412
+2026-10-21T15:45:36.7441130Z   type: 'test'
+2026-10-21T15:45:36.7441247Z   ...
+2026-10-21T15:45:36.7680460Z # Subtest: the queue survives an app restart (it lives in storage) and is per account
+2026-10-21T15:45:36.7680932Z ok 8 - the queue survives an app restart (it lives in storage) and is per account
+2026-10-21T15:45:36.7681192Z   ---
+2026-10-21T15:45:36.7681334Z   duration_ms: 23.866991
+2026-10-21T15:45:36.7681489Z   type: 'test'
+2026-10-21T15:45:36.7681611Z   ...
+2026-10-21T15:45:36.8078465Z # Subtest: offline sale does nothing: refused on the device, nothing queued, no coins; a provisional harvest can't be sold
+2026-10-21T15:45:36.8079150Z ok 9 - offline sale does nothing: refused on the device, nothing queued, no coins; a provisional harvest can't be sold
+2026-10-21T15:45:36.8079434Z   ---
+2026-10-21T15:45:36.8079565Z   duration_ms: 39.685009
+2026-10-21T15:45:36.8079708Z   type: 'test'
+2026-10-21T15:45:36.8079827Z   ...
+2026-10-21T15:45:36.8223811Z 1..9
+2026-10-21T15:45:36.8223983Z # tests 9
+2026-10-21T15:45:36.8224174Z # suites 0
+2026-10-21T15:45:36.8224332Z # pass 9
+2026-10-21T15:45:36.8224442Z # fail 0
+2026-10-21T15:45:36.8225072Z # cancelled 0
+2026-10-21T15:45:36.8225260Z # skipped 0
+2026-10-21T15:45:36.8225424Z # todo 0
+2026-10-21T15:45:36.8225571Z # duration_ms 3299.983591
+2026-10-21T15:45:37.0080378Z Emulator browser SDK pinned to production: 12.19.0
+2026-10-21T15:45:37.2105839Z MODE Spark / production: verified economy off
+2026-10-21T15:46:02.8751654Z PASS cloud save written through the revision transaction — rev 1
+2026-10-21T15:46:02.8911636Z PASS presence heartbeat written — ["level","joined","seen"]
+2026-10-21T15:46:03.9291438Z PASS showcase published
+2026-10-21T15:46:03.9349316Z PASS Spark: no Verified Field button, no verified counter or label, no Trading tab — {"field":true,"counter":true,"legacyLabel":null,"tabs":["friends","board"]}
+2026-10-21T15:46:20.7047128Z PASS Spark: URL parameters (?debug&economy) cannot switch the economy on — {"field":true,"counter":true,"legacyLabel":null,"tabs":["friends","board"]}
+2026-10-21T15:46:21.5558339Z PASS Spark: an old unsold listing returns its goods to the phone barn; an old sold one pays the phone coins; each once — phone wheat 3 -> 5, phone coins 67 -> 72, left fNXuMzFY3NJnZns9MS6AxBHcwOr2-1790000000002,fNXuMzFY3NJnZns9MS6AxBHcwOr2-req2
+2026-10-21T15:46:21.5753271Z PASS Spark: a listing of unexpected shape and a server-made one are left alone; nothing verified appears
+2026-10-21T15:46:21.5839734Z PASS Spark: the roadside shop still pays out — coins 72 -> 75
+2026-10-21T15:46:36.7456145Z PASS sign up (two accounts)
+2026-10-21T15:46:37.2773870Z PASS usernames claimed
+2026-10-21T15:46:37.8214349Z PASS friend added to own list
+2026-10-21T15:46:38.0819187Z PASS leaderboard shows the friend
+2026-10-21T15:47:20.7393965Z PASS damaged phone save: the cloud farm comes back and is not overwritten — coins 75 -> 75, cloud rev 3 -> 3
+2026-10-21T15:47:36.1846014Z PASS visited the friend's farm
+2026-10-21T15:47:56.2698948Z PASS guest play still reports milestones (open, guest) — a2_38_dda_sess_00x,a2_38_dda_open_0,a2_38_dda_sess_00x,a2_38_dda_sess_00d,a2_38_dda_sess_00x,account,a2_38_ddg_open_0,a2_38_dda_sess_00x,open,guest,friend,a2_38_dda_open_0,open,account,open
+2026-10-21T15:48:01.9726701Z PASS owner dashboard loads presence, farm count and funnel — total 2
+2026-10-21T15:48:02.2631371Z PASS dashboard refuses a non-owner
+2026-10-21T15:48:02.2666679Z PASS Spark: not one request reached economyAct during the whole run — 0 call(s)
+2026-10-21T15:48:02.2672109Z PASS no permission errors in the game
+2026-10-21T15:48:02.3554548Z 
+2026-10-21T15:48:02.3555258Z GAME FLOWS: 19/19 passed
+2026-10-21T15:48:02.5508756Z Emulator browser SDK pinned to production: 12.19.0
+2026-10-21T15:48:02.6555972Z MODE economy on (7I, test harness only)
+2026-10-21T15:48:28.2957068Z PASS cloud save written through the revision transaction — rev 1
+2026-10-21T15:48:28.3026478Z PASS presence heartbeat written — ["level","joined","seen"]
+2026-10-21T15:48:29.3422567Z PASS showcase published
+2026-10-21T15:48:29.6391225Z PASS trading post offers only verified goods — the select shows verified wheat (3), not the phone barn (5)
+2026-10-21T15:48:29.6632319Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:48:29.6658580Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:48:29.6906500Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 27.235703ms
+2026-10-21T15:48:29.9040594Z PASS HUD shows verified coins separately; phone coins labelled LEGACY_UNVERIFIED — {"v":true,"vc":"0","legacy":"LEGACY_UNVERIFIED"}
+2026-10-21T15:48:29.9107653Z PASS listing created by the server — 1 listing(s)
+2026-10-21T15:48:29.9247532Z PASS seller's verified goods held by the server; phone barn untouched — {"coins":0,"items":{"wheat":2}} phone wheat 8
+2026-10-21T15:48:44.6910481Z PASS sign up (two accounts)
+2026-10-21T15:48:45.2333742Z PASS usernames claimed
+2026-10-21T15:48:45.7804050Z PASS friend added to own list
+2026-10-21T15:48:46.0461655Z PASS leaderboard shows the friend
+2026-10-21T15:48:46.3476274Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:48:46.3498816Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:48:46.3786554Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 30.202432ms
+2026-10-21T15:48:46.5956419Z PASS buyer paid with verified coins and got verified goods (one server transaction) — {"coins":18,"items":{"wheat":1}}
+2026-10-21T15:48:46.5963016Z PASS seller paid at once while away (no collect step) — grandma verified coins 2, price 2
+2026-10-21T15:48:46.5997068Z PASS the sold listing is gone
+2026-10-21T15:48:46.6019948Z PASS phone coins and barn untouched by trading
+2026-10-21T15:49:00.7406525Z PASS seller's phone farm was not paid in phone coins — legacy coins 67 -> 67
+2026-10-21T15:49:01.2576631Z PASS seller sees the sale in the verified counter after waking
+2026-10-21T15:49:01.8056878Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:49:01.8072836Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:49:01.8247376Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 18.089959ms
+2026-10-21T15:49:02.0540138Z PASS a 7G listing goes back to the PHONE barn only (nothing verified moves) — phone wheat 8 -> 10
+2026-10-21T15:49:31.0077655Z PASS damaged phone save: the cloud farm comes back and is not overwritten — coins 67 -> 67, cloud rev 2 -> 2
+2026-10-21T15:49:48.1724041Z PASS visited the friend's farm
+2026-10-21T15:50:10.0346820Z PASS guest play still reports milestones (open, guest) — a2_38_dda_sess_00x,open,friend,a2_38_ddg_open_0,a2_38_dda_open_0,open,account,open,account,a2_38_dda_sess_00x,a2_38_dda_sess_00d,guest,a2_38_dda_open_0
+2026-10-21T15:50:24.6992678Z PASS verified field: a separate area with six plots, online status shown
+2026-10-21T15:50:24.7204657Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:50:24.7241358Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:50:24.7466690Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 26.796839ms
+2026-10-21T15:50:25.4727546Z PASS first wheat is free (server bootstrap), shown as such, planted on the SERVER with server times — label "🌾 Wheat · free (first planting) · 20s", plot {"state":"growing","gen":1}, economy {"coins":0,"items":{}}
+2026-10-21T15:50:25.4805949Z PASS a growing verified crop shows its time left
+2026-10-21T15:50:45.7611210Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:50:45.7662052Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:50:45.8007220Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 36.772748ms
+2026-10-21T15:50:46.2752310Z PASS harvest goes to VERIFIED goods only; the phone barn and normal fields are unchanged — {"coins":0,"items":{"wheat":2}}
+2026-10-21T15:50:46.3142016Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:50:46.3168461Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:50:46.3666956Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 55.642197ms
+2026-10-21T15:50:46.5603641Z PASS the second planting is paid with 1 verified wheat — label "🌾 Wheat · 1 🌾 · 20s", {"coins":0,"items":{"wheat":1}}
+2026-10-21T15:50:46.5771127Z PASS offline: the field says so and planting is switched off
+2026-10-21T15:51:06.8840084Z PASS offline harvest is kept on the phone as "checking", nothing verified yet — {"coins":0,"items":{"wheat":1}}
+2026-10-21T15:51:06.8966576Z [36m[1mi  functions:[22m[39m Beginning execution of "us-central1-economyAct"
+2026-10-21T15:51:06.8996426Z [90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+2026-10-21T15:51:06.9554047Z [36m[1mi  functions:[22m[39m Finished "us-central1-economyAct" in 57.365838ms
+2026-10-21T15:51:07.4092224Z PASS back online: the harvest is checked and granted once; the queue is empty; phone farm still untouched — {"coins":0,"items":{"wheat":3}} queue []
+2026-10-21T15:51:13.5170638Z PASS owner dashboard loads presence, farm count and funnel — total 3
+2026-10-21T15:51:13.9230304Z PASS dashboard refuses a non-owner
+2026-10-21T15:51:13.9274213Z PASS economy mode really reached economyAct — 7 call(s)
+2026-10-21T15:51:13.9275267Z PASS no permission errors in the game
+2026-10-21T15:51:14.0184673Z 
+2026-10-21T15:51:14.0185439Z GAME FLOWS: 33/33 passed
+2026-10-21T15:51:14.2272817Z Emulator browser SDK pinned to production: 12.19.0
+2026-10-21T15:51:40.6139875Z PASS chicken care and appearance survive authenticated cloud upload
+2026-10-21T15:51:58.0683728Z PASS chicken snapshot restores without losing supplies, stock or appearance
+2026-10-21T15:52:13.9439054Z PASS paid utility lamp uploads through authenticated cloud with minimum writer2 and30 birds
+2026-10-21T15:52:31.0700796Z PASS minimum-writer2 paid lamp restores from authenticated snapshot exactly
+2026-10-21T15:52:47.6270022Z PASS cow writer3 uploads paid feed/water, quality tank and manual queue without touching barn milk
+2026-10-21T15:53:03.4239136Z PASS authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint
+2026-10-21T15:53:18.7819972Z RECOVERY TIMING {"event":"trace-start","ms":128.01105000000098,"utc":"2026-10-21T15:53:18.781Z"}
+2026-10-21T15:53:18.7837896Z RECOVERY TIMING {"event":"renderer-release-call","ms":128.57535400000052,"utc":"2026-10-21T15:53:18.782Z"}
+2026-10-21T15:53:26.1752040Z RECOVERY TIMING {"event":"renderer-release-return","ms":7521.335078999997,"utc":"2026-10-21T15:53:26.174Z","releaseMs":7350.199999999953,"contextLost":true}
+2026-10-21T15:53:26.1844548Z RECOVERY TIMING {"event":"reload-call","ms":7530.404250000007,"utc":"2026-10-21T15:53:26.183Z","deadlineMs":30000,"importDelayMs":25000}
+2026-10-21T15:53:26.1892699Z RECOVERY TIMING {"event":"cdp-document-request","ms":7535.587129000007,"utc":"2026-10-21T15:53:26.189Z","requestId":"883C5AA44DBCAE04346F8744A1902C9C","timestamp":601.900159}
+2026-10-21T15:53:26.1912738Z RECOVERY TIMING {"event":"request","ms":7537.641224999985,"utc":"2026-10-21T15:53:26.191Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:53:26.1927341Z RECOVERY TIMING {"event":"server-document-received","ms":7539.133921999994,"utc":"2026-10-21T15:53:26.192Z"}
+2026-10-21T15:53:26.1933331Z RECOVERY TIMING {"event":"server-document-finished","ms":7539.584259999989,"utc":"2026-10-21T15:53:26.193Z"}
+2026-10-21T15:53:26.1947614Z RECOVERY TIMING {"event":"cdp-document-response","ms":7540.9420409999875,"utc":"2026-10-21T15:53:26.194Z","requestId":"883C5AA44DBCAE04346F8744A1902C9C","timestamp":601.905161,"status":200,"timing":{"requestTime":601.90339,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.314,"dnsEnd":0.365,"connectStart":0.365,"connectEnd":0.461,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.516,"sendEnd":0.562,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.01,"receiveHeadersEnd":1.055}}
+2026-10-21T15:53:26.2072178Z RECOVERY TIMING {"event":"document-commit","ms":7551.74697599998,"utc":"2026-10-21T15:53:26.205Z"}
+2026-10-21T15:53:26.2178305Z RECOVERY TIMING {"event":"request-finished","ms":7563.321160999985,"utc":"2026-10-21T15:53:26.216Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:53:26.3567954Z RECOVERY TIMING {"event":"request","ms":7700.922080999982,"utc":"2026-10-21T15:53:26.354Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:53:26.3584726Z RECOVERY TIMING {"event":"import-held","ms":7701.270061999981,"utc":"2026-10-21T15:53:26.354Z","delayMs":25000}
+2026-10-21T15:53:26.4591397Z RECOVERY TIMING {"event":"cdp-document-request","ms":7805.287744999994,"utc":"2026-10-21T15:53:26.458Z","requestId":"2DB9485CD6DDA8DC9C64E9258A53BBBA","timestamp":602.16913}
+2026-10-21T15:53:26.4599955Z RECOVERY TIMING {"event":"request","ms":7806.3611729999975,"utc":"2026-10-21T15:53:26.459Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:53:26.4629076Z RECOVERY TIMING {"event":"server-document-received","ms":7809.266738999999,"utc":"2026-10-21T15:53:26.462Z"}
+2026-10-21T15:53:26.4650033Z RECOVERY TIMING {"event":"server-document-finished","ms":7809.715443000008,"utc":"2026-10-21T15:53:26.463Z"}
+2026-10-21T15:53:26.4681529Z RECOVERY TIMING {"event":"cdp-document-response","ms":7813.279861999981,"utc":"2026-10-21T15:53:26.466Z","requestId":"2DB9485CD6DDA8DC9C64E9258A53BBBA","timestamp":602.176523,"status":200,"timing":{"requestTime":602.172297,"proxyStart":-1,"proxyEnd":-1,"dnsStart":-1,"dnsEnd":-1,"connectStart":-1,"connectEnd":-1,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.344,"sendEnd":0.467,"pushStart":0,"pushEnd":0,"receiveHeadersStart":2.645,"receiveHeadersEnd":2.675}}
+2026-10-21T15:53:26.4714141Z RECOVERY TIMING {"event":"document-commit","ms":7817.676812000005,"utc":"2026-10-21T15:53:26.471Z"}
+2026-10-21T15:53:26.4805635Z RECOVERY TIMING {"event":"request-finished","ms":7826.920597000004,"utc":"2026-10-21T15:53:26.480Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:53:26.5773662Z RECOVERY TIMING {"event":"request","ms":7923.609706000003,"utc":"2026-10-21T15:53:26.577Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:53:26.5787055Z RECOVERY TIMING {"event":"import-held","ms":7924.137061000001,"utc":"2026-10-21T15:53:26.577Z","delayMs":25000}
+2026-10-21T15:53:51.3554115Z RECOVERY TIMING {"event":"import-released","ms":32701.614002000002,"utc":"2026-10-21T15:53:51.355Z","elapsedMs":25001}
+2026-10-21T15:53:51.5784386Z RECOVERY TIMING {"event":"import-released","ms":32924.678317,"utc":"2026-10-21T15:53:51.578Z","elapsedMs":25001}
+2026-10-21T15:53:51.5836259Z RECOVERY TIMING {"event":"request-finished","ms":32929.967182999986,"utc":"2026-10-21T15:53:51.583Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:53:51.5875308Z RECOVERY TIMING {"event":"dom-content-loaded","ms":32933.91698199998,"utc":"2026-10-21T15:53:51.587Z"}
+2026-10-21T15:53:51.5936027Z RECOVERY TIMING {"event":"document-load","ms":32939.58155799999,"utc":"2026-10-21T15:53:51.593Z"}
+2026-10-21T15:53:51.6052272Z RECOVERY TIMING {"event":"reload-return","ms":32951.55941999999,"utc":"2026-10-21T15:53:51.605Z"}
+2026-10-21T15:53:51.6053556Z RECOVERY TIMING {"event":"node-event-loop","ms":32951.807274999985,"utc":"2026-10-21T15:53:51.605Z","maxGapMs":102.20903500000713}
+2026-10-21T15:54:37.8873734Z PASS 0 race (sign-in before the game reads the save): the cloud farm still comes back — restored true after 72s, page loads +1, recover null, cloud rev 7->7, bad samples 0, stand-in writes 0
+2026-10-21T15:54:53.4461781Z RECOVERY TIMING {"event":"cdp-document-request","ms":94791.905232,"utc":"2026-10-21T15:54:53.445Z","requestId":"3C7D5B5E88EF6537826B0247DA138525","timestamp":689.154394}
+2026-10-21T15:54:53.4471842Z RECOVERY TIMING {"event":"request","ms":94792.86701,"utc":"2026-10-21T15:54:53.446Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:54:53.4504437Z RECOVERY TIMING {"event":"server-document-received","ms":94796.810778,"utc":"2026-10-21T15:54:53.450Z"}
+2026-10-21T15:54:53.4511604Z RECOVERY TIMING {"event":"server-document-finished","ms":94797.52174499999,"utc":"2026-10-21T15:54:53.450Z"}
+2026-10-21T15:54:53.4541901Z RECOVERY TIMING {"event":"cdp-document-response","ms":94799.91734199999,"utc":"2026-10-21T15:54:53.453Z","requestId":"3C7D5B5E88EF6537826B0247DA138525","timestamp":689.164535,"status":200,"timing":{"requestTime":689.158735,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.94,"dnsEnd":0.958,"connectStart":0.958,"connectEnd":1.143,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":1.259,"sendEnd":1.459,"pushStart":0,"pushEnd":0,"receiveHeadersStart":4.157,"receiveHeadersEnd":4.226}}
+2026-10-21T15:55:02.4163260Z RECOVERY TIMING {"event":"document-commit","ms":103761.858478,"utc":"2026-10-21T15:55:02.415Z"}
+2026-10-21T15:55:02.4258386Z RECOVERY TIMING {"event":"request-finished","ms":103772.06598599999,"utc":"2026-10-21T15:55:02.425Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:55:02.5334214Z RECOVERY TIMING {"event":"request","ms":103879.52659000001,"utc":"2026-10-21T15:55:02.532Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:55:02.5863481Z RECOVERY TIMING {"event":"request-finished","ms":103932.52635699998,"utc":"2026-10-21T15:55:02.585Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:55:02.5879966Z RECOVERY TIMING {"event":"dom-content-loaded","ms":103934.289543,"utc":"2026-10-21T15:55:02.587Z"}
+2026-10-21T15:55:02.5881055Z RECOVERY TIMING {"event":"document-load","ms":103934.45606499999,"utc":"2026-10-21T15:55:02.587Z"}
+2026-10-21T15:55:10.7430573Z RECOVERY TIMING {"event":"cdp-document-request","ms":112088.966825,"utc":"2026-10-21T15:55:10.742Z","requestId":"64C59879A2069C59996F1242C3A0968F","timestamp":706.450585}
+2026-10-21T15:55:10.7466206Z RECOVERY TIMING {"event":"request","ms":112089.45124899999,"utc":"2026-10-21T15:55:10.742Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:55:10.7511812Z RECOVERY TIMING {"event":"server-document-received","ms":112093.33700700001,"utc":"2026-10-21T15:55:10.746Z"}
+2026-10-21T15:55:10.7541313Z RECOVERY TIMING {"event":"server-document-finished","ms":112095.34246500001,"utc":"2026-10-21T15:55:10.748Z"}
+2026-10-21T15:55:10.7585185Z RECOVERY TIMING {"event":"cdp-document-response","ms":112104.650447,"utc":"2026-10-21T15:55:10.758Z","requestId":"64C59879A2069C59996F1242C3A0968F","timestamp":706.465201,"status":200,"timing":{"requestTime":706.456683,"proxyStart":-1,"proxyEnd":-1,"dnsStart":-1,"dnsEnd":-1,"connectStart":-1,"connectEnd":-1,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.558,"sendEnd":0.613,"pushStart":0,"pushEnd":0,"receiveHeadersStart":5.472,"receiveHeadersEnd":5.53}}
+2026-10-21T15:55:16.0725905Z RECOVERY TIMING {"event":"document-commit","ms":117418.76967999998,"utc":"2026-10-21T15:55:16.072Z"}
+2026-10-21T15:55:16.1020520Z RECOVERY TIMING {"event":"request-finished","ms":117448.29549099998,"utc":"2026-10-21T15:55:16.101Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:55:16.2317068Z RECOVERY TIMING {"event":"request","ms":117577.883889,"utc":"2026-10-21T15:55:16.231Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:55:16.2731941Z RECOVERY TIMING {"event":"request-finished","ms":117619.430867,"utc":"2026-10-21T15:55:16.272Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:55:16.2813346Z RECOVERY TIMING {"event":"dom-content-loaded","ms":117627.580267,"utc":"2026-10-21T15:55:16.281Z"}
+2026-10-21T15:55:16.2858596Z RECOVERY TIMING {"event":"document-load","ms":117631.64469,"utc":"2026-10-21T15:55:16.285Z"}
+2026-10-21T15:55:42.8500454Z PASS 1.1 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload — restored true in 31.3s, same progress true, page loads +2, recover null
+2026-10-21T15:55:42.8555816Z PASS 1.1 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) — rev 8->8, bad samples 0, stand-in writes sent 0
+2026-10-21T15:55:58.0576646Z PASS 1.1 a normal save after recovery uploads the restored farm — rev 8->9
+2026-10-21T15:56:13.3824144Z RECOVERY TIMING {"event":"cdp-document-request","ms":174728.620368,"utc":"2026-10-21T15:56:13.382Z","requestId":"AA3B527DCB7AD28B16A4B4EBC4CCB92C","timestamp":769.093182}
+2026-10-21T15:56:13.3841615Z RECOVERY TIMING {"event":"request","ms":174729.77922099998,"utc":"2026-10-21T15:56:13.383Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:56:13.3867287Z RECOVERY TIMING {"event":"server-document-received","ms":174732.45716299996,"utc":"2026-10-21T15:56:13.385Z"}
+2026-10-21T15:56:13.3875933Z RECOVERY TIMING {"event":"server-document-finished","ms":174732.951581,"utc":"2026-10-21T15:56:13.386Z"}
+2026-10-21T15:56:13.3880561Z RECOVERY TIMING {"event":"cdp-document-response","ms":174733.91877399996,"utc":"2026-10-21T15:56:13.387Z","requestId":"AA3B527DCB7AD28B16A4B4EBC4CCB92C","timestamp":769.098575,"status":200,"timing":{"requestTime":769.096239,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.379,"dnsEnd":0.394,"connectStart":0.394,"connectEnd":0.549,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.606,"sendEnd":0.645,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.54,"receiveHeadersEnd":1.589}}
+2026-10-21T15:56:21.5810461Z RECOVERY TIMING {"event":"document-commit","ms":182927.271243,"utc":"2026-10-21T15:56:21.580Z"}
+2026-10-21T15:56:21.5941456Z RECOVERY TIMING {"event":"request-finished","ms":182940.414467,"utc":"2026-10-21T15:56:21.593Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:56:21.6643070Z RECOVERY TIMING {"event":"request","ms":183009.63188399997,"utc":"2026-10-21T15:56:21.663Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:56:21.6984696Z RECOVERY TIMING {"event":"request-finished","ms":183044.45129599998,"utc":"2026-10-21T15:56:21.697Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:56:21.7228268Z RECOVERY TIMING {"event":"dom-content-loaded","ms":183066.17390499997,"utc":"2026-10-21T15:56:21.719Z"}
+2026-10-21T15:56:21.7276456Z RECOVERY TIMING {"event":"document-load","ms":183071.96667999995,"utc":"2026-10-21T15:56:21.725Z"}
+2026-10-21T15:56:29.3413296Z RECOVERY TIMING {"event":"cdp-document-request","ms":190687.57540499995,"utc":"2026-10-21T15:56:29.341Z","requestId":"DE896D2E18724B45A250699F54D9593B","timestamp":785.049799}
+2026-10-21T15:56:29.3472896Z RECOVERY TIMING {"event":"request","ms":190693.243577,"utc":"2026-10-21T15:56:29.346Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:56:29.3553640Z RECOVERY TIMING {"event":"server-document-received","ms":190698.84602399997,"utc":"2026-10-21T15:56:29.352Z"}
+2026-10-21T15:56:29.3558116Z RECOVERY TIMING {"event":"server-document-finished","ms":190699.577721,"utc":"2026-10-21T15:56:29.353Z"}
+2026-10-21T15:56:29.3576203Z RECOVERY TIMING {"event":"cdp-document-response","ms":190702.96342399996,"utc":"2026-10-21T15:56:29.356Z","requestId":"DE896D2E18724B45A250699F54D9593B","timestamp":785.067491,"status":200,"timing":{"requestTime":785.059832,"proxyStart":-1,"proxyEnd":-1,"dnsStart":-1,"dnsEnd":-1,"connectStart":-1,"connectEnd":-1,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":3.711,"sendEnd":3.757,"pushStart":0,"pushEnd":0,"receiveHeadersStart":4.412,"receiveHeadersEnd":4.467}}
+2026-10-21T15:56:32.4848552Z RECOVERY TIMING {"event":"document-commit","ms":193830.97255299997,"utc":"2026-10-21T15:56:32.484Z"}
+2026-10-21T15:56:32.4980644Z RECOVERY TIMING {"event":"request-finished","ms":193844.34801199997,"utc":"2026-10-21T15:56:32.497Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:56:32.5995448Z RECOVERY TIMING {"event":"request","ms":193945.16802699998,"utc":"2026-10-21T15:56:32.598Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:56:32.6542839Z RECOVERY TIMING {"event":"request-finished","ms":194000.540592,"utc":"2026-10-21T15:56:32.653Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:56:32.6613840Z RECOVERY TIMING {"event":"dom-content-loaded","ms":194007.663809,"utc":"2026-10-21T15:56:32.661Z"}
+2026-10-21T15:56:32.6658108Z RECOVERY TIMING {"event":"document-load","ms":194011.75643199997,"utc":"2026-10-21T15:56:32.665Z"}
+2026-10-21T15:57:01.9679355Z PASS 1.2 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload — restored true in 27.4s, same progress true, page loads +2, recover null
+2026-10-21T15:57:01.9680764Z PASS 1.2 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) — rev 10->10, bad samples 0, stand-in writes sent 0
+2026-10-21T15:57:17.1472820Z PASS 1.2 a normal save after recovery uploads the restored farm — rev 10->11
+2026-10-21T15:57:32.4206800Z RECOVERY TIMING {"event":"cdp-document-request","ms":253766.696437,"utc":"2026-10-21T15:57:32.420Z","requestId":"8AD2057A38C82C8882AC97FF27043211","timestamp":848.13047}
+2026-10-21T15:57:32.4233971Z RECOVERY TIMING {"event":"request","ms":253768.26660499995,"utc":"2026-10-21T15:57:32.421Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:57:32.4305122Z RECOVERY TIMING {"event":"server-document-received","ms":253770.537229,"utc":"2026-10-21T15:57:32.423Z"}
+2026-10-21T15:57:32.4374609Z RECOVERY TIMING {"event":"server-document-finished","ms":253770.96184,"utc":"2026-10-21T15:57:32.424Z"}
+2026-10-21T15:57:32.4394393Z RECOVERY TIMING {"event":"cdp-document-response","ms":253773.757866,"utc":"2026-10-21T15:57:32.427Z","requestId":"8AD2057A38C82C8882AC97FF27043211","timestamp":848.137451,"status":200,"timing":{"requestTime":848.134179,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.478,"dnsEnd":0.494,"connectStart":0.494,"connectEnd":0.816,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.925,"sendEnd":1.838,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.854,"receiveHeadersEnd":1.901}}
+2026-10-21T15:57:39.1987195Z RECOVERY TIMING {"event":"document-commit","ms":260544.92838499998,"utc":"2026-10-21T15:57:39.198Z"}
+2026-10-21T15:57:39.2081037Z RECOVERY TIMING {"event":"request-finished","ms":260554.413695,"utc":"2026-10-21T15:57:39.207Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:57:39.3036569Z RECOVERY TIMING {"event":"request","ms":260645.591854,"utc":"2026-10-21T15:57:39.299Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:57:39.3445775Z RECOVERY TIMING {"event":"request-finished","ms":260690.51405999996,"utc":"2026-10-21T15:57:39.343Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:57:39.3486292Z RECOVERY TIMING {"event":"dom-content-loaded","ms":260694.99890299997,"utc":"2026-10-21T15:57:39.348Z"}
+2026-10-21T15:57:39.3690513Z RECOVERY TIMING {"event":"document-load","ms":260713.98868099996,"utc":"2026-10-21T15:57:39.367Z"}
+2026-10-21T15:58:07.9813639Z PASS 2 good local + corrupt cloud: phone farm kept, one page load, cloud repaired with it — page loads +1, cloud rev 14 (corrupt was 13), cloud has sentinel true
+2026-10-21T15:58:08.0018165Z RECOVERY TIMING {"event":"cdp-document-request","ms":289347.57776699995,"utc":"2026-10-21T15:58:08.001Z","requestId":"729961C2B38DB025197C720D7A64A8C9","timestamp":883.7123}
+2026-10-21T15:58:08.0049263Z RECOVERY TIMING {"event":"request","ms":289349.84271299996,"utc":"2026-10-21T15:58:08.003Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:58:08.0067768Z RECOVERY TIMING {"event":"server-document-received","ms":289352.186889,"utc":"2026-10-21T15:58:08.005Z"}
+2026-10-21T15:58:08.0077353Z RECOVERY TIMING {"event":"server-document-finished","ms":289352.82829599996,"utc":"2026-10-21T15:58:08.006Z"}
+2026-10-21T15:58:08.0094736Z RECOVERY TIMING {"event":"cdp-document-response","ms":289355.698766,"utc":"2026-10-21T15:58:08.009Z","requestId":"729961C2B38DB025197C720D7A64A8C9","timestamp":883.72011,"status":200,"timing":{"requestTime":883.715832,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.466,"dnsEnd":0.531,"connectStart":0.531,"connectEnd":0.649,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.771,"sendEnd":0.975,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.764,"receiveHeadersEnd":1.829}}
+2026-10-21T15:58:14.3342234Z RECOVERY TIMING {"event":"document-commit","ms":295678.571617,"utc":"2026-10-21T15:58:14.332Z"}
+2026-10-21T15:58:14.3454168Z RECOVERY TIMING {"event":"request-finished","ms":295691.50546699995,"utc":"2026-10-21T15:58:14.344Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:58:14.4541923Z RECOVERY TIMING {"event":"request","ms":295799.15908799996,"utc":"2026-10-21T15:58:14.452Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:58:14.4802569Z RECOVERY TIMING {"event":"request-finished","ms":295825.08552799997,"utc":"2026-10-21T15:58:14.478Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:58:14.5066566Z RECOVERY TIMING {"event":"dom-content-loaded","ms":295849.193034,"utc":"2026-10-21T15:58:14.502Z"}
+2026-10-21T15:58:14.5086238Z RECOVERY TIMING {"event":"document-load","ms":295853.29713099997,"utc":"2026-10-21T15:58:14.506Z"}
+2026-10-21T15:58:49.1949352Z PASS 3 corrupt local + missing cloud: no recovery reload, copy kept, the farm starts a new cloud save — page loads +1, recover null, sync-rev 0, kept first copy true, new cloud rev 1
+2026-10-21T15:58:49.1965764Z RECOVERY TIMING {"event":"renderer-release-call","ms":330542.480672,"utc":"2026-10-21T15:58:49.195Z"}
+2026-10-21T15:58:54.7076759Z RECOVERY TIMING {"event":"renderer-release-return","ms":336053.82960199995,"utc":"2026-10-21T15:58:54.707Z","releaseMs":5501.599999999977,"contextLost":true}
+2026-10-21T15:58:54.7140581Z RECOVERY TIMING {"event":"cdp-document-request","ms":336060.379484,"utc":"2026-10-21T15:58:54.713Z","requestId":"E7322BBE07109FCB9897CFFD05593F79","timestamp":930.425194}
+2026-10-21T15:58:54.7157185Z RECOVERY TIMING {"event":"request","ms":336061.64191899996,"utc":"2026-10-21T15:58:54.715Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:58:54.7170763Z RECOVERY TIMING {"event":"server-document-received","ms":336062.913778,"utc":"2026-10-21T15:58:54.716Z"}
+2026-10-21T15:58:54.7171506Z RECOVERY TIMING {"event":"server-document-finished","ms":336063.353661,"utc":"2026-10-21T15:58:54.716Z"}
+2026-10-21T15:58:54.7178522Z RECOVERY TIMING {"event":"cdp-document-response","ms":336064.178105,"utc":"2026-10-21T15:58:54.717Z","requestId":"E7322BBE07109FCB9897CFFD05593F79","timestamp":930.428848,"status":200,"timing":{"requestTime":930.427257,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.187,"dnsEnd":0.244,"connectStart":0.244,"connectEnd":0.386,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.448,"sendEnd":0.505,"pushStart":0,"pushEnd":0,"receiveHeadersStart":0.945,"receiveHeadersEnd":0.995}}
+2026-10-21T15:58:54.7309511Z RECOVERY TIMING {"event":"document-commit","ms":336075.788297,"utc":"2026-10-21T15:58:54.729Z"}
+2026-10-21T15:58:54.7360863Z RECOVERY TIMING {"event":"request-finished","ms":336082.411325,"utc":"2026-10-21T15:58:54.735Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T15:58:54.8188814Z RECOVERY TIMING {"event":"request","ms":336164.781371,"utc":"2026-10-21T15:58:54.818Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T15:58:54.8190349Z RECOVERY TIMING {"event":"import-held","ms":336164.978739,"utc":"2026-10-21T15:58:54.818Z","delayMs":25000}
+2026-10-21T15:59:19.8230952Z RECOVERY TIMING {"event":"import-released","ms":361169.33019899996,"utc":"2026-10-21T15:59:19.822Z","elapsedMs":25004}
+2026-10-21T15:59:19.8276766Z RECOVERY TIMING {"event":"request-finished","ms":361174.05805399996,"utc":"2026-10-21T15:59:19.827Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T15:59:19.8321359Z RECOVERY TIMING {"event":"dom-content-loaded","ms":361178.52303499996,"utc":"2026-10-21T15:59:19.831Z"}
+2026-10-21T15:59:19.8354378Z RECOVERY TIMING {"event":"document-load","ms":361181.830784,"utc":"2026-10-21T15:59:19.835Z"}
+2026-10-21T15:59:39.4495480Z PASS 3b missing cloud + delayed game startup: recovery clears after load, first copy kept, new cloud save starts — page loads +1, recover null, first copy kept true, new cloud rev 1
+2026-10-21T15:59:54.7687356Z RECOVERY TIMING {"event":"cdp-document-request","ms":396114.946082,"utc":"2026-10-21T15:59:54.768Z","requestId":"455E1B233B0A326B75372C2AC7180D13","timestamp":990.479702}
+2026-10-21T15:59:54.7746615Z RECOVERY TIMING {"event":"request","ms":396117.826994,"utc":"2026-10-21T15:59:54.771Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T15:59:54.7804562Z RECOVERY TIMING {"event":"server-document-received","ms":396122.798585,"utc":"2026-10-21T15:59:54.776Z"}
+2026-10-21T15:59:54.7836904Z RECOVERY TIMING {"event":"server-document-finished","ms":396123.284489,"utc":"2026-10-21T15:59:54.776Z"}
+2026-10-21T15:59:54.7866889Z RECOVERY TIMING {"event":"cdp-document-response","ms":396126.80447599996,"utc":"2026-10-21T15:59:54.780Z","requestId":"455E1B233B0A326B75372C2AC7180D13","timestamp":990.489429,"status":200,"timing":{"requestTime":990.486798,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.391,"dnsEnd":0.407,"connectStart":0.407,"connectEnd":0.584,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.649,"sendEnd":0.698,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.728,"receiveHeadersEnd":1.778}}
+2026-10-21T16:00:00.8333214Z RECOVERY TIMING {"event":"document-commit","ms":402178.93816900003,"utc":"2026-10-21T16:00:00.832Z"}
+2026-10-21T16:00:00.8436675Z RECOVERY TIMING {"event":"request-finished","ms":402188.329083,"utc":"2026-10-21T16:00:00.841Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:00:00.9428107Z RECOVERY TIMING {"event":"request","ms":402288.46547500003,"utc":"2026-10-21T16:00:00.941Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:00:00.9647878Z RECOVERY TIMING {"event":"request-finished","ms":402311.05982699996,"utc":"2026-10-21T16:00:00.964Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:00:00.9786801Z RECOVERY TIMING {"event":"dom-content-loaded","ms":402324.905924,"utc":"2026-10-21T16:00:00.978Z"}
+2026-10-21T16:00:00.9810779Z RECOVERY TIMING {"event":"document-load","ms":402326.872362,"utc":"2026-10-21T16:00:00.980Z"}
+2026-10-21T16:00:39.5251463Z PASS 11 cloud unreachable at start (no recovery): the same visit syncs when it comes back, no reload — recover null, cloud rev 2->3, page loads +1
+2026-10-21T16:00:54.8824936Z RECOVERY TIMING {"event":"cdp-document-request","ms":456228.67505699996,"utc":"2026-10-21T16:00:54.882Z","requestId":"8CD401F47820BD14ACE6039667129F4D","timestamp":1050.593343}
+2026-10-21T16:00:54.8857370Z RECOVERY TIMING {"event":"request","ms":456230.874456,"utc":"2026-10-21T16:00:54.884Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:00:54.8946686Z RECOVERY TIMING {"event":"server-document-received","ms":456233.665279,"utc":"2026-10-21T16:00:54.887Z"}
+2026-10-21T16:00:54.8947757Z RECOVERY TIMING {"event":"server-document-finished","ms":456234.373858,"utc":"2026-10-21T16:00:54.887Z"}
+2026-10-21T16:00:54.8961011Z RECOVERY TIMING {"event":"cdp-document-response","ms":456238.658645,"utc":"2026-10-21T16:00:54.892Z","requestId":"8CD401F47820BD14ACE6039667129F4D","timestamp":1050.6024,"status":200,"timing":{"requestTime":1050.596974,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.459,"dnsEnd":0.476,"connectStart":0.476,"connectEnd":0.66,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.729,"sendEnd":0.781,"pushStart":0,"pushEnd":0,"receiveHeadersStart":2.627,"receiveHeadersEnd":2.686}}
+2026-10-21T16:01:00.2806442Z RECOVERY TIMING {"event":"document-commit","ms":461626.74277099996,"utc":"2026-10-21T16:01:00.280Z"}
+2026-10-21T16:01:00.2896954Z RECOVERY TIMING {"event":"request-finished","ms":461635.99344299996,"utc":"2026-10-21T16:01:00.289Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:01:00.4001583Z RECOVERY TIMING {"event":"request","ms":461740.30710399995,"utc":"2026-10-21T16:01:00.393Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:01:00.4617267Z RECOVERY TIMING {"event":"request-finished","ms":461807.90707799996,"utc":"2026-10-21T16:01:00.461Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:01:00.4628463Z RECOVERY TIMING {"event":"dom-content-loaded","ms":461809.162233,"utc":"2026-10-21T16:01:00.462Z"}
+2026-10-21T16:01:00.4786493Z RECOVERY TIMING {"event":"document-load","ms":461822.28996599995,"utc":"2026-10-21T16:01:00.475Z"}
+2026-10-21T16:01:25.5742087Z RECOVERY TIMING {"event":"cdp-document-request","ms":486920.38061299996,"utc":"2026-10-21T16:01:25.573Z","requestId":"140821671C3DA5774C5C440E2EE7DC9F","timestamp":1081.282194}
+2026-10-21T16:01:25.5804919Z RECOVERY TIMING {"event":"request","ms":486926.78798900003,"utc":"2026-10-21T16:01:25.580Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:01:25.5855009Z RECOVERY TIMING {"event":"server-document-received","ms":486931.802543,"utc":"2026-10-21T16:01:25.585Z"}
+2026-10-21T16:01:25.5954980Z RECOVERY TIMING {"event":"server-document-finished","ms":486932.569681,"utc":"2026-10-21T16:01:25.586Z"}
+2026-10-21T16:01:25.5996906Z RECOVERY TIMING {"event":"cdp-document-response","ms":486937.25894399994,"utc":"2026-10-21T16:01:25.590Z","requestId":"140821671C3DA5774C5C440E2EE7DC9F","timestamp":1081.299607,"status":200,"timing":{"requestTime":1081.294269,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.768,"dnsEnd":0.786,"connectStart":0.786,"connectEnd":0.971,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":1.045,"sendEnd":1.097,"pushStart":0,"pushEnd":0,"receiveHeadersStart":3.69,"receiveHeadersEnd":3.786}}
+2026-10-21T16:01:31.8651330Z RECOVERY TIMING {"event":"document-commit","ms":493211.100576,"utc":"2026-10-21T16:01:31.864Z"}
+2026-10-21T16:01:31.8776938Z RECOVERY TIMING {"event":"request-finished","ms":493223.72218999994,"utc":"2026-10-21T16:01:31.877Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:01:31.9797721Z RECOVERY TIMING {"event":"request","ms":493325.21200999996,"utc":"2026-10-21T16:01:31.978Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:01:32.0407275Z RECOVERY TIMING {"event":"request-finished","ms":493384.8228789999,"utc":"2026-10-21T16:01:32.038Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:01:32.0492989Z RECOVERY TIMING {"event":"dom-content-loaded","ms":493395.542022,"utc":"2026-10-21T16:01:32.048Z"}
+2026-10-21T16:01:32.0525855Z RECOVERY TIMING {"event":"document-load","ms":493396.319876,"utc":"2026-10-21T16:01:32.049Z"}
+2026-10-21T16:01:45.7612060Z PASS 12a slow cloud read (held 30 s): gave up after 20 s, retried, real farm restored, nothing uploaded meanwhile — timeout logged true, restored true after 45s, page loads +2, bad samples 0, stand-in writes 0
+2026-10-21T16:02:01.0706139Z RECOVERY TIMING {"event":"cdp-document-request","ms":522416.8189959999,"utc":"2026-10-21T16:02:01.070Z","requestId":"5D4C7F5B20F25F463BA200E6138477C3","timestamp":1116.779767}
+2026-10-21T16:02:01.0726738Z RECOVERY TIMING {"event":"request","ms":522417.35974299995,"utc":"2026-10-21T16:02:01.070Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:02:01.0728048Z RECOVERY TIMING {"event":"server-document-received","ms":522419.2442189999,"utc":"2026-10-21T16:02:01.072Z"}
+2026-10-21T16:02:01.0735352Z RECOVERY TIMING {"event":"server-document-finished","ms":522419.75744399993,"utc":"2026-10-21T16:02:01.073Z"}
+2026-10-21T16:02:01.0774090Z RECOVERY TIMING {"event":"cdp-document-response","ms":522423.2750559999,"utc":"2026-10-21T16:02:01.076Z","requestId":"5D4C7F5B20F25F463BA200E6138477C3","timestamp":1116.786918,"status":200,"timing":{"requestTime":1116.783432,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.233,"dnsEnd":0.251,"connectStart":0.251,"connectEnd":0.42,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.526,"sendEnd":0.595,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.147,"receiveHeadersEnd":1.197}}
+2026-10-21T16:02:07.0790458Z RECOVERY TIMING {"event":"document-commit","ms":528423.801893,"utc":"2026-10-21T16:02:07.077Z"}
+2026-10-21T16:02:07.0887360Z RECOVERY TIMING {"event":"request-finished","ms":528434.9617730001,"utc":"2026-10-21T16:02:07.088Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:02:07.1932109Z RECOVERY TIMING {"event":"request","ms":528537.635831,"utc":"2026-10-21T16:02:07.191Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:02:07.2522940Z RECOVERY TIMING {"event":"request-finished","ms":528598.45756,"utc":"2026-10-21T16:02:07.251Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:02:07.2555372Z RECOVERY TIMING {"event":"dom-content-loaded","ms":528601.801337,"utc":"2026-10-21T16:02:07.255Z"}
+2026-10-21T16:02:07.2594644Z RECOVERY TIMING {"event":"document-load","ms":528605.763323,"utc":"2026-10-21T16:02:07.259Z"}
+2026-10-21T16:03:02.8645708Z PASS 12b late answer of the timed-out read is ignored; the newer read stands; sync keeps working; no reload — {"timeout":true,"lateIgnored":true,"retried":true,"notRecovering":true,"synced":true,"sentinel":true,"oneLoad":true} cloud rev 5->7
+2026-10-21T16:03:18.2058315Z RECOVERY TIMING {"event":"cdp-document-request","ms":599550.725338,"utc":"2026-10-21T16:03:18.204Z","requestId":"08B39AEFCB308B2FD5758D6793D6E674","timestamp":1193.913409}
+2026-10-21T16:03:18.2059555Z RECOVERY TIMING {"event":"request","ms":599551.4126360001,"utc":"2026-10-21T16:03:18.204Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:03:18.2100681Z RECOVERY TIMING {"event":"server-document-received","ms":599556.326829,"utc":"2026-10-21T16:03:18.209Z"}
+2026-10-21T16:03:18.2104747Z RECOVERY TIMING {"event":"server-document-finished","ms":599556.889739,"utc":"2026-10-21T16:03:18.210Z"}
+2026-10-21T16:03:18.2175835Z RECOVERY TIMING {"event":"cdp-document-response","ms":599562.4147740001,"utc":"2026-10-21T16:03:18.215Z","requestId":"08B39AEFCB308B2FD5758D6793D6E674","timestamp":1193.924645,"status":200,"timing":{"requestTime":1193.919718,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.501,"dnsEnd":0.518,"connectStart":0.518,"connectEnd":0.697,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.762,"sendEnd":0.811,"pushStart":0,"pushEnd":0,"receiveHeadersStart":2.324,"receiveHeadersEnd":2.375}}
+2026-10-21T16:03:24.4040892Z RECOVERY TIMING {"event":"document-commit","ms":605750.32695,"utc":"2026-10-21T16:03:24.403Z"}
+2026-10-21T16:03:24.4151388Z RECOVERY TIMING {"event":"request-finished","ms":605761.237508,"utc":"2026-10-21T16:03:24.414Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:03:24.4945789Z RECOVERY TIMING {"event":"request","ms":605840.3095270001,"utc":"2026-10-21T16:03:24.493Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:03:24.5506529Z RECOVERY TIMING {"event":"request-finished","ms":605895.636009,"utc":"2026-10-21T16:03:24.549Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:03:24.5655487Z RECOVERY TIMING {"event":"dom-content-loaded","ms":605907.6669640001,"utc":"2026-10-21T16:03:24.561Z"}
+2026-10-21T16:03:24.5656692Z RECOVERY TIMING {"event":"document-load","ms":605911.7769310001,"utc":"2026-10-21T16:03:24.565Z"}
+2026-10-21T16:03:47.4189925Z RECOVERY TIMING {"event":"cdp-document-request","ms":628764.242342,"utc":"2026-10-21T16:03:47.417Z","requestId":"74D049C0256F868E35DC8370EB59E7CE","timestamp":1223.128881}
+2026-10-21T16:03:47.4251726Z RECOVERY TIMING {"event":"request","ms":628766.506151,"utc":"2026-10-21T16:03:47.419Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:03:47.4301035Z RECOVERY TIMING {"event":"server-document-received","ms":628768.8636820001,"utc":"2026-10-21T16:03:47.422Z"}
+2026-10-21T16:03:47.4313464Z RECOVERY TIMING {"event":"server-document-finished","ms":628769.301102,"utc":"2026-10-21T16:03:47.422Z"}
+2026-10-21T16:03:47.4316459Z RECOVERY TIMING {"event":"cdp-document-response","ms":628774.058818,"utc":"2026-10-21T16:03:47.427Z","requestId":"74D049C0256F868E35DC8370EB59E7CE","timestamp":1223.137123,"status":200,"timing":{"requestTime":1223.132426,"proxyStart":-1,"proxyEnd":-1,"dnsStart":0.527,"dnsEnd":0.608,"connectStart":0.608,"connectEnd":0.722,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":0.785,"sendEnd":0.83,"pushStart":0,"pushEnd":0,"receiveHeadersStart":1.969,"receiveHeadersEnd":2.033}}
+2026-10-21T16:03:53.6213497Z RECOVERY TIMING {"event":"document-commit","ms":634967.557043,"utc":"2026-10-21T16:03:53.621Z"}
+2026-10-21T16:03:53.6332685Z RECOVERY TIMING {"event":"request-finished","ms":634979.020913,"utc":"2026-10-21T16:03:53.632Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:03:53.7310680Z RECOVERY TIMING {"event":"request","ms":635077.302881,"utc":"2026-10-21T16:03:53.730Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:03:53.7636804Z RECOVERY TIMING {"event":"request-finished","ms":635108.155134,"utc":"2026-10-21T16:03:53.761Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:03:53.7703055Z RECOVERY TIMING {"event":"dom-content-loaded","ms":635109.7737090001,"utc":"2026-10-21T16:03:53.763Z"}
+2026-10-21T16:03:53.7725637Z RECOVERY TIMING {"event":"document-load","ms":635109.994683,"utc":"2026-10-21T16:03:53.763Z"}
+2026-10-21T16:04:42.0703075Z PASS 4/9/10/8 reload during recovery: still pending after a reload, same coins/different state, nothing uploaded through 25 s online (> 15 s delay) — pending 1/1/1, stand-in coins 75 = good 75, farm reads refused 1, bad samples 0, stand-in writes 0
+2026-10-21T16:05:02.2626619Z PASS 6 sign-out during recovery: nothing uploaded, recovery still pending — pending 1, bad samples 0, stand-in writes 0
+2026-10-21T16:05:03.3784009Z RECOVERY TIMING {"event":"cdp-document-request","ms":704724.6673620001,"utc":"2026-10-21T16:05:03.378Z","requestId":"A85F7FDC92D0677FE9A0B56CBB9FE90C","timestamp":1299.084235}
+2026-10-21T16:05:03.3793868Z RECOVERY TIMING {"event":"request","ms":704724.827834,"utc":"2026-10-21T16:05:03.378Z","url":"http://127.0.0.1:36677/farm3d/","document":true}
+2026-10-21T16:05:03.3840384Z RECOVERY TIMING {"event":"server-document-received","ms":704730.447795,"utc":"2026-10-21T16:05:03.383Z"}
+2026-10-21T16:05:03.3854553Z RECOVERY TIMING {"event":"server-document-finished","ms":704731.141953,"utc":"2026-10-21T16:05:03.384Z"}
+2026-10-21T16:05:03.3931953Z RECOVERY TIMING {"event":"cdp-document-response","ms":704737.290207,"utc":"2026-10-21T16:05:03.390Z","requestId":"A85F7FDC92D0677FE9A0B56CBB9FE90C","timestamp":1299.099277,"status":200,"timing":{"requestTime":1299.0931,"proxyStart":-1,"proxyEnd":-1,"dnsStart":1.142,"dnsEnd":1.149,"connectStart":1.149,"connectEnd":1.238,"sslStart":-1,"sslEnd":-1,"workerStart":-1,"workerReady":-1,"workerFetchStart":-1,"workerRespondWithSettled":-1,"sendStart":1.574,"sendEnd":1.737,"pushStart":0,"pushEnd":0,"receiveHeadersStart":3.375,"receiveHeadersEnd":3.41}}
+2026-10-21T16:05:09.7830021Z RECOVERY TIMING {"event":"document-commit","ms":711129.085467,"utc":"2026-10-21T16:05:09.782Z"}
+2026-10-21T16:05:09.7939232Z RECOVERY TIMING {"event":"request-finished","ms":711140.1214620001,"utc":"2026-10-21T16:05:09.793Z","url":"http://127.0.0.1:36677/farm3d/"}
+2026-10-21T16:05:09.9516595Z RECOVERY TIMING {"event":"request","ms":711295.6354220001,"utc":"2026-10-21T16:05:09.949Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js","document":false}
+2026-10-21T16:05:10.0306065Z RECOVERY TIMING {"event":"request-finished","ms":711376.8451950001,"utc":"2026-10-21T16:05:10.030Z","url":"http://127.0.0.1:36677/farm3d/cow3d.js"}
+2026-10-21T16:05:10.0315239Z RECOVERY TIMING {"event":"dom-content-loaded","ms":711377.7670870001,"utc":"2026-10-21T16:05:10.031Z"}
+2026-10-21T16:05:10.0321175Z RECOVERY TIMING {"event":"document-load","ms":711378.552103,"utc":"2026-10-21T16:05:10.031Z"}
+2026-10-21T16:05:18.4240061Z PASS 5 sign-in during recovery: cloud farm restored, cloud copy byte-identical — restored true, page loads +1, cloud rev 8
+2026-10-21T16:05:18.4241633Z RECOVERY TIMING {"event":"trace-stop","ms":719768.924496,"utc":"2026-10-21T16:05:18.422Z"}
+2026-10-21T16:05:26.0984621Z 
+2026-10-21T16:05:26.0985758Z RECOVERY: 22/22 passed (console logs: artifacts/console-*.log)
+2026-10-21T16:05:26.1166673Z [32m[1m✔ [22m[39m Script exited successfully (code 0)
+2026-10-21T16:05:26.6177385Z [36m[1mi  emulators:[22m[39m Shutting down emulators.
+2026-10-21T16:05:26.6179561Z [36m[1mi  functions:[22m[39m Stopping Functions Emulator
+2026-10-21T16:05:26.6186499Z [36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+2026-10-21T16:05:26.9527772Z [36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+2026-10-21T16:05:26.9528528Z [36m[1mi  eventarc:[22m[39m Stopping Eventarc Emulator
+2026-10-21T16:05:26.9529631Z [36m[1mi  tasks:[22m[39m Stopping Cloud Tasks Emulator
+2026-10-21T16:05:26.9530726Z [36m[1mi  hub:[22m[39m Stopping emulator hub
+2026-10-21T16:05:26.9538044Z [36m[1mi  logging:[22m[39m Stopping Logging Emulator
+2026-10-21T16:05:26.9952673Z ##[group]Run node --test sdk.test.mjs && node sdk.browser.cjs
+2026-10-21T16:05:26.9952952Z [36;1mnode --test sdk.test.mjs && node sdk.browser.cjs[0m
+2026-10-21T16:05:27.0008315Z shell: /usr/bin/bash -e {0}
+2026-10-21T16:05:27.0008455Z env:
+2026-10-21T16:05:27.0008631Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T16:05:27.0008912Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T16:05:27.0009125Z   MAVEN_ARGS: -ntp
+2026-10-21T16:05:27.0009342Z   PLAYWRIGHT_MODULE: /home/runner/work/Bugsy/Bugsy/farm3d/firebase/node_modules/playwright
+2026-10-21T16:05:27.0009599Z ##[endgroup]
+2026-10-21T16:05:27.0344654Z TAP version 13
+2026-10-21T16:05:27.0619581Z # Subtest: production, locked browser package and emulator use one exact modular SDK
+2026-10-21T16:05:27.0624561Z ok 1 - production, locked browser package and emulator use one exact modular SDK
+2026-10-21T16:05:27.0625140Z   ---
+2026-10-21T16:05:27.0625485Z   duration_ms: 4.252293
+2026-10-21T16:05:27.0625773Z   type: 'test'
+2026-10-21T16:05:27.0625971Z   ...
+2026-10-21T16:05:27.0681026Z 1..1
+2026-10-21T16:05:27.0681653Z # tests 1
+2026-10-21T16:05:27.0682015Z # suites 0
+2026-10-21T16:05:27.0682532Z # pass 1
+2026-10-21T16:05:27.0683126Z # fail 0
+2026-10-21T16:05:27.0683506Z # cancelled 0
+2026-10-21T16:05:27.0683793Z # skipped 0
+2026-10-21T16:05:27.0684328Z # todo 0
+2026-10-21T16:05:27.0684640Z # duration_ms 40.654073
+2026-10-21T16:05:27.8069495Z PASS actual SDK modules and owner sign-in boot 12.19.0 storage blocked: false
+2026-10-21T16:05:28.3164423Z PASS actual SDK modules and owner sign-in boot 12.19.0 storage blocked: true
+2026-10-21T16:05:28.4862308Z ##[group]Run actions/upload-artifact@v5
+2026-10-21T16:05:28.4862484Z with:
+2026-10-21T16:05:28.4862607Z   name: farm3d-firebase-1
+2026-10-21T16:05:28.4862780Z   path: farm3d/firebase/artifacts/
+farm3d/tests/artifacts/
+
+2026-10-21T16:05:28.4862971Z   if-no-files-found: ignore
+2026-10-21T16:05:28.4863108Z   retention-days: 7
+2026-10-21T16:05:28.4863228Z   compression-level: 6
+2026-10-21T16:05:28.4863351Z   overwrite: false
+2026-10-21T16:05:28.4863472Z   include-hidden-files: false
+2026-10-21T16:05:28.4863608Z env:
+2026-10-21T16:05:28.4863773Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T16:05:28.4864041Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+2026-10-21T16:05:28.4864250Z   MAVEN_ARGS: -ntp
+2026-10-21T16:05:28.4864368Z ##[endgroup]
+2026-10-21T16:05:28.5883459Z (node:4703) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-21T16:05:28.5884031Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-21T16:05:28.5945891Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-21T16:05:28.5947273Z The least common ancestor is /home/runner/work/Bugsy/Bugsy/farm3d. This will be the root directory of the artifact
+2026-10-21T16:05:28.5947937Z With the provided path, there will be 9 files uploaded
+2026-10-21T16:05:28.5950487Z Artifact name is valid!
+2026-10-21T16:05:28.5951043Z Root directory input is valid!
+2026-10-21T16:05:28.8919821Z Beginning upload of artifact content to blob storage
+2026-10-21T16:05:29.1490513Z (node:4703) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-21T16:05:29.6154381Z Uploaded bytes 7089309
+2026-10-21T16:05:29.6533952Z Finished uploading artifact content to blob storage!
+2026-10-21T16:05:29.6535504Z SHA256 digest of uploaded artifact zip is 5e6b0e3f82d827e2601c504d71cfef61f5e3f191b572e95e0580cd5b93bf8c93
+2026-10-21T16:05:29.6536781Z Finalizing artifact upload
+2026-10-21T16:05:29.9258900Z Artifact farm3d-firebase-1.zip successfully finalized. Artifact ID 12359272314
+2026-10-21T16:05:29.9259614Z Artifact farm3d-firebase-1 has been successfully uploaded! Final size is 7089309 bytes. Artifact ID is 12359272314
+2026-10-21T16:05:29.9263587Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39627490111/artifacts/12359272314
+2026-10-21T16:05:29.9428430Z Post job cleanup.
+2026-10-21T16:05:30.0176708Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-6a0540fe25ddb8f783a223b00999b2ee117648feff724c2d0abb51b36368ecc6, not saving cache.
+2026-10-21T16:05:30.0284615Z Post job cleanup.
+2026-10-21T16:05:30.1212989Z Post job cleanup.
+2026-10-21T16:05:30.1877346Z [command]/usr/bin/git version
+2026-10-21T16:05:30.1911590Z git version 2.55.0
+2026-10-21T16:05:30.1936828Z Temporarily overriding HOME='/home/runner/work/_temp/631e4f5f-9f78-4523-b600-6f710f64d4ec' before making global git config changes
+2026-10-21T16:05:30.1937666Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T16:05:30.1939788Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-21T16:05:30.1966086Z Removing SSH command configuration
+2026-10-21T16:05:30.1970550Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T16:05:30.2000536Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T16:05:30.2197519Z Removing HTTP extra header
+2026-10-21T16:05:30.2202164Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T16:05:30.2240343Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T16:05:30.2430510Z Removing includeIf entries pointing to credentials config files
+2026-10-21T16:05:30.2438889Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T16:05:30.2469381Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T16:05:30.2754583Z Cleaning up orphan processes
+2026-10-21T16:05:30.2991608Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
