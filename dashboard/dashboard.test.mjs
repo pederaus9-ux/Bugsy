@@ -1,9 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {API,GitHubClient,defaultPR,exactRuns,latestRuns,summarize,verdict,stateOf,badge,duration,nextPage,safe} from './dashboard.mjs';
+import {API,GitHubClient,defaultPR,exactRuns,latestRuns,summarize,verdict,stateOf,badge,duration,nextPage,safe,mergeParentsMatch} from './dashboard.mjs';
 
 const head='a'.repeat(40), old='b'.repeat(40);
 const run=(id,state='success',extra={})=>({id,workflow_id:1,event:'pull_request',head_sha:head,head_branch:'feature',status:'completed',conclusion:state,run_attempt:1,created_at:`2026-10-21T12:${String(id).padStart(2,'0')}:00Z`,...extra});
+test('merge parents must include the source head and independently fresh target, with matching PR base',()=>{
+  const target='c'.repeat(40);
+  assert.equal(mergeParentsMatch([head,target],head,target,target),true);
+  assert.equal(mergeParentsMatch([head,old],head,target,old),false);
+  assert.equal(mergeParentsMatch([head,target],head,old,target),false);
+  assert.equal(mergeParentsMatch([head,old],head,null,old),false);
+  assert.equal(mergeParentsMatch([old,target],head,target,target),false);
+});
 test('old commits and PR events cannot qualify current main',()=>{
   assert.equal(exactRuns([run(1),run(2,'success',{head_sha:old})],head).length,1);
   assert.equal(exactRuns([run(1),run(2,'success',{head_branch:'main',event:'push'})],head,true).length,1);

@@ -17,8 +17,12 @@ run reliably from `file:` URLs.
   dashboard work when another relevant PR exists. `?pr=92` or `?pr=main` pins a
   selection in a shareable URL.
 - Full main and selected-head SHAs. A PR merge-test SHA is shown only after its
-  commit parents match the current PR head and base. Unverified merge evidence is
-  never credited to the PR head.
+  commit parents match the current PR head and an independently fetched target
+  branch. The PR base snapshot must agree with that target; cached or failed main
+  reads cannot qualify merge evidence. A final reference check after all evidence
+  reads detects target movement and discards the stale merge results and affected
+  main/deployment evidence. Source-head results remain separately labeled.
+  Non-main targets use their own branch reference.
 - Every returned workflow, including dispatched diagnostics. Queries are scoped
   by exact SHA, with 50-run pages and explicit next-page buttons. The summary uses
   the newest loaded run per workflow, event, and revision; older runs remain in a
@@ -76,7 +80,9 @@ refresh; and 320/390/1440px layouts with keyboard focus. Fixture screenshots are
 separate from `--live` captures. The live mode records actual GitHub data and does
 not assert that project CI has passed.
 
-This is a dashboard-only change based on `fe7af2bae8da8ab18497153965a31e53d4377b4a`.
+This is a dashboard-only change, refreshed onto current main
+`d0407833d98bde01841ea8df9d92164a51bd5667`. Earlier evidence based on
+`fe7af2bae8da8ab18497153965a31e53d4377b4a` remains historical and preserved.
 No game, workflow, security, credential, relay, or previously frozen evidence files
 are changed. The owner handoff roadmap is explicitly historical as of 21 October
 2026; the actively changing chicken PR is read from GitHub. Implementation and

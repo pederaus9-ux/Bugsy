@@ -52,6 +52,9 @@ export function duration(item, now = Date.now()) {
 }
 export const stamp = time => {if(!time)return 'Never';const date=new Date(time);return Number.isFinite(date.getTime())?date.toISOString().slice(0,16).replace('T',' ')+' UTC':'Time unknown';};
 export function nextPage(link) { return /<([^>]+)>;\s*rel="next"/.exec(link || '')?.[1] || null; }
+export function mergeParentsMatch(parents, head, target, reportedBase) {
+  return Boolean(head && target && reportedBase === target && parents.includes(head) && parents.includes(target));
+}
 
 export class GitHubClient {
   constructor(fetcher = globalThis.fetch, clock = Date.now) { this.fetcher=fetcher.bind(globalThis); this.clock=clock; this.calls=[]; this.blockedUntil=0; this.remaining=null; }
@@ -81,7 +84,7 @@ export function startDashboard(doc = document, win = window, client = new GitHub
   const newSource=()=>({data:null,at:0,error:'',next:null});
   const sources={main:newSource(),prs:newSource(),head:newSource(),merge:newSource(),mainRuns:newSource(),deployment:newSource()};
   const jobs=new Map();
-  let selected=null, pr=null, mainSha=null, mergeSha=null, busy=false, epoch=0, failures=0, lastAttempt=0, lastComplete=0, nextDue=0, actionMessage='';
+  let selected=null, pr=null, mainSha=null, mergeSha=null, targetCheck=null, busy=false, epoch=0, failures=0, lastAttempt=0, lastComplete=0, nextDue=0, actionMessage='';
   const query=new URL(win.location.href).searchParams.get('pr');
   if (query==='main' || /^\d+$/.test(query||'')) selected=query;
   const notice=message=>{actionMessage=message; renderFreshness();};
@@ -188,19 +191,58 @@ export function startDashboard(doc = document, win = window, client = new GitHub
       s.data={record,status};s.at=Date.now();s.error='';
     } catch(e) {s.error=e.message;}
   }
-  async function loadRevision() {
+  function observeMain(result, error='') {
+    const sha=result.data.commit?.sha;
+    if(!/^[a-f0-9]{40}$/i.test(sha||''))throw new Error('Target branch SHA missing from response.');
+    if(sha!==mainSha){sources.mainRuns={...newSource(),error:'Main changed; runs for the new revision have not been fetched.'};sources.deployment={...newSource(),error:'Main changed; deployment evidence must be refreshed.'};}
+    mainSha=sha;sources.main={data:result.data,at:result.at,error,next:null};
+  }
+  async function verifyTarget() {
+    if(!targetCheck)return;
+    try {
+      const current=await client.get('branches/'+encodeURIComponent(targetCheck.ref));
+      const sha=current.data.commit?.sha;
+      if(!/^[a-f0-9]{40}$/i.test(sha||''))throw new Error('Target branch SHA missing from response.');
+      if(sha!==targetCheck.sha){
+        const message='Target branch changed during refresh; previous merge evidence is stale. Refresh again.';
+        if(targetCheck.ref==='main')observeMain(current,message);
+        throw new Error(message);
+      }
+    }catch(e){
+      const message='Final target verification unavailable: '+e.message;
+      mergeSha=null;sources.merge={...newSource(),error:message};
+      if(pr)pr={...pr,detailError:[pr.detailError,message].filter(Boolean).join(' ')};
+      if(targetCheck.ref==='main'){sources.main.error=message;sources.mainRuns.error=message;sources.deployment.error=message;}
+    }
+  }
+  async function loadRevision(freshMain=false) {
     pr=(sources.prs.data||[]).find(p=>String(p.number)===selected)||null;
-    mergeSha=null;
+    mergeSha=null;targetCheck=null;
+    if(selected==='main'&&mainSha&&!sources.main.error){
+      if(!freshMain){try{observeMain(await client.get('branches/main'));}catch(e){sources.main.error=e.message;}}
+      if(!sources.main.error)targetCheck={ref:'main',sha:mainSha};
+    }
     if(selected!=='main'&&pr) {
       try { const detail=await client.get('pulls/'+Number(selected));
         // Detail is newer than the list: use its exact head and merge-test SHA together.
         if(detail.data.state!=='open')throw new Error('PR is no longer open; select main or refresh the list.');
         if(!/^[a-f0-9]{40}$/i.test(detail.data.head?.sha||''))throw new Error('PR head revision missing.');
         pr=detail.data; sources.prs.data=sources.prs.data.map(p=>p.number===pr.number?pr:p);
+        const ref=pr.base?.ref||'main';
+        if(ref==='main'&&freshMain){
+          if(sources.main.error||!mainSha||sources.main.at<lastAttempt||Date.now()-sources.main.at>=INTERVAL)throw new Error('Fresh main evidence unavailable; cached main cannot qualify a merge test.');
+          targetCheck={ref,sha:mainSha};
+        }else{
+          const target=await client.get('branches/'+encodeURIComponent(ref));
+          const sha=target.data.commit?.sha;
+          if(!/^[a-f0-9]{40}$/i.test(sha||''))throw new Error('Fresh target branch SHA unavailable.');
+          targetCheck={ref,sha};if(ref==='main')observeMain(target);
+        }
+        if(pr.base?.sha!==targetCheck.sha)throw new Error('PR base does not match the freshly fetched target branch; merge-test evidence is stale or unknown.');
         const candidate=/^[a-f0-9]{40}$/i.test(pr.merge_commit_sha||'')?pr.merge_commit_sha:null;
         if(candidate&&candidate!==pr.head.sha){
           try {const commit=await client.get('commits/'+candidate);const parents=commit.data.parents?.map(p=>p.sha)||[];
-            if(!parents.includes(pr.head.sha)||!parents.includes(pr.base?.sha))throw new Error('Merge commit parents do not match the current PR head and base.');
+            if(!mergeParentsMatch(parents,pr.head.sha,targetCheck.sha,pr.base?.sha))throw new Error('Merge commit parents do not match the current PR head and fresh target branch.');
             mergeSha=candidate;
           }catch(e){pr={...pr,detailError:'Merge-test revision unverified: '+e.message+' Source-head evidence remains separate.'};}
         }
@@ -226,12 +268,13 @@ export function startDashboard(doc = document, win = window, client = new GitHub
     mainSha=newMain;
     if(selected===null)selected=String(defaultPR(sources.prs.data||[])?.number||'main');
     // A failed PR list must not silently change the tracked revision.
-    const tasks=[loadRevision(),loadDeployment()];
+    const tasks=[loadRevision(true),loadDeployment()];
     if(mainSha)tasks.push(load(sources.mainRuns,`actions/runs?head_sha=${mainSha}&branch=main&per_page=50`,d=>exactRuns(d.workflow_runs,mainSha,true)));
     await Promise.all(tasks);
     // One failed run is expanded automatically; further job reads are on demand.
     const failedRun=latestRuns(selected==='main'?(sources.mainRuns.data||[]):allRuns()).find(r=>FAILED.has(stateOf(r)));
     if(failedRun&&!sources.head.error&&!sources.mainRuns.error)await loadJobs(`${failedRun.id}:${Number(failedRun.run_attempt)||1}`,false,false);
+    await verifyTarget();
     busy=false;
     const failed=[...Object.values(sources),...jobs.values()].some(s=>s.error)||Boolean(pr?.detailError);
     failures=failed?failures+1:0;if(!failed)lastComplete=Date.now();
@@ -240,7 +283,7 @@ export function startDashboard(doc = document, win = window, client = new GitHub
   async function select(value) {
     if(busy||value===selected)return;
     selected=value;const url=new URL(win.location.href);url.searchParams.set('pr',value);win.history.replaceState(null,'',url);busy=true;epoch++;jobs.clear();renderFreshness();
-    await loadRevision();busy=false;render();
+    await loadRevision();await verifyTarget();busy=false;render();
   }
   async function loadJobs(key,more=false,restoreFocus=true) {
     const run=[...allRuns(),...(sources.mainRuns.data||[])].find(r=>`${r.id}:${Number(r.run_attempt)||1}`===key);
