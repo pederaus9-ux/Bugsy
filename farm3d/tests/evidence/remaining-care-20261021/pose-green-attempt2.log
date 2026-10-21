@@ -1,0 +1,92 @@
+✔ each supported horse/sheep has a spacious separate pen and stable bed, feed and drink places (1.78808ms)
+✔ new sites do not intersect the accepted dairy footprint or stone path (2.431481ms)
+✔ pet beds and separate bowls are distinct, attainable, and never occupy the main doorway (1.112069ms)
+✔ paid-object conflicts are reported without editing any saved object (0.329407ms)
+✖ horse folds onto a real bed with skin above ground and restores the accepted pose (143.611455ms)
+✔ horse visibly lowers its actual muzzle to feed and water surfaces without moving the root (17.084066ms)
+✖ sheep folds onto a real bed with skin above ground and restores the accepted pose (104.137512ms)
+✔ sheep visibly lowers its actual muzzle to feed and water surfaces without moving the root (8.917614ms)
+✖ dog folds onto a real bed with skin above ground and restores the accepted pose (93.408652ms)
+✔ dog visibly lowers its actual muzzle to feed and water surfaces without moving the root (8.51652ms)
+✖ cat folds onto a real bed with skin above ground and restores the accepted pose (99.519608ms)
+✔ cat visibly lowers its actual muzzle to feed and water surfaces without moving the root (8.122986ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 8
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 649.681274
+
+✖ failing tests:
+
+test at farm3d/tests/remaining-care-pose.test.mjs:6:2
+✖ horse folds onto a real bed with skin above ground and restores the accepted pose (143.611455ms)
+  AssertionError [ERR_ASSERTION]: skin penetrates floor at 0.25
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-pose.test.mjs:6:391)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/remaining-care-pose.test.mjs:6:2
+✖ sheep folds onto a real bed with skin above ground and restores the accepted pose (104.137512ms)
+  AssertionError [ERR_ASSERTION]: not supported by mattress
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-pose.test.mjs:6:508)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/remaining-care-pose.test.mjs:6:2
+✖ dog folds onto a real bed with skin above ground and restores the accepted pose (93.408652ms)
+  AssertionError [ERR_ASSERTION]: skin penetrates floor at 1
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-pose.test.mjs:6:391)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/remaining-care-pose.test.mjs:6:2
+✖ cat folds onto a real bed with skin above ground and restores the accepted pose (99.519608ms)
+  AssertionError [ERR_ASSERTION]: still standing
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-pose.test.mjs:6:458)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
