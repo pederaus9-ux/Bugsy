@@ -1,0 +1,52 @@
+✖ an occupied care destination waits between planning attempts instead of running a full search every frame (115.821472ms)
+✖ overnight departures keep new station traffic out until the last sleeper walks clear (1070.43603ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1357.210787
+
+✖ failing tests:
+
+test at farm3d/tests/remaining-care-controller.test.mjs:17:1
+✖ an occupied care destination waits between planning attempts instead of running a full search every frame (115.821472ms)
+  AssertionError [ERR_ASSERTION]: occupied destination repeats expensive planning on the next frame
+  
+  4946 !== 2473
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-controller.test.mjs:17:679)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 4946,
+    expected: 2473,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/remaining-care-controller.test.mjs:18:1
+✖ overnight departures keep new station traffic out until the last sleeper walks clear (1070.43603ms)
+  AssertionError [ERR_ASSERTION]: new drinking traffic starts while sleepers still exit
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-controller.test.mjs:18:622)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

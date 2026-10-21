@@ -1,0 +1,46 @@
+name: Remaining animal physical care
+on:
+  push:
+    branches: [codex/remaining-animal-care-20261021]
+    paths: ['farm3d/**', '.github/workflows/remaining-care-diagnostic.yml']
+permissions:
+  contents: read
+concurrency:
+  group: remaining-care-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: ['390x844','844x390','768x1024','1280x720']
+    env:
+      REMAINING_VIEWPORT: ${{ matrix.viewport }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Fetch the exact live62 predecessor for the installed update check
+        if: matrix.viewport == '844x390'
+        run: git fetch --depth=1 origin 393cb849b258852b3cd2ec92342004051785c5e2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Maximum ownership, physical contact, three nights, actual input and recovery
+        run: node farm3d/tests/remaining-care.browser.cjs
+      - name: Retain actual images, results and original failure traces
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: remaining-care-${{ matrix.viewport }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/remaining-care-*
+          retention-days: 14
+          if-no-files-found: error

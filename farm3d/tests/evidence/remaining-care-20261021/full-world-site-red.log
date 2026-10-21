@@ -1,0 +1,51 @@
+✖ all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle (5.824213ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.788104
+
+✖ failing tests:
+
+test at farm3d/tests/remaining-care-layout.test.mjs:31:1
+✖ all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle (5.824213ms)
+  AssertionError [ERR_ASSERTION]: cat overlaps existing farm
+  + actual - expected
+  
+  + [
+  +   {
+  +     bounds: [
+  +       3.3,
+  +       11.4,
+  +       1.5,
+  +       0.6
+  +     ],
+  +     type: 'block'
+  +   },
+  +   {
+  +     bounds: [
+  +       1.9,
+  +       12.3,
+  +       0.4,
+  +       0.4
+  +     ],
+  +     type: 'block'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-layout.test.mjs:31:349)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'block', bounds: [Array] }, { type: 'block', bounds: [Array] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

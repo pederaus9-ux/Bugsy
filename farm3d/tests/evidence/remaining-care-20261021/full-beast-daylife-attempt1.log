@@ -1,0 +1,32 @@
+file:///workspace/scratch/69b474674da0/remaining-animal-care/farm3d/tests/remaining-care-world.mjs:7
+ const animals=[],pens=Object.fromEntries(['horse','sheep'].map(k=>{const l=layouts[k],p=l.turnouts[0];return[k,{poly:l.polygon,care:k,kinds:[k],bed:[p[0],p[2],2],shelter:{x:[l.shelter.x-1,l.shelter.x+1],z:[l.shelter.z-1,l.shelter.z+1]},water:[l.stations[2].dock[0],l.stations[2].dock[2],.3,.3]}];})),PENS={courtyard:{poly:cowYardLayout(25).polygon},paddock:{poly:[[4.5,-8.4],[12.8,-8.4],[12.6,-1.2],[10.81,10.48],[4.5,8.87]]},yard:{poly:CHICKEN_YARD_LAYOUT.polygon}},S={pens:{horse:{list:Array(4).fill(0)},sheep:{list:Array(5).fill(0)}},materials=new Map();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^
+
+SyntaxError: Unexpected token ';'
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:434:20)
+    at afterLoad (node:internal/modules/esm/loader:502:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:507:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36)
+    at afterResolve (node:internal/modules/esm/loader:607:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:613:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.19.0
+✖ farm3d/tests/remaining-care-beast.test.mjs (68.164598ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.427013
+
+✖ failing tests:
+
+test at farm3d/tests/remaining-care-beast.test.mjs:1:1
+✖ farm3d/tests/remaining-care-beast.test.mjs (68.164598ms)
+  'test failed'
