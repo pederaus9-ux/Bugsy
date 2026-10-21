@@ -34,3 +34,87 @@ test('retained second-bedtime crowd yields physically instead of enclosing the a
 test('every feed and water place remains physically reachable beside both access ramps',()=>{const definition=createChickenYard(),slots=definition.stations.filter(s=>s.kind!=='bed');definition.dispose();for(const slot of slots){const x=setup(1,true),a=x.hens[0];try{a.g.position.set(-7.8,0,.5);for(const other of slots.filter(s=>s.kind===slot.kind&&s.id!==slot.id))assert(x.care.scheduler.request('occupied-'+other.id,other.kind,other.id));assert(x.care.request(a,slot.kind));assert.equal(a.chickenTask.station.id,slot.id);for(let n=0;n<1200;n++){x.care.update(a,.1,n*.1,{night:false,wet:false,supplies:{feedMs:100000,waterMs:100000}});if(a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99)break;}assert.equal(a.chickenTask?.stage,'hold',slot.id+' unreachable at '+a.g.position.toArray());}finally{x.dispose();}}});
 
 test('retained wake return north of the barn stays accessible beside the enlarged coop',()=>{const x=setup(1,true),a=x.hens[0],target=[-7.088880707500912,0,-5.217853876912522];try{a.g.position.fromArray(x.yard.accesses[1].outside);assert(x.care.request(a,'bed'));Object.assign(a.chickenTask,{stage:'exit',path:[target],groundGoal:target,groundTail:[],groundLeg:true});for(let n=0;n<600;n++){const before=a.g.position.clone();x.care.update(a,.1,n*.1,{night:false,wet:false,supplies:{feedMs:0,waterMs:0}});assert.ok(a.g.position.distanceTo(before)<.066,'no wake-return teleport');assert.equal(a.g.position.y,0);if(!a.chickenTask)break;}assert.equal(a.chickenTask,null,'retained north return blocked at '+a.g.position.toArray());assert.equal(x.care.scheduler.snapshot().length,0);}finally{x.dispose();}});
+
+// Immutable actual-game failure from head ab61c9a, artifact12342799742.
+test('retained portrait full flock clears the feeder pocket and reaches all thirty beds',()=>{
+ const f=JSON.parse(fs.readFileSync(new URL('./fixtures/chicken-care-dual-door-portrait.json',import.meta.url),'utf8')).failureState;
+ const x=setup(30,true,f.blocks);
+ try{
+  for(const observed of f.hens)x.hens[observed.i].g.position.fromArray(observed.p);
+  for(const token of f.stations){
+   const a=x.hens[Number(token.animalId.slice(4))],observed=f.hens.find(h=>h.i===a.ref.i);
+   assert(x.care.request(a,'bed'));assert.equal(a.chickenTask.station.id,token.stationId);
+   a.chickenTask.returnPoint=structuredClone(observed.returnPoint);
+   if(observed.stage==='hold'){a.chickenTask.stage='hold';a.chickenTask.weight=1;x.care.scheduler.arrive(a.chickenTask.token);}
+  }
+  for(let n=0;n<18000;n++){
+   for(const a of x.hens){const before=a.g.position.clone();x.care.update(a,.1,n*.1,{night:true,wet:false,supplies:{feedMs:0,waterMs:0}});assert(Math.hypot(a.g.position.x-before.x,a.g.position.z-before.z)<=.06500001,'entry must retain horizontal speed');assert(a.g.position.distanceTo(before)<.12,'no ramp teleport');}
+   if(x.hens.every(a=>a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99))break;
+  }
+  assert(x.hens.every(a=>a.chickenTask?.stage==='hold'),'captured portrait flock remains blocked: '+JSON.stringify(x.hens.filter(a=>a.chickenTask?.stage!=='hold').map(a=>({i:a.ref.i,p:a.g.position.toArray(),stage:a.chickenTask?.stage,path:a.chickenTask?.path,replans:a.chickenTask?.replans}))));
+ }finally{x.dispose();}
+});
+
+for(const hz of [30,60,120])test('portrait crowd completes three sleep/wake cycles at '+hz+'Hz',()=>{
+ const f=JSON.parse(fs.readFileSync(new URL('./fixtures/chicken-care-dual-door-portrait.json',import.meta.url),'utf8')).failureState;
+ const x=setup(30,true,f.blocks);
+ try{
+  for(const observed of f.hens)x.hens[observed.i].g.position.fromArray(observed.p);
+  for(const token of f.stations){
+   const a=x.hens[Number(token.animalId.slice(4))],observed=f.hens.find(h=>h.i===a.ref.i);
+   assert(x.care.request(a,'bed'));assert.equal(a.chickenTask.station.id,token.stationId);
+   a.chickenTask.returnPoint=structuredClone(observed.returnPoint);
+   if(observed.stage==='hold'){a.chickenTask.stage='hold';a.chickenTask.weight=1;x.care.scheduler.arrive(a.chickenTask.token);}
+  }
+  for(let cycle=0;cycle<3;cycle++)for(const night of [true,false]){
+  for(let n=0;n<1800*hz;n++){
+   for(const a of x.hens){const before=a.g.position.clone();x.care.update(a,1/hz,(cycle*3600+(night?0:1800))+n/hz,{night,wet:false,supplies:{feedMs:0,waterMs:0}});assert(Math.hypot(a.g.position.x-before.x,a.g.position.z-before.z)<=.65/hz+1e-8,'entry must retain horizontal speed');assert(a.g.position.distanceTo(before)<.12,'no ramp teleport');}
+   if(night?x.hens.every(a=>a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99):x.hens.every(a=>!a.chickenTask))break;
+  }
+  assert(night?x.hens.every(a=>a.chickenTask?.stage==='hold'):x.hens.every(a=>!a.chickenTask),'cycle'+cycle+' night'+night+' captured portrait flock remains blocked: '+JSON.stringify(x.hens.filter(a=>a.chickenTask?.stage!=='hold').map(a=>({i:a.ref.i,p:a.g.position.toArray(),stage:a.chickenTask?.stage,path:a.chickenTask?.path,replans:a.chickenTask?.replans}))));
+  if(night){const beds=x.hens.map(a=>a.chickenTask.station.id);assert.equal(new Set(beds).size,30,'separate reserved beds');}else assert.equal(x.care.scheduler.snapshot().length,0,'all exit reservations released');
+ }
+ }finally{x.dispose();}
+});
+
+test('a departed idle bird yields from the waking flock return corridor',()=>{
+ const x=setup(2,true),a=x.hens[0],idle=x.hens[1],goal=[-5.65,0,4.602627944162882];
+ try{
+  a.g.position.set(-9.5,0,2.75);idle.g.position.set(-7.45,0,4.602627944162882);assert(x.care.request(a,'bed'));
+  Object.assign(a.chickenTask,{stage:'exit',path:[goal],groundGoal:goal,groundTail:[],groundLeg:true});
+  let yielded=false;for(let n=0;n<1200;n++){for(const bird of x.hens){const before=bird.g.position.clone();x.care.update(bird,.05,n*.05,{night:false,wet:false,supplies:{feedMs:0,waterMs:0}});assert(Math.hypot(bird.g.position.x-before.x,bird.g.position.z-before.z)<=.03250001);if(bird===idle)yielded||=bird.g.position.distanceTo(before)>.001;}if(!a.chickenTask)break;}
+  assert(yielded,'departed birds must make room for the remaining flock');assert.equal(a.chickenTask,null,'waking bird must finish its ground return');assert.equal(x.care.scheduler.snapshot().length,0);
+ }finally{x.dispose();}
+});
+
+test('a legal north-boundary position can leave the strip behind the coop',()=>{
+ const x=setup(1,true),a=x.hens[0];try{
+  a.g.position.set(-10.592485780781036,0,-5.430030867704881);assert(x.care.request(a,'bed'));
+  for(let n=0;n<1200;n++){const before=a.g.position.clone();x.care.update(a,.05,n*.05,{night:true,wet:false,supplies:{feedMs:0,waterMs:0}});assert(Math.hypot(a.g.position.x-before.x,a.g.position.z-before.z)<=.03250001);if(a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99)break;}
+  assert.equal(a.chickenTask?.stage,'hold','north boundary strip must connect to the traversable yard: '+a.g.position.toArray());
+ }finally{x.dispose();}
+});
+
+test('idle traffic yielding still expires an existing interaction emote',()=>{
+ const x=setup(2,true),a=x.hens[0],idle=x.hens[1],goal=[-5.65,0,4.602627944162882];
+ idle.emoteT=.2;idle.bubble=new T.Sprite(new T.SpriteMaterial());idle.bubble.visible=true;
+ try{a.g.position.set(-9.5,0,2.75);idle.g.position.set(-7.45,0,4.602627944162882);assert(x.care.request(a,'bed'));Object.assign(a.chickenTask,{stage:'exit',path:[goal],groundGoal:goal,groundTail:[],groundLeg:true});
+ let handled=0;for(let n=0;n<1200;n++){x.care.update(a,.05,n*.05,{night:false,wet:false,supplies:{feedMs:0,waterMs:0}});if(x.care.update(idle,.05,n*.05,{night:false,wet:false,supplies:{feedMs:0,waterMs:0}})&&++handled===5)break;}assert(handled>=5);assert.equal(idle.emoteT,0);assert.equal(idle.bubble.visible,false);
+ }finally{idle.bubble.material.dispose();x.dispose();}
+});
+
+test('one doorway can admit a daytime nap while the other releases a waking bird',()=>{
+ const x=setup(2,true),a=x.hens[0],b=x.hens[1],supplies={feedMs:0,waterMs:0};
+ try{
+  a.g.position.set(-11.6,0,4.5);b.g.position.set(-8.2,0,1.9);assert(x.care.request(a,'bed'));
+  for(let n=0;n<18000;n++){x.care.update(a,.1,n*.1,{night:true,wet:false,supplies});if(a.chickenTask?.stage==='hold'&&a.chickenTask.weight>.99)break;}
+  assert.equal(a.chickenTask?.stage,'hold');b.need.tired=1;assert(x.care.request(b,'bed'));b.chickenTask.nap=true;
+  let mixed=false,arrived=false;for(let n=0;n<18000;n++){
+   for(const bird of x.hens)x.care.update(bird,.1,1800+n*.1,{night:false,wet:false,supplies});
+   if(a.chickenTask?.stage==='exit'&&b.chickenTask?.stage==='approach'){assert.notEqual(a.chickenTask.station.lane,b.chickenTask.station.lane);mixed=true;}
+   arrived||=b.chickenTask?.stage==='hold'&&b.chickenTask.weight>.99;
+   if(arrived&&x.hens.every(bird=>!bird.chickenTask))break;
+  }
+  assert(mixed,'entry and exit must coexist in different doorways');assert(arrived,'nap reaches its supported bed');assert(x.hens.every(bird=>!bird.chickenTask));assert.equal(x.care.scheduler.snapshot().length,0);
+ }finally{x.dispose();}
+});

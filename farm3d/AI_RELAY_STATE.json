@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-21T03:39:29.106114+00:00",
+  "lastUpdatedUtc": "2026-10-21T12:35:11.679789+00:00",
   "codeBaseline": {
     "description": "PR91 merged and live, owner qualitative acceptance Looks good / All are good; all16 automatic main checks SUCCESS.",
     "mergeCommit": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
@@ -119,14 +119,14 @@
   "currentProgram": "Physical animal care and robot milking",
   "completedThrough": "Cow courtyard/robot plus25m north expansion, seasonal foliage and stone approach merged and live; PR91 automatic16/16SUCCESS",
   "currentPhase": "CHICKEN_PHYSICAL_CARE",
-  "currentPhaseTitle": "Task1: physical feeder/waterer visits, supported coop ramp and thirty sleeping places",
-  "phaseStatus": "GROUND_GUARD_AUTHORIZATION_LOCAL25PASS_FINAL_QUALIFICATION_PENDING",
-  "visualAcceptance": "ACTUAL_CHICKEN_PREVIEW_PENDING",
+  "currentPhaseTitle": "Larger two-door coop: physical queue and boundary-route qualification",
+  "phaseStatus": "LOCAL42_PASS_EXACT_HEAD_HOSTED_AND_PREVIEW_PENDING",
+  "visualAcceptance": "ACTUAL_REVISED_COOP_PREVIEW_REQUIRED_BEFORE_MERGE",
   "activePullRequest": 92,
   "nextPhases": [
-    "Run first hosted chicken diagnostic; recover any failing artifacts before a targeted correction",
-    "Finish canonical final-head checks, actual rendered inspection and sole-author adversarial review",
-    "Present owner actual chicken preview; no current chicken merge approval"
+    "Finish recovered portrait and repeated-cycle real-controller checks; retain every failure",
+    "Run all exact-head hosted checks and inspect actual390/844/1280 captures",
+    "Show actual preview; wait for owner visual acceptance before conditional merge, then verify deployment and post-merge checks"
   ],
   "knownEvidence": {
     "pr55Engineering": "exact-head regression and art workflows passed before merge",
@@ -1011,7 +1011,7 @@
       }
     }
   },
-  "workingBranch": "codex/cow-courtyard-20261020",
+  "workingBranch": "codex/chicken-physical-care-20261020",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -2246,11 +2246,13 @@
     }
   },
   "activeWork": {
-    "phase": "Farm Utility save-writer compatibility and final qualification",
-    "base": "8a18715515028904e984012eb3d37c41eb0f2dc2",
-    "branch": "codex/farm-utility-lights-20261020",
-    "next": "Native exact-old-client write refusal/reopen plus all20 new-head checks",
-    "mergeAuthorized": false
+    "phase": "Chicken two-door coop recovery and physical queue qualification",
+    "base": "fe7af2bae8da8ab18497153965a31e53d4377b4a",
+    "recoveredHead": "ab61c9a7ff8eaaa8223b888f33a851d0886716ee",
+    "branch": "codex/chicken-physical-care-20261020",
+    "pr": 92,
+    "next": "Publish corrected PR92 head, qualify all30hosted jobs and inspect/show actual390/844/1280 captures",
+    "mergeAuthorized": "Conditional owner merge-when-ready; visual acceptance and passing exact-head checks still required"
   },
   "marketSalesPublication": {
     "ownerInstructionAtLocal": "2026-10-20T06:14:11-05:00",
@@ -3682,6 +3684,20 @@
         "correction": "Use only0.1m body shift from original: actual posed-wall margin remains0.037m and passage root clearance0.24m. New exact-target regressionRED->GREEN,41checksPASS. No timings/assertions/clearances changed.",
         "camera": "Front capture remained leaf-occluded at inside-yard south camera; now use previously unobstructed ramp-side position and aim between both doors, wider inspection lens. Final actual image still pending."
       }
+    },
+    "recovery20261021": {
+      "sourceHead": "ab61c9a7ff8eaaa8223b888f33a851d0886716ee",
+      "physicalRun": 39595818908,
+      "physical": "844/1280PASS;390FAILfirst bed admission; original artifact verified and retained",
+      "portraitCause": "Waiting hen27 closes feeder-side passage outside proximity yield radius; exact full-world reconstruction fails with858replans",
+      "exitCause": "Already departed idle birds never yield because controller returns before traffic handling; new30/60/120Hz cycles fail first waking",
+      "boundaryCause": "After two cycles one hen can occupy a legal0.07m north strip containing no0.16m grid nodes; isolated captured-coordinate reproduction fails",
+      "candidate": "Forward corridor yielding, same physical yielding for departed idle birds without reservations, and collision-checked obstacle-corner connections for starts outside grid graph",
+      "gates": "Final combined41checks PASS; additional mixed one-door-entry/other-door-exit test PASS (42focused total). All30birds complete three sleep/wake cycles at30/60/120Hz with original limits. Emote aging and empty-care-queue shortcut regression preserved. Prior63Nodefiles passed before final idle/boundary amendments; local browser unavailable after invalid download. New-head all30hosted checks and actual preview pending.",
+      "evidence": "tests/evidence/coop-recovery-20261021/ and fixtures/chicken-care-dual-door-portrait.json",
+      "protected": "Nine frozen runtime files byte-identical to main; other projects untouched; no earlier workspace mutations",
+      "review": "Sole-author self-review; no independent agent audit",
+      "previousCI": "Recovered ab61c9a completed29/30SUCCESS; only physical390FAIL. Earlier in_progress reports are superseded. These are prior-head receipts."
     }
   }
 }

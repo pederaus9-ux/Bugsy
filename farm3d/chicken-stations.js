@@ -40,16 +40,34 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   let previous=from;if(original.every((p,i)=>{const valid=line(previous,p,i===0);previous=p;return valid;}))return original.map(p=>[p[0],0,p[1]]);
   // Bounded fallback for this small enclosure only. The shared visibility
   // planner may ignore an obstacle containing either endpoint; care cannot.
-  const step=.16,nx=69,nz=64,count=nx*nz,valid=new Int8Array(count),dist=new Float64Array(count).fill(Infinity),parent=new Int32Array(count).fill(-1),done=new Uint8Array(count),heap=[];
+  const step=.16,nx=69,nz=64,count=nx*nz,valid=new Int8Array(count),dist=new Float64Array(count).fill(Infinity),parent=new Int32Array(count).fill(-1),done=new Uint8Array(count),heap=[],seedVia=new Map();
   const xy=i=>[-16.1+(i%nx)*step,-5.4+Math.floor(i/nx)*step],free=i=>{if(!valid[i])valid[i]=point(xy(i))?1:-1;return valid[i]===1;};
   const push=(i,g)=>{const p=xy(i),item={i,f:g+Math.hypot(p[0]-to[0],p[1]-to[1])};heap.push(item);let n=heap.length-1;while(n){const up=(n-1)>>1;if(heap[up].f<=item.f)break;heap[n]=heap[up];n=up;}heap[n]=item;};
   const pop=()=>{const first=heap[0],last=heap.pop();if(heap.length){let n=0;while(n*2+1<heap.length){let child=n*2+1;if(child+1<heap.length&&heap[child+1].f<heap[child].f)child++;if(last.f<=heap[child].f)break;heap[n]=heap[child];n=child;}heap[n]=last;}return first.i;};
   const cx=Math.round((from[0]+16.1)/step),cz=Math.round((from[1]+5.4)/step);
   for(let z=Math.max(0,cz-5);z<=Math.min(nz-1,cz+5);z++)for(let x=Math.max(0,cx-5);x<=Math.min(nx-1,cx+5);x++){const i=z*nx+x,p=xy(i);if(free(i)&&line(from,p,true)){dist[i]=Math.hypot(p[0]-from[0],p[1]-from[1]);push(i,dist[i]);}}
+  // A legal boundary strip can be narrower than a grid cell. Connect its
+  // start through real inflated obstacle corners, retaining the same physical
+  // clearance and line checks, rather than leaving it outside the graph.
+  if(!heap.length)for(const [bx,bz,hw,hd]of blockers)for(const sx of [-1,1])for(const sz of [-1,1]){
+   const corner=[bx+sx*(hw+.181),bz+sz*(hd+.181)];if(!point(corner)||!line(from,corner,true))continue;
+   const xx=Math.round((corner[0]+16.1)/step),zz=Math.round((corner[1]+5.4)/step),lead=Math.hypot(corner[0]-from[0],corner[1]-from[1]);
+   for(let z=Math.max(0,zz-5);z<=Math.min(nz-1,zz+5);z++)for(let x=Math.max(0,xx-5);x<=Math.min(nx-1,xx+5);x++){
+    const i=z*nx+x,p=xy(i),g=lead+Math.hypot(p[0]-corner[0],p[1]-corner[1]);if(g<dist[i]&&free(i)&&line(corner,p)){dist[i]=g;seedVia.set(i,corner);push(i,g);}
+   }
+  }
   let end=-1;while(heap.length){const i=pop();if(done[i])continue;done[i]=1;const p=xy(i);if(Math.hypot(p[0]-to[0],p[1]-to[1])<.4&&line(p,to)){end=i;break;}
    const x=i%nx,z=Math.floor(i/nx);for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const xx=x+dx,zz=z+dz;if(xx<0||xx>=nx||zz<0||zz>=nz)continue;const j=zz*nx+xx;if(done[j]||!free(j))continue;const g=dist[i]+step*Math.hypot(dx,dz);if(g<dist[j]&&line(p,xy(j))){dist[j]=g;parent[j]=i;push(j,g);}}}
-  if(end<0)return [[to[0],0,to[1]]]; // Wait/yield/replan; physical steps still refuse obstacles.
-  const path=[to];for(let i=end;i>=0;i=parent[i])path.unshift(xy(i));const compact=[];previous=from;for(let i=0;i<path.length;){let j=path.length-1;while(j>i&&!line(previous,path[j],i===0))j--;compact.push([path[j][0],0,path[j][1]]);previous=path[j];i=j+1;}return compact;
+  if(end<0){
+   // Waiting birds can close a narrow passage before the entrant is near
+   // enough for proximity yielding. Keep a real static route to that passage;
+   // its waiting occupants yield to the forward corridor below. Moving birds
+   // and all physical step/clearance checks remain obstacles.
+   const fixed=avoid.filter(b=>b.chickenTask&&b.chickenTask.stage!=='waiting');
+   if(fixed.length!==avoid.length)return groundRoute(a,from,to,fixed);
+   return [[to[0],0,to[1]]]; // Physical steps still refuse an unavailable route.
+  }
+  const path=[to];for(let i=end;i>=0;i=parent[i]){path.unshift(xy(i));if(parent[i]<0&&seedVia.has(i))path.unshift(seedVia.get(i));}const compact=[];previous=from;for(let i=0;i<path.length;){let j=path.length-1;while(j>i&&!line(previous,path[j],i===0))j--;compact.push([path[j][0],0,path[j][1]]);previous=path[j];i=j+1;}return compact;
  }
  function pathTo(a,p,avoid){return groundRoute(a,[a.g.position.x,a.g.position.z],[p[0],p[2]],avoid);}
  function exitPath(a,task){task.groundGoal=task.returnPoint;task.groundTail=[];task.groundLeg=false;const p=a.g.position,A=accessFor(task),back=groundRoute(a,[A.outside[0],A.outside[2]],[task.returnPoint[0],task.returnPoint[2]]);return [...(p.z>A.rampEnd[2]?[[A.rampStart[0],0,Math.max(p.z,A.rampStart[2])]]:[[A.entry[0],A.floor,p.z],A.entry,A.rampEnd,A.rampStart]),A.outside,...back];}
@@ -81,12 +99,28 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
  }
  function yieldToEntrants(a,task,dt,t){
   if(a.g.position.y>.01)return;
-  const active=neighbours().filter(b=>b!==a&&b.chickenTask?.kind==='bed'&&['approach','exit'].includes(b.chickenTask.stage)&&b.g.position.y<.1&&Math.hypot(b.g.position.x-a.g.position.x,b.g.position.z-a.g.position.z)<1.15);
+  const active=[];
+  for(const b of neighbours()){
+   if(b===a||b.chickenTask?.kind!=='bed'||!['approach','exit'].includes(b.chickenTask.stage)||b.g.position.y>=.1)continue;
+   let x=b.g.position.x,z=b.g.position.z;
+   if(Math.hypot(x-a.g.position.x,z-a.g.position.z)<1.15){active.push([x,z]);continue;}
+   // Look ahead along the actual ground route so a bird occupying a narrow
+   // passage starts moving before the entrant gets trapped behind scenery.
+   let remaining=2,nearest=null,best=.55;
+   for(const p of b.chickenTask.path||[]){
+    if(p[1]>0||remaining<=0)break;
+    const dx=p[0]-x,dz=p[2]-z,length=Math.hypot(dx,dz),span=Math.min(length,remaining);
+    if(length>1e-8){const u=Math.max(0,Math.min(span/length,((a.g.position.x-x)*dx+(a.g.position.z-z)*dz)/(length*length))),qx=x+dx*u,qz=z+dz*u,d=Math.hypot(a.g.position.x-qx,a.g.position.z-qz);if(d<best){best=d;nearest=[qx,qz];}}
+    remaining-=span;x=p[0];z=p[2];
+   }
+   if(nearest)active.push(nearest);
+  }
   if(!active.length)return;
-  let dx=0,dz=0;for(const b of active){const x=a.g.position.x-b.g.position.x,z=a.g.position.z-b.g.position.z,d=Math.hypot(x,z)||.001;dx+=x/d*3;dz+=z/d*3;}
+  let dx=0,dz=0;for(const p of active){const x=a.g.position.x-p[0],z=a.g.position.z-p[1],d=Math.hypot(x,z)||.001;dx+=x/d*3;dz+=z/d*3;}
   for(const b of neighbours()){if(b===a||b.g.position.y>.1)continue;const x=a.g.position.x-b.g.position.x,z=a.g.position.z-b.g.position.z,d=Math.hypot(x,z);if(d>1e-6&&d<.6){dx+=x/d*(.6-d)*4;dz+=z/d*(.6-d)*4;}}
   const d=Math.hypot(dx,dz);if(d<1e-6)return;task.access=false;walk(a,task,[a.g.position.x+dx/d,0,a.g.position.z+dz/d],dt,t,true);
  }
+ function ageEmote(a,dt,t){if(a.emoteT>0){a.emoteT=Math.max(0,a.emoteT-dt);if(a.bubble){a.bubble.visible=a.emoteT>0;a.bubble.material.opacity=Math.min(1,a.emoteT*2);if(Number.isFinite(a.S?.h))a.bubble.position.y=a.S.h+.35+Math.sin(t*3)*.04;}}}
  function update(a,dt,t,{night,wet,supplies}){
   if(!a.rig3d)return false;
   // Departing sleepers have the lane first; cosmetic visits resume afterward.
@@ -96,8 +130,22 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
    else if(a.need.hunger>.35&&supplies.feedMs>0&&t>(a.chickenMealAt||0))request(a,'feed');
    else if(t>(a.chickenDrinkAt??25+a.ref.i)&&supplies.waterMs>0)request(a,'drink');
   }
-  const task=a.chickenTask;if(!task)return false;
-  if(a.emoteT>0){a.emoteT=Math.max(0,a.emoteT-dt);if(a.bubble){a.bubble.visible=a.emoteT>0;a.bubble.material.opacity=Math.min(1,a.emoteT*2);if(Number.isFinite(a.S?.h))a.bubble.position.y=a.S.h+.35+Math.sin(t*3)*.04;}}
+  const task=a.chickenTask;
+  if(!task){
+   if(!tasks.size){a.chickenYield=null;return false;}
+   // A bird that has already woken is still part of doorway traffic. Let it
+   // clear the return corridor without claiming a station or starting care.
+   const ox=a.g.position.x,oz=a.g.position.z;
+   const traffic=a.chickenYield??={station:yard.stations[0],access:false,groundLeg:true,blocked:0};
+   yieldToEntrants(a,traffic,dt,t);
+   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;
+   if(Math.hypot(dx,dz)<1e-8)return false;
+   ageEmote(a,dt,t);
+   a.vel.set(dx/Math.max(dt,.001),dz/Math.max(dt,.001));a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);
+   updateRig(a.rig3d,dx,dz,dt);a.act='moving';a.label='Making room for the flock';return true;
+  }
+  a.chickenYield=null;
+  ageEmote(a,dt,t);
   a.chickenPose.reset();const s=task.station,ox=a.g.position.x,oz=a.g.position.z;
   if(task.kind==='bed'&&task.stage==='waiting'&&!night&&!wet&&a.need.tired<.85){release(a);return false;}
   if(task.stage==='hold'&&((task.kind==='bed'&&!night&&!wet&&(!task.nap||task.held>=12))||(task.kind==='feed'&&supplies.feedMs<=0)||(task.kind==='drink'&&supplies.waterMs<=0)))task.stage='stand';
