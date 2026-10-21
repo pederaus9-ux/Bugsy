@@ -7,7 +7,12 @@ run reliably from `file:` URLs.
 
 ## What the board reports
 
-- Overview, live open work, CI runs/jobs, release evidence, and a sourced manual
+- An owner overview first: What is live (unknown unless verified), Current work,
+  Blocked / needs attention, and Next step. Failure counts and freshness warnings
+  stay visible. Larger phone text and a single overview replace competing metric
+  cards. CI/jobs, revision IDs, open PRs and release evidence use accessible
+  disclosures below, and the CI shortcut opens the relevant disclosure.
+- Live open work, CI runs/jobs, release evidence, and a sourced manual
   roadmap. The default is the most recently updated Sunny Acres work PR, excluding
   dashboard work when another relevant PR exists. `?pr=92` or `?pr=main` pins a
   selection in a shareable URL.

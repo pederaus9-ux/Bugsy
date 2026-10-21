@@ -110,6 +110,7 @@ export function startDashboard(doc = document, win = window, client = new GitHub
     el('notice').textContent=[...new Set(messages)].join(' '); el('notice').classList.toggle('hidden',!messages.length);
     el('refresh').disabled=busy||waiting; el('prSelect').disabled=busy;
     text('refresh',busy?'Checking…':'Refresh');
+    if(lastAttempt)renderOverview();
   }
   function renderOverview() {
     const runs=selected==='main'?(sources.mainRuns.data||[]):allRuns();
@@ -118,7 +119,7 @@ export function startDashboard(doc = document, win = window, client = new GitHub
     const [label,cls]=verdict(runs,incomplete), counts=summarize(runs);
     text('heroTitle',selected==='main'?'Main integration evidence':pr?`#${pr.number} · ${pr.title}`:'PR evidence unavailable');
     text('heroBadge',label); el('heroBadge').className='label '+cls;
-    text('heroDesc','Only results for the displayed revision are included. This is observed CI evidence; required-check completeness, owner approval, and deployment are separate decisions.');
+    text('heroDesc','These checks apply only to the revisions below. Passing tests do not establish owner approval or publication.');
     text('heroSha',selected==='main'?'main '+short(mainSha):'PR head '+short(pr?.head?.sha));
     el('heroLink').href=pr&&selected!=='main'?`${ROOT}/pull/${pr.number}`:`${ROOT}/tree/main`; text('heroLink',pr&&selected!=='main'?'Open PR #'+pr.number:'Open main');
     text('mainSha',mainSha||'Unknown'); el('mainSha').href=mainSha?`${ROOT}/commit/${mainSha}`:`${ROOT}/commits/main`;
@@ -130,7 +131,22 @@ export function startDashboard(doc = document, win = window, client = new GitHub
     text('passed',counts.passed); text('active',counts.active); text('failed',counts.failed);
     text('healthScore',counts.total?counts.passed+'/'+counts.total:'—');
     text('healthDesc',`Latest loaded workflow/event results · ${counts.cancelled} cancelled · ${counts.skipped} skipped · ${counts.unknown} unknown${incomplete?' · evidence incomplete':''}`);
-    text('nextAction',counts.failed?'Inspect failed jobs':counts.active?'Follow running jobs':'Review evidence and manual gates');
+    text('ownerLive','Unknown — current live version not verified.');
+    text('ownerLiveNote',sources.deployment.data?.status?.state==='success'?'GitHub records a successful deployment. The served game version has not been checked here.':'See release evidence below for publication records.');
+    text('ownerWorkNote',selected==='main'?'Current main integration checks. Owner acceptance is not established here.':pr?`${pr.draft?'Draft':'Open'} pull request #${pr.number}. Owner acceptance is not established here.`:'Current work details are unavailable. Select another PR or refresh.');
+    const attention=[];
+    if(incomplete)attention.push('Some evidence is missing, stale, or still being fetched.');
+    if(counts.failed)attention.push(`${counts.failed} automated run${counts.failed===1?' has':'s have'} failed.`);
+    if(counts.cancelled)attention.push(`${counts.cancelled} cancelled.`);
+    if(counts.active)attention.push(`${counts.active} still running or queued.`);
+    if(counts.skipped||counts.unknown)attention.push(`${counts.skipped} skipped; ${counts.unknown} unknown. These are not passes.`);
+    if(!counts.total)attention.push('No current-revision runs found.');
+    if(counts.total===counts.passed&&counts.total)attention.push('Loaded runs passed. Required checks and acceptance still need review.');
+    const mainFailures=summarize(sources.mainRuns.data||[]).failed;
+    if(selected!=='main'&&mainFailures)attention.push(`Last loaded main evidence separately has ${mainFailures} failed run${mainFailures===1?'':'s'}.`);
+    text('ownerAttention',attention.join(' '));el('ownerAttention').dataset.severity=counts.failed||mainFailures?'bad':'normal';
+    text('ownerCountNote',`Latest loaded workflows for selected work. ${counts.cancelled} cancelled · ${counts.skipped} skipped · ${counts.unknown} unknown.`);
+    text('nextAction',incomplete?'Refresh or inspect the missing evidence before making a decision.':counts.failed||counts.cancelled?'Open CI details and inspect the failed or cancelled jobs.':counts.active?'Wait for the current checks to finish, then review this revision.':'Review the evidence and get the owner’s decision for this exact revision.');
   }
   function runCard(r,old=false,scope='PR head') {
     const attempt=Number(r.run_attempt)||1;
@@ -247,6 +263,8 @@ export function startDashboard(doc = document, win = window, client = new GitHub
   el('refresh').addEventListener('click',()=>refresh(true));
   el('prSelect').addEventListener('change',e=>select(e.target.value));
   doc.addEventListener('click',async e=>{
+    if(e.target.closest('a[href="#checks"]'))el('ciEvidence').open=true;
+    if(e.target.closest('a[href="#release"]'))el('releaseEvidence').open=true;
     const b=e.target.closest('button');if(!b)return;
     if(b.dataset.select)return select(b.dataset.select);
     if(b.dataset.jobs)return loadJobs(b.dataset.jobs);
@@ -258,6 +276,8 @@ export function startDashboard(doc = document, win = window, client = new GitHub
   el('copyStatus').addEventListener('click',async()=>{const value=snapshot();el('copyText').value=value;el('copyFallback').classList.remove('hidden');try{await win.navigator.clipboard.writeText(value);notice('Status copied with revisions, fetch times, and evidence limits.');}catch{notice('Clipboard unavailable. Select and copy the status text below.');el('copyText').focus();el('copyText').select();}});
   function tick(){renderFreshness();if(!busy&&doc.visibilityState==='visible'&&Date.now()>=Math.max(nextDue,client.blockedUntil))refresh();}
   win.setInterval(tick,30000);doc.addEventListener('visibilitychange',tick);
+  if(win.location.hash==='#checks')el('ciEvidence').open=true;
+  if(win.location.hash==='#release')el('releaseEvidence').open=true;
   if(doc.visibilityState==='visible')refresh();else renderFreshness();
   return {refresh,select,snapshot,sources};
 }
