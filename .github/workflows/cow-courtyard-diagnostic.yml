@@ -1,7 +1,7 @@
 name: Cow courtyard diagnostic
 on:
   push:
-    branches: [codex/cow-courtyard-20261020]
+    branches: [codex/cow-courtyard-20261020, codex/north-land-seasons-20261021]
     paths:
       - 'farm3d/**'
       - '.github/workflows/cow-courtyard-diagnostic.yml'
@@ -110,3 +110,27 @@ jobs:
           path: farm3d/tests/artifacts/cow-*
           retention-days: 14
           if-no-files-found: warn
+
+  land-seasons:
+    name: Northern expansion + seasonal trees + preserved farm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - run: node --test farm3d/tests/north-land.test.mjs farm3d/tests/seasonal-leaves.test.mjs
+      - run: node farm3d/tests/north-land-seasons.browser.cjs
+      - if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: north-land-seasons-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/north-land*
+          retention-days: 14

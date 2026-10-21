@@ -753,3 +753,34 @@ Both native journey and30s assertion remain unchanged; the new tests are added t
 existing core/domain runners. New-head full hosted CI and actual preview still
 required. Older706 missing-card and historical wardrobe causes remain unproven.
 Keep PR90 draft/unmerged; physical-phone performance and owner approval pending.
+
+
+## Owner-approved PR90 merge/publication — October20,18:42Chicago
+
+Owner said I approve after actual mobile preview and25/25successful exact-head
+checks. Guarded merge33b6118282f4aebabcc4cc0e56fe82147619aaa4 has exactly
+approveda366dbf tree6b59b6e5b33f931774d128b44fb1472ad2158be1; main confirmed.
+Pages39516722769SUCCESS. Anonymous HTTP200entry plus9module/page/worker GETs
+match approved bytes. Earlier old-entry response before Pages completed is kept
+separately. See tests/evidence/cow-courtyard-merge-20261020/receipt.json.
+
+All25premergechecks PASS: core58Nodefiles+5browser suites, cloud22/22+SDK,
+real native390/844/1280care/robot/tank, installed/offline/writer barrier, original
+scene/wardrobe and chickenRename. First core cancellation and all earlier red
+evidence retained; one isolated retry passed unchanged. No test assertions,
+timeouts, limits or production files change in this receipt. Owner approval does
+not establish physical-phone sustained performance or historical706/wardrobe
+causes. Sole-author review remains distinct from an independent audit.
+
+Automatic postmerge regression39516723469 is in progress, not a passing receipt.
+Workspace fetched/synced from mergedmain; existing feature branches, checkouts,
+all raw artifacts and logs preserved. This evidence branch updates coordination
+without changing the deployed/tested tree. Other species care remains the next
+approved plan; no new implementation started by this merge approval.
+
+
+## Northern expansion and seasonal trees — October21 UTC
+Owner approved the proposed northern extension with25metres instead of15, and requested seasonal tree leaves with natural autumn colours now. Latest owner screenshot proves the old dairy site is conflict-blocked, not a stale build. Work continues on the same checkout, dedicated branch codex/north-land-seasons-20261021, base33b6118282f4aebabcc4cc0e56fe82147619aaa4. Prior evidence branch00912f2 preserved. Main automatic postmerge regression39516723469 now16/16SUCCESS.
+The existing courtyard is translated25metres north into newly usable land; no saved objects are moved. Terrain height is preserved on old farm coordinates, with a smooth flat northern extension. Camera, edit/decor bounds and walking use the expanded area; cow stations, robot selection, approaches and clearings use matching world coordinates. Existing horse/sheep/chicken care, accepted rigs, game rules, economy, save schema and cloud/auth are protected. A new cache55 includes the two new modules and yard2.
+Tree canopies, purchased oaks and decorative deciduous trees use the existing season calendar; autumn gold/orange/red/brown, spring/summer greens and winter bare canopies. Pines/Christmas trees remain evergreen. Colours reuse geometry/colour buffers and distant woods stay batched; no added lights or tree count. Actual rendered evidence and phone performance are not yet verified.
+New contracts5/5 and integration28/28 passed. Broader probe93 included two old failures (B13 chew fade regex; B16 30Hz terminal phase0.6439902652569154 versus0.6336422291556492); source cow3d.js and these test dependencies unchanged from base. Preserve them separately; do not claim repaired. Two clearing VM-fixture dependencies corrected with original assertions preserved. Full required/hosted gates pending. Sole-lead self-review, no external independent audit. New preview and owner explicit merge gate remain open.
