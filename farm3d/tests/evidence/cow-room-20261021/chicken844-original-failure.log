@@ -1,0 +1,1156 @@
+﻿2026-10-21T15:02:57.2056090Z Current runner version: '2.338.0'
+2026-10-21T15:02:57.2089053Z ##[group]Runner Image Provisioner
+2026-10-21T15:02:57.2090336Z Hosted Compute Agent
+2026-10-21T15:02:57.2091029Z Version: 20261015.610
+2026-10-21T15:02:57.2091681Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+2026-10-21T15:02:57.2092479Z Build Date: 2026-10-14T17:06:54Z
+2026-10-21T15:02:57.2093163Z Worker ID: {86c3f5f9-3628-4f24-a37f-cabfbd9652d8}
+2026-10-21T15:02:57.2093857Z Region: canadaeast
+2026-10-21T15:02:57.2094560Z Cloud: Azure
+2026-10-21T15:02:57.2095144Z ##[endgroup]
+2026-10-21T15:02:57.2096981Z ##[group]Operating System
+2026-10-21T15:02:57.2097656Z Ubuntu
+2026-10-21T15:02:57.2098173Z 24.04.5
+2026-10-21T15:02:57.2098799Z LTS
+2026-10-21T15:02:57.2099322Z ##[endgroup]
+2026-10-21T15:02:57.2100609Z ##[group]Runner Image
+2026-10-21T15:02:57.2101304Z Image: ubuntu-24.04
+2026-10-21T15:02:57.2101891Z Version: 20261018.339.1
+2026-10-21T15:02:57.2103244Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261018.339/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-21T15:02:57.2104822Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261018.339
+2026-10-21T15:02:57.2105821Z ##[endgroup]
+2026-10-21T15:02:57.2107004Z ##[group]GITHUB_TOKEN Permissions
+2026-10-21T15:02:57.2109105Z Contents: read
+2026-10-21T15:02:57.2110114Z Metadata: read
+2026-10-21T15:02:57.2110825Z ##[endgroup]
+2026-10-21T15:02:57.2112884Z Secret source: Actions
+2026-10-21T15:02:57.2113957Z Cache mode: write
+2026-10-21T15:02:57.2114887Z Prepare workflow directory
+2026-10-21T15:02:57.2803735Z Prepare all required actions
+2026-10-21T15:02:57.2875811Z Getting action download info
+2026-10-21T15:02:57.5187087Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-10-21T15:02:57.6219025Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-10-21T15:02:57.7036812Z Download action repository 'actions/upload-artifact@v5' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2026-10-21T15:02:57.9914744Z Complete job name: physical (844x390)
+2026-10-21T15:02:58.0635240Z ##[group]Run actions/checkout@v6
+2026-10-21T15:02:58.0636115Z with:
+2026-10-21T15:02:58.0636572Z   persist-credentials: false
+2026-10-21T15:02:58.0637105Z   repository: pederaus9-ux/Bugsy
+2026-10-21T15:02:58.0641334Z   token: ***
+2026-10-21T15:02:58.0641769Z   ssh-strict: true
+2026-10-21T15:02:58.0642203Z   ssh-user: git
+2026-10-21T15:02:58.0642626Z   clean: true
+2026-10-21T15:02:58.0643064Z   sparse-checkout-cone-mode: true
+2026-10-21T15:02:58.0643580Z   fetch-depth: 1
+2026-10-21T15:02:58.0644004Z   fetch-tags: false
+2026-10-21T15:02:58.0644439Z   show-progress: true
+2026-10-21T15:02:58.0644883Z   lfs: false
+2026-10-21T15:02:58.0645296Z   submodules: false
+2026-10-21T15:02:58.0645743Z   set-safe-directory: true
+2026-10-21T15:02:58.0646249Z   allow-unsafe-pr-checkout: false
+2026-10-21T15:02:58.0646999Z env:
+2026-10-21T15:02:58.0647417Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:02:58.0647896Z ##[endgroup]
+2026-10-21T15:02:58.1711587Z Syncing repository: pederaus9-ux/Bugsy
+2026-10-21T15:02:58.1714619Z ##[group]Getting Git version info
+2026-10-21T15:02:58.1715851Z Working directory is '/home/runner/work/Bugsy/Bugsy'
+2026-10-21T15:02:58.1717806Z [command]/usr/bin/git version
+2026-10-21T15:02:58.1802496Z git version 2.55.0
+2026-10-21T15:02:58.1829076Z ##[endgroup]
+2026-10-21T15:02:58.1846792Z Temporarily overriding HOME='/home/runner/work/_temp/59776724-788e-469f-8eb3-fbb1f904ca6e' before making global git config changes
+2026-10-21T15:02:58.1849072Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T15:02:58.1853209Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-21T15:02:58.1912167Z Deleting the contents of '/home/runner/work/Bugsy/Bugsy'
+2026-10-21T15:02:58.1918520Z ##[group]Determining repository object format
+2026-10-21T15:02:58.1920975Z ##[endgroup]
+2026-10-21T15:02:58.1922243Z ##[group]Initializing the repository
+2026-10-21T15:02:58.1926494Z [command]/usr/bin/git init /home/runner/work/Bugsy/Bugsy
+2026-10-21T15:02:58.2095624Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-21T15:02:58.2097334Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-21T15:02:58.2102398Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-21T15:02:58.2103841Z hint: call:
+2026-10-21T15:02:58.2104545Z hint:
+2026-10-21T15:02:58.2105273Z hint: 	git config --global init.defaultBranch <name>
+2026-10-21T15:02:58.2106033Z hint:
+2026-10-21T15:02:58.2106713Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-21T15:02:58.2107701Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-21T15:02:58.2108456Z hint:
+2026-10-21T15:02:58.2108884Z hint: 	git branch -m <name>
+2026-10-21T15:02:58.2109495Z hint:
+2026-10-21T15:02:58.2110494Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-21T15:02:58.2111561Z Initialized empty Git repository in /home/runner/work/Bugsy/Bugsy/.git/
+2026-10-21T15:02:58.2114347Z [command]/usr/bin/git remote add origin https://github.com/pederaus9-ux/Bugsy
+2026-10-21T15:02:58.2191394Z ##[endgroup]
+2026-10-21T15:02:58.2203681Z ##[group]Disabling automatic garbage collection
+2026-10-21T15:02:58.2205369Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-21T15:02:58.2261975Z ##[endgroup]
+2026-10-21T15:02:58.2263259Z ##[group]Setting up auth
+2026-10-21T15:02:58.2264212Z Removing SSH command configuration
+2026-10-21T15:02:58.2269217Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T15:02:58.2318091Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T15:02:58.2751004Z Removing HTTP extra header
+2026-10-21T15:02:58.2760817Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T15:02:58.2836668Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T15:02:58.3127818Z Removing includeIf entries pointing to credentials config files
+2026-10-21T15:02:58.3136007Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T15:02:58.3183628Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T15:02:58.3433632Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-21T15:02:58.3484359Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:02:58.3527878Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:02:58.3574186Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:02:58.3620702Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:02:58.3667304Z ##[endgroup]
+2026-10-21T15:02:58.3668556Z ##[group]Fetching the repository
+2026-10-21T15:02:58.3676907Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ed77784717a9c92464b1587a46d2db0aae1d2cf2:refs/remotes/origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.0813135Z From https://github.com/pederaus9-ux/Bugsy
+2026-10-21T15:03:00.0815920Z  * [new ref]         ed77784717a9c92464b1587a46d2db0aae1d2cf2 -> origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.0827873Z [command]/usr/bin/git branch --list --remote origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.0866653Z   origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.0893798Z [command]/usr/bin/git rev-parse refs/remotes/origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.0910571Z ed77784717a9c92464b1587a46d2db0aae1d2cf2
+2026-10-21T15:03:00.0919143Z ##[endgroup]
+2026-10-21T15:03:00.0920749Z ##[group]Determining the checkout info
+2026-10-21T15:03:00.0922274Z ##[endgroup]
+2026-10-21T15:03:00.0923288Z [command]/usr/bin/git sparse-checkout disable
+2026-10-21T15:03:00.0987062Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-21T15:03:00.1026767Z ##[group]Checking out the ref
+2026-10-21T15:03:00.1031170Z [command]/usr/bin/git checkout --progress --force -B codex/cow-double-room-20261021 refs/remotes/origin/codex/cow-double-room-20261021
+2026-10-21T15:03:00.2577805Z Switched to a new branch 'codex/cow-double-room-20261021'
+2026-10-21T15:03:00.2583759Z branch 'codex/cow-double-room-20261021' set up to track 'origin/codex/cow-double-room-20261021'.
+2026-10-21T15:03:00.2601682Z ##[endgroup]
+2026-10-21T15:03:00.2657714Z [command]/usr/bin/git log -1 --format=%H
+2026-10-21T15:03:00.2693849Z ed77784717a9c92464b1587a46d2db0aae1d2cf2
+2026-10-21T15:03:00.2705060Z ##[group]Removing auth
+2026-10-21T15:03:00.2709106Z Removing SSH command configuration
+2026-10-21T15:03:00.2710629Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T15:03:00.2756299Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T15:03:00.2999104Z Removing HTTP extra header
+2026-10-21T15:03:00.3005838Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T15:03:00.3055201Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T15:03:00.3321263Z Removing includeIf entries pointing to credentials config files
+2026-10-21T15:03:00.3333204Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T15:03:00.3370613Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-21T15:03:00.3372348Z includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-21T15:03:00.3374549Z includeif.gitdir:/github/workspace/.git.path
+2026-10-21T15:03:00.3375956Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T15:03:00.3381975Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path
+2026-10-21T15:03:00.3414811Z /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3426739Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git.path /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3471542Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path
+2026-10-21T15:03:00.3506209Z /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3520678Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Bugsy/Bugsy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3565177Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-21T15:03:00.3599124Z /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3609447Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3650355Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T15:03:00.3681716Z /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3694636Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config
+2026-10-21T15:03:00.3739139Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T15:03:00.3982206Z Removing credentials config '/home/runner/work/_temp/git-credentials-b824206a-100c-447c-89e2-00984a9c8f16.config'
+2026-10-21T15:03:00.3986953Z ##[endgroup]
+2026-10-21T15:03:00.4432062Z ##[group]Run actions/setup-node@v6
+2026-10-21T15:03:00.4433270Z with:
+2026-10-21T15:03:00.4434128Z   node-version: 22
+2026-10-21T15:03:00.4435063Z   cache: npm
+2026-10-21T15:03:00.4436200Z   cache-dependency-path: farm3d/tests/package-lock.json
+2026-10-21T15:03:00.4437660Z   check-latest: false
+2026-10-21T15:03:00.4448501Z   token: ***
+2026-10-21T15:03:00.4449479Z   package-manager-cache: true
+2026-10-21T15:03:00.4450702Z env:
+2026-10-21T15:03:00.4451575Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:03:00.4452617Z ##[endgroup]
+2026-10-21T15:03:00.5899441Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-21T15:03:00.5903296Z ##[group]Environment details
+2026-10-21T15:03:01.0197674Z node: v22.23.3
+2026-10-21T15:03:01.0198226Z npm: 10.9.9
+2026-10-21T15:03:01.0198478Z yarn: 1.22.22
+2026-10-21T15:03:01.0199412Z ##[endgroup]
+2026-10-21T15:03:01.0216781Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-21T15:03:01.1352667Z /home/runner/.npm
+2026-10-21T15:03:01.2802559Z Cache hit for: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-21T15:03:01.7618280Z Received 4079830 of 4079830 (100.0%), 11.3 MBs/sec
+2026-10-21T15:03:01.7619299Z Cache Size: ~4 MB (4079830 B)
+2026-10-21T15:03:01.7647180Z [command]/usr/bin/tar -xf /home/runner/work/_temp/5f1832ad-7277-4190-b81f-61a003b6f712/cache.tzst -P -C /home/runner/work/Bugsy/Bugsy --use-compress-program unzstd
+2026-10-21T15:03:01.7774986Z Cache restored successfully
+2026-10-21T15:03:01.7781653Z Cache restored from key: node-cache-Linux-x64-npm-cfa0f4801495e3a96725df1b1b118cce5a4e2b3232fde88652c7136bf99e7e90
+2026-10-21T15:03:01.7957265Z ##[group]Run npm ci --ignore-scripts
+2026-10-21T15:03:01.7957677Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-21T15:03:01.8153220Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:03:01.8153579Z env:
+2026-10-21T15:03:01.8153844Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:03:01.8154163Z ##[endgroup]
+2026-10-21T15:03:02.6659925Z 
+2026-10-21T15:03:02.6665468Z added 3 packages, and audited 4 packages in 787ms
+2026-10-21T15:03:02.6667851Z 
+2026-10-21T15:03:02.6668173Z found 0 vulnerabilities
+2026-10-21T15:03:02.7096467Z ##[group]Run npx playwright install --with-deps chromium
+2026-10-21T15:03:02.7096924Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-10-21T15:03:02.7151942Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:03:02.7152224Z env:
+2026-10-21T15:03:02.7152437Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:03:02.7152693Z ##[endgroup]
+2026-10-21T15:03:03.4901919Z Installing dependencies...
+2026-10-21T15:03:03.4981237Z Switching to root user to install dependencies...
+2026-10-21T15:03:03.6001779Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T15:03:03.6524399Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-21T15:03:03.6592001Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-21T15:03:03.6653411Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-21T15:03:03.6690824Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-21T15:03:03.6973573Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-21T15:03:03.7853118Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1400 kB]
+2026-10-21T15:03:03.7985300Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [309 kB]
+2026-10-21T15:03:03.8002945Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1706 kB]
+2026-10-21T15:03:03.8078936Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-21T15:03:03.8942240Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+2026-10-21T15:03:03.8980705Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-21T15:03:03.8996692Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-21T15:03:03.9582961Z Get:14 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [628 kB]
+2026-10-21T15:03:04.0190532Z Get:15 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [565 kB]
+2026-10-21T15:03:06.6612804Z Fetched 7930 kB in 1s (9466 kB/s)
+2026-10-21T15:03:07.6667400Z Reading package lists...
+2026-10-21T15:03:07.6993685Z Reading package lists...
+2026-10-21T15:03:07.8959078Z Building dependency tree...
+2026-10-21T15:03:07.8966289Z Reading state information...
+2026-10-21T15:03:08.0376864Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-10-21T15:03:08.0377701Z libasound2t64 set to manually installed.
+2026-10-21T15:03:08.0378661Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:03:08.0379902Z libatk-bridge2.0-0t64 set to manually installed.
+2026-10-21T15:03:08.0380754Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:03:08.0381637Z libatk1.0-0t64 set to manually installed.
+2026-10-21T15:03:08.0382411Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-10-21T15:03:08.0383239Z libatspi2.0-0t64 set to manually installed.
+2026-10-21T15:03:08.0384041Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-10-21T15:03:08.0384778Z libcairo2 set to manually installed.
+2026-10-21T15:03:08.0385589Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-10-21T15:03:08.0386395Z libcups2t64 set to manually installed.
+2026-10-21T15:03:08.0387239Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-10-21T15:03:08.0388072Z libdbus-1-3 set to manually installed.
+2026-10-21T15:03:08.0388954Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-10-21T15:03:08.0389904Z libdrm2 set to manually installed.
+2026-10-21T15:03:08.0390647Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-10-21T15:03:08.0391323Z libgbm1 set to manually installed.
+2026-10-21T15:03:08.0392005Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-10-21T15:03:08.0392473Z libnspr4 set to manually installed.
+2026-10-21T15:03:08.0393290Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-10-21T15:03:08.0393721Z libnss3 set to manually installed.
+2026-10-21T15:03:08.0394186Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-10-21T15:03:08.0394617Z libpango-1.0-0 set to manually installed.
+2026-10-21T15:03:08.0395288Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-10-21T15:03:08.0395727Z libx11-6 set to manually installed.
+2026-10-21T15:03:08.0396098Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-10-21T15:03:08.0396464Z libxcb1 set to manually installed.
+2026-10-21T15:03:08.0396886Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-10-21T15:03:08.0397307Z libxcomposite1 set to manually installed.
+2026-10-21T15:03:08.0397725Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-10-21T15:03:08.0398311Z libxdamage1 set to manually installed.
+2026-10-21T15:03:08.0398705Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-10-21T15:03:08.0399289Z libxext6 set to manually installed.
+2026-10-21T15:03:08.0399990Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-10-21T15:03:08.0400407Z libxfixes3 set to manually installed.
+2026-10-21T15:03:08.0400814Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-10-21T15:03:08.0401212Z libxkbcommon0 set to manually installed.
+2026-10-21T15:03:08.0401886Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-10-21T15:03:08.0402545Z libxrandr2 set to manually installed.
+2026-10-21T15:03:08.0403476Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-21T15:03:08.0404470Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-10-21T15:03:08.0405000Z libfontconfig1 set to manually installed.
+2026-10-21T15:03:08.0405453Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-10-21T15:03:08.0405897Z libfreetype6 set to manually installed.
+2026-10-21T15:03:08.0406596Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-10-21T15:03:08.0407367Z fonts-liberation set to manually installed.
+2026-10-21T15:03:08.0408111Z The following additional packages will be installed:
+2026-10-21T15:03:08.0408662Z   gir1.2-glib-2.0 libglib2.0-bin libglib2.0-data xfonts-encodings xfonts-utils
+2026-10-21T15:03:08.0409073Z   xserver-common
+2026-10-21T15:03:08.0409307Z Suggested packages:
+2026-10-21T15:03:08.0409533Z   low-memory-monitor
+2026-10-21T15:03:08.0410174Z Recommended packages:
+2026-10-21T15:03:08.0410722Z   fonts-ipafont-mincho fonts-tlwg-loma xfonts-base
+2026-10-21T15:03:08.0617885Z The following NEW packages will be installed:
+2026-10-21T15:03:08.0618896Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-10-21T15:03:08.0624933Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-10-21T15:03:08.0625834Z   xfonts-utils
+2026-10-21T15:03:08.0629020Z The following packages will be upgraded:
+2026-10-21T15:03:08.0635167Z   gir1.2-glib-2.0 libglib2.0-0t64 libglib2.0-bin libglib2.0-data
+2026-10-21T15:03:08.0635836Z   xserver-common xvfb
+2026-10-21T15:03:08.0848577Z 6 upgraded, 9 newly installed, 0 to remove and 46 not upgraded.
+2026-10-21T15:03:08.0849424Z Need to get 23.9 MB of archives.
+2026-10-21T15:03:08.0850541Z After this operation, 79.5 MB of additional disk space will be used.
+2026-10-21T15:03:08.0851465Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T15:03:08.1529568Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-10-21T15:03:08.3953929Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-data all 2.80.0-6ubuntu3.10 [50.2 kB]
+2026-10-21T15:03:08.4226495Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-bin amd64 2.80.0-6ubuntu3.10 [97.9 kB]
+2026-10-21T15:03:08.4506968Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 gir1.2-glib-2.0 amd64 2.80.0-6ubuntu3.10 [183 kB]
+2026-10-21T15:03:08.4787667Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglib2.0-0t64 amd64 2.80.0-6ubuntu3.10 [1548 kB]
+2026-10-21T15:03:08.5239525Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-10-21T15:03:08.6067606Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-10-21T15:03:08.6343989Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-10-21T15:03:08.6858619Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-10-21T15:03:08.7945250Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-10-21T15:03:08.8274746Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-10-21T15:03:08.8549379Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-10-21T15:03:08.8900935Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-10-21T15:03:08.9190611Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 xserver-common all 2:21.1.12-1ubuntu1.9 [35.0 kB]
+2026-10-21T15:03:08.9458698Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 xvfb amd64 2:21.1.12-1ubuntu1.9 [877 kB]
+2026-10-21T15:03:09.2292522Z Fetched 23.9 MB in 1s (27.1 MB/s)
+2026-10-21T15:03:09.2559232Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-10-21T15:03:09.2861593Z (Reading database ... 
+2026-10-21T15:03:09.2862273Z (Reading database ... 5%
+2026-10-21T15:03:09.2862734Z (Reading database ... 10%
+2026-10-21T15:03:09.2863116Z (Reading database ... 15%
+2026-10-21T15:03:09.2863458Z (Reading database ... 20%
+2026-10-21T15:03:09.2863792Z (Reading database ... 25%
+2026-10-21T15:03:09.2864999Z (Reading database ... 30%
+2026-10-21T15:03:09.2865391Z (Reading database ... 35%
+2026-10-21T15:03:09.2865725Z (Reading database ... 40%
+2026-10-21T15:03:09.2866412Z (Reading database ... 45%
+2026-10-21T15:03:09.2866798Z (Reading database ... 50%
+2026-10-21T15:03:09.2919247Z (Reading database ... 55%
+2026-10-21T15:03:09.4460810Z (Reading database ... 60%
+2026-10-21T15:03:09.6524974Z (Reading database ... 65%
+2026-10-21T15:03:09.7298594Z (Reading database ... 70%
+2026-10-21T15:03:09.8383246Z (Reading database ... 75%
+2026-10-21T15:03:10.0141176Z (Reading database ... 80%
+2026-10-21T15:03:10.1872507Z (Reading database ... 85%
+2026-10-21T15:03:10.3473823Z (Reading database ... 90%
+2026-10-21T15:03:10.4588508Z (Reading database ... 95%
+2026-10-21T15:03:10.4589410Z (Reading database ... 100%
+2026-10-21T15:03:10.4590784Z (Reading database ... 214410 files and directories currently installed.)
+2026-10-21T15:03:10.4660308Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-10-21T15:03:10.4770654Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-21T15:03:10.7333340Z Preparing to unpack .../01-libglib2.0-data_2.80.0-6ubuntu3.10_all.deb ...
+2026-10-21T15:03:10.7358209Z Unpacking libglib2.0-data (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:03:10.7743461Z Preparing to unpack .../02-libglib2.0-bin_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:03:10.7768669Z Unpacking libglib2.0-bin (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:03:10.8305044Z Preparing to unpack .../03-gir1.2-glib-2.0_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:03:10.8328251Z Unpacking gir1.2-glib-2.0:amd64 (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:03:10.8774085Z Preparing to unpack .../04-libglib2.0-0t64_2.80.0-6ubuntu3.10_amd64.deb ...
+2026-10-21T15:03:10.8852148Z Unpacking libglib2.0-0t64:amd64 (2.80.0-6ubuntu3.10) over (2.80.0-6ubuntu3.9) ...
+2026-10-21T15:03:10.9341164Z Selecting previously unselected package fonts-freefont-ttf.
+2026-10-21T15:03:10.9486144Z Preparing to unpack .../05-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-10-21T15:03:10.9493566Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-21T15:03:11.0364885Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-10-21T15:03:11.0503878Z Preparing to unpack .../06-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-10-21T15:03:11.0512123Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-21T15:03:11.0815341Z Selecting previously unselected package fonts-unifont.
+2026-10-21T15:03:11.0956924Z Preparing to unpack .../07-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-10-21T15:03:11.0965526Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-10-21T15:03:11.2124769Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-10-21T15:03:11.2268946Z Preparing to unpack .../08-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-10-21T15:03:11.2386397Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-21T15:03:11.7221896Z Selecting previously unselected package xfonts-encodings.
+2026-10-21T15:03:11.7361639Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-10-21T15:03:11.7368634Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-21T15:03:11.7677596Z Selecting previously unselected package xfonts-utils.
+2026-10-21T15:03:11.7816617Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-10-21T15:03:11.7825229Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-10-21T15:03:11.8191381Z Selecting previously unselected package xfonts-cyrillic.
+2026-10-21T15:03:11.8328673Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-10-21T15:03:11.8336561Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-21T15:03:11.8688106Z Selecting previously unselected package xfonts-scalable.
+2026-10-21T15:03:11.8826720Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-10-21T15:03:11.8834931Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-21T15:03:11.9220074Z Preparing to unpack .../13-xserver-common_2%3a21.1.12-1ubuntu1.9_all.deb ...
+2026-10-21T15:03:11.9244037Z Unpacking xserver-common (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-21T15:03:11.9633851Z Preparing to unpack .../14-xvfb_2%3a21.1.12-1ubuntu1.9_amd64.deb ...
+2026-10-21T15:03:11.9658282Z Unpacking xvfb (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+2026-10-21T15:03:12.0276493Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-10-21T15:03:12.0406572Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-10-21T15:03:12.0430445Z Setting up libglib2.0-0t64:amd64 (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:03:12.0560755Z Setting up libglib2.0-data (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:03:12.0585987Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-10-21T15:03:12.0622117Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-10-21T15:03:12.0652452Z Setting up gir1.2-glib-2.0:amd64 (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:03:12.0682968Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-10-21T15:03:12.0757702Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-10-21T15:03:12.0781071Z Setting up xserver-common (2:21.1.12-1ubuntu1.9) ...
+2026-10-21T15:03:12.0807402Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-10-21T15:03:12.0832519Z Setting up xvfb (2:21.1.12-1ubuntu1.9) ...
+2026-10-21T15:03:12.0856695Z Setting up libglib2.0-bin (2.80.0-6ubuntu3.10) ...
+2026-10-21T15:03:12.0883344Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-10-21T15:03:12.0940195Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-10-21T15:03:12.1244005Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-10-21T15:03:12.1525347Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-10-21T15:03:12.1902868Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-21T15:03:12.1926106Z Not building database; man-db/auto-update is not 'true'.
+2026-10-21T15:03:12.1938524Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-21T15:03:12.8977411Z 
+2026-10-21T15:03:12.8978196Z Running kernel seems to be up-to-date.
+2026-10-21T15:03:12.8978721Z 
+2026-10-21T15:03:12.8978954Z Restarting services...
+2026-10-21T15:03:12.9443459Z  systemctl restart packagekit.service php8.3-fpm.service polkit.service udisks2.service
+2026-10-21T15:03:13.0770801Z 
+2026-10-21T15:03:13.0771722Z Service restarts being deferred:
+2026-10-21T15:03:13.0772435Z  systemctl restart ModemManager.service
+2026-10-21T15:03:13.0773150Z  systemctl restart networkd-dispatcher.service
+2026-10-21T15:03:13.0773682Z 
+2026-10-21T15:03:13.0773972Z No containers need to be restarted.
+2026-10-21T15:03:13.0774297Z 
+2026-10-21T15:03:13.0774613Z No user sessions are running outdated binaries.
+2026-10-21T15:03:13.0774872Z 
+2026-10-21T15:03:13.0775175Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-21T15:03:13.9821664Z Downloading Chrome for Testing 151.0.7922.34 (playwright chromium v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-linux64.zip
+2026-10-21T15:03:15.0532651Z |                                                                                |   0% of 184.3 MiB
+2026-10-21T15:03:15.2654791Z |■■■■■■■■                                                                        |  10% of 184.3 MiB
+2026-10-21T15:03:15.3584730Z |■■■■■■■■■■■■■■■■                                                                |  20% of 184.3 MiB
+2026-10-21T15:03:15.4291845Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 184.3 MiB
+2026-10-21T15:03:15.4972591Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 184.3 MiB
+2026-10-21T15:03:15.5591119Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 184.3 MiB
+2026-10-21T15:03:15.6411493Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 184.3 MiB
+2026-10-21T15:03:15.7163991Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 184.3 MiB
+2026-10-21T15:03:15.7908692Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 184.3 MiB
+2026-10-21T15:03:15.8643219Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 184.3 MiB
+2026-10-21T15:03:15.9425073Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 184.3 MiB
+2026-10-21T15:03:18.5034377Z Chrome for Testing 151.0.7922.34 (playwright chromium v1234) downloaded to /home/runner/.cache/ms-playwright/chromium-1234
+2026-10-21T15:03:18.5042118Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-21T15:03:19.1788051Z Error: getaddrinfo ENOTFOUND playwright.download.prss.microsoft.com
+2026-10-21T15:03:19.1789260Z     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:internal/dns/promises:102:17) {
+2026-10-21T15:03:19.1792227Z   errno: -3008,
+2026-10-21T15:03:19.1792775Z   code: 'ENOTFOUND',
+2026-10-21T15:03:19.1793314Z   syscall: 'getaddrinfo',
+2026-10-21T15:03:19.1793999Z   hostname: 'playwright.download.prss.microsoft.com'
+2026-10-21T15:03:19.1794610Z }
+2026-10-21T15:03:19.1896185Z Downloading FFmpeg (playwright ffmpeg v1011) from https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-21T15:03:19.5244521Z Error: getaddrinfo ENOTFOUND playwright.download.prss.microsoft.com
+2026-10-21T15:03:19.5246218Z     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:internal/dns/promises:102:17) {
+2026-10-21T15:03:19.5247372Z   errno: -3008,
+2026-10-21T15:03:19.5247803Z   code: 'ENOTFOUND',
+2026-10-21T15:03:19.5248205Z   syscall: 'getaddrinfo',
+2026-10-21T15:03:19.5248698Z   hostname: 'playwright.download.prss.microsoft.com'
+2026-10-21T15:03:19.5249201Z }
+2026-10-21T15:03:19.5352206Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-10-21T15:03:20.2660577Z |                                                                                |   0% of 2.3 MiB
+2026-10-21T15:03:20.3532328Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-10-21T15:03:20.3791168Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-10-21T15:03:20.3938723Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-10-21T15:03:20.4046069Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-10-21T15:03:20.4124839Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-10-21T15:03:20.4188350Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-10-21T15:03:20.4241556Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-10-21T15:03:20.4293395Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-10-21T15:03:20.4335446Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-10-21T15:03:20.4370717Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-10-21T15:03:20.4996379Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-10-21T15:03:20.5000320Z Downloading Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) from https://cdn.playwright.dev/builds/cft/151.0.7922.34/linux64/chrome-headless-shell-linux64.zip
+2026-10-21T15:03:21.6136406Z |                                                                                |   0% of 114.7 MiB
+2026-10-21T15:03:21.7786649Z |■■■■■■■■                                                                        |  10% of 114.7 MiB
+2026-10-21T15:03:21.8389389Z |■■■■■■■■■■■■■■■■                                                                |  20% of 114.7 MiB
+2026-10-21T15:03:21.8932618Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 114.7 MiB
+2026-10-21T15:03:21.9553604Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 114.7 MiB
+2026-10-21T15:03:22.0033993Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 114.7 MiB
+2026-10-21T15:03:22.0565292Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 114.7 MiB
+2026-10-21T15:03:22.1185075Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 114.7 MiB
+2026-10-21T15:03:22.1823735Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 114.7 MiB
+2026-10-21T15:03:22.2473628Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 114.7 MiB
+2026-10-21T15:03:22.2981765Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 114.7 MiB
+2026-10-21T15:03:24.1326892Z Chrome Headless Shell 151.0.7922.34 (playwright chromium-headless-shell v1234) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1234
+2026-10-21T15:03:24.1667420Z ##[group]Run node --test farm3d/tests/chicken-stations.test.mjs farm3d/tests/chicken-care-controller.test.mjs farm3d/tests/chicken-care.test.mjs farm3d/tests/chicken-care-integration.test.mjs farm3d/tests/chicken-yard.test.mjs farm3d/tests/chicken-coordinated-motion.test.mjs farm3d/tests/chicken-start-turn.test.mjs farm3d/tests/chicken-stop-continuity.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/versions.test.mjs
+2026-10-21T15:03:24.1670938Z [36;1mnode --test farm3d/tests/chicken-stations.test.mjs farm3d/tests/chicken-care-controller.test.mjs farm3d/tests/chicken-care.test.mjs farm3d/tests/chicken-care-integration.test.mjs farm3d/tests/chicken-yard.test.mjs farm3d/tests/chicken-coordinated-motion.test.mjs farm3d/tests/chicken-start-turn.test.mjs farm3d/tests/chicken-stop-continuity.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/versions.test.mjs[0m
+2026-10-21T15:03:24.1723571Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:03:24.1723832Z env:
+2026-10-21T15:03:24.1724065Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:03:24.1724302Z ##[endgroup]
+2026-10-21T15:03:24.2344165Z TAP version 13
+2026-10-21T15:04:45.0775101Z # Subtest: physical visit walks to reserved feed, stops, then releases without changing game supplies
+2026-10-21T15:04:45.0783673Z ok 1 - physical visit walks to reserved feed, stops, then releases without changing game supplies
+2026-10-21T15:04:45.0784860Z   ---
+2026-10-21T15:04:45.0785713Z   duration_ms: 203.013914
+2026-10-21T15:04:45.0786512Z   type: 'test'
+2026-10-21T15:04:45.0787184Z   ...
+2026-10-21T15:04:45.0788329Z # Subtest: thirty hens queue through the ramp to distinct beds and walk back out on waking
+2026-10-21T15:04:45.0790452Z ok 2 - thirty hens queue through the ramp to distinct beds and walk back out on waking
+2026-10-21T15:04:45.0791269Z   ---
+2026-10-21T15:04:45.0800809Z   duration_ms: 3507.238281
+2026-10-21T15:04:45.0801459Z   type: 'test'
+2026-10-21T15:04:45.0802104Z   ...
+2026-10-21T15:04:45.0803391Z # Subtest: empty stations never start a feeding or drinking visit; removed animals release occupancy
+2026-10-21T15:04:45.0805089Z ok 3 - empty stations never start a feeding or drinking visit; removed animals release occupancy
+2026-10-21T15:04:45.0806168Z   ---
+2026-10-21T15:04:45.0806790Z   duration_ms: 49.217755
+2026-10-21T15:04:45.0807487Z   type: 'test'
+2026-10-21T15:04:45.0808088Z   ...
+2026-10-21T15:04:45.0809232Z # Subtest: nearby ordinary spawn positions do not make waking hens compete for one return point
+2026-10-21T15:04:45.0811106Z ok 4 - nearby ordinary spawn positions do not make waking hens compete for one return point
+2026-10-21T15:04:45.0812210Z   ---
+2026-10-21T15:04:45.0812833Z   duration_ms: 154.712103
+2026-10-21T15:04:45.0813516Z   type: 'test'
+2026-10-21T15:04:45.0814125Z   ...
+2026-10-21T15:04:45.0815237Z # Subtest: a tired hen can finish a physical daytime coop nap before standing and leaving
+2026-10-21T15:04:45.0816790Z ok 5 - a tired hen can finish a physical daytime coop nap before standing and leaving
+2026-10-21T15:04:45.0817823Z   ---
+2026-10-21T15:04:45.0818455Z   duration_ms: 100.041801
+2026-10-21T15:04:45.0819139Z   type: 'test'
+2026-10-21T15:04:45.0819986Z   ...
+2026-10-21T15:04:45.0821349Z # Subtest: the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+2026-10-21T15:04:45.0823259Z ok 6 - the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+2026-10-21T15:04:45.0824450Z   ---
+2026-10-21T15:04:45.0825074Z   duration_ms: 2156.805649
+2026-10-21T15:04:45.0826353Z   type: 'test'
+2026-10-21T15:04:45.0826961Z   ...
+2026-10-21T15:04:45.0828107Z # Subtest: retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+2026-10-21T15:04:45.0829896Z ok 7 - retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+2026-10-21T15:04:45.0830970Z   ---
+2026-10-21T15:04:45.0831604Z   duration_ms: 137.469994
+2026-10-21T15:04:45.0832288Z   type: 'test'
+2026-10-21T15:04:45.0832902Z   ...
+2026-10-21T15:04:45.0834378Z # Subtest: ground return routes cannot re-enter raised coop access after the exit is clear
+2026-10-21T15:04:45.0835960Z ok 8 - ground return routes cannot re-enter raised coop access after the exit is clear
+2026-10-21T15:04:45.0836997Z   ---
+2026-10-21T15:04:45.0837620Z   duration_ms: 125.101283
+2026-10-21T15:04:45.0838303Z   type: 'test'
+2026-10-21T15:04:45.0838915Z   ...
+2026-10-21T15:04:45.0840355Z # Subtest: the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+2026-10-21T15:04:45.0842011Z ok 9 - the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+2026-10-21T15:04:45.0843091Z   ---
+2026-10-21T15:04:45.0843716Z   duration_ms: 97.009287
+2026-10-21T15:04:45.0844398Z   type: 'test'
+2026-10-21T15:04:45.0845016Z   ...
+2026-10-21T15:04:45.0846142Z # Subtest: ordinary emotes finish their lifetime while a physical care task owns movement
+2026-10-21T15:04:45.0847685Z ok 10 - ordinary emotes finish their lifetime while a physical care task owns movement
+2026-10-21T15:04:45.0848744Z   ---
+2026-10-21T15:04:45.0849375Z   duration_ms: 51.978429
+2026-10-21T15:04:45.0850307Z   type: 'test'
+2026-10-21T15:04:45.0850921Z   ...
+2026-10-21T15:04:45.0852037Z # Subtest: ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+2026-10-21T15:04:45.0853618Z ok 11 - ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+2026-10-21T15:04:45.0880627Z   ---
+2026-10-21T15:04:45.0896900Z   duration_ms: 107.791895
+2026-10-21T15:04:45.0928804Z   type: 'test'
+2026-10-21T15:04:45.0929514Z   ...
+2026-10-21T15:04:45.0930793Z # Subtest: two doors admit and release birds concurrently while each lane stays exclusive
+2026-10-21T15:04:45.0932210Z ok 12 - two doors admit and release birds concurrently while each lane stays exclusive
+2026-10-21T15:04:45.0933222Z   ---
+2026-10-21T15:04:45.0933786Z   duration_ms: 3657.085037
+2026-10-21T15:04:45.0934402Z   type: 'test'
+2026-10-21T15:04:45.0935024Z   ...
+2026-10-21T15:04:45.0936151Z # Subtest: retained second-bedtime crowd yields physically instead of enclosing the active entrant
+2026-10-21T15:04:45.0937769Z ok 13 - retained second-bedtime crowd yields physically instead of enclosing the active entrant
+2026-10-21T15:04:45.0938774Z   ---
+2026-10-21T15:04:45.0939281Z   duration_ms: 1330.290517
+2026-10-21T15:04:45.0940137Z   type: 'test'
+2026-10-21T15:04:45.0940676Z   ...
+2026-10-21T15:04:45.0941678Z # Subtest: every feed and water place remains physically reachable beside both access ramps
+2026-10-21T15:04:45.0943207Z ok 14 - every feed and water place remains physically reachable beside both access ramps
+2026-10-21T15:04:45.0944203Z   ---
+2026-10-21T15:04:45.0944747Z   duration_ms: 321.256533
+2026-10-21T15:04:45.0945413Z   type: 'test'
+2026-10-21T15:04:45.0945919Z   ...
+2026-10-21T15:04:45.0946920Z # Subtest: retained wake return north of the barn stays accessible beside the enlarged coop
+2026-10-21T15:04:45.0948297Z ok 15 - retained wake return north of the barn stays accessible beside the enlarged coop
+2026-10-21T15:04:45.0949148Z   ---
+2026-10-21T15:04:45.0949608Z   duration_ms: 63.42027
+2026-10-21T15:04:45.0950406Z   type: 'test'
+2026-10-21T15:04:45.0950875Z   ...
+2026-10-21T15:04:45.0951859Z # Subtest: retained portrait full flock clears the feeder pocket and reaches all thirty beds
+2026-10-21T15:04:45.0953223Z ok 16 - retained portrait full flock clears the feeder pocket and reaches all thirty beds
+2026-10-21T15:04:45.0954075Z   ---
+2026-10-21T15:04:45.0954540Z   duration_ms: 958.9611
+2026-10-21T15:04:45.0957495Z   type: 'test'
+2026-10-21T15:04:45.0961216Z   ...
+2026-10-21T15:04:45.0961994Z # Subtest: portrait crowd completes three sleep/wake cycles at 30Hz
+2026-10-21T15:04:45.0963026Z ok 17 - portrait crowd completes three sleep/wake cycles at 30Hz
+2026-10-21T15:04:45.0963728Z   ---
+2026-10-21T15:04:45.0964195Z   duration_ms: 14951.114468
+2026-10-21T15:04:45.0964753Z   type: 'test'
+2026-10-21T15:04:45.0965220Z   ...
+2026-10-21T15:04:45.0966399Z # Subtest: portrait crowd completes three sleep/wake cycles at 60Hz
+2026-10-21T15:04:45.0967580Z ok 18 - portrait crowd completes three sleep/wake cycles at 60Hz
+2026-10-21T15:04:45.0968302Z   ---
+2026-10-21T15:04:45.0968780Z   duration_ms: 20462.119663
+2026-10-21T15:04:45.0969320Z   type: 'test'
+2026-10-21T15:04:45.0970024Z   ...
+2026-10-21T15:04:45.0970812Z # Subtest: portrait crowd completes three sleep/wake cycles at 120Hz
+2026-10-21T15:04:45.0971858Z ok 19 - portrait crowd completes three sleep/wake cycles at 120Hz
+2026-10-21T15:04:45.0972559Z   ---
+2026-10-21T15:04:45.0973042Z   duration_ms: 31996.63307
+2026-10-21T15:04:45.0973576Z   type: 'test'
+2026-10-21T15:04:45.0974039Z   ...
+2026-10-21T15:04:45.0974831Z # Subtest: a departed idle bird yields from the waking flock return corridor
+2026-10-21T15:04:45.0975932Z ok 20 - a departed idle bird yields from the waking flock return corridor
+2026-10-21T15:04:45.0976687Z   ---
+2026-10-21T15:04:45.0977150Z   duration_ms: 67.301214
+2026-10-21T15:04:45.0977671Z   type: 'test'
+2026-10-21T15:04:45.0978138Z   ...
+2026-10-21T15:04:45.0978925Z # Subtest: a legal north-boundary position can leave the strip behind the coop
+2026-10-21T15:04:45.0980249Z ok 21 - a legal north-boundary position can leave the strip behind the coop
+2026-10-21T15:04:45.0981022Z   ---
+2026-10-21T15:04:45.0981483Z   duration_ms: 58.101227
+2026-10-21T15:04:45.0981986Z   type: 'test'
+2026-10-21T15:04:45.0982429Z   ...
+2026-10-21T15:04:45.0983209Z # Subtest: idle traffic yielding still expires an existing interaction emote
+2026-10-21T15:04:45.0984298Z ok 22 - idle traffic yielding still expires an existing interaction emote
+2026-10-21T15:04:45.0985030Z   ---
+2026-10-21T15:04:45.0985539Z   duration_ms: 74.162418
+2026-10-21T15:04:45.0986050Z   type: 'test'
+2026-10-21T15:04:45.0986508Z   ...
+2026-10-21T15:04:45.0987336Z # Subtest: one doorway can admit a daytime nap while the other releases a waking bird
+2026-10-21T15:04:45.0988567Z ok 23 - one doorway can admit a daytime nap while the other releases a waking bird
+2026-10-21T15:04:45.0989338Z   ---
+2026-10-21T15:04:45.0990090Z   duration_ms: 38.105038
+2026-10-21T15:04:45.0990686Z   type: 'test'
+2026-10-21T15:04:45.0991031Z   ...
+2026-10-21T15:04:45.0991872Z # Subtest: a daytime nap joins the overnight flock and wake exits exclude new care admissions
+2026-10-21T15:04:45.0993100Z ok 24 - a daytime nap joins the overnight flock and wake exits exclude new care admissions
+2026-10-21T15:04:45.0993822Z   ---
+2026-10-21T15:04:45.0994162Z   duration_ms: 57.550701
+2026-10-21T15:04:45.0994439Z   type: 'test'
+2026-10-21T15:04:45.0994674Z   ...
+2026-10-21T15:04:45.1272596Z # Subtest: insufficient_feed_and_duplicate_confirmation
+2026-10-21T15:04:45.1273486Z ok 25 - insufficient_feed_and_duplicate_confirmation
+2026-10-21T15:04:45.1274074Z   ---
+2026-10-21T15:04:45.1274449Z   duration_ms: 46.18853
+2026-10-21T15:04:45.1274855Z   type: 'test'
+2026-10-21T15:04:45.1275212Z   ...
+2026-10-21T15:04:45.1275796Z # Subtest: water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-21T15:04:45.1276609Z ok 26 - water_is_free_and_pallet_pays_once_with_barn_limit
+2026-10-21T15:04:45.1277181Z   ---
+2026-10-21T15:04:45.1277525Z   duration_ms: 6.36287
+2026-10-21T15:04:45.1277917Z   type: 'test'
+2026-10-21T15:04:45.1278274Z   ...
+2026-10-21T15:04:45.1280548Z # Subtest: legacy_chicken_buttons_do_not_bypass_stations
+2026-10-21T15:04:45.1281361Z ok 27 - legacy_chicken_buttons_do_not_bypass_stations
+2026-10-21T15:04:45.1281742Z   ---
+2026-10-21T15:04:45.1281985Z   duration_ms: 0.919265
+2026-10-21T15:04:45.1282254Z   type: 'test'
+2026-10-21T15:04:45.1282836Z   ...
+2026-10-21T15:04:45.1283382Z # Subtest: read_only_farms_reject_all_new_mutations
+2026-10-21T15:04:45.1283849Z ok 28 - read_only_farms_reject_all_new_mutations
+2026-10-21T15:04:45.1300761Z   ---
+2026-10-21T15:04:45.1320696Z   duration_ms: 1.323138
+2026-10-21T15:04:45.1321202Z   type: 'test'
+2026-10-21T15:04:45.1321592Z   ...
+2026-10-21T15:04:45.1322152Z # Subtest: other_species_exact and farm_roundtrip
+2026-10-21T15:04:45.1323225Z ok 29 - other_species_exact and farm_roundtrip
+2026-10-21T15:04:45.1323809Z   ---
+2026-10-21T15:04:45.1324192Z   duration_ms: 1.39928
+2026-10-21T15:04:45.1324623Z   type: 'test'
+2026-10-21T15:04:45.1324992Z   ...
+2026-10-21T15:04:45.1325720Z # Subtest: unowned_and_future_care cannot spend or overwrite appearance
+2026-10-21T15:04:45.1326774Z ok 30 - unowned_and_future_care cannot spend or overwrite appearance
+2026-10-21T15:04:45.1327446Z   ---
+2026-10-21T15:04:45.1327826Z   duration_ms: 0.220372
+2026-10-21T15:04:45.1328256Z   type: 'test'
+2026-10-21T15:04:45.1328655Z   ...
+2026-10-21T15:04:45.1329470Z # Subtest: passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-21T15:04:45.1330967Z ok 31 - passive clock progress does not dirty an otherwise unchanged cloud snapshot
+2026-10-21T15:04:45.1331753Z   ---
+2026-10-21T15:04:45.1332129Z   duration_ms: 1.164141
+2026-10-21T15:04:45.1332550Z   type: 'test'
+2026-10-21T15:04:45.1332925Z   ...
+2026-10-21T15:04:45.1333711Z # Subtest: a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-21T15:04:45.1334844Z ok 32 - a stale displayed top-up cost cannot charge more feed than confirmed
+2026-10-21T15:04:45.1335547Z   ---
+2026-10-21T15:04:45.1335933Z   duration_ms: 2.810455
+2026-10-21T15:04:45.1336353Z   type: 'test'
+2026-10-21T15:04:45.1336716Z   ...
+2026-10-21T15:04:45.1337467Z # Subtest: malformed existing care blocks chicken purchase without spending
+2026-10-21T15:04:45.1338558Z ok 33 - malformed existing care blocks chicken purchase without spending
+2026-10-21T15:04:45.1339263Z   ---
+2026-10-21T15:04:45.1339949Z   duration_ms: 1.037956
+2026-10-21T15:04:45.1340402Z   type: 'test'
+2026-10-21T15:04:45.1340779Z   ...
+2026-10-21T15:04:45.1341582Z # Subtest: petting after time away cannot retroactively upgrade eggs already earned
+2026-10-21T15:04:45.1342788Z ok 34 - petting after time away cannot retroactively upgrade eggs already earned
+2026-10-21T15:04:45.1343541Z   ---
+2026-10-21T15:04:45.1343908Z   duration_ms: 1.44215
+2026-10-21T15:04:45.1344320Z   type: 'test'
+2026-10-21T15:04:45.1344686Z   ...
+2026-10-21T15:04:45.1345484Z # Subtest: buying between outputs never gives the new bird pre-purchase progress
+2026-10-21T15:04:45.1346767Z ok 35 - buying between outputs never gives the new bird pre-purchase progress
+2026-10-21T15:04:45.1347521Z   ---
+2026-10-21T15:04:45.1347895Z   duration_ms: 1.25424
+2026-10-21T15:04:45.1348312Z   type: 'test'
+2026-10-21T15:04:45.1348693Z   ...
+2026-10-21T15:04:45.1349553Z # Subtest: thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-21T15:04:45.1351108Z ok 36 - thirty-bird purchase limit, refill charge and whole-flock save are consistent
+2026-10-21T15:04:45.1351902Z   ---
+2026-10-21T15:04:45.1352277Z   duration_ms: 15.571267
+2026-10-21T15:04:45.1352711Z   type: 'test'
+2026-10-21T15:04:45.1353072Z   ...
+2026-10-21T15:04:45.1353576Z # Subtest: chicken care module is available
+2026-10-21T15:04:45.1354240Z ok 37 - chicken care module is available
+2026-10-21T15:04:45.1354736Z   ---
+2026-10-21T15:04:45.1355131Z   duration_ms: 2.906231
+2026-10-21T15:04:45.1355553Z   type: 'test'
+2026-10-21T15:04:45.1355913Z   ...
+2026-10-21T15:04:45.1356378Z # Subtest: one_six_and_zero_chickens
+2026-10-21T15:04:45.1356963Z ok 38 - one_six_and_zero_chickens
+2026-10-21T15:04:45.1357415Z   ---
+2026-10-21T15:04:45.1357772Z   duration_ms: 5.384154
+2026-10-21T15:04:45.1358194Z   type: 'test'
+2026-10-21T15:04:45.1358551Z   ...
+2026-10-21T15:04:45.1359262Z # Subtest: earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-21T15:04:45.1360875Z ok 39 - earlier_supply_deadline credits an egg exactly at expiry only
+2026-10-21T15:04:45.1361557Z   ---
+2026-10-21T15:04:45.1361934Z   duration_ms: 1.643485
+2026-10-21T15:04:45.1362372Z   type: 'test'
+2026-10-21T15:04:45.1362735Z   ...
+2026-10-21T15:04:45.1363555Z # Subtest: early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-21T15:04:45.1364763Z ok 40 - early_topup_quote costs by missing fraction and rejects duplicate revision
+2026-10-21T15:04:45.1365768Z   ---
+2026-10-21T15:04:45.1366174Z   duration_ms: 2.092143
+2026-10-21T15:04:45.1366596Z   type: 'test'
+2026-10-21T15:04:45.1366975Z   ...
+2026-10-21T15:04:45.1367786Z # Subtest: pause_and_resume preserves active progress without empty-supply backlog
+2026-10-21T15:04:45.1369024Z ok 41 - pause_and_resume preserves active progress without empty-supply backlog
+2026-10-21T15:04:45.1369973Z   ---
+2026-10-21T15:04:45.1370341Z   duration_ms: 0.695547
+2026-10-21T15:04:45.1370741Z   type: 'test'
+2026-10-21T15:04:45.1371120Z   ...
+2026-10-21T15:04:45.1371964Z # Subtest: pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-21T15:04:45.1373223Z ok 42 - pallet_boundary_and_barn_room never exceed capacity and collect gold first
+2026-10-21T15:04:45.1373991Z   ---
+2026-10-21T15:04:45.1374375Z   duration_ms: 27.595685
+2026-10-21T15:04:45.1374814Z   type: 'test'
+2026-10-21T15:04:45.1375173Z   ...
+2026-10-21T15:04:45.1375938Z # Subtest: clock_partition produces the same batches and RNG as one catch-up
+2026-10-21T15:04:45.1377055Z ok 43 - clock_partition produces the same batches and RNG as one catch-up
+2026-10-21T15:04:45.1377752Z   ---
+2026-10-21T15:04:45.1378133Z   duration_ms: 41.13235
+2026-10-21T15:04:45.1378552Z   type: 'test'
+2026-10-21T15:04:45.1378912Z   ...
+2026-10-21T15:04:45.1379966Z # Subtest: clock_backwards neither credits time nor extends a refill into the past
+2026-10-21T15:04:45.1381193Z ok 44 - clock_backwards neither credits time nor extends a refill into the past
+2026-10-21T15:04:45.1381937Z   ---
+2026-10-21T15:04:45.1382317Z   duration_ms: 0.415515
+2026-10-21T15:04:45.1382747Z   type: 'test'
+2026-10-21T15:04:45.1383113Z   ...
+2026-10-21T15:04:45.1383717Z # Subtest: new_chicken starts fresh with current supplies
+2026-10-21T15:04:45.1384555Z ok 45 - new_chicken starts fresh with current supplies
+2026-10-21T15:04:45.1385128Z   ---
+2026-10-21T15:04:45.1385496Z   duration_ms: 2.83575
+2026-10-21T15:04:45.1385923Z   type: 'test'
+2026-10-21T15:04:45.1386291Z   ...
+2026-10-21T15:04:45.1387121Z # Subtest: legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-21T15:04:45.1388352Z ok 46 - legacy_migration_once retains paid ready and future eggs without free feed
+2026-10-21T15:04:45.1389120Z   ---
+2026-10-21T15:04:45.1389487Z   duration_ms: 1.2224
+2026-10-21T15:04:45.1390162Z   type: 'test'
+2026-10-21T15:04:45.1390541Z   ...
+2026-10-21T15:04:45.1391307Z # Subtest: unknown_care_version_preserved rejects actions without deleting data
+2026-10-21T15:04:45.1392459Z ok 47 - unknown_care_version_preserved rejects actions without deleting data
+2026-10-21T15:04:45.1393201Z   ---
+2026-10-21T15:04:45.1393565Z   duration_ms: 0.448116
+2026-10-21T15:04:45.1393984Z   type: 'test'
+2026-10-21T15:04:45.1394370Z   ...
+2026-10-21T15:04:45.1395181Z # Subtest: happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-21T15:04:45.1396354Z ok 48 - happy_cycles_and_rewards persist and split double eggs without double XP
+2026-10-21T15:04:45.1397087Z   ---
+2026-10-21T15:04:45.1397482Z   duration_ms: 57.320067
+2026-10-21T15:04:45.1397915Z   type: 'test'
+2026-10-21T15:04:45.1398277Z   ...
+2026-10-21T15:04:45.1398999Z # Subtest: status is a read-only projection, even before first migration
+2026-10-21T15:04:45.1400330Z ok 49 - status is a read-only projection, even before first migration
+2026-10-21T15:04:45.1400989Z   ---
+2026-10-21T15:04:45.1401355Z   duration_ms: 1.283234
+2026-10-21T15:04:45.1401763Z   type: 'test'
+2026-10-21T15:04:45.1402101Z   ...
+2026-10-21T15:04:45.1402999Z # Subtest: malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-21T15:04:45.1404647Z ok 50 - malformed current-version care is preserved without crashing or paying invalid rewards
+2026-10-21T15:04:45.1405438Z   ---
+2026-10-21T15:04:45.1405778Z   duration_ms: 1.571251
+2026-10-21T15:04:45.1406183Z   type: 'test'
+2026-10-21T15:04:45.1406523Z   ...
+2026-10-21T15:04:45.1407656Z # Subtest: a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-21T15:04:45.1409094Z ok 51 - a legacy timer written by an older cached client is migrated even when care already exists
+2026-10-21T15:04:45.1410428Z   ---
+2026-10-21T15:04:45.1410788Z   duration_ms: 0.411739
+2026-10-21T15:04:45.1411211Z   type: 'test'
+2026-10-21T15:04:45.1411575Z   ...
+2026-10-21T15:04:45.1412442Z # Subtest: overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-21T15:04:45.1413659Z ok 52 - overlapping already-paid legacy timers for the same hen are preserved once each
+2026-10-21T15:04:45.1414386Z   ---
+2026-10-21T15:04:45.1414717Z   duration_ms: 0.263171
+2026-10-21T15:04:45.1415089Z   type: 'test'
+2026-10-21T15:04:45.1415416Z   ...
+2026-10-21T15:04:45.1416117Z # Subtest: thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-21T15:04:45.1417164Z ok 53 - thirty ordinary birds produce720 eggs over12 hours and survive reload
+2026-10-21T15:04:45.1417809Z   ---
+2026-10-21T15:04:45.1418315Z   duration_ms: 17.995339
+2026-10-21T15:04:45.1418710Z   type: 'test'
+2026-10-21T15:04:45.1419039Z   ...
+2026-10-21T15:04:45.1419942Z # Subtest: thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-21T15:04:45.1421029Z ok 54 - thirty birds retain partition-independent bonuses and pause at1200 eggs
+2026-10-21T15:04:45.1421691Z   ---
+2026-10-21T15:04:45.1422010Z   duration_ms: 48.82489
+2026-10-21T15:04:45.1422376Z   type: 'test'
+2026-10-21T15:04:45.1422702Z   ...
+2026-10-21T15:04:45.1423376Z # Subtest: all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-21T15:04:45.1424045Z ok 55 - all30 paid legacy timers migrate once, while31 birds remain untouched
+2026-10-21T15:04:45.1424702Z   ---
+2026-10-21T15:04:45.1425037Z   duration_ms: 0.488291
+2026-10-21T15:04:45.1425412Z   type: 'test'
+2026-10-21T15:04:45.1425738Z   ...
+2026-10-21T15:04:45.1426371Z # Subtest: coordinated chicken meets every original 96-cell turn gate
+2026-10-21T15:04:45.1427288Z ok 56 - coordinated chicken meets every original 96-cell turn gate
+2026-10-21T15:04:45.1427869Z   ---
+2026-10-21T15:04:45.1428200Z   duration_ms: 10883.071093
+2026-10-21T15:04:45.1428592Z   type: 'test'
+2026-10-21T15:04:45.1428919Z   ...
+2026-10-21T15:04:45.1429933Z # Subtest: seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+2026-10-21T15:04:45.1431218Z ok 57 - seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+2026-10-21T15:04:45.1431960Z   ---
+2026-10-21T15:04:45.1432285Z   duration_ms: 10523.066676
+2026-10-21T15:04:45.1432686Z   type: 'test'
+2026-10-21T15:04:45.1433008Z   ...
+2026-10-21T15:04:45.1433670Z # Subtest: restart during partial settling retains first-frame continuity
+2026-10-21T15:04:45.1434638Z ok 58 - restart during partial settling retains first-frame continuity
+2026-10-21T15:04:45.1435246Z   ---
+2026-10-21T15:04:45.1435569Z   duration_ms: 10.1882
+2026-10-21T15:04:45.1435937Z   type: 'test'
+2026-10-21T15:04:45.1436265Z   ...
+2026-10-21T15:04:45.1437027Z # Subtest: chicken geometry, skinning and factory rest transforms preserve frozen main
+2026-10-21T15:04:45.1438171Z ok 59 - chicken geometry, skinning and factory rest transforms preserve frozen main
+2026-10-21T15:04:45.1438865Z   ---
+2026-10-21T15:04:45.1439185Z   duration_ms: 5.475617
+2026-10-21T15:04:45.1439556Z   type: 'test'
+2026-10-21T15:04:45.1440094Z   ...
+2026-10-21T15:04:45.1440915Z # Subtest: real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+2026-10-21T15:04:45.1442149Z ok 60 - real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+2026-10-21T15:04:45.1443142Z   ---
+2026-10-21T15:04:45.1443484Z   duration_ms: 7.952217
+2026-10-21T15:04:45.1443858Z   type: 'test'
+2026-10-21T15:04:45.1444195Z   ...
+2026-10-21T15:04:45.1444911Z # Subtest: the same chicken travel produces the same physical feet at 30/60/120 Hz
+2026-10-21T15:04:45.1445967Z ok 61 - the same chicken travel produces the same physical feet at 30/60/120 Hz
+2026-10-21T15:04:45.1446620Z   ---
+2026-10-21T15:04:45.1447129Z   duration_ms: 5.355894
+2026-10-21T15:04:45.1447511Z   type: 'test'
+2026-10-21T15:04:45.1447841Z   ...
+2026-10-21T15:04:45.1448534Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=30
+2026-10-21T15:04:45.1449543Z ok 62 - chicken first walk frame cannot jump farther than root travel hz=30
+2026-10-21T15:04:45.1450367Z   ---
+2026-10-21T15:04:45.1450701Z   duration_ms: 41.885344
+2026-10-21T15:04:45.1451082Z   type: 'test'
+2026-10-21T15:04:45.1451405Z   ...
+2026-10-21T15:04:45.1452250Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=30
+2026-10-21T15:04:45.1453393Z ok 63 - chicken right turn retains real grounded contacts even if a flag resets hz=30
+2026-10-21T15:04:45.1454078Z   ---
+2026-10-21T15:04:45.1454403Z   duration_ms: 116.871839
+2026-10-21T15:04:45.1454795Z   type: 'test'
+2026-10-21T15:04:45.1455116Z   ...
+2026-10-21T15:04:45.1455799Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=60
+2026-10-21T15:04:45.1456828Z ok 64 - chicken first walk frame cannot jump farther than root travel hz=60
+2026-10-21T15:04:45.1457461Z   ---
+2026-10-21T15:04:45.1457784Z   duration_ms: 0.785545
+2026-10-21T15:04:45.1458162Z   type: 'test'
+2026-10-21T15:04:45.1458486Z   ...
+2026-10-21T15:04:45.1459020Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=60
+2026-10-21T15:04:45.1459956Z ok 65 - chicken right turn retains real grounded contacts even if a flag resets hz=60
+2026-10-21T15:04:45.1460378Z   ---
+2026-10-21T15:04:45.1460586Z   duration_ms: 115.650528
+2026-10-21T15:04:45.1460819Z   type: 'test'
+2026-10-21T15:04:45.1461019Z   ...
+2026-10-21T15:04:45.1461419Z # Subtest: chicken first walk frame cannot jump farther than root travel hz=120
+2026-10-21T15:04:45.1462025Z ok 66 - chicken first walk frame cannot jump farther than root travel hz=120
+2026-10-21T15:04:45.1462395Z   ---
+2026-10-21T15:04:45.1462586Z   duration_ms: 0.499272
+2026-10-21T15:04:45.1462810Z   type: 'test'
+2026-10-21T15:04:45.1463024Z   ...
+2026-10-21T15:04:45.1463472Z # Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=120
+2026-10-21T15:04:45.1464138Z ok 67 - chicken right turn retains real grounded contacts even if a flag resets hz=120
+2026-10-21T15:04:45.1464550Z   ---
+2026-10-21T15:04:45.1464746Z   duration_ms: 185.096365
+2026-10-21T15:04:45.1464978Z   type: 'test'
+2026-10-21T15:04:45.1465173Z   ...
+2026-10-21T15:04:45.1465601Z # Subtest: resting chicken skin stays inside the actual coop side walls at every bed
+2026-10-21T15:04:45.1466298Z ok 68 - resting chicken skin stays inside the actual coop side walls at every bed
+2026-10-21T15:04:45.1466714Z   ---
+2026-10-21T15:04:45.1466936Z   duration_ms: 330.978376
+2026-10-21T15:04:45.1467189Z   type: 'test'
+2026-10-21T15:04:45.1467401Z   ...
+2026-10-21T15:04:45.1467859Z # Subtest: both coop doors are real openings with independent continuous supported ramps
+2026-10-21T15:04:45.1468606Z ok 69 - both coop doors are real openings with independent continuous supported ramps
+2026-10-21T15:04:45.1469048Z   ---
+2026-10-21T15:04:45.1469258Z   duration_ms: 254.165872
+2026-10-21T15:04:45.1469508Z   type: 'test'
+2026-10-21T15:04:45.1469885Z   ...
+2026-10-21T15:04:45.1470304Z # Subtest: thirty separately reserved resting places fit inside the raised coop
+2026-10-21T15:04:45.1470980Z ok 70 - thirty separately reserved resting places fit inside the raised coop
+2026-10-21T15:04:45.1471399Z   ---
+2026-10-21T15:04:45.1471593Z   duration_ms: 42.296649
+2026-10-21T15:04:45.1471870Z   type: 'test'
+2026-10-21T15:04:45.1472362Z   ...
+2026-10-21T15:04:45.1472915Z # Subtest: feed and water visits reserve limited visible contact surfaces without producing supplies
+2026-10-21T15:04:45.1473753Z ok 71 - feed and water visits reserve limited visible contact surfaces without producing supplies
+2026-10-21T15:04:45.1474231Z   ---
+2026-10-21T15:04:45.1474448Z   duration_ms: 51.233031
+2026-10-21T15:04:45.1474703Z   type: 'test'
+2026-10-21T15:04:45.1474915Z   ...
+2026-10-21T15:04:45.1475548Z # Subtest: the doorway is a real opening and ramp support continuously meets the interior floor
+2026-10-21T15:04:45.1476308Z ok 72 - the doorway is a real opening and ramp support continuously meets the interior floor
+2026-10-21T15:04:45.1476731Z   ---
+2026-10-21T15:04:45.1476926Z   duration_ms: 129.397586
+2026-10-21T15:04:45.1477175Z   type: 'test'
+2026-10-21T15:04:45.1477376Z   ...
+2026-10-21T15:04:45.1477877Z # Subtest: chicken lying pose folds the actual legs above the raised floor and restores the accepted rig
+2026-10-21T15:04:45.1478687Z ok 73 - chicken lying pose folds the actual legs above the raised floor and restores the accepted rig
+2026-10-21T15:04:45.1479357Z   ---
+2026-10-21T15:04:45.1479557Z   duration_ms: 142.982284
+2026-10-21T15:04:45.1480030Z   type: 'test'
+2026-10-21T15:04:45.1480277Z   ...
+2026-10-21T15:04:45.1480757Z # Subtest: feed peck and water sip place the actual beak at the visible surface with feet supported
+2026-10-21T15:04:45.1481480Z ok 74 - feed peck and water sip place the actual beak at the visible surface with feet supported
+2026-10-21T15:04:45.1481919Z   ---
+2026-10-21T15:04:45.1482114Z   duration_ms: 115.918198
+2026-10-21T15:04:45.1482357Z   type: 'test'
+2026-10-21T15:04:45.1482550Z   ...
+2026-10-21T15:04:45.1482974Z # Subtest: opt-in ramp support keeps planted poultry feet on the actual access surface
+2026-10-21T15:04:45.1483609Z ok 75 - opt-in ramp support keeps planted poultry feet on the actual access surface
+2026-10-21T15:04:45.1484002Z   ---
+2026-10-21T15:04:45.1484197Z   duration_ms: 40.176867
+2026-10-21T15:04:45.1484426Z   type: 'test'
+2026-10-21T15:04:45.1484613Z   ...
+2026-10-21T15:04:45.1485047Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+2026-10-21T15:04:45.1485692Z ok 76 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+2026-10-21T15:04:45.1486088Z   ---
+2026-10-21T15:04:45.1486296Z   duration_ms: 55.142075
+2026-10-21T15:04:45.1486524Z   type: 'test'
+2026-10-21T15:04:45.1486720Z   ...
+2026-10-21T15:04:45.1487154Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+2026-10-21T15:04:45.1487798Z ok 77 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+2026-10-21T15:04:45.1488194Z   ---
+2026-10-21T15:04:45.1488390Z   duration_ms: 7.709642
+2026-10-21T15:04:45.1488620Z   type: 'test'
+2026-10-21T15:04:45.1488808Z   ...
+2026-10-21T15:04:45.1489238Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+2026-10-21T15:04:45.1490144Z ok 78 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+2026-10-21T15:04:45.1490874Z   ---
+2026-10-21T15:04:45.1491221Z   duration_ms: 14.971298
+2026-10-21T15:04:45.1491486Z   type: 'test'
+2026-10-21T15:04:45.1491685Z   ...
+2026-10-21T15:04:45.1492119Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+2026-10-21T15:04:45.1492772Z ok 79 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+2026-10-21T15:04:45.1493178Z   ---
+2026-10-21T15:04:45.1493370Z   duration_ms: 12.537739
+2026-10-21T15:04:45.1493596Z   type: 'test'
+2026-10-21T15:04:45.1493790Z   ...
+2026-10-21T15:04:45.1494219Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+2026-10-21T15:04:45.1494862Z ok 80 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+2026-10-21T15:04:45.1495260Z   ---
+2026-10-21T15:04:45.1495453Z   duration_ms: 8.213261
+2026-10-21T15:04:45.1495862Z   type: 'test'
+2026-10-21T15:04:45.1496050Z   ...
+2026-10-21T15:04:45.1496491Z # Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+2026-10-21T15:04:45.1497144Z ok 81 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+2026-10-21T15:04:45.1497539Z   ---
+2026-10-21T15:04:45.1497729Z   duration_ms: 7.500592
+2026-10-21T15:04:45.1497951Z   type: 'test'
+2026-10-21T15:04:45.1498141Z   ...
+2026-10-21T15:04:45.1498717Z # Subtest: chicken stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-21T15:04:45.1499417Z ok 82 - chicken stop recovery holds contacts and lands all actual soles across gait phases
+2026-10-21T15:04:45.1500149Z   ---
+2026-10-21T15:04:45.1500394Z   duration_ms: 1475.196239
+2026-10-21T15:04:45.1500625Z   type: 'test'
+2026-10-21T15:04:45.1500815Z   ...
+2026-10-21T15:04:45.1501262Z # Subtest: chicken stop recovery also preserves contacts after left and right turns
+2026-10-21T15:04:45.1501974Z ok 83 - chicken stop recovery also preserves contacts after left and right turns
+2026-10-21T15:04:45.1502521Z   ---
+2026-10-21T15:04:45.1502715Z   duration_ms: 18.048989
+2026-10-21T15:04:45.1502944Z   type: 'test'
+2026-10-21T15:04:45.1503130Z   ...
+2026-10-21T15:04:45.1503565Z # Subtest: chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-21T15:04:45.1504223Z ok 84 - chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+2026-10-21T15:04:45.1504632Z   ---
+2026-10-21T15:04:45.1504821Z   duration_ms: 1.886339
+2026-10-21T15:04:45.1505047Z   type: 'test'
+2026-10-21T15:04:45.1505235Z   ...
+2026-10-21T15:04:45.1505624Z # Subtest: physical coop and distinct reachable stations fit the chicken yard
+2026-10-21T15:04:45.1506207Z ok 85 - physical coop and distinct reachable stations fit the chicken yard
+2026-10-21T15:04:45.1506576Z   ---
+2026-10-21T15:04:45.1506767Z   duration_ms: 82.372929
+2026-10-21T15:04:45.1506989Z   type: 'test'
+2026-10-21T15:04:45.1507184Z   ...
+2026-10-21T15:04:45.1507503Z # Subtest: geometry stays under a bounded component budget
+2026-10-21T15:04:45.1508172Z ok 86 - geometry stays under a bounded component budget
+2026-10-21T15:04:45.1508588Z   ---
+2026-10-21T15:04:45.1508866Z   duration_ms: 67.564895
+2026-10-21T15:04:45.1509344Z   type: 'test'
+2026-10-21T15:04:45.1509909Z   ...
+2026-10-21T15:04:45.1510500Z # Subtest: netting encloses the east side and the coop has complete gable faces
+2026-10-21T15:04:45.1523276Z ok 87 - netting encloses the east side and the coop has complete gable faces
+2026-10-21T15:04:45.1523932Z   ---
+2026-10-21T15:04:45.1524169Z   duration_ms: 44.431284
+2026-10-21T15:04:45.1524416Z   type: 'test'
+2026-10-21T15:04:45.1524621Z   ...
+2026-10-21T15:04:45.1525087Z # Subtest: pallet center remains selectable through slat gaps with stable station bounds
+2026-10-21T15:04:45.1525782Z ok 88 - pallet center remains selectable through slat gaps with stable station bounds
+2026-10-21T15:04:45.1526197Z   ---
+2026-10-21T15:04:45.1526402Z   duration_ms: 43.353553
+2026-10-21T15:04:45.1526651Z   type: 'test'
+2026-10-21T15:04:45.1526849Z   ...
+2026-10-21T15:04:45.1527342Z # Subtest: appearance and status reuse resources and restore preview without affecting footprint
+2026-10-21T15:04:45.1528072Z ok 89 - appearance and status reuse resources and restore preview without affecting footprint
+2026-10-21T15:04:45.1528512Z   ---
+2026-10-21T15:04:45.1528717Z   duration_ms: 55.675752
+2026-10-21T15:04:45.1528952Z   type: 'test'
+2026-10-21T15:04:45.1529158Z   ...
+2026-10-21T15:04:45.1529864Z # Subtest: thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-21T15:04:45.1530604Z ok 90 - thirty-bird yard has expanded room and a proportionately larger coop
+2026-10-21T15:04:45.1530994Z   ---
+2026-10-21T15:04:45.1531186Z   duration_ms: 56.91046
+2026-10-21T15:04:45.1531416Z   type: 'test'
+2026-10-21T15:04:45.1531602Z   ...
+2026-10-21T15:04:45.1532061Z # Subtest: enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-21T15:04:45.1532959Z ok 91 - enlarged stations and ramp clear the existing rock and bush collision footprints
+2026-10-21T15:04:45.1533373Z   ---
+2026-10-21T15:04:45.1533576Z   duration_ms: 78.784059
+2026-10-21T15:04:45.1533849Z   type: 'test'
+2026-10-21T15:04:45.1534042Z   ...
+2026-10-21T15:04:45.1534484Z # Subtest: default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-21T15:04:45.1535327Z ok 92 - default flock resting and spawn fallback point stays clear of enlarged stations
+2026-10-21T15:04:45.1535762Z   ---
+2026-10-21T15:04:45.1535954Z   duration_ms: 42.340028
+2026-10-21T15:04:45.1536176Z   type: 'test'
+2026-10-21T15:04:45.1536365Z   ...
+2026-10-21T15:04:45.1536813Z # Subtest: lying folds all legs onto a supported bed and the actual skin stays above the floor
+2026-10-21T15:04:45.1537489Z ok 93 - lying folds all legs onto a supported bed and the actual skin stays above the floor
+2026-10-21T15:04:45.1537898Z   ---
+2026-10-21T15:04:45.1538090Z   duration_ms: 246.949312
+2026-10-21T15:04:45.1538320Z   type: 'test'
+2026-10-21T15:04:45.1538506Z   ...
+2026-10-21T15:04:45.1538938Z # Subtest: feed and drink place the actual muzzle on the target surface with planted feet
+2026-10-21T15:04:45.1539954Z ok 94 - feed and drink place the actual muzzle on the target surface with planted feet
+2026-10-21T15:04:45.1540665Z   ---
+2026-10-21T15:04:45.1540989Z   duration_ms: 38.353524
+2026-10-21T15:04:45.1541389Z   type: 'test'
+2026-10-21T15:04:45.1541727Z   ...
+2026-10-21T15:04:45.1542472Z # Subtest: the complete lie and stand transition keeps actual skin above the floor at every blend
+2026-10-21T15:04:45.1543199Z ok 95 - the complete lie and stand transition keeps actual skin above the floor at every blend
+2026-10-21T15:04:45.1543634Z   ---
+2026-10-21T15:04:45.1543831Z   duration_ms: 621.548939
+2026-10-21T15:04:45.1544061Z   type: 'test'
+2026-10-21T15:04:45.1544253Z   ...
+2026-10-21T15:04:45.1544608Z # Subtest: lying torso rests on the authored straw support surface
+2026-10-21T15:04:45.1545102Z ok 96 - lying torso rests on the authored straw support surface
+2026-10-21T15:04:45.1545438Z   ---
+2026-10-21T15:04:45.1545643Z   duration_ms: 7.724069
+2026-10-21T15:04:45.1545864Z   type: 'test'
+2026-10-21T15:04:45.1546054Z   ...
+2026-10-21T15:04:45.1546562Z # Subtest: physical feed contact retains the accepted chewing channel; drinking has a distinct jaw pose
+2026-10-21T15:04:45.1547337Z ok 97 - physical feed contact retains the accepted chewing channel; drinking has a distinct jaw pose
+2026-10-21T15:04:45.1547792Z   ---
+2026-10-21T15:04:45.1547990Z   duration_ms: 13.024896
+2026-10-21T15:04:45.1548214Z   type: 'test'
+2026-10-21T15:04:45.1548405Z   ...
+2026-10-21T15:04:45.1548813Z # Subtest: standing and folded cows remain directly pickable at their actual torso
+2026-10-21T15:04:45.1549430Z ok 98 - standing and folded cows remain directly pickable at their actual torso
+2026-10-21T15:04:45.1550169Z   ---
+2026-10-21T15:04:45.1550379Z   duration_ms: 133.242416
+2026-10-21T15:04:45.1550624Z   type: 'test'
+2026-10-21T15:04:45.1550826Z   ...
+2026-10-21T15:04:45.1551253Z # Subtest: nested authored module versions cannot evade the cache consistency check
+2026-10-21T15:04:45.1551897Z ok 99 - nested authored module versions cannot evade the cache consistency check
+2026-10-21T15:04:45.1552286Z   ---
+2026-10-21T15:04:45.1552478Z   duration_ms: 1.939799
+2026-10-21T15:04:45.1552697Z   type: 'test'
+2026-10-21T15:04:45.1552895Z   ...
+2026-10-21T15:04:45.1553247Z # Subtest: every versioned script is imported with one version only
+2026-10-21T15:04:45.1553761Z ok 100 - every versioned script is imported with one version only
+2026-10-21T15:04:45.1554101Z   ---
+2026-10-21T15:04:45.1554290Z   duration_ms: 0.540188
+2026-10-21T15:04:45.1554509Z   type: 'test'
+2026-10-21T15:04:45.1554703Z   ...
+2026-10-21T15:04:45.1555047Z # Subtest: window.__gameVer matches the game.js version it imports
+2026-10-21T15:04:45.1555539Z ok 101 - window.__gameVer matches the game.js version it imports
+2026-10-21T15:04:45.1555877Z   ---
+2026-10-21T15:04:45.1556238Z   duration_ms: 0.281305
+2026-10-21T15:04:45.1556456Z   type: 'test'
+2026-10-21T15:04:45.1556644Z   ...
+2026-10-21T15:04:45.1557008Z # Subtest: the offline shell caches the same versions the page imports
+2026-10-21T15:04:45.1557528Z ok 102 - the offline shell caches the same versions the page imports
+2026-10-21T15:04:45.1557865Z   ---
+2026-10-21T15:04:45.1558062Z   duration_ms: 0.550898
+2026-10-21T15:04:45.1558279Z   type: 'test'
+2026-10-21T15:04:45.1558466Z   ...
+2026-10-21T15:04:45.1558973Z # Subtest: the cache name is versioned and namespaced away from the 2D game
+2026-10-21T15:04:45.1559545Z ok 103 - the cache name is versioned and namespaced away from the 2D game
+2026-10-21T15:04:45.1560160Z   ---
+2026-10-21T15:04:45.1560354Z   duration_ms: 0.315348
+2026-10-21T15:04:45.1560575Z   type: 'test'
+2026-10-21T15:04:45.1560764Z   ...
+2026-10-21T15:04:45.1561183Z # Subtest: chicken dependencies of both the page and game rules are cached offline
+2026-10-21T15:04:45.1561805Z ok 104 - chicken dependencies of both the page and game rules are cached offline
+2026-10-21T15:04:45.1562198Z   ---
+2026-10-21T15:04:45.1562388Z   duration_ms: 0.223076
+2026-10-21T15:04:45.1562612Z   type: 'test'
+2026-10-21T15:04:45.1562801Z   ...
+2026-10-21T15:04:45.1563177Z # Subtest: offline shell contains the complete local JavaScript boot graph
+2026-10-21T15:04:45.1563749Z ok 105 - offline shell contains the complete local JavaScript boot graph
+2026-10-21T15:04:45.1564104Z   ---
+2026-10-21T15:04:45.1564297Z   duration_ms: 0.311571
+2026-10-21T15:04:45.1564512Z   type: 'test'
+2026-10-21T15:04:45.1564704Z   ...
+2026-10-21T15:04:45.1565132Z # Subtest: native scene-polish fixture imports the same scenery version as the page
+2026-10-21T15:04:45.1565756Z ok 106 - native scene-polish fixture imports the same scenery version as the page
+2026-10-21T15:04:45.1566145Z   ---
+2026-10-21T15:04:45.1566332Z   duration_ms: 0.346547
+2026-10-21T15:04:45.1566543Z   type: 'test'
+2026-10-21T15:04:45.1566739Z   ...
+2026-10-21T15:04:45.1566911Z 1..106
+2026-10-21T15:04:45.1567120Z # tests 106
+2026-10-21T15:04:45.1567306Z # suites 0
+2026-10-21T15:04:45.1567496Z # pass 106
+2026-10-21T15:04:45.1567682Z # fail 0
+2026-10-21T15:04:45.1567865Z # cancelled 0
+2026-10-21T15:04:45.1568064Z # skipped 0
+2026-10-21T15:04:45.1568248Z # todo 0
+2026-10-21T15:04:45.1568491Z # duration_ms 80917.429044
+2026-10-21T15:04:45.1599286Z ##[group]Run node farm3d/tests/chicken-care-physical.browser.cjs
+2026-10-21T15:04:45.1600119Z [36;1mnode farm3d/tests/chicken-care-physical.browser.cjs[0m
+2026-10-21T15:04:45.1651839Z shell: /usr/bin/bash -e {0}
+2026-10-21T15:04:45.1652115Z env:
+2026-10-21T15:04:45.1652350Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:04:45.1652619Z ##[endgroup]
+2026-10-21T15:05:10.3576381Z PASS feed reaches visible surface
+2026-10-21T15:05:15.7374486Z PASS drink reaches visible surface
+2026-10-21T15:05:17.8318390Z PASS real daytime nap settles before nightfall
+2026-10-21T15:05:32.8227653Z page.evaluate: Error: Physical chicken goal beds not reached: [{"i":0,"p":[-10.9,0.67305,-3.85],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":1,"p":[-8.8,0.67305,-3.85],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":2,"p":[-11.6,0.67305,-3.85],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":3,"p":[-9.5,0.67305,-3.85],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":4,"p":[-7.971243882097408,0,3.831483669274464],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"},{"i":5,"p":[-10.2,0.67305,-3.12],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":6,"p":[-10.756645429064092,0,4.695878271863991],"stage":"waiting","kind":"bed","weight":0,"blocked":1.0999999999999999,"label":"Waiting to enter the coop"},{"i":7,"p":[-8.8,0.67305,-3.12],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":8,"p":[-11.488431411754865,0.67305,-3.52508110069141],"stage":"approach","kind":"bed","weight":0,"blocked":2.1,"label":"Walking to coop bedding"},{"i":9,"p":[-6.833774404394729,0,2.819739822337632],"stage":"waiting","kind":"bed","weight":0,"blocked":2.1000000000000005,"label":"Waiting to enter the coop"},{"i":10,"p":[-9.5,0.67305,-3.12],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":11,"p":[-7.094749620421383,0,2.383558616026776],"stage":"approach","kind":"feed","weight":0,"blocked":0.4,"label":"Walking to the feeder"},{"i":12,"p":[-11.219561800167293,0,3.682798731000882],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"},{"i":13,"p":[-10.2,0.67305,-2.39],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":14,"p":[-5.808115022120869,0,3.470948789287589],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"},{"i":15,"p":[-8.8,0.67305,-2.39],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":16,"p":[-10.2,0.67305,-3.85],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":17,"p":[-8.541779820080599,0,4.69742071752495],"stage":"waiting","kind":"bed","weight":0,"blocked":0.7999999999999999,"label":"Waiting to enter the coop"},{"i":18,"p":[-9.5,0.67305,-2.39],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":19,"p":[-6.166805613263892,0,3.4329412793926717],"stage":"waiting","kind":"bed","weight":0,"blocked":1.5000000000000002,"label":"Waiting to enter the coop"},{"i":20,"p":[-8.884812817111301,0,4.699186334103025],"stage":"waiting","kind":"bed","weight":0,"blocked":0.8999999999999999,"label":"Waiting to enter the coop"},{"i":21,"p":[-8.8,0.67305,-0.9300000000000002],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":22,"p":[-10.2,0.67305,-1.6600000000000001],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":23,"p":[-10.59801195597191,0,1.258971470542548],"stage":"waiting","kind":"bed","weight":0,"blocked":0.1,"label":"Waiting to enter the coop"},{"i":24,"p":[-8.8,0.67305,-1.6600000000000001],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":25,"p":[-10.84188512357241,0,3.8855093057007366],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"},{"i":26,"p":[-9.5,0.67305,-1.6600000000000001],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":27,"p":[-10.672748598181297,0,4.336108791612351],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"},{"i":28,"p":[-10.2,0.67305,-0.9300000000000002],"stage":"hold","kind":"bed","weight":1,"blocked":0,"label":"Sleeping in the coop"},{"i":29,"p":[-10.413286861021277,0,3.9159404605676684],"stage":"waiting","kind":"bed","weight":0,"blocked":0,"label":"Waiting to enter the coop"}]
+2026-10-21T15:05:32.8249368Z     at eval (eval at evaluate (:311:30), <anonymous>:10:8)
+2026-10-21T15:05:32.8250587Z     at UtilityScript.evaluate (<anonymous>:313:16)
+2026-10-21T15:05:32.8251289Z     at UtilityScript.<anonymous> (<anonymous>:1:44)
+2026-10-21T15:05:32.8252293Z     at advance (/home/runner/work/Bugsy/Bugsy/farm3d/tests/chicken-care-physical.browser.cjs:11:39)
+2026-10-21T15:05:32.8253564Z     at /home/runner/work/Bugsy/Bugsy/farm3d/tests/chicken-care-physical.browser.cjs:35:49
+2026-10-21T15:05:33.6541939Z ##[error]Process completed with exit code 1.
+2026-10-21T15:05:33.6645632Z ##[group]Run actions/upload-artifact@v5
+2026-10-21T15:05:33.6645958Z with:
+2026-10-21T15:05:33.6646179Z   name: chicken-physical-844x390-1
+2026-10-21T15:05:33.6646502Z   path: farm3d/tests/artifacts/chicken-physical-*
+2026-10-21T15:05:33.6646819Z   retention-days: 14
+2026-10-21T15:05:33.6647049Z   if-no-files-found: warn
+2026-10-21T15:05:33.6647282Z   compression-level: 6
+2026-10-21T15:05:33.6647504Z   overwrite: false
+2026-10-21T15:05:33.6647726Z   include-hidden-files: false
+2026-10-21T15:05:33.6648175Z env:
+2026-10-21T15:05:33.6648375Z   CHICKEN_VIEWPORT: 844x390
+2026-10-21T15:05:33.6648608Z ##[endgroup]
+2026-10-21T15:05:33.8285625Z (node:3524) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-21T15:05:33.8286490Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-21T15:05:33.8376045Z With the provided path, there will be 7 files uploaded
+2026-10-21T15:05:33.8391277Z Artifact name is valid!
+2026-10-21T15:05:33.8391837Z Root directory input is valid!
+2026-10-21T15:05:34.0918783Z Beginning upload of artifact content to blob storage
+2026-10-21T15:05:34.2858165Z (node:3524) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-21T15:05:34.6609166Z Uploaded bytes 5535994
+2026-10-21T15:05:34.6973729Z Finished uploading artifact content to blob storage!
+2026-10-21T15:05:34.6975285Z SHA256 digest of uploaded artifact zip is 878a6148ad052afcc95fb497d13f6b382e853d6dc8259fe24411bd322bf24527
+2026-10-21T15:05:34.6977923Z Finalizing artifact upload
+2026-10-21T15:05:34.9513436Z Artifact chicken-physical-844x390-1.zip successfully finalized. Artifact ID 12354903207
+2026-10-21T15:05:34.9515600Z Artifact chicken-physical-844x390-1 has been successfully uploaded! Final size is 5535994 bytes. Artifact ID is 12354903207
+2026-10-21T15:05:34.9522973Z Artifact download URL: https://github.com/pederaus9-ux/Bugsy/actions/runs/39622234155/artifacts/12354903207
+2026-10-21T15:05:34.9751934Z Post job cleanup.
+2026-10-21T15:05:35.0644429Z [command]/usr/bin/git version
+2026-10-21T15:05:35.0691703Z git version 2.55.0
+2026-10-21T15:05:35.0731394Z Temporarily overriding HOME='/home/runner/work/_temp/17f4dcfc-4378-442f-8920-59fdd3b409a7' before making global git config changes
+2026-10-21T15:05:35.0733344Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T15:05:35.0737593Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Bugsy/Bugsy
+2026-10-21T15:05:35.0774854Z Removing SSH command configuration
+2026-10-21T15:05:35.0782155Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T15:05:35.0822711Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T15:05:35.1089359Z Removing HTTP extra header
+2026-10-21T15:05:35.1097181Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T15:05:35.1139518Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T15:05:35.1393168Z Removing includeIf entries pointing to credentials config files
+2026-10-21T15:05:35.1405589Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T15:05:35.1448381Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T15:05:35.1895721Z Cleaning up orphan processes
+2026-10-21T15:05:35.2276590Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
