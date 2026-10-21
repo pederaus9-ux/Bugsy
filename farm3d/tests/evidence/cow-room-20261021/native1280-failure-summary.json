@@ -1,0 +1,124 @@
+{
+  "head": "e1c2889357976b7ab18b4963c10881d8edf25535",
+  "job": 119285608808,
+  "run": 39618559323,
+  "artifact": 12354227104,
+  "archiveSha256": "3f228f503a0ca2d71f0a9746076b297ce555676d1bdf2bfdaa66c1fad70bd10c",
+  "error": "page.waitForFunction: Timeout 60000ms exceeded.\n    at /home/runner/work/Bugsy/Bugsy/farm3d/tests/cow-robot.browser.cjs:72:9",
+  "checks": [
+    "live animal activity retains header, Rename/Close and action nodes; labels/disabled update; farm/cow switch rebuilds",
+    "native mouse stocks feed and water",
+    "ready cow tap then Milk preserves barn milk"
+  ],
+  "failure": {
+    "ready": true,
+    "site": true,
+    "issues": [],
+    "care": {
+      "v": 1,
+      "lastAt": 1792593881889,
+      "feed": 29,
+      "waterUntil": 1792636815081,
+      "nextId": 2,
+      "nextJob": 2,
+      "cows": [
+        {
+          "id": "cow-1",
+          "cycle": 1,
+          "lastAt": 1792593881889,
+          "progress": 180000,
+          "duration": 180000,
+          "feedCharged": true,
+          "happy": false,
+          "legacyAt": null,
+          "ready": {
+            "id": "cow-1:1",
+            "n": 1,
+            "gold": false,
+            "xp": 3,
+            "credited": false
+          }
+        }
+      ],
+      "queue": [],
+      "job": {
+        "id": 1,
+        "cowId": "cow-1",
+        "stage": "approaching",
+        "batch": {
+          "id": "cow-1:1",
+          "n": 1,
+          "gold": false,
+          "xp": 3,
+          "credited": false
+        },
+        "startedAt": null,
+        "credited": false
+      },
+      "tank": {
+        "normal": 0,
+        "gold": 0
+      },
+      "receipts": [],
+      "rng": 2084807069,
+      "revision": 6,
+      "capacity": 50,
+      "reason": null
+    },
+    "animals": [
+      {
+        "name": "Review Bessie",
+        "pos": [
+          6.9750000000000005,
+          0.08,
+          -33.86
+        ],
+        "task": {
+          "kind": "robot",
+          "token": {
+            "stationId": "cow-robot",
+            "animalId": "cow-1",
+            "generation": 1,
+            "arrived": false
+          },
+          "station": {
+            "id": "cow-robot",
+            "kind": "robot",
+            "dock": [
+              8.600000000000001,
+              0.08,
+              -36.3
+            ],
+            "approach": [
+              8.600000000000001,
+              0.08,
+              -34
+            ],
+            "facing": 3.141592653589793,
+            "surface": 0.08
+          },
+          "stage": "approach",
+          "held": 0,
+          "weight": 0,
+          "waypoints": [
+            [
+              8.600000000000001,
+              0.08,
+              -36.3
+            ]
+          ],
+          "jobId": 1,
+          "gate": {},
+          "path": [
+            {
+              "x": 8.600000000000001,
+              "y": -34
+            }
+          ]
+        },
+        "label": "Walking to the robot"
+      }
+    ]
+  },
+  "diagnosis": "Visible2.5s frames integrated only1s (0.8m); exact60s slow-rendered route reproduction remains approaching. Remove aggregate1s truncation, retain0.8m/s and1/30s substeps; hidden0dt still discards elapsed. New48focusedPASS."
+}

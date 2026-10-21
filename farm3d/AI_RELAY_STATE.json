@@ -127,9 +127,9 @@
   "completedThrough": "Cow courtyard/robot plus25m north expansion, seasonal foliage and stone approach merged and live; PR91 automatic16/16SUCCESS",
   "currentPhase": "COW_ROOM_ENLARGEMENT",
   "currentPhaseTitle": "Double usable cow-yard space and clear walking routes",
-  "phaseStatus": "LOCAL46_PASS_EARLIER_NODE64_PASS_HOSTED_RENDER_PENDING",
+  "phaseStatus": "NATIVE_SLOW_FRAME_RED_REPRODUCED_LOCAL48_PASS_REQUALIFY_PENDING",
   "visualAcceptance": "NEW_COW_YARD_PREVIEW_PENDING",
-  "activePullRequest": null,
+  "activePullRequest": 94,
   "nextPhases": [
     "Publish bounded cow-room PR; qualify exact head",
     "Inspect actual phone/tablet/desktop renders and show owner preview",
@@ -3757,6 +3757,14 @@
     "protected": "Game/auth/save/ledgers/rigs/chickens/land/path/seasons unchanged. DashboardPR93 disjoint and untouched.",
     "limits": "Chromium unavailable locally; no independent audit or physical-device claim. Inline image visible; advertised local copy absent; no exact-save replay.",
     "gates": "Actual four-view renders/preview and all hosted checks pending. Chicken merge permission does not authorize this cow merge.",
-    "evidence": "farm3d/tests/evidence/cow-room-20261021/"
+    "evidence": "farm3d/tests/evidence/cow-room-20261021/",
+    "slowFrames": {
+      "priorHead": "e1c2889357976b7ab18b4963c10881d8edf25535",
+      "priorCI": "22PASS/1native1280FAIL/10running at amendment prep; four visual viewportsPASS",
+      "cause": "visible2.5s interval truncated to1s;0.8m instead of2m. Exact60s slow-frame routeRED.",
+      "fix": "retain full visible elapsed in1/30s physical substeps; hidden0dt discards old interval.0.8m/s unchanged.",
+      "local": "48focusedPASS; every original deadline/assertion unchanged",
+      "remaining": "new-head all33hosted checks, actual preview and owner cow merge decision"
+    }
   }
 }

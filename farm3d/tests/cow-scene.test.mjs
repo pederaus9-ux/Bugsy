@@ -70,3 +70,19 @@ test('releasing the last bed leaves an awake cow able to accept the next nightti
   c.PRESET={night:true};a.update(1/30,++c.clockT);assert.equal(a.cowTask?.kind,'bed');
  }finally{for(const b of c.animals){b.carePose?.reset();b.rig3d.dispose();}y.dispose();}
 });
+
+test('visible frames longer than one second retain cow walking pace without hidden-tab catchup',()=>{
+ const {c,y}=scene(1,25),a=c.animals[0];
+ try{assert(G.milkCow(c.cowStatus.cows[0].id));c.syncCowYard();assert(c.chooseCowTask(a));const start=a.rig3d.state.distance;
+  c.updateCowTask(a,.1,2.5);assert(Math.abs(a.rig3d.state.distance-start-2)<.04,'visible2.5s frame advanced only '+(a.rig3d.state.distance-start)+'m');
+  const before=a.g.position.clone();c.updateCowTask(a,0,1002.5);assert(a.g.position.distanceTo(before)<1e-8);c.updateCowTask(a,1/60,1002.5+1/60);assert(a.g.position.distanceTo(before)<.02);
+ }finally{a.rig3d.dispose();y.dispose();}
+});
+
+test('the longest expanded robot approach meets the original60s deadline on2.4s visible frames',()=>{
+ const {c,y}=scene(1,25),a=c.animals[0];let docked=false;
+ try{assert(G.milkCow(c.cowStatus.cows[0].id));c.syncCowYard();assert(c.chooseCowTask(a));
+  for(let i=0;i<25;i++){const t=(i+1)*2.4;at(T+180000+t*1000);c.clockT=t;G.settleCows(true);c.syncCowYard();c.updateCowTask(a,.1,t);if(G.getCowCareStatus().job?.stage==='milking'){docked=true;break;}}
+  assert(docked,'robot still approaching after60s: '+JSON.stringify(a.g.position.toArray()));
+ }finally{a.rig3d.dispose();y.dispose();}
+});

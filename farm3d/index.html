@@ -1917,7 +1917,7 @@ function updateCowTask(a,dt,t){
   // The normal frame delta is capped for the accepted wandering AI. Directed
   // cow trips retain wall-clock pace through slow draws, in bounded physical
   // steps. A zero-delta return from a hidden tab discards the hidden interval.
-  const elapsed=dt>0?Math.min(1,Math.max(dt,t-(a.cowTickAt??t-dt))):0;
+  const elapsed=dt>0?Math.max(dt,t-(a.cowTickAt??t-dt)):0;
   a.cowTickAt=t;
   for(let used=0;used<elapsed-1e-8&&a.cowTask;){const step=Math.min(1/30,elapsed-used);used+=step;updateCowTaskStep(a,step,t-elapsed+used);}
 }
