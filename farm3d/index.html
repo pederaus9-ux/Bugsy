@@ -670,7 +670,7 @@ import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
 import * as G from "./game.js?v=31"; window.__gameVer = 31; // bump this version whenever game.js changes
-import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
+import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=4';
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
 import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
@@ -678,9 +678,11 @@ import {createRemainingCareController} from './remaining-care-controller.js?v=3'
 import {createDairyPath} from './farm-path.js?v=1';
 import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
-const COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
+let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
+import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';
+import {resolveAnimalPens,animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -1419,8 +1421,8 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
   scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
-const chickenYard=createChickenYard();scene.add(chickenYard.group);
-const cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
+let chickenYard=createChickenYard();scene.add(chickenYard.group);
+let cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
 const remainingYards=createRemainingCareYards(),remainingLayouts=remainingCareLayouts(),remainingSites={};let remainingPlantClearing=null;
 for(const [kind,yard]of Object.entries(remainingYards)){yard.group.visible=false;scene.add(yard.group);const fences=yard.fences.map((f,i)=>{const placeholder=[1100+i,1100,1101+i,1100];fenceSegs.push(placeholder);return placeholder;});remainingSites[kind]={active:false,checked:false,needsReload:false,issues:[],fences};}
 let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0,cowPlantClearing=null;
@@ -1620,6 +1622,12 @@ const legacyPetBowlBlock=[-3.1,7.1,.25,.25];BLOCKS.push([-9.6, -2.4, .4, .4], le
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
 const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
   ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
+const fenceRouteObstacles=new WeakMap(fenceSegs.map((f,i)=>[f,OBST[BLOCKS.length+i]]));
+const initialPenBlocks=[...CHICKEN_YARD_LAYOUT.obstacles,...cowBlocks,...remainingBlocks];
+const initialPenFences=[...CHICKEN_YARD_LAYOUT.fenceSegments,...Object.values(remainingSites).flatMap(s=>s.fences)];
+const penSceneRegistry=createAnimalPenSceneRegistry({scene,blocks:BLOCKS,obstacles:OBST,fences:fenceSegs,
+ initial:{yards:{chicken:chickenYard,cow:cowYard,...remainingYards},blocks:initialPenBlocks,fences:initialPenFences,obstacles:[...initialPenBlocks.map(b=>OBST[BLOCKS.indexOf(b)]),...initialPenFences.map(f=>fenceRouteObstacles.get(f))]},onPublish:installAnimalPenScene});
+let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;
 const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
@@ -1907,7 +1915,7 @@ function syncRemainingCareYards(){
   if(site.active!==active){
    site.active=active;const pen=remainingPens[kind],at=PEN_LIST.indexOf(pen);if(pen&&active&&at<0)PEN_LIST.push(pen);else if(pen&&!active&&at>=0)PEN_LIST.splice(at,1);
    site.blocks.forEach((b,i)=>moveBlock(b,...(active?yard.obstacles[i]:[1200+remainingBlocks.indexOf(b),1200])));
-   site.fences.forEach((f,i)=>{const old=fenceSegs.indexOf(f),coords=active?yard.fences[i]:[1100+i,1100,1101+i,1100];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax),o=OBST[OBST_BLOCKS+old];Object.assign(o,{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});});
+   site.fences.forEach((f,i)=>{const old=fenceSegs.indexOf(f),coords=active?yard.fences[i]:[1100+i,1100,1101+i,1100];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax),o=fenceRouteObstacles.get(f);Object.assign(o,{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});});
    // Reversible clearings own each tuft; removing a pen restores its meadow.
    const l=yard.layout,[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;
    for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8){const key='remaining-'+kind+':'+i++;moveClear(key,x,z,active?1.3:0);if(!active)CLEARS.delete(key);}
@@ -1936,8 +1944,35 @@ function syncCowYard(){
   if(cowYardChecked&&!cowYardActive&&owned&&animals.some(a=>a.kind==='cow'))cowYardNeedsReload=true;
   const active=owned&&!cowYardIssues.length&&!cowYardNeedsReload;
   if(active!==cowYardActive){setCowGrass(active);cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
+  if(penSceneBindings?.cow&&COW_YARD_LAYOUT.custom){const b=penSceneBindings.cow;b.fences.forEach((f,i)=>{const coords=active?b.segments[i]:[1500+i,1500,1501+i,1500];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax);Object.assign(b.fenceObstacles[i],{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.05,c:Math.cos(a),s:Math.sin(a)});});}
   cowYardChecked=true;cowYard.group.visible=active;
   cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);
+}
+// Called only by a prepared scene revision, after the complete save is durable.
+// Existing arrays/maps and pen objects stay stable for every live consumer.
+function installAnimalPenScene({layout,yards,bindings,active}){
+ for(const [key,[x,z]]of [...CLEARS])if(key.startsWith('chicken:')||key.startsWith('cow-yard:')||key.startsWith('remaining-')){moveClear(key,x,z,0);CLEARS.delete(key);}
+ chickenYard=yards.chicken;cowYard=yards.cow;CHICKEN_YARD_LAYOUT=chickenYard.layout;COW_YARD_LAYOUT=cowYard.layout;
+ installedAnimalPens=layout;penSceneBindings=bindings;
+ cowBlocks.splice(0,cowBlocks.length,...bindings.cow.blocks);cowBlockBounds.splice(0,cowBlockBounds.length,...bindings.cow.bounds);
+ remainingBlocks.splice(0,remainingBlocks.length,...['horse','sheep','dog','cat'].flatMap(k=>bindings[k].blocks));
+ for(const [kind,binding]of Object.entries(bindings))binding.fences.forEach((f,i)=>fenceRouteObstacles.set(f,binding.fenceObstacles[i]));
+ for(const kind of ['horse','sheep','dog','cat']){remainingYards[kind]=yards[kind];remainingLayouts[kind]=yards[kind].layout;Object.assign(remainingSites[kind],{blocks:bindings[kind].blocks,fences:bindings[kind].fences,active:!!active[kind],checked:true,needsReload:false,issues:[],farm:G.S});}
+ for(const [kind,pen]of [['chicken',PENS.yard],['cow',PENS.courtyard],...Object.entries(remainingPens)]){
+  const l=yards[kind].layout;pen.poly=l.polygon;pen.custom=!!layout.sites[kind].custom;
+  if(l.bed){pen.bed=l.bed;pen.shelter=l.shelter;pen.water=l.water;}
+  else{pen.bed=[l.turnouts[0][0],l.turnouts[0][2],2];pen.shelter={x:[l.shelter.x-1,l.shelter.x+1],z:[l.shelter.z-1,l.shelter.z+1]};pen.water=[l.stations[2].dock[0],l.stations[2].dock[2],.3,.3];}
+  const i=PEN_LIST.indexOf(pen),enabled=kind==='chicken'||!!active[kind];if(enabled&&i<0)PEN_LIST.push(pen);else if(!enabled&&i>=0)PEN_LIST.splice(i,1);
+ }
+ cowYardActive=!!active.cow;cowYardChecked=true;cowYardNeedsReload=false;cowYardIssues=[];
+ cowSurfaces.clear();cowYard.group.updateMatrixWorld(true);const centers=new Map(cowYard.targets.filter(t=>t.kind==='feed'||t.kind==='water').map(t=>[t.kind,new THREE.Box3().setFromObject(t.object).getCenter(new THREE.Vector3())]));
+ for(const station of cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink'))cowSurfaces.set(station.id,new THREE.Vector3(station.kind==='feed'?station.dock[0]:centers.get('water').x,station.surface,station.kind==='feed'?centers.get('feed').z:station.dock[2]));
+ CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
+ setCowGrass(cowYardActive);
+ for(const kind of ['horse','sheep','dog','cat']){const l=remainingLayouts[kind],[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8)if(active[kind])moveClear('remaining-'+kind+':'+i++,x,z,1.3);}
+ for(const a of animals)a.pen=penOf(a.kind);
+ chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);cowYard.setStatus(cowStatus);
+ const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
 }
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
 const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});

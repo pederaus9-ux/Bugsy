@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-22T11:11:45.163259+00:00",
+  "lastUpdatedUtc": "2026-10-22T13:08:53.877536+00:00",
   "codeBaseline": {
     "description": "PR95 owner-approved remaining animal physical care merged/live;37premerge/17postmerge/Pages3SUCCESS;27runtime files and plain entry exact. Original installer failure retained, one investigated cloud-only fresh-runner rerun succeeded.",
     "mergeCommit": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
@@ -142,7 +142,7 @@
   "completedThrough": "PR95 complete; approved design and plan; pen Task1 layout/geometry implemented and tested, not integrated or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
   "currentPhaseTitle": "Player-expandable fences and movable animal care buildings",
-  "phaseStatus": "TASK2_PURE_VALIDATION_VERIFIED_PHYSICAL_ADAPTER_GATE_OPEN",
+  "phaseStatus": "PAUSED_FOR_CLAUDE_HANDOFF",
   "visualAcceptance": "PR95_APPROVED;PEN_EDITOR_NOT_IMPLEMENTED_OR_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -767,9 +767,9 @@
     ]
   },
   "currentOperatingTeam": {
-    "leadAndImplementation": "ChatGPT/Codex",
-    "externalAgents": "None: owner canceled Claude/Grok and assigned sole AI ownership on 2026-10-11",
-    "ownerAuthority": "Visual/product/merge approval retained; no approval inferred"
+    "leadAndImplementation": "Claude takeover requested by owner; Codex paused",
+    "externalAgents": "Owner explicitly requested Claude handoff on2026-10-22, superseding historical sole-Codex direction",
+    "ownerAuthority": "Visual/product/merge acceptance retained; conditional merge when ready, no unseen visual approval inferred"
   },
   "ownerReviewR8": {
     "preview": "https://sunny-acres-horse-r8-review.ardentanole10.chatgpt.site/farm3d/?testfarm",
@@ -2279,7 +2279,7 @@
       "implementationPlanApproved": true,
       "visualReleaseApproved": false
     },
-    "task": "4 partial scene/care/support adapters;5 transaction boundary checks;6 draft/input contracts;7 unintegrated view and preview",
+    "task": "Partial live scene registry integration; paused at two expected RED publication tests",
     "tests": {
       "baselineNodeFiles": 72,
       "task1Focused": 36,
@@ -2306,20 +2306,30 @@
         "registeredFutureFiles": 87,
         "retainedLog": "farm3d/tests/evidence/pen-editing-implementation/task4/node-regression-concave-scene.log",
         "limitation": "Retained redirected log stops at horse-evidence-placement start despite command exit0 and later observed horse-contact child. Full raw completion tail is unavailable. Do not use this as complete final qualification evidence or silently rerun it."
+      },
+      "pausedSlice": {
+        "sceneRegistryPassed": 4,
+        "sceneWiringAndExistingIntegrationVersionsPassed": 16,
+        "publicationPassed": 4,
+        "publicationFailed": 2,
+        "failureCause": "New prepareRegistries hook tests written; runtime hook not implemented before owner pause",
+        "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7"
       }
     },
-    "processes": "Local regression command completed with exit0; no build/test/monitor/automation active. No hosted qualification or deployment.",
+    "processes": "None active. Codex implementation paused; test sessions completed. No hosted feature CI/deployment/automation.",
     "mergeAuthorized": "Conditional when ready; actual preview/visual gate pending",
     "runtimeChanges": "Candidate care adapters, writer4 transaction, draft core and cache64/game31; no player editor exposed",
-    "next": "Complete live world snapshot/registry publication, gate traffic and cow support integration, then native editor and full46-animal/hosted qualification",
-    "latestExecutionInstruction": "Finish everything; continue approved implementation. Conditional merge remains subject to actual readiness and edited-game preview acceptance.",
+    "next": "Claude reads handoff and canonical instructions, verifies actual branch/worktree/process state, implements prepared-registry hook for the two retained REDs, then completes approved integration and release gates.",
+    "latestExecutionInstruction": "Pause and write a handoff for claude to take over your usuage almost gone",
     "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task6/continuation-checkpoint.md",
     "remoteCheckpoint": {
       "head": "383147a2f3b9b2d6b78516569d1bac674d22967a",
       "localCommit": "4cb4d70",
       "tree": "88bb5a0e7ad7bee7f1e2fa72597f48ff0420a956",
       "wholeTreeMatch": true
-    }
+    },
+    "status": "PAUSED_FOR_CLAUDE_HANDOFF",
+    "handoff": "farm3d/CLAUDE_HANDOFF_20261022.md"
   },
   "marketSalesPublication": {
     "ownerInstructionAtLocal": "2026-10-20T06:14:11-05:00",

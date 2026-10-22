@@ -31,3 +31,10 @@ test('publication failure is terminal and does not dispose possibly installed re
  assert.throws(()=>prepared.publish(),/care publication failure/);prepared.dispose();assert.throws(()=>prepared.publish(),/failed/i);
  assert.deepEqual(events,['registries','care']);for(const y of Object.values(yards))y.dispose();
 });
+test('live registry preparation finishes before publication and is discarded on care preparation failure',()=>{
+ const events=[];assert.throws(()=>runtime.prepareAnimalPenRevision(layout,validation,{prepareRegistries(){events.push('prepare registries');return {publish(){events.push('publish');},dispose(){events.push('discard registries');},retire(){events.push('retire');}};},prepareCare(){events.push('prepare care');throw Error('care prep fault');}}),/care prep fault/);assert.deepEqual(events,['prepare registries','prepare care','discard registries']);
+});
+test('prepared registry publishes before care and retires after care, with cancellation isolated',()=>{
+ const events=[];let yards;const live={prepareRegistries(l,y){yards=y;events.push('prepare registries');return {publish(){events.push('registries');},retire(){events.push('retire');},dispose(){events.push('discard');}};},prepareCare(){return[{publish(){events.push('care');},dispose(){events.push('discard care');}}];}};
+ const prepared=runtime.prepareAnimalPenRevision(layout,validation,live);assert.deepEqual(events,['prepare registries']);try{prepared.publish();prepared.dispose();assert.deepEqual(events,['prepare registries','registries','care','retire']);}finally{for(const y of Object.values(yards))y.dispose();}
+});
