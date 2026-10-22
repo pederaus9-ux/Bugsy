@@ -682,7 +682,8 @@ let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayou
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
 import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';
-import {resolveAnimalPens,animalPenYardLayout} from './animal-pen-layout.js?v=1';
+import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
+import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -1973,6 +1974,26 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  for(const a of animals)a.pen=penOf(a.kind);
  chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus)cowYard.setStatus(cowStatus); // a boot-time install precedes the first syncCowYard
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+}
+// Saved custom pens install before herds spawn; page reloads cover account
+// switches and backup restores. Unknown, future or invalid saved layouts stay
+// read-only in the save (game.js will not overwrite them) and show the default.
+let installedPenRecord='null';
+function restoreSavedAnimalPens(){
+ const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));
+ const value=decoded?.status==='ok'?decoded.value:undefined,record=JSON.stringify(value??null);
+ if(record===installedPenRecord)return;
+ // Live animals would need validated placements; never rebind them here.
+ if(animals.length)return;
+ const layout=resolveAnimalPens(value),active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ // The saved layout was fully validated when applied, and no animal exists yet to place.
+ const saved={ok:true,revision:layout.revision,source:'saved-layout',placements:{},waiting:{}};
+ prepareAnimalPenRevision(layout,saved,{
+  prepareRegistries:(l,yards)=>penSceneRegistry.prepare(l,yards,active),
+  prepareCare:l=>[chickenCare.prepareLayoutRebind({site:l.sites.chicken,now:clockT,placements:{},waiting:{}}),cowPenCare.prepareLayoutRebind({site:l.sites.cow,now:clockT,placements:{}}),
+   ...['horse','sheep','dog','cat'].map(kind=>remainingCare.prepareLayoutRebind({site:l.sites[kind],now:clockT,placements:{}}))]
+ }).publish();
+ installedPenRecord=record;
 }
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
 const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
@@ -3662,6 +3683,7 @@ Object.assign(GV, {
   },
   refresh(what) {
     if (what === "all") applyLayout(); // Saved objects define whether the courtyard can be installed before cows spawn.
+    if (what === "all") restoreSavedAnimalPens(); // saved custom pens, before herds spawn
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
     if (what === "buildings" || what === "all") syncBuildings();

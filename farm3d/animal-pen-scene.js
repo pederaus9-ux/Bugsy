@@ -19,7 +19,7 @@ export function createAnimalPenSceneRegistry({scene,blocks,obstacles,fences,init
   const publication={layout,yards,bindings,active:{...active}};
   return{
    publish(){
-    if(state==='published')return;if(state!=='prepared'||generation!==base)throw Error('Stale animal pen scene revision');state='publishing';
+    if(state==='published')return;if(state!=='prepared')throw Error('Animal pen scene revision '+state);if(generation!==base)throw Error('Stale animal pen scene revision');state='publishing';
     // After this point a thrown callback needs persisted-save recovery, never a
     // rollback to stale registries or disposal of possibly installed resources.
     replaceOwned(blocks,previous.blocks,nextBlocks);replaceOwned(obstacles,previous.obstacles,nextObstacles);replaceOwned(fences,previous.fences,nextFences);
@@ -28,7 +28,9 @@ export function createAnimalPenSceneRegistry({scene,blocks,obstacles,fences,init
     current={yards,blocks:nextBlocks,obstacles:nextObstacles,fences:nextFences};generation++;
     onPublish(publication);state='published';
    },
-   retire(){if(retired)return;if(state!=='published')throw Error('Cannot retire before complete scene publication');retired=true;for(const yard of Object.values(previous.yards))yard.dispose();}
+   retire(){if(retired)return;if(state!=='published')throw Error('Cannot retire before complete scene publication');retired=true;for(const yard of Object.values(previous.yards))yard.dispose();},
+   // Nothing is installed before publish; the new yards stay owned by the runtime helper.
+   dispose(){if(state==='prepared')state='disposed';}
   };
  }
  return{prepare,ownsBlock:block=>current.blocks.includes(block),ownsObstacle:obstacle=>current.obstacles.includes(obstacle),ownsFence:fence=>current.fences.includes(fence)};
