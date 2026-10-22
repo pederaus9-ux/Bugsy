@@ -1971,7 +1971,7 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  setCowGrass(cowYardActive);
  for(const kind of ['horse','sheep','dog','cat']){const l=remainingLayouts[kind],[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8)if(active[kind])moveClear('remaining-'+kind+':'+i++,x,z,1.3);}
  for(const a of animals)a.pen=penOf(a.kind);
- chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);cowYard.setStatus(cowStatus);
+ chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus)cowYard.setStatus(cowStatus); // a boot-time install precedes the first syncCowYard
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
 }
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}

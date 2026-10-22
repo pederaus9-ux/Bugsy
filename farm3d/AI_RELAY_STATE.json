@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-22T13:08:53.877536+00:00",
+  "lastUpdatedUtc": "2026-10-22T13:37:39.863116+00:00",
   "codeBaseline": {
     "description": "PR95 owner-approved remaining animal physical care merged/live;37premerge/17postmerge/Pages3SUCCESS;27runtime files and plain entry exact. Original installer failure retained, one investigated cloud-only fresh-runner rerun succeeded.",
     "mergeCommit": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
@@ -139,10 +139,10 @@
     }
   },
   "currentProgram": "Player-editable animal pens",
-  "completedThrough": "PR95 complete; approved design and plan; pen Task1 layout/geometry implemented and tested, not integrated or released.",
+  "completedThrough": "PR95 complete; approved design and plan; pen Tasks1-6 components implemented and unit-tested; Task7 live integration in progress (prepared-registry hook and actual-index scene install proven in Node); not exposed to players, previewed or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
   "currentPhaseTitle": "Player-expandable fences and movable animal care buildings",
-  "phaseStatus": "PAUSED_FOR_CLAUDE_HANDOFF",
+  "phaseStatus": "IMPLEMENTATION_ACTIVE_CLAUDE",
   "visualAcceptance": "PR95_APPROVED;PEN_EDITOR_NOT_IMPLEMENTED_OR_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -767,9 +767,10 @@
     ]
   },
   "currentOperatingTeam": {
-    "leadAndImplementation": "Claude takeover requested by owner; Codex paused",
-    "externalAgents": "Owner explicitly requested Claude handoff on2026-10-22, superseding historical sole-Codex direction",
-    "ownerAuthority": "Visual/product/merge acceptance retained; conditional merge when ready, no unseen visual approval inferred"
+    "leadAndImplementation": "Claude, sole implementer on owner instruction 2026-10-22",
+    "externalAgents": "Codex paused; its handoff branch is a frozen transfer artifact",
+    "ownerAuthority": "Visual/product/merge acceptance retained; conditional merge when ready, no unseen visual approval inferred",
+    "ownerInstruction": "You are main ai making game others usuage is up so you do all"
   },
   "ownerReviewR8": {
     "preview": "https://sunny-acres-horse-r8-review.ardentanole10.chatgpt.site/farm3d/?testfarm",
@@ -2271,7 +2272,7 @@
   "activeWork": {
     "phase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
     "baseMain": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
-    "branch": "codex/player-pen-editing-20261022",
+    "branch": "claude/hayday-style-game-currency-hq3vi4",
     "approvedPlan": "a1c583bc1733e8b80decbc4407ad62dca5ced871",
     "ownerApproval": {
       "reply": "Yes",
@@ -2279,7 +2280,7 @@
       "implementationPlanApproved": true,
       "visualReleaseApproved": false
     },
-    "task": "Partial live scene registry integration; paused at two expected RED publication tests",
+    "task": "Task 7 live integration: prepared-registry hook and actual-index scene install consumer complete; World snapshot, boot restore, controller rebind, gate traffic and Edit UI remain",
     "tests": {
       "baselineNodeFiles": 72,
       "task1Focused": 36,
@@ -2298,7 +2299,7 @@
       "previewResourceUnit": 3,
       "cowSupportModule": 6,
       "transactionWriterBoundary": 15,
-      "runnerRegisteredFiles": 87,
+      "runnerRegisteredFiles": 89,
       "latestCoreRun": {
         "session": 64023,
         "exitCode": 0,
@@ -2314,13 +2315,25 @@
         "publicationFailed": 2,
         "failureCause": "New prepareRegistries hook tests written; runtime hook not implemented before owner pause",
         "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7"
+      },
+      "claudeResume": {
+        "node": "v22.22.2",
+        "preparedRegistryRedReproducedOnD20e9fe": "4 pass/2 fail",
+        "publication": "6/6",
+        "penRelatedFiles": "146/146 across 20 files",
+        "coreRunner88": "88/88 files exit0, complete log",
+        "sceneInstall": "3/3 after retained boot-status RED and one-condition guard",
+        "indexConsumers": "260/260 across 23 files after current cache literal v63->v64",
+        "outsideCoreRunner": "149/151 across 20 files; legacy cow B13/B16 fail identically on untouched main, run by no workflow",
+        "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7-claude-20261022",
+        "coreRunner89ExactSliceBTree": "89/89 files exit0, complete log core-node-89-green.log"
       }
     },
-    "processes": "None active. Codex implementation paused; test sessions completed. No hosted feature CI/deployment/automation.",
+    "processes": "None active at commit. No hosted feature CI, preview, deployment or automation.",
     "mergeAuthorized": "Conditional when ready; actual preview/visual gate pending",
     "runtimeChanges": "Candidate care adapters, writer4 transaction, draft core and cache64/game31; no player editor exposed",
-    "next": "Claude reads handoff and canonical instructions, verifies actual branch/worktree/process state, implements prepared-registry hook for the two retained REDs, then completes approved integration and release gates.",
-    "latestExecutionInstruction": "Pause and write a handoff for claude to take over your usuage almost gone",
+    "next": "Write failing boot-restore test for obstacle ordering, then live World snapshot, saved-layout boot restore, six-controller rebind in one publication, gate traffic, cow support install, Edit to Animal pens UI, then native four-view journeys",
+    "latestExecutionInstruction": "You are main ai making game others usuage is up so you do all",
     "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task6/continuation-checkpoint.md",
     "remoteCheckpoint": {
       "head": "383147a2f3b9b2d6b78516569d1bac674d22967a",
@@ -2328,8 +2341,19 @@
       "tree": "88bb5a0e7ad7bee7f1e2fa72597f48ff0420a956",
       "wholeTreeMatch": true
     },
-    "status": "PAUSED_FOR_CLAUDE_HANDOFF",
-    "handoff": "farm3d/CLAUDE_HANDOFF_20261022.md"
+    "status": "IMPLEMENTATION_ACTIVE_CLAUDE",
+    "handoff": "farm3d/CLAUDE_HANDOFF_20261022.md",
+    "transferredFrom": {
+      "branch": "codex/player-pen-editing-20261022",
+      "head": "d20e9fe50217fb8f0fb41d119c0b8a22ef55e160",
+      "tree": "2786fe65a071ba641a5c392b2f90979a0dc9ff62",
+      "method": "fast-forward, no force"
+    },
+    "openFindings": [
+      "SUSPICION: boot-time publication before BLOCKS.slice(OBST_BLOCKS) startup registration could drop/duplicate route obstacles; reproduce before boot restore",
+      "Browser tests with sa3d-v63 literals need per-test review (installed-predecessor vs current) in Task 8",
+      "Legacy cow B13/B16 node tests fail on main; outside all runners; unrelated to pens"
+    ]
   },
   "marketSalesPublication": {
     "ownerInstructionAtLocal": "2026-10-20T06:14:11-05:00",
