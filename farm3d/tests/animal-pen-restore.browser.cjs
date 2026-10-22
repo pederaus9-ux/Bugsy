@@ -33,6 +33,15 @@ const {start}=require('./browser-harness.cjs');
   // Let the herd live for 60 simulated seconds through the ordinary per-frame update path.
   const lived=await p.evaluate(()=>{const d=__dbg,pen=d.PEN_LIST.find(q=>q.care==='horse');let t=d.clock(),outside=0;for(let n=0;n<1800;n++){t+=1/30;d.setClock(t);for(const a of d.animals)a.update(1/30,t);for(const a of d.animals.filter(a=>a.kind==='horse'))if(!d.inPen(pen,a.g.position.x,a.g.position.z,-.05))outside++;}return {simulatedSeconds:60,horseFramesOutside:outside};});
   report.steps.push({step:'60 simulated seconds',lived,errors:[...s.errors]});
+  // Visit a friend whose farm keeps the default pens, then go home: each farm shows its own pens.
+  const inside=()=>p.evaluate(()=>{const d=__dbg,pen=d.PEN_LIST.find(q=>q.care==='horse'),horses=d.animals.filter(a=>a.kind==='horse');let t=d.clock(),outside=0;for(let n=0;n<900;n++){t+=1/30;d.setClock(t);for(const a of d.animals)a.update(1/30,t);for(const a of horses)if(!d.inPen(pen,a.g.position.x,a.g.position.z,-.05))outside++;}return {horseCustom:!!d.remainingLayouts.horse.custom,penCustom:!!pen.custom,horses:horses.length,horseFramesOutside:outside,saved:localStorage.getItem('sunny-acres-3d-v1')};});
+  const before=await p.evaluate(()=>localStorage.getItem('sunny-acres-3d-v1'));
+  await p.evaluate(()=>{const friend=JSON.parse(localStorage.getItem('sunny-acres-3d-v1'));delete friend.layout.animalPens;friend.v=3;friend.name='Friend';__dbg.G.visitFarm(friend);});
+  const visiting=await inside();report.steps.push({step:'visiting a default-pen farm',visiting:{...visiting,saved:undefined,savedUnchanged:visiting.saved===before},errors:[...s.errors]});
+  await p.evaluate(()=>__dbg.G.leaveVisit());
+  const home=await inside();report.steps.push({step:'back home',home:{...home,saved:undefined,savedUnchanged:home.saved===before},errors:[...s.errors]});
+  assert.equal(visiting.horseCustom,false);assert.equal(visiting.penCustom,false);assert.equal(visiting.horses,4);assert.equal(visiting.horseFramesOutside,0);assert.equal(visiting.saved,before);
+  assert.equal(home.horseCustom,true);assert.equal(home.penCustom,true);assert.equal(home.horses,4);assert.equal(home.horseFramesOutside,0);
   assert.equal(saved.ok,true);assert.equal(saved.v,4);assert.equal(after.horseCustom,true);assert.equal(after.penCustom,true);assert(after.penPolyMatches);
   assert.equal(JSON.stringify(after.polygon),JSON.stringify(saved.expectedPolygon));assert(after.horsesInside.every(Boolean),'horse spawned outside custom pen');
   assert.equal(after.saveRevision,1);assert.equal(lived.horseFramesOutside,0);assert.deepEqual(s.errors,[]);

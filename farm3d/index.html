@@ -1885,6 +1885,8 @@ const chickenCare=createChickenStationController({yard:chickenYard,route,neighbo
 const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,groundY,forbiddenPolygons:a=>a.pen?[]:PEN_LIST.map(p=>p.poly),clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
+// Remove an animal through its care controllers; physical state only, never paid state.
+function retireAnimal(a) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);if(['horse','sheep','dog','cat'].includes(a.kind))remainingCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
 function syncHerd() {
   syncChickenYard();
   syncCowYard();
@@ -1893,7 +1895,7 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)||(['horse','sheep','dog','cat'].includes(a.kind)&&a.careFarm!==G.S)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);if(['horse','sheep','dog','cat'].includes(a.kind))remainingCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)||(['horse','sheep','dog','cat'].includes(a.kind)&&a.careFarm!==G.S)) retireAnimal(a);
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
@@ -1976,15 +1978,16 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
 }
 // Saved custom pens install before herds spawn; page reloads cover account
-// switches and backup restores. Unknown, future or invalid saved layouts stay
+// switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay
 // read-only in the save (game.js will not overwrite them) and show the default.
 let installedPenRecord='null';
 function restoreSavedAnimalPens(){
  const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));
  const value=decoded?.status==='ok'?decoded.value:undefined,record=JSON.stringify(value??null);
  if(record===installedPenRecord)return;
- // Live animals would need validated placements; never rebind them here.
- if(animals.length)return;
+ // A different saved layout arriving with a live herd (visiting, going home, a new or
+ // imported farm) rebuilds the herd: no live animal is rebound without validated placements.
+ if(animals.length){for(const a of animals)retireAnimal(a);animals=animals.filter(a=>!a.gone);}
  const layout=resolveAnimalPens(value),active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
  // The saved layout was fully validated when applied, and no animal exists yet to place.
  const saved={ok:true,revision:layout.revision,source:'saved-layout',placements:{},waiting:{}};

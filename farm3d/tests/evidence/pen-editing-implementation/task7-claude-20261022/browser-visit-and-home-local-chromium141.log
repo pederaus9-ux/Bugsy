@@ -1,0 +1,128 @@
+// source: 3187131 + retireAnimal extraction + herd rebuild on saved-layout change (uncommitted); local headless Chromium 141.0.7390.37 + Playwright 1.62.1; diagnostic
+// cmd: CHROME_PATH=... node farm3d/tests/animal-pen-restore.browser.cjs
+{
+ "steps": [
+  {
+   "step": "default boot",
+   "errors": []
+  },
+  {
+   "step": "saved custom horse layout",
+   "saved": {
+    "ok": true,
+    "v": 4,
+    "savedRevision": 1,
+    "expectedPolygon": [
+     [
+      -23.5,
+      -30.8
+     ],
+     [
+      -4.8,
+      -30.8
+     ],
+     [
+      -4.8,
+      -25.5
+     ],
+     [
+      -23.5,
+      -18.8
+     ]
+    ],
+    "defaultHorseCustom": false
+   },
+   "errors": []
+  },
+  {
+   "step": "reloaded",
+   "after": {
+    "horseCustom": true,
+    "horseRevision": 1,
+    "polygon": [
+     [
+      -23.5,
+      -30.8
+     ],
+     [
+      -4.8,
+      -30.8
+     ],
+     [
+      -4.8,
+      -25.5
+     ],
+     [
+      -23.5,
+      -18.8
+     ]
+    ],
+    "penCustom": true,
+    "penPolyMatches": true,
+    "sites": {
+     "horse": {
+      "active": true,
+      "issues": 0,
+      "needsReload": false
+     },
+     "sheep": {
+      "active": true,
+      "issues": 0,
+      "needsReload": false
+     },
+     "dog": {
+      "active": true,
+      "issues": 0,
+      "needsReload": false
+     },
+     "cat": {
+      "active": true,
+      "issues": 0,
+      "needsReload": false
+     }
+    },
+    "horsesInside": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "sheepCount": 5,
+    "horseCount": 4,
+    "saveRevision": 1
+   },
+   "errors": []
+  },
+  {
+   "step": "60 simulated seconds",
+   "lived": {
+    "simulatedSeconds": 60,
+    "horseFramesOutside": 0
+   },
+   "errors": []
+  },
+  {
+   "step": "visiting a default-pen farm",
+   "visiting": {
+    "horseCustom": false,
+    "penCustom": false,
+    "horses": 4,
+    "horseFramesOutside": 0,
+    "savedUnchanged": true
+   },
+   "errors": []
+  },
+  {
+   "step": "back home",
+   "home": {
+    "horseCustom": true,
+    "penCustom": true,
+    "horses": 4,
+    "horseFramesOutside": 0,
+    "savedUnchanged": true
+   },
+   "errors": []
+  }
+ ],
+ "result": "PASS"
+}
