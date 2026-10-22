@@ -1,0 +1,212 @@
+diff --git a/farm3d/animal-pen-validation.js b/farm3d/animal-pen-validation.js
+index 6c856ee..f705e38 100644
+--- a/farm3d/animal-pen-validation.js
++++ b/farm3d/animal-pen-validation.js
+@@ -1,5 +1,5 @@
+ import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
+-import {NORTH_EXTENSION} from './farm-land.js?v=1';
++import {NORTH_EXTENSION,WEST_CLEARING} from './farm-land.js?v=2';
+ import {resolveAnimalPens,defaultSiteRecord} from './animal-pen-layout.js?v=1';
+ import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
+ const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
+@@ -8,10 +8,12 @@ const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const rect=(b,owner)=>({type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner});
+ const segment=s=>({type:'capsule',a:s.slice(0,2),b:s.slice(2),r:.05});
+ /** Pen-editable land: the ordinary farm capsule (onFarm, radius 24) plus the accepted
+- *  animal-site footprints and full horse/sheep shelter roofs. No world expansion. */
++ *  animal-site footprints, full horse/sheep shelter roofs and (amendment A1) the levelled
++ *  west strip of the north clearing, overlapping the capsule and reaching the horse gate. */
+ export function penEditableLand(){
+  const land=[{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:24},...Object.values(PEN_TEMPLATES).map(t=>({type:'polygon',points:t.baseline.renderFootprint.map(p=>[...p])}))];
+  for(const kind of ['horse','sheep']){const b=PEN_TEMPLATES[kind].baseline,s=b.shelter,x0=Math.min(b.renderFootprint[0][0],s.x-s.width/2-.15),x1=Math.max(b.renderFootprint[1][0],s.x+s.width/2+.15),z0=Math.min(b.renderFootprint[0][1],s.z-s.depth/2-.125),z1=Math.max(b.renderFootprint[2][1],s.z+s.depth/2+.125);land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});}
++ land.push({type:'polygon',points:[[-23-WEST_CLEARING,-46],[-19,-46],[-19,-17],[-23-WEST_CLEARING,-17]]});
+  return land;
+ }
+ export function penEditableLandContains(shape,world){
+diff --git a/farm3d/farm-land.js b/farm3d/farm-land.js
+index 48ae986..9edabad 100644
+--- a/farm3d/farm-land.js
++++ b/farm3d/farm-land.js
+@@ -1,5 +1,7 @@
+ // A northern extension of the existing farm, not a save or purchased-field migration.
+ export const NORTH_EXTENSION=25;
++// Room for the horse paddock to move: the north clearing is level this much further west.
++export const WEST_CLEARING=10;
+ export function onFarm(x,z,radius=24){
+  const nearest=Math.max(3-NORTH_EXTENSION,Math.min(3,z));
+  return Math.hypot(x-1,z-nearest)<=radius+1e-9;
+@@ -11,6 +13,6 @@ export function clampToFarm(x,z,radius=40){
+ const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+ export function farmGroundY(x,z){
+  const d=Math.hypot(x,z),old=d<16?0:(Math.sin(x*.09)*Math.cos(z*.07)*1.3+Math.sin(x*.23+z*.17)*.4)*Math.min(1,(d-16)/20);
+- const clearing=smooth(-21,-25,z)*(1-smooth(-46,-50,z))*(1-smooth(24,28,Math.abs(x-1)));
++ const clearing=smooth(-21,-25,z)*(1-smooth(-46,-50,z))*(1-(x<1?smooth(24+WEST_CLEARING,28+WEST_CLEARING,1-x):smooth(24,28,x-1)));
+  return clearing===1?0:old*(1-clearing);
+ }
+diff --git a/farm3d/index.html b/farm3d/index.html
+index 97d8beb..df52a44 100644
+--- a/farm3d/index.html
++++ b/farm3d/index.html
+@@ -676,7 +676,7 @@ import {createRemainingCareYards,createRemainingCarePlantClearing} from './remai
+ import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
+ import {createRemainingCareController} from './remaining-care-controller.js?v=3';
+ import {createDairyPath} from './farm-path.js?v=1';
+-import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
++import {NORTH_EXTENSION,WEST_CLEARING,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=2';
+ import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
+ let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
+ import {createStationScheduler} from './animal-stations.js?v=1';
+@@ -1403,7 +1403,7 @@ const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeSta
+ const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
+ const groundY=farmGroundY;
+ const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
+-  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&Math.abs(t.position.x-1)<28)t.position.x=1+(t.position.x<1?-31:31);
++  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
+   t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+ bootStep("planting the woods");
+ // woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
+diff --git a/farm3d/sw.js b/farm3d/sw.js
+index 770a0f4..86468c7 100644
+--- a/farm3d/sw.js
++++ b/farm3d/sw.js
+@@ -1,7 +1,7 @@
+ // Keeps the 3D game on the phone so it opens quickly and plays offline.
+ // (Named "sa3d-" so the 2D game's own clean-up never touches it.)
+ const CACHE = "sa3d-v64";
+-const SHELL = ["animal-pen-scene.js?v=1","animal-pen-runtime.js?v=1","animal-pen-validation.js?v=1","animal-pen-editor.js?v=1","animal-pen-cow-adapter.js?v=1","animal-pen-layout.js?v=1","animal-pen-templates.js?v=1","animal-pen-geometry.js?v=1","animal-pen-model.js?v=1","animal-pen-scenery.js?v=1","./","index.html","remaining-care-navigation.js?v=2","remaining-care-layout.js?v=3","remaining-care-yard.js?v=3","remaining-care-controller.js?v=3","quadruped-care-poses.js?v=1","farm-land.js?v=1","farm-path.js?v=1","seasonal-leaves.js?v=1","holiday-decor.js?v=1","decor-models.js?v=1","utility-lights.js?v=1","market-sales.js?v=1","cow-care.js?v=1","cow-yard.js?v=4","cow-stations.js?v=1","animal-stations.js?v=1","chicken-stations.js?v=6","animal-care-poses.js?v=2","chicken-care.js?v=2","chicken-yard.js?v=5","player-motion.js?v=1","player-arm-attachment.js?v=1","scene-polish.js?v=2","features.js?v=1","phase7m.js?v=4","game.js?v=31","analytics.js?v=3","perf.js?v=1","cow3d.js?v=5","live3d.js?v=3","sheep3d.js","horse3d.js","dog3d.js","cat3d.js","chicken3d.js?v=1","farmer3d.js","quadruped3d.js","characters3d.html","manifest.webmanifest","lib/three.module.min.js","lib/three.core.min.js","art/authored-hands.js?v=2","assets/hands/hands-candidate.glb?v=2","lib/addons/loaders/GLTFLoader.js","lib/addons/utils/BufferGeometryUtils.js","lib/addons/utils/SkeletonUtils.js","auth.js?v=19","canon.js?v=1","friends.js?v=7","horse-ik3d.js","horse-stance3d.js","lib/addons/postprocessing/EffectComposer.js","lib/addons/postprocessing/MaskPass.js","lib/addons/postprocessing/OutputPass.js","lib/addons/postprocessing/Pass.js","lib/addons/postprocessing/RenderPass.js","lib/addons/postprocessing/ShaderPass.js","lib/addons/postprocessing/UnrealBloomPass.js","lib/addons/shaders/CopyShader.js","lib/addons/shaders/LuminosityHighPassShader.js","lib/addons/shaders/OutputShader.js","verified.js?v=1"];
++const SHELL = ["animal-pen-scene.js?v=1","animal-pen-runtime.js?v=1","animal-pen-validation.js?v=1","animal-pen-editor.js?v=1","animal-pen-cow-adapter.js?v=1","animal-pen-layout.js?v=1","animal-pen-templates.js?v=1","animal-pen-geometry.js?v=1","animal-pen-model.js?v=1","animal-pen-scenery.js?v=1","./","index.html","remaining-care-navigation.js?v=2","remaining-care-layout.js?v=3","remaining-care-yard.js?v=3","remaining-care-controller.js?v=3","quadruped-care-poses.js?v=1","farm-land.js?v=2","farm-path.js?v=1","seasonal-leaves.js?v=1","holiday-decor.js?v=1","decor-models.js?v=1","utility-lights.js?v=1","market-sales.js?v=1","cow-care.js?v=1","cow-yard.js?v=4","cow-stations.js?v=1","animal-stations.js?v=1","chicken-stations.js?v=6","animal-care-poses.js?v=2","chicken-care.js?v=2","chicken-yard.js?v=5","player-motion.js?v=1","player-arm-attachment.js?v=1","scene-polish.js?v=2","features.js?v=1","phase7m.js?v=4","game.js?v=31","analytics.js?v=3","perf.js?v=1","cow3d.js?v=5","live3d.js?v=3","sheep3d.js","horse3d.js","dog3d.js","cat3d.js","chicken3d.js?v=1","farmer3d.js","quadruped3d.js","characters3d.html","manifest.webmanifest","lib/three.module.min.js","lib/three.core.min.js","art/authored-hands.js?v=2","assets/hands/hands-candidate.glb?v=2","lib/addons/loaders/GLTFLoader.js","lib/addons/utils/BufferGeometryUtils.js","lib/addons/utils/SkeletonUtils.js","auth.js?v=19","canon.js?v=1","friends.js?v=7","horse-ik3d.js","horse-stance3d.js","lib/addons/postprocessing/EffectComposer.js","lib/addons/postprocessing/MaskPass.js","lib/addons/postprocessing/OutputPass.js","lib/addons/postprocessing/Pass.js","lib/addons/postprocessing/RenderPass.js","lib/addons/postprocessing/ShaderPass.js","lib/addons/postprocessing/UnrealBloomPass.js","lib/addons/shaders/CopyShader.js","lib/addons/shaders/LuminosityHighPassShader.js","lib/addons/shaders/OutputShader.js","verified.js?v=1"];
+ 
+ 
+ self.addEventListener("install", (e) => {
+diff --git a/farm3d/tests/animal-pen-validation.test.mjs b/farm3d/tests/animal-pen-validation.test.mjs
+index d07f5df..6e715d2 100644
+--- a/farm3d/tests/animal-pen-validation.test.mjs
++++ b/farm3d/tests/animal-pen-validation.test.mjs
+@@ -38,3 +38,8 @@ test('unownedSitesStayReservedForOtherPens',()=>{
+  r=V.validateAnimalPens(translatedLayout('cat',[1,0]),withoutKind('chicken'));assert.equal(r.ok,true,JSON.stringify(r.issues));
+ });
+ test('acceptedLayoutValidatesWithAnyOneSpeciesUnowned',()=>{for(const kind of ['chicken','cow','horse','sheep','dog','cat']){const r=V.validateAnimalPens(resolveAnimalPens(),withoutKind(kind));assert.equal(r.ok,true,kind+': '+JSON.stringify(r.issues));}});
++// Amendment A1: the horse paddock slides west onto the levelled strip, never past it.
++test('horsePaddockSlidesWestOntoLevelledStrip',()=>{
++ for(const k of [1,3,6,9]){const r=V.validateAnimalPens(translatedLayout('horse',[-k,0]),makePenWorld());assert.equal(r.ok,true,k+' m west: '+JSON.stringify([...new Set(r.issues.map(i=>i.code+'/'+i.target))]));}
++ assert.equal(V.validateAnimalPens(translatedLayout('horse',[-10,0]),makePenWorld()).ok,false,'10 m west leaves the level strip');
++});
+diff --git a/farm3d/tests/fixtures/animal-pen-world.mjs b/farm3d/tests/fixtures/animal-pen-world.mjs
+index 09287d1..445038a 100644
+--- a/farm3d/tests/fixtures/animal-pen-world.mjs
++++ b/farm3d/tests/fixtures/animal-pen-world.mjs
+@@ -6,6 +6,7 @@ export function makePenWorld(overrides={}){
+  const blocked=initial.existingBlocks.flatMap((b,i)=>i>=10&&i<=15||b[0]>=1000||b[0]===-9.6&&b[1]===-2.4?[]:[{type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner:'fixed-'+i}]);
+  const land=[{type:'capsule',a:[1,-22],b:[1,3],r:24},...Object.values(baseline).map(s=>({type:'polygon',points:s.renderFootprint}))];
+  for(const kind of ['horse','sheep']){const b=baseline[kind],s=b.shelter,x0=Math.min(b.renderFootprint[0][0],s.x-s.width/2-.15),x1=Math.max(b.renderFootprint[1][0],s.x+s.width/2+.15),z0=Math.min(b.renderFootprint[0][1],s.z-s.depth/2-.125),z1=Math.max(b.renderFootprint[2][1],s.z+s.depth/2+.125);land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});}
++ land.push({type:'polygon',points:[[-33,-46],[-19,-46],[-19,-17],[-33,-17]]});
+  const points=[[-1.4,8.1],[-18.4,8.1],[-18.4,-20.5],[-3.25,-25.5],[-3.25,-32.88]],path=points.slice(1).map((b,i)=>({type:'capsule',a:points[i],b,r:.92,owner:'stone-path'}));
+  const actors=Object.entries(owned).flatMap(([kind,n])=>Array.from({length:n},(_,i)=>{const b=baseline[kind],station=b.stations.filter(s=>s.kind==='bed')[i];return{id:kind+'-'+i,kind,position:[...station.approach],component:null,stationId:null,clearance:margins[kind]};}));
+  return{epoch:'guest-farm-1',obstacleRevision:0,owned,land,blocked,path,groundY:farmGroundY,actors,baselineBlocked:structuredClone(blocked),...overrides};
+diff --git a/farm3d/tests/horse-room-land.test.mjs b/farm3d/tests/horse-room-land.test.mjs
+new file mode 100644
+index 0000000..159b206
+--- /dev/null
++++ b/farm3d/tests/horse-room-land.test.mjs
+@@ -0,0 +1,39 @@
++// Amendment A1 (horse room): a 10 m strip west of the north clearing becomes level
++// pen land; every other ground height and hill tree keeps its approved place.
++import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
++import {farmGroundY,WEST_CLEARING} from '../farm-land.js';
++const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
++// The approved terrain before the amendment, kept here as the reference.
++function approvedGroundY(x,z){
++ const d=Math.hypot(x,z),old=d<16?0:(Math.sin(x*.09)*Math.cos(z*.07)*1.3+Math.sin(x*.23+z*.17)*.4)*Math.min(1,(d-16)/20);
++ const clearing=smooth(-21,-25,z)*(1-smooth(-46,-50,z))*(1-smooth(24,28,Math.abs(x-1)));
++ return clearing===1?0:old*(1-clearing);
++}
++const inStrip=(x,z)=>x>-37&&x<-23&&z>-50&&z<-21;
++test('only the west strip changes, it only flattens, and the horse ground is level',()=>{
++ let changed=0;
++ for(let x=-110;x<=110;x+=.25)for(let z=-110;z<=110;z+=.25){
++  const now=farmGroundY(x,z),before=approvedGroundY(x,z);
++  if(!inStrip(x,z)){assert.equal(now,before,`ground moved outside the strip at ${x},${z}`);continue;}
++  assert(Math.abs(now)<=Math.abs(before)+1e-12,`strip raised at ${x},${z}`);if(now!==before)changed++;
++  if(x>=-33&&z>=-46&&z<=-25)assert.equal(now,0,`not level at ${x},${z}`);
++ }
++ assert(changed>0,'the strip was not levelled');
++});
++test('no hill tree stands in the levelled strip and only trees inside the widened band move',()=>{
++ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'),line=s=>html.slice(html.indexOf(s),html.indexOf('\n',html.indexOf(s)));
++ const block=html.slice(html.indexOf('const hills = [];'),html.indexOf('bootStep("planting the woods");'));
++ const tree=()=>({position:{x:0,y:0,z:0,set(x,y,z){Object.assign(this,{x,y,z});}},scale:{setScalar(){}},rotation:{},userData:{}});
++ const c={WEST_CLEARING,makeTree:tree,groundY:farmGroundY,scene:{add(){}},mergeStatic(){},keepCanopy:()=>()=>false};vm.createContext(c);
++ vm.runInContext(line('function rng(seed)')+'\n'+block+';globalThis.out=hills.map(t=>[t.position.x,t.position.z]);',c);
++ // Reference: the approved placement rule with the same seeded sequence.
++ const R=vm.runInNewContext(line('function rng(seed)')+';rng(31)'),ref=[];
++ for(let i=0;i<14;i++){const a=R()*Math.PI*2,r=36+R()*30;let x=Math.cos(a)*r;const z=Math.sin(a)*r;if(z< -21&&z> -50&&Math.abs(x-1)<28)x=1+(x<1?-31:31);R();R();ref.push([x,z]);}
++ assert.equal(c.out.length,14);let moved=0;
++ c.out.forEach(([x,z],i)=>{
++  assert(!(x>=-37&&x<=-19&&z>-50&&z<-21),`hill tree ${i} stands in the levelled strip at ${x},${z}`);
++  const [rx,rz]=ref[i];assert.equal(z,rz);
++  if(rz< -21&&rz> -50&&rx<1&&rx> -37){assert.equal(x,-40);moved++;}else assert.equal(x,rx,`hill tree ${i} moved`);
++ });
++ assert.equal(moved,1,'exactly one approved hill tree is in the widened band');
++});
+diff --git a/farm3d/tests/horse-room.browser.cjs b/farm3d/tests/horse-room.browser.cjs
+new file mode 100644
+index 0000000..ab2e15a
+--- /dev/null
++++ b/farm3d/tests/horse-room.browser.cjs
+@@ -0,0 +1,43 @@
++// Amendment A1 on a running farm: the horse paddock moves west onto the levelled strip
++// through the real editor core and game.js transaction (debug editor API, not trusted UI input).
++// Not yet part of a hosted workflow.
++const assert=require('assert/strict');
++const {start}=require('./browser-harness.cjs');
++(async()=>{
++ const h=await start({deviceScaleFactor:.5});const report={steps:[]};let s;
++ try{
++  s=await h.setup({width:844,height:390},false,'horse-room');const p=s.page;
++  await p.addInitScript(()=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');});
++  const ready=()=>p.waitForFunction(()=>window.__done&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
++  await p.goto(h.base+'farm3d/?debug&portrait&shot&sim=0&preset=noon');await ready();
++  const ground=await p.evaluate(()=>{const d=__dbg,G=d.G,t=Date.now();G.S.tut=99;G.S.level=20;G.S.event=null;G.S.nextEventAt=G.S.nextRushAt=G.S.nextVisitorAt=9e15;
++   for(const[k,n]of[['horse',4],['sheep',5],['cow',5]])G.S.pens[k]={...(G.S.pens[k]||{}),owned:true,list:Array(n).fill(0),meta:Array.from({length:n},(_,i)=>({name:k+' Room '+i,love:50,loveAt:t,petAt:0,brushAt:0,playAt:0}))};
++   G.S.pets=[{kind:'dog',name:'Buddy',love:60,loveAt:t,petAt:0,playAt:0,treatAt:0,giftAt:t},{kind:'cat',name:'Whiskers',love:60,loveAt:t,petAt:0,playAt:0,treatAt:0,giftAt:t}];G.view.refresh('all');G.save();
++   const trees=[];d.scene.traverse(o=>{if(o.userData?.canopy&&o.position.x>=-37&&o.position.x<=-19&&o.position.z>-50&&o.position.z<-21)trees.push([o.position.x,o.position.z]);});
++   // Rendered ground mesh vertices inside the levelled strip.
++   const pos=d.ground.geometry.attributes.position,flat=[];d.ground.updateMatrixWorld(true);for(let i=0;i<pos.count;i++){const x=pos.getX(i)+d.ground.position.x,z=pos.getZ(i)+d.ground.position.z;if(x>=-33&&x<=-23&&z>=-46&&z<=-25)flat.push(Math.abs(pos.getY(i)+d.ground.position.y));}
++   return {treesInStrip:trees,stripVertices:flat.length,maxStripHeight:Math.max(...flat),cowYardActive:d.cowYardActive};});
++  report.steps.push({step:'levelled strip',ground});
++  const herd=()=>p.evaluate(()=>{const d=__dbg,pen=d.PEN_LIST.find(q=>q.care==='horse'),horses=d.animals.filter(a=>a.kind==='horse');return {custom:!!d.remainingLayouts.horse.custom,penCustom:!!pen.custom,inside:horses.map(a=>d.inPen(pen,a.g.position.x,a.g.position.z,0)),horses:horses.length,west:Math.min(...pen.poly.map(v=>v[0]))};});
++  const before=await herd();
++  // Past the strip is refused; six metres west applies.
++  const applied=await p.evaluate(async()=>{const e=__dbg.penEditor,tryMove=async m=>{e.begin('horse');e.dispatch({type:'movePen',kind:'horse',delta:[-m,0]});const ok=await e.validateNow();const reason=e.snapshot().reason;return {ok,reason};};
++   const far=await tryMove(10);e.cancel();
++   const six=await tryMove(6);window.__herdBefore=__dbg.animals.slice();const ok=six.ok&&await e.apply(),raw=JSON.parse(localStorage.getItem('sunny-acres-3d-v1'));
++   return {farRefused:!far.ok,farReason:far.reason,sixValid:six.ok,sixReason:six.reason,ok,open:e.snapshot().open,v:raw.v,revision:raw.layout?.animalPens?.revision,savedKinds:Object.keys(raw.layout?.animalPens?.sites||{})};});
++  report.steps.push({step:'refuse 10 m, apply 6 m west',applied,errors:[...s.errors]});
++  assert.equal(applied.sixValid,true,'6 m west does not validate: '+applied.sixReason);
++  const afterApply=await herd();report.steps.push({step:'after apply',before,afterApply});
++  const kept=await p.evaluate(()=>{const d=__dbg;d.G.view.refresh('all');const same=d.animals.filter(a=>a.kind==='horse').every(a=>window.__herdBefore.includes(a));const pen=d.PEN_LIST.find(q=>q.care==='horse');let t=d.clock(),outside=0;for(let n=0;n<900;n++){t+=1/30;d.setClock(t);for(const a of d.animals)a.update(1/30,t);for(const a of d.animals.filter(a=>a.kind==='horse'))if(!d.inPen(pen,a.g.position.x,a.g.position.z,-.05))outside++;}return {sameHerd:same,horseFramesOutside:outside};});
++  report.steps.push({step:'refresh keeps herd, 30 simulated seconds',kept,errors:[...s.errors]});
++  await p.reload();await ready();
++  const reloaded=await herd();report.steps.push({step:'reloaded',reloaded,revision:await p.evaluate(()=>__dbg.penRuntime.revision),errors:[...s.errors]});
++  assert.deepEqual(ground.treesInStrip,[]);assert(ground.stripVertices>50);assert.equal(ground.maxStripHeight,0);assert.equal(ground.cowYardActive,true);
++  assert.equal(applied.farRefused,true);assert(applied.farReason);assert.equal(applied.ok,true);assert.equal(applied.open,false);assert.equal(applied.v,4);assert.equal(applied.revision,1);assert.deepEqual(applied.savedKinds,['horse']);
++  assert.equal(afterApply.custom,true);assert.equal(afterApply.penCustom,true);assert.equal(afterApply.horses,4);assert(afterApply.inside.every(Boolean),'horse outside the moved paddock');assert(Math.abs(afterApply.west-(before.west-6))<1e-9,'paddock did not move 6 m west');
++  assert.equal(kept.sameHerd,true);assert.equal(kept.horseFramesOutside,0);
++  assert.equal(reloaded.custom,true);assert.equal(reloaded.horses,4);assert(reloaded.inside.every(Boolean));assert(Math.abs(reloaded.west-afterApply.west)<1e-9);assert.deepEqual(s.errors,[]);
++  report.result='PASS';
++ }catch(e){report.result='FAIL';report.error=String(e.stack||e);report.errors=s?.errors;}
++ finally{await s?.finish(report.result!=='PASS');await h.close?.();console.log(JSON.stringify(report,null,1));process.exitCode=report.result==='PASS'?0:1;}
++})();
+diff --git a/farm3d/tests/run-core-game-tests.mjs b/farm3d/tests/run-core-game-tests.mjs
+index f5c1cf9..d2a1f2c 100644
+--- a/farm3d/tests/run-core-game-tests.mjs
++++ b/farm3d/tests/run-core-game-tests.mjs
+@@ -8,7 +8,7 @@ const cwd=dirname(fileURLToPath(import.meta.url));
+ const nodeFiles=[
+  // Player-editable pen checks supplement every original isolated suite.
+  'animal-pen-concave-care.test.mjs','animal-pen-cow-rebind.test.mjs','animal-pen-cow-support.test.mjs','animal-pen-editor-view.test.mjs','animal-pen-editor.test.mjs','animal-pen-geometry.test.mjs','animal-pen-layout.test.mjs','animal-pen-preview.test.mjs','animal-pen-publication.test.mjs','animal-pen-rebind.test.mjs','animal-pen-save.test.mjs','animal-pen-scene-install.test.mjs','animal-pen-scene-registry.test.mjs','animal-pen-scene-routing.test.mjs','animal-pen-validation.test.mjs','animal-pen-world.test.mjs','animal-pen-writer-compatibility.test.mjs','animal-pen-yards.test.mjs',
+- 'remaining-care-beast.test.mjs','remaining-care-decisions.test.mjs','remaining-care-navigation.test.mjs','remaining-care-layout.test.mjs','remaining-care-pose.test.mjs','remaining-care-yard.test.mjs','remaining-care-controller.test.mjs','remaining-care-integration.test.mjs','north-land.test.mjs','farm-path.test.mjs','seasonal-leaves.test.mjs','animal-stations.test.mjs','cow-yard.test.mjs','cow-room.test.mjs','cow-rest-pose.test.mjs','cow-stations.test.mjs','cow-scene.test.mjs','cow-clearings.test.mjs','cow-controls.test.mjs','cow-ready-action.test.mjs','cow-robot-contact.test.mjs','cow-care.test.mjs','cow-milking.test.mjs','cow-care-integration.test.mjs','cow-writer-compatibility.test.mjs','save-writer-compatibility.test.mjs','utility-lights.test.mjs','decor-models.test.mjs','decor-save.test.mjs','market-sales.test.mjs','seed-target-readiness.test.mjs','cow-test-preset.test.mjs',
++ 'remaining-care-beast.test.mjs','remaining-care-decisions.test.mjs','remaining-care-navigation.test.mjs','remaining-care-layout.test.mjs','remaining-care-pose.test.mjs','remaining-care-yard.test.mjs','remaining-care-controller.test.mjs','remaining-care-integration.test.mjs','north-land.test.mjs','horse-room-land.test.mjs','farm-path.test.mjs','seasonal-leaves.test.mjs','animal-stations.test.mjs','cow-yard.test.mjs','cow-room.test.mjs','cow-rest-pose.test.mjs','cow-stations.test.mjs','cow-scene.test.mjs','cow-clearings.test.mjs','cow-controls.test.mjs','cow-ready-action.test.mjs','cow-robot-contact.test.mjs','cow-care.test.mjs','cow-milking.test.mjs','cow-care-integration.test.mjs','cow-writer-compatibility.test.mjs','save-writer-compatibility.test.mjs','utility-lights.test.mjs','decor-models.test.mjs','decor-save.test.mjs','market-sales.test.mjs','seed-target-readiness.test.mjs','cow-test-preset.test.mjs',
+  'chicken-stations.test.mjs','chicken-care-controller.test.mjs','chicken-care.test.mjs','chicken-care-integration.test.mjs','chicken-yard.test.mjs','chicken-yard-interaction.test.mjs','seed-selection.test.mjs','perf.test.mjs','cow3d.test.mjs','cow-b17-performance.test.mjs','cow-anatomy.test.mjs',
+  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
+  'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','horse-contact-feasibility.test.mjs','horse-motion-evidence.test.mjs','sheep3d.test.mjs','dog-face.test.mjs','dog-stop-continuity.test.mjs','dog-evidence-placement.test.mjs','cat-visual.test.mjs','cat-stop-continuity.test.mjs','cat-evidence-placement.test.mjs','chicken-coordinated-motion.test.mjs','chicken-start-turn.test.mjs','chicken-stop-continuity.test.mjs','chicken-evidence-placement.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
