@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-22T23:03:23.857002+00:00",
+  "lastUpdatedUtc": "2026-10-22T23:23:52.631Z",
   "codeBaseline": {
     "description": "PR95 owner-approved remaining animal physical care merged/live;37premerge/17postmerge/Pages3SUCCESS;27runtime files and plain entry exact. Original installer failure retained, one investigated cloud-only fresh-runner rerun succeeded.",
     "mergeCommit": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
@@ -142,7 +142,7 @@
   "completedThrough": "PR95 complete; approved design and plan; pen Tasks1-6 components implemented and unit-tested; Task7 live integration in progress (prepared-registry hook and actual-index scene install proven in Node); not exposed to players, previewed or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
   "currentPhaseTitle": "Player-expandable fences and movable animal care buildings",
-  "phaseStatus": "HANDED_OFF_TO_CHATGPT",
+  "phaseStatus": "PET_POCKET_DIAGNOSED_SCOPE_APPROVAL_PENDING",
   "visualAcceptance": "PR95_APPROVED;PEN_EDITOR_NOT_IMPLEMENTED_OR_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -1036,7 +1036,7 @@
       }
     }
   },
-  "workingBranch": "codex/player-pen-editing-20261022",
+  "workingBranch": "codex/pet-pocket-20261022",
   "sheepCaptureResetFix": {
     "baseMain": "9245b95062fe3dec6ea6a2a6376f675377bc9d08",
     "failedRun": 38202494722,
@@ -5195,5 +5195,32 @@
       "runtimeIntegration": false,
       "next": "Task3"
     }
+  },
+  "petPocketRecovery20261022": {
+    "baseMain": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
+    "source": "cf29f6d6433ceb3060f6f049045504afb3c87c3a",
+    "branch": "codex/pet-pocket-20261022",
+    "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-pet-pocket-20261022",
+    "runtimeChanged": false,
+    "results": {
+      "originalSweep": "75/80; failed23,26,41,62,69; unchanged seeds2-81 and deadlines",
+      "fiveSeeds": "0/5; retained RED",
+      "officialBeast": "2/2 seeds4242,1",
+      "negativeControls": "6/6",
+      "protected": "4/4"
+    },
+    "diagnosis": [
+      "Ordinary movement enters the actual barn footprint; seed41 is enclosed under unchanged body clearance and monotone escape invariants",
+      "Seeds62/69 have a nonempty direct plan whose first physical step is refused by default convex pen corner expansion"
+    ],
+    "proposedReducedClearance": "Rejected: zero-pad path would penetrate unchanged full-body keep-outs",
+    "approvalNeeded": "Narrow ordinary-pet collision/pen-projection correction in index.html Beast.update and route handoff; continuous controller/navigation corner consistency; no locked land/path/rig/ledger/auth bytes",
+    "approvalStatus": "pending; no denial or uncertain runtime action",
+    "next": "Obtain explicit owner scope approval, then focused RED-first source prevention/corner repair and unchanged seed/deadline regression",
+    "limits": [
+      "Task7/8 incomplete",
+      "No new hosted CI, visual acceptance, merge or deployment",
+      "Current task model/effort not exposed; supported options only from task-tool schema"
+    ]
   }
 }
