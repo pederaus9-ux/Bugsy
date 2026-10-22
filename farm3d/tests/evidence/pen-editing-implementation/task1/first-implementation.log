@@ -1,0 +1,43 @@
+✔ concaveNotchRejectsCrossing (1.78945ms)
+✔ windingAndBoundaryDoNotChangeContainment (0.634838ms)
+✔ continuousClearanceRejectsExitReentryAndGrazing (0.591492ms)
+✔ nearestLegalPointHandlesConcaveInsetAndImpossibleClearance (7.249888ms)
+✔ degenerateAndNonfiniteGeometryCannotBeInside (0.284139ms)
+✔ defaultsMatchFrozenPR95 (12.292655ms)
+✔ unknownTemplateIsReadOnly (0.302256ms)
+✔ invalidSchemaHasNoSideEffects (3.496565ms)
+✔ customComponentsCarryTheirStationAndColliderCoordinates (3.297114ms)
+✔ missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate (2.548995ms)
+✔ petSitesCannotAcquireFenceTools (0.246011ms)
+✖ payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation (7.515208ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.826242
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-layout.test.mjs:13:1
+✖ payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation (7.515208ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(new TextEncoder().encode(JSON.stringify(p)).length>32768)
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-layout.test.mjs:13:537)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

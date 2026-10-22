@@ -1,0 +1,45 @@
+✔ defaultsMatchFrozenPR95 (11.710692ms)
+✔ unknownTemplateIsReadOnly (0.348936ms)
+✔ invalidSchemaHasNoSideEffects (3.255733ms)
+✔ customComponentsCarryTheirStationAndColliderCoordinates (3.255944ms)
+✔ missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate (2.873026ms)
+✔ petSitesCannotAcquireFenceTools (0.248895ms)
+✔ payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation (466.611663ms)
+✖ translatedWaitingPositionsAreMovedOnce (9.050828ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 612.379961
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-layout.test.mjs:25:1
+✖ translatedWaitingPositionsAreMovedOnce (9.050828ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -7.6,
+  -   -9.6,
+      0,
+      3.55
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-layout.test.mjs:25:234)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -7.6, 0, 3.55 ],
+    expected: [ -9.6, 0, 3.55 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
