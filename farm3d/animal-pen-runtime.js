@@ -11,10 +11,16 @@ export function preparePenYards(layout){
 // A prepared revision owns resources until publication starts. Once registries
 // may reference them, a failure requires controlled reload by the save caller;
 // disposing or rolling back here could corrupt the newly persisted revision.
+// Optional live.prepareRegistries returns {publish,dispose,retire}: it is
+// prepared before care, published before care and retired after care. Without
+// it the legacy publishRegistries/disposePrevious callbacks are used.
 export function prepareAnimalPenRevision(layout,validation,live){
  if(!validation?.ok||validation.revision!==layout.revision)throw new Error('Invalid or stale animal pen validation');
- const prepared=preparePenYards(layout);let care=[],state='prepared';
- try{care=live.prepareCare(layout,validation);}catch(error){prepared.dispose();throw error;}
+ const prepared=preparePenYards(layout);let registries=null,care=[],state='prepared';
+ try{
+  if(live.prepareRegistries)registries=live.prepareRegistries(layout,prepared.yards,validation);
+  care=live.prepareCare(layout,validation);
+ }catch(error){try{registries?.dispose();}finally{prepared.dispose();}throw error;}
  return {
   revision:layout.revision,
   publish(){
@@ -22,15 +28,16 @@ export function prepareAnimalPenRevision(layout,validation,live){
    if(state!=='prepared')throw new Error('Animal pen revision '+state);
    state='publishing';
    try{
-    live.publishRegistries(layout,prepared.yards,validation);
+    if(registries)registries.publish();else live.publishRegistries(layout,prepared.yards,validation);
     for(const item of care)item.publish();
-    live.disposePrevious();state='published';
+    if(registries)registries.retire();else live.disposePrevious();
+    state='published';
    }catch(error){state='failed';throw error;}
   },
   dispose(){
    if(state!=='prepared')return;
    state='disposed';
-   try{for(const item of care)item.dispose();}finally{prepared.dispose();}
+   try{for(const item of care)item.dispose();}finally{try{registries?.dispose();}finally{prepared.dispose();}}
   }
  };
 }
