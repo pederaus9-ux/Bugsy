@@ -29,3 +29,12 @@ test('sleeping flock gets separate ground waiting places clear of both door appr
  const waits=world.actors.filter(a=>a.kind==='chicken').map(a=>result.waiting[a.id]);assert.equal(waits.length,30);
  for(let i=0;i<waits.length;i++){assert.equal(waits[i][1],0);for(let j=0;j<i;j++)assert(Math.hypot(waits[i][0]-waits[j][0],waits[i][2]-waits[j][2])>=.5-1e-8);for(const A of layout.sites.chicken.accesses)assert(Math.hypot(waits[i][0]-A.outside[0],waits[i][2]-A.outside[2])>=.5);}
 });
+// An unowned site still occupies its saved or accepted position: the chicken yard stays
+// installed without hens, and the cow yard appears there when the first cow is bought.
+const withoutKind=(kind,extra={})=>{const owned={chicken:30,cow:5,horse:4,sheep:5,dog:1,cat:1,[kind]:0},w=makePenWorld({owned,installed:{cow:owned.cow>0},...extra});w.actors=w.actors.filter(a=>a.kind!==kind);return w;};
+test('unownedSitesStayReservedForOtherPens',()=>{
+ let r=V.validateAnimalPens(translatedLayout('cat',[-9,6]),withoutKind('chicken'));assert.equal(r.ok,false,'cat nook accepted on the empty coop');assert(r.issues.some(i=>i.kind==='cat'&&i.code==='OVERLAP'),JSON.stringify(r.issues));
+ r=V.validateAnimalPens(translatedLayout('sheep',[0,-3]),withoutKind('cow',{land:[{type:'polygon',points:[[-200,-200],[200,-200],[200,200],[-200,200]]}]}));assert.equal(r.ok,false,'sheep meadow accepted inside the unbuilt cow yard');assert(r.issues.some(i=>i.kind==='sheep'&&i.code==='OVERLAP'),JSON.stringify(r.issues));
+ r=V.validateAnimalPens(translatedLayout('cat',[1,0]),withoutKind('chicken'));assert.equal(r.ok,true,JSON.stringify(r.issues));
+});
+test('acceptedLayoutValidatesWithAnyOneSpeciesUnowned',()=>{for(const kind of ['chicken','cow','horse','sheep','dog','cat']){const r=V.validateAnimalPens(resolveAnimalPens(),withoutKind(kind));assert.equal(r.ok,true,kind+': '+JSON.stringify(r.issues));}});
