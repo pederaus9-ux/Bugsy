@@ -1,0 +1,26 @@
+{
+  "job": 119521593574,
+  "run": 39686312302,
+  "excerpt": [
+    "2026-10-21T22:32:37.9120751Z PASS cloud save written through the revision transaction \u2014 rev 1",
+    "2026-10-21T22:34:55.5334426Z PASS damaged phone save: the cloud farm comes back and is not overwritten \u2014 coins 75 -> 75, cloud rev 3 -> 3",
+    "2026-10-21T22:36:39.7136266Z PASS cloud save written through the revision transaction \u2014 rev 1",
+    "2026-10-21T22:38:38.7774809Z PASS damaged phone save: the cloud farm comes back and is not overwritten \u2014 coins 67 -> 67, cloud rev 2 -> 2",
+    "2026-10-21T22:45:01.1550395Z PASS 0 race (sign-in before the game reads the save): the cloud farm still comes back \u2014 restored true after 73s, page loads +1, recover null, cloud rev 5->5, bad samples 0, stand-in writes 0",
+    "2026-10-21T22:46:11.2839667Z PASS 1.1 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload \u2014 restored true in 47.7s, same progress true, page loads +2, recover null",
+    "2026-10-21T22:46:11.2856759Z PASS 1.1 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) \u2014 rev 6->6, bad samples 0, stand-in writes sent 0",
+    "2026-10-21T22:46:26.5787941Z PASS 1.1 a normal save after recovery uploads the restored farm \u2014 rev 6->7",
+    "2026-10-21T22:47:37.2077850Z PASS 1.2 corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload \u2014 restored true in 50.8s, same progress true, page loads +2, recover null",
+    "2026-10-21T22:47:37.2099819Z PASS 1.2 cloud untouched until recovery, and never without the sentinel for 40 s (> 15 s upload delay) \u2014 rev 8->8, bad samples 0, stand-in writes sent 0",
+    "2026-10-21T22:47:52.5010891Z PASS 1.2 a normal save after recovery uploads the restored farm \u2014 rev 8->9",
+    "2026-10-21T22:49:55.7226117Z PASS 3 corrupt local + missing cloud: no recovery reload, copy kept, the farm starts a new cloud save \u2014 page loads +1, recover null, sync-rev 0, kept first copy true, new cloud rev 1",
+    "2026-10-21T22:50:56.4723044Z PASS 3b missing cloud + delayed game startup: recovery clears after load, first copy kept, new cloud save starts \u2014 page loads +1, recover null, first copy kept true, new cloud rev 1",
+    "2026-10-21T22:52:05.2230458Z PASS 11 cloud unreachable at start (no recovery): the same visit syncs when it comes back, no reload \u2014 recover null, cloud rev 2->3, page loads +1",
+    "2026-10-21T22:57:18.2448155Z PASS 4/9/10/8 reload during recovery: still pending after a reload, same coins/different state, nothing uploaded through 25 s online (> 15 s delay) \u2014 pending 1/1/1, stand-in coins 75 = good 75, farm reads refused 1, bad samples 0, stand-in writes 0",
+    "2026-10-21T22:57:38.4590840Z PASS 6 sign-out during recovery: nothing uploaded, recovery still pending \u2014 pending 1, bad samples 0, stand-in writes 0",
+    "2026-10-21T22:58:07.2910345Z PASS 5 sign-in during recovery: cloud farm restored, cloud copy byte-identical \u2014 restored true, page loads +1, cloud rev 8",
+    "2026-10-21T22:58:24.2873012Z RECOVERY: 22/22 passed (console logs: artifacts/console-*.log)",
+    "2026-10-21T22:58:26.3121264Z PASS actual SDK modules and owner sign-in boot 12.19.0 storage blocked: false",
+    "2026-10-21T22:58:27.1548283Z PASS actual SDK modules and owner sign-in boot 12.19.0 storage blocked: true"
+  ]
+}

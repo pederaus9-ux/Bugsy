@@ -6,6 +6,28 @@
   "finding": "Existing Edit mode moves production buildings/trees/decor using saved layout.b/t. Chicken/cow/horse/sheep enclosures, station docks, support surfaces and routes use fixed world layouts. Fence visuals alone cannot safely satisfy request.",
   "recommendedDirection": "Extend existing Edit mode with draft pen boundary/fence/gate edits and animal-building relocation. Apply validates an entire draft and updates saved layout, geometry, collision, station docks, animal containment and routes as one operation. Cancel preserves previous farm. Existing farms default to accepted layouts.",
   "designClassification": "Architectural: new shared saved-layout and coordinated runtime rebuild interfaces. Design approval/spec/implementation gates remain; no new-feature implementation or release approval inferred from PR95 Merge.",
-  "assumptionsForReview": ["Cows, chickens, horses and sheep each retain separate pens", "Dog/cat care nooks can move while pets retain free roaming", "New floor area stays on owned playable land", "Accepted animal capacity and costs stay unchanged unless separately specified", "Existing buildings can be repositioned without purchase; fence pricing to follow approved product design"],
-  "acceptanceToDesign": ["Actual native phone/tablet/desktop editing", "Old-save/load/offline/cloud recovery", "Cancel and invalid geometry cannot partially apply or spend", "Usable gates and all bed/feed/drink/robot routes after resizing and relocation", "Repeated all-animal care and sleep/wake cycles after edits", "No overlap with existing farm buildings, crops, paths or neighbouring pens"]
+  "assumptionsForReview": [
+    "Cows, chickens, horses and sheep each retain separate pens",
+    "Dog/cat care nooks can move while pets retain free roaming",
+    "New floor area stays on owned playable land",
+    "Accepted animal capacity and costs stay unchanged unless separately specified",
+    "Existing buildings can be repositioned without purchase; fence pricing to follow approved product design"
+  ],
+  "acceptanceToDesign": [
+    "Actual native phone/tablet/desktop editing",
+    "Old-save/load/offline/cloud recovery",
+    "Cancel and invalid geometry cannot partially apply or spend",
+    "Usable gates and all bed/feed/drink/robot routes after resizing and relocation",
+    "Repeated all-animal care and sleep/wake cycles after edits",
+    "No overlap with existing farm buildings, crops, paths or neighbouring pens"
+  ],
+  "readOnlyInterfaceDiscovery": {
+    "currentEditor": "index.html setEdit/editHit/editValid/commitEdit/applyLayout; production buildings, two trees, decor; 1m grid and immediate per-drag save",
+    "currentSavedLayout": "game.js fresh/upgrade keeps layout.b and layout.t; SAVE_VERSION3; versions1/2/3 and future-writer protection already exist",
+    "animalLayouts": "chicken-yard.js CHICKEN_YARD_LAYOUT/createChickenYard; cow-yard.js cowYardLayout/createCowYard; remaining-care-layout.js remainingCareLayouts; index.html penOf/PENS/BLOCKS/OBST/fenceSegs plus care controller instances",
+    "careContracts": "Stable station IDs, docks/contacts/support surfaces, approach routes, bed uniqueness, cow robot entry/dock/exit/ledger and chicken two-ramp paths must follow accepted edits together",
+    "cloudEnvelope": "Firestore saves farm JSON text in existing owner-only revision-checked envelope; current limit900000chars. No rule relaxation is implied. Actual save/old-client compatibility must be proven before implementation is called complete",
+    "fallbackFarms": "Site guards can retain old shared/fallback care if player objects obstruct installation. Editor design must cover those saved farms without moving/deleting paid objects automatically",
+    "newWriterConsideration": "A custom-layout writer barrier must be considered/proven against stale clients using the existing migration and future-save fixtures. No save version or migration has been changed"
+  }
 }
