@@ -2,7 +2,7 @@ import {pointInPolygon,segmentInPolygon,pointSegmentDistance} from './animal-pen
 import * as T from './lib/three.module.min.js';
 import {animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {createStationScheduler} from './animal-stations.js?v=1';
-import {careSegmentClear} from './remaining-care-navigation.js?v=2';
+import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
 import {createQuadrupedCarePose} from './quadruped-care-poses.js?v=1';
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]),angle=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 // Physical care is ephemeral. No save, supplies, production, reward or wall-clock API.
@@ -20,6 +20,7 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
  function line(a,from,to,escape=false){const l=layouts[a.kind],circles=neighbours().filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:l.margin+(layouts[b.kind]?.margin??Math.min(b.S?.r??.3,.8))}));
   if(l.polygon&&!segmentInPolygon([from[0],from[2]],[to[0],to[2]],l.polygon,l.margin))return false;
   if(!careSegmentClear(from,to,{pad:l.margin,rectangles:obstacles(a),segments:segments(),circles,polygons:forbiddenPolygons(a),escape}))return false;
+  if(!carePointRuleClear(from,to,{pad:l.margin,polygons:forbiddenPolygons(a),clearPoint:(x,z)=>clearPoint(a,x,z)}))return false;
   const d=distance(from,to),n=Math.max(1,Math.ceil(d/.08));for(let i=1;i<=n;i++){const x=from[0]+(to[0]-from[0])*i/n,z=from[2]+(to[2]-from[2])*i/n;if(!inside(l,x,z,l.margin)||!clearPoint(a,x,z))return false;}return true;
  }
  function plan(a,goal){
@@ -44,7 +45,7 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
  // One physical step toward p within the care speed and the three-dimensional ground limit.
  function step(a,p,dt){
   const ox=a.g.position.x,oz=a.g.position.z,dx=p[0]-ox,dz=p[2]-oz,d=Math.hypot(dx,dz),s=Math.min(d,layouts[a.kind].speed*dt),x=ox+dx/(d||1)*s,z=oz+dz/(d||1)*s;
-  if(!free(a,x,z,true))return false;
+  if(!free(a,x,z,true)||!line(a,[ox,a.g.position.y,oz],[x,a.g.position.y,z],true))return false;
   const budget=layouts[a.kind].speed*dt,oy=a.g.position.y,at=u=>[ox+(x-ox)*u,oz+(z-oz)*u];let fraction=1;
   if(Math.hypot(x-ox,groundY(x,z)-oy,z-oz)>budget){let lo=0,hi=1;for(let i=0;i<24;i++){const u=(lo+hi)/2,[xx,zz]=at(u);if(Math.hypot(xx-ox,groundY(xx,zz)-oy,zz-oz)<=budget)lo=u;else hi=u;}fraction=lo;}
   const [xx,zz]=at(fraction);a.g.position.set(xx,groundY(xx,zz),zz);return true;

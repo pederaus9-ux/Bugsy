@@ -675,6 +675,7 @@ import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing}
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
 import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
 import {createRemainingCareController} from './remaining-care-controller.js?v=3';
+import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
 import {createDairyPath} from './farm-path.js?v=2';
 import {NORTH_EXTENSION,WEST_CLEARING,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=2';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
@@ -1644,11 +1645,11 @@ function hitsBlock(a, b, pad, skip, obstacles = OBST) {
   return -1;
 }
 // shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
-function route(from, to, pad, pen, avoid = []) {
+function route(from, to, pad, pen, avoid = [], traverse = null) {
   const obstacles = avoid.length ? [...OBST, ...avoid] : OBST;
   const skipA = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], from, pad))), skipB = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], to, pad)));
   const both = new Set([...skipA, ...skipB]);
-  const contained=(a,b)=>!pen?.custom||segmentInPolygon([a.x,a.y],[b.x,b.y],pen.poly,pad);
+  const contained=(a,b)=>(!pen?.custom||segmentInPolygon([a.x,a.y],[b.x,b.y],pen.poly,pad))&&(!traverse||traverse(a,b));
   if (contained(from,to)&&hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
   const nodes = [from, to];
   for (const o of obstacles) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
@@ -1662,12 +1663,18 @@ function route(from, to, pad, pen, avoid = []) {
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
     if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
     for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
-  if (prev[1] < 0) return pen?.custom?[]:[to]; // Custom pens cannot cross a concavity when no route exists.
+  if (prev[1] < 0) return pen?.custom||traverse?[]:[to]; // Custom pens and guarded pets require an executable route.
   const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
 }
 const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
 // a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
 const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
+function petSegmentClear(a,from,to){
+  const start=[from.x,0,from.y],end=[to.x,0,to.y],pad=a.S.r,polygons=PEN_LIST.map(p=>p.poly);
+  const circles=animals.filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:pad+b.S.r}));
+  return careSegmentClear(start,end,{pad,rectangles:BLOCKS,segments:fenceSegs,circles,polygons,escape:true})&&
+    carePointRuleClear(start,end,{pad:pad+.15,polygons,clearPoint:(x,z)=>fitsPen(null,x,z,pad+.15)});
+}
 function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
   if(pen===PENS.courtyard||pen?.care){
     const x0=Math.min(...pen.poly.map(p=>p[0])),z0=Math.min(...pen.poly.map(p=>p[1])),x1=Math.max(...pen.poly.map(p=>p[0])),z1=Math.max(...pen.poly.map(p=>p[1]));
@@ -1710,7 +1717,7 @@ class Beast {
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
   // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
   fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
-  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)); this.path = route(this.pos, to, this.S.r + .7, this.pen); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
+  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = pet&&!this.target?"idle":"moving"; this.stuckT = 0; }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
@@ -1807,7 +1814,15 @@ class Beast {
         this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
         // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
         const held = this.fit(this.pos, .05);
-        if(this.pen?.custom&&!segmentInPolygon([ox,oz],[held.x,held.y],this.pen.poly,this.S.r+.05)){held.set(ox,oz);this.vel.set(0,0);}
+        if(this.kind==='dog'||this.kind==='cat'){
+          // Steering and pen projection alone can place a pet inside a neighbouring
+          // building. Sweep the proposed displacement; a slide never increases it.
+          const from=new THREE.Vector2(ox,oz),proposed=this.pos;
+          if(petSegmentClear(this,from,proposed))held.copy(proposed);
+          else held.copy([new THREE.Vector2(proposed.x,oz),new THREE.Vector2(ox,proposed.y)]
+            .filter(p=>petSegmentClear(this,from,p)).sort((a,b)=>a.distanceToSquared(this.target)-b.distanceToSquared(this.target))[0]||from);
+          if(dt>0)this.vel.set((held.x-ox)/dt,(held.y-oz)/dt);
+        }else if(this.pen?.custom&&!segmentInPolygon([ox,oz],[held.x,held.y],this.pen.poly,this.S.r+.05)){held.set(ox,oz);this.vel.set(0,0);}
         this.g.position.x = held.x; this.g.position.z = held.y;
         this.phase += this.vel.length() * dt * this.S.step;
         // give up on a target it can't reach
