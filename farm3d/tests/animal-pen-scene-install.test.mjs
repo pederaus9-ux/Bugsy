@@ -21,7 +21,7 @@ const source=[
  slice('let chickenYard=createChickenYard();','fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);'),
  slice('const PENS = {','|| null;'),
  slice('const BLOCKS = [','let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),lineAfter('let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),
- fn('function setCowGrass('),fn('// Called only by a prepared scene revision'),fn('// Saved custom pens install before herds spawn'),fn('function moveBlock('),
+ fn('function setCowGrass('),fn('// Called only by a prepared scene revision'),slice('// Saved custom pens install before herds spawn','// Live preflight input for the pen editor',false),fn('function moveBlock('),
  html.includes('// Remove an animal through its care controllers')?fn('// Remove an animal through its care controllers'):'',
  html.includes('// Live preflight input for the pen editor')?slice('// Live preflight input for the pen editor','\n}\n'):'',
  'globalThis.live={snapshot:typeof snapshotPenWorld==="function"?snapshotPenWorld:null,moveBlock,restoreSavedAnimalPens,get animals(){return animals},get chickenYard(){return chickenYard},get cowYard(){return cowYard},get chickenLayout(){return CHICKEN_YARD_LAYOUT},get cowLayout(){return COW_YARD_LAYOUT},get installed(){return installedAnimalPens},get bindings(){return penSceneBindings},get cowActive(){return cowYardActive},get cowChecked(){return cowYardChecked},setCowStatus(v){cowStatus=v},PENS,remainingPens,PEN_LIST,penOf,BLOCKS,OBST,fenceSegs,CLEARS,cowSurfaces,cowBlocks,remainingBlocks,remainingSites,remainingYards,fenceRouteObstacles,legacyPetBowlBlock,penSceneRegistry};'

@@ -684,7 +684,8 @@ import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} 
 import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';
 import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
 import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';
-import {penEditableLand} from './animal-pen-validation.js?v=1';
+import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=1';
+import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -1984,9 +1985,17 @@ function installAnimalPenScene({layout,yards,bindings,active}){
 // switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay
 // read-only in the save (game.js will not overwrite them) and show the default.
 let installedPenRecord='null';
+function savedPenLayout(){const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));return decoded?.status==='ok'?decoded.value:undefined;}
+// Prepared yards and registries plus every care controller's rebind, using the
+// validator's placements and waiting points for each live animal.
+function penRevisionLive(validation){
+ const active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ return {prepareRegistries:(l,yards)=>penSceneRegistry.prepare(l,yards,active),
+  prepareCare:l=>[chickenCare.prepareLayoutRebind({site:l.sites.chicken,now:clockT,placements:validation.placements,waiting:validation.waiting}),cowPenCare.prepareLayoutRebind({site:l.sites.cow,now:clockT,placements:validation.placements}),
+   ...['horse','sheep','dog','cat'].map(kind=>remainingCare.prepareLayoutRebind({site:l.sites[kind],now:clockT,placements:validation.placements}))]};
+}
 function restoreSavedAnimalPens(){
- const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));
- const value=decoded?.status==='ok'?decoded.value:undefined,record=JSON.stringify(value??null);
+ const value=savedPenLayout(),record=JSON.stringify(value??null);
  if(record===installedPenRecord)return;
  // A different saved layout arriving with a live herd (visiting, going home, a new or
  // imported farm) rebuilds the herd: no live animal is rebound without validated placements.
@@ -1994,12 +2003,21 @@ function restoreSavedAnimalPens(){
  const layout=resolveAnimalPens(value),active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
  // The saved layout was fully validated when applied, and no animal exists yet to place.
  const saved={ok:true,revision:layout.revision,source:'saved-layout',placements:{},waiting:{}};
- prepareAnimalPenRevision(layout,saved,{
-  prepareRegistries:(l,yards)=>penSceneRegistry.prepare(l,yards,active),
-  prepareCare:l=>[chickenCare.prepareLayoutRebind({site:l.sites.chicken,now:clockT,placements:{},waiting:{}}),cowPenCare.prepareLayoutRebind({site:l.sites.cow,now:clockT,placements:{}}),
-   ...['horse','sheep','dog','cat'].map(kind=>remainingCare.prepareLayoutRebind({site:l.sites[kind],now:clockT,placements:{}}))]
- }).publish();
+ prepareAnimalPenRevision(layout,saved,penRevisionLive(saved)).publish();
  installedPenRecord=record;
+}
+// Apply: fresh full validation on the newest live snapshot, then game.js writes the
+// complete farm once; yards, registries and validated care rebinds publish together.
+function commitPenDraft(value,base){
+ const world=snapshotPenWorld();if(world.epoch!==base.epoch)return false;
+ const validation=validateAnimalPens(resolveAnimalPens(value),world);if(!validation.ok)return false;
+ const result=G.commitAnimalPenLayout({expectedFarm:G.S,expectedRevision:base.revision,animalPens:value,
+  canCommit:()=>{const w=snapshotPenWorld();return w.epoch===world.epoch&&w.obstacleRevision===world.obstacleRevision;},
+  prepare:candidate=>{const layout=resolveAnimalPens(candidate.layout.animalPens);return prepareAnimalPenRevision(layout,validation,penRevisionLive(validation));},
+  // The complete new save is already on disk: reload it rather than keep a mixed scene.
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ if(result.ok)installedPenRecord=JSON.stringify(savedPenLayout()??null);
+ return result.ok;
 }
 // Live preflight input for the pen editor (plan World contract): full shapes from
 // the running farm, never centre probes. The epoch follows farm identity; the
@@ -2027,6 +2045,7 @@ function snapshotPenWorld(){
  });
  return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
 }
+const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
 const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
 function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
@@ -4300,7 +4319,7 @@ syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
 if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, chickenYard, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},penEditor,get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
