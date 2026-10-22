@@ -1,0 +1,85 @@
+# source: 905dd45; node v22.22.2; chromium 141.0.7390.37 local headless (diagnostic, not hosted pinned browser); utc 2026-10-22T22:49:58Z
+# cmd: CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node farm3d/tests/horse-room.browser.cjs
+{
+ "steps": [
+  {
+   "step": "levelled strip",
+   "ground": {
+    "treesInStrip": [],
+    "stripVertices": 120,
+    "maxStripHeight": 0,
+    "cowYardActive": true
+   }
+  },
+  {
+   "step": "refuse 10 m, apply 6 m west",
+   "applied": {
+    "farRefused": true,
+    "farReason": "Keep the entire enclosure on editable farm land.",
+    "sixValid": true,
+    "sixReason": null,
+    "ok": true,
+    "open": false,
+    "v": 4,
+    "revision": 1,
+    "savedKinds": [
+     "horse"
+    ]
+   },
+   "errors": []
+  },
+  {
+   "step": "after apply",
+   "before": {
+    "custom": false,
+    "penCustom": false,
+    "inside": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "horses": 4,
+    "west": -23.5
+   },
+   "afterApply": {
+    "custom": true,
+    "penCustom": true,
+    "inside": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "horses": 4,
+    "west": -29.5
+   }
+  },
+  {
+   "step": "refresh keeps herd, 30 simulated seconds",
+   "kept": {
+    "sameHerd": true,
+    "horseFramesOutside": 0
+   },
+   "errors": []
+  },
+  {
+   "step": "reloaded",
+   "reloaded": {
+    "custom": true,
+    "penCustom": true,
+    "inside": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "horses": 4,
+    "west": -29.5
+   },
+   "revision": 1,
+   "errors": []
+  }
+ ],
+ "result": "PASS"
+}

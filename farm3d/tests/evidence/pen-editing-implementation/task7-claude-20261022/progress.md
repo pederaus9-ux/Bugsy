@@ -131,9 +131,14 @@ Owner instruction (2026-10-22): Claude takes over as sole implementer ("You are 
   - First fix run (`care-give-way-first-run-red-destination-and-pet.log`): the second bedtime then exposed causes 2 and 3.
   - Final: controller + beast suites 28/28 (`care-give-way-green.log`), including seeds 4242 and 1 with unchanged deadlines.
 
+- Sweep evidence: `care-seed-sweeps-summary.md`. Before A2, 8/40 seeds fail at bedtime; on A2 before the fix, 7/40; with the fix, 75/80 pass. The remaining 5 are a separate pre-existing pocket trap (a roaming pet stands where no care step is legal; seed 41 traced next to the barn and chicken fence). It is recorded with a proposed reduced-clearance escape plan and is not yet fixed.
+- Regression on the final code: core runner 92/92 (`core-node-92-after-care-fix-green.log`). Real browser (local Chromium 141, diagnostic): `horse-square`, `horse-room` (6 m west on the square paddock) and `animal-pen-apply` all PASS (`browser-*-after-care-fix-local-chromium141.log`).
+- Final previews for the owner: `horse-square-final-ground.jpg` and `horse-square-final-top.jpg` (before / square default / moved 6 m west), plus `square-horse-preview-*.jpg`. Visual approval is the owner's separate decision.
+
 ## Open findings carried forward
 
 - RESOLVED (was SUSPICION): boot-time publication before the startup `BLOCKS.slice(OBST_BLOCKS)` registration. Reproduced with actual index slices in boot order (startup registry, later field/building/board blocks, saved-layout publish inside `GV.refresh("all")`, then the actual statement after it): the field-area block received 0 route obstacles (`boot-order-red.log`); default boot control passed. Fix: `OBST_BLOCKS` is now the identity set of startup blocks, and later registration skips startup and pen-registry-owned blocks; default boot registers the same blocks in the same order. 5/5 (`boot-order-green.log`); 23 index-reading suites 262/262 (`index-consumers-25-after-boot-order-green.log`; 23 files, 262 tests).
 - Browser tests still containing `sa3d-v63`: chicken-care-physical, chicken-pen-update, cow-resume, cow-update, decor-catalog, market-sales, remaining-care, utility-lights. Some model installed main (v63) → candidate updates, where v63 is a legitimate frozen predecessor. Review each in Task 8; do not bulk-replace.
 - Remaining Task 7 work per handoff: separate new-farm/2D-import checks, maximum-ownership snapshot validation (30 hens, 5 cows), Apply with owned chickens and cows, gate traffic, cow support runtime install, `__dbg.chickenYard`/`cowYard` getters, Edit→Animal pens UI with physical pause and input isolation, native four-view browser journeys. No player-facing editor yet; no preview, hosted run, visual approval, merge or deployment.
-- OWNER DECISION PENDING: chicken yard and horse paddock cannot be moved as a whole under the approved land and stone-path rules (see Slice I finding).
+- Owner decisions recorded: chicken yard stays fixed; horse paddock movable (A1) and square (A2).
+- OPEN (pre-existing, also on main): pets can be trapped in keep-out pockets so a care walk never starts (5/80 Beast seeds); see `care-seed-sweeps-summary.md`.
