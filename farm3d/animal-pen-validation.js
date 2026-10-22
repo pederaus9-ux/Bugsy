@@ -1,4 +1,5 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
+import {NORTH_EXTENSION} from './farm-land.js?v=1';
 import {resolveAnimalPens,defaultSiteRecord} from './animal-pen-layout.js?v=1';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
 const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
@@ -6,6 +7,13 @@ const defaults=resolveAnimalPens(),xy=p=>[p[0],p[2]],distance=(a,b)=>Math.hypot(
 const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const rect=(b,owner)=>({type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner});
 const segment=s=>({type:'capsule',a:s.slice(0,2),b:s.slice(2),r:.05});
+/** Pen-editable land: the ordinary farm capsule (onFarm, radius 24) plus the accepted
+ *  animal-site footprints and full horse/sheep shelter roofs. No world expansion. */
+export function penEditableLand(){
+ const land=[{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:24},...Object.values(PEN_TEMPLATES).map(t=>({type:'polygon',points:t.baseline.renderFootprint.map(p=>[...p])}))];
+ for(const kind of ['horse','sheep']){const b=PEN_TEMPLATES[kind].baseline,s=b.shelter,x0=Math.min(b.renderFootprint[0][0],s.x-s.width/2-.15),x1=Math.max(b.renderFootprint[1][0],s.x+s.width/2+.15),z0=Math.min(b.renderFootprint[0][1],s.z-s.depth/2-.125),z1=Math.max(b.renderFootprint[2][1],s.z+s.depth/2+.125);land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});}
+ return land;
+}
 export function penEditableLandContains(shape,world){
  if(Array.isArray(shape)){if(!simplePolygon(shape))return false;return shape.every((p,i)=>segmentInShapeUnion(p,shape[(i+1)%shape.length],world.land));}
  return !!shape&&segmentInShapeUnion(shape.a,shape.b,world.land,shape.pad??0);

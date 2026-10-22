@@ -1,0 +1,39 @@
+# source: e867ab2 + new animal-pen-world.test.mjs; validation module unchanged; node v22.22.2; utc 2026-10-22T14:54:05Z
+# cmd: node --test farm3d/tests/animal-pen-world.test.mjs
+TAP version 13
+# Subtest: pen-editable land is one shared definition equal to the calibrated validator world
+not ok 1 - pen-editable land is one shared definition equal to the calibrated validator world
+  ---
+  duration_ms: 2.270931
+  type: 'test'
+  location: '/home/user/Bugsy/farm3d/tests/animal-pen-world.test.mjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    penEditableLand must be exported for the live snapshot
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/Bugsy/farm3d/tests/animal-pen-world.test.mjs:5:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 127.917372
+# exit 1

@@ -3,7 +3,7 @@ import * as THREE from '../lib/three.module.min.js';
 import {createChickenYard,CHICKEN_YARD_LAYOUT} from '../chicken-yard.js';import {createCowYard,cowYardLayout} from '../cow-yard.js';
 import {createRemainingCareYards} from '../remaining-care-yard.js';import {remainingCareLayouts} from '../remaining-care-layout.js';
 import {NORTH_EXTENSION} from '../farm-land.js';import {createStationScheduler} from '../animal-stations.js';
-import {createAnimalPenSceneRegistry} from '../animal-pen-scene.js';import {resolveAnimalPens,defaultSiteRecord,decodeAnimalPens} from '../animal-pen-layout.js';import {preparePenYards,prepareAnimalPenRevision} from '../animal-pen-runtime.js';
+import {createAnimalPenSceneRegistry} from '../animal-pen-scene.js';import {resolveAnimalPens,defaultSiteRecord,decodeAnimalPens} from '../animal-pen-layout.js';import {preparePenYards,prepareAnimalPenRevision} from '../animal-pen-runtime.js';import {penEditableLand} from '../animal-pen-validation.js';import {pointInPolygon} from '../animal-pen-geometry.js';import {farmGroundY} from '../farm-land.js';
 // Drives the actual index.html installAnimalPenScene through the actual
 // registry/startup wiring, in index order, with only grass/pet-bowl/save fakes.
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -23,16 +23,17 @@ const source=[
  slice('const BLOCKS = [','let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),lineAfter('let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),
  fn('function setCowGrass('),fn('// Called only by a prepared scene revision'),fn('// Saved custom pens install before herds spawn'),fn('function moveBlock('),
  html.includes('// Remove an animal through its care controllers')?fn('// Remove an animal through its care controllers'):'',
- 'globalThis.live={restoreSavedAnimalPens,get animals(){return animals},get chickenYard(){return chickenYard},get cowYard(){return cowYard},get chickenLayout(){return CHICKEN_YARD_LAYOUT},get cowLayout(){return COW_YARD_LAYOUT},get installed(){return installedAnimalPens},get bindings(){return penSceneBindings},get cowActive(){return cowYardActive},get cowChecked(){return cowYardChecked},setCowStatus(v){cowStatus=v},PENS,remainingPens,PEN_LIST,penOf,BLOCKS,OBST,fenceSegs,CLEARS,cowSurfaces,cowBlocks,remainingBlocks,remainingSites,remainingYards,fenceRouteObstacles,legacyPetBowlBlock,penSceneRegistry};'
+ html.includes('// Live preflight input for the pen editor')?slice('// Live preflight input for the pen editor','\n}\n'):'',
+ 'globalThis.live={snapshot:typeof snapshotPenWorld==="function"?snapshotPenWorld:null,moveBlock,restoreSavedAnimalPens,get animals(){return animals},get chickenYard(){return chickenYard},get cowYard(){return cowYard},get chickenLayout(){return CHICKEN_YARD_LAYOUT},get cowLayout(){return COW_YARD_LAYOUT},get installed(){return installedAnimalPens},get bindings(){return penSceneBindings},get cowActive(){return cowYardActive},get cowChecked(){return cowYardChecked},setCowStatus(v){cowStatus=v},PENS,remainingPens,PEN_LIST,penOf,BLOCKS,OBST,fenceSegs,CLEARS,cowSurfaces,cowBlocks,remainingBlocks,remainingSites,remainingYards,fenceRouteObstacles,legacyPetBowlBlock,penSceneRegistry};'
 ].join('\n');
 function fixture({pets=['dog','cat'],synced=true,animals=[{kind:'chicken'},{kind:'cow'},{kind:'horse'},{kind:'sheep'}],animalPens}={}){
  const unrelatedBlock=[-30,-30,1,1],unrelatedFence=[-40,-40,-39,-40],scene=new THREE.Scene(),events=[];
  // Care controllers are spies here; their own rebind contracts have dedicated suites.
  const care=kind=>({release(a){events.push('release '+a.kind);},prepareLayoutRebind({site,now,placements}){events.push('prepare '+site.kind);assert.equal(site.kind,kind);assert(Number.isFinite(now));assert.deepEqual(Object.keys(placements),[]);return{revision:site.revision,publish(){events.push('care '+site.kind+(c.live.installed.revision===site.revision?' after registries':' before registries'));},dispose(){events.push('discard '+site.kind);}};}});
  const remainingCare={release(a){events.push('release '+a.kind);},prepareLayoutRebind:a=>care(a.site.kind).prepareLayoutRebind(a)};
- const c=vm.createContext({releaseCowTask:a=>events.push('release cow task'),chickenCare:care('chicken'),cowPenCare:care('cow'),remainingCare,clockT:0,decodeAnimalPens,prepareAnimalPenRevision,preparePenYards,structuredClone,THREE,scene,createChickenYard,DEFAULT_CHICKEN_YARD_LAYOUT:CHICKEN_YARD_LAYOUT,createCowYard,cowYardLayout,createRemainingCareYards,remainingCareLayouts,NORTH_EXTENSION,createStationScheduler,createAnimalPenSceneRegistry,resolveAnimalPens,
+ const c=vm.createContext({penEditableLand,pointInPolygon,groundY:farmGroundY,visiting:false,cowIdOf:a=>'cow-paid-'+a.ref.i,dairyPath:{points:[[-1.4,8.1],[-18.4,8.1],[-18.4,-20.5],[-3.25,-25.5],[-3.25,-32.88]]},releaseCowTask:a=>events.push('release cow task'),chickenCare:care('chicken'),cowPenCare:care('cow'),remainingCare,clockT:0,decodeAnimalPens,prepareAnimalPenRevision,preparePenYards,structuredClone,THREE,scene,createChickenYard,DEFAULT_CHICKEN_YARD_LAYOUT:CHICKEN_YARD_LAYOUT,createCowYard,cowYardLayout,createRemainingCareYards,remainingCareLayouts,NORTH_EXTENSION,createStationScheduler,createAnimalPenSceneRegistry,resolveAnimalPens,
   BLOCKS_EXTRA:[unrelatedBlock],fenceSegs:[unrelatedFence],CLEARS:new Map(),GRASS:{},animals,chickenSupplies:{feedMs:0,waterMs:0},chickenPreview:null,petBowl:{visible:true},
-  G:{S:{pens:{chicken:{}},pets:pets.map(kind=>({kind})),layout:{b:{},t:{},...(animalPens===undefined?{}:{animalPens})}},CHICKEN_DEFAULT_STYLE:{}}});
+  G:{DECOR:{bench:{size:1},fountain:{size:2}},S:{decor:{placed:[{id:'fountain',x:-3.6,z:2.4}]},pens:{chicken:{owned:true,list:[0,0]},cow:{owned:true,list:[0]},horse:{owned:true,list:[0]}},pets:pets.map(kind=>({kind})),layout:{b:{},t:{},...(animalPens===undefined?{}:{animalPens})}},CHICKEN_DEFAULT_STYLE:{}}});
  vm.runInContext(source,c);const live=c.live;
  // Runtime Apply follows syncCowYard, which always stores getCowCareStatus()'s object.
  if(synced)live.setCowStatus({cows:[],queue:[],job:null,tank:{normal:0,gold:0},feed:0,waterUntil:0,capacity:6,reason:'unavailable'});
@@ -175,4 +176,36 @@ test('the invisible legacy hen water pan block stays for the accepted chicken ya
    p.retire();
   }finally{next.dispose();f.dispose();}
  }
+});
+test('the live World snapshot carries full shapes, controller IDs and stable revisions from the running farm',()=>{
+ const pen=(kind,i,x,z,task)=>({kind,ref:kind==='dog'||kind==='cat'?{type:'pet',kind,j:0}:{type:'pen',kind,i},g:{position:{x,y:0,z}},...task});
+ const f=fixture({animals:[]}),{live}=f;
+ try{
+  assert.equal(typeof live.snapshot,'function','snapshotPenWorld must exist in index.html');
+  f.animals.push(pen('chicken',1,-10,1),pen('cow',0,0,-28),pen('horse',0,-14,-26),pen('dog',0,2,-11));
+  const w=live.snapshot();
+  assert.deepEqual(plain(w.owned),{chicken:2,cow:1,horse:1,sheep:0,dog:1,cat:1});
+  assert.deepEqual(plain(w.land),plain(penEditableLand()));
+  assert.deepEqual(plain(w.path.map(p=>[p.a,p.b,p.r])),plain([[[-1.4,8.1],[-18.4,8.1],.92],[[-18.4,8.1],[-18.4,-20.5],.92],[[-18.4,-20.5],[-3.25,-25.5],.92],[[-3.25,-25.5],[-3.25,-32.88],.92]]));
+  // Pen-owned collision, off-farm placeholders and the legacy hen pan never appear as foreign blockers.
+  const rects=w.blocked.filter(b=>b.type==='rectangle');
+  assert(rects.every(b=>b.x<1000&&!(b.x===-9.6&&b.z===-2.4)));
+  for(const b of live.BLOCKS)if(live.penSceneRegistry.ownsBlock(b))assert(!rects.some(r=>r.x===b[0]&&r.z===b[1]&&r.hw===b[2]&&r.hd===b[3]),'pen-owned block reported as foreign');
+  assert(rects.some(r=>r.x===-30&&r.z===-30),'unrelated farm block missing');
+  assert(w.blocked.some(b=>b.type==='capsule'&&b.a[0]===-40&&b.b[0]===-39),'unrelated farm fence missing');
+  assert(w.blocked.some(b=>b.type==='circle'&&b.x===-3.6&&b.z===2.4&&b.r===1.2),'placed decor missing');
+  assert(w.baselineBlocked.some(b=>b.x===-30&&b.z===-30),'startup block must be an immutable baseline blocker');
+  assert(!w.baselineBlocked.some(b=>b.type==='circle'),'movable decor is not a baseline blocker');
+  // Actor IDs match each controller; clearances match the accepted physical values.
+  assert.deepEqual(plain(w.actors.map(a=>[a.id,a.kind,a.clearance])),[['hen-1','chicken',.18],['cow-paid-0','cow',.42],['horse-0','horse',.8],['pet-dog','dog',.42]]);
+  assert.deepEqual(plain(w.installed),{chicken:true,cow:false,horse:false,sheep:false,dog:false,cat:false});
+  assert.equal(w.currentLayout,live.installed);assert.equal(w.groundY,farmGroundY);
+  // Revisions: identical state is stable; geometry or ownership changes move it; farm identity owns the epoch.
+  const again=live.snapshot();assert.equal(again.obstacleRevision,w.obstacleRevision);assert.equal(again.epoch,w.epoch);
+  f.animals[0].g.position.x+=1;assert.equal(live.snapshot().obstacleRevision,w.obstacleRevision,'ordinary movement is not an obstacle change');
+  const tree=live.BLOCKS.find(b=>b[0]===-30&&b[1]===-30);live.moveBlock(tree,-31,-30);const moved=live.snapshot().obstacleRevision;assert.notEqual(moved,w.obstacleRevision,'moving a farm object changes the obstacle revision');
+  f.c.G.S.decor.placed.push({id:'bench',x:5,z:5});assert.notEqual(live.snapshot().obstacleRevision,moved,'placing decor changes the obstacle revision');
+  f.c.G.S.pens.cow.list.push(0);assert.notEqual(live.snapshot().obstacleRevision,moved,'ownership changes the obstacle revision');
+  const other=structuredClone(f.c.G.S);f.c.G.S=other;assert.notEqual(live.snapshot().epoch,w.epoch,'a different farm object is a different epoch');
+ }finally{f.dispose();}
 });
