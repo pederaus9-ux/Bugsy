@@ -4,7 +4,7 @@ const station=(kind,slot,mode,dock,approach,facing,contact=null)=>({id:`${kind}-
 export function remainingCareLayouts({layouts=null}={}){
  const result={};
  for(const [kind,capacity,xs,polygon,z,depth,height]of [
-  ['horse',4,[-20.8,-16.6,-12.4,-8.2],[[-23.5,-31.8],[-4.8,-31.8],[-4.8,-26.5],[-23.5,-19.8]],-28.7,4.6,3.2],
+  ['horse',4,[-20.8,-16.6,-12.4,-8.2],[[-23.5,-31.8],[-4.8,-31.8],[-4.8,-19.8],[-23.5,-19.8]],-28.7,4.6,3.2],
   ['sheep',5,[6.3,9.9,13.5,17.1,20.7],[[4,-31.3],[23,-31.3],[23,-21],[4,-21]],-28.2,3.6,2.35]
  ]){
   const stations=[],turnouts=[];
@@ -16,7 +16,7 @@ export function remainingCareLayouts({layouts=null}={}){
    }
   }
   const [x0,z0]=polygon[0],[x1]=polygon[1],z1=polygon[3][1];
-  result[kind]={kind,capacity,polygon,footprint:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]],stations,turnouts,gates:[{a:kind==='horse'?[-20.5,-20.875]:[11,-21],b:kind==='horse'?[-16.5,-22.309]:[15,-21],width:kind==='horse'?4.25:4}],shelter:{x:(x0+x1)/2,z:z-.45,width:x1-x0,depth,height},bedSize:kind==='horse'?[3.65,4.2]:[2.9,3],bedSurface:.10,margin:kind==='horse'?.8:.55,speed:kind==='horse'?1.2:.75};
+  result[kind]={kind,capacity,polygon,footprint:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]],stations,turnouts,gates:[{a:kind==='horse'?[-20.575,-19.8]:[11,-21],b:kind==='horse'?[-16.325,-19.8]:[15,-21],width:kind==='horse'?4.25:4}],shelter:{x:(x0+x1)/2,z:z-.45,width:x1-x0,depth,height},bedSize:kind==='horse'?[3.65,4.2]:[2.9,3],bedSurface:.10,margin:kind==='horse'?.8:.55,speed:kind==='horse'?1.2:.75};
  }
  for(const l of Object.values(result)){l.accesses=l.gates.map(g=>{const dx=g.b[0]-g.a[0],dz=g.b[1]-g.a[1],len=Math.hypot(dx,dz),nx=-dz/len,nz=dx/len,points=[g.a,g.b,...[g.a,g.b].flatMap(p=>[-2.5,2.5].map(d=>[p[0]+nx*d,p[1]+nz*d]))];return[Math.min(...points.map(p=>p[0])),Math.max(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),Math.max(...points.map(p=>p[1]))];});}
  result.dog={kind:'dog',capacity:1,polygon:null,footprint:[[.8,-13.4],[3.6,-13.4],[3.6,-9.8],[.8,-9.8]],stations:[station('dog',0,'bed',[1.8,-10.9],[2.8,-9.2],0),station('dog',0,'feed',[1.5,-12.1],[1.5,-10.1],0,[1.5,.20,-13]),station('dog',0,'drink',[3,-12.1],[2.8,-10.1],0,[3,.18,-13])],turnouts:[[2.8,0,-9.2]],bedSize:[1.65,1.3],bedSurface:.10,margin:.42,speed:1.5};

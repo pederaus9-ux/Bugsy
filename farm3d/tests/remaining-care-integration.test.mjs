@@ -4,8 +4,8 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 test('remaining physical care is installed before ordinary Beast behavior and herd synchronization',()=>{assert.match(html,/createRemainingCareYards/);assert.match(html,/createRemainingCareController/);const update=html.slice(html.indexOf('  update(dt, t) {'));assert(update.indexOf('remainingCare.update')<update.indexOf('const ox = this.g.position.x'));assert.match(html,/syncRemainingCareYards\(\);/);assert.match(html,/remainingCare\.release\(a\)/);assert.match(html,/remainingCareConflicts/);});
 test('protected implementations and approved pen adapters retain exact reviewed bytes',()=>{
  const original=JSON.parse(fs.readFileSync(new URL('./remaining-care-protected.json',import.meta.url),'utf8')).files,adapters=JSON.parse(fs.readFileSync(new URL('./animal-pen-authorized-adapters.json',import.meta.url),'utf8'));
- // farm-land.js: owner-authorized land exception for amendment A1 (horse paddock room).
- const authorized=new Set(['cow-yard.js','chicken-yard.js','chicken-stations.js','game.js','farm-land.js']);
+ // farm-land.js / farm-path.js: owner-authorized land and path exceptions for amendments A1 and A2 (horse paddock).
+ const authorized=new Set(['cow-yard.js','chicken-yard.js','chicken-stations.js','game.js','farm-land.js','farm-path.js']);
  for(const f of Object.keys(adapters.files))assert(authorized.has(f),f+' is outside the owner-approved pen adapters');
  for(const f of ['game.js','auth.js','canon.js','farm-land.js','farm-path.js','cow3d.js','horse3d.js','horse-stance3d.js','horse-ik3d.js','sheep3d.js','dog3d.js','cat3d.js','quadruped3d.js','live3d.js','cow-care.js','cow-yard.js','chicken-care.js','chicken-yard.js','chicken-stations.js','animal-care-poses.js']){
   const entry=adapters.files[f];if(entry)assert.equal(entry.previousSha256,original[f],f+' lost its frozen predecessor digest');
