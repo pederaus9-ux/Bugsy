@@ -9,6 +9,10 @@ import {createAnimalPenSceneRegistry} from '../animal-pen-scene.js';import {reso
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 function slice(start,end,inclusive=true){const a=html.indexOf(start);assert(a>=0,'missing index marker '+start);const b=html.indexOf(end,a+start.length);assert(b>=0,'missing index marker '+end);return html.slice(a,inclusive?b+end.length:b)+'\n';}
 const fn=start=>slice(start,'\n}\n');
+// The single source line that follows a unique marker (which may span lines).
+const lineAfter=marker=>{const a=html.indexOf(marker);assert(a>=0,'missing index marker '+marker);const s=html.indexOf('\n',a+marker.length-1)+1;return html.slice(s,html.indexOf('\n',s))+'\n';};
+// Boot registers route obstacles for blocks added after startup right after the first full refresh.
+const lateRegistration=lineAfter('bootStep("putting your farm in place");\nGV.refresh("all");');
 // Values created inside the VM realm have their own Array prototype.
 const plain=v=>JSON.parse(JSON.stringify(v)),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
 const source=[
@@ -16,7 +20,7 @@ const source=[
  fn('function clearGrass('),fn('function moveClear('),
  slice('let chickenYard=createChickenYard();','fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);'),
  slice('const PENS = {','|| null;'),
- slice('const BLOCKS = [','let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),
+ slice('const BLOCKS = [','let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),lineAfter('let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;'),
  fn('function setCowGrass('),fn('// Called only by a prepared scene revision'),fn('function moveBlock('),
  'globalThis.live={get chickenYard(){return chickenYard},get cowYard(){return cowYard},get chickenLayout(){return CHICKEN_YARD_LAYOUT},get cowLayout(){return COW_YARD_LAYOUT},get installed(){return installedAnimalPens},get bindings(){return penSceneBindings},get cowActive(){return cowYardActive},get cowChecked(){return cowYardChecked},setCowStatus(v){cowStatus=v},PENS,remainingPens,PEN_LIST,penOf,BLOCKS,OBST,fenceSegs,CLEARS,cowSurfaces,cowBlocks,remainingBlocks,remainingSites,remainingYards,fenceRouteObstacles,legacyPetBowlBlock,penSceneRegistry};'
 ].join('\n');
@@ -89,4 +93,21 @@ test('a boot-time install before the first cow sync leaves cow status display to
  const f=fixture({synced:false}),{live}=f,layout=customLayout(),next=preparePenYards(layout);
  try{const p=live.penSceneRegistry.prepare(layout,next.yards,all);p.publish();assert.equal(live.cowYard,next.yards.cow);assert.equal(live.installed,layout);p.retire();}
  finally{next.dispose();f.dispose();}
+});
+function bootWithLaterBlocks(restore){
+ const f=fixture(),{live}=f,late=[[-10,17.5,6.6,8],[9,30,1.9,1.7],[3.3,11.4,1.5,.6]];live.BLOCKS.push(...late); // field area, a building spot, the board
+ const layout=customLayout(),next=preparePenYards(layout);let p=null;
+ if(restore){p=live.penSceneRegistry.prepare(layout,next.yards,all);p.publish();} // saved layout restored inside GV.refresh("all")
+ vm.runInContext(lateRegistration,f.c);
+ const rects=live.OBST.filter(o=>o.c===1&&o.s===0),count=b=>rects.filter(o=>o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]).length;
+ return {f,live,late,next,p,count};
+}
+for(const restore of [false,true])test((restore?'a saved layout restored at boot':'a default boot')+' keeps every later farm block and pen block solid exactly once',()=>{
+ const {f,live,late,next,p,count}=bootWithLaterBlocks(restore);
+ try{
+  for(const b of late)assert.equal(count(b),1,'later farm block '+JSON.stringify(b)+' must have exactly one route obstacle');
+  const penBlocks=restore?Object.values(live.bindings).flatMap(b=>b.blocks.filter(x=>x[0]<1000)):[...live.chickenLayout.obstacles];
+  for(const b of penBlocks)assert.equal(count(b),1,'pen block '+JSON.stringify(b)+' must have exactly one route obstacle');
+  p?.retire();
+ }finally{next.dispose();f.dispose();}
 });

@@ -1628,7 +1628,7 @@ const initialPenFences=[...CHICKEN_YARD_LAYOUT.fenceSegments,...Object.values(re
 const penSceneRegistry=createAnimalPenSceneRegistry({scene,blocks:BLOCKS,obstacles:OBST,fences:fenceSegs,
  initial:{yards:{chicken:chickenYard,cow:cowYard,...remainingYards},blocks:initialPenBlocks,fences:initialPenFences,obstacles:[...initialPenBlocks.map(b=>OBST[BLOCKS.indexOf(b)]),...initialPenFences.map(f=>fenceRouteObstacles.get(f))]},onPublish:installAnimalPenScene});
 let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;
-const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
+const OBST_BLOCKS = new Set(BLOCKS); // obstacles added later (buildings, fields, the board…) join the route planner at start-up
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
 const insideObst = (o, p, pad) => { const L = toLocal(o, p); return o.radius!==undefined ? Math.hypot(L.x,L.y)<o.radius+pad-1e-8 : Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
@@ -4224,7 +4224,7 @@ if (qs.has("demo")) {
 }
 bootStep("putting your farm in place");
 GV.refresh("all");
-for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});
+for (const b of BLOCKS) if (!OBST_BLOCKS.has(b) && !penSceneRegistry.ownsBlock(b)) { const [x, z, hw, hd] = b; OBST.push({x, z, hw, hd, c:1, s:0}); } // by identity: a restored pen layout reorders BLOCKS
 if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
