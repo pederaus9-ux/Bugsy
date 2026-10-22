@@ -112,6 +112,25 @@ Owner instruction (2026-10-22): Claude takes over as sole implementer ("You are 
 - The first focused run (`square-horse-first-run-area-floor-red.log`) failed `areaAndGateFloorsApplyToEachSpecies`. The approved rule is that a pen's area "stays at least the species baseline", and every other species' floor equals its baseline area. So the horse floor becomes 224.4 m² (was 161.755, the old slanted area); the amendment text was corrected and the test is unchanged. GREEN: focused 84/84 across 11 files (`square-horse-green.log`).
 - Real browser (local Chromium 141, diagnostic): `horse-square.browser.cjs` PASS (`browser-horse-square-local-chromium141.log`): the default farm boots with the square paddock and the L path; stones are on the new leg and none on the old diagonal; 4/4 horses stay inside for 30 simulated seconds; the default validates against the live snapshot; zero errors.
 
+## Slice M — care walkers stop deadlocking at bedtime (pre-existing defect exposed by A2)
+
+- After A2 the full core runner failed `remaining-care-beast` seed 4242 (`core-node-92-after-square-horse-RED-sheep-standoff.log`): two sheep swapped sides in front of their beds and never reached them. Horses were fine. Reproduced alone (`remaining-care-beast-sheep-standoff-reproduced-on-d5425ac.log`).
+- Not caused by A2. A 40-seed sweep of the same test on the pre-A2 commit 17f0048 fails 8/40, all at bedtime: horses or sheep stuck in front of their beds. On A2, 7/40 fail. The test world shares one seeded random stream, so the bigger horse paddock only moved which seeds hit the bug. The accepted suite's two seeds passed by luck, so on the live game horses or sheep can occasionally fail to reach bed.
+- Root causes, traced from the actual run (`standoff-trace` diagnostic):
+  1. **Mirror livelock.** Two walkers 1.12 m apart (clearance 1.1 m) replan at the same instants, each against the other's position as if it would stay still, and dance forever.
+  2. **Swapped destinations.** Two horses each stood on the other's destination (bed and drinking spot), so both plans were empty.
+  3. **Stranded pet.** The pet route search box was fixed at x −20…20, z −15…23 (the farm before the north land). A dog visiting the sheep at z ≈ −24 who then got hungry could never route home.
+- Fix (`remaining-care-controller.js`, unshipped `?v=3`):
+  - The movement step is extracted unchanged.
+  - New right-of-way rule: a blocked walker gives way to a higher-priority walker (fixed order by animal ID) that is beside it or standing on its destination. It steps to the nearest free spot clear of that walker's remaining route and destination, and waits there. It is released when that walker settles, leaves both its surroundings and its destination, or after 10 s (then 3 s calm).
+  - Pet search boxes also cover the pet's position and goal. Nothing changes when no walkers conflict or the pet is inside the old box.
+  - Every step still passes the same clearance check, so animals never overlap.
+- RED → GREEN:
+  - New controller tests: the head-on sheep swap at 30/60/120 Hz, with a per-frame no-overlap assertion (`care-give-way-red.log`, 0/3).
+  - The dog returning from the north field (`care-pet-north-field-red.log`).
+  - First fix run (`care-give-way-first-run-red-destination-and-pet.log`): the second bedtime then exposed causes 2 and 3.
+  - Final: controller + beast suites 28/28 (`care-give-way-green.log`), including seeds 4242 and 1 with unchanged deadlines.
+
 ## Open findings carried forward
 
 - RESOLVED (was SUSPICION): boot-time publication before the startup `BLOCKS.slice(OBST_BLOCKS)` registration. Reproduced with actual index slices in boot order (startup registry, later field/building/board blocks, saved-layout publish inside `GV.refresh("all")`, then the actual statement after it): the field-area block received 0 route obstacles (`boot-order-red.log`); default boot control passed. Fix: `OBST_BLOCKS` is now the identity set of startup blocks, and later registration skips startup and pen-registry-owned blocks; default boot registers the same blocks in the same order. 5/5 (`boot-order-green.log`); 23 index-reading suites 262/262 (`index-consumers-25-after-boot-order-green.log`; 23 files, 262 tests).
