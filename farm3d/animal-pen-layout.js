@@ -61,7 +61,7 @@ function moveStation(s,d){const r=clone(s);for(const k of ['dock','approach','co
 function cutFence(a,b,gaps){const len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(!len)return[];const v=[(b[0]-a[0])/len,(b[1]-a[1])/len],parts=[];let start=0;for(const g of [...gaps].sort((x,y)=>x.offset-y.offset)){if(g.offset>start)parts.push([start,g.offset]);start=Math.max(start,g.offset+g.width);}if(start<len)parts.push([start,len]);return parts.map(([l,r])=>[a[0]+v[0]*l,a[1]+v[1]*l,a[0]+v[0]*r,a[1]+v[1]*r]);}
 function resolveSite(kind,s){
  const t=PEN_TEMPLATES[kind],b=t.baseline,custom=!!s,record=s||defaultSiteRecord(kind),issues=[],components={};
- for(const [id,c]of Object.entries(t.components)){const origin=record.structures[id],delta=[origin[0]-c.origin[0],origin[1]-c.origin[1]];components[id]={origin:[...origin],delta,footprint:c.footprint.map(p=>p2(p,delta)),hitBounds:c.footprint.map(p=>p2(p,delta)),lightingAnchors:[]};}
+ for(const [id,c]of Object.entries(t.components)){const origin=record.structures[id],delta=[origin[0]-c.origin[0],origin[1]-c.origin[1]];components[id]={origin:[...origin],delta,footprint:c.footprint.map(p=>p2(p,delta)),hitBounds:c.footprint.map(p=>p2(p,delta)),volumes:(c.volumes||[]).map(b=>[b[0]+delta[0],b[1],b[2]+delta[1],b[3]+delta[0],b[4],b[5]+delta[1]]),lightingAnchors:[]};}
  const stations=b.stations.map(s=>moveStation(s,components[stationOwner(kind,s)].delta)),stationOwners=Object.fromEntries(stations.map(s=>[s.id,stationOwner(kind,s)]));
  const polygon=b.polygon?(custom?record.boundary.map(v=>[v.x,v.z]):clone(b.polygon)):null;
  const obstacles=b.obstacles.map((o,i)=>{const id=Object.keys(t.components).find(id=>t.components[id].obstacleIndices.includes(i));if(!id)throw Error('Unowned template obstacle '+kind+'/'+i);const d=components[id].delta;return[o[0]+d[0],o[1]+d[1],...o.slice(2)];});
@@ -70,7 +70,8 @@ function resolveSite(kind,s){
   for(const g of record.gates){const edge=g.edge?edges.find(e=>e.id[0]===g.edge[0]&&e.id[1]===g.edge[1]):runs.find(r=>r.id===g.run);if(!edge){issues.push(issue('GEOMETRY',kind,g.id,'Place the gate on an existing edge or fence.'));continue;}const a=edge.a,b=edge.b,len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len<1e-9||g.offset+g.width>len+1e-8){issues.push(issue('GEOMETRY',kind,g.id,'The gate must fit its fence.'));continue;}
    const d=[(b[0]-a[0])/len,(b[1]-a[1])/len],from=[a[0]+d[0]*g.offset,a[1]+d[1]*g.offset],to=[from[0]+d[0]*g.width,from[1]+d[1]*g.width],mid=[(from[0]+to[0])/2,(from[1]+to[1])/2],n=[-d[1],d[0]],reach=Math.max(1,t.margin*2+.2);let inside=[mid[0]+n[0]*reach,0,mid[1]+n[1]*reach],outside=[mid[0]-n[0]*reach,0,mid[1]-n[1]*reach];if(g.edge&&!pointInPolygon([inside[0],inside[2]],polygon))[inside,outside]=[outside,inside];gates.push({...clone(g),inside,outside,segment:[...from,...to]});
   }
-  if(custom){for(const e of edges)fenceSegments.push(...cutFence(e.a,e.b,record.gates.filter(g=>g.edge?.[0]===e.id[0]&&g.edge[1]===e.id[1]&&gates.some(a=>a.id===g.id))));for(const r of runs)fenceSegments.push(...cutFence(r.a,r.b,record.gates.filter(g=>g.run===r.id&&gates.some(a=>a.id===g.id))));}else fenceSegments.push(...clone(b.fenceSegments));
+  const original=defaultSiteRecord(kind),sameFence=custom&&JSON.stringify(record.boundary)===JSON.stringify(original.boundary)&&JSON.stringify(record.runs)===JSON.stringify(original.runs)&&JSON.stringify(record.gates)===JSON.stringify(original.gates);
+  if(custom&&!sameFence){for(const e of edges)fenceSegments.push(...cutFence(e.a,e.b,record.gates.filter(g=>g.edge?.[0]===e.id[0]&&g.edge[1]===e.id[1]&&gates.some(a=>a.id===g.id))));for(const r of runs)fenceSegments.push(...cutFence(r.a,r.b,record.gates.filter(g=>g.run===r.id&&gates.some(a=>a.id===g.id))));}else fenceSegments.push(...clone(b.fenceSegments));
  }
  const accesses=(b.accesses&&kind==='chicken'?b.accesses:[]).map(a=>{const r=clone(a),d=components.coop.delta;for(const k of ['rampStart','rampEnd','entry','outside'])r[k]=p3(r[k],d);return r;});
  const supports=stations.filter(s=>s.kind==='bed').map(s=>({id:s.id,component:stationOwners[s.id],dock:clone(s.dock),height:s.surface??b.bedSurface??0,size:kind==='chicken'?[.55,.55]:kind==='cow'?[3.3,3]:clone(b.bedSize)}));
@@ -82,3 +83,18 @@ function resolveSite(kind,s){
 }
 /** Derive rendering, contact, support and movement coordinates from one revision. */
 export function resolveAnimalPens(value){const decoded=decodeAnimalPens(value);if(decoded.status!=='ok')throw new TypeError(decoded.status==='readonly'?decoded.reason:decoded.issues[0].message);return freezePenData({revision:decoded.value?.revision??0,sites:Object.fromEntries(Object.keys(PEN_TEMPLATES).map(kind=>[kind,resolveSite(kind,decoded.value?.sites[kind])]))});}
+
+/** Adapter to existing public yard contracts. Rendering and care consume the same revision. */
+export function animalPenYardLayout(site){
+ const t=PEN_TEMPLATES[site.kind],b=clone(t.baseline),main=site.components[site.kind==='chicken'?'coop':site.kind==='cow'||site.polygon?'shelter':'nook'].delta;
+ Object.assign(b,{polygon:clone(site.polygon),footprint:clone(site.footprint),stations:clone(site.stations),obstacles:clone(site.obstacles),fenceSegments:clone(site.fenceSegments),custom:true,revision:site.revision});
+ if(b.bed){b.bed[0]+=main[0];b.bed[1]+=main[1];}
+ if(b.turnouts)b.turnouts=b.turnouts.map(p=>p3(p,main));
+ if(b.shelter){if(Array.isArray(b.shelter.x)){b.shelter.x=b.shelter.x.map(x=>x+main[0]);b.shelter.z=b.shelter.z.map(z=>z+main[1]);}else{b.shelter.x+=main[0];b.shelter.z+=main[1];}}
+ if(b.water){const d=site.components[site.kind==='cow'?'trough':'waterer'].delta;b.water[0]+=d[0];b.water[1]+=d[1];}
+ if(site.kind==='chicken')b.accesses=clone(site.accesses);
+ if(site.robot){b.robot=clone(site.robot);b.tank=clone(site.tank);}
+ b.gates=site.gates.map(g=>({id:g.id,a:g.segment.slice(0,2),b:g.segment.slice(2),width:g.width,inside:clone(g.inside),outside:clone(g.outside)}));
+ if(b.gates.length){const g=b.gates[0];b.gate=[Math.min(g.a[0],g.b[0]),Math.max(g.a[0],g.b[0])];b.accesses=site.kind==='chicken'?b.accesses:b.gates.map(g=>{const dx=g.b[0]-g.a[0],dz=g.b[1]-g.a[1],len=Math.hypot(dx,dz),normal=[-dz/len,dx/len],points=[g.a,g.b].flatMap(p=>[-2.5,2.5].map(n=>[p[0]+normal[0]*n,p[1]+normal[1]*n]));return[Math.min(...points.map(p=>p[0])),Math.max(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),Math.max(...points.map(p=>p[1]))];});if(site.kind==='cow')b.access=[b.gate[0],b.gate[1],Math.min(g.inside[2],g.outside[2])-1,Math.max(g.inside[2],g.outside[2])+1];}
+ return b;
+}

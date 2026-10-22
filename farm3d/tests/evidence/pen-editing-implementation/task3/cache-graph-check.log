@@ -1,0 +1,47 @@
+✔ nested authored module versions cannot evade the cache consistency check (1.339432ms)
+✔ every versioned script is imported with one version only (0.413194ms)
+✔ window.__gameVer matches the game.js version it imports (0.237639ms)
+✔ the offline shell caches the same versions the page imports (0.355547ms)
+✔ the cache name is versioned and namespaced away from the 2D game (0.235516ms)
+✔ chicken dependencies of both the page and game rules are cached offline (0.138248ms)
+✖ offline shell contains the complete local JavaScript boot graph (1.299753ms)
+✔ native scene-polish fixture imports the same scenery version as the page (0.326102ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.799382
+
+✖ failing tests:
+
+test at farm3d/tests/versions.test.mjs:64:1
+✖ offline shell contains the complete local JavaScript boot graph (1.299753ms)
+  AssertionError [ERR_ASSERTION]: offline startup modules missing from installed shell
+  + actual - expected
+  
+  + [
+  +   'animal-pen-geometry.js?v=1',
+  +   'animal-pen-layout.js?v=1',
+  +   'animal-pen-model.js?v=1',
+  +   'animal-pen-scenery.js?v=1',
+  +   'animal-pen-templates.js?v=1'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/versions.test.mjs:66:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'animal-pen-geometry.js?v=1', 'animal-pen-layout.js?v=1', 'animal-pen-model.js?v=1', 'animal-pen-scenery.js?v=1', 'animal-pen-templates.js?v=1' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

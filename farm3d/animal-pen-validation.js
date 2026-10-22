@@ -1,6 +1,6 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
 import {resolveAnimalPens,defaultSiteRecord} from './animal-pen-layout.js?v=1';
-import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion} from './animal-pen-geometry.js?v=1';
+import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
 const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
 const defaults=resolveAnimalPens(),xy=p=>[p[0],p[2]],distance=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]);
 const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -84,7 +84,7 @@ export function validateAnimalPens(layout,world){
  // No shared fences/overlapping pens. Preserve accepted within-site relationships,
  // including the cow support slab; independent moves cannot add new overlaps.
  for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){const a=active[i],b=active[j];if(a.polygon&&b.polygon&&shapeIntersectsPolygon({type:'polygon',points:a.polygon},b.polygon))add('OVERLAP',a.kind,null,'Keep animal pens separate.');for(const [id,c]of Object.entries(a.components))for(const d of Object.values(b.components))if(shapeIntersectsPolygon({type:'polygon',points:c.footprint},d.footprint))add('OVERLAP',a.kind,id,'Keep animal buildings separate.');}
- for(const s of active)for(const [id,c]of Object.entries(s.components))for(const [other,d]of Object.entries(s.components))if(id<other&&shapeIntersectsPolygon({type:'polygon',points:c.footprint},d.footprint)&&!(eq(c.delta,d.delta)&&shapeIntersectsPolygon({type:'polygon',points:defaults.sites[s.kind].components[id].footprint},defaults.sites[s.kind].components[other].footprint)))add('OVERLAP',s.kind,id,'These animal buildings overlap.');
+ for(const s of active)for(const [id,c]of Object.entries(s.components))for(const [other,d]of Object.entries(s.components))if(id<other&&volumesOverlap(c.volumes,d.volumes)&&!(eq(c.delta,d.delta)&&volumesOverlap(defaults.sites[s.kind].components[id].volumes,defaults.sites[s.kind].components[other].volumes)))add('OVERLAP',s.kind,id,'These animal buildings overlap.');
  for(const actor of world.actors){const site=layout.sites[actor.kind],plan=plans.get(actor.kind);if(!plan)continue;const pad=actor.clearance,c=actor.component&&site.components[actor.component],original=actor.position,old=c?(world.currentLayout?.sites[actor.kind]?.components[actor.component]?.origin??PEN_TEMPLATES[actor.kind].components[actor.component].origin):null,p=c?[original[0]+(c.origin[0]-old[0]),original[1],original[2]+(c.origin[1]-old[1])]:[...original],used=world.actors.filter(a=>placements[a.id]);p[1]=support(site,p,world);
   const separate=q=>used.every(a=>distance(q,placements[a.id])>=pad+a.clearance-EPS),away=q=>site.stations.every(s=>pointSegmentDistance(xy(q),xy(s.approach),xy(s.dock))>=pad+.1)&&site.gates.every(g=>pointSegmentDistance(xy(q),xy(g.inside),xy(g.outside))>=pad+.1);
   const occupiedCoop=actor.kind==='chicken'&&actor.component==='coop'&&actor.stationId&&site.stations.some(s=>s.id===actor.stationId)&&support(site,p,world)>EPS&&coopLeg(site,plan,p,p,pad,world);

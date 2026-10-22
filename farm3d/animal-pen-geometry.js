@@ -96,3 +96,5 @@ export function segmentInShapeUnion(a,b,shapes,pad=0){
  }
  const sorted=ts.filter(t=>t>=0&&t<=1).sort((x,y)=>x-y);for(let i=1;i<sorted.length;i++){const t=(sorted[i-1]+sorted[i])/2;if(!covered([a[0]+v[0]*t,a[1]+v[1]*t]))return false;}return true;
 }
+// Positive-volume overlap; sub-micrometre batching noise is support contact.
+export function volumesOverlap(a,b){return a.some(x=>b.some(y=>[0,1,2].every(i=>Math.min(x[i+3],y[i+3])-Math.max(x[i],y[i])>1e-7)));}

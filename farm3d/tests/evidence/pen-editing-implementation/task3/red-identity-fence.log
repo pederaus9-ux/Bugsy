@@ -1,0 +1,72 @@
+✖ identitySavedBoundaryPreservesFenceDirectionAndExactGap (8.231003ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132.14682
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-yards.test.mjs:12:1
+✖ identitySavedBoundaryPreservesFenceDirectionAndExactGap (8.231003ms)
+  AssertionError [ERR_ASSERTION]: chicken fence construction changed without a fence edit
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      [
+        -16.5,
+        -5.8,
+        -4.9,
+  ...
+      [
+  +     -4.9,
+  -     -16.5,
+        -5.8,
+  +     -4.9,
+  +     5.000000000000001
+  -     -16.5,
+  -     5
+      ],
+      [
+  +     -4.9,
+  -     -16.5,
+        5,
+  +     -5.3,
+  -     -6.8,
+        5
+      ],
+      [
+  +     -6.8,
+  -     -5.3,
+        5,
+  +     -16.5,
+  -     -4.9,
+        5
+      ],
+      [
+  +     -16.5,
+  -     -4.9,
+  -     -5.8,
+  -     -4.9,
+        5,
+  +     -16.5,
+  +     -5.800000000000001
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:12:234)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ [ -16.5, -5.8, -4.9, -5.8 ], [ -4.9, -5.8, -4.9, 5.000000000000001 ], [ -4.9, 5, -5.3, 5 ], [ -6.8, 5, -16.5, 5 ], [ -16.5, 5, -16.5, -5.800000000000001 ] ],
+    expected: [ [ -16.5, -5.8, -4.9, -5.8 ], [ -16.5, -5.8, -16.5, 5 ], [ -16.5, 5, -6.8, 5 ], [ -5.3, 5, -4.9, 5 ], [ -4.9, -5.8, -4.9, 5 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,47 @@
+✖ physicalVolumesAllowSupportContactButRejectPenetration (1.733397ms)
+✖ componentLayoutsCoverRealOwnedPrimitives (75.443ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 224.328419
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-geometry.test.mjs:12:1
+✖ physicalVolumesAllowSupportContactButRejectPenetration (1.733397ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-geometry.test.mjs:12:75)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-yards.test.mjs:13:1
+✖ componentLayoutsCoverRealOwnedPrimitives (75.443ms)
+  AssertionError [ERR_ASSERTION]: chicken/coop x envelope omits real geometry
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:13:460)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

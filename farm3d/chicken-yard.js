@@ -1,3 +1,5 @@
+import {animalPenYardLayout} from './animal-pen-layout.js?v=1';
+import {rememberPenPrimitive,markPenBatch,penComponentVolumes} from './animal-pen-model.js?v=1';
 import * as THREE from './lib/three.module.min.js';
 import {CHICKEN_CARE} from './chicken-care.js?v=2';
 import {mergeGeometries} from './lib/addons/utils/BufferGeometryUtils.js';
@@ -10,13 +12,14 @@ export const CHICKEN_YARD_LAYOUT=Object.freeze({
   obstacles:[[-11.4,-2.2,3.1,3.05],[-11.6,1.55,.82,1.63],[-7.1,3.65,.65,.65],[-6,2.6,.65,.65],[-7.6,6.3,1.15,.88],[-9.5,1.2,.82,1.3]],
   bed:[-7.85,1.5,1.5],shelter:{x:[-8.7,-8.3],z:[-3.4,-1]},water:[-6,2.6,1.1,1.1],
 });
-export function createChickenYard(){
+export function createChickenYard({layout:resolved=null}={}){
+  const physical=resolved?animalPenYardLayout(resolved):CHICKEN_YARD_LAYOUT;
   const group=new THREE.Group();group.name='chicken-yard';
   const materials={wood:mat(0x805735),walls:mat(PAINT.walls.wood),trim:mat(PAINT.trim.cream),roof:mat(PAINT.roof.red),metal:mat(0x59615b,.55),dark:mat(0x242d26),ivory:mat(0xe2dbbf),feed:mat(0xb99743),water:mat(0x497e88,.28),egg:mat(0xe9dcc0)};
   function mat(color,roughness=.88){return new THREE.MeshStandardMaterial({color,roughness,metalness:0});}
   function box(g,w,h,d,m,x=0,y=0,z=0,rx=0,rz=0){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,0,rz);g.add(o);return o;}
   function cylinder(g,r1,r2,h,m,x,y,z){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),materials[m]);o.position.set(x,y,z);g.add(o);return o;}
-  function merge(g){const buckets=new Map();g.updateMatrixWorld(true);for(const o of [...g.children])if(o.isMesh){const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);}return g;}
+  function merge(g){const buckets=new Map();g.updateMatrixWorld(true);for(const o of [...g.children])if(o.isMesh){const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);rememberPenPrimitive(g,geo);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=true;mesh.receiveShadow=true;g.add(markPenBatch(mesh));}return g;}
   const coop=new THREE.Group();coop.name='coop';
   box(coop,2.8,.17,3,'wood',0,.55,0);
   box(coop,2.8,.006,3,'feed',0,.638,0); // shared straw floor; no new texture or material
@@ -49,13 +52,14 @@ export function createChickenYard(){
   for(let row=0;row<5;row++)for(const dx of [-.7,.7,0])for(const A of accesses){const z=-3.85+row*.73,x=A.entry[0];stations.push({id:'hen-bed-'+stations.length,kind:'bed',lane:A.id,dock:[x+dx,floor,z],approach:A.outside,facing:0,surface:floor,path:[A.rampStart,A.rampEnd,A.entry,[x,floor,z],[x+dx,floor,z]]});}
   for(const [kind,x,z,angles,radius,contactRadius,height] of [['feed',-7.1,3.65,[-Math.PI/2,Math.PI,Math.PI/2],.9,.565,.244],['drink',-6,2.6,[Math.PI,0],.88,.49,.25]])for(const a of angles){const dx=Math.sin(a),dz=Math.cos(a);stations.push({id:'hen-'+kind+'-'+stations.length,kind,dock:[x+dx*radius,0,z+dz*radius],approach:[x+dx*(radius+.3),0,z+dz*(radius+.3)],facing:Math.atan2(dx,dz),contact:[x+dx*contactRadius,height,z+dz*contactRadius]});}
   function sampleStationSupport(id,x,z){
+    if(resolved){const d=resolved.components.coop.delta;x-=d[0];z-=d[1];}
     if(!stations.some(s=>s.id===id))return {height:0,normal:[0,1,0],inside:false};
     for(const A of accesses)if(Math.abs(x-A.entry[0])<=.6&&z>=A.rampEnd[2]-1e-8&&z<=A.rampStart[2]+1e-8)return {height:floor*Math.max(0,Math.min(1,(A.rampStart[2]-z)/(A.rampStart[2]-A.rampEnd[2]))),normal:[0,Math.cos(A.pitch),Math.sin(A.pitch)],inside:true};
     if(x>=-14.25&&x<=-8.55&&z>=-4.58&&z<=.35)return {height:floor,normal:[0,1,0],inside:true};
     return {height:0,normal:[0,1,0],inside:false};
   }
   const fence=new THREE.Group(),wireEdges=[],seen=new Set();
-  for(const[ax,az,bx,bz]of CHICKEN_YARD_LAYOUT.fenceSegments){const len=Math.hypot(bx-ax,bz-az),dx=(bx-ax)/len,dz=(bz-az)/len;const posts=Math.max(1,Math.ceil(len/1.9));for(let i=0;i<=posts;i++){const s=i/posts;box(fence,.13,1.5,.13,'wood',ax+(bx-ax)*s,.75,az+(bz-az)*s);box(fence,.18,.07,.18,'trim',ax+(bx-ax)*s,1.51,az+(bz-az)*s);}
+  for(const[ax,az,bx,bz]of physical.fenceSegments){const len=Math.hypot(bx-ax,bz-az),dx=(bx-ax)/len,dz=(bz-az)/len;const posts=Math.max(1,Math.ceil(len/1.9));for(let i=0;i<=posts;i++){const s=i/posts;box(fence,.13,1.5,.13,'wood',ax+(bx-ax)*s,.75,az+(bz-az)*s);box(fence,.18,.07,.18,'trim',ax+(bx-ax)*s,1.51,az+(bz-az)*s);}
     for(let col=0;col<Math.ceil(len/.3);col++)for(let row=0;row<4;row++){const cx=col*.3,cy=.22+row*.346+(col%2)*.173;for(let k=0;k<6;k++){const a=k*Math.PI/3,b=(k+1)*Math.PI/3;const x1=Math.max(0,Math.min(len,cx+.2*Math.cos(a))),x2=Math.max(0,Math.min(len,cx+.2*Math.cos(b))),y1=Math.min(1.43,cy+.2*Math.sin(a)),y2=Math.min(1.43,cy+.2*Math.sin(b));if(Math.hypot(x1-x2,y1-y2)<.001)continue;const p=new THREE.Vector3(ax+dx*x1,y1,az+dz*x1),q=new THREE.Vector3(ax+dx*x2,y2,az+dz*x2);const ends=[p.toArray().map(n=>n.toFixed(3)).join(','),q.toArray().map(n=>n.toFixed(3)).join(',')].sort().join('/');if(!seen.has(ends)){seen.add(ends);wireEdges.push([p,q]);}}}}
   merge(fence);group.add(fence);
   const wireGeo=new THREE.CylinderGeometry(.008,.008,1,3),wire=new THREE.InstancedMesh(wireGeo,materials.metal,wireEdges.length),dummy=new THREE.Object3D(),up=new THREE.Vector3(0,1,0);
@@ -66,6 +70,9 @@ export function createChickenYard(){
   const waterFill=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.03,12),materials.water);waterFill.position.set(0,.2,0);water.add(waterFill);
   const eggs=new THREE.Group();eggs.name='eggs';for(const x of [-.64,.64])box(eggs,.15,.12,1.15,'wood',x,.08,0);for(let i=0;i<6;i++)box(eggs,1.6,.09,.14,'trim',0,.18,-.5+i*.2);merge(eggs);eggs.position.set(-7.6,0,6.3);eggs.scale.set(1.35,1,1.35);group.add(eggs);
   const crates=[];for(let i=0;i<4;i++){const g=new THREE.Group(),x=i%2? .4:-.4,z=i<2?-.26:.26;box(g,.71,.07,.45,'wood',x,.28,z);for(const xx of [-.35,.35])box(g,.045,.25,.45,'wood',x+xx,.4,z);for(const zz of [-.21,.21])box(g,.71,.25,.045,'wood',x,.4,z+zz);for(let n=0;n<4;n++){const o=new THREE.Mesh(new THREE.SphereGeometry(.075,8,5),materials.egg);o.scale.y=1.3;o.position.set(x+(n%2?.15:-.15),.4,z+(n<2?-.10:.10));g.add(o);}merge(g);eggs.add(g);crates.push(g);}
+  const componentGroups={coop:[coop,...Object.values(roofDetails),ramp],feeder:[feed],waterer:[water],eggStand:[eggs]};
+  if(resolved)for(const [id,groups]of Object.entries(componentGroups)){const d=resolved.components[id].delta;for(const g of groups){g.position.x+=d[0];g.position.z+=d[1];}}
+  const publicStations=resolved?physical.stations:stations,publicAccesses=resolved?physical.accesses:accesses;
   const targets=[{kind:'coop',object:coop},{kind:'feed',object:feed},{kind:'water',object:water},{kind:'eggs',object:eggs}];
   for(const t of targets)t.object.userData.hit={type:'chickenStation',station:t.kind};
   // Pick the complete pallet footprint, including the gaps between its slats.
@@ -73,6 +80,6 @@ export function createChickenYard(){
   const palletBounds=new THREE.Box3(new THREE.Vector3(-.82,.015,-.59),new THREE.Vector3(.82,.55,.59)),pickInverse=new THREE.Matrix4(),pickRay=new THREE.Ray(),pickPoint=new THREE.Vector3();
   eggs.raycast=function(raycaster,hits){pickInverse.copy(this.matrixWorld).invert();pickRay.copy(raycaster.ray).applyMatrix4(pickInverse);if(!pickRay.intersectBox(palletBounds,pickPoint))return;pickPoint.applyMatrix4(this.matrixWorld);const distance=raycaster.ray.origin.distanceTo(pickPoint);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:pickPoint.clone(),object:this});};
   let disposed=false;
-  const api={group,targets,stations,access,accesses,sampleStationSupport,layout:CHICKEN_YARD_LAYOUT,applyAppearance(appearance={}){const a={...DEFAULT,...appearance};for(const k of ['walls','roof','trim']){if(!Object.hasOwn(PAINT[k],a[k]))a[k]=DEFAULT[k];materials[k].color.setHex(PAINT[k][a[k]]);}if(!['metal','shingles'].includes(a.roofType))a.roofType='metal';roofDetails.metal.visible=a.roofType==='metal';roofDetails.shingles.visible=a.roofType==='shingles';group.userData.appearance={...a};},setStatus(s){grain.visible=s.feedMs>0;waterFill.visible=s.waterMs>0;crates.forEach((g,i)=>g.visible=s.total>i*(CHICKEN_CARE.capacity/4));},dispose(){if(disposed)return;disposed=true;const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const g of geometries)g.dispose();for(const m of Object.values(materials))m.dispose();group.removeFromParent();}};
+  const api={group,targets,stations:publicStations,access:publicAccesses[0],accesses:publicAccesses,sampleStationSupport,layout:physical,components:componentGroups,componentVolumes:()=>penComponentVolumes(componentGroups),applyAppearance(appearance={}){const a={...DEFAULT,...appearance};for(const k of ['walls','roof','trim']){if(!Object.hasOwn(PAINT[k],a[k]))a[k]=DEFAULT[k];materials[k].color.setHex(PAINT[k][a[k]]);}if(!['metal','shingles'].includes(a.roofType))a.roofType='metal';roofDetails.metal.visible=a.roofType==='metal';roofDetails.shingles.visible=a.roofType==='shingles';group.userData.appearance={...a};},setStatus(s){grain.visible=s.feedMs>0;waterFill.visible=s.waterMs>0;crates.forEach((g,i)=>g.visible=s.total>i*(CHICKEN_CARE.capacity/4));},dispose(){if(disposed)return;disposed=true;const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const g of geometries)g.dispose();for(const m of Object.values(materials))m.dispose();group.removeFromParent();}};
   api.applyAppearance(DEFAULT);api.setStatus({total:0,feedMs:0,waterMs:0});return api;
 }

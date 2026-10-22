@@ -1,3 +1,6 @@
+import {createPenPlantClearing} from './animal-pen-scenery.js?v=1';
+import {animalPenYardLayout} from './animal-pen-layout.js?v=1';
+import {rememberPenPrimitive,markPenBatch,penComponentVolumes} from './animal-pen-model.js?v=1';
 import * as THREE from './lib/three.module.min.js';
 import {mergeGeometries} from './lib/addons/utils/BufferGeometryUtils.js';
 
@@ -30,9 +33,8 @@ export function cowYardConflicts({blocks=[],decor=[],layout=COW_YARD_LAYOUT}={})
 // The scenery meadow is separate from the game's grass-clearing ownership.
 // Keep its original instance bytes so visiting/removing this yard restores it.
 export function createCowYardPlantClearing(meshes,layout=COW_YARD_LAYOUT){
- const parts=meshes.filter(m=>m?.isInstancedMesh).map(mesh=>({mesh,original:mesh.instanceMatrix.array.slice()}));
- const p=layout.footprint,x0=p[0][0],x1=p[1][0],z0=p[0][1],z1=p[2][1];let active=false;
- return {setActive(value){value=!!value;if(value===active)return;active=value;for(const{mesh,original}of parts){const a=mesh.instanceMatrix.array;a.set(original);if(active)for(let i=0;i<mesh.count;i++){const o=i*16,x=original[o+12],z=original[o+14];if(x>=x0&&x<=x1&&z>=z0&&z<=z1)for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;}}};
+ const clearing=createPenPlantClearing(meshes,{cow:layout});
+ return{setActive:value=>clearing.setActive('cow',value),dispose:()=>clearing.dispose()};
 }
 
 // The installed northern courtyard has room to grow east without moving its
@@ -59,13 +61,14 @@ export function cowYardLayout(north=0){
  l.robot=Object.fromEntries(Object.entries(l.robot).map(([k,p])=>[k,p3(p)]));l.tank=p3(l.tank);
  l.stations=l.stations.map(s=>({...s,dock:p3(s.dock),approach:p3(s.approach)}));return l;
 }
-export function createCowYard({north=0}={}){
- const roomy=!!north,east=roomy?11.9:0,local=roomy?wideCowLayout():COW_YARD_LAYOUT,layout=cowYardLayout(north),group=new THREE.Group();group.name='cow-yard';group.position.z=-north;
+export function createCowYard({north=0,layout:resolved=null}={}){
+ if(resolved)north=25;
+ const roomy=!!north,east=roomy?11.9:0,local=roomy?wideCowLayout():COW_YARD_LAYOUT,layout=resolved?animalPenYardLayout(resolved):cowYardLayout(north),group=new THREE.Group();group.name='cow-yard';group.position.z=-north;
  const materials=Object.fromEntries(Object.entries({blue:0x7fabb7,cream:0xeae0c7,roof:0x506e7c,metal:0x9baaaa,dark:0x3a4949,straw:0xbfa257,feed:0xb58d43,water:0x507f89,concrete:0xaaa998,grass:0x748b49,milk:0xf2e9cf}).map(([k,color])=>[k,new THREE.MeshStandardMaterial({color,roughness:k==='metal'?.4:.85,metalness:k==='metal'?.4:0})]));
  const makeGroup=name=>{const g=new THREE.Group();g.name=name;group.add(g);return g;};
  function box(g,w,h,d,m,x,y,z,ry=0,rx=0){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,ry,0);g.add(o);return o;}
  function cylinder(g,r,h,m,x,y,z,rx=0,rz=0){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),materials[m]);o.position.set(x,y,z);o.rotation.set(rx,0,rz);g.add(o);return o;}
- function merge(g){const buckets=new Map();g.updateMatrix();for(const o of [...g.children])if(o.isMesh){o.updateMatrix();const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=mesh.receiveShadow=true;g.add(mesh);}}
+ function merge(g){const buckets=new Map();g.updateMatrix();for(const o of [...g.children])if(o.isMesh){o.updateMatrix();const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();geo.applyMatrix4(o.matrix);rememberPenPrimitive(g,geo);if(!buckets.has(o.material))buckets.set(o.material,[]);buckets.get(o.material).push(geo);o.geometry.dispose();g.remove(o);}for(const[m,parts]of buckets){const geometry=mergeGeometries(parts);for(const p of parts)p.dispose();const mesh=new THREE.Mesh(geometry,m);mesh.castShadow=mesh.receiveShadow=true;g.add(markPenBatch(mesh));}}
  const foundation=makeGroup('cow-foundation');box(foundation,roomy?23.8:11.9,.6,7.4,'concrete',roomy?-2.1:-8.05,-.22,-11.5);merge(foundation);
  const grazing=makeGroup('cow-grazing');box(grazing,roomy?11:3.8,.025,roomy?2.8:1.65,'grass',roomy?-.5:-8.2,FLOOR+.0125,-10.9);merge(grazing);
  const shelter=makeGroup('cow-shelter');
@@ -78,7 +81,7 @@ export function createCowYard({north=0}={}){
  const beds=makeGroup('cow-beds');for(const s of local.stations.filter(s=>s.kind==='bed')){const[x,,z]=s.dock,side=s.facing!==0;box(beds,side?3:roomy?3.3:2.15,.12,side?1.95:3,'straw',x,FLOOR+.06,z);}
  for(const x of roomy?[-13.8,-9.8,-5.8,-1.8,2.2,6.2]:[-13.05,-10.55,-8.05,-5.55]){box(beds,.055,.8,2.55,'metal',x,.55,-13.65);}
  if(!roomy)box(beds,2.7,.6,.055,'metal',-12.4,.5,-9.6);merge(beds);
- const fence=makeGroup('cow-fence');for(const[ax,az,bx,bz]of local.fenceSegments){const len=Math.hypot(bx-ax,bz-az),a=Math.atan2(bz-az,bx-ax),n=Math.ceil(len/2);for(let i=0;i<=n;i++)box(fence,.1,1.2,.1,'cream',ax+(bx-ax)*i/n,.68,az+(bz-az)*i/n);for(const y of [.55,1.05])box(fence,len,.075,.075,'metal',(ax+bx)/2,y,(az+bz)/2,-a);}merge(fence);
+ const fence=makeGroup('cow-fence');for(const[ax,az,bx,bz]of (resolved?resolved.fenceSegments.map(([x,z,bx,bz])=>[x,z+north,bx,bz+north]):local.fenceSegments)){const len=Math.hypot(bx-ax,bz-az),a=Math.atan2(bz-az,bx-ax),n=Math.ceil(len/2);for(let i=0;i<=n;i++)box(fence,.1,1.2,.1,'cream',ax+(bx-ax)*i/n,.68,az+(bz-az)*i/n);for(const y of [.55,1.05])box(fence,len,.075,.075,'metal',(ax+bx)/2,y,(az+bz)/2,-a);}merge(fence);
  const feed=makeGroup('cow-feed');box(feed,5.4,.12,.65,'dark',-8.2,.3,-8.05);for(const z of [-8.37,-7.73])box(feed,5.4,.4,.08,'metal',-8.2,.47,z);merge(feed);
  const grain=box(feed,5.15,.06,.48,'feed',-8.2,.53,-8.05);
  const water=makeGroup('cow-water');box(water,.7,.1,1.65,'dark',-4.8,.28,-10.4);for(const x of [-5.16,-4.44])box(water,.07,.48,1.7,'metal',x,.48,-10.4);for(const z of [-11.22,-9.58])box(water,.7,.48,.07,'metal',-4.8,.48,z);merge(water);
@@ -95,11 +98,13 @@ export function createCowYard({north=0}={}){
  // anchors for inspection, interaction and moving robot attachments.
  for(const g of [water,robot,pipe,tank])g.position.x=east;
  group.updateMatrixWorld(true);
- const fixed=makeGroup('cow-static');for(const g of [foundation,grazing,shelter,beds,fence,pipe,robot]){g.userData.bounds=new THREE.Box3().setFromObject(g);for(const o of [...g.children])if(o.isMesh)fixed.attach(o);}merge(fixed);
- const robotBounds=new THREE.Box3(new THREE.Vector3(-4.5+east,.08,-13.5-north),new THREE.Vector3(-1.6+east,2.7,-9.1-north)),point=new THREE.Vector3();
+ const componentGroups={shelter:[foundation,grazing,shelter,beds],feedBunk:[feed],trough:[water],robot:[robot,pipe,tank]};
+ if(resolved)for(const [id,groups]of Object.entries(componentGroups)){const d=resolved.components[id].delta;for(const g of groups){g.position.x+=d[0];g.position.z+=d[1];}}
+ if(!resolved){const fixed=makeGroup('cow-static');for(const g of [foundation,grazing,shelter,beds,fence,pipe,robot]){g.userData.bounds=new THREE.Box3().setFromObject(g);for(const o of [...g.children])if(o.isMesh)fixed.attach(o);}merge(fixed);}
+ const robotDelta=resolved?.components.robot.delta||[0,0],robotBounds=new THREE.Box3(new THREE.Vector3(-4.5+east+robotDelta[0],.08,-13.5-north+robotDelta[1]),new THREE.Vector3(-1.6+east+robotDelta[0],2.7,-9.1-north+robotDelta[1])),point=new THREE.Vector3();
  robot.raycast=function(raycaster,hits){if(!raycaster.ray.intersectBox(robotBounds,point))return;const distance=raycaster.ray.origin.distanceTo(point);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:point.clone(),object:robot});};
  const targets=[{kind:'feed',object:feed},{kind:'water',object:water},{kind:'robot',object:robot},{kind:'tank',object:tank}];for(const t of targets)t.object.userData.hit={type:'cowStation',station:t.kind};
  let disposed=false;
- const api={group,layout,stations:layout.stations,targets,robot:{arm,entryGate,exitGate},setStatus(c={}){grain.visible=c.feed>0||!!c.cows?.some(b=>b.feedCharged&&!b.ready);waterFill.visible=c.waterUntil>Date.now();const total=(c.tank?.normal??0)+(c.tank?.gold??0);gauge.scale.y=Math.max(.01,total/50*25);gauge.position.y=.97+(gauge.scale.y*.01)/2;entryGate.rotation.y=c.job?.stage==='milking'?0:-Math.PI/2;exitGate.rotation.y=c.job?.stage==='milking'?0:Math.PI/2;},setRobotPose(progress){const w=Number.isFinite(progress)?Math.max(0,Math.min(1,progress)):0;const attach=Math.min(1,w*8,(1-w)*8);arm.position.x=-1.2-attach*1.1;arm.position.y=.25+attach*.1;},dispose(){if(disposed)return;disposed=true;const geo=new Set();group.traverse(o=>{if(o.geometry)geo.add(o.geometry);});for(const g of geo)g.dispose();for(const m of Object.values(materials))m.dispose();group.removeFromParent();}};
+ const api={group,layout,components:componentGroups,componentVolumes:()=>penComponentVolumes(componentGroups),stations:layout.stations,targets,robot:{arm,entryGate,exitGate},setStatus(c={}){grain.visible=c.feed>0||!!c.cows?.some(b=>b.feedCharged&&!b.ready);waterFill.visible=c.waterUntil>Date.now();const total=(c.tank?.normal??0)+(c.tank?.gold??0);gauge.scale.y=Math.max(.01,total/50*25);gauge.position.y=.97+(gauge.scale.y*.01)/2;entryGate.rotation.y=c.job?.stage==='milking'?0:-Math.PI/2;exitGate.rotation.y=c.job?.stage==='milking'?0:Math.PI/2;},setRobotPose(progress){const w=Number.isFinite(progress)?Math.max(0,Math.min(1,progress)):0;const attach=Math.min(1,w*8,(1-w)*8);arm.position.x=-1.2-attach*1.1;arm.position.y=.25+attach*.1;},dispose(){if(disposed)return;disposed=true;const geo=new Set();group.traverse(o=>{if(o.geometry)geo.add(o.geometry);});for(const g of geo)g.dispose();for(const m of Object.values(materials))m.dispose();group.removeFromParent();}};
  api.setStatus();api.setRobotPose(0);return api;
 }
