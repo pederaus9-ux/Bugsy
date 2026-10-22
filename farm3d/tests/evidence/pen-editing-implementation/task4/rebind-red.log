@@ -1,0 +1,68 @@
+✖ resolved sites carry their immutable parent revision (8.318003ms)
+✖ remaining care preparation retains reservations and progress and moves an occupied unit exactly once (80.586321ms)
+✖ preparing two species together cannot overwrite the other species published layout (6.180725ms)
+✖ discarded preparation and missing placements cannot mutate live care (1.827601ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 248.859493
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-rebind.test.mjs:14:1
+✖ resolved sites carry their immutable parent revision (8.318003ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 4
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-rebind.test.mjs:14:103)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 4,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-rebind.test.mjs:15:1
+✖ remaining care preparation retains reservations and progress and moves an occupied unit exactly once (80.586321ms)
+  TypeError: f.care.snapshotLayout is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-rebind.test.mjs:16:270)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at farm3d/tests/animal-pen-rebind.test.mjs:23:1
+✖ preparing two species together cannot overwrite the other species published layout (6.180725ms)
+  TypeError: f.care.prepareLayoutRebind is not a function
+      at file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-rebind.test.mjs:25:40
+      at Array.map (<anonymous>)
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-rebind.test.mjs:25:26)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d/tests/animal-pen-rebind.test.mjs:30:1
+✖ discarded preparation and missing placements cannot mutate live care (1.827601ms)
+  TypeError: f.care.snapshotLayout is not a function
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-rebind.test.mjs:31:94)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

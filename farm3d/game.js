@@ -6,6 +6,7 @@
    can show rewards over things, move the camera and place decorations.
    ============================================================ */
 
+import {decodeAnimalPens} from './animal-pen-layout.js?v=1';
 import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
 import {quoteMarketGoods,MARKET_WINDOW_MS} from './market-sales.js?v=1';
 import {ensureCowCare,validateCowCare,settleCowCare,stockCowFeed,refillCowWater,requestCowMilking,dockCowMilking,finishCowRobotExit,takeCowMilk,acknowledgeCowReward,COW_CARE} from './cow-care.js?v=1';
@@ -233,10 +234,10 @@ function fresh() {
 // "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 // Writer2 protects paid utility lamps; writer3 protects robot/cow-care state.
 // Ordinary farms stay v1; a cow station action activates the new care envelope.
-export const MIGRATIONS = {1:s=>s,2:s=>s};
+export const MIGRATIONS = {1:s=>s,2:s=>s,3:s=>s};
 // (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
 export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
@@ -344,31 +345,67 @@ export function leaveVisit() {
   if (helpOwed) { const n = helpOwed; helpOwed = 0; helpedFriend(n); toast("💧 Thanks for helping! +" + 2 * n + " 🪙"); }
 }
 export const isVisiting = () => !!homeS;
-let saveWarned = false;
+let saveWarned = false, penPublicationFailed = false;
 // an important message: shown once the loading screen is gone, and long enough to read
 function notice(msg) { const show = () => (document.getElementById("loading") ? setTimeout(show, 500) : toast(msg, 12000)); show(); }
 // true when the farm is safely on the phone
 export function save() {
   if (SANDBOX) return true;
-  if (restoring || window.__saHold || homeS) return false; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (penPublicationFailed || restoring || window.__saHold || homeS) return false; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
   if (newerSave) { // an older copy of the game (still cached) mustn't write a newer farm back in an older shape
     if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
     return false;
   }
   if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now())){notice('Your saved cow care needs recovery or a newer game. This copy will not overwrite it.');return false;}
-  settleChickens();
-  settleCows(true);
-  if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
-  if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
-  if (!document.hidden) S.lastSeen = now();
+  if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok'){notice('This animal layout needs recovery or a newer game. This copy will not overwrite it.');return false;}
+  prepareOrdinarySave();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
-  catch (e) { // usually the phone's storage is full: say so once, keep trying on later saves
+  catch (e) {
     if (!saveWarned) { saveWarned = true; notice("⚠️ Your farm isn't saving: this phone's storage is full. Free up some space, or make a backup in ⚙️ Settings."); }
     return false;
   }
   saveWarned = false;
-  window.dispatchEvent(new Event("sa3d:saved")); // accounts back the farm up to the cloud
+  window.dispatchEvent(new Event("sa3d:saved"));
   return true;
+}
+function prepareOrdinarySave(){
+  settleChickens();
+  settleCows(true);
+  if(S.layout?.animalPens!==undefined)S.v=Math.max(S.v||1,4);
+  if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
+  if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
+  if (!document.hidden) S.lastSeen = now();
+}
+// One synchronous layout transaction. Paid state settles by the same path as
+// ordinary saving; no actor/scheduler state is serialized into the farm.
+export function commitAnimalPenLayout({expectedFarm,expectedRevision,animalPens,canCommit,prepare,onFatal}){
+ const result=code=>({ok:code==='OK',code});
+ if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
+ if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
+ if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
+ if(S!==expectedFarm||(S.layout?.animalPens?.revision??0)!==expectedRevision)return result('STALE');
+ const decoded=decodeAnimalPens(structuredClone(animalPens));
+ if(decoded.status!=='ok'||!decoded.value||!Number.isSafeInteger(expectedRevision+1)||decoded.value.revision!==expectedRevision+1)return result('INVALID');
+ const current=()=>S===expectedFarm&&(S.layout?.animalPens?.revision??0)===expectedRevision&&!restoring&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
+ try{if(!current())return result('STALE');}catch{return result('STALE');}
+ const oldVersion=S.v;prepareOrdinarySave();
+ const candidate=structuredClone(S);candidate.layout={...candidate.layout,animalPens:decoded.value};candidate.v=Math.max(candidate.v||1,4);
+ // Writer promotion belongs to successful persistence only.
+ S.v=oldVersion;
+ let prepared;
+ try{prepared=prepare(candidate);if(!prepared||typeof prepared.publish!=='function'||typeof prepared.dispose!=='function')throw new Error('Invalid prepared animal revision');}
+ catch{return result('PREPARE');}
+ try{if(!current()){prepared.dispose();return result('STALE');}}catch{prepared.dispose();return result('STALE');}
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify(candidate));}catch{prepared.dispose();return result('STORAGE');}
+ try{
+  S.layout=candidate.layout;S.v=candidate.v;
+  prepared.publish();saveWarned=false;window.dispatchEvent(new Event('sa3d:saved'));
+  return result('OK');
+ }catch(error){
+  // Disk now owns the complete new revision. Never overwrite it with old scene
+  // data or send an old cloud event. The scene caller performs controlled reload.
+  penPublicationFailed=true;try{onFatal(error);}catch{}return result('RECOVERY');
+ }
 }
 
 // ---------- inventory ----------

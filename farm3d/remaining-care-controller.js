@@ -1,13 +1,15 @@
+import {pointInPolygon,segmentInPolygon} from './animal-pen-geometry.js?v=1';
 import * as T from './lib/three.module.min.js';
+import {animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {createStationScheduler} from './animal-stations.js?v=1';
-import {careSegmentClear} from './remaining-care-navigation.js?v=1';
+import {careSegmentClear} from './remaining-care-navigation.js?v=2';
 import {createQuadrupedCarePose} from './quadruped-care-poses.js?v=1';
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]),angle=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 // Physical care is ephemeral. No save, supplies, production, reward or wall-clock API.
 export function createRemainingCareController({layouts,neighbours,active,obstacles,updateRig,segments=()=>[],clearPoint=()=>true,forbiddenPolygons=()=>[],groundY=()=>0}){
  const scheduler=createStationScheduler(Object.values(layouts).flatMap(l=>l.stations)),tasks=new Map();let wakeUntil=-Infinity,now=0,bedPriority=false;
  const slot=a=>a.ref.type==='pet'?0:a.ref.i,id=a=>a.ref.type==='pet'?'pet-'+a.kind:a.kind+'-'+a.ref.i;
- function inside(l,x,z,pad){return !l.polygon||l.polygon.every(([ax,az],i)=>{const[bx,bz]=l.polygon[(i+1)%l.polygon.length];return ((bx-ax)*(z-az)-(bz-az)*(x-ax))/Math.hypot(bx-ax,bz-az)>=pad-1e-8;});}
+ function inside(l,x,z,pad){return !l.polygon||pointInPolygon([x,z],l.polygon,pad);}
  function free(a,x,z,escape=false){const l=layouts[a.kind],ox=a.g.position.x,oz=a.g.position.z,pad=l.margin;
   if(!inside(l,x,z,pad)||!clearPoint(a,x,z))return false;
   for(const [ax,az,bx,bz]of segments()){const dx=bx-ax,dz=bz-az,dist=(px,pz)=>{const u=Math.max(0,Math.min(1,((px-ax)*dx+(pz-az)*dz)/(dx*dx+dz*dz||1)));return Math.hypot(px-ax-dx*u,pz-az-dz*u);};if(dist(x,z)<pad+.05&&!(escape&&dist(x,z)>dist(ox,oz)+1e-9))return false;}
@@ -16,6 +18,7 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   return true;
  }
  function line(a,from,to,escape=false){const l=layouts[a.kind],circles=neighbours().filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:l.margin+(layouts[b.kind]?.margin??Math.min(b.S?.r??.3,.8))}));
+  if(l.polygon&&!segmentInPolygon([from[0],from[2]],[to[0],to[2]],l.polygon,l.margin))return false;
   if(!careSegmentClear(from,to,{pad:l.margin,rectangles:obstacles(a),segments:segments(),circles,polygons:forbiddenPolygons(a),escape}))return false;
   const d=distance(from,to),n=Math.max(1,Math.ceil(d/.08));for(let i=1;i<=n;i++){const x=from[0]+(to[0]-from[0])*i/n,z=from[2]+(to[2]-from[2])*i/n;if(!inside(l,x,z,l.margin)||!clearPoint(a,x,z))return false;}return true;
  }
@@ -79,5 +82,30 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   return true;
  }
  function update(a,dt,t,env){if(!layouts[a.kind]||!active(a.kind)){release(a);return false;}if(!(dt>0)||!Number.isFinite(dt))return !!a.remainingTask;let consumed=false;for(let left=dt;left>1e-9;){const step=Math.min(1/30,left);consumed=tick(a,step,t-left+step,env)||consumed;left-=step;}return consumed;}
- return {request,release,update,scheduler,tasks,plan,free};
+ function snapshotLayout(){
+  return {tokens:scheduler.snapshot(),wakeUntil,now,bedPriority,revisions:Object.fromEntries(Object.entries(layouts).map(([kind,l])=>[kind,l.revision??0])),tasks:[...tasks].map(([animalId,t])=>({animalId,stationId:t.station.id,kind:t.kind,stage:t.stage,held:t.held,weight:t.weight,blocked:t.blocked,nap:t.nap}))};
+ }
+ function prepareLayoutRebind({site,now:resumeAt,placements}){
+  if(!layouts[site.kind]||!Number.isFinite(resumeAt))throw new Error('Invalid care layout revision');
+  const layout=animalPenYardLayout(site),byId=new Map(layout.stations.map(s=>[s.id,s])),updates=[];
+  for(const a of neighbours().filter(a=>a.kind===site.kind&&!a.gone)){
+   const position=placements[id(a)],task=a.remainingTask,station=task?byId.get(task.station.id):null;
+   if(!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite))throw new Error('Missing validated actor placement '+id(a));
+   if(task&&!station)throw new Error('Missing reserved care station');
+   updates.push({a,task,station,position:[...position]});
+  }
+  let state='prepared';
+  return {revision:site.revision,publish(){
+   if(state==='published')return;if(state!=='prepared')throw new Error('Care revision '+state);
+   if(updates.some(u=>u.a.remainingTask!==u.task))throw new Error('Stale care revision');
+   // Merge just this species: sibling preparations may already have published.
+   layouts={...layouts,[site.kind]:layout};now=resumeAt;
+   for(const {a,task,station,position}of updates){
+    a.g.position.fromArray(position);a.path=null;a.target=null;a.vel.set(0,0);
+    if(task){task.station=station;task.path=null;task.blocked=0;task.nextPlan=resumeAt;}
+   }
+   state='published';
+  },dispose(){if(state==='prepared')state='disposed';}};
+ }
+ return {request,release,update,scheduler,tasks,plan,free,snapshotLayout,prepareLayoutRebind};
 }

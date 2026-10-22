@@ -6,6 +6,6 @@ const raw=x=>x.storage.get('sunny-acres-3d-v1');
 test('exact actual game29 predecessor refuses cow writer3; current restores tank, paid timer, animals and lamp exactly',()=>{
  const x=load(current);x.G.S.pens.cow={owned:true,list:[Date.now()+180000],meta:[{name:'Saved cow',love:60,loveAt:Date.now()}]};x.G.S.decor.inv.utilitylamp=1;x.G.S.coins=750;x.G.settleCows(true,true);x.G.save();x.G.S.pens.cow.care.tank={normal:11,gold:2};x.G.save();const saved=raw(x);assert.equal(JSON.parse(saved).v,3);const old=load(previous,saved);old.G.S.coins+=100;assert.equal(old.G.save(),false);assert.equal(raw(old),saved);assert.deepEqual(old.events,[]);const reopened=load(current,saved);assert.equal(JSON.stringify(reopened.G.S.pens.cow),JSON.stringify(JSON.parse(saved).pens.cow));assert.equal(reopened.G.S.coins,750);assert.equal(reopened.G.S.decor.inv.utilitylamp,1);assert.equal(reopened.G.save(),true);
 });
-test('default migration supports3 while the unchanged explicit2 migration remains shape preserving',()=>{
- const x=load(current),s=JSON.parse(JSON.stringify(x.G.S));assert.equal(x.G.SAVE_VERSION,3);assert.equal(x.G.migrate(structuredClone(s)).v,3);assert.equal(x.G.migrate(structuredClone(s),2).v,2);assert.equal(x.G.upgrade(structuredClone(s)).v,1);
+test('default migration supports4 while the unchanged explicit2 migration remains shape preserving',()=>{
+ const x=load(current),s=JSON.parse(JSON.stringify(x.G.S));assert.equal(x.G.SAVE_VERSION,4);assert.equal(x.G.migrate(structuredClone(s)).v,4);assert.equal(x.G.migrate(structuredClone(s),2).v,2);assert.equal(x.G.upgrade(structuredClone(s)).v,1);
 });

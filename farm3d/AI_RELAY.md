@@ -989,3 +989,8 @@ Task2 stays in progress for exact rendered assembly footprint/standing-skin/turn
 ### Pen editor Task3 factory checkpoint
 
 Relocatable complete care assemblies, actual primitive envelopes and composable plant clearing implemented. Frozen default mesh fingerprints unchanged;76focused checks and all72existing Node test filesPASS. Local Chromium launch blocked by socket EPERM before page creation; no screenshot/visual/device pass. See tests/evidence/pen-editing-implementation/task3/checkpoint.md. Task2 physical qualification remains open; Task4 care/routing integration next. Owner renewed conditional merge authority, but required actual preview/visual acceptance and feature validation remain pending. No merge/deployment.
+
+
+### Pen editor continued implementation checkpoint
+
+Task3 is backed up remotely at23916e3, identical tree to local50d30d0. Partial Task4 care rebinds, concave routing, distinct waiting positions and atomic publication; Task5 writer4 transaction; Task6 pure draft commands are implemented and locally tested. See task4–6/progress.md for exact suites and retained failures. Existing chicken34 and cow scene19PASS; validator21PASS; save/care50PASS; draft8PASS. These are partial-module checks, not full feature acceptance. Full live registries, gate passage, cow slab support transitions, native controls, all46 edited cycles and actual hosted renders remain unresolved. No merge/deployment or visual approval. Continue authorized work without another plan-approval prompt.

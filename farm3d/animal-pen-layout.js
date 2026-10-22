@@ -59,7 +59,7 @@ const p2=(p,d)=>[p[0]+d[0],p[1]+d[1]],p3=(p,d)=>[p[0]+d[0],p[1],p[2]+d[1]];
 function stationOwner(kind,s){if(kind==='chicken')return s.kind==='bed'?'coop':s.kind==='feed'?'feeder':'waterer';if(kind==='cow')return s.kind==='bed'?'shelter':s.kind==='feed'?'feedBunk':s.kind==='drink'?'trough':'robot';return kind==='horse'||kind==='sheep'?'shelter':'nook';}
 function moveStation(s,d){const r=clone(s);for(const k of ['dock','approach','contact'])if(r[k])r[k]=p3(r[k],d);if(r.path)r.path=r.path.map(p=>p3(p,d));return r;}
 function cutFence(a,b,gaps){const len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(!len)return[];const v=[(b[0]-a[0])/len,(b[1]-a[1])/len],parts=[];let start=0;for(const g of [...gaps].sort((x,y)=>x.offset-y.offset)){if(g.offset>start)parts.push([start,g.offset]);start=Math.max(start,g.offset+g.width);}if(start<len)parts.push([start,len]);return parts.map(([l,r])=>[a[0]+v[0]*l,a[1]+v[1]*l,a[0]+v[0]*r,a[1]+v[1]*r]);}
-function resolveSite(kind,s){
+function resolveSite(kind,s,revision){
  const t=PEN_TEMPLATES[kind],b=t.baseline,custom=!!s,record=s||defaultSiteRecord(kind),issues=[],components={};
  for(const [id,c]of Object.entries(t.components)){const origin=record.structures[id],delta=[origin[0]-c.origin[0],origin[1]-c.origin[1]];components[id]={origin:[...origin],delta,footprint:c.footprint.map(p=>p2(p,delta)),hitBounds:c.footprint.map(p=>p2(p,delta)),volumes:(c.volumes||[]).map(b=>[b[0]+delta[0],b[1],b[2]+delta[1],b[3]+delta[0],b[4],b[5]+delta[1]]),lightingAnchors:[]};}
  const stations=b.stations.map(s=>moveStation(s,components[stationOwner(kind,s)].delta)),stationOwners=Object.fromEntries(stations.map(s=>[s.id,stationOwner(kind,s)]));
@@ -77,12 +77,12 @@ function resolveSite(kind,s){
  const supports=stations.filter(s=>s.kind==='bed').map(s=>({id:s.id,component:stationOwners[s.id],dock:clone(s.dock),height:s.surface??b.bedSurface??0,size:kind==='chicken'?[.55,.55]:kind==='cow'?[3.3,3]:clone(b.bedSize)}));
  const approaches=stations.map(s=>({id:s.id,point:clone(s.approach)})),waiting=(b.turnouts||b.stations.filter(s=>s.kind==='bed').map(s=>s.approach)).map(p=>p3(p,components[kind==='chicken'?'coop':kind==='cow'?'shelter':polygon?'shelter':'nook'].delta));
  const points=[...(polygon||[]),...Object.values(components).flatMap(c=>c.footprint)],xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),footprint=[[Math.min(...xs),Math.min(...zs)],[Math.max(...xs),Math.min(...zs)],[Math.max(...xs),Math.max(...zs)],[Math.min(...xs),Math.max(...zs)]];
- const result={kind,template:t.id,custom,polygon,boundary:clone(record.boundary??null),runs:clone(record.runs??[]),gateRecords:clone(record.gates??[]),components,stations,stationOwners,obstacles,fenceSegments,gates,supports,approaches,waiting,footprint,accesses,issues};
+ const result={kind,revision,template:t.id,custom,polygon,boundary:clone(record.boundary??null),runs:clone(record.runs??[]),gateRecords:clone(record.gates??[]),components,stations,stationOwners,obstacles,fenceSegments,gates,supports,approaches,waiting,footprint,accesses,issues};
  if(b.robot){result.robot=Object.fromEntries(Object.entries(b.robot).map(([k,p])=>[k,p3(p,components.robot.delta)]));result.tank=p3(b.tank,components.robot.delta);}
  return result;
 }
 /** Derive rendering, contact, support and movement coordinates from one revision. */
-export function resolveAnimalPens(value){const decoded=decodeAnimalPens(value);if(decoded.status!=='ok')throw new TypeError(decoded.status==='readonly'?decoded.reason:decoded.issues[0].message);return freezePenData({revision:decoded.value?.revision??0,sites:Object.fromEntries(Object.keys(PEN_TEMPLATES).map(kind=>[kind,resolveSite(kind,decoded.value?.sites[kind])]))});}
+export function resolveAnimalPens(value){const decoded=decodeAnimalPens(value);if(decoded.status!=='ok')throw new TypeError(decoded.status==='readonly'?decoded.reason:decoded.issues[0].message);return freezePenData({revision:decoded.value?.revision??0,sites:Object.fromEntries(Object.keys(PEN_TEMPLATES).map(kind=>[kind,resolveSite(kind,decoded.value?.sites[kind],decoded.value?.revision??0)]))});}
 
 /** Adapter to existing public yard contracts. Rendering and care consume the same revision. */
 export function animalPenYardLayout(site){

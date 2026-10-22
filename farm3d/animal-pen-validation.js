@@ -57,7 +57,7 @@ function coopExit(site,plan,actor,from,world){
 }
 /** Complete deterministic layout preflight. Never spends, saves or mutates live actors. */
 export function validateAnimalPens(layout,world){
- const issues=[],placements={},routes=[],diagnostics={searches:0,visited:0},add=(code,kind,target,message)=>issues.push({code,kind,target,message}),active=Object.values(layout.sites).filter(s=>world.owned[s.kind]>0&&(s.custom||world.installed?.[s.kind]!==false)),plans=new Map();
+ const issues=[],placements={},waiting={},routes=[],diagnostics={searches:0,visited:0},add=(code,kind,target,message)=>issues.push({code,kind,target,message}),active=Object.values(layout.sites).filter(s=>world.owned[s.kind]>0&&(s.custom||world.installed?.[s.kind]!==false)),plans=new Map();
  for(const a of world.actors)if(!active.some(s=>s.kind===a.kind))placements[a.id]=[...a.position];
  for(const site of active){const kind=site.kind,t=PEN_TEMPLATES[kind],base=defaults.sites[kind];issues.push(...site.issues);
   if(site.polygon){if(!simplePolygon(site.polygon)||polygonArea(site.polygon)+EPS<t.minimumArea)add('GEOMETRY',kind,null,'Keep a simple enclosure with its minimum walking area.');
@@ -92,6 +92,30 @@ export function validateAnimalPens(layout,world){
   if(!point){const bounds=site.polygon||site.footprint,x0=Math.min(...bounds.map(p=>p[0])),x1=Math.max(...bounds.map(p=>p[0])),z0=Math.min(...bounds.map(p=>p[1])),z1=Math.max(...bounds.map(p=>p[1])),candidates=[];for(let x=x0+pad;x<=x1-pad;x+=GRID)for(let z=z0+pad;z<=z1-pad;z+=GRID){const q=[x,support(site,[x,0,z],world),z];if(separate(q)&&away(q)&&plan.valid(q,pad))candidates.push(q);}candidates.sort((a,b)=>distance(a,p)-distance(b,p)||a[0]-b[0]||a[2]-b[2]);point=candidates[0]||null;}
   if(!point){add('STAGING',actor.kind,actor.id,'There is no separate clear waiting place for every animal.');continue;}placements[actor.id]=point;
  }
+ // Waiting destinations are distinct from occupied support placements. A
+ // sleeping bird stays in its bed at Apply, then walks to its reserved ground
+ // destination during wake-up. Never relocate it to clear an ordinary queue.
+ for(const site of active.filter(s=>s.kind==='chicken')){
+  const plan=plans.get(site.kind),actors=world.actors.filter(a=>a.kind===site.kind),candidates=new Map(),chosen=[];
+  for(const actor of actors){
+   const pad=actor.clearance;let points=candidates.get(pad);
+   if(!points){
+    points=[];const poly=site.polygon,x0=Math.min(...poly.map(p=>p[0])),x1=Math.max(...poly.map(p=>p[0])),z0=Math.min(...poly.map(p=>p[1])),z1=Math.max(...poly.map(p=>p[1]));
+    for(let x=x0+pad;x<=x1-pad;x+=GRID)for(let z=z0+pad;z<=z1-pad;z+=GRID){
+     const q=[x,support(site,[x,0,z],world),z];
+     if(Math.abs(q[1]-world.groundY(x,z))>EPS||!plan.valid(q,pad))continue;
+     if(site.stations.some(s=>pointSegmentDistance([x,z],xy(s.approach),xy(s.dock))<pad+.32)||site.gates.some(g=>pointSegmentDistance([x,z],xy(g.inside),xy(g.outside))<pad+.32)||site.accesses.some(a=>pointSegmentDistance([x,z],xy(a.outside),xy(a.rampStart))<pad+.32))continue;
+     points.push(q);
+    }
+    candidates.set(pad,points);
+   }
+   const from=placements[actor.id]||actor.position,ranked=points.filter(q=>chosen.every(c=>distance(q,c.point)>=Math.max(.5,pad+c.pad)-EPS)).sort((a,b)=>distance(a,from)-distance(b,from)||a[0]-b[0]||a[2]-b[2]);
+   const exit=coopExit(site,plan,actor,from,world),origin=exit?exit.at(-1):from;
+   let selected=null,path=null;for(const q of ranked){path=plan.path(origin,q,pad);if(path){selected=q;break;}}
+   if(!selected){add('STAGING',site.kind,actor.id,'Keep separate reachable ground waiting places clear of care approaches.');continue;}
+   waiting[actor.id]=[...selected];chosen.push({point:selected,pad});routes.push({actorId:actor.id,targetId:'waiting-'+actor.id,points:exit?[...exit,...path.slice(1)]:path});
+  }
+ }
  for(const site of active){const plan=plans.get(site.kind),actors=world.actors.filter(a=>a.kind===site.kind),bedStations=site.stations.filter(s=>s.kind==='bed');
   for(const [i,actor]of actors.entries()){const from=placements[actor.id];if(!from)continue;const exit=coopExit(site,plan,actor,from,world),routeTo=to=>{if(!exit)return plan.path(from,to,actor.clearance);const rest=plan.path(exit[exit.length-1],to,actor.clearance);return rest?[...exit,...rest.slice(1)]:null;};
    const relevant=site.stations.filter(s=>s.kind==='bed'?s.id===bedStations[i]?.id:s.slot===undefined||s.slot===i);
@@ -107,5 +131,5 @@ export function validateAnimalPens(layout,world){
    if(site.kind==='cow'){const r=site.robot,chain=[r.entry,r.dock,r.exit,r.turn,r.clear];let ok=!!plan.path(from,r.entry,actor.clearance);for(let j=1;j<chain.length;j++)if(!plan.line(chain[j-1],chain[j],actor.clearance))ok=false;if(!ok)add('ROUTE',site.kind,'cow-robot-exit','Keep the robot entry, dock, exit, turn and clear route usable.');else routes.push({actorId:actor.id,targetId:'cow-robot-exit',points:chain});}
   }
  }
- return{revision:layout.revision,worldEpoch:world.epoch,obstacleRevision:world.obstacleRevision,ok:issues.length===0,issues,placements,routes,diagnostics};
+ return{revision:layout.revision,worldEpoch:world.epoch,obstacleRevision:world.obstacleRevision,ok:issues.length===0,issues,placements,waiting,routes,diagnostics};
 }
