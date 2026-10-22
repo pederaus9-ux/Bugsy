@@ -142,7 +142,7 @@
   "completedThrough": "PR95 complete; approved design and plan; pen Task1 layout/geometry implemented and tested, not integrated or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
   "currentPhaseTitle": "Player-expandable fences and movable animal care buildings",
-  "phaseStatus": "APPROVED_EXECUTION_TASK1_VERIFIED_TASK2_NEXT",
+  "phaseStatus": "TASK2_PURE_VALIDATION_VERIFIED_PHYSICAL_ADAPTER_GATE_OPEN",
   "visualAcceptance": "PR95_APPROVED;PEN_EDITOR_NOT_IMPLEMENTED_OR_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -2279,16 +2279,17 @@
       "implementationPlanApproved": true,
       "visualReleaseApproved": false
     },
-    "task": 1,
+    "task": "2 core verified; 3 adapters next; Task2 physical completion remains open",
     "tests": {
       "baselineNodeFiles": 72,
-      "focusedChecks": 36,
-      "browser": "Not run for foundation-only task"
+      "task1Focused": 36,
+      "task2PureChecks": 35,
+      "physicalOrBrowserPenEditor": "Not run; no integrated UI yet"
     },
-    "processes": "Task1 verification/commit; Task2 follows without another approval",
+    "processes": "Native implementation active; no hosted CI or deployment",
     "mergeAuthorized": false,
     "runtimeChanges": "Three new pure modules only; not imported by game or worker yet",
-    "next": "Task2 full world footprint/support/route validation"
+    "next": "Task3 actual movable yard geometry, then close Task2 standing/turn/support footprint gate"
   },
   "marketSalesPublication": {
     "ownerInstructionAtLocal": "2026-10-20T06:14:11-05:00",
@@ -5089,6 +5090,16 @@
       "No integrated UI/custom-yard/care runtime yet",
       "No browser, physical-device or independent audit claim"
     ],
-    "next": "Task2"
+    "next": "Task2",
+    "task2": {
+      "base": "c353da02153579b9f27b58fb8cc6e65531a28f42",
+      "pureChecks": 35,
+      "complete": false,
+      "open": "Exact physical assembly footprints/support and actual skin/turn proof depend on Task3 factories; coarse layout validation is not visual/care release qualification",
+      "evidence": "farm3d/tests/evidence/pen-editing-implementation/task2",
+      "performance": "Single baseline >45CPU-s initially; V8 broad-phase/edge-cache correction now about1s; 5s bounded subprocess gatePASS",
+      "runtimeIntegration": false,
+      "next": "Task3"
+    }
   }
 }

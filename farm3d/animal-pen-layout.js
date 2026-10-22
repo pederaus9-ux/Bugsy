@@ -76,7 +76,7 @@ function resolveSite(kind,s){
  const supports=stations.filter(s=>s.kind==='bed').map(s=>({id:s.id,component:stationOwners[s.id],dock:clone(s.dock),height:s.surface??b.bedSurface??0,size:kind==='chicken'?[.55,.55]:kind==='cow'?[3.3,3]:clone(b.bedSize)}));
  const approaches=stations.map(s=>({id:s.id,point:clone(s.approach)})),waiting=(b.turnouts||b.stations.filter(s=>s.kind==='bed').map(s=>s.approach)).map(p=>p3(p,components[kind==='chicken'?'coop':kind==='cow'?'shelter':polygon?'shelter':'nook'].delta));
  const points=[...(polygon||[]),...Object.values(components).flatMap(c=>c.footprint)],xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),footprint=[[Math.min(...xs),Math.min(...zs)],[Math.max(...xs),Math.min(...zs)],[Math.max(...xs),Math.max(...zs)],[Math.min(...xs),Math.max(...zs)]];
- const result={kind,template:t.id,custom,polygon,components,stations,stationOwners,obstacles,fenceSegments,gates,supports,approaches,waiting,footprint,accesses,issues};
+ const result={kind,template:t.id,custom,polygon,boundary:clone(record.boundary??null),runs:clone(record.runs??[]),gateRecords:clone(record.gates??[]),components,stations,stationOwners,obstacles,fenceSegments,gates,supports,approaches,waiting,footprint,accesses,issues};
  if(b.robot){result.robot=Object.fromEntries(Object.entries(b.robot).map(([k,p])=>[k,p3(p,components.robot.delta)]));result.tank=p3(b.tank,components.robot.delta);}
  return result;
 }

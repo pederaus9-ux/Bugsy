@@ -1,0 +1,120 @@
+✔ identityFactoriesMatchAcceptedGeometry (253.581732ms)
+✖ translatedRobotIncludesTankPipeAndAnimatedParts (21.257333ms)
+✖ translatedCoopIncludesBothRamps30Beds (44.230094ms)
+✖ oldFootprintsNoLongerCollide (9.560232ms)
+✖ cowShelterCarriesWholeFoundation (11.384916ms)
+✖ prepareDisposeDoesNotTouchInstalledYard (1.141003ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 496.764756
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-yards.test.mjs:6:1
+✖ translatedRobotIncludesTankPipeAndAnimatedParts (21.257333ms)
+  AssertionError [ERR_ASSERTION]: min.x did not move with its assembly
+      at assertShift (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/fixtures/animal-pen-mesh-probe.mjs:5:206)
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:6:302)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-yards.test.mjs:7:1
+✖ translatedCoopIncludesBothRamps30Beds (44.230094ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -11.6,
+  -   -9.6,
+      0,
+  +   2.99
+  -   1.9900000000000002
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:7:290)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -11.6, 0, 2.99 ],
+    expected: [ -9.6, 0, 1.9900000000000002 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-yards.test.mjs:8:1
+✖ oldFootprintsNoLongerCollide (9.560232ms)
+  AssertionError [ERR_ASSERTION]: min.x did not move with its assembly
+      at assertShift (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/fixtures/animal-pen-mesh-probe.mjs:5:206)
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:8:261)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-yards.test.mjs:9:1
+✖ cowShelterCarriesWholeFoundation (11.384916ms)
+  AssertionError [ERR_ASSERTION]: moved assembly must contain real mesh geometry
+      at assertShift (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/fixtures/animal-pen-mesh-probe.mjs:5:56)
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:9:258)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-yards.test.mjs:10:1
+✖ prepareDisposeDoesNotTouchInstalledYard (1.141003ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-yards.test.mjs:10:180)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
