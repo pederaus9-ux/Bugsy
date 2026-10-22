@@ -120,3 +120,21 @@ test('a waiting cow physically clears a released feed dock without a new reserva
   assert(a.g.position.distanceTo(before)>1.1,'waiting cow kept blocking the feed dock');assert.equal(JSON.stringify(G.S),save,'cosmetic waiting changed saved state');
  }finally{for(const b of c.animals){b.carePose?.reset();b.rig3d.dispose();}y.dispose();}
 });
+
+test('a real robot job advancing during a pen draft retains credit and walks its relocated exit',()=>{
+ const {c,y,s}=scene(1,25),a=c.animals[0],id=c.cowStatus.cows[0].id;let candidate;
+ try{
+  assert(G.milkCow(id));c.syncCowYard();assert(c.chooseCowTask(a));
+  let t=0;for(let n=0;n<3600&&G.getCowCareStatus().job?.stage!=='milking';n++){t+=1/60;at(T+180000+t*1000);c.clockT=t;G.settleCows(true);c.syncCowYard();c.updateCowTask(a,1/60,t);}
+  assert.equal(G.getCowCareStatus().job?.stage,'milking');const jobId=G.getCowCareStatus().job.id,gate=a.cowTask.gate,tokens=c.cowStations.snapshot();
+  // Real elapsed production continues while the physical editor is paused.
+  at(T+180000+(t+13)*1000);G.settleCows(true);c.syncCowYard();assert.equal(c.cowStatus.job.stage,'exiting');assert.equal(c.cowStatus.tank.normal,1);
+  const paid=JSON.stringify(s.pens.cow.care),record=defaultSiteRecord('cow');for(const v of record.boundary)v.x+=2;for(const p of Object.values(record.structures))p[0]+=2;
+  const site=resolveAnimalPens({v:1,revision:1,sites:{cow:record}}).sites.cow,adapter=vm.runInContext('cowPenCare',c),position=a.g.position.toArray(),prepared=adapter.prepareLayoutRebind({site,now:t+13,placements:{[id]:[position[0]+2,position[1],position[2]]}});
+  candidate=createCowYard({north:25,layout:site});c.cowYard=candidate;c.COW_YARD_LAYOUT=candidate.layout;c.PENS.courtyard.poly=candidate.layout.polygon;c.OBST=candidate.layout.obstacles.map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0}));
+  prepared.publish();assert.equal(JSON.stringify(s.pens.cow.care),paid);assert.equal(a.cowTask.jobId,jobId);assert.equal(a.cowTask.gate,gate);assert.deepEqual(c.cowStations.snapshot(),tokens);assert.equal(a.cowTask.stage,'exit');
+  candidate.group.updateMatrixWorld(true);const solid=[];candidate.group.traverse(o=>{if(o.isMesh)solid.push(o);});
+  for(let n=0;n<3600&&a.cowTask;n++){t+=1/60;const before=a.g.position.clone();c.updateCowTask(a,1/60,t+13);const delta=a.g.position.clone().sub(before);assert(delta.length()<=.8/60+1e-8);if(delta.length()>1e-6)assert(!new THREE.Raycaster(before.clone().setY(.55),delta.clone().normalize(),0,delta.length()).intersectObjects(solid,false)[0],'relocated exit crosses geometry');}
+  assert.equal(a.cowTask,null);assert.equal(G.getCowCareStatus().job,null);assert.equal(G.getCowCareStatus().tank.normal,1);
+ }finally{candidate?.dispose();y.dispose();for(const a of c.animals)a.rig3d.dispose();}
+});

@@ -680,6 +680,7 @@ import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 const COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
+import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -1596,14 +1597,15 @@ function edgeDepths(poly, x, z) {
   return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
     return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });
 }
-const inPen = (pen, x, z, margin = 0) => edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
+const inPen = (pen, x, z, margin = 0) => pen.custom ? pointInPolygon([x,z],pen.poly,margin) : edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
 // pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)
 function intoPen(pen, v, margin) {
+  if(pen.custom){const p=nearestLegalPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);return v;}
   for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }
   return v;
 }
 function outOfPens(v, margin) {
-  for (const pen of PEN_LIST) { const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
+  for (const pen of PEN_LIST) { if(pen.custom){const p=nearestExteriorPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);continue;} const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
     const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }
   return v;
 }
@@ -1635,16 +1637,21 @@ function route(from, to, pad, pen, avoid = []) {
   const obstacles = avoid.length ? [...OBST, ...avoid] : OBST;
   const skipA = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], from, pad))), skipB = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], to, pad)));
   const both = new Set([...skipA, ...skipB]);
-  if (hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
+  const contained=(a,b)=>!pen?.custom||segmentInPolygon([a.x,a.y],[b.x,b.y],pen.poly,pad);
+  if (contained(from,to)&&hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
   const nodes = [from, to];
   for (const o of obstacles) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
     if (!obstacles.some(q => insideObst(q, c, pad)) && (pen===PENS.courtyard||pen?.care||Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+  if(pen?.custom)for(const [x,z]of pen.poly)for(let k=0;k<8;k++){
+    const r=(pad+.12)*Math.SQRT2,c=new THREE.Vector2(x+Math.cos(k*Math.PI/4)*r,z+Math.sin(k*Math.PI/4)*r);
+    if(pointInPolygon([c.x,c.y],pen.poly,pad)&&!obstacles.some(o=>insideObst(o,c,pad)))nodes.push(c);
+  }
   const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
-  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
+  const see = (i, j) => contained(nodes[i],nodes[j])&&hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
     if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
     for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
-  if (prev[1] < 0) return [to]; // no clear way: just try
+  if (prev[1] < 0) return pen?.custom?[]:[to]; // Custom pens cannot cross a concavity when no route exists.
   const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
 }
 const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
@@ -1788,7 +1795,9 @@ class Beast {
         this.vel.lerp(want, Math.min(1, dt * 4));
         this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
         // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
-        const held = this.fit(this.pos, .05); this.g.position.x = held.x; this.g.position.z = held.y;
+        const held = this.fit(this.pos, .05);
+        if(this.pen?.custom&&!segmentInPolygon([ox,oz],[held.x,held.y],this.pen.poly,this.S.r+.05)){held.set(ox,oz);this.vel.set(0,0);}
+        this.g.position.x = held.x; this.g.position.z = held.y;
         this.phase += this.vel.length() * dt * this.S.step;
         // give up on a target it can't reach
         this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;

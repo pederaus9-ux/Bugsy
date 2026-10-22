@@ -1,0 +1,90 @@
+✖ actual scene routes around a concave corner, winding false (4.713474ms)
+✖ actual scene routes around a concave corner, winding true (3.897803ms)
+✖ actual containment accepts both arms of a concave pen and projects an illegal point inside (9.337883ms)
+✖ a blocked custom route never falls back to an illegal straight crossing (3.653864ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.348529
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-scene-routing.test.mjs:5:35
+✖ actual scene routes around a concave corner, winding false (4.713474ms)
+  AssertionError [ERR_ASSERTION]: a direct route cuts across the missing corner
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-scene-routing.test.mjs:5:239)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-scene-routing.test.mjs:5:35
+✖ actual scene routes around a concave corner, winding true (3.897803ms)
+  AssertionError [ERR_ASSERTION]: a direct route cuts across the missing corner
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-scene-routing.test.mjs:5:239)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-scene-routing.test.mjs:6:1
+✖ actual containment accepts both arms of a concave pen and projects an illegal point inside (9.337883ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(vm.runInContext('inPen(pen,1,5,.42)',c))
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-scene-routing.test.mjs:6:123)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-scene-routing.test.mjs:7:1
+✖ a blocked custom route never falls back to an illegal straight crossing (3.653864ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-scene-routing.test.mjs:7:229)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

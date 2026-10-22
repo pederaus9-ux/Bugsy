@@ -45,9 +45,9 @@ export function segmentInPolygon(a,b,poly,pad=0){
  for(let i=1;i<sorted.length;i++){const t=(sorted[i-1]+sorted[i])/2;if(!pointInPolygon([a[0]+v[0]*t,a[1]+v[1]*t],poly,pad))return false;}
  return true;
 }
-export function nearestLegalPoint(point,poly,pad=0){
+function nearestBoundaryCandidate(point,poly,pad,accept){
  if(!finite(point)||!valid(poly)||!Number.isFinite(pad))return null;
- if(pointInPolygon(point,poly,pad))return [...point];
+ if(accept(point))return [...point];
  const candidates=[],lines=[],sign=Math.sign(signedArea(poly)),r=Math.abs(pad);
  for(let i=0;i<poly.length;i++){
   const a=poly[i],b=poly[(i+1)%poly.length],d=sub(b,a),len=Math.hypot(...d);if(len<EPS)continue;
@@ -58,8 +58,17 @@ export function nearestLegalPoint(point,poly,pad=0){
  if(r>0){for(const [a,b]of lines)for(const c of poly){const v=sub(b,a);for(const t of circleCuts(a,b,c,r))candidates.push([a[0]+v[0]*t,a[1]+v[1]*t]);}
   for(let i=0;i<poly.length;i++)for(let j=i+1;j<poly.length;j++){const a=poly[i],b=poly[j],d=Math.hypot(...sub(b,a));if(d<EPS||d>2*r+EPS)continue;const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],h=Math.sqrt(Math.max(0,r*r-d*d/4)),n=[-(b[1]-a[1])/d,(b[0]-a[0])/d];for(const s of [-1,1])candidates.push([mid[0]+s*n[0]*h,mid[1]+s*n[1]*h]);}
  }
- let best=null,dist=Infinity;for(const p of candidates)if(pointInPolygon(p,poly,pad)){const d=Math.hypot(...sub(p,point));if(d<dist-EPS){best=p;dist=d;}}
+ let best=null,dist=Infinity;for(const p of candidates)if(accept(p)){const d=Math.hypot(...sub(p,point));if(d<dist-EPS){best=p;dist=d;}}
  return best;
+}
+export function nearestLegalPoint(point,poly,pad=0){
+ return nearestBoundaryCandidate(point,poly,pad,p=>pointInPolygon(p,poly,pad));
+}
+export function nearestExteriorPoint(point,poly,pad=0){
+ if(!Number.isFinite(pad)||pad<0)return null;
+ // The outward offset includes a sub-micron separation from the inclusive
+ // boundary predicate; it cannot leave a pet on the forbidden boundary.
+ return nearestBoundaryCandidate(point,poly,-pad-1e-7,p=>!pointInPolygon(p,poly,-pad));
 }
 /** Shape = polygon points; rotated rectangle x/z/hw/hd/c/s; circle x/z/r;
  * capsule a/b/r. Optional owner identifies current scene ownership. */
