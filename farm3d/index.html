@@ -1619,7 +1619,7 @@ const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegme
 const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
 const remainingBlocks=[];for(const [kind,yard]of Object.entries(remainingYards)){remainingSites[kind].blocks=yard.obstacles.map((b,i)=>{const p=[1200+remainingBlocks.length,1200,b[2],b[3]];remainingBlocks.push(p);BLOCKS.push(p);return p;});}
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
-const legacyPetBowlBlock=[-3.1,7.1,.25,.25];BLOCKS.push([-9.6, -2.4, .4, .4], legacyPetBowlBlock); // hen water pan, pet bowl
+const legacyPetBowlBlock=[-3.1,7.1,.25,.25],legacyHenPanBlock=[-9.6,-2.4,.4,.4];BLOCKS.push(legacyHenPanBlock, legacyPetBowlBlock); // hen water pan (mesh long retired; collision kept for the accepted chicken yard), pet bowl
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
 const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
   ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
@@ -1976,6 +1976,8 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  for(const a of animals)a.pen=penOf(a.kind);
  chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus)cowYard.setStatus(cowStatus); // a boot-time install precedes the first syncCowYard
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+ // The accepted chicken yard keeps its legacy collision; a customised yard must not leave it behind.
+ moveBlock(legacyHenPanBlock,...(layout.sites.chicken.custom?[1450,1450]:[-9.6,-2.4]));
 }
 // Saved custom pens install before herds spawn; page reloads cover account
 // switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay

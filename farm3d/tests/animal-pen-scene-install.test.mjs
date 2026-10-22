@@ -161,3 +161,18 @@ test('the full farm refresh restores saved pens after the saved object layout an
  const body=slice('  refresh(what) {','\n  },',false),layoutAt=body.indexOf('applyLayout();'),restoreAt=body.indexOf('restoreSavedAnimalPens();'),herdAt=body.indexOf('syncHerd();');
  assert(layoutAt>=0&&restoreAt>layoutAt&&herdAt>restoreAt,'refresh("all") must call applyLayout, then restoreSavedAnimalPens, then syncHerd');
 });
+const onFarmBlockAt=(live,x,z)=>live.BLOCKS.filter(b=>b[0]===x&&b[1]===z);
+test('the invisible legacy hen water pan block stays for the accepted chicken yard and leaves with a customised one',()=>{
+ for(const custom of [false,true]){
+  const f=fixture({animals:[]}),{live}=f,chicken=defaultSiteRecord('chicken'),delta=[0,-1];
+  if(custom){chicken.boundary.forEach(v=>{v.x+=delta[0];v.z+=delta[1];});for(const r of chicken.runs||[]){r.a=[r.a[0]+delta[0],r.a[1]+delta[1]];r.b=[r.b[0]+delta[0],r.b[1]+delta[1]];}for(const id in chicken.structures){const q=chicken.structures[id];chicken.structures[id]=[q[0]+delta[0],q[1]+delta[1]];}}
+  const layout=resolveAnimalPens(custom?{v:1,revision:1,sites:{chicken}}:{v:1,revision:1,sites:{horse:defaultSiteRecord('horse')}}),next=preparePenYards(layout);
+  try{
+   assert.equal(onFarmBlockAt(live,-9.6,-2.4).length,1,'accepted startup keeps the legacy block');
+   const p=live.penSceneRegistry.prepare(layout,next.yards,all);p.publish();
+   assert.equal(onFarmBlockAt(live,-9.6,-2.4).length,custom?0:1,custom?'a moved chicken yard must not leave an invisible wall behind':'an unedited chicken yard keeps its accepted collision');
+   const rects=live.OBST.filter(o=>o.c===1&&o.s===0&&o.x===-9.6&&o.z===-2.4);assert.equal(rects.length,custom?0:1,'route planner agrees with collision');
+   p.retire();
+  }finally{next.dispose();f.dispose();}
+ }
+});
