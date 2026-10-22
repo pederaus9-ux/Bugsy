@@ -6,6 +6,7 @@ export function makePenWorld(overrides={}){
  const blocked=initial.existingBlocks.flatMap((b,i)=>i>=10&&i<=15||b[0]>=1000||b[0]===-9.6&&b[1]===-2.4?[]:[{type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner:'fixed-'+i}]);
  const land=[{type:'capsule',a:[1,-22],b:[1,3],r:24},...Object.values(baseline).map(s=>({type:'polygon',points:s.renderFootprint}))];
  for(const kind of ['horse','sheep']){const b=baseline[kind],s=b.shelter,x0=Math.min(b.renderFootprint[0][0],s.x-s.width/2-.15),x1=Math.max(b.renderFootprint[1][0],s.x+s.width/2+.15),z0=Math.min(b.renderFootprint[0][1],s.z-s.depth/2-.125),z1=Math.max(b.renderFootprint[2][1],s.z+s.depth/2+.125);land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});}
+ land.push({type:'polygon',points:[[-33,-46],[-19,-46],[-19,-17],[-33,-17]]});
  const points=[[-1.4,8.1],[-18.4,8.1],[-18.4,-20.5],[-3.25,-25.5],[-3.25,-32.88]],path=points.slice(1).map((b,i)=>({type:'capsule',a:points[i],b,r:.92,owner:'stone-path'}));
  const actors=Object.entries(owned).flatMap(([kind,n])=>Array.from({length:n},(_,i)=>{const b=baseline[kind],station=b.stations.filter(s=>s.kind==='bed')[i];return{id:kind+'-'+i,kind,position:[...station.approach],component:null,stationId:null,clearance:margins[kind]};}));
  return{epoch:'guest-farm-1',obstacleRevision:0,owned,land,blocked,path,groundY:farmGroundY,actors,baselineBlocked:structuredClone(blocked),...overrides};

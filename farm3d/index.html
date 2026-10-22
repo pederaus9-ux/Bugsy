@@ -676,7 +676,7 @@ import {createRemainingCareYards,createRemainingCarePlantClearing} from './remai
 import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
 import {createRemainingCareController} from './remaining-care-controller.js?v=3';
 import {createDairyPath} from './farm-path.js?v=1';
-import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
+import {NORTH_EXTENSION,WEST_CLEARING,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=2';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
@@ -1403,7 +1403,7 @@ const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeSta
 const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
 const groundY=farmGroundY;
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
-  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&Math.abs(t.position.x-1)<28)t.position.x=1+(t.position.x<1?-31:31);
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
   t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
 bootStep("planting the woods");
 // woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)

@@ -38,3 +38,8 @@ test('unownedSitesStayReservedForOtherPens',()=>{
  r=V.validateAnimalPens(translatedLayout('cat',[1,0]),withoutKind('chicken'));assert.equal(r.ok,true,JSON.stringify(r.issues));
 });
 test('acceptedLayoutValidatesWithAnyOneSpeciesUnowned',()=>{for(const kind of ['chicken','cow','horse','sheep','dog','cat']){const r=V.validateAnimalPens(resolveAnimalPens(),withoutKind(kind));assert.equal(r.ok,true,kind+': '+JSON.stringify(r.issues));}});
+// Amendment A1: the horse paddock slides west onto the levelled strip, never past it.
+test('horsePaddockSlidesWestOntoLevelledStrip',()=>{
+ for(const k of [1,3,6,9]){const r=V.validateAnimalPens(translatedLayout('horse',[-k,0]),makePenWorld());assert.equal(r.ok,true,k+' m west: '+JSON.stringify([...new Set(r.issues.map(i=>i.code+'/'+i.target))]));}
+ assert.equal(V.validateAnimalPens(translatedLayout('horse',[-10,0]),makePenWorld()).ok,false,'10 m west leaves the level strip');
+});

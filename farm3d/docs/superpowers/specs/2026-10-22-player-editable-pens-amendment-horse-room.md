@@ -1,6 +1,6 @@
 # Player-editable pens — Amendment A1: room for the horse paddock
 
-Status: **proposed — awaiting explicit owner authority for the protected land change** (candidate patch: `tests/evidence/pen-editing-implementation/task7-claude-20261022/horse-room-A1-candidate.patch`).
+Status: **authorized by the owner on 2026-10-22**. Asked "may I flatten the 10 m strip of hill west of the horse paddock (and move one tree), so the horse paddock can move?", the owner answered **"Yes"**. Implemented from the recorded candidate patch (`tests/evidence/pen-editing-implementation/task7-claude-20261022/horse-room-A1-candidate.patch`). Visual approval of the result is still a separate owner decision (A6).
 
 Date: 2026-10-22. Applies to the approved specification `2026-10-21-player-editable-pens-design.md` (commit `a2f0b8c`, SHA-256 `f4b63398…ba49`), which stays byte-identical. Where they disagree, this amendment wins for the items below only.
 
@@ -24,9 +24,14 @@ After being shown that the chicken yard and the horse paddock had no legal whole
 3. **Hill trees.** The existing rule that keeps hill trees out of the north band widens on the west side, so no hill tree stands in the levelled strip or its fade. Only one tree moves, from x ≈ −27.1 to x = −40.
 4. **Cache.** `farm-land.js` ships on main, so its import version becomes `?v=2` everywhere.
 
-## Protected file — needs explicit owner authority
+## Protected file — owner-authorized exception
 
-`farm-land.js` is a protected file. The reviewed-bytes guard (`tests/remaining-care-integration.test.mjs`) pins its digest, and the owner-approved pen adapter registry (`tests/animal-pen-authorized-adapters.json`) states "No authority to change rig, ledger, auth, land or path bytes". Change 1 is a land-bytes change. It is held as an uncommitted, locally verified candidate until the owner explicitly authorizes it. On authorization, it is registered through the existing mechanism: the frozen predecessor digest `a699c58b…c35a` stays pinned, and the reviewed digest is recorded, so any further edit still fails the guard. The guard is not loosened in any other way.
+`farm-land.js` is a protected file. The reviewed-bytes guard (`tests/remaining-care-integration.test.mjs`) pins its digest, and the owner-approved pen adapter registry (`tests/animal-pen-authorized-adapters.json`) states "No authority to change rig, ledger, auth, land or path bytes". Change 1 is a land-bytes change, so it was held until the owner explicitly authorized it (2026-10-22). It is registered through the existing mechanism:
+- the frozen predecessor digest `a699c58b…c35a` stays pinned;
+- the reviewed digest `6a739a8a…5b70` is recorded;
+- the registry scope names this as the sole land exception.
+
+Any further edit to `farm-land.js` still fails the guard. Rig, ledger, auth and path bytes remain outside authority.
 
 Unchanged: the stone path, the cow yard, the sheep meadow, the chicken yard, the pet nooks, the approved support, path, separation and route rules, saves, economy and every accepted model.
 

@@ -1,0 +1,59 @@
+# source: 41b6c96 + A1 with owner-authorized registration, plus ONE extra newline appended to farm-land.js in a scratch worktree (negative control); node v22.22.2; utc 2026-10-22T20:42:14Z
+# cmd: node --test farm3d/tests/remaining-care-integration.test.mjs (in the scratch worktree); expected: the reviewed-bytes test fails
+TAP version 13
+# Subtest: remaining physical care is installed before ordinary Beast behavior and herd synchronization
+ok 1 - remaining physical care is installed before ordinary Beast behavior and herd synchronization
+  ---
+  duration_ms: 1.172844
+  type: 'test'
+  ...
+# Subtest: protected implementations and approved pen adapters retain exact reviewed bytes
+not ok 2 - protected implementations and approved pen adapters retain exact reviewed bytes
+  ---
+  duration_ms: 3.07005
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/wt-guard-check/farm3d/tests/remaining-care-integration.test.mjs:5:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    farm-land.js changed outside the reviewed source checkpoint
+    + actual - expected
+    
+    + '7663f709de557480a66a8ceb53bb5db7999a76659c06ec3fb0157ecd00402f47'
+    - '6a739a8a18ed838f7e23fd37cfaad1768a2e21185fbb1ee6b3cb2f089ac45b70'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '6a739a8a18ed838f7e23fd37cfaad1768a2e21185fbb1ee6b3cb2f089ac45b70'
+  actual: '7663f709de557480a66a8ceb53bb5db7999a76659c06ec3fb0157ecd00402f47'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/wt-guard-check/farm3d/tests/remaining-care-integration.test.mjs:12:117)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: authorized yard adapters retain exact accepted default rendered geometry
+ok 3 - authorized yard adapters retain exact accepted default rendered geometry
+  ---
+  duration_ms: 244.284909
+  type: 'test'
+  ...
+# Subtest: one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+ok 4 - one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+  ---
+  duration_ms: 6.184661
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 465.857117
+exit 1
