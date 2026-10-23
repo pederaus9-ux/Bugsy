@@ -1718,7 +1718,7 @@ class Beast {
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
   // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
   fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
-  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = (pet||(this.kind==='cow'&&this.pen?.custom))&&!this.target?"idle":"moving"; this.stuckT = 0; }
+  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = (pet||this.pen?.custom)&&!this.target?"idle":"moving"; this.stuckT = 0; }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {

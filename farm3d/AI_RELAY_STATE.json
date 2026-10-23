@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-23T02:33:16.498Z",
+  "lastUpdatedUtc": "2026-10-23T02:50:26.745Z",
   "codeBaseline": {
     "description": "PR95 owner-approved remaining animal physical care merged/live;37premerge/17postmerge/Pages3SUCCESS;27runtime files and plain entry exact. Original installer failure retained, one investigated cloud-only fresh-runner rerun succeeded.",
     "mergeCommit": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
@@ -141,8 +141,8 @@
   "currentProgram": "Player-editable animal pens",
   "completedThrough": "PR95 complete; approved design and plan; pen Tasks1-6 components implemented and unit-tested; Task7 live integration in progress (prepared-registry hook and actual-index scene install proven in Node); not exposed to players, previewed or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
-  "currentPhaseTitle": "Task7 gate traffic diagnosis: player gaps pass, directed animal passage and empty-route recovery require stronger review",
-  "phaseStatus": "TASK7_GATE_PASSAGE_DIAGNOSTIC_ESCALATION_REQUIRED",
+  "currentPhaseTitle": "Task7 custom empty-route recovery passes; directed gate initiator/outside lifecycle decision pending",
+  "phaseStatus": "TASK7_ROUTE_RECOVERY_PASS_GATE_BEHAVIOR_DECISION_PENDING",
   "visualAcceptance": "PR95_APPROVED;A3_COW_TURN_VISUAL_REVIEW_PENDING;PEN_EDITOR_NOT_IMPLEMENTED_OR_PLAYER_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -2298,7 +2298,7 @@
       "implementationPlanApproved": true,
       "visualReleaseApproved": false
     },
-    "task": "Evidence-only checkpoint: player gaps work, directed animal passage remains unimplemented, and custom chicken/horse/sheep empty-route recovery is defective.",
+    "task": "Custom chicken/horse/sheep empty ordinary route now returns to idle; focused/real-owned/browser regressions pass. Gate integration awaits a precise behavior contract.",
     "tests": {
       "baselineNodeFiles": 72,
       "task1Focused": 36,
@@ -2317,7 +2317,7 @@
       "previewResourceUnit": 3,
       "cowSupportModule": 6,
       "transactionWriterBoundary": 15,
-      "runnerRegisteredFiles": 99,
+      "runnerRegisteredFiles": 101,
       "latestCoreRun": {
         "session": 64023,
         "exitCode": 0,
@@ -2497,15 +2497,62 @@
         "runtimeBridgeReplay": "RED:8/8 scene routes empty; horse/sheep care reject both directions; chicken fallback is not an executable crossing",
         "emptyRouteRecovery": "RED3 chicken/horse/sheep;5PASS controls including cow recovery and all ordinary-containment controls",
         "browser": "Pinned local Chromium151.0.7922.34/Playwright1.62.1, API/test-owned starts; actual renderer inspected"
+      },
+      "latestRouteRecovery": {
+        "retainedRed": {
+          "pass": 5,
+          "fail": 3,
+          "skipped": 0
+        },
+        "expandedRed": {
+          "pass": 14,
+          "fail": 6,
+          "skipped": 0
+        },
+        "focused": {
+          "pass": 28,
+          "fail": 0,
+          "skipped": 0
+        },
+        "careRegressions": {
+          "pass": 133,
+          "fail": 0,
+          "skipped": 0
+        },
+        "indexConsumers": {
+          "files": 24,
+          "pass": 239,
+          "fail": 0,
+          "skipped": 0
+        },
+        "browser": {
+          "version": "151.0.7922.34",
+          "playwright": "1.62.1",
+          "rates": [
+            30,
+            60,
+            120
+          ],
+          "cases": 12,
+          "frames": 1680,
+          "status": "PASS",
+          "actualOwnedAnimals": true,
+          "relocatedActors": false,
+          "originalThinkAndUpdate": true,
+          "reservationsUnchanged": 12,
+          "fullOwnershipRegression": "PASS unchanged full46/fixed-chicken/Apply/paid-state/refresh/reload",
+          "limitations": "Pinned local Windows, debug API fixtures; no native-input/device/hosted/visual acceptance or full roaming/mixed-gate claim"
+        },
+        "core": "101 files registered; full runner not rerun; relevant dependency checks above"
       }
     },
-    "processes": "All owned Node/browser/server commands finished; no monitor/automation. External CIM inventory remains unavailable.",
+    "processes": "All owned test/browser/server commands complete; no monitor/automation. Earlier external CIM inventory denial not retried.",
     "mergeAuthorized": "Not authorized. Fresh explicit owner approval required.",
-    "runtimeChanges": "This checkpoint is evidence-only; all runtime/rig/lock bytes unchanged from cb2af61.",
-    "next": "Parent: select gpt-6-astra/xhigh. First bound the independent Beast.go empty-route idle recovery; then review shared ephemeral gate adapter versus coordinated controller changes. Resolve outside handoff and any exact chicken-stations lock authority before implementation. Mixed player/animal traffic and reservations, gate relocation, coop lanes, moved fixtures/support and full roaming connectivity remain; native UI/four viewports then Task8 still pending.",
-    "latestExecutionInstruction": "Parent selected gpt-6.1-sol/high for bounded gate qualification from cb2af61; explicitly stop at a diagnostic checkpoint and recommend escalation when coordinated geometry/care defects appear.",
-    "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-gate-traffic-20261023/progress.md",
-    "status": "TASK7_GATE_PASSAGE_DIAGNOSTIC_ESCALATION_REQUIRED",
+    "runtimeChanges": "Extend existing failed custom-cow route idle fallback to every custom penned species; pets/defaults and all routing/physics unchanged",
+    "next": "Parent/owner: resolve the precise directed gate initiator and outside handoff in gate-decision.md (proposed internal explicitly requested bounded out-and-back, no new player controls/autonomous exits). Then scoped adapter and real bidirectional/mixed/blocked/rebind qualification. Do not relax ordinary containment or edit protected chicken-stations without exact authority. Remaining fixture/support/import/native UI/four-view and Task8 work stays pending.",
+    "latestExecutionInstruction": "Parent selected/disclosed gpt-6-astra/xhigh from0f0d056. Complete empty-route recovery then implement directed passage only within written authority; stop for a product decision or protected-scope expansion.",
+    "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-route-recovery-20261023/progress.md",
+    "status": "TASK7_ROUTE_RECOVERY_PASS_GATE_BEHAVIOR_DECISION_PENDING",
     "handoff": "farm3d/CHATGPT_HANDOFF_20261022.md",
     "transferredFrom": {
       "branch": "codex/player-pen-editing-20261022",
@@ -2514,8 +2561,7 @@
       "method": "fast-forward, no force"
     },
     "openFindings": [
-      "Task7 directed gate passage is unimplemented: validator bridges are statically clear but actual route/care containment has no scoped exception in either direction. Player gates pass24 static crossings.",
-      "Task7 custom chicken/horse/sheep can remain moving with no target after a refused ordinary route;3 focused REDs plus real browser states. Cow recovery already passes.",
+      "Directed exterior gate passage remains unimplemented; corridor scope approved but initiating caller and terminal outside lifecycle require precise decision. No gate implementation attempted. Prior8 route REDs remain.",
       "Whole-farm/gate traffic and full ordinary movement qualification are incomplete; direct-step witnesses do not prove entire connected roaming area.",
       "Independent cow assembly/support moves, new-farm/2D import, native Animal pens UI/pause/input isolation/four viewport journeys remain.",
       "Task8 full46 three-night/recovery/cloud/resource and cache-predecessor/official hosted/device qualification remain.",
@@ -2531,7 +2577,8 @@
       "Owner chose 2026-10-22 to square the horse paddock in place (amendment A2): stone path diagonal becomes a right angle; farm-path.js registered as sole path exception; horse template sa3d-horse-v2; horse floor 224.4 m2",
       "Owner-approved pet correction: ordinary full-body swept collisions prevent entry into the barn/fence pocket; continuous pen-point boundary events resolve the62/69 planner-step mismatch.80/80 unchanged diagnostic seeds pass; no clearance reduction. Existing invalid cage remains impassable.",
       "Task7 maximum ownership actual-browser checkpoint:all46 distinct actors and full live World validate; sheep west1m Apply preserves equal-clock paid state and unchanged chicken/cow layouts; fixed whole-chicken cardinal edits refused; refresh preserves all herd identities and reload restores all46. No runtime fix required.",
-      "Custom cow free placements can no longer pass using care clearance alone; real care destinations/pending robot jobs remain distinct. Excluded free cows use ordinary-eligible distinct staging. Local46-actor Apply/save/reload and widened actual-ground walking pass without relaxing margins."
+      "Custom cow free placements can no longer pass using care clearance alone; real care destinations/pending robot jobs remain distinct. Excluded free cows use ordinary-eligible distinct staging. Local46-actor Apply/save/reload and widened actual-ground walking pass without relaxing margins.",
+      "0f0d056 recovery REDs resolved by one Beast.go condition: custom chicken/horse/sheep idle fallback on empty route;28 focused,133 care,239 index assertions and12 real-owned30/60/120Hz cases pass, all cooldown/no-escape/reservation controls retained."
     ],
     "previousHandoff": "farm3d/CLAUDE_HANDOFF_20261022.md",
     "handedOffBy": {
@@ -6471,5 +6518,94 @@
       "farm3d/cow3d.js": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
       "farm3d/tests/animal-pen-authorized-adapters.json": "84a38deb2c92520204e7347ab341a3c7eeedbf4e866efb89ca3c32ea660be824"
     }
+  },
+  "routeRecovery20261023": {
+    "base": "0f0d0562fdec3216da2130852441771bcd7d6552",
+    "branch": "codex/pet-pocket-20261022",
+    "main": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
+    "model": "gpt-6-astra",
+    "reasoning": "xhigh",
+    "modelSource": "Parent explicitly selected/disclosed; no further switch in this turn",
+    "status": "TASK7_ROUTE_RECOVERY_PASS_GATE_BEHAVIOR_DECISION_PENDING",
+    "runtime": {
+      "file": "farm3d/index.html",
+      "function": "Beast.go",
+      "change": "Extend existing failed custom-cow route idle fallback to every custom penned species; pets/defaults and all routing/physics unchanged",
+      "sha256": "1632f477b76223994c0328e841c2a10cfde41603236a47d93b7eec86148c1a0a"
+    },
+    "tests": {
+      "retainedRed": {
+        "pass": 5,
+        "fail": 3,
+        "skipped": 0
+      },
+      "expandedRed": {
+        "pass": 14,
+        "fail": 6,
+        "skipped": 0
+      },
+      "focused": {
+        "pass": 28,
+        "fail": 0,
+        "skipped": 0
+      },
+      "careRegressions": {
+        "pass": 133,
+        "fail": 0,
+        "skipped": 0
+      },
+      "indexConsumers": {
+        "files": 24,
+        "pass": 239,
+        "fail": 0,
+        "skipped": 0
+      },
+      "browser": {
+        "version": "151.0.7922.34",
+        "playwright": "1.62.1",
+        "rates": [
+          30,
+          60,
+          120
+        ],
+        "cases": 12,
+        "frames": 1680,
+        "status": "PASS",
+        "actualOwnedAnimals": true,
+        "relocatedActors": false,
+        "originalThinkAndUpdate": true,
+        "reservationsUnchanged": 12,
+        "fullOwnershipRegression": "PASS unchanged full46/fixed-chicken/Apply/paid-state/refresh/reload",
+        "limitations": "Pinned local Windows, debug API fixtures; no native-input/device/hosted/visual acceptance or full roaming/mixed-gate claim"
+      },
+      "core": "101 files registered; full runner not rerun; relevant dependency checks above"
+    },
+    "integrity": {
+      "baselineTracked": 1799,
+      "priorEvidenceExact": 1146,
+      "protectedFilesExact": 20,
+      "approvedAdapterEntriesExact": 7,
+      "A1A2A3Exact": true,
+      "cow3dSha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+      "productionDiff": "One condition only",
+      "oldTestsUnchanged": true,
+      "exceptionsBeforeRelays": [
+        "farm3d/index.html",
+        "farm3d/tests/run-core-game-tests.mjs"
+      ]
+    },
+    "blocker": {
+      "action": "Implement actual directed animal exterior gate passage",
+      "target": "index/controller/runtime gate traversal and outside handoff",
+      "status": "pending product decision; not attempted; not denied; no uncertain mutation",
+      "reason": "Approved corridor-only plan defines neither initiating caller nor terminal outside behavior, and ordinary roaming remains contained",
+      "request": "Approve the explicitly requested internal bounded out-and-back contract with no new player controls or automatic ordinary exits, or specify the intended outside-hold caller and care/cancel/rebind lifecycle",
+      "details": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-route-recovery-20261023/gate-decision.md"
+    },
+    "processes": "All owned test/browser/server commands complete; no monitor/automation. Earlier external CIM inventory denial not retried.",
+    "merge": false,
+    "deployed": false,
+    "ownerVisualAccepted": false,
+    "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-route-recovery-20261023"
   }
 }

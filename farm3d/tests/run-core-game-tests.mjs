@@ -6,6 +6,7 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'animal-pen-route-recovery.test.mjs',
  'remaining-care-pet-collision.test.mjs',
  'animal-pen-cow-roaming.test.mjs',
  // Player-editable pen checks supplement every original isolated suite.
