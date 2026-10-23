@@ -1,0 +1,541 @@
+{
+  "status": "PASS classification checks; physical and whole-save strict comparisons remain RED",
+  "controlled": {
+    "refs": [
+      "170347be78d83c874c85b97691b5a846585235cd",
+      "792f87c047341cf917d2777c5bf1184c528794c8"
+    ],
+    "allFramesExactlyEqual": 1001,
+    "allDiagnosticInputsAndOutputsExactlyEqual": true,
+    "allMetricsActorsCareTokensWorldExactlyEqual": true,
+    "customOrdinaryEntries": 0,
+    "trajectorySha256": "24e12787b4b80e689c1aa3a9c9cc36411d7cbd2b1eb1af93df493c042e55e33d",
+    "diagnosticSha256": "9c8fa24dabfe32ffe4a4e383bfccc52a4ec0116c79155905b7b04cfa8e126134"
+  },
+  "wholeSaveStrict": {
+    "status": "FAIL retained",
+    "differingSaveKeys": [
+      "orders",
+      "quests"
+    ],
+    "alreadyDifferentAtStartAndUnchangedWithinEachRun": true,
+    "classification": "Unmatched startup orders/quests; not a whole-save equality proof"
+  },
+  "speed": {
+    "classification": "Pre-existing ordinary default-cow speed-budget breach; no regression from792f87c",
+    "cow": 1,
+    "frame": 1001,
+    "originalStartupFrame": 1002,
+    "dt": 0.016666666666666666,
+    "taskBefore": null,
+    "taskAfter": null,
+    "nominalMetersPerSecond": 0.7200000000000001,
+    "budgetMeters": 0.012000000000000002,
+    "actualMeters": 0.014004712947511645,
+    "actualMetersPerSecond": 0.840282776850544,
+    "excessMeters": 0.0020047129475116426,
+    "fitUnchanged": true,
+    "heightUnchanged": true,
+    "oldVelocity": [
+      -0.047982972700400486,
+      -0.43512072895776527
+    ],
+    "newVelocity": [
+      -0.09277385194780638,
+      -0.8351455905807248
+    ],
+    "inferredSteeringDesired": [
+      -0.7198461614114888,
+      -6.435493653302158
+    ],
+    "nominalDesired": [
+      -0.719846161411489,
+      -0.014883007127080475
+    ],
+    "addedSteering": [
+      2.220446049250313e-16,
+      -6.420610646175078
+    ],
+    "mechanism": "Ordinary steering adds repulsion to nominal desired velocity, then lerps and integrates without a default-cow final speed cap. No projection, care transition, rig translation or custom guard involvement."
+  },
+  "strictHistorical": {
+    "classification": "Real failed comparison, invalid matched-input regression premise",
+    "maxPositionDifference": 0.013246064507612232,
+    "positionDifferences": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0.013246064507612232,
+        0,
+        -0.0015230078259662605
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "initialControllerInputs": [
+      {
+        "lastAt": 1792594800616.6697,
+        "bedUntil": [
+          24.26690000000596,
+          24.26690000000596,
+          24.26690000000596,
+          24.26690000000596,
+          24.26690000000596
+        ]
+      },
+      {
+        "lastAt": 1792594800016.6667,
+        "bedUntil": [
+          24.279366666654745,
+          24.279366666654745,
+          24.279366666654745,
+          24.279366666654745,
+          24.279366666654745
+        ]
+      }
+    ],
+    "oldAssertionRetained": true,
+    "exactHistoricalCow2TickBranch": "Not reconstructable: original evidence did not capture cowTickAt; no claim of a proven exact historical branch."
+  },
+  "originalStartup": {
+    "boot": {
+      "clock": 5.766,
+      "performanceNow": 10180.899999976158,
+      "cowLayoutCustom": false,
+      "revision": 0,
+      "cows": [
+        {
+          "i": 0,
+          "p": [
+            -11.8,
+            0.08,
+            -38.2
+          ],
+          "vel": [
+            0,
+            0
+          ],
+          "target": null,
+          "path": null,
+          "act": "sleeping",
+          "until": 0,
+          "mode": "night",
+          "running": false,
+          "doing": null,
+          "P": {
+            "energy": 0.25,
+            "social": 0.5,
+            "curious": 0.3,
+            "brave": 0.6,
+            "hunger": 0.5,
+            "blurb": "Loves a long nap in the sun"
+          },
+          "S": {
+            "n": "Cow",
+            "h": 1.7,
+            "walk": 0.8,
+            "run": 2.6,
+            "eat": "graze",
+            "step": 3,
+            "r": 0.9
+          },
+          "need": {
+            "hunger": 0.450724915345537,
+            "tired": 0.3336522124398743,
+            "lonely": 0.2312813723605505
+          },
+          "stuckT": 0,
+          "lastPos": [
+            -11.8,
+            -38.2
+          ],
+          "cowTickAt": 5.766,
+          "penCustom": false,
+          "task": {
+            "kind": "bed",
+            "token": {
+              "stationId": "cow-bed-1",
+              "animalId": "cow-1",
+              "generation": 1,
+              "arrived": false
+            },
+            "station": {
+              "id": "cow-bed-1",
+              "kind": "bed",
+              "dock": [
+                -11.8,
+                0.08,
+                -38.2
+              ],
+              "approach": [
+                -11.8,
+                0.08,
+                -36.8
+              ],
+              "facing": 0,
+              "surface": 0.2
+            },
+            "stage": "hold",
+            "held": 0,
+            "weight": 1,
+            "waypoints": [],
+            "path": [],
+            "until": 24.280199999988078
+          },
+          "rigYaw": -3.1415756781420066
+        },
+        {
+          "i": 1,
+          "p": [
+            -7.8,
+            0.08,
+            -38.2
+          ],
+          "vel": [
+            0,
+            0
+          ],
+          "target": null,
+          "path": null,
+          "act": "sleeping",
+          "until": 0,
+          "mode": "night",
+          "running": false,
+          "doing": null,
+          "P": {
+            "energy": 0.7,
+            "social": 0.5,
+            "curious": 1,
+            "brave": 0.7,
+            "hunger": 0.5,
+            "blurb": "Comes over to see anything new"
+          },
+          "S": {
+            "n": "Cow",
+            "h": 1.7,
+            "walk": 0.8,
+            "run": 2.6,
+            "eat": "graze",
+            "step": 3,
+            "r": 0.9
+          },
+          "need": {
+            "hunger": 0.37217351834856605,
+            "tired": 0.1203228843493028,
+            "lonely": 0.32006071047860235
+          },
+          "stuckT": 0,
+          "lastPos": [
+            -7.8,
+            -38.2
+          ],
+          "cowTickAt": 5.766,
+          "penCustom": false,
+          "task": {
+            "kind": "bed",
+            "token": {
+              "stationId": "cow-bed-2",
+              "animalId": "cow-2",
+              "generation": 2,
+              "arrived": false
+            },
+            "station": {
+              "id": "cow-bed-2",
+              "kind": "bed",
+              "dock": [
+                -7.8,
+                0.08,
+                -38.2
+              ],
+              "approach": [
+                -7.8,
+                0.08,
+                -36.8
+              ],
+              "facing": 0,
+              "surface": 0.2
+            },
+            "stage": "hold",
+            "held": 0,
+            "weight": 1,
+            "waypoints": [],
+            "path": [],
+            "until": 24.280199999988078
+          },
+          "rigYaw": -3.1415756781420066
+        },
+        {
+          "i": 2,
+          "p": [
+            -3.8,
+            0.08,
+            -38.2
+          ],
+          "vel": [
+            0,
+            0
+          ],
+          "target": null,
+          "path": null,
+          "act": "sleeping",
+          "until": 0,
+          "mode": "night",
+          "running": false,
+          "doing": null,
+          "P": {
+            "energy": 0.5,
+            "social": 0.35,
+            "curious": 0.15,
+            "brave": 0.05,
+            "hunger": 0.5,
+            "blurb": "Startles easily and keeps its distance"
+          },
+          "S": {
+            "n": "Cow",
+            "h": 1.7,
+            "walk": 0.8,
+            "run": 2.6,
+            "eat": "graze",
+            "step": 3,
+            "r": 0.9
+          },
+          "need": {
+            "hunger": 0.07296674678705947,
+            "tired": 0.3521132501084885,
+            "lonely": 0.560873488039185
+          },
+          "stuckT": 0,
+          "lastPos": [
+            -3.8,
+            -38.2
+          ],
+          "cowTickAt": 5.766,
+          "penCustom": false,
+          "task": {
+            "kind": "bed",
+            "token": {
+              "stationId": "cow-bed-3",
+              "animalId": "cow-3",
+              "generation": 3,
+              "arrived": false
+            },
+            "station": {
+              "id": "cow-bed-3",
+              "kind": "bed",
+              "dock": [
+                -3.8,
+                0.08,
+                -38.2
+              ],
+              "approach": [
+                -3.8,
+                0.08,
+                -36.8
+              ],
+              "facing": 0,
+              "surface": 0.2
+            },
+            "stage": "hold",
+            "held": 0,
+            "weight": 1,
+            "waypoints": [],
+            "path": [],
+            "until": 24.280199999988078
+          },
+          "rigYaw": -3.1415756781420066
+        },
+        {
+          "i": 3,
+          "p": [
+            0.2,
+            0.08,
+            -38.2
+          ],
+          "vel": [
+            0,
+            0
+          ],
+          "target": null,
+          "path": null,
+          "act": "sleeping",
+          "until": 0,
+          "mode": "night",
+          "running": false,
+          "doing": null,
+          "P": {
+            "energy": 1,
+            "social": 0.8,
+            "curious": 0.7,
+            "brave": 0.8,
+            "hunger": 0.6,
+            "blurb": "Always zooming around"
+          },
+          "S": {
+            "n": "Cow",
+            "h": 1.7,
+            "walk": 0.8,
+            "run": 2.6,
+            "eat": "graze",
+            "step": 3,
+            "r": 0.9
+          },
+          "need": {
+            "hunger": 0.4928061000503628,
+            "tired": 0.09212354644766242,
+            "lonely": 0.38453417503486115
+          },
+          "stuckT": 0,
+          "lastPos": [
+            0.2,
+            -38.2
+          ],
+          "cowTickAt": 5.766,
+          "penCustom": false,
+          "task": {
+            "kind": "bed",
+            "token": {
+              "stationId": "cow-bed-4",
+              "animalId": "cow-4",
+              "generation": 4,
+              "arrived": false
+            },
+            "station": {
+              "id": "cow-bed-4",
+              "kind": "bed",
+              "dock": [
+                0.2,
+                0.08,
+                -38.2
+              ],
+              "approach": [
+                0.2,
+                0.08,
+                -36.8
+              ],
+              "facing": 0,
+              "surface": 0.2
+            },
+            "stage": "hold",
+            "held": 0,
+            "weight": 1,
+            "waypoints": [],
+            "path": [],
+            "until": 24.280199999988078
+          },
+          "rigYaw": -3.1415756781420066
+        },
+        {
+          "i": 4,
+          "p": [
+            4.2,
+            0.08,
+            -38.2
+          ],
+          "vel": [
+            0,
+            0
+          ],
+          "target": null,
+          "path": null,
+          "act": "sleeping",
+          "until": 0,
+          "mode": "night",
+          "running": false,
+          "doing": null,
+          "P": {
+            "energy": 0.4,
+            "social": 0.05,
+            "curious": 0.2,
+            "brave": 1,
+            "hunger": 0.5,
+            "blurb": "Prefers to be left alone"
+          },
+          "S": {
+            "n": "Cow",
+            "h": 1.7,
+            "walk": 0.8,
+            "run": 2.6,
+            "eat": "graze",
+            "step": 3,
+            "r": 0.9
+          },
+          "need": {
+            "hunger": 0.3683183253129564,
+            "tired": 0.32609353485800957,
+            "lonely": 0.18484843028003742
+          },
+          "stuckT": 0,
+          "lastPos": [
+            4.2,
+            -38.2
+          ],
+          "cowTickAt": 5.766,
+          "penCustom": false,
+          "task": {
+            "kind": "bed",
+            "token": {
+              "stationId": "cow-bed-5",
+              "animalId": "cow-5",
+              "generation": 5,
+              "arrived": false
+            },
+            "station": {
+              "id": "cow-bed-5",
+              "kind": "bed",
+              "dock": [
+                4.2,
+                0.08,
+                -38.2
+              ],
+              "approach": [
+                4.2,
+                0.08,
+                -36.8
+              ],
+              "facing": 0,
+              "surface": 0.2
+            },
+            "stage": "hold",
+            "held": 0,
+            "weight": 1,
+            "waypoints": [],
+            "path": [],
+            "until": 24.280199999988078
+          },
+          "rigYaw": -3.1415756781420066
+        }
+      ]
+    },
+    "customOrdinaryEntries": 0,
+    "frame": 1002
+  },
+  "negativeControls": {
+    "changedTrajectoryRejected": true,
+    "originalSpeedBoundaryAccepted": true,
+    "originalSpeedBoundaryPlusOneNanometerAccepted": true,
+    "twoNanometersOverBudgetRejected": true,
+    "actualBreachRejected": true
+  },
+  "limitations": [
+    "Controlled boot comparison is separate diagnostic evidence; original startup/strict failures remain unchanged.",
+    "Accepted main steering source matches exactly; entire main browser journey was not reproduced.",
+    "Local pinned browser/manual five-cow updates, other41 actors static; not hosted/device/cloud/full-farm qualification.",
+    "Default queue completion beyond the first speed failure is unknown; no deadline extension or continued failed run used as success."
+  ]
+}
