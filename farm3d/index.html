@@ -2092,9 +2092,10 @@ function waitCowStation(a,label){
   }
   const nearCare=(x,z)=>corridors.some(([px,pz,qx,qz])=>{const dx=qx-px,dz=qz-pz,u=THREE.MathUtils.clamp(((x-px)*dx+(z-pz)*dz)/(dx*dx+dz*dz||1),0,1);return Math.hypot(x-px-u*dx,z-pz-u*dz)<1.1;});
   if(nearCare(a.g.position.x,a.g.position.z))for(const radius of [1.4,2.1,2.8,4.2,5.6])for(let k=0;k<24;k++){
-    const x=a.g.position.x+Math.cos(k*Math.PI/12)*radius,z=a.g.position.z+Math.sin(k*Math.PI/12)*radius;
+    const to=a.fit(new THREE.Vector2(a.g.position.x+Math.cos(k*Math.PI/12)*radius,a.g.position.z+Math.sin(k*Math.PI/12)*radius)),x=to.x,z=to.y;
     if(!fitsPen(PENS.courtyard,x,z,.7)||nearCare(x,z)||COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.65&&Math.abs(z-bz)<hd+.65)||animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(x-b.g.position.x,z-b.g.position.z)<1.3))continue;
-    a.go(x,z,false,'Making room at the care stations');return true;
+    // A fitted point can still have no ordinary route at the existing clearance.
+    a.go(x,z,false,'Making room at the care stations');if(a.target)return true;
   }
   a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;
 }
