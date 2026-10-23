@@ -6,6 +6,8 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'animal-pen-robot-phase.test.mjs',
+ 'animal-pen-robot-arrival.test.mjs',
  'animal-pen-cow-wait.test.mjs','animal-pen-cow-wait-route.test.mjs',
  'animal-pen-cow-resume.test.mjs',
  'animal-pen-integration.test.mjs',

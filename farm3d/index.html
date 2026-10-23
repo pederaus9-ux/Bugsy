@@ -1999,7 +1999,7 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  setCowGrass(cowYardActive);
  for(const kind of ['horse','sheep','dog','cat']){const l=remainingLayouts[kind],[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8)if(active[kind])moveClear('remaining-'+kind+':'+i++,x,z,1.3);}
  for(const a of animals)a.pen=penOf(a.kind);
- chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus)cowYard.setStatus(cowStatus); // a boot-time install precedes the first syncCowYard
+ chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus){cowYard.setStatus(cowStatus);cowYard.setRobotPose(cowStatus.job?.stage==='milking'?(nowMs()-cowStatus.job.startedAt)/12000:0);} // a boot-time install precedes the first syncCowYard
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
  // The accepted chicken yard keeps its legacy collision; a customised yard must not leave it behind.
  moveBlock(legacyHenPanBlock,...(layout.sites.chicken.custom?[1450,1450]:[-9.6,-2.4]));
@@ -2126,7 +2126,7 @@ function updateCowTaskStep(a,dt,t){
   const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
   const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
   if(waking||(isRobot&&!currentJob))task.stage='stand';
-  const ox=a.g.position.x,oz=a.g.position.z;
+  const ox=a.g.position.x,oz=a.g.position.z;let robotDockTarget=null;
   if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){releaseCowTask(a);a.act='idle';a.until=0;}}
   else if(task.stage==='approach'||task.stage==='exit'){
     // Docked jobs restored from disk resume their physical approach without a
@@ -2146,7 +2146,10 @@ function updateCowTaskStep(a,dt,t){
           if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
         }
       }
-      if(d<.035)task.path.shift();
+      // Finish the final robot approach physically: the ordinary waypoint
+      // shortcut can leave the teat centers outside the cluster openings.
+      if(isRobot&&task.stage==='approach'&&!task.waypoints.length&&task.path.length===1)robotDockTarget=p;
+      else if(d<.035)task.path.shift();
     }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
@@ -2162,6 +2165,7 @@ function updateCowTaskStep(a,dt,t){
   }
   if(COW_YARD_LAYOUT.custom)a.g.position.fromArray(cowPenStep([ox,a.g.position.y,oz],a.g.position.toArray(),a.S.walk*Math.max(0,dt),cowSupportY));
   else a.g.position.y=COW_YARD_LAYOUT.floor;
+  if(robotDockTarget&&Math.hypot(a.g.position.x-robotDockTarget.x,a.g.position.z-robotDockTarget.y)<1e-10)task.path.shift();
   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
   Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
   if(COW_YARD_LAYOUT.custom)applyCowPenSupport(r,cowSupportY);
