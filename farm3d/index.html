@@ -2128,14 +2128,18 @@ function updateCowTask(a,dt,t){
 function cowSupportY(x,z){return cowPenSupportHeight(installedAnimalPens.sites.cow,x,z,groundY);}
 function updateCowTaskStep(a,dt,t){
   const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
+  // A relocated occupied visit must regain real full-weight mouth contact.
+  // Read the previous applied pose before resetting it for this physical step.
+  let returnedContact=false;
+  if(task.layoutReturn&&task.stage==='hold'&&task.weight===1){const target=cowSurfaces.get(task.station.id);if(target){r.g.updateMatrixWorld(true);returnedContact=r.jaw.localToWorld(new THREE.Vector3(0,-.05,-.33)).distanceTo(target)<=.08;}}
   a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
   const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
   const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
   const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
   const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
-  if(waking||(isRobot&&!currentJob))task.stage='stand';
+  if(waking||(isRobot&&!currentJob)){task.stage='stand';delete task.layoutReturn;}
   const ox=a.g.position.x,oz=a.g.position.z;let robotDockTarget=null;
-  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){releaseCowTask(a);a.act='idle';a.until=0;}}
+  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){if(task.layoutReturn)task.stage='approach';else{releaseCowTask(a);a.act='idle';a.until=0;}}}
   else if(task.stage==='approach'||task.stage==='exit'){
     // Docked jobs restored from disk resume their physical approach without a
     // second credit. Approaching/queued jobs still require a fresh dock proof.
@@ -2162,13 +2166,13 @@ function updateCowTaskStep(a,dt,t){
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
     const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
-    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
+    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';if(!task.layoutReturn)task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
     if(task.stage==='hold'){
       if(isRobot&&currentJob){
         if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
         if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];task.path=null;}
         a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
-      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
+      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(returnedContact)delete task.layoutReturn;if(task.kind!=='bed'&&t>task.until&&!task.layoutReturn){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
     }
   }
   if(COW_YARD_LAYOUT.custom)a.g.position.fromArray(cowPenStep([ox,a.g.position.y,oz],a.g.position.toArray(),a.S.walk*Math.max(0,dt),cowSupportY));
