@@ -688,6 +688,8 @@ import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-p
 import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';
 import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=1';
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
+import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=1';
+import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -2070,6 +2072,7 @@ function snapshotPenWorld(){
  return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
 }
 const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
+let animalPenEditing=null;
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
 const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
 function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
@@ -2365,7 +2368,7 @@ let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
-  if (editMode) return; // the layout editor only drags things
+  if (editMode || animalPenEditing) return; // draft input never acts on the farm
   if (visiting) { // a friend's farm is read-only, except that you can water their growing crops for them
     if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     const h = hitAt(e.clientX, e.clientY), p = h && h.type === "plot" && GS().plots[h.i];
@@ -3084,6 +3087,7 @@ stick.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) moveJo
 const endJoy = (e) => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ""; };
 stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
 addEventListener("keydown", (e) => {
+  if (animalPenEditing) return;
   if (G.panel || (e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (["Enter","Space"].includes(e.code) && e.target.closest("button"))))) return;
   if (e.code === "Escape") { setWalk(false); setEdit(false); }
   if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); if ((e.code === "Space" || e.code === "KeyF") && !e.repeat) throwBait(); }
@@ -3415,6 +3419,7 @@ editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visib
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
 const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
 function setEdit(on) {
+  if (!on && animalPenEditing) { penEditor.cancel(); setAnimalPenEditing(false); }
   if (!!editMode === on) return;
   if (on) {
     if (walk) setWalk(false);
@@ -3492,6 +3497,7 @@ function showShade(d) {
   editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;
 }
 function editDown(e) {
+  if (animalPenEditing) return false;
   const h = editHit(e.clientX, e.clientY); if (!h) return false;
   const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
   editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
@@ -3499,6 +3505,7 @@ function editDown(e) {
   return true;
 }
 function editMove(e) {
+  if (animalPenEditing) return false;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
   const g = groundAt(e.clientX, e.clientY); if (!g) return true;
   const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
@@ -3506,12 +3513,58 @@ function editMove(e) {
   return true;
 }
 function editUp(e) {
+  if (animalPenEditing) return;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
   editMode.drag = null; editShade.visible = false;
   if (d.moved && d.ok) { d.obj.position.y = 0; commitEdit(d.key, d.x, d.z); squish(d.obj, .6); G.sfx("place"); }
   else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
+// The pen draft owns input and physical pause, never the paid game clock.
+function animalPenEditingAllowed(){
+ return !visiting&&!G.isVisiting()&&!window.__saHold&&!G.SANDBOX&&G.S.v<=G.SAVE_VERSION&&decodeAnimalPens(G.S.layout?.animalPens).status==='ok';
+}
+function setAnimalPenEditing(active){
+ if(active){
+  if(animalPenEditing||!animalPenEditingAllowed())return false;
+  const owned=snapshotPenWorld().owned,kind=Object.keys(owned).find(k=>owned[k]>0);
+  if(!kind||!penEditor.begin(kind))return false;
+  if(!editMode)setEdit(true);
+  if(editMode.drag)editCancel();if(moving)endMove(true);closeTrays();G.close();
+  clearTimeout(pressTimer);pressTimer=0;farmDrag=null;downAt=null;ptr.clear();keys.clear();joy.x=joy.y=0;
+  const host=document.createElement('div');host.dataset.penEditorHost='';document.body.append(host);
+  const preview=createAnimalPenPreview(scene),session={farm:G.S,host,preview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
+   camera:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,target:cam.target.clone()}};
+  animalPenEditing=session;editBar.hidden=true;document.body.classList.add('pen-editing');
+  session.view=createAnimalPenEditorView({editor:penEditor,host,canvas:renderer.domElement,
+   ownedKinds:()=>Object.keys(owned).filter(k=>owned[k]>0),
+   project:p=>{const s=toScreen(new THREE.Vector3(...p));return s?[s.x,s.y]:[-100,-100];},
+   unproject:p=>groundAt(...p)?.toArray()??null,preview:preview.update,clearPreview:preview.clear,
+   onSelection:selection=>{if(!selection||session.kind===selection.kind)return;session.kind=selection.kind;const site=installedAnimalPens.sites[selection.kind],p=site.footprint;
+    cam.target.set(p.reduce((n,v)=>n+v[0],0)/p.length,0,p.reduce((n,v)=>n+v[1],0)/p.length);cam.dist=Math.max(24,Math.max(...p.map(v=>v[0]))-Math.min(...p.map(v=>v[0]))+14);},
+   panZoom:()=>{session.pan=true;session.last=null;},onClose:()=>setAnimalPenEditing(false)});
+  return true;
+ }
+ const session=animalPenEditing;if(!session)return false;
+ animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.host.remove();
+ Object.assign(cam,{yaw:session.camera.yaw,pitch:session.camera.pitch,dist:session.camera.dist});cam.target.copy(session.camera.target);
+ ptr.clear();keys.clear();farmDrag=null;downAt=null;frame.lastT=undefined;
+ document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;
+}
+const animalPensButton=document.createElement('button');animalPensButton.id='animalPensBtn';animalPensButton.type='button';animalPensButton.textContent='Animal pens';animalPensButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(animalPensButton,editBar.querySelector('[data-mode]'));
+animalPensButton.addEventListener('click',()=>{if(!setAnimalPenEditing(true))G.toast('Animal pens are unavailable on this farm.');});
+// Keep paid/care/purchase buttons behind the draft inert, without changing their
+// handlers or the existing account/restore guards in game.js.
+document.addEventListener('click',event=>{const s=animalPenEditing;if(s&&!s.host.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
+addEventListener('pointerdown',event=>{animalPenEditing?.pointers.set(event.pointerId,[event.clientX,event.clientY]);},true);
+addEventListener('pointermove',event=>{
+ const s=animalPenEditing;if(!s||!s.pointers.has(event.pointerId))return;s.pointers.set(event.pointerId,[event.clientX,event.clientY]);if(!s.pan)return;
+ const points=[...s.pointers.values()],c=[points.reduce((n,p)=>n+p[0],0)/points.length,points.reduce((n,p)=>n+p[1],0)/points.length],d=points.length>1?Math.hypot(points[0][0]-points[1][0],points[0][1]-points[1][1]):null;
+ if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-24,24);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-18-NORTH_EXTENSION,28);}
+ s.last={c,d};event.preventDefault();event.stopImmediatePropagation();
+},true);
+for(const type of ['pointerup','pointercancel'])addEventListener(type,event=>{const s=animalPenEditing;if(s){s.pointers.delete(event.pointerId);s.last=null;if(!s.pointers.size)s.pan=false;}},true);
+addEventListener('blur',()=>{if(animalPenEditing){animalPenEditing.pointers.clear();animalPenEditing.pan=false;animalPenEditing.last=null;}});
 document.getElementById("walkBtn").addEventListener("click", () => enterFP());
 throwBtn.addEventListener("click", throwBait);
 document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
@@ -3749,7 +3802,7 @@ function flyTo(kind, n, at) {
 Object.assign(GV, {
   sparkle(key) { const v = keyPos(key); if (v) { bits(v.clone().setY(1), "rgba(255,210,60,1)", 16, 5.5); bits(v.clone().setY(1.2), "rgba(255,255,230,1)", 8, 6.5); } },
   fly:flyTo,
-  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!animalPenEditing || !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
   openBuildingAt(x, y) {
     if (visiting || editMode || photoMode || wardrobeOn || inBarn) return false;
     const h = hitAt(x, y);
@@ -4001,6 +4054,7 @@ function plantAt(i) {
 }
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
+  if (animalPenEditing) return false;
   if (visiting || photoMode || wardrobeOn) return false; // a friend's farm: look, don't touch
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
@@ -4033,6 +4087,7 @@ function paintAlong(x, y) {
   farmDrag.last = [x, y];
 }
 function farmMove(e) {
+  if (animalPenEditing) return false;
   if (moving && moving.id === e.pointerId) { moving.moved = true; moveTo(e.clientX, e.clientY); return true; }
   if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
   if (!farmDrag || farmDrag.id !== e.pointerId) return false;
@@ -4370,7 +4425,8 @@ function frame() {
   if (G.reducedMotion()) shake = 0;
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   if (LOCO) locoParade(t);
-  for (const a of animals) a.update(dt, t);
+  if(animalPenEditing&&(!animalPenEditingAllowed()||animalPenEditing.farm!==G.S||!penEditor.snapshot().open)){penEditor.cancel();setAnimalPenEditing(false);}
+  if(!animalPenEditing)for (const a of animals) a.update(dt, t);
   updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);

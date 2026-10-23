@@ -1,0 +1,91 @@
+Γ£û native view exposes only owned species and selects the current species (6.8ms)
+Γ£û native view reports the selected site for camera framing (2.0529ms)
+Γ£û Cancel discards the entire dirty draft without committing (2.8747ms)
+Γ£ö Close preserves dirty work while presenting the three explicit exit choices (2.1667ms)
+Γä╣ tests 4
+Γä╣ suites 0
+Γä╣ pass 1
+Γä╣ fail 3
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 91.6991
+
+Γ£û failing tests:
+
+test at farm3d\tests\animal-pen-integration.test.mjs:28:1
+Γ£û native view exposes only owned species and selects the current species (6.8ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'chicken',
+  +   'cow',
+  +   'horse',
+      'sheep',
+  +   'dog',
+  +   'cat'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-integration.test.mjs:28:113)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'chicken', 'cow', 'horse', 'sheep', 'dog', 'cat' ],
+    expected: [ 'chicken', 'sheep' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-integration.test.mjs:29:1
+Γ£û native view reports the selected site for camera framing (2.0529ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   {
+  -     id: 'sheep',
+  -     kind: 'sheep',
+  -     type: 'pen'
+  -   }
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-integration.test.mjs:29:99)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ { kind: 'sheep', type: 'pen', id: 'sheep' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-integration.test.mjs:30:1
+Γ£û Cancel discards the entire dirty draft without committing (2.8747ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-integration.test.mjs:30:214)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

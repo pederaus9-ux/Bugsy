@@ -3,14 +3,15 @@ import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
 const labels={chicken:'Chickens',cow:'Cows',horse:'Horses',sheep:'Sheep',dog:'Dog',cat:'Cat'};
 // Native controls are deliberately large; precise selection never depends on
 // tapping a rendered fence wire. The canvas remains the actual game renderer.
-export function createAnimalPenEditorView({editor,host,canvas,project,unproject,preview,clearPreview,panZoom=()=>{},onClose=()=>{}}){
+export function createAnimalPenEditorView({editor,host,canvas,project,unproject,preview,clearPreview,panZoom=()=>{},onClose=()=>{},ownedKinds=()=>Object.keys(labels),onSelection=()=>{}}){
  const panel=document.createElement('section');panel.setAttribute('aria-label','Animal pen editor');panel.style.cssText='position:fixed;left:12px;bottom:12px;width:min(360px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:#fff9e9;color:#302c20;border:2px solid #6b8548;border-radius:16px;padding:12px;z-index:1000;box-shadow:0 5px 25px #0006;font:16px system-ui;';
  panel.innerHTML='<strong>Animal pens</strong><button type="button" data-action="close" aria-label="Close animal pen editor" style="float:right">×</button><p style="margin:8px 0">Move fences and buildings. Apply saves your changes.</p><label>Animal <select aria-label="Animal" data-field="kind"></select></label><label style="display:block">Selected item <select aria-label="Selected pen item" data-field="target" style="width:100%"></select></label><div data-controls style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div><p data-status role="status" aria-live="polite"></p><div style="display:flex;gap:8px"><button data-action="apply">Apply</button><button data-action="cancel">Cancel</button></div><div data-exit hidden><p>Save your pen changes?</p><button data-action="exit-apply">Apply</button><button data-action="exit-discard">Discard</button><button data-action="exit-keep">Keep editing</button></div>';
  const kinds=panel.querySelector('[data-field="kind"]'),targets=panel.querySelector('[data-field="target"]'),controls=panel.querySelector('[data-controls]'),status=panel.querySelector('[data-status]'),exit=panel.querySelector('[data-exit]');
- for(const [kind,label]of Object.entries(labels)){const o=document.createElement('option');o.value=kind;o.textContent=label;kinds.append(o);}
+ panel.style.maxHeight=window.innerWidth<600?'42vh':'70vh';
+ for(const [kind,label]of Object.entries(labels)){if(!ownedKinds().includes(kind))continue;const o=document.createElement('option');o.value=kind;o.textContent=label;kinds.append(o);}
  const gateAnchor=document.createElement('select');gateAnchor.setAttribute('aria-label','Gate fence');controls.append(gateAnchor);
  const definitions=[['anchor','Attach gate'],['left','←'],['up','↑'],['down','↓'],['right','→'],['add-post','Add post'],['remove','Remove'],['add-fence','Add fence'],['add-gate','Add gate'],['gate-left','Gate −1 m'],['gate-right','Gate +1 m'],['widen','Widen gate'],['narrow','Narrow gate']];
- for(const [action,label]of definitions){const b=document.createElement('button');b.type='button';b.dataset.action=action;b.textContent=label;controls.append(b);}
+ for(const [action,label]of definitions){const b=document.createElement('button');b.type='button';b.dataset.action=action;b.textContent=label;if(['left','up','down','right'].includes(action))b.setAttribute('aria-label','Move '+action+' 1 metre');controls.append(b);}
  for(const node of panel.querySelectorAll('button,select'))node.style.cssText+='min-width:44px;min-height:44px;font:inherit;touch-action:manipulation;';
  host.append(panel);
  const handle=document.createElement('button');handle.type='button';handle.setAttribute('aria-label','Drag selected pen item');handle.textContent='✥';handle.style.cssText='position:fixed;width:48px;height:48px;border-radius:50%;background:#fff9e9;color:#304b20;border:3px solid #6b8548;z-index:999;touch-action:none;font-size:25px;';host.append(handle);
@@ -35,7 +36,8 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  function close(){const s=editor.snapshot();if(s.dirty){exit.hidden=false;}else{editor.cancel();clearPreview();onClose();}}
  async function action(name){const state=editor.snapshot(),s=record(state),t=state.selection;if(!t)return;
   if(['left','right','up','down'].includes(name)){move({left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[name]);return;}
-  if(name==='close'||name==='cancel'){close();return;}
+  if(name==='close'){close();return;}
+  if(name==='cancel'){editor.cancel();clearPreview();onClose();return;}
   if(name==='exit-keep'){exit.hidden=true;return;}
   if(name==='exit-discard'){editor.cancel();clearPreview();onClose();return;}
   if(name==='apply'||name==='exit-apply'){if(await editor.apply()){clearPreview();onClose();}return;}
@@ -67,6 +69,7 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   if(signature!==seen){seen=signature;kinds.value=t.kind;targets.replaceChildren();const list=[['pen',t.kind,'Whole pen'],...Object.keys(s.structures).map(id=>['structure',id,id]),...(s.boundary??[]).flatMap((v,i)=>[['vertex',v.id,'Post '+(i+1)],['edge',v.id+':'+s.boundary[(i+1)%s.boundary.length].id,'Fence edge '+(i+1)]]),...(s.runs??[]).map((r,i)=>['run',r.id,'Interior fence '+(i+1)]),...(s.gates??[]).map((g,i)=>['gate',g.id,'Gate '+(i+1)])];for(const [type,id,label]of list){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;targets.append(o);}targets.value=t.type+'|'+t.id;gateAnchor.replaceChildren();for(const [type,id,label]of list.filter(v=>['edge','run'].includes(v[0]))){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;gateAnchor.append(o);}gateAnchor.hidden=t.type!=='gate';
    for(const b of controls.querySelectorAll('button')){const n=b.dataset.action;b.disabled=n==='anchor'?t.type!=='gate':n==='add-post'?t.type!=='edge':n==='remove'?!['vertex','run','gate'].includes(t.type):n==='add-gate'?!['edge','run'].includes(t.type):n==='add-fence'?!s.boundary:['gate-left','gate-right','widen','narrow'].includes(n)?t.type!=='gate':t.type==='gate';}
   }
+  onSelection(t);
   const p=anchor(state);handle.hidden=!p||t.type==='gate';if(p){const xy=project([p[0],0,p[1]]);handle.style.left=(xy[0]-24)+'px';handle.style.top=(xy[1]-24)+'px';}
   panel.querySelector('[data-action="apply"]').disabled=!state.canApply;panel.querySelector('[data-action="exit-apply"]').disabled=!state.canApply;
   if(!drawRun)status.textContent=state.reason??(state.dirty?(state.validation?'Ready to apply.':'Checking space and care routes…'):'Select a fence or building to edit.');
