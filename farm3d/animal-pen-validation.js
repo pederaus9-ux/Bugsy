@@ -92,7 +92,7 @@ function coopExit(site,plan,actor,from,world){
  if(!nearest)return null;const result=[from,nearest.q,...points.slice(0,nearest.i+1).reverse()];return result.every((p,i)=>i===0||coopLeg(site,plan,result[i-1],p,actor.clearance,world))?result:null;
 }
 /** Complete deterministic layout preflight. Never spends, saves or mutates live actors. */
-export function validateAnimalPens(layout,world){
+export function validateAnimalPens(layout,world,{fastReject=false}={}){
  const issues=[],placements={},waiting={},routes=[],ordinaryRoutes={},diagnostics={searches:0,visited:0},add=(code,kind,target,message)=>issues.push({code,kind,target,message}),active=Object.values(layout.sites).filter(s=>world.owned[s.kind]>0&&(s.custom||world.installed?.[s.kind]!==false)),plans=new Map();
  const freeCow=a=>a.kind==='cow'&&layout.sites.cow.custom&&!layout.sites.cow.stations.some(s=>s.id===(a.careStationId??a.stationId));
  const placementPad=a=>freeCow(a)?COW_BODY:a.clearance;
@@ -132,6 +132,9 @@ export function validateAnimalPens(layout,world){
  const reserved=Object.values(layout.sites).filter(s=>!active.includes(s));
  for(let i=0;i<active.length;i++)for(const b of [...active.slice(i+1),...reserved]){const a=active[i];if(a.polygon&&b.polygon&&shapeIntersectsPolygon({type:'polygon',points:a.polygon},b.polygon))add('OVERLAP',a.kind,null,'Keep animal pens separate.');for(const [id,c]of Object.entries(a.components))for(const d of Object.values(b.components))if(shapeIntersectsPolygon({type:'polygon',points:c.footprint},d.footprint))add('OVERLAP',a.kind,id,'Keep animal buildings separate.');}
  for(const s of active)for(const [id,c]of Object.entries(s.components))for(const [other,d]of Object.entries(s.components))if(id<other&&volumesOverlap(c.volumes,d.volumes)&&!(eq(c.delta,d.delta)&&volumesOverlap(defaults.sites[s.kind].components[id].volumes,defaults.sites[s.kind].components[other].volumes)))add('OVERLAP',s.kind,id,'These animal buildings overlap.');
+ // Preview may stop at a definite static rejection. Every green preview still
+ // executes all placements and routes; Apply retains the complete default report.
+ if(fastReject&&issues.length)return{revision:layout.revision,worldEpoch:world.epoch,obstacleRevision:world.obstacleRevision,ok:false,issues,placements,waiting,routes,ordinaryRoutes,diagnostics};
  for(const actor of world.actors){const site=layout.sites[actor.kind],plan=plans.get(actor.kind);if(!plan)continue;const pad=actor.clearance,c=actor.component&&site.components[actor.component],original=actor.position,old=c?(world.currentLayout?.sites[actor.kind]?.components[actor.component]?.origin??PEN_TEMPLATES[actor.kind].components[actor.component].origin):null,p=c?[original[0]+(c.origin[0]-old[0]),original[1],original[2]+(c.origin[1]-old[1])]:[...original],used=world.actors.filter(a=>placements[a.id]);p[1]=support(site,p,world);
   const separate=q=>used.every(a=>distance(q,placements[a.id])>=placementPad(actor)+placementPad(a)-EPS),away=q=>site.stations.every(s=>pointSegmentDistance(xy(q),xy(s.approach),xy(s.dock))>=placementPad(actor)+.1)&&site.gates.every(g=>pointSegmentDistance(xy(q),xy(g.inside),xy(g.outside))>=placementPad(actor)+.1);
   const occupiedCoop=actor.kind==='chicken'&&actor.component==='coop'&&actor.stationId&&site.stations.some(s=>s.id===actor.stationId)&&support(site,p,world)>EPS&&coopLeg(site,plan,p,p,pad,world);

@@ -26,7 +26,7 @@ export function createAnimalPenEditor({readWorld,readLayout,validate,commit,onCh
   switch(c.type){
    case 'moveStructure':if(!Object.hasOwn(s.structures,c.id)||!point(c.to))return false;s.structures[c.id]=snap(c.to);break;
    case 'movePen':
-    if(!point(c.delta))return false;d=snap(c.delta);for(const k of Object.keys(s.structures))s.structures[k]=add(s.structures[k],d);
+    if(!point(c.delta))return false;d=snap(c.delta);if(c.kind==='chicken'&&d.some(Boolean))return false;for(const k of Object.keys(s.structures))s.structures[k]=add(s.structures[k],d);
     if(pen){for(const v of s.boundary){v.x+=d[0];v.z+=d[1];}for(const r of s.runs){r.a=add(r.a,d);r.b=add(r.b,d);}}break;
    case 'moveVertex':v=vertex(c.id);if(!v||!point(c.to))return false;[v.x,v.z]=snap(c.to);break;
    case 'moveEdge':if(!edge(c.edge)||!point(c.delta))return false;d=snap(c.delta);for(const v of c.edge.map(vertex)){v.x+=d[0];v.z+=d[1];}break;

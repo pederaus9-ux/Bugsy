@@ -690,6 +690,7 @@ import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=1
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=1';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
+import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -3550,10 +3551,12 @@ function setAnimalPenEditing(active){
   if(editMode.drag)editCancel();if(moving)endMove(true);closeTrays();G.close();
   clearTimeout(pressTimer);pressTimer=0;farmDrag=null;downAt=null;ptr.clear();keys.clear();joy.x=joy.y=0;
   const host=document.createElement('div');host.dataset.penEditorHost='';document.body.append(host);
-  const preview=createAnimalPenPreview(scene),session={farm:G.S,host,preview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
+  const preview=createAnimalPenPreview(scene),placementPreview=createPenPlacementPreview(scene,farmGroundY),session={farm:G.S,host,preview,placementPreview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
    camera:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,target:cam.target.clone()}};
   animalPenEditing=session;editBar.hidden=true;document.body.classList.add('pen-editing');
   session.view=createAnimalPenEditorView({editor:penEditor,host,canvas:renderer.domElement,
+   readWorld:snapshotPenWorld,placementPreview:placementPreview.update,clearPlacementPreview:placementPreview.clear,
+   onPlacementFocus:(at,screen)=>{cam.target.set(at[0],farmGroundY(...at),at[1]);cam.dist=22;placeCamera(1);camera.updateMatrixWorld(true);const hit=groundAt(...screen);if(hit){cam.target.x+=at[0]-hit.x;cam.target.z+=at[1]-hit.z;}},
    ownedKinds:()=>Object.keys(owned).filter(k=>owned[k]>0),
    project:p=>{const s=toScreen(new THREE.Vector3(...p));return s?[s.x,s.y]:[-100,-100];},
    unproject:p=>groundAt(...p)?.toArray()??null,preview:preview.update,clearPreview:preview.clear,
@@ -3563,7 +3566,7 @@ function setAnimalPenEditing(active){
   return true;
  }
  const session=animalPenEditing;if(!session)return false;
- animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.host.remove();
+ animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.placementPreview.dispose();session.host.remove();
  Object.assign(cam,{yaw:session.camera.yaw,pitch:session.camera.pitch,dist:session.camera.dist});cam.target.copy(session.camera.target);
  ptr.clear();keys.clear();farmDrag=null;downAt=null;frame.lastT=undefined;
  document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;

@@ -1342,3 +1342,16 @@ Native30/60/120 reject exact historic draft before save with ACCESS/disabled App
 Actual contact renders retained/inspected; side angle and extra front view are partly occluded, measurements primary. Local pinned Chromium151.0.7922.34/Playwright1.62.1,1280x720,DPR.5,manual fivecow updates/other41static; not hosted/device/cloud/fullfarm/visual approval. All owned commands complete, no new denial/disconnect. Prior external CIM unavailable/not retried.
 
 Ground overlay remains approved and pending; design records selected snapped-operation checks, non-color-only valid/blocked/unknown states/reasons, no hover mutation and bounded worker work because full46 validation is about.7s/candidate. Continue implementation next without a new approval request. Occupied shelter/other facilities/internal traffic/import/Task8 remain pending. Default movement held, A1A2A3A4 exact, no merge/deploy.
+
+
+### Codex Task7 A5 selected-operation placement guide - October23,2026
+
+Baseb109f470, sole worker, parent-disclosed Astra/xhigh unchanged. A5 already recorded; acceptance before code in farm3d/tests/evidence/pen-editing-implementation/task7-codex-placement-overlay-20261023/progress.md; exact outcome and intermediate failures in outcome.md.
+
+Implemented isolated real-command candidates, single serial worker (25nearby positions,128cache, context cancellation), same full validator for every green, optional definite-static-failure shortcut only, terrain-following check/cross/unknown guide and reasons, pointer/touch inspection and native focus button. Actual command layer now enforces the existing fixed chicken whole-yard rule after retained RED. No runtime access/collision/care/rig/terrain/path/economy/auth change. Apply always revalidates.
+
+80distinct NodePASS (16new+32editor/version/negative locks+32validator/access), zero skips,113core files registered, no fullcore run. New invalid vertex-count oracle and scripted-select fixture failures retained/classified and corrected; no old assertion relaxed. Candidate unknown-cell endless Checking RED fixed. Original live phone gesture regressionPASS. Five DPR1 native overlays1280x720/390x844/844x390/1024x768/768x1024PASS:10green/15blocked cat positions and1green/20blocked gate positions, authoritative agreement, exact hover state equality, chicken fixed,32/33trusted inputs, zero workers on close.50ms responsiveness probe20ticks in1000.9-1008ms; no broad performance claim.
+
+Real in-game previews in native-final/cat-390.png, cat-1280.png and gate variants. Actual scene explicitly rendered in paused snapshot fixture; separate gesture regression has live frame loop. Inspected phone/desktop/tablet. Local pinned Chromium151.0.7922.34/Playwright1.62.1, not hosted/device/cloud/owner visual acceptance. Bounded local map; edge cells may be behind UI/offscreen, unknown/unmarked ground never green.
+
+2,581baseline paths/1,890historic evidence exact except six authorized runtime/runner files before relays;20protected/seven exceptions/A1-A5 exact. index diff only overlay import/lifecycle/focus. Default movement held; occupied shelter/other facilities/full traffic/import/Task8 pending; original single-move rejection not replaced by earlier valid combined layout. A4 exterior features deferred. All owned commands complete, no new denial/disconnect, no merge/deploy.
