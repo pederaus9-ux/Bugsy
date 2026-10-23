@@ -52,3 +52,9 @@ All owned tests/browser/server commands completed. Executor connected throughout
 - A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval required
 
 A4 exterior animal trips/transfers stay explicitly deferred; historical gate REDs frozen. A3 immutable real turn/walk/run previews: https://github.com/pederaus9-ux/Bugsy/tree/740bc5081311524a23b9f171ce8a891643905b97/farm3d/tests/evidence/pen-editing-implementation/task7-codex-cow-turn-fix-20261023/rendered-final .
+
+## Final review focus-boundary follow-up acceptance
+
+Before publishing the checkpoint, inspect focus after native canvas input: a canvas click/pan can blur a control, so the next Tab must return to the editor rather than background gameplay. Retain a focused native RED before any further view change; this is the same existing focus-isolation contract, no new product scope. Previous clean commit retained locally, not pushed yet.
+
+Final review supplement PASS: native canvas click then Tab returns to editor in390x844, followed by all prior capture/quota/keyboard/reload checks. No further production change; prior eight cases remain on identical runtime. Current canonical controls source only adds this assertion, retaining all earlier assertions exactly. Additional result/source and canvas-focus-supplement.json preserved; previous evidence/manifest retained.
