@@ -15,8 +15,14 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  for(const [action,label]of definitions){const b=document.createElement('button');b.type='button';b.dataset.action=action;b.textContent=label;if(['left','up','down','right'].includes(action))b.setAttribute('aria-label','Move '+action+' 1 metre');controls.append(b);}
  for(const node of panel.querySelectorAll('button,select'))node.style.cssText+='min-width:44px;min-height:44px;font:inherit;touch-action:manipulation;';
  host.append(panel);
+ const dock=document.createElement('section');dock.dataset.compactDock='';dock.setAttribute('aria-label','Animal pen move controls');dock.hidden=true;
+ dock.style.cssText='position:fixed;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(380px,calc(100vw - 16px));box-sizing:border-box;padding:6px 8px;background:#fff9e9;color:#302c20;border:2px solid #6b8548;border-radius:12px;z-index:1001;box-shadow:0 3px 14px #0005;font:13px/1.25 system-ui;';
+ dock.innerHTML='<strong data-compact-selection style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></strong><span data-compact-status role="status" aria-live="polite" style="display:block;max-height:2.5em;overflow:auto;margin:3px 0"></span><div style="display:flex;gap:6px"><button type="button" data-action="options">Options</button><button type="button" data-action="apply">Apply</button><button type="button" data-action="cancel">Cancel</button></div>';
+ for(const node of dock.querySelectorAll('button'))node.style.cssText='min-width:44px;min-height:44px;flex:1;font:inherit;touch-action:manipulation;';
+ host.append(dock);
+ const dockSelection=dock.querySelector('[data-compact-selection]'),dockStatus=dock.querySelector('[data-compact-status]');
  const handle=document.createElement('button');handle.type='button';handle.setAttribute('aria-label','Drag selected pen item');handle.textContent='✥';handle.style.cssText='position:fixed;width:48px;height:48px;border-radius:50%;background:#fff9e9;color:#304b20;border:3px solid #6b8548;z-index:999;touch-action:none;font-size:25px;';host.append(handle);
- let disposed=false,seen='',previewRevision=-1,drag=null,drawRun=null,counter=0,exitFocus=null,anchorSelection=null;const pointers=new Set(),cleanups=[];
+ let disposed=false,seen='',previewRevision=-1,drag=null,drawRun=null,counter=0,exitFocus=null,anchorSelection=null,compact=false;const pointers=new Set(),cleanups=[];
  const listen=(node,name,fn,options)=>{node.addEventListener(name,fn,options);cleanups.push(()=>node.removeEventListener(name,fn,options));};
  let placementFocus=null,placementSelection='',placementModel=null,guide=null,guideReason=null,guideProgress=null,placement=null;
  if(readWorld){
@@ -28,6 +34,12 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   const hint=document.createElement('small');hint.textContent='Point or tap ground to inspect nearby positions. Checks include the whole draft. Unmarked ground is unchecked. Apply checks again.';hint.style.cssText='display:block;margin-top:5px';guide.append(hint);
   const look=document.createElement('button');look.type='button';look.textContent='View checked ground';look.style.cssText='min-height:44px;min-width:44px;margin-top:5px;font:inherit;';guide.append(look);listen(look,'click',()=>{const at=placementModel?.cells[0]?.at;if(at){const a=guide.getBoundingClientRect(),b=panel.getBoundingClientRect(),screen=window.innerHeight>window.innerWidth?[window.innerWidth/2,(a.bottom+b.top)/2]:[window.innerWidth/2,window.innerHeight/2];onPlacementFocus(at,screen);}});host.append(guide);
   placement=createPenPlacementController({onUpdate:model=>{placementModel=model;placementPreview(model);const cell=model.cells[0],prefix=cell?cell.at.map(n=>Number(n.toFixed(1))).join(', ')+': ':'';const text=prefix+model.reason;if(guideReason.textContent!==text)guideReason.textContent=text;guideProgress.textContent=model.cells.filter(c=>c.status!=='unknown').length+' / '+model.cells.length+' nearby positions checked'+(model.checking?' · Checking…':'');}});
+ }
+ const phoneControls=()=>window.innerWidth<1000||window.innerHeight<500;
+ function setCompact(on,focus=false){
+  const next=!!on&&phoneControls();if(compact===next)return;compact=next;
+  panel.hidden=compact;if(guide)guide.hidden=compact;dock.hidden=!compact;
+  if(focus)(compact?dock.querySelector('[data-action="options"]'):targets).focus?.({preventScroll:true});
  }
  function inspect(event){if(!placement||drag||drawRun||pointers.size>1)return;const at=unproject([event.clientX,event.clientY]);if(at){placementFocus=[at[0],at[2]];placement.update(editor.snapshot(),readWorld(),placementFocus);}}
  listen(canvas,'pointermove',inspect);listen(canvas,'pointerdown',inspect);
@@ -50,11 +62,13 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  }
  function move(delta,to){const state=editor.snapshot(),t=state.selection;if(!t)return;
   const p=anchor(state);if(!p)return;
+  setCompact(true,panel.contains(document.activeElement));
   if(t.type==='structure'||t.type==='vertex')command({type:t.type==='structure'?'moveStructure':'moveVertex',id:t.id,to:to??[p[0]+delta[0],p[1]+delta[1]]});
   else if(t.type==='pen')command({type:'movePen',delta});else if(t.type==='edge')command({type:'moveEdge',edge:t.id.split(':'),delta});else if(t.type==='run')command({type:'moveRun',id:t.id,delta});
  }
- function close(){const s=editor.snapshot();if(s.dirty){exitFocus=document.activeElement;exit.hidden=false;exit.querySelector('button:not(:disabled)')?.focus?.();}else{editor.cancel();clearPreview();onClose();}}
+ function close(){const s=editor.snapshot();if(s.dirty){exitFocus=compact?targets:document.activeElement;setCompact(false);exit.hidden=false;exit.querySelector('button:not(:disabled)')?.focus?.();}else{editor.cancel();clearPreview();onClose();}}
  async function action(name){const state=editor.snapshot(),s=record(state),t=state.selection;if(!t)return;
+  if(name==='options'){setCompact(false,true);return;}
   if(['left','right','up','down'].includes(name)){move({left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[name]);return;}
   if(name==='close'){close();return;}
   if(name==='cancel'){editor.cancel();clearPreview();onClose();return;}
@@ -69,8 +83,9 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   if(t.type==='gate'&&['gate-left','gate-right','widen','narrow'].includes(name)){const g=s.gates.find(g=>g.id===t.id);command({type:'setGate',id:t.id,offset:Math.max(0,g.offset+(name==='gate-left'?-1:name==='gate-right'?1:0)),width:Math.max(PEN_TEMPLATES[t.kind].gateWidth,g.width+(name==='widen'?1:name==='narrow'?-1:0))});}
  }
  listen(panel,'click',event=>{const b=event.target.closest('[data-action]');if(b)void action(b.dataset.action);});
+ listen(dock,'click',event=>{const b=event.target.closest('[data-action]');if(b)void action(b.dataset.action);});
  listen(kinds,'change',()=>{if(!editor.begin(kinds.value))status.textContent='Own this animal before editing its home.';render();});
- listen(targets,'change',()=>{const [type,...parts]=targets.value.split('|');editor.select({kind:kinds.value,type,id:parts.join('|')});render();});
+ listen(targets,'change',()=>{const [type,...parts]=targets.value.split('|');editor.select({kind:kinds.value,type,id:parts.join('|')});render();setCompact(true,true);});
  function finishDrag(cancel){const previous=drag;drag=null;if(cancel)editor.cancelGesture();else editor.endGesture();if(previous&&handle.hasPointerCapture(previous.id))handle.releasePointerCapture(previous.id);}
  function trackPointer(event){if(!editor.snapshot().open||pointers.has(event.pointerId))return;pointers.add(event.pointerId);if(pointers.size>1){finishDrag(true);drawRun=null;panZoom(event);}}
  // Observe second touches before controls stop propagation. A finger on a
@@ -78,7 +93,7 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  listen(window,'pointerdown',trackPointer,true);
  function down(event){if(!editor.snapshot().open)return;trackPointer(event);if(pointers.size>1)return;const at=unproject([event.clientX,event.clientY]);if(!at)return;
   if(drawRun){event.stopImmediatePropagation();event.preventDefault();if(!drawRun.first){drawRun.first=[at[0],at[2]];status.textContent='Tap the fence end.';}else{command({type:'addRun',id:nextId('fence'),a:drawRun.first,b:[at[0],at[2]]});drawRun=null;}return;}
-  if(event.currentTarget!==handle)return;event.preventDefault();event.stopPropagation();editor.beginGesture(event.pointerId);handle.setPointerCapture(event.pointerId);drag={id:event.pointerId,last:[at[0],at[2]],origin:anchor(editor.snapshot()),start:[at[0],at[2]]};
+  if(event.currentTarget!==handle)return;event.preventDefault();event.stopPropagation();editor.beginGesture(event.pointerId);handle.setPointerCapture(event.pointerId);drag={id:event.pointerId,last:[at[0],at[2]],origin:anchor(editor.snapshot()),start:[at[0],at[2]]};setCompact(true);
  }
  listen(handle,'pointerdown',down);listen(canvas,'pointerdown',down,true);
  listen(handle,'pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const at=unproject([event.clientX,event.clientY]);if(!at)return;const delta=[Math.round(at[0]-drag.last[0]),Math.round(at[2]-drag.last[1])];if(!delta.some(Boolean))return;const to=[drag.origin[0]+Math.round(at[0]-drag.start[0]),drag.origin[1]+Math.round(at[2]-drag.start[1])];move(delta,to);drag.last=[drag.last[0]+delta[0],drag.last[1]+delta[1]];});
@@ -89,7 +104,7 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   if(event.key==='Escape'){event.preventDefault();close();return;}
   if(['INPUT','SELECT'].includes(event.target.tagName))return;const names={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};if(names[event.key]){event.preventDefault();void action(names[event.key]);}
  });
- function render(){if(disposed)return;const state=editor.snapshot();panel.hidden=!state.open;handle.hidden=!state.open;if(!state.open)return;const s=record(state),t=state.selection,signature=JSON.stringify([t,state.draftRevision]);
+ function render(){if(disposed)return;const state=editor.snapshot();if(compact&&!phoneControls())setCompact(false);panel.hidden=!state.open||compact;if(guide)guide.hidden=!state.open||compact;dock.hidden=!state.open||!compact;handle.hidden=!state.open;if(!state.open)return;const s=record(state),t=state.selection,signature=JSON.stringify([t,state.draftRevision]);
   if(signature!==seen){const gateKey=t.type==='gate'?t.kind+'|'+t.id:null,pendingAnchor=gateKey===anchorSelection?gateAnchor.value:null;anchorSelection=gateKey;seen=signature;kinds.value=t.kind;targets.replaceChildren();const list=[['pen',t.kind,'Whole pen'],...Object.keys(s.structures).map(id=>['structure',id,id]),...(s.boundary??[]).flatMap((v,i)=>[['vertex',v.id,'Post '+(i+1)],['edge',v.id+':'+s.boundary[(i+1)%s.boundary.length].id,'Fence edge '+(i+1)]]),...(s.runs??[]).map((r,i)=>['run',r.id,'Interior fence '+(i+1)]),...(s.gates??[]).map((g,i)=>['gate',g.id,'Gate '+(i+1)])];for(const [type,id,label]of list){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;targets.append(o);}targets.value=t.type+'|'+t.id;gateAnchor.replaceChildren();for(const [type,id,label]of list.filter(v=>['edge','run'].includes(v[0]))){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;gateAnchor.append(o);}const selectedGate=s.gates?.find(g=>g.id===t.id),attached=selectedGate?.edge?'edge|'+selectedGate.edge.join(':'):selectedGate?.run?'run|'+selectedGate.run:null,choice=[pendingAnchor,attached].find(value=>value&&[...gateAnchor.children].some(o=>o.value===value));if(choice)gateAnchor.value=choice;gateAnchor.hidden=t.type!=='gate';
    for(const b of controls.querySelectorAll('button')){const n=b.dataset.action;b.disabled=n==='anchor'?t.type!=='gate':n==='add-post'?t.type!=='edge':n==='remove'?!['vertex','run','gate'].includes(t.type):n==='add-gate'?!['edge','run'].includes(t.type):n==='add-fence'?!s.boundary:['gate-left','gate-right','widen','narrow'].includes(n)?t.type!=='gate':t.type==='gate'||t.kind==='chicken'&&t.type==='pen';}
   }
@@ -97,9 +112,13 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   const p=anchor(state);handle.hidden=!p||t.type==='gate'||t.kind==='chicken'&&t.type==='pen';if(p){const xy=project([p[0],0,p[1]]);handle.style.left=(xy[0]-24)+'px';handle.style.top=(xy[1]-24)+'px';}
   if(placement){const selection=JSON.stringify(t);if(selection!==placementSelection){placementSelection=selection;placementFocus=null;}placement.update(state,readWorld(),placementFocus??undefined);}
   panel.querySelector('[data-action="apply"]').disabled=!state.canApply;panel.querySelector('[data-action="exit-apply"]').disabled=!state.canApply;
+  dock.querySelector('[data-action="apply"]').disabled=!state.canApply;
+  dockSelection.textContent=(labels[t.kind]??t.kind)+' - '+(targets.selectedOptions[0]?.textContent??'Selected item');
+  const brief=state.reason??(placementFocus&&placementModel?.reason?placementModel.reason:state.dirty?(state.validation?'Ready to apply.':'Checking space and care routes.'):'Move the selected item or reopen options.');
+  if(dockStatus.textContent!==brief)dockStatus.textContent=brief;
   if(!drawRun)status.textContent=state.reason??(state.dirty?(state.validation?'Ready to apply.':'Checking space and care routes…'):'Select a fence or building to edit.');
   const previewKey=state.draftRevision+':'+String(state.validation?.ok);if(previewRevision!==previewKey){previewRevision=previewKey;try{preview(resolveAnimalPens(state.draft),state.validation);}catch{clearPreview();}}
  }
  const interval=setInterval(render,100);render();kinds.focus?.({preventScroll:true});
- return{dispose(){if(disposed)return;disposed=true;finishDrag(true);pointers.clear();clearInterval(interval);for(const fn of cleanups)fn();placement?.dispose();guide?.remove();clearPlacementPreview();panel.remove();handle.remove();clearPreview();}};
+ return{dispose(){if(disposed)return;disposed=true;finishDrag(true);pointers.clear();clearInterval(interval);for(const fn of cleanups)fn();placement?.dispose();guide?.remove();clearPlacementPreview();panel.remove();dock.remove();handle.remove();clearPreview();}};
 }
