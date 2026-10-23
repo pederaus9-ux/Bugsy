@@ -1,6 +1,7 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
 import {NORTH_EXTENSION,WEST_CLEARING} from './farm-land.js?v=2';
-import {resolveAnimalPens,defaultSiteRecord} from './animal-pen-layout.js?v=1';
+import {resolveAnimalPens,defaultSiteRecord,animalPenYardLayout} from './animal-pen-layout.js?v=1';
+import {cowYardConflicts} from './cow-yard.js?v=4';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
 const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
 // Beast.go's ordinary cow contract. Care keeps its separate accepted .42 margin.
@@ -97,6 +98,14 @@ export function validateAnimalPens(layout,world){
  const placementPad=a=>freeCow(a)?COW_BODY:a.clearance;
  for(const a of world.actors)if(!active.some(s=>s.kind===a.kind))placements[a.id]=[...a.position];
  for(const site of active){const kind=site.kind,t=PEN_TEMPLATES[kind],base=defaults.sites[kind];issues.push(...site.issues);
+  if(kind==='cow'){
+   // A5: Apply must satisfy the same full footprint/access reservation that
+   // syncCowYard enforces after publication. A clear gate axis alone is not enough.
+   const blocks=world.blocked.filter(b=>b.type==='rectangle').map(b=>[b.x,b.z,b.hw,b.hd]);
+   for(const other of Object.values(layout.sites))if(other.kind!=='cow'&&(other.kind==='chicken'||world.owned[other.kind]>0&&world.installed?.[other.kind]!==false))blocks.push(...other.obstacles);
+   const decor=world.blocked.filter(b=>b.type==='circle');
+   if(cowYardConflicts({layout:animalPenYardLayout(site),blocks,decor}).length)add('ACCESS',kind,site.gates[0]?.id??null,'Keep the cow yard and its full gate access area clear of other objects.');
+  }
   if(site.polygon){if(!simplePolygon(site.polygon)||polygonArea(site.polygon)+EPS<t.minimumArea)add('GEOMETRY',kind,null,'Keep a simple enclosure with its minimum walking area.');
    for(const r of site.runs){if(Math.hypot(r.b[0]-r.a[0],r.b[1]-r.a[1])<1-EPS||!segmentInPolygon(r.a,r.b,site.polygon))add('GEOMETRY',kind,r.id,'Interior fences need one metre and must stay inside the pen.');}
    const original=defaultSiteRecord(kind).gates;for(const g of site.gates){const old=original.find(a=>a.id===g.id),legacy=old&&g.width===old.width&&g.offset===old.offset&&eq(g.edge,old.edge)&&g.run===old.run;if(!legacy&&g.width<t.gateWidth-EPS)add('GEOMETRY',kind,g.id,'Keep a gate wide enough for this species.');const edge=g.edge?site.boundary.findIndex((v,i)=>v.id===g.edge[0]&&site.boundary[(i+1)%site.boundary.length].id===g.edge[1]):-1,r=g.run?site.runs.find(r=>r.id===g.run):null,len=edge>=0?Math.hypot(site.polygon[(edge+1)%site.polygon.length][0]-site.polygon[edge][0],site.polygon[(edge+1)%site.polygon.length][1]-site.polygon[edge][1]):r?Math.hypot(r.b[0]-r.a[0],r.b[1]-r.a[1]):0;if(!legacy&&(g.offset<POST-EPS||len-g.offset-g.width<POST-EPS))add('GEOMETRY',kind,g.id,'Leave clearance at both gate posts.');}
