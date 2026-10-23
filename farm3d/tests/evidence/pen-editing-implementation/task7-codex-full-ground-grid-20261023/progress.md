@@ -1,0 +1,20 @@
+# Full editable-ground guide: focused acceptance
+
+Owner clarification: the grid itself should cover the whole open editable farm area, with trees and objects interrupting it. The new Library JPEG `libfile_cb01a133b458819199191802416b3adc` was offered as a signed transfer; the Windows Library helper previously failed at `os.setxattr`, so its pixels have not been inspected. Reproduce the local renderer extent before editing and retain RED evidence.
+
+1. In ordinary Edit and owned pen editing, show a low-cost, ground-following neutral grid over each mode's current editable-land mask, not a flat plane or just the nearby 5 by 5 candidate patch. Mask cells intersecting existing trees/objects/path. Ground outside editable land remains unmarked. Grid cells are explicitly **unchecked**, never green/valid.
+2. Keep the existing 25 or fewer authoritative candidate checks over the selected item/hover position. Green check, blocked cross and neutral pending state remain visually distinct; a static grid cell never grants Apply. The selected footprint, terrain, access, care, ownership, routes and saved-state rules are unchanged.
+3. Rebuild the base grid only when the physical world mask changes; do not run full layout validation for every grid cell. Render with batched geometry and release resources on close. Phone menus remain compact and camera/touch remain usable.
+4. Focused negative controls cover tree/object/path masks, outside-land marks, unknown-versus-valid distinction and authoritative valid/invalid placement agreement. Real rendered landscape-phone and desktop captures plus a bounded timing/resource check precede private-preview refresh. Local Chromium emulation is not an actual device verdict.
+
+No land, path, terrain, rig, care, economy, save or cloud rule is authorized to change. Original placement/phone evidence and shelter REDs remain intact.
+
+## Retained RED
+
+At 844x390 and 1280x720 in the current isolated preview, the actual pen candidate count is 25 but no ground-following base grid exists (`baseCount:0`, `maskedCount:0`); both focused checks exit nonzero. Rendered screenshots and JSON are in `red/`. The existing fixed-height white Edit grid visibly occupies only parts of the viewed ground where terrain reaches its plane, confirming the described visual gap without claiming inspection of the supplied JPEG. No page errors. No gameplay logic was exercised beyond opening the pen editor and selecting the horse shelter.
+
+## Focused implementation and local result
+
+The old general Edit grid was a flat `GridHelper` at y=.05, so it disappeared under raised terrain. The pen-specific selected-location overlay remained a separate 25-cell patch. Replaced only the general visual grid with one batched, ground-following neutral lattice over each mode's editable land union. It omits full-cell intersections with existing world blocks and the stone path, retains the existing 25-cell authoritative overlay, and explains that grid lines are unchecked. The grid refreshes when ordinary Edit changes a tree/building and when entering/leaving pen mode. No terrain, land, path, placement, care or save rule changed.
+
+Nine focused Node checks passed, including exact synthetic tree/object/path holes, outside-land absence, terrain height, cache reuse and disposal. Actual farm model has 2,474 visible pen-mode cells, 762 obstacle/path holes and bounds x=-33..25,z=-46..27; ordinary Edit has 1,964 cells inside its existing farm mask. Both phone 844x390 and desktop 1280x720 rendered with zero page errors and no more than 25 candidate cells; measured one-time grid builds were 31.6ms and 72.6ms in pinned Chromium, not a device performance promise. One worker-validated green cell and one blocked cow-access cell exactly matched the unchanged production evaluation including reason. Rendered screenshots and machine results are in `final-agreement/`. The prior phone menu journey passed again: collapse/reopen, nudge, Cancel, valid Apply/reload, invalid Apply, interrupted touch, portrait bounds and dirty Escape. Its results are in `phone-regression/`. No broad Task 7/8 or shelter qualification was rerun.

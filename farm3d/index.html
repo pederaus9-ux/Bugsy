@@ -691,6 +691,7 @@ import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=1';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
 import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
+import {createEditableGroundGrid} from './edit-ground-grid.js?v=1';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -3430,8 +3431,8 @@ buildFarmer();
 
 // Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
 // to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
-const grid = new THREE.GridHelper(82, 82, 0xffffff, 0xffffff); grid.position.set(1, .05, 7-NORTH_EXTENSION/2); grid.visible = false;
-Object.assign(grid.material, {transparent:true, opacity:.3, depthWrite:false}); scene.add(grid);
+const grid = createEditableGroundGrid(farmGroundY); scene.add(grid);
+function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=[{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:23}];return world;}
 const editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));
 editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
@@ -3445,7 +3446,7 @@ function setEdit(on) {
     const yaw = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2; // north up, turning the short way round
     editMode = {yaw, drag:null, tilt:tiltH.enabled, saved:{yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, ty:cam.target.y}};
     cam.dist = Math.max(cam.dist, 34); cam.target.y = 0;
-    grid.visible = true; tiltH.enabled = tiltV.enabled = false;
+    grid.updateMask(editGridMask());grid.visible = true; tiltH.enabled = tiltV.enabled = false;
     document.body.classList.add("editing"); editBar.hidden = false;
   } else {
     const E = editMode; if (E.drag) editCancel(); editMode = null;
@@ -3502,7 +3503,7 @@ function commitEdit(key, x, z, save = true) {
     moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);
     if (save) (L.t || (L.t = {}))[id] = [x, z];
   } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }
-  if (save) G.save();
+  if (save) {G.save();if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());}
 }
 // put buildings and trees where the saved farm has them (or back home when it doesn't say)
 function applyLayout() {
@@ -3553,7 +3554,7 @@ function setAnimalPenEditing(active){
   const host=document.createElement('div');host.dataset.penEditorHost='';document.body.append(host);
   const preview=createAnimalPenPreview(scene),placementPreview=createPenPlacementPreview(scene,farmGroundY),session={farm:G.S,host,preview,placementPreview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
    camera:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,target:cam.target.clone()}};
-  animalPenEditing=session;editBar.hidden=true;document.body.classList.add('pen-editing');
+  animalPenEditing=session;grid.updateMask(editGridMask(true));editBar.hidden=true;document.body.classList.add('pen-editing');
   session.view=createAnimalPenEditorView({editor:penEditor,host,canvas:renderer.domElement,
    readWorld:snapshotPenWorld,placementPreview:placementPreview.update,clearPlacementPreview:placementPreview.clear,
    onPlacementFocus:(at,screen)=>{cam.target.set(at[0],farmGroundY(...at),at[1]);cam.dist=22;placeCamera(1);camera.updateMatrixWorld(true);const hit=groundAt(...screen);if(hit){cam.target.x+=at[0]-hit.x;cam.target.z+=at[1]-hit.z;}},
@@ -3569,7 +3570,7 @@ function setAnimalPenEditing(active){
  animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.placementPreview.dispose();session.host.remove();
  Object.assign(cam,{yaw:session.camera.yaw,pitch:session.camera.pitch,dist:session.camera.dist});cam.target.copy(session.camera.target);
  ptr.clear();keys.clear();farmDrag=null;downAt=null;frame.lastT=undefined;
- document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;
+ if(editMode)grid.updateMask(editGridMask());document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;
 }
 const animalPensButton=document.createElement('button');animalPensButton.id='animalPensBtn';animalPensButton.type='button';animalPensButton.textContent='Animal pens';animalPensButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(animalPensButton,editBar.querySelector('[data-mode]'));
 animalPensButton.addEventListener('click',()=>{if(!setAnimalPenEditing(true))G.toast('Animal pens are unavailable on this farm.');});
