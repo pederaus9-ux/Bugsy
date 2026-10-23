@@ -1,5 +1,13 @@
 import * as T from './lib/three.module.min.js';
 import {poseCowLeg,COW_GAIT} from './cow3d.js?v=5';
+import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
+import {pointInPolygon} from './animal-pen-geometry.js?v=1';
+// The shelter owns the accepted slab; expanding the fence adds soil, not
+// concrete. Test in the slab's original frame so independent moves follow it.
+export function cowPenSupportHeight(site,x,z,groundY){
+ const [dx,dz]=site.components.shelter.delta,b=PEN_TEMPLATES.cow.baseline;
+ return pointInPolygon([x-dx,z-dz],b.polygon)?b.floor:groundY(x,z);
+}
 // Opt-in support overlay using the accepted public leg solver. No anatomy,
 // cadence, planted-anchor state, care progress or production state is changed.
 export function applyCowPenSupport(r,sample){

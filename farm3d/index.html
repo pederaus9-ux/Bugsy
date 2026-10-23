@@ -682,6 +682,7 @@ import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1'
 let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
+import {cowPenSupportHeight,cowPenStep,applyCowPenSupport} from './animal-pen-cow-support.js?v=1';
 import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';
 import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
 import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';
@@ -1717,7 +1718,7 @@ class Beast {
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
   // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
   fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
-  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = pet&&!this.target?"idle":"moving"; this.stuckT = 0; }
+  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = (pet||(this.kind==='cow'&&this.pen?.custom))&&!this.target?"idle":"moving"; this.stuckT = 0; }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
@@ -1831,9 +1832,14 @@ class Beast {
       }
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
     if (this.rig3d) {
+      if(this.kind==='cow'&&this.pen?.custom){
+        const budget=(this.running?this.S.run:this.S.walk)*(.8+P.energy*.4)*(this.act==='fleeing'?1.3:1)*Math.max(0,dt);
+        this.g.position.fromArray(cowPenStep([ox,this.g.position.y,oz],this.g.position.toArray(),budget,cowSupportY));
+        if(dt>0)this.vel.set((this.g.position.x-ox)/dt,(this.g.position.z-oz)/dt);
+      }
       if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active)this.g.position.y=groundY(this.g.position.x,this.g.position.z);
       if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
-      if (this.kind === "cow") Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
+      if (this.kind === "cow") {Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);if(this.pen?.custom)applyCowPenSupport(this.rig3d,cowSupportY);}
       else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act, this.running);
       return;
     }
@@ -2104,6 +2110,7 @@ function updateCowTask(a,dt,t){
   a.cowTickAt=t;
   for(let used=0;used<elapsed-1e-8&&a.cowTask;){const step=Math.min(1/30,elapsed-used);used+=step;updateCowTaskStep(a,step,t-elapsed+used);}
 }
+function cowSupportY(x,z){return cowPenSupportHeight(installedAnimalPens.sites.cow,x,z,groundY);}
 function updateCowTaskStep(a,dt,t){
   const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
   a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
@@ -2146,9 +2153,11 @@ function updateCowTaskStep(a,dt,t){
       }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
     }
   }
-  a.g.position.y=COW_YARD_LAYOUT.floor;
+  if(COW_YARD_LAYOUT.custom)a.g.position.fromArray(cowPenStep([ox,a.g.position.y,oz],a.g.position.toArray(),a.S.walk*Math.max(0,dt),cowSupportY));
+  else a.g.position.y=COW_YARD_LAYOUT.floor;
   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
   Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
+  if(COW_YARD_LAYOUT.custom)applyCowPenSupport(r,cowSupportY);
   if(task.weight>0)a.carePose.apply({mode:task.kind==='bed'?'lie':task.kind==='feed'?'feed':'drink',weight:task.weight,target:cowSurfaces.get(task.station.id)});
   if(a.cowTask===null){a.carePose.reset();a.need.tired=0;a.act='idle';}
 }
@@ -4333,8 +4342,8 @@ setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, chickenYard, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},penEditor,get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, get chickenYard(){return chickenYard;}, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},penEditor,get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},get cowYard(){return cowYard;},cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
