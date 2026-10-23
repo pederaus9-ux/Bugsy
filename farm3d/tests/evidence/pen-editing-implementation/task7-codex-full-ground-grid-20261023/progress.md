@@ -22,3 +22,7 @@ Nine focused Node checks passed, including exact synthetic tree/object/path hole
 ## Publication hold
 
 The focused grid build is tested and committed locally. The Sites source package/push for the existing owner-private test Site was rejected by automatic approval review before it ran because it may deploy; no retry or alternate route was used. Existing private version 2 remains live. The isolated built files are prepared locally in the Sites `dist` checkout for an explicitly approved retry. The owner JPEG could not be inspected through the Windows Library helper; local rendered RED and after screenshots are retained.
+
+## Approved private publication
+
+The owner explicitly approved publishing this exact grid update to the existing owner-private test Site. The Sites source retry succeeded once; version `appgver_8c574feae9188191803ea9125a9162e3` deployed successfully at `https://sunny-acres-phone-test-20261023.ardentanole10.chatgpt.site`. A fresh Site read confirms version 3, one owner and no external visitors. The earlier auto-review refusal remains recorded, but is resolved by this new approval. Local Chromium evidence is still distinct from the owner's physical-phone retest. No live game deployment or merge.
