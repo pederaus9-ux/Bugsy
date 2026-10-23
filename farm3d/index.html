@@ -2062,7 +2062,10 @@ function snapshotPenWorld(){
  const clearance=k=>k==='chicken'?.18:k==='cow'?.42:remainingLayouts[k].margin;
  const actors=animals.filter(a=>!a.gone&&owned[a.kind]!==undefined).map(a=>{
   const task=a.chickenTask||a.cowTask||a.remainingTask,stationId=task?.station?.id??null,site=installedAnimalPens.sites[a.kind],owner=stationId&&site.stationOwners?.[stationId],c=owner&&site.components[owner],p=a.g.position;
-  return {id:idOf(a),kind:a.kind,position:[p.x,p.y,p.z],component:c&&pointInPolygon([p.x,p.z],c.footprint)?owner:null,stationId,clearance:clearance(a.kind)};
+  // update() starts an authoritative robot job before ordinary movement, even
+  // when its physical task has not yet been created. Re-read this at final Apply.
+  const careStationId=a.kind==='cow'?(a.cowTask?.station?.id??(cowStatus?.job&&cowStatus.job.cowId===idOf(a)?site.stations.find(s=>s.kind==='robot')?.id:null))??null:null;
+  return {id:idOf(a),kind:a.kind,position:[p.x,p.y,p.z],component:c&&pointInPolygon([p.x,p.z],c.footprint)?owner:null,stationId,careStationId,clearance:clearance(a.kind)};
  });
  return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
 }

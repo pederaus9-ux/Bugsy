@@ -3,10 +3,12 @@ import {NORTH_EXTENSION,WEST_CLEARING} from './farm-land.js?v=2';
 import {resolveAnimalPens,defaultSiteRecord} from './animal-pen-layout.js?v=1';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
 const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
+// Beast.go's ordinary cow contract. Care keeps its separate accepted .42 margin.
+const COW_BODY=.9,COW_ROUTE=COW_BODY+.7,COW_ARRIVAL=.35;
 const defaults=resolveAnimalPens(),xy=p=>[p[0],p[2]],distance=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]);
 const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const rect=(b,owner)=>({type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner});
-const segment=s=>({type:'capsule',a:s.slice(0,2),b:s.slice(2),r:.05});
+const segment=(s,routeHalfDepth=.05)=>({type:'capsule',a:s.slice(0,2),b:s.slice(2),r:.05,routeHalfDepth});
 /** Pen-editable land: the ordinary farm capsule (onFarm, radius 24) plus the accepted
  *  animal-site footprints, full horse/sheep shelter roofs and (amendment A1) the levelled
  *  west strip of the north clearing, overlapping the capsule and reaching the horse gate. */
@@ -34,8 +36,8 @@ function support(site,p,world){
 function supportedLine(site,a,b,world){const n=Math.max(1,Math.ceil(Math.hypot(a[0]-b[0],a[2]-b[2])/.08));let previous=null;for(let i=0;i<=n;i++){const t=i/n,p=a.map((v,j)=>v+(b[j]-v)*t),y=support(site,p,world);if(!Number.isFinite(y)||Math.abs(p[1]-y)>.08+EPS||previous!==null&&Math.abs(y-previous)>.08+EPS)return false;previous=y;}return true;}
 function planner(site,world,stats,layout){
  // Unowned sites stay reserved at their saved or accepted position.
- const otherSites=Object.values(layout.sites).filter(s=>s.kind!==site.kind),otherPens=otherSites.filter(s=>s.polygon).map(s=>({type:'polygon',points:s.polygon})),otherFixtures=otherSites.flatMap(s=>[...s.obstacles.map((b,i)=>rect(b,'other-'+s.kind+'-'+i)),...s.fenceSegments.map(segment)]);
- const solids=[...world.blocked,...otherFixtures,...site.obstacles.map((b,i)=>rect(b,'own-'+i)),...site.fenceSegments.map(segment),...(!site.polygon?otherPens:[])];
+ const otherSites=Object.values(layout.sites).filter(s=>s.kind!==site.kind),otherPens=otherSites.filter(s=>s.polygon).map(s=>({type:'polygon',points:s.polygon})),otherFixtures=otherSites.flatMap(s=>[...s.obstacles.map((b,i)=>rect(b,'other-'+s.kind+'-'+i)),...s.fenceSegments.map(f=>segment(f,s.kind==='cow'?.05:.1))]);
+ const solids=[...world.blocked,...otherFixtures,...site.obstacles.map((b,i)=>rect(b,'own-'+i)),...site.fenceSegments.map(f=>segment(f,site.kind==='cow'?.05:.1)),...(!site.polygon?otherPens:[])];
  const valid=(p,pad)=>Number.isFinite(p[0])&&Number.isFinite(p[2])&&(site.polygon?pointInPolygon(xy(p),site.polygon,pad):segmentInShapeUnion(xy(p),xy(p),world.land,pad))&&segmentClearOfShapes(xy(p),xy(p),solids,pad);
  const line=(a,b,pad)=>valid(a,pad)&&valid(b,pad)&&(!site.polygon||segmentInPolygon(xy(a),xy(b),site.polygon,pad))&&segmentClearOfShapes(xy(a),xy(b),solids,pad)&&supportedLine(site,a,b,world);
  const all=[...(site.polygon||site.footprint)],x0=Math.min(...all.map(p=>p[0]))-(!site.polygon?6:0),z0=Math.min(...all.map(p=>p[1]))-(!site.polygon?6:0),x1=Math.max(...all.map(p=>p[0]))+(!site.polygon?6:0),z1=Math.max(...all.map(p=>p[1]))+(!site.polygon?6:0),nx=Math.ceil((x1-x0)/GRID)+1,nz=Math.ceil((z1-z0)/GRID)+1;
@@ -53,7 +55,29 @@ function planner(site,world,stats,layout){
   for(let k=0;k<queue.length&&k<MAX_NODES;k++){const i=queue[k];stats.visited++;if(goalSet.has(i)){end=i;break;}const ix=i%nx,iz=Math.floor(i/nx);for(const [dx,dz]of [[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[-1,-1],[1,-1]]){const j=index(ix+dx,iz+dz);if(j>=0&&prev[j]===-2&&free(j)&&gridLine(i,j)){prev[j]=i;queue.push(j);}}}
   if(end<0)return null;const result=[to];for(let i=end;i!==-1;i=prev[i])result.push(coords(i));result.push(from);return result.reverse();
  }
- return{valid,line,path,solids};
+ // A sufficient direct ordinary route, not a different pathfinder or a clearance
+ // relaxation. Match route()/hitsBlock's rectangular padding and endpoint skips;
+ // independently keep the complete body segment clear, including skipped boxes.
+ // This proves an executable go() destination beyond its arrival threshold. It
+ // does not claim that every point or extra square metre is ordinary roaming room.
+ let ordinaryPoints=null,ordinaryObstacles=null;const ordinaryCache=new Map();
+ function ordinary(from){
+  const key=from.join(',');if(ordinaryCache.has(key))return ordinaryCache.get(key);
+  let result=null;
+  if(site.polygon&&nx*nz<=MAX_NODES&&pointInPolygon(xy(from),site.polygon,COW_ROUTE)&&valid(from,COW_BODY)){
+   if(!ordinaryPoints)ordinaryPoints=Array.from({length:nx*nz},(_,i)=>coords(i)).filter(q=>pointInPolygon(xy(q),site.polygon,COW_ROUTE)&&valid(q,COW_BODY));
+   if(!ordinaryObstacles)ordinaryObstacles=solids.map(s=>{if(s.type!=='capsule')return s;const dx=s.b[0]-s.a[0],dz=s.b[1]-s.a[1],n=Math.hypot(dx,dz);return{type:'rectangle',x:(s.a[0]+s.b[0])/2,z:(s.a[1]+s.b[1])/2,hw:n/2,hd:s.routeHalfDepth??s.r,c:n?dx/n:1,s:n?dz/n:0};});
+   const contains=(s,p)=>{if(s.type==='rectangle'){const dx=p[0]-s.x,dz=p[2]-s.z,c=s.c??1,n=s.s??0;return Math.abs(dx*c+dz*n)<s.hw+COW_ROUTE&&Math.abs(-dx*n+dz*c)<s.hd+COW_ROUTE;}return s.type==='circle'&&Math.hypot(p[0]-s.x,p[2]-s.z)<s.r+COW_ROUTE-EPS;};
+   const candidates=ordinaryPoints.filter(q=>distance(q,from)>COW_ARRIVAL+EPS).sort((a,b)=>distance(a,from)-distance(b,from)||a[0]-b[0]||a[2]-b[2]);
+   for(const q of candidates){
+    if(!line(from,q,COW_BODY)||!segmentInPolygon(xy(from),xy(q),site.polygon,COW_ROUTE))continue;
+    const boxes=ordinaryObstacles.filter(s=>!contains(s,from)&&!contains(s,q)).map(s=>s.type==='rectangle'?{...s,hw:s.hw+COW_ROUTE-.05,hd:s.hd+COW_ROUTE-.05}:s.type==='circle'?{...s,r:s.r+COW_ROUTE}:s);
+    if(segmentClearOfShapes(xy(from),xy(q),boxes)){result=[[...from],[...q]];break;}
+   }
+  }
+  ordinaryCache.set(key,result);return result;
+ }
+ return{valid,line,path,solids,ordinary};
 }
 function coopLeg(site,plan,a,b,pad,world){
  const ignore=new Set(PEN_TEMPLATES.chicken.components.coop.obstacleIndices.map(i=>'own-'+i)),solids=plan.solids.filter(s=>!ignore.has(s.owner));
@@ -68,7 +92,9 @@ function coopExit(site,plan,actor,from,world){
 }
 /** Complete deterministic layout preflight. Never spends, saves or mutates live actors. */
 export function validateAnimalPens(layout,world){
- const issues=[],placements={},waiting={},routes=[],diagnostics={searches:0,visited:0},add=(code,kind,target,message)=>issues.push({code,kind,target,message}),active=Object.values(layout.sites).filter(s=>world.owned[s.kind]>0&&(s.custom||world.installed?.[s.kind]!==false)),plans=new Map();
+ const issues=[],placements={},waiting={},routes=[],ordinaryRoutes={},diagnostics={searches:0,visited:0},add=(code,kind,target,message)=>issues.push({code,kind,target,message}),active=Object.values(layout.sites).filter(s=>world.owned[s.kind]>0&&(s.custom||world.installed?.[s.kind]!==false)),plans=new Map();
+ const freeCow=a=>a.kind==='cow'&&layout.sites.cow.custom&&!layout.sites.cow.stations.some(s=>s.id===(a.careStationId??a.stationId));
+ const placementPad=a=>freeCow(a)?COW_BODY:a.clearance;
  for(const a of world.actors)if(!active.some(s=>s.kind===a.kind))placements[a.id]=[...a.position];
  for(const site of active){const kind=site.kind,t=PEN_TEMPLATES[kind],base=defaults.sites[kind];issues.push(...site.issues);
   if(site.polygon){if(!simplePolygon(site.polygon)||polygonArea(site.polygon)+EPS<t.minimumArea)add('GEOMETRY',kind,null,'Keep a simple enclosure with its minimum walking area.');
@@ -98,11 +124,12 @@ export function validateAnimalPens(layout,world){
  for(let i=0;i<active.length;i++)for(const b of [...active.slice(i+1),...reserved]){const a=active[i];if(a.polygon&&b.polygon&&shapeIntersectsPolygon({type:'polygon',points:a.polygon},b.polygon))add('OVERLAP',a.kind,null,'Keep animal pens separate.');for(const [id,c]of Object.entries(a.components))for(const d of Object.values(b.components))if(shapeIntersectsPolygon({type:'polygon',points:c.footprint},d.footprint))add('OVERLAP',a.kind,id,'Keep animal buildings separate.');}
  for(const s of active)for(const [id,c]of Object.entries(s.components))for(const [other,d]of Object.entries(s.components))if(id<other&&volumesOverlap(c.volumes,d.volumes)&&!(eq(c.delta,d.delta)&&volumesOverlap(defaults.sites[s.kind].components[id].volumes,defaults.sites[s.kind].components[other].volumes)))add('OVERLAP',s.kind,id,'These animal buildings overlap.');
  for(const actor of world.actors){const site=layout.sites[actor.kind],plan=plans.get(actor.kind);if(!plan)continue;const pad=actor.clearance,c=actor.component&&site.components[actor.component],original=actor.position,old=c?(world.currentLayout?.sites[actor.kind]?.components[actor.component]?.origin??PEN_TEMPLATES[actor.kind].components[actor.component].origin):null,p=c?[original[0]+(c.origin[0]-old[0]),original[1],original[2]+(c.origin[1]-old[1])]:[...original],used=world.actors.filter(a=>placements[a.id]);p[1]=support(site,p,world);
-  const separate=q=>used.every(a=>distance(q,placements[a.id])>=pad+a.clearance-EPS),away=q=>site.stations.every(s=>pointSegmentDistance(xy(q),xy(s.approach),xy(s.dock))>=pad+.1)&&site.gates.every(g=>pointSegmentDistance(xy(q),xy(g.inside),xy(g.outside))>=pad+.1);
+  const separate=q=>used.every(a=>distance(q,placements[a.id])>=placementPad(actor)+placementPad(a)-EPS),away=q=>site.stations.every(s=>pointSegmentDistance(xy(q),xy(s.approach),xy(s.dock))>=placementPad(actor)+.1)&&site.gates.every(g=>pointSegmentDistance(xy(q),xy(g.inside),xy(g.outside))>=placementPad(actor)+.1);
   const occupiedCoop=actor.kind==='chicken'&&actor.component==='coop'&&actor.stationId&&site.stations.some(s=>s.id===actor.stationId)&&support(site,p,world)>EPS&&coopLeg(site,plan,p,p,pad,world);
   let point=(plan.valid(p,pad)||occupiedCoop)&&separate(p)?p:null;
-  if(!point){const bounds=site.polygon||site.footprint,x0=Math.min(...bounds.map(p=>p[0])),x1=Math.max(...bounds.map(p=>p[0])),z0=Math.min(...bounds.map(p=>p[1])),z1=Math.max(...bounds.map(p=>p[1])),candidates=[];for(let x=x0+pad;x<=x1-pad;x+=GRID)for(let z=z0+pad;z<=z1-pad;z+=GRID){const q=[x,support(site,[x,0,z],world),z];if(separate(q)&&away(q)&&plan.valid(q,pad))candidates.push(q);}candidates.sort((a,b)=>distance(a,p)-distance(b,p)||a[0]-b[0]||a[2]-b[2]);point=candidates[0]||null;}
+  if(!point){const bounds=site.polygon||site.footprint,x0=Math.min(...bounds.map(p=>p[0])),x1=Math.max(...bounds.map(p=>p[0])),z0=Math.min(...bounds.map(p=>p[1])),z1=Math.max(...bounds.map(p=>p[1])),candidates=[];for(let x=x0+pad;x<=x1-pad;x+=GRID)for(let z=z0+pad;z<=z1-pad;z+=GRID){const q=[x,support(site,[x,0,z],world),z];if(separate(q)&&away(q)&&plan.valid(q,pad))candidates.push(q);}candidates.sort((a,b)=>distance(a,p)-distance(b,p)||a[0]-b[0]||a[2]-b[2]);point=candidates.find(q=>!freeCow(actor)||plan.ordinary(q))||null;}
   if(!point){add('STAGING',actor.kind,actor.id,'There is no separate clear waiting place for every animal.');continue;}placements[actor.id]=point;
+  if(freeCow(actor)){const proof=plan.ordinary(point);if(proof)ordinaryRoutes[actor.id]=proof;else add('ROAMING',actor.kind,actor.id,'This cow has no clear ordinary walking step. Adjust the fence or finish its care movement before applying.');}
  }
  // Waiting destinations are distinct from occupied support placements. A
  // sleeping bird stays in its bed at Apply, then walks to its reserved ground
@@ -143,5 +170,5 @@ export function validateAnimalPens(layout,world){
    if(site.kind==='cow'){const r=site.robot,chain=[r.entry,r.dock,r.exit,r.turn,r.clear];let ok=!!plan.path(from,r.entry,actor.clearance);for(let j=1;j<chain.length;j++)if(!plan.line(chain[j-1],chain[j],actor.clearance))ok=false;if(!ok)add('ROUTE',site.kind,'cow-robot-exit','Keep the robot entry, dock, exit, turn and clear route usable.');else routes.push({actorId:actor.id,targetId:'cow-robot-exit',points:chain});}
   }
  }
- return{revision:layout.revision,worldEpoch:world.epoch,obstacleRevision:world.obstacleRevision,ok:issues.length===0,issues,placements,waiting,routes,diagnostics};
+ return{revision:layout.revision,worldEpoch:world.epoch,obstacleRevision:world.obstacleRevision,ok:issues.length===0,issues,placements,waiting,routes,ordinaryRoutes,diagnostics};
 }
