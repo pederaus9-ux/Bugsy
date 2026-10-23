@@ -4,7 +4,7 @@
   "repository": "pederaus9-ux/Bugsy",
   "sourceOfTruth": "GitHub main",
   "protocol": "farm3d/AI_RELAY.md",
-  "lastUpdatedUtc": "2026-10-23T03:59:03.146Z",
+  "lastUpdatedUtc": "2026-10-23T04:26:38.661Z",
   "codeBaseline": {
     "description": "PR95 owner-approved remaining animal physical care merged/live;37premerge/17postmerge/Pages3SUCCESS;27runtime files and plain entry exact. Original installer failure retained, one investigated cloud-only fresh-runner rerun succeeded.",
     "mergeCommit": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
@@ -141,8 +141,8 @@
   "currentProgram": "Player-editable animal pens",
   "completedThrough": "PR95 complete; approved design and plan; pen Tasks1-6 components implemented and unit-tested; Task7 live integration in progress (prepared-registry hook and actual-index scene install proven in Node); not exposed to players, previewed or released.",
   "currentPhase": "PLAYER_EDITABLE_ANIMAL_PENS_IMPLEMENTATION",
-  "currentPhaseTitle": "Task7 four-view native drag/interruption and independent sheep shelter qualification pass; remaining integration open",
-  "phaseStatus": "TASK7_NATIVE_GESTURES_SHEEP_ASSEMBLY_PASS_REMAINING_INTEGRATION_PENDING",
+  "currentPhaseTitle": "Task7 focus/selection/gate-anchor fixes pass four-view controls/operations; installation/traffic/import qualification remains",
+  "phaseStatus": "TASK7_NATIVE_CONTROLS_OPERATIONS_PASS_REMAINING_INSTALLATION_TRAFFIC_IMPORT_PENDING",
   "visualAcceptance": "PR95_APPROVED;A3_COW_TURN_VISUAL_REVIEW_PENDING;PEN_EDITOR_NOT_IMPLEMENTED_OR_PLAYER_PREVIEWED",
   "activePullRequest": null,
   "nextPhases": [
@@ -2298,7 +2298,7 @@
       "implementationPlanApproved": true,
       "visualReleaseApproved": false
     },
-    "task": "Qualified native whole-pen drag/interruption and independent sheep shelter Apply/reload in four CSS viewports on unchanged runtime; A4 containment-only remains.",
+    "task": "Fixed native editor focus, stale structural selection and gate-anchor redraw state; four-view controls/faults and fence/gate/11-component command matrix pass.",
     "tests": {
       "baselineNodeFiles": 72,
       "task1Focused": 36,
@@ -2778,15 +2778,130 @@
           "authenticatedCloud": false,
           "visualAcceptance": false
         }
+      },
+      "nativeControlsAndOperations": {
+        "focusedExisting": {
+          "pass": 19,
+          "fail": 0,
+          "skip": 0,
+          "log": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/view-focused-gate.log"
+        },
+        "cases": [
+          {
+            "kind": "controls",
+            "viewport": "390x844",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-390x844/results.json",
+            "trustedEvents": 109,
+            "assemblyCommands": 0,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "operations",
+            "viewport": "390x844",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/operations-gate-candidate-390/results.json",
+            "trustedEvents": 306,
+            "assemblyCommands": 11,
+            "creditedWithoutRerun": true
+          },
+          {
+            "kind": "controls",
+            "viewport": "844x390",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-844x390/results.json",
+            "trustedEvents": 109,
+            "assemblyCommands": 0,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "operations",
+            "viewport": "844x390",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-844x390/results.json",
+            "trustedEvents": 306,
+            "assemblyCommands": 11,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "controls",
+            "viewport": "768x1024",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-768x1024/results.json",
+            "trustedEvents": 109,
+            "assemblyCommands": 0,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "operations",
+            "viewport": "768x1024",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-768x1024/results.json",
+            "trustedEvents": 306,
+            "assemblyCommands": 11,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "controls",
+            "viewport": "1280x720",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-1280x720/results.json",
+            "trustedEvents": 109,
+            "assemblyCommands": 0,
+            "creditedWithoutRerun": false
+          },
+          {
+            "kind": "operations",
+            "viewport": "1280x720",
+            "status": "PASS",
+            "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-1280x720/results.json",
+            "trustedEvents": 296,
+            "assemblyCommands": 11,
+            "creditedWithoutRerun": false
+          }
+        ],
+        "totalCases": 8,
+        "assemblyCommandChecks": 44,
+        "actualActors": 46,
+        "controls": [
+          "Trusted native entry/Tab/ShiftTab/handle keyboard nudge/Escape/Keep editing",
+          "Unexpected capture release through browser API during native mouse drag restores only active gesture",
+          "Canonical-key QuotaExceededError injection retains draft/raw save/actors/reservations/installed revision/readable error",
+          "Removing fault allows actual Apply/reload with exact paid fields and correct revision; focus returns opener"
+        ],
+        "operations": [
+          "Native edge/corner edits and exact Cancel",
+          "Native post split/remove with valid selection",
+          "Native map pan and canvas fence draw; run add/move/remove",
+          "Native gate add/move/resize/reanchor/remove, original gate retained",
+          "Gate width4-to5 full validation/Apply/reload with46 animals",
+          "Native fixed-chicken invalid preview, Apply disabled",
+          "11 other component commands change only selected structure; exact Cancel"
+        ],
+        "unchangedTestsSeedsDeadlines": true,
+        "originalBootMs": 120000,
+        "originalValidationMs": 30000,
+        "handleHoldFloorMs": 50,
+        "originalSuitesNotRepeated": "Unchanged core/index/motion/care suites remain credited; view-specific tests rerun after relevant changes"
       }
     },
-    "processes": "All owned commands/browser/server pairs completed; no new disconnect or denial. Prior external CIM inventory unavailable and not retried.",
+    "processes": "All owned commands/browser/server pairs complete; no disconnect/new denial; earlier external CIM inventory unavailable and not retried",
     "mergeAuthorized": "Not authorized. Fresh explicit owner approval required.",
-    "runtimeChanges": "None in this slice; prior native entry implementation remains byte-identical.",
-    "next": "Native post/edge/interior-run/gate add/move/remove/widen/reanchor and all remaining assembly types, invalid previews and storage failure in four viewports; Unexpected lost-capture cancellation beyond normal release events; complete previous-selection/focus restoration; Independent cow assemblies/support transitions, in-pen mixed traffic/internal gates/both coop doorways and full movement connectivity; New-farm/2D import; Task8 all46 three-night/recovery/cloud/resource20cycles, original seeds1/4242 and500s/40s limits; Cache63-to64 predecessor/offline and official hosted/device qualification; A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval still required",
-    "latestExecutionInstruction": "Parent retained gpt-6-astra/xhigh froma308c3a; smallest native gesture/assembly slice first, preserve all physical/save locks and A4, no merge/deploy.",
-    "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-gestures-20261023/progress.md",
-    "status": "TASK7_NATIVE_GESTURES_SHEEP_ASSEMBLY_PASS_REMAINING_INTEGRATION_PENDING",
+    "runtimeChanges": {
+      "file": "farm3d/animal-pen-editor-view.js",
+      "sha256": "e817c7a979d29c6019cb025fb35798764c306665e473fd2b6676cd97be92402d",
+      "changes": [
+        "Focus on entry, Tab/ShiftTab cycling across controls/handle, host keyboard nudge/Escape, dirty-exit focus/Keep editing return",
+        "Successful structural create selects created item; removal selects an existing whole pen and focuses selector",
+        "Gate anchor choice persists across redraws for same gate; switching gates shows actual attachment"
+      ],
+      "geometryValidationMovementSaveFilesChanged": false,
+      "newProtectedDigest": false
+    },
+    "next": "Apply/reload and installed geometry/care proof after post/edge/interior-run edits and each remaining assembly type; current11-component matrix proves native command/Cancel only; Independent cow assemblies/support transitions, full in-pen mixed traffic/internal gates/both coop doorways and full movement connectivity; Touch-specific operation journeys and pre-entry selection restoration remain unqualified; current operations use mouse/keyboard, capture-loss/quota triggers are injected browser faults; New-farm/2D import and Task8 all46 three-night care/recovery/cloud/resource20cycles using original seeds1/4242 and500s/40s limits; Cache63-to64 predecessor/offline and official hosted/device qualification; A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval required",
+    "latestExecutionInstruction": "Parent selected/disclosed gpt-6.1-sol/high from1ad8541 for focused qualification; preserve A4 and locks; stop for architecture/locked scope, no merge/deploy.",
+    "checkpoint": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/progress.md",
+    "status": "TASK7_NATIVE_CONTROLS_OPERATIONS_PASS_REMAINING_INSTALLATION_TRAFFIC_IMPORT_PENDING",
     "handoff": "farm3d/CHATGPT_HANDOFF_20261022.md",
     "transferredFrom": {
       "branch": "codex/player-pen-editing-20261022",
@@ -2795,12 +2910,12 @@
       "method": "fast-forward, no force"
     },
     "openFindings": [
-      "Native post/edge/interior-run/gate add/move/remove/widen/reanchor and all remaining assembly types, invalid previews and storage failure in four viewports",
-      "Unexpected lost-capture cancellation beyond normal release events; complete previous-selection/focus restoration",
-      "Independent cow assemblies/support transitions, in-pen mixed traffic/internal gates/both coop doorways and full movement connectivity",
-      "New-farm/2D import; Task8 all46 three-night/recovery/cloud/resource20cycles, original seeds1/4242 and500s/40s limits",
+      "Apply/reload and installed geometry/care proof after post/edge/interior-run edits and each remaining assembly type; current11-component matrix proves native command/Cancel only",
+      "Independent cow assemblies/support transitions, full in-pen mixed traffic/internal gates/both coop doorways and full movement connectivity",
+      "Touch-specific operation journeys and pre-entry selection restoration remain unqualified; current operations use mouse/keyboard, capture-loss/quota triggers are injected browser faults",
+      "New-farm/2D import and Task8 all46 three-night care/recovery/cloud/resource20cycles using original seeds1/4242 and500s/40s limits",
       "Cache63-to64 predecessor/offline and official hosted/device qualification",
-      "A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval still required",
+      "A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval required",
       "Historical B13/B16 unchanged failures remain outside core runners; retained evidence applies."
     ],
     "resolvedFindings": [
@@ -2817,7 +2932,9 @@
       "Owner A4 resolves prior exterior-gate product question by deferring animal exterior trips/transfers while preserving containment/player access; eight historical REDs frozen.",
       "Native Edit > Animal pens now enters real draft UI; four local viewports pass physical pause, paid tick, input isolation, sheep nudge/preview, Cancel/dirty-close/Apply/reload with46 animals and simulated transition cancellation.",
       "All four CSS viewports qualify native one-metre whole-pen drag, second-touch cancellation/pan and touchCancel; completed drafts/save/actors/reservations preserved.",
-      "Independent sheep shelter native drag/Apply/reload passes four views with46 animals, fixed fence/gate, actual five bed geometry/station shifts and equal-clock paid state. New probe Float32 oracle error corrected without changing1e-8 limit; both original REDs retained."
+      "Independent sheep shelter native drag/Apply/reload passes four views with46 animals, fixed fence/gate, actual five bed geometry/station shifts and equal-clock paid state. New probe Float32 oracle error corrected without changing1e-8 limit; both original REDs retained.",
+      "Four-view native editor focus/Tab/handle keyboard nudge/dirty Escape/Keep editing/opener return qualified; browser-fault capture loss and quota recovery preserve saved/runtime/paid state.",
+      "View structural operations now retain an existing selection and gate-attachment choices survive queued redraw; four-view native fence/gate command sequence and gate5 Apply/reload pass. Other11 component command/Cancel checks pass, independent installation remains pending."
     ],
     "previousHandoff": "farm3d/CLAUDE_HANDOFF_20261022.md",
     "handedOffBy": {
@@ -7212,5 +7329,184 @@
     "merge": false,
     "deployed": false,
     "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-gestures-20261023"
+  },
+  "nativeControlsAndOperations20261023": {
+    "recordedAtUtc": "2026-10-23T04:26:38.661Z",
+    "base": "1ad8541434b4bcca401fe83a1d7a6fdd40f71d6c",
+    "main": "1115f93101a0e86fdcc9780e053c17b73dd6dac5",
+    "branch": "codex/pet-pocket-20261022",
+    "model": "gpt-6.1-sol",
+    "reasoning": "high",
+    "modelSource": "Parent explicitly selected/disclosed switch for focused qualification",
+    "status": "TASK7_NATIVE_CONTROLS_OPERATIONS_PASS_REMAINING_INSTALLATION_TRAFFIC_IMPORT_PENDING",
+    "runtime": {
+      "file": "farm3d/animal-pen-editor-view.js",
+      "sha256": "e817c7a979d29c6019cb025fb35798764c306665e473fd2b6676cd97be92402d",
+      "changes": [
+        "Focus on entry, Tab/ShiftTab cycling across controls/handle, host keyboard nudge/Escape, dirty-exit focus/Keep editing return",
+        "Successful structural create selects created item; removal selects an existing whole pen and focuses selector",
+        "Gate anchor choice persists across redraws for same gate; switching gates shows actual attachment"
+      ],
+      "geometryValidationMovementSaveFilesChanged": false,
+      "newProtectedDigest": false
+    },
+    "retainedReds": [
+      "Missing entry focus",
+      "Tab escapes editor after entry-only fix",
+      "New probe decimal round-trip assumption; exact JS arithmetic expected value corrected, no tolerance/runtime rounding change",
+      "Split edge leaves nonexisting old-edge selection",
+      "Gate attachment choice reset by queued redraw"
+    ],
+    "verification": {
+      "focusedExisting": {
+        "pass": 19,
+        "fail": 0,
+        "skip": 0,
+        "log": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/view-focused-gate.log"
+      },
+      "cases": [
+        {
+          "kind": "controls",
+          "viewport": "390x844",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-390x844/results.json",
+          "trustedEvents": 109,
+          "assemblyCommands": 0,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "operations",
+          "viewport": "390x844",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/operations-gate-candidate-390/results.json",
+          "trustedEvents": 306,
+          "assemblyCommands": 11,
+          "creditedWithoutRerun": true
+        },
+        {
+          "kind": "controls",
+          "viewport": "844x390",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-844x390/results.json",
+          "trustedEvents": 109,
+          "assemblyCommands": 0,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "operations",
+          "viewport": "844x390",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-844x390/results.json",
+          "trustedEvents": 306,
+          "assemblyCommands": 11,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "controls",
+          "viewport": "768x1024",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-768x1024/results.json",
+          "trustedEvents": 109,
+          "assemblyCommands": 0,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "operations",
+          "viewport": "768x1024",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-768x1024/results.json",
+          "trustedEvents": 306,
+          "assemblyCommands": 11,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "controls",
+          "viewport": "1280x720",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-controls-1280x720/results.json",
+          "trustedEvents": 109,
+          "assemblyCommands": 0,
+          "creditedWithoutRerun": false
+        },
+        {
+          "kind": "operations",
+          "viewport": "1280x720",
+          "status": "PASS",
+          "result": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023/final-operations-1280x720/results.json",
+          "trustedEvents": 296,
+          "assemblyCommands": 11,
+          "creditedWithoutRerun": false
+        }
+      ],
+      "totalCases": 8,
+      "assemblyCommandChecks": 44,
+      "actualActors": 46,
+      "controls": [
+        "Trusted native entry/Tab/ShiftTab/handle keyboard nudge/Escape/Keep editing",
+        "Unexpected capture release through browser API during native mouse drag restores only active gesture",
+        "Canonical-key QuotaExceededError injection retains draft/raw save/actors/reservations/installed revision/readable error",
+        "Removing fault allows actual Apply/reload with exact paid fields and correct revision; focus returns opener"
+      ],
+      "operations": [
+        "Native edge/corner edits and exact Cancel",
+        "Native post split/remove with valid selection",
+        "Native map pan and canvas fence draw; run add/move/remove",
+        "Native gate add/move/resize/reanchor/remove, original gate retained",
+        "Gate width4-to5 full validation/Apply/reload with46 animals",
+        "Native fixed-chicken invalid preview, Apply disabled",
+        "11 other component commands change only selected structure; exact Cancel"
+      ],
+      "unchangedTestsSeedsDeadlines": true,
+      "originalBootMs": 120000,
+      "originalValidationMs": 30000,
+      "handleHoldFloorMs": 50,
+      "originalSuitesNotRepeated": "Unchanged core/index/motion/care suites remain credited; view-specific tests rerun after relevant changes"
+    },
+    "integrity": {
+      "status": "PASS",
+      "checkedAtUtc": "2026-10-23T04:21:21.568Z",
+      "base": "1ad8541434b4bcca401fe83a1d7a6fdd40f71d6c",
+      "trackedFiles": 2004,
+      "changedBeforeRelays": [
+        "farm3d/animal-pen-editor-view.js"
+      ],
+      "oldTestsExact": true,
+      "priorEvidenceExact": 1345,
+      "protectedExact": 20,
+      "adapterRecordsExact": 7,
+      "A1A2A3Exact": true,
+      "cowSha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+      "viewSha256": "e817c7a979d29c6019cb025fb35798764c306665e473fd2b6676cd97be92402d"
+    },
+    "environment": {
+      "node": "24.19.0",
+      "playwright": "1.62.1",
+      "chromium": "151.0.7922.34",
+      "revision": 1234,
+      "platform": "Windows pinned local browser",
+      "drawingScale": 0.5,
+      "contextsTouchEnabled": true,
+      "contextsIsMobile": true,
+      "operationInput": "Native mouse/keyboard in exact CSS viewport contexts; no CDP-touch operation claim",
+      "faultTriggers": "Browser APIs inject capture release and canonical-key storage failure; no DOM gesture dispatch or debug editor command",
+      "hosted": false,
+      "physicalDevice": false,
+      "cloud": false,
+      "independentAudit": false,
+      "visualApproval": false
+    },
+    "processes": "All owned commands/browser/server pairs complete; no disconnect/new denial; earlier external CIM inventory unavailable and not retried",
+    "blockedActions": [],
+    "remaining": [
+      "Apply/reload and installed geometry/care proof after post/edge/interior-run edits and each remaining assembly type; current11-component matrix proves native command/Cancel only",
+      "Independent cow assemblies/support transitions, full in-pen mixed traffic/internal gates/both coop doorways and full movement connectivity",
+      "Touch-specific operation journeys and pre-entry selection restoration remain unqualified; current operations use mouse/keyboard, capture-loss/quota triggers are injected browser faults",
+      "New-farm/2D import and Task8 all46 three-night care/recovery/cloud/resource20cycles using original seeds1/4242 and500s/40s limits",
+      "Cache63-to64 predecessor/offline and official hosted/device qualification",
+      "A3 earlier-release/running-swing tradeoff and final editor polish need real-preview owner visual review; fresh merge approval required"
+    ],
+    "evidence": "farm3d/tests/evidence/pen-editing-implementation/task7-codex-native-controls-20261023",
+    "merge": false,
+    "deployed": false
   }
 }

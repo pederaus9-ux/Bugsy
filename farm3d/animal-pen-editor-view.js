@@ -15,10 +15,16 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  for(const node of panel.querySelectorAll('button,select'))node.style.cssText+='min-width:44px;min-height:44px;font:inherit;touch-action:manipulation;';
  host.append(panel);
  const handle=document.createElement('button');handle.type='button';handle.setAttribute('aria-label','Drag selected pen item');handle.textContent='✥';handle.style.cssText='position:fixed;width:48px;height:48px;border-radius:50%;background:#fff9e9;color:#304b20;border:3px solid #6b8548;z-index:999;touch-action:none;font-size:25px;';host.append(handle);
- let disposed=false,seen='',previewRevision=-1,drag=null,drawRun=null,counter=0;const pointers=new Set(),cleanups=[];
+ let disposed=false,seen='',previewRevision=-1,drag=null,drawRun=null,counter=0,exitFocus=null,anchorSelection=null;const pointers=new Set(),cleanups=[];
  const listen=(node,name,fn,options)=>{node.addEventListener(name,fn,options);cleanups.push(()=>node.removeEventListener(name,fn,options));};
  const record=state=>state.draft?.sites[state.selection?.kind]??defaultSiteRecord(state.selection?.kind??'chicken');
- const command=c=>editor.dispatch({...c,kind:editor.snapshot().selection.kind});
+ const command=c=>{
+  const kind=editor.snapshot().selection.kind;if(!editor.dispatch({...c,kind}))return false;
+  const type={splitEdge:'vertex',addRun:'run',addGate:'gate'}[c.type];
+  if(type)editor.select({kind,type,id:c.type==='addGate'?c.gate.id:c.id});
+  else if(['removeVertex','removeRun','removeGate'].includes(c.type))editor.select({kind,type:'pen',id:kind});
+  if(type||c.type.startsWith('remove'))targets.focus?.({preventScroll:true});return true;
+ };
  const nextId=prefix=>prefix+'-'+Date.now().toString(36)+'-'+(++counter);
  function anchor(state){const s=record(state),t=state.selection;if(!t)return null;
   if(t.type==='structure')return s.structures[t.id];
@@ -33,12 +39,12 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   if(t.type==='structure'||t.type==='vertex')command({type:t.type==='structure'?'moveStructure':'moveVertex',id:t.id,to:to??[p[0]+delta[0],p[1]+delta[1]]});
   else if(t.type==='pen')command({type:'movePen',delta});else if(t.type==='edge')command({type:'moveEdge',edge:t.id.split(':'),delta});else if(t.type==='run')command({type:'moveRun',id:t.id,delta});
  }
- function close(){const s=editor.snapshot();if(s.dirty){exit.hidden=false;}else{editor.cancel();clearPreview();onClose();}}
+ function close(){const s=editor.snapshot();if(s.dirty){exitFocus=document.activeElement;exit.hidden=false;exit.querySelector('button:not(:disabled)')?.focus?.();}else{editor.cancel();clearPreview();onClose();}}
  async function action(name){const state=editor.snapshot(),s=record(state),t=state.selection;if(!t)return;
   if(['left','right','up','down'].includes(name)){move({left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[name]);return;}
   if(name==='close'){close();return;}
   if(name==='cancel'){editor.cancel();clearPreview();onClose();return;}
-  if(name==='exit-keep'){exit.hidden=true;return;}
+  if(name==='exit-keep'){exit.hidden=true;(exitFocus??kinds).focus?.({preventScroll:true});return;}
   if(name==='exit-discard'){editor.cancel();clearPreview();onClose();return;}
   if(name==='apply'||name==='exit-apply'){if(await editor.apply()){clearPreview();onClose();}return;}
   if(name==='anchor'&&t.type==='gate'){const [type,id]=gateAnchor.value.split('|');command({type:'anchorGate',id:t.id,edge:type==='edge'?id.split(':'):null,run:type==='run'?id:null,offset:1});return;}
@@ -64,9 +70,13 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
  listen(handle,'pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const at=unproject([event.clientX,event.clientY]);if(!at)return;const delta=[Math.round(at[0]-drag.last[0]),Math.round(at[2]-drag.last[1])];if(!delta.some(Boolean))return;const to=[drag.origin[0]+Math.round(at[0]-drag.start[0]),drag.origin[1]+Math.round(at[2]-drag.start[1])];move(delta,to);drag.last=[drag.last[0]+delta[0],drag.last[1]+delta[1]];});
  const up=event=>{pointers.delete(event.pointerId);if(drag?.id===event.pointerId)finishDrag(false);};
  listen(window,'pointerup',up,true);listen(window,'pointercancel',event=>{pointers.delete(event.pointerId);finishDrag(true);},true);listen(handle,'lostpointercapture',()=>{if(drag)finishDrag(true);});listen(window,'blur',()=>{pointers.clear();finishDrag(true);drawRun=null;});
- listen(panel,'keydown',event=>{if(['INPUT','SELECT'].includes(event.target.tagName))return;const names={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};if(names[event.key]){event.preventDefault();void action(names[event.key]);}if(event.key==='Escape'){event.preventDefault();close();}});
+ listen(host,'keydown',event=>{
+  if(event.key==='Tab'){const nodes=[...host.querySelectorAll('button,select')].filter(n=>!n.disabled&&n.getClientRects().length),i=nodes.indexOf(document.activeElement);if(i<0||event.shiftKey&&i===0||!event.shiftKey&&i===nodes.length-1){event.preventDefault();nodes[event.shiftKey?nodes.length-1:0]?.focus();}return;}
+  if(event.key==='Escape'){event.preventDefault();close();return;}
+  if(['INPUT','SELECT'].includes(event.target.tagName))return;const names={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};if(names[event.key]){event.preventDefault();void action(names[event.key]);}
+ });
  function render(){if(disposed)return;const state=editor.snapshot();panel.hidden=!state.open;handle.hidden=!state.open;if(!state.open)return;const s=record(state),t=state.selection,signature=JSON.stringify([t,state.draftRevision]);
-  if(signature!==seen){seen=signature;kinds.value=t.kind;targets.replaceChildren();const list=[['pen',t.kind,'Whole pen'],...Object.keys(s.structures).map(id=>['structure',id,id]),...(s.boundary??[]).flatMap((v,i)=>[['vertex',v.id,'Post '+(i+1)],['edge',v.id+':'+s.boundary[(i+1)%s.boundary.length].id,'Fence edge '+(i+1)]]),...(s.runs??[]).map((r,i)=>['run',r.id,'Interior fence '+(i+1)]),...(s.gates??[]).map((g,i)=>['gate',g.id,'Gate '+(i+1)])];for(const [type,id,label]of list){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;targets.append(o);}targets.value=t.type+'|'+t.id;gateAnchor.replaceChildren();for(const [type,id,label]of list.filter(v=>['edge','run'].includes(v[0]))){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;gateAnchor.append(o);}gateAnchor.hidden=t.type!=='gate';
+  if(signature!==seen){const gateKey=t.type==='gate'?t.kind+'|'+t.id:null,pendingAnchor=gateKey===anchorSelection?gateAnchor.value:null;anchorSelection=gateKey;seen=signature;kinds.value=t.kind;targets.replaceChildren();const list=[['pen',t.kind,'Whole pen'],...Object.keys(s.structures).map(id=>['structure',id,id]),...(s.boundary??[]).flatMap((v,i)=>[['vertex',v.id,'Post '+(i+1)],['edge',v.id+':'+s.boundary[(i+1)%s.boundary.length].id,'Fence edge '+(i+1)]]),...(s.runs??[]).map((r,i)=>['run',r.id,'Interior fence '+(i+1)]),...(s.gates??[]).map((g,i)=>['gate',g.id,'Gate '+(i+1)])];for(const [type,id,label]of list){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;targets.append(o);}targets.value=t.type+'|'+t.id;gateAnchor.replaceChildren();for(const [type,id,label]of list.filter(v=>['edge','run'].includes(v[0]))){const o=document.createElement('option');o.value=type+'|'+id;o.textContent=label;gateAnchor.append(o);}const selectedGate=s.gates?.find(g=>g.id===t.id),attached=selectedGate?.edge?'edge|'+selectedGate.edge.join(':'):selectedGate?.run?'run|'+selectedGate.run:null,choice=[pendingAnchor,attached].find(value=>value&&[...gateAnchor.children].some(o=>o.value===value));if(choice)gateAnchor.value=choice;gateAnchor.hidden=t.type!=='gate';
    for(const b of controls.querySelectorAll('button')){const n=b.dataset.action;b.disabled=n==='anchor'?t.type!=='gate':n==='add-post'?t.type!=='edge':n==='remove'?!['vertex','run','gate'].includes(t.type):n==='add-gate'?!['edge','run'].includes(t.type):n==='add-fence'?!s.boundary:['gate-left','gate-right','widen','narrow'].includes(n)?t.type!=='gate':t.type==='gate';}
   }
   onSelection(t);
@@ -75,6 +85,6 @@ export function createAnimalPenEditorView({editor,host,canvas,project,unproject,
   if(!drawRun)status.textContent=state.reason??(state.dirty?(state.validation?'Ready to apply.':'Checking space and care routes…'):'Select a fence or building to edit.');
   const previewKey=state.draftRevision+':'+String(state.validation?.ok);if(previewRevision!==previewKey){previewRevision=previewKey;try{preview(resolveAnimalPens(state.draft),state.validation);}catch{clearPreview();}}
  }
- const interval=setInterval(render,100);render();
+ const interval=setInterval(render,100);render();kinds.focus?.({preventScroll:true});
  return{dispose(){if(disposed)return;disposed=true;finishDrag(true);pointers.clear();clearInterval(interval);for(const fn of cleanups)fn();panel.remove();handle.remove();clearPreview();}};
 }
