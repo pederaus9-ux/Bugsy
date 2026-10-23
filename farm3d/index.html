@@ -1836,7 +1836,15 @@ class Beast {
     if (this.rig3d) {
       if(this.kind==='cow'&&this.pen?.custom){
         const budget=(this.running?this.S.run:this.S.walk)*(.8+P.energy*.4)*(this.act==='fleeing'?1.3:1)*Math.max(0,dt);
-        this.g.position.fromArray(cowPenStep([ox,this.g.position.y,oz],this.g.position.toArray(),budget,cowSupportY));
+        const from=[ox,this.g.position.y,oz],next=cowPenStep(from,this.g.position.toArray(),budget,cowSupportY);
+        // Ordinary steering must respect the same cow clearance as care trips.
+        // Check the actual supported segment; stopping never adds displacement.
+        const dx=next[0]-ox,dz=next[2]-oz,clear=animals.every(b=>{
+          if(b===this||b.kind!=='cow')return true;
+          const x=ox-b.g.position.x,z=oz-b.g.position.z,u=THREE.MathUtils.clamp(-(x*dx+z*dz)/(dx*dx+dz*dz||1),0,1);
+          return Math.hypot(x+dx*u,z+dz*u)>=Math.min(.85,Math.hypot(x,z));
+        });
+        this.g.position.fromArray(clear?next:from);
         if(dt>0)this.vel.set((this.g.position.x-ox)/dt,(this.g.position.z-oz)/dt);
       }
       if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active)this.g.position.y=groundY(this.g.position.x,this.g.position.z);
