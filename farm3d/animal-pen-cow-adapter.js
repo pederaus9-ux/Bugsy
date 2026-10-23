@@ -23,7 +23,7 @@ export function createCowPenCareAdapter({actors,idOf,scheduler,stations,job}){
    if(state==='published')return;if(state!=='prepared')throw new Error('Cow revision '+state);
    if(updates.some(u=>u.a.cowTask!==u.task))throw new Error('Stale cow care revision');
    stations.clear();for(const [id,s]of next)stations.set(id,s);
-   for(const {a,task,station,stage,waypoints,position}of updates){a.g.position.fromArray(position);a.path=null;a.target=null;a.vel.set(0,0);a.cowTickAt=now;if(task){task.station=station;task.stage=stage;task.waypoints=waypoints;task.path=null;task.avoidSide=undefined;}}
+   for(const {a,task,station,stage,waypoints,position}of updates){a.g.position.fromArray(position);a.path=null;a.target=null;a.vel.set(0,0);a.cowTickAt=now;if(!task&&a.act==='moving')a.act='idle';if(task){task.station=station;task.stage=stage;task.waypoints=waypoints;task.path=null;task.avoidSide=undefined;}}
    revision=site.revision;state='published';
   },dispose(){if(state==='prepared')state='disposed';}};
  }
