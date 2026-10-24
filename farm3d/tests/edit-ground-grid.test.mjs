@@ -18,3 +18,16 @@ test('actual editable farm mask produces a bounded whole-area grid with object h
  assert(grid.userData.bounds[0]<-25&&grid.userData.bounds[1]>20&&grid.userData.bounds[2]<-40&&grid.userData.bounds[3]>20);
  grid.dispose();
 });
+
+test('large editable grass is shown in bounded, camera-following unchecked windows',()=>{
+ const world={land:[{type:'polygon',points:[[-110,-110],[110,-110],[110,110],[-110,110]]}],blocked:[{type:'circle',x:75,z:70,r:2}],path:[]};
+ const grid=createEditableGroundGrid(()=>0);
+ assert.equal(grid.updateMask(world),true);
+ assert.equal(grid.userData.states,'unchecked');assert(grid.userData.tileCount<=10000);
+ assert(grid.updateView({x:75,z:70,dist:45,fov:38,aspect:844/390}));
+ assert(grid.userData.tiles.some(([x,z])=>Math.abs(x-75)<8&&Math.abs(z-70)<8));
+ assert(!grid.userData.tiles.some(([x,z])=>Math.abs(x-75)<2&&Math.abs(z-70)<2));
+ assert(grid.userData.tileCount+grid.userData.maskedCount<=10000);
+ assert(grid.userData.fullBounds[0]<=-110&&grid.userData.fullBounds[1]>=110);
+ grid.dispose();
+});

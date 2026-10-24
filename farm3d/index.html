@@ -677,7 +677,8 @@ import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layo
 import {createRemainingCareController} from './remaining-care-controller.js?v=3';
 import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
 import {createDairyPath} from './farm-path.js?v=2';
-import {NORTH_EXTENSION,WEST_CLEARING,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=3';
+import {NORTH_EXTENSION,WEST_CLEARING,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=4';
+import {TERRAIN_SPAN,TERRAIN_SEGMENTS,terrainMeshY,assessWorkshopSite} from './workshop-site.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
@@ -691,7 +692,7 @@ import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=1';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
 import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
-import {createEditableGroundGrid} from './edit-ground-grid.js?v=1';
+import {createEditableGroundGrid} from './edit-ground-grid.js?v=2';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=6';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -1229,7 +1230,7 @@ const _pupV = new THREE.Vector3();
 bootStep("making the ground");
 // ---------------- ground ----------------
 const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
-const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
+const groundGeo = new THREE.PlaneGeometry(TERRAIN_SPAN, TERRAIN_SPAN, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS); groundGeo.rotateX(-Math.PI / 2);
 { const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
   p.setY(i,farmGroundY(x,z)); }
   groundGeo.computeVertexNormals();
@@ -1408,6 +1409,7 @@ const barn = mergeStatic(makeBarn(), (o) => o.userData.door); scene.add(barn); c
 const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = "t:tree";
 const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
 const groundY=farmGroundY;
+const workshopGroundY=(x,z)=>terrainMeshY(x,z,farmGroundY);
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
   t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
   t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
@@ -2340,6 +2342,7 @@ function placeCamera(dt = 1) {
   const v = view;
   camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);
   camera.lookAt(v.target);
+  if(editMode&&grid?.visible)grid.updateView({x:v.target.x,z:v.target.z,dist:v.dist,fov:camera.fov,aspect:camera.aspect});
   sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
@@ -2352,7 +2355,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
   if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around
-  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 27); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -46, 28); return; } // slide the map
+  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -48, 50); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -70, 52); return; } // slide the map
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
     const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
@@ -2361,7 +2364,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
       if (d && last.d) cam.dist *= last.d / d;
       const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
       cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
-      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, editMode?27:24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, editMode?-46:-18-NORTH_EXTENSION, 28);
+      cam.target.x = THREE.MathUtils.clamp(cam.target.x, editMode?-48:-24, editMode?50:24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, editMode?-70:-18-NORTH_EXTENSION, editMode?52:28);
     }
     last = {c, d};
   }
@@ -2669,12 +2672,37 @@ function makeLot(bid) { // a roped-off gravel lot with a sign, before the buildi
 const buildings = {};
 const BLD_BLK = {}, BLD_DECAL = {}, HOME_SPOT = JSON.parse(JSON.stringify(BUILD_SPOT));
 for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push(BLD_BLK[bid] = [x, z, 1.9, 1.7]); clearGrass(x, z, 1.8, "b:" + bid); BLD_DECAL[bid] = contact(x, z, 5, 4.4); }
+function syncWorkshopGround(bid,x,z){
+ const B=buildings[bid];if(!B?.g)return;
+ const site=assessWorkshopSite(x,z,workshopGroundY,{floorOffset:B.owned ? .35 : .05});B.site=site;
+ B.g.position.set(x,Number.isFinite(site.y)?site.y:0,z);
+ const old=B.g.userData.foundation;if(old){B.g.remove(old);old.traverse(o=>o.geometry?.dispose());}
+ const support=new THREE.Group();support.name='Workshop foundation and entrance';B.g.userData.foundation=support;B.g.add(support);
+ if(site.ok&&site.needsRamp){
+  for(const dx of [-1.5,1.5])for(const dz of [-1.25,1.25]){
+   const gap=Math.max(0,site.y-workshopGroundY(x+dx,z+dz));if(gap>.025)support.add(box(.24,gap+.08,.24,M.stone,dx,-gap/2,dz));
+  }
+  const far=site.approachY-site.y+.02,near=site.floorOffset,len=3,ramp=new THREE.Mesh(new THREE.BoxGeometry(1.1,.08,len),M.stone);
+  ramp.position.set(0,(near+far)/2,1.7+len/2);ramp.rotation.x=Math.atan2(near-far,len);ramp.receiveShadow=ramp.castShadow=true;support.add(ramp);
+ }
+ BLD_DECAL[bid].visible=!(site.ok&&site.needsRamp);BLD_DECAL[bid].position.set(x,workshopGroundY(x,z)+.02,z);
+}
+function workshopWalkY(x,z){
+ let y=groundY(x,z);
+ for(const [bid,B] of Object.entries(buildings)){
+  const site=B.site;if(!site?.ok||!site.needsRamp)continue;
+  const [bx,bz]=BUILD_SPOT[bid],t=(z-(bz+1.7))/3;
+  if(Math.abs(x-bx)>.55||t<0||t>1)continue;
+  y=Math.max(y,site.floorY+(site.approachY-site.floorY)*t);
+ }
+ return y;
+}
 function syncBuildings() {
   for (const bid of Object.keys(G.BUILDINGS)) {
     const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];
     if (B.owned !== owned || !B.g) {
       if (B.g) scene.remove(B.g);
-      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;
+      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;syncWorkshopGround(bid,x,z);
       if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
     }
     if (!owned) { const b = G.BUILDINGS[bid], open = GS().level >= b.lvl; B.g.userData.sign.userData.set([b.e + " " + b.n, open ? b.cost + " 🪙" : "🔒 Level " + b.lvl]);
@@ -3036,7 +3064,7 @@ function poseFarmerGait(w) {
   return (Math.abs(cs) * THREE.MathUtils.lerp(.035, .08, run) - run * .05) * env;
 }
 function placeWalkCamera() {
-  const w = walk, gy = groundY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
+  const w = walk, gy = workshopWalkY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
   farmer.visible = thirdPerson;
   if (thirdPerson) {
     // turn the farmer toward where they're walking, and swing arms and legs with each step
@@ -3433,8 +3461,9 @@ buildFarmer();
 // to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
 const grid = createEditableGroundGrid(farmGroundY); scene.add(grid);
 function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=buildableLandShapes(23);return world;}
-const editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));
-editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);
+const shadeGeo=new THREE.BufferGeometry();shadeGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(18),3));
+const editShade = new THREE.Mesh(shadeGeo, new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false,side:THREE.DoubleSide}));
+editShade.visible = false; scene.add(editShade);
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
 const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
 function setEdit(on) {
@@ -3456,9 +3485,8 @@ function setEdit(on) {
   }
   G.sfx("pop");
 }
-const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
-function groundAt(x, y) { return rayAt(x, y).ray.intersectPlane(groundPlane, new THREE.Vector3()); }
+function groundAt(x, y) { return rayAt(x, y).intersectObject(ground, false)[0]?.point??null; }
 function editHit(x, y) {
   const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), tree, tree2, ...decorObjs];
   const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h) return null;
@@ -3472,6 +3500,21 @@ function footprint(key) {
   const d = GS().decor.placed[+id], r = d && G.DECOR[d.id].size === 2 ? 1.2 : .6; return {hw:r, hd:r};
 }
 const segDist = (x, z, ax, az, bx, bz) => { const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez || 1), 0, 1); return Math.hypot(x - ax - ex * u, z - az - ez * u); };
+function workshopSite(id,x,z){
+ const own=BLD_BLK[id];
+ return assessWorkshopSite(x,z,workshopGroundY,{landContains:onBuildableLand,floorOffset:GS().buildings[id]?.owned ? .35 : .05,entranceClear:(door,approach,needsRamp)=>{
+  if(!needsRamp)return true;
+  const bz=(door[1]+approach[1])/2,hd=(approach[1]-door[1])/2,block=[x,bz,.65,hd];
+  if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[block]}).length)return false;
+  if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[block]}).length))return false;
+  if(BLOCKS.some(b=>b!==own&&Math.abs(x-b[0])<.65+b[2]&&Math.abs(bz-b[1])<hd+b[3]))return false;
+  if([...Object.values(TREES),...hills,...far].some(t=>Math.abs(x-t.position.x)<2.05&&Math.abs(bz-t.position.z)<hd+1.4))return false;
+  if(GS().decor.placed.some(d=>Math.abs(x-d.x)<.65+1.2&&Math.abs(bz-d.z)<hd+1.2))return false;
+  if(plots.some(P=>P.g.visible&&Math.abs(x-P.g.position.x)<.65+1.2&&Math.abs(bz-P.g.position.z)<hd+1.2))return false;
+  for(let i=0;i<=12;i++){const zz=door[1]+(approach[1]-door[1])*i/12;if(dairyPath.contains(x,zz,.65)||PEN_LIST.some(p=>inPen(p,x,zz,-.8)))return false;}
+  return true;
+ }});
+}
 function editValid(key, x, z) {
   const [t, id] = key.split(":");
   if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
@@ -3483,10 +3526,11 @@ function editValid(key, x, z) {
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
   if (t === "b") {
     for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;
-    for (const k of Object.keys(TREES)) if (Math.hypot(TREES[k].position.x - x, TREES[k].position.z - z) < hw + 1.4) return false; // not under a tree
+    for (const tree of [...Object.values(TREES),...hills,...far]) if (Math.hypot(tree.position.x - x, tree.position.z - z) < hw + 1.4) return false; // not under a tree
   } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence
   if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;
   if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;
+  if(t==='b'&&!workshopSite(id,x,z).ok)return false;
   return true;
 }
 function moveBlock(b, x, z) { // keep the pets' route planner in step with the block
@@ -3509,8 +3553,8 @@ function commitEdit(key, x, z, save = true) {
   }
   const [t, id] = key.split(":"), L = GS().layout || (GS().layout = {b:{}, t:{}});
   if (t === "b") {
-    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; BLD_DECAL[id].position.set(x, .02, z); moveClear("b:" + id, x, z, 1.8);
-    const B = buildings[id]; if (B && B.g) B.g.position.set(x, 0, z);
+    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; moveClear("b:" + id, x, z, 1.8);
+    syncWorkshopGround(id,x,z);
     if (save) (L.b || (L.b = {}))[id] = [x, z];
   } else if (t === "t") {
     moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);
@@ -3526,7 +3570,8 @@ function applyLayout() {
   for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit("t:" + k, x, z, false); }
 }
 function showShade(d) {
-  const f = footprint(d.key); editShade.scale.set(f.hw * 2, f.hd * 2, 1); editShade.position.set(d.x, .07, d.z);
+  const f=footprint(d.key),corners=[[d.x-f.hw,d.z-f.hd],[d.x+f.hw,d.z-f.hd],[d.x+f.hw,d.z+f.hd],[d.x-f.hw,d.z+f.hd]],a=shadeGeo.attributes.position;
+  [0,1,2,0,2,3].forEach((j,i)=>{const [x,z]=corners[j],y=workshopGroundY(x,z);a.setXYZ(i,x,Number.isFinite(y)?y+.07:.07,z);});a.needsUpdate=true;shadeGeo.computeBoundingSphere();
   editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;
 }
 function editDown(e) {
@@ -3534,7 +3579,7 @@ function editDown(e) {
   const h = editHit(e.clientX, e.clientY); if (!h) return false;
   const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
   editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
-  p.y = .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
+  p.y += .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
   return true;
 }
 function editMove(e) {
@@ -3542,14 +3587,14 @@ function editMove(e) {
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
   const g = groundAt(e.clientX, e.clientY); if (!g) return true;
   const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
-  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, .25, z); showShade(d); G.sfx("tick"); }
+  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, d.key.startsWith('b:')?(workshopSite(d.key.slice(2),x,z).y??0)+.25:.25, z); showShade(d); G.sfx("tick"); }
   return true;
 }
 function editUp(e) {
   if (animalPenEditing) return;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
   editMode.drag = null; editShade.visible = false;
-  if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { d.obj.position.y = 0; squish(d.obj, .6); G.sfx("place"); }
+  if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { squish(d.obj, .6); G.sfx("place"); }
   else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
@@ -3747,7 +3792,7 @@ const baitMat = emojiMat("🌾");
 function throwBait() {
   if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;
   if (authoredHands?.state.status === 'ready') handPunch('reach', 'feed');
-  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = groundY(walk.pos.x, walk.pos.y) + EYE - .35;
+  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = workshopWalkY(walk.pos.x, walk.pos.y) + EYE - .35;
   const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);
   spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
   G.sfx("throw");
@@ -4428,9 +4473,9 @@ for(const name of ['Phase7M flower stems','Phase7M flower heads']){
 cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")],COW_YARD_LAYOUT);cowPlantClearing.setActive(cowYardActive);
 remainingPlantClearing=createRemainingCarePlantClearing([scene.getObjectByName('Phase7M flower stems'),scene.getObjectByName('Phase7M flower heads')],remainingLayouts);for(const [kind,site]of Object.entries(remainingSites))remainingPlantClearing.setActive(kind,site.active);
 const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
-  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
+  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
 const armAttachment = installArmAttachment({THREE,camera,fallback:hands,
-  getContext:()=>({walk,ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
+  getContext:()=>({walk,ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }

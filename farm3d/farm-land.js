@@ -8,12 +8,14 @@ export const NORTH_LEVEL_BUILD_CLEARING=[1-(24+WEST_CLEARING),1+24,-46,-25];
 export function buildableLandShapes(radius=23){
  const [x0,x1,z0,z1]=NORTH_LEVEL_BUILD_CLEARING;
  return [{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:radius},
+  {type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:40},
   {type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]}];
 }
 export function onBuildableLand(x,z,hw=0,hd=0){
  if(onFarm(x,z,23))return true;
  const [x0,x1,z0,z1]=NORTH_LEVEL_BUILD_CLEARING;
- return x-hw>=x0&&x+hw<=x1&&z-hd>=z0&&z+hd<=z1;
+ return x-hw>=x0&&x+hw<=x1&&z-hd>=z0&&z+hd<=z1||
+  [[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].every(([dx,dz])=>onFarm(x+dx,z+dz,40));
 }
 export function onFarm(x,z,radius=24){
  const nearest=Math.max(3-NORTH_EXTENSION,Math.min(3,z));

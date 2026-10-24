@@ -2,15 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as land from '../farm-land.js';
 import {penEditableLand,penEditableLandContains} from '../animal-pen-validation.js';
+import {terrainMeshY,assessWorkshopSite} from '../workshop-site.js';
 
 test('new level ground opens for a whole workshop without altering old farm limits',()=>{
  assert.equal(land.onFarm(20,-40,23),false,'retain the old farm membership for unrelated systems');
  assert.equal(land.farmGroundY(20,-40),0);
  assert.equal(typeof land.onBuildableLand,'function');
  assert.equal(land.onBuildableLand(20,-40,1.9,1.7),true);
- assert.equal(land.onBuildableLand(24,-40,1.9,1.7),false,'footprint reaches the sloping outside edge');
- assert.equal(land.onBuildableLand(20,-47,1.9,1.7),false,'north boundary stays finite');
- assert.equal(land.onBuildableLand(30,-40,1.9,1.7),false,'other hills are not implicitly buildable');
+ assert.equal(land.onBuildableLand(24,-40,1.9,1.7),true,'the former level boundary is no longer an arbitrary land refusal');
+ assert.equal(land.onBuildableLand(20,-47,1.9,1.7),true,'reachable northern grass is available to full footprints');
+ assert.equal(land.onBuildableLand(30,-40,1.9,1.7),true,'land access is separate from slope support');
+ assert.equal(assessWorkshopSite(30,-40,(x,z)=>terrainMeshY(x,z,land.farmGroundY)).code,'SUPPORT','the same steep hill remains physically rejected');
+ assert.equal(land.onBuildableLand(55,-40,1.9,1.7),false,'ground beyond the unchanged player reach is still excluded');
  assert.equal(land.farmGroundY(24,-40),0);
 });
 
