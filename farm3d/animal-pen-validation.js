@@ -1,5 +1,5 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
-import {NORTH_EXTENSION,WEST_CLEARING,NORTH_LEVEL_BUILD_CLEARING} from './farm-land.js?v=5';
+import {NORTH_EXTENSION,WEST_CLEARING,NORTH_LEVEL_BUILD_CLEARING,MAP_EDGE} from './farm-land.js?v=5';
 import {resolveAnimalPens,defaultSiteRecord,animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {cowYardConflicts} from './cow-yard.js?v=4';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
@@ -19,6 +19,9 @@ export function penEditableLand(){
  land.push({type:'polygon',points:[[-23-WEST_CLEARING,-46],[-19,-46],[-19,-17],[-23-WEST_CLEARING,-17]]});
  const [x0,x1,z0,z1]=NORTH_LEVEL_BUILD_CLEARING;
  land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});
+ // Candidate land reaches the rendered map edge. The full validator still
+ // checks each footprint, support, obstacle, gate and animal-care route.
+ land.push({type:'polygon',points:[[-MAP_EDGE,-MAP_EDGE],[MAP_EDGE,-MAP_EDGE],[MAP_EDGE,MAP_EDGE],[-MAP_EDGE,MAP_EDGE]]});
  return land;
 }
 export function penEditableLandContains(shape,world){

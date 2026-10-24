@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');
 const {assertNewFarmReload}=require('./animal-pen-farm-transition-oracle.cjs');
+const {assertImportedFarmReload}=require('./animal-pen-2d-import-oracle.cjs');
 const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/saves/2d-v1.json'),'utf8')).save;
 const report={status:'RUNNING',steps:[]};
 const record=(name,value)=>{report.steps.push({name,value});fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify(report,null,2));console.log('PASS '+name);};
@@ -31,7 +32,7 @@ const snapshot=p=>p.evaluate(()=>{const d=__dbg,S=d.G.S,horse=d.PEN_LIST.find(q=
   const original2D=await p.evaluate(()=>localStorage.getItem('sunny-acres-v1'));assert.equal(await p.evaluate(()=>localStorage.getItem('sunny-acres-3d-v1')),null);
   await p.getByRole('button',{name:'Bring my farm',exact:true}).click();await p.waitForFunction(()=>!!localStorage.getItem('sunny-acres-3d-v1'));const imported=await snapshot(p);
   assert.equal(imported.coins,fixture.coins);assert.equal(imported.level,fixture.level);assert.equal(imported.chickens,fixture.pens.chicken.list.length);assert.equal(imported.dogs,1);assert.deepEqual(imported.pets.map(a=>a.kind),['dog']);assert.equal(imported.revision,null);assert.equal(imported.horseCustom,false);assert.equal(await p.evaluate(()=>localStorage.getItem('sunny-acres-v1')),original2D);record('visible 2D import preserves paid ownership and default pens',{coins:imported.coins,level:imported.level,chickens:imported.chickens,dogs:imported.dogs});
-  await p.reload();await readyImport();const importedReload=await snapshot(p);assert.equal(importedReload.raw,imported.raw);assert.equal(importedReload.chickens,imported.chickens);assert.equal(importedReload.dogs,1);assert.equal(importedReload.revision,null);assert.deepEqual(current.errors,[]);record('2D-imported farm survives reload without custom pen',{chickens:importedReload.chickens,dogs:importedReload.dogs,errors:current.errors.length});
+  const importReloadStart=await p.evaluate(()=>Date.now());await p.reload();await readyImport();const importedReload=await snapshot(p),importReloadEnd=await p.evaluate(()=>Date.now()),importDay=await p.evaluate(()=>new Date().toLocaleDateString('en-CA'));assertImportedFarmReload(imported.raw,importedReload.raw,{day:importDay,reloadStart:importReloadStart,reloadEnd:importReloadEnd});assert.equal(importedReload.chickens,imported.chickens);assert.equal(importedReload.dogs,1);assert.equal(importedReload.revision,null);assert.deepEqual(current.errors,[]);record('2D-imported farm survives reload without custom pen',{chickens:importedReload.chickens,dogs:importedReload.dogs,errors:current.errors.length,lastSeen:'advanced within reload window',lastNag:'due current-day reminder'});
   report.status='PASS';
  }catch(error){report.status='FAIL';report.error=String(error.stack||error);report.errors=current?.errors;}
  finally{fs.writeFileSync(path.join(artifacts,'results.json'),JSON.stringify(report,null,2));await current?.finish(report.status!=='PASS');await h.close();console.log(JSON.stringify({status:report.status,stages:report.steps.map(x=>x.name),error:report.error??null}));process.exitCode=report.status==='PASS'?0:1;}

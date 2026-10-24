@@ -3702,7 +3702,7 @@ addEventListener('pointerdown',event=>{animalPenEditing?.pointers.set(event.poin
 addEventListener('pointermove',event=>{
  const s=animalPenEditing;if(!s||!s.pointers.has(event.pointerId))return;s.pointers.set(event.pointerId,[event.clientX,event.clientY]);if(!s.pan)return;
  const points=[...s.pointers.values()],c=[points.reduce((n,p)=>n+p[0],0)/points.length,points.reduce((n,p)=>n+p[1],0)/points.length],d=points.length>1?Math.hypot(points[0][0]-points[1][0],points[0][1]-points[1][1]):null;
- if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-24,27);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-46,28);}
+ if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-MAP_EDGE,MAP_EDGE);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-MAP_EDGE,MAP_EDGE);}
  s.last={c,d};event.preventDefault();event.stopImmediatePropagation();
 },true);
 for(const type of ['pointerup','pointercancel'])addEventListener(type,event=>{const s=animalPenEditing;if(s){s.pointers.delete(event.pointerId);s.last=null;if(!s.pointers.size)s.pan=false;}},true);

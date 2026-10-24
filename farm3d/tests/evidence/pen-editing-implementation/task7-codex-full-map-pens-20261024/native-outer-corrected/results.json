@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "stage": "reload outer pen",
+  "steps": [
+    {
+      "name": "four live owned horses before edit",
+      "value": {
+        "paid": {
+          "coins": 9000,
+          "gems": 5,
+          "xp": 0,
+          "level": 20
+        },
+        "horses": 4
+      }
+    },
+    {
+      "name": "actual world accepts outer grass and rejects edge/slope",
+      "value": {
+        "candidates": {
+          "checks": [
+            {
+              "x": -40,
+              "ok": false,
+              "issues": [
+                "OVERLAP",
+                "OVERLAP"
+              ]
+            },
+            {
+              "x": -37,
+              "ok": true,
+              "issues": []
+            },
+            {
+              "x": -34,
+              "ok": true,
+              "issues": []
+            }
+          ],
+          "edge": {
+            "ok": false,
+            "issues": [
+              "LAND",
+              "OVERLAP",
+              "OVERLAP",
+              "OVERLAP",
+              "LAND",
+              "LAND"
+            ]
+          },
+          "hill": {
+            "ok": false,
+            "issues": [
+              "SUPPORT",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE",
+              "ROUTE"
+            ]
+          }
+        },
+        "chosen": -37
+      }
+    },
+    {
+      "name": "native Apply installs supported outer horse enclosure",
+      "value": {
+        "x": -37,
+        "horses": 4,
+        "paid": {
+          "coins": 9000,
+          "gems": 5,
+          "xp": 0,
+          "level": 20
+        },
+        "trustedActions": 29
+      }
+    },
+    {
+      "name": "outer enclosure reload preserves paid state and four contained horses",
+      "value": {
+        "x": -37,
+        "errors": 0,
+        "trustedActions": 29
+      }
+    }
+  ],
+  "limits": "Local Chromium and desktop viewport; native visible controls, guest farm, no hosted or device claim"
+}
