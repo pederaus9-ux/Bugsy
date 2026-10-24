@@ -39,3 +39,7 @@ Keep focused RED and negative controls for support, entrances, paths, trees, pai
 * If actual pen hillside qualification proves a gap, request a further exact `animal-pen-validation.js` exception before changing its support/route behavior. The present plan does not preapprove it.
 
 No merge or live deployment follows from these stages. The already-authorized owner-private Site is an isolated disposable preview only; verify no production-cloud writes or real-save import before its update.
+
+## A8 player-reach amendment (owner approval, 13:29 UTC)
+
+The parent asked: “may I expand `farm3d/farm-land.js::clampToFarm` so the player can reach the newly buildable land, while preserving terrain and obstacle collisions?” The owner answered **“Yes”** (Sentinel_68b5f150ebd4819182f202afad7ffab3). A8 permits only that named movement-clamp expansion with focused movement/obstacle checks. It does not permit flattening terrain, changing animal rigs or care clearance, removing trees without confirmation, or merging/deploying. Record its new digest and protect the old terrain-height bytes before editing. The A8 change is independent of the Stage 3 tree transaction and has not yet been applied at the reachable-tree checkpoint.

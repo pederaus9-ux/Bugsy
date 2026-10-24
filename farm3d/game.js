@@ -230,14 +230,15 @@ function fresh() {
   };
 }
 // ---------- save versions ----------
+import {decodeRemovedTrees} from './tree-removal.js?v=1';
 // SAVE_VERSION is the shape this game writes. MIGRATIONS[n] turns a version-n save into version n + 1, for changes that
 // "fill in what's missing" can't express (a rename, a move, a new unit). To change the save shape: bump SAVE_VERSION, add
 // MIGRATIONS[old], and add a fixture in tests/fixtures/saves. Never edit an old migration, and never rename or remove an
 // item, crop or recipe without one (upgrade() drops ids the game doesn't know, so a farm would lose them).
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 // Writer2 protects paid utility lamps; writer3 protects robot/cow-care state.
 // Ordinary farms stay v1; a cow station action activates the new care envelope.
-export const MIGRATIONS = {1:s=>s,2:s=>s,3:s=>s};
+export const MIGRATIONS = {1:s=>s,2:s=>s,3:s=>s,4:s=>s};
 // (target and table are only ever passed by tests, to exercise the ladder before a real migration exists)
 export function migrate(saved, target = SAVE_VERSION, table = MIGRATIONS) {
   let s = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
@@ -358,6 +359,7 @@ export function save() {
   }
   if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now())){notice('Your saved cow care needs recovery or a newer game. This copy will not overwrite it.');return false;}
   if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok'){notice('This animal layout needs recovery or a newer game. This copy will not overwrite it.');return false;}
+  if(!decodeRemovedTrees(S.layout?.removedTrees).ok){notice('This tree layout needs recovery or a newer game. This copy will not overwrite it.');return false;}
   prepareOrdinarySave();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
   catch (e) {
@@ -372,6 +374,7 @@ function prepareOrdinarySave(){
   settleChickens();
   settleCows(true);
   if(S.layout?.animalPens!==undefined)S.v=Math.max(S.v||1,4);
+  if(S.layout?.removedTrees?.length)S.v=Math.max(S.v||1,5);
   if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
   if ((S.decor?.inv?.utilitylamp || 0) > 0 || S.decor?.placed?.some(d => d.id === "utilitylamp")) S.v = Math.max(S.v || 1, 2);
   if (!document.hidden) S.lastSeen = now();
@@ -382,6 +385,7 @@ export function commitAnimalPenLayout({expectedFarm,expectedRevision,animalPens,
  const result=code=>({ok:code==='OK',code});
  if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
  if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
+ if(!decodeRemovedTrees(S.layout?.removedTrees).ok)return result('READONLY');
  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
  if(S!==expectedFarm||(S.layout?.animalPens?.revision??0)!==expectedRevision)return result('STALE');
  const decoded=decodeAnimalPens(structuredClone(animalPens));
@@ -415,12 +419,15 @@ export function commitOrdinaryLayout({expectedFarm,expectedLayout,nextLayout,nex
  if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
  if(S!==expectedFarm||JSON.stringify(S.layout)!==expectedLayout)return result('STALE');
  if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
+ if(!decodeRemovedTrees(S.layout?.removedTrees).ok)return result('READONLY');
  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
  if(!nextLayout||typeof nextLayout!=='object'||!nextLayout.b||!nextLayout.t)return result('INVALID');
+ if(!decodeRemovedTrees(nextLayout.removedTrees).ok)return result('INVALID');
  const current=()=>S===expectedFarm&&JSON.stringify(S.layout)===expectedLayout&&!restoring&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
  try{if(!current())return result('STALE');}catch{return result('STALE');}
  const oldVersion=S.v;prepareOrdinarySave();
  const candidate=structuredClone(S);candidate.layout=structuredClone(nextLayout);
+ if(candidate.layout.removedTrees?.length)candidate.v=Math.max(candidate.v||1,5);
  if(nextDecor!==undefined)candidate.decor=structuredClone(nextDecor);
  S.v=oldVersion;
  let prepared;

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import vm from 'node:vm';
+import {decodeRemovedTrees} from '../tree-removal.js';
 const current=readFileSync(new URL('../game.js',import.meta.url),'utf8');
 // Frozen exact main8a187155 source: works in shallow CI and offline.
 const predecessor=readFileSync(new URL('fixtures/game-before-utility-writer.js',import.meta.url),'utf8');
@@ -11,7 +12,7 @@ assert.equal(createHash('sha256').update(predecessor).digest('hex'),'f0e5da372f9
 // are boundary shims only. Browser/emulator suites cover real input/care/cloud.
 function load(source,raw){
  const storage=new Map(raw?[['sunny-acres-3d-v1',raw]]:[]),events=[];
- const ctx={URL,URLSearchParams,structuredClone,console,setTimeout(){},setInterval(){},clearInterval(){},
+ const ctx={URL,URLSearchParams,structuredClone,decodeRemovedTrees,console,setTimeout(){},setInterval(){},clearInterval(){},
  location:{search:'',hostname:'127.0.0.1',href:'http://127.0.0.1/farm3d/'},
  localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)},
  document:{hidden:false,addEventListener(){},getElementById:id=>id==='loading'?{}:null,querySelector(){return null;}},

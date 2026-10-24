@@ -669,7 +669,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=32"; window.__gameVer = 32; // bump this version whenever game.js changes
+import * as G from "./game.js?v=33"; window.__gameVer = 33; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=4';
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
@@ -679,6 +679,7 @@ import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.j
 import {createDairyPath} from './farm-path.js?v=2';
 import {NORTH_EXTENSION,WEST_CLEARING,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=4';
 import {TERRAIN_SPAN,TERRAIN_SEGMENTS,terrainMeshY,assessWorkshopSite} from './workshop-site.js?v=1';
+import {REMOVABLE_TREE_IDS,decodeRemovedTrees,addRemovedTree} from './tree-removal.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
@@ -1412,7 +1413,7 @@ const groundY=farmGroundY;
 const workshopGroundY=(x,z)=>terrainMeshY(x,z,farmGroundY);
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
   t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
-  t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+  t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; t.userData.edit=`clear:hill:seed-${40+i}`;scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
 bootStep("planting the woods");
 // woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
 const far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
@@ -1625,6 +1626,9 @@ function outOfPens(v, margin) {
 
 // where the animals may not walk: [x, z, halfWidth, halfDepth]
 const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+// Individually rendered hill trees have matching physical obstacles. The IDs
+// are authored seeds and remain stable if their display order later changes.
+const HILL_TREE_BLOCKS=hills.map(t=>[t.position.x,t.position.z,.45,.45]);BLOCKS.push(...HILL_TREE_BLOCKS);
 const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05])];
 const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
 const remainingBlocks=[];for(const [kind,yard]of Object.entries(remainingYards)){remainingSites[kind].blocks=yard.obstacles.map((b,i)=>{const p=[1200+remainingBlocks.length,1200,b[2],b[3]];remainingBlocks.push(p);BLOCKS.push(p);return p;});}
@@ -3466,6 +3470,28 @@ const editShade = new THREE.Mesh(shadeGeo, new THREE.MeshBasicMaterial({color:0x
 editShade.visible = false; scene.add(editShade);
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
 const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
+const TREE_CATALOGUE=new Map([
+ ['courtyard:tree',{object:tree,block:TREE_BLK.tree,decal:tree.userData.decal}],
+ ['courtyard:tree2',{object:tree2,block:TREE_BLK.tree2,decal:tree2.userData.decal}],
+ ...hills.map((object,i)=>[`hill:seed-${40+i}`,{object,block:HILL_TREE_BLOCKS[i]}])
+]);
+let selectedClearTree=null;
+function syncRemovedTrees(){
+ const parsed=decodeRemovedTrees(GS().layout?.removedTrees);if(!parsed.ok)return false;
+ const removed=new Set(parsed.ids);
+ for(const [id,entry] of TREE_CATALOGUE){
+  const present=!removed.has(id),{object,block,decal}=entry;object.visible=present;if(decal)decal.visible=present;
+  const x=object.position.x,z=object.position.z;
+  if(block)moveBlock(block,present?x:2000+REMOVABLE_TREE_IDS.indexOf(id),present?z:2000);
+ }
+ if(selectedClearTree&&removed.has(selectedClearTree))selectedClearTree=null;
+ if(clearTreeButton)clearTreeButton.disabled=!selectedClearTree;
+ return true;
+}
+function clearTreeCandidate(id){
+ const entry=TREE_CATALOGUE.get(id),farm=GS();if(!entry||!entry.object.visible||!onFarm(entry.object.position.x,entry.object.position.z,40))return null;
+ return addRemovedTree(farm.layout?.removedTrees,id);
+}
 function setEdit(on) {
   if (!on && animalPenEditing) { penEditor.cancel(); setAnimalPenEditing(false); }
   if (!!editMode === on) return;
@@ -3488,7 +3514,7 @@ function setEdit(on) {
 function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
 function groundAt(x, y) { return rayAt(x, y).intersectObject(ground, false)[0]?.point??null; }
 function editHit(x, y) {
-  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), tree, tree2, ...decorObjs];
+  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), ...Object.values(TREES).filter(t=>t.visible), ...hills.filter(t=>t.visible), ...decorObjs];
   const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h) return null;
   let o = h.object; while (o && !o.userData.edit) o = o.parent;
   return o ? {key:o.userData.edit, obj:o} : null;
@@ -3508,7 +3534,7 @@ function workshopSite(id,x,z){
   if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[block]}).length)return false;
   if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[block]}).length))return false;
   if(BLOCKS.some(b=>b!==own&&Math.abs(x-b[0])<.65+b[2]&&Math.abs(bz-b[1])<hd+b[3]))return false;
-  if([...Object.values(TREES),...hills,...far].some(t=>Math.abs(x-t.position.x)<2.05&&Math.abs(bz-t.position.z)<hd+1.4))return false;
+  if([...Object.values(TREES),...hills,...far].some(t=>t.visible&&Math.abs(x-t.position.x)<2.05&&Math.abs(bz-t.position.z)<hd+1.4))return false;
   if(GS().decor.placed.some(d=>Math.abs(x-d.x)<.65+1.2&&Math.abs(bz-d.z)<hd+1.2))return false;
   if(plots.some(P=>P.g.visible&&Math.abs(x-P.g.position.x)<.65+1.2&&Math.abs(bz-P.g.position.z)<hd+1.2))return false;
   for(let i=0;i<=12;i++){const zz=door[1]+(approach[1]-door[1])*i/12;if(dairyPath.contains(x,zz,.65)||PEN_LIST.some(p=>inPen(p,x,zz,-.8)))return false;}
@@ -3526,7 +3552,7 @@ function editValid(key, x, z) {
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
   if (t === "b") {
     for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;
-    for (const tree of [...Object.values(TREES),...hills,...far]) if (Math.hypot(tree.position.x - x, tree.position.z - z) < hw + 1.4) return false; // not under a tree
+    for (const tree of [...Object.values(TREES),...hills,...far]) if (tree.visible&&Math.hypot(tree.position.x - x, tree.position.z - z) < hw + 1.4) return false; // not under a tree
   } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence
   if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;
   if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;
@@ -3568,6 +3594,7 @@ function applyLayout() {
   const L = GS().layout || {};
   for (const bid of Object.keys(BLD_BLK)) { const [x, z] = (L.b || {})[bid] || HOME_SPOT[bid]; if (x !== BLD_BLK[bid][0] || z !== BLD_BLK[bid][1]) commitEdit("b:" + bid, x, z, false); }
   for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit("t:" + k, x, z, false); }
+  syncRemovedTrees();
 }
 function showShade(d) {
   const f=footprint(d.key),corners=[[d.x-f.hw,d.z-f.hd],[d.x+f.hw,d.z-f.hd],[d.x+f.hw,d.z+f.hd],[d.x-f.hw,d.z+f.hd]],a=shadeGeo.attributes.position;
@@ -3577,6 +3604,9 @@ function showShade(d) {
 function editDown(e) {
   if (animalPenEditing) return false;
   const h = editHit(e.clientX, e.clientY); if (!h) return false;
+  const clearId=h.key.startsWith('clear:')?h.key.slice(6):h.key.startsWith('t:')?'courtyard:'+h.key.slice(2):null;
+  selectedClearTree=clearId&&clearTreeCandidate(clearId)?clearId:null;clearTreeButton.disabled=!selectedClearTree;
+  if(h.key.startsWith('clear:')){editMode.treePointerId=e.pointerId;paintUsed=true;return true;}
   const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
   editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
   p.y += .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
@@ -3584,6 +3614,7 @@ function editDown(e) {
 }
 function editMove(e) {
   if (animalPenEditing) return false;
+  if(editMode?.treePointerId===e.pointerId)return true;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
   const g = groundAt(e.clientX, e.clientY); if (!g) return true;
   const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
@@ -3592,6 +3623,7 @@ function editMove(e) {
 }
 function editUp(e) {
   if (animalPenEditing) return;
+  if(editMode?.treePointerId===e.pointerId){editMode.treePointerId=null;return;}
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
   editMode.drag = null; editShade.visible = false;
   if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { squish(d.obj, .6); G.sfx("place"); }
@@ -3633,6 +3665,23 @@ function setAnimalPenEditing(active){
 }
 const animalPensButton=document.createElement('button');animalPensButton.id='animalPensBtn';animalPensButton.type='button';animalPensButton.textContent='Animal pens';animalPensButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(animalPensButton,editBar.querySelector('[data-mode]'));
 animalPensButton.addEventListener('click',()=>{if(!setAnimalPenEditing(true))G.toast('Animal pens are unavailable on this farm.');});
+const clearTreeButton=document.createElement('button');clearTreeButton.type='button';clearTreeButton.textContent='Clear selected tree';clearTreeButton.disabled=true;clearTreeButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(clearTreeButton,editBar.querySelector('[data-mode]'));
+const clearTreeDialog=document.createElement('dialog');clearTreeDialog.setAttribute('aria-label','Confirm tree clearing');clearTreeDialog.style.cssText='max-width:min(340px,calc(100vw - 32px));border:2px solid #6b8548;border-radius:14px;padding:18px;background:#fff9e9;color:#302c20;font:16px system-ui;';
+clearTreeDialog.innerHTML='<strong>Clear this tree?</strong><p data-tree-message></p><div style="display:flex;gap:8px"><button type="button" data-tree-cancel>Keep tree</button><button type="button" data-tree-confirm>Remove free</button></div>';
+for(const button of clearTreeDialog.querySelectorAll('button'))button.style.cssText='min-width:44px;min-height:44px;font:inherit;';document.body.append(clearTreeDialog);
+let pendingClearTree=null;
+clearTreeButton.addEventListener('click',()=>{if(!editMode||animalPenEditing||!selectedClearTree||!clearTreeCandidate(selectedClearTree))return;pendingClearTree=selectedClearTree;clearTreeDialog.querySelector('[data-tree-message]').textContent=`${pendingClearTree} at ${TREE_CATALOGUE.get(pendingClearTree).object.position.x.toFixed(1)}, ${TREE_CATALOGUE.get(pendingClearTree).object.position.z.toFixed(1)}. This is free and cannot be undone.`;clearTreeDialog.showModal();});
+clearTreeDialog.querySelector('[data-tree-cancel]').addEventListener('click',()=>clearTreeDialog.close());
+clearTreeDialog.addEventListener('close',()=>{pendingClearTree=null;});
+clearTreeDialog.querySelector('[data-tree-confirm]').addEventListener('click',()=>{
+ const id=pendingClearTree,farm=GS(),nextIds=id&&clearTreeCandidate(id);if(!nextIds){clearTreeDialog.close();return;}
+ const expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout||{b:{},t:{}});nextLayout.removedTrees=nextIds;
+ const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,
+  canCommit:()=>!!editMode&&!animalPenEditing&&GS()===farm&&!!clearTreeCandidate(id),
+  prepare:()=>({publish(){syncRemovedTrees();grid.updateMask(editGridMask());},dispose(){}}),
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ clearTreeDialog.close();if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the tree remains.':'The tree could not be cleared.');
+});
 // Keep paid/care/purchase buttons behind the draft inert, without changing their
 // handlers or the existing account/restore guards in game.js.
 document.addEventListener('click',event=>{const s=animalPenEditing;if(s&&!s.host.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
