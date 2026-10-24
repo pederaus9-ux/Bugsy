@@ -1,6 +1,6 @@
 import {defaultSiteRecord,resolveAnimalPens} from './animal-pen-layout.js?v=1';
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
-import {createPenPlacementController} from './animal-pen-placement-controller.js?v=1';
+import {createPenPlacementController} from './animal-pen-placement-controller.js?v=2';
 const labels={chicken:'Chickens',cow:'Cows',horse:'Horses',sheep:'Sheep',dog:'Dog',cat:'Cat'};
 // Native controls are deliberately large; precise selection never depends on
 // tapping a rendered fence wire. The canvas remains the actual game renderer.

@@ -1,7 +1,7 @@
-import {placementCandidates} from './animal-pen-placement.js?v=1';
+import {placementCandidates} from './animal-pen-placement.js?v=2';
 // A single worker owns serial, bounded checks. The main thread never runs a
 // preview route search. A context change destroys in-flight/stale work.
-export function createPenPlacementController({onUpdate,workerFactory=()=>new Worker(new URL('./animal-pen-placement-worker.js?v=1',import.meta.url),{type:'module'}),schedule=(fn,ms)=>setTimeout(fn,ms),unschedule=clearTimeout}){
+export function createPenPlacementController({onUpdate,workerFactory=()=>new Worker(new URL('./animal-pen-placement-worker.js?v=2',import.meta.url),{type:'module'}),schedule=(fn,ms)=>setTimeout(fn,ms),unschedule=clearTimeout}){
  let worker=null,timer=null,busy=false,disposed=false,failed=false,generation=0,contextKey='',cellKey='',context=null,cells=[];const cache=new Map();
  const key=at=>JSON.stringify(at);
  function publish(){const out=cells.map(c=>({...c,...(cache.get(key(c.at))??{status:'unknown',reason:'Not checked yet.'})}));onUpdate({cells:out,reason:failed?'Placement checks are unavailable. Apply will check the layout again.':out[0]?.reason??(context?.state.selection.type==='gate'?'Point nearer the selected gate on its attached fence.':'Select a position on the ground.'),checking:!failed&&cells.some(c=>!cache.has(key(c.at)))});}

@@ -1,5 +1,5 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
-import {NORTH_EXTENSION,WEST_CLEARING,NORTH_LEVEL_BUILD_CLEARING} from './farm-land.js?v=3';
+import {NORTH_EXTENSION,WEST_CLEARING,NORTH_LEVEL_BUILD_CLEARING} from './farm-land.js?v=5';
 import {resolveAnimalPens,defaultSiteRecord,animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {cowYardConflicts} from './cow-yard.js?v=4';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';

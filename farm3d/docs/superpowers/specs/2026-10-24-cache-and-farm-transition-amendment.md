@@ -1,0 +1,9 @@
+# A9 — cache version alignment, new-farm oracle, branch upload
+
+Owner-approved on October 24, 2026. Parent asked for a bounded bundle at 21:19 UTC; owner answered **“Approved”** at 22:29 UTC (message `Sentinel_77ffa8dab8488191a2b6fbfe646b6c39`). Trusted approved scope:
+
+1. Version-reference changes only in `farm3d/animal-pen-validation.js`, `animal-pen-placement.js`, `animal-pen-placement-worker.js`, `animal-pen-placement-controller.js`, `animal-pen-editor-view.js`, `index.html`, and `sw.js`. Matching test import versions may change without changing their assertions. The source witness and complete old-to-new version table are in `tests/evidence/pen-editing-implementation/task8-codex-cache-predecessor-20261024/progress.md`. No validator geometry, animal care/clearance, land height, save/economy or unrelated behavior edits.
+2. Correct only `tests/animal-pen-farm-transitions.browser.cjs`'s new-farm reload oracle: require exact equality of every other saved field, independently validate the expected daily quest initialization and `lastSeen` advance, and add deliberate corruption controls. Retain the original failed result and unchanged user-facing Reset/Import checks. No general test relaxation, changed seed, deadline, or physical limit.
+3. Upload code and evidence by a normal, non-force push of `codex/safe-test-preview-20261023` to `pederaus9-ux/Bugsy`, including the earlier pending local checkpoints. This is materially new express authorization for the previous automatic-review disclosure denial; that push was confirmed not executed. Check remote state before the retry. No merge or live deployment.
+
+Read-only remote check before edits: `refs/heads/codex/safe-test-preview-20261023` was `253e72be5ef300a21792afc5c762b63032b61d0d`; local branch was clean at `69d79e689e4bf6a98a92825414b81429a65e5b9b`. Do not assume future remote state remains unchanged.

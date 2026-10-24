@@ -1,6 +1,6 @@
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {defaultSiteRecord,decodeAnimalPens,resolveAnimalPens} from './animal-pen-layout.js?v=1';
-import {validateAnimalPens} from './animal-pen-validation.js?v=1';
+import {validateAnimalPens} from './animal-pen-validation.js?v=2';
 const record=s=>s.draft?.sites[s.selection?.kind]??defaultSiteRecord(s.selection?.kind??'chicken');
 function gateAxis(state){const s=record(state),g=s.gates?.find(g=>g.id===state.selection.id);let a,b;
  if(g?.edge)[a,b]=g.edge.map(id=>{const v=s.boundary.find(v=>v.id===id);return v?[v.x,v.z]:null;});else{const r=s.runs?.find(r=>r.id===g?.run);a=r?.a;b=r?.b;}

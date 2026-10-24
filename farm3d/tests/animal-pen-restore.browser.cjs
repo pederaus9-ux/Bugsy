@@ -18,7 +18,7 @@ const {start}=require('./browser-harness.cjs');
    G.S.pets=[{kind:'dog',name:'Buddy',love:60,loveAt:t,petAt:0,playAt:0,treatAt:0,giftAt:t},{kind:'cat',name:'Whiskers',love:60,loveAt:t,petAt:0,playAt:0,treatAt:0,giftAt:t}];
    G.view.refresh('all');
    // The accepted default layout must validate against the live farm snapshot.
-   const V=await import('./animal-pen-validation.js?v=1'),rt=d.penRuntime,started=performance.now(),check=V.validateAnimalPens(rt.layout,rt.world);
+   const V=await import('./animal-pen-validation.js?v=2'),rt=d.penRuntime,started=performance.now(),check=V.validateAnimalPens(rt.layout,rt.world);
    window.__defaultValidation={ok:check.ok,issues:check.issues,actors:rt.world.actors.length,placements:Object.keys(check.placements).length,ms:Math.round(performance.now()-started),blocked:rt.world.blocked.length,epoch:rt.world.epoch};
    const horse=L.defaultSiteRecord('horse'),delta=[0,1];
    horse.boundary.forEach(v=>{v.x+=delta[0];v.z+=delta[1];});for(const id in horse.structures){const q=horse.structures[id];horse.structures[id]=[q[0]+delta[0],q[1]+delta[1]];}
