@@ -11,6 +11,12 @@ test('protected implementations and approved pen adapters retain exact reviewed 
  for(const f of ['game.js','auth.js','canon.js','farm-land.js','farm-path.js','cow3d.js','horse3d.js','horse-stance3d.js','horse-ik3d.js','sheep3d.js','dog3d.js','cat3d.js','quadruped3d.js','live3d.js','cow-care.js','cow-yard.js','chicken-care.js','chicken-yard.js','chicken-stations.js','animal-care-poses.js']){
   const entry=adapters.files[f];if(entry)assert.equal(entry.previousSha256,original[f],f+' lost its frozen predecessor digest');
   const expected=entry?.reviewedSha256??original[f],actual=fs.readFileSync(new URL('../'+f,import.meta.url));assert.equal(crypto.createHash('sha256').update(actual).digest('hex'),expected,f+' changed outside the reviewed source checkpoint');
+  if(f==='game.js'){
+   assert.equal(entry.amendment,'A7-suitable-grass');const scope=entry.scope,source=actual.toString(),start=source.indexOf(scope.start),end=source.indexOf(scope.end);
+   assert(start>=0&&end>start,'A7 save source boundaries exist');
+   assert.equal(crypto.createHash('sha256').update(source.slice(0,start)).digest('hex'),scope.prefixSha256,'A7 cannot change paid game definitions');
+   assert.equal(crypto.createHash('sha256').update(source.slice(end)).digest('hex'),scope.suffixSha256,'A7 cannot change game economy or unrelated gameplay');
+  }
   if(f==='cow3d.js'){
    assert.equal(entry.amendment,'A3');const scope=entry.scope,source=actual.toString(),start=source.indexOf(scope.start),end=source.indexOf(scope.end);
    assert(start>=0&&end>start,'A3 source boundaries exist');

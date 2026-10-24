@@ -408,6 +408,35 @@ export function commitAnimalPenLayout({expectedFarm,expectedRevision,animalPens,
  }
 }
 
+// An ordinary Edit move is durable before its scene/block registries change.
+// Keep the same recovery barrier as pen publication if an installed scene fails.
+export function commitOrdinaryLayout({expectedFarm,expectedLayout,nextLayout,nextDecor,canCommit,prepare,onFatal}){
+ const result=code=>({ok:code==='OK',code});
+ if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
+ if(S!==expectedFarm||JSON.stringify(S.layout)!==expectedLayout)return result('STALE');
+ if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
+ if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
+ if(!nextLayout||typeof nextLayout!=='object'||!nextLayout.b||!nextLayout.t)return result('INVALID');
+ const current=()=>S===expectedFarm&&JSON.stringify(S.layout)===expectedLayout&&!restoring&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
+ try{if(!current())return result('STALE');}catch{return result('STALE');}
+ const oldVersion=S.v;prepareOrdinarySave();
+ const candidate=structuredClone(S);candidate.layout=structuredClone(nextLayout);
+ if(nextDecor!==undefined)candidate.decor=structuredClone(nextDecor);
+ S.v=oldVersion;
+ let prepared;
+ try{prepared=prepare(candidate);if(!prepared||typeof prepared.publish!=='function'||typeof prepared.dispose!=='function')throw Error('Invalid prepared ordinary revision');}
+ catch{return result('PREPARE');}
+ try{if(!current()){prepared.dispose();return result('STALE');}}catch{prepared.dispose();return result('STALE');}
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify(candidate));}catch{prepared.dispose();return result('STORAGE');}
+ try{
+  S.layout=candidate.layout;S.decor=candidate.decor;S.v=candidate.v;
+  prepared.publish();saveWarned=false;window.dispatchEvent(new Event('sa3d:saved'));
+  return result('OK');
+ }catch(error){
+  penPublicationFailed=true;try{onFatal(error);}catch{}return result('RECOVERY');
+ }
+}
+
 // ---------- inventory ----------
 export const have = (id) => S.barn[id] || 0;
 export const barnUsed = () => Object.values(S.barn).reduce((a, b) => a + b, 0);

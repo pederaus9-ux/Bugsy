@@ -669,7 +669,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=31"; window.__gameVer = 31; // bump this version whenever game.js changes
+import * as G from "./game.js?v=32"; window.__gameVer = 32; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=4';
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
@@ -3494,6 +3494,19 @@ function moveBlock(b, x, z) { // keep the pets' route planner in step with the b
   b[0] = x; b[1] = z;
 }
 function commitEdit(key, x, z, save = true) {
+  if (save && !G.SANDBOX) {
+    const farm=GS(),expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout || {b:{},t:{}}),nextDecor=structuredClone(farm.decor),[type,id]=key.split(':');
+    if(type==='b')(nextLayout.b||(nextLayout.b={}))[id]=[x,z];
+    else if(type==='t')(nextLayout.t||(nextLayout.t={}))[id]=[x,z];
+    else if(type==='d'&&nextDecor.placed[+id]){nextDecor.placed[+id].x=x;nextDecor.placed[+id].z=z;}
+    else return false;
+    const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,nextDecor,
+      canCommit:()=>GS()===farm&&editValid(key,x,z),
+      prepare:()=>({publish(){commitEdit(key,x,z,false);if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());},dispose(){}}),
+      onFatal:()=>setTimeout(()=>location.reload(),0)});
+    if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the move was cancelled.':'This move could not be applied.');
+    return result.ok;
+  }
   const [t, id] = key.split(":"), L = GS().layout || (GS().layout = {b:{}, t:{}});
   if (t === "b") {
     moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; BLD_DECAL[id].position.set(x, .02, z); moveClear("b:" + id, x, z, 1.8);
@@ -3504,6 +3517,7 @@ function commitEdit(key, x, z, save = true) {
     if (save) (L.t || (L.t = {}))[id] = [x, z];
   } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }
   if (save) {G.save();if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());}
+  return true;
 }
 // put buildings and trees where the saved farm has them (or back home when it doesn't say)
 function applyLayout() {
@@ -3535,7 +3549,7 @@ function editUp(e) {
   if (animalPenEditing) return;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
   editMode.drag = null; editShade.visible = false;
-  if (d.moved && d.ok) { d.obj.position.y = 0; commitEdit(d.key, d.x, d.z); squish(d.obj, .6); G.sfx("place"); }
+  if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { d.obj.position.y = 0; squish(d.obj, .6); G.sfx("place"); }
   else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
