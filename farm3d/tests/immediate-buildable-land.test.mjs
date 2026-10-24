@@ -19,3 +19,14 @@ test('pen land includes the same tract but rejects a footprint that crosses its 
  assert.equal(penEditableLandContains(inside,world),true);
  assert.equal(penEditableLandContains(outside,world),false);
 });
+
+test('the complete existing level north clearing is available to full workshop footprints',()=>{
+ for(const [x,z] of [[-33,-46],[-33,-25],[25,-46],[25,-25]])assert.equal(land.farmGroundY(x,z),0,`clearing corner ${x},${z}`);
+ for(let x=-33;x<=25;x+=.5)for(let z=-46;z<=-25;z+=.5)assert.equal(land.farmGroundY(x,z),0,`ground support at ${x},${z}`);
+ for(const [x,z] of [[-28,-40],[-30,-44],[-24,-37]]){
+  assert.equal(land.onFarm(x,z,23),false,'the old land rule still excludes this ground');
+  assert.equal(land.onBuildableLand(x,z,1.9,1.7),true,`whole workshop at ${x},${z}`);
+ }
+ assert.equal(land.onBuildableLand(-34,-40,1.9,1.7),false,'west slope is outside the level boundary');
+ assert.equal(land.onBuildableLand(-30,-47,1.9,1.7),false,'north fade is outside the level boundary');
+});
