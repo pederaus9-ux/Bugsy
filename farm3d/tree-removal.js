@@ -1,8 +1,10 @@
 // Stable scene identities. Hill IDs use the authored tree seed, not array order
 // or world position, so moving a tree never changes its saved removal record.
+import {FAR_TREE_SITES} from './far-tree-sites.js?v=1';
 export const REMOVABLE_TREE_IDS=Object.freeze([
  'courtyard:tree','courtyard:tree2',
- ...Array.from({length:14},(_,i)=>`hill:seed-${40+i}`)
+ ...Array.from({length:14},(_,i)=>`hill:seed-${40+i}`),
+ ...FAR_TREE_SITES.map(site=>site.id)
 ]);
 const known=new Set(REMOVABLE_TREE_IDS);
 export function decodeRemovedTrees(value){

@@ -9,7 +9,7 @@ test('A7 rejects unrelated game logic even if the whole-file digest is re-regist
  assert.throws(()=>run((n,b)=>n==='game.js'?change(b):b,a=>a.files['game.js'].reviewedSha256=sha(change(real))),/A7 cannot change game economy or unrelated gameplay/);
 });
 test('A6 rejects another mask change without review',()=>assert.throws(()=>run((n,b)=>n==='farm-land.js'?Buffer.from(b.toString().replace('1+24,-46,-25','1+24,-47,-25')):b),/changed outside the reviewed source checkpoint/));
-for(const [name,before,after] of [['old farm boundary','radius+1e-9','radius+1'],['terrain heights','return clearing===1?0','return clearing===1?1']])test('A6 rejects changed '+name+' even with a re-registered whole-file digest',()=>{
+for(const [name,before,after] of [['old farm boundary','radius+1e-9','radius+1'],['terrain heights','return clearing===1?0','return clearing===1?1'],['A8 player clamp','MAP_EDGE,z))','MAP_EDGE+1,z))']])test('A6/A8 rejects changed '+name+' even with a re-registered whole-file digest',()=>{
  const change=b=>Buffer.from(b.toString().replace(before,after)),real=readReal(new URL('../farm-land.js',import.meta.url));assert.notEqual(change(real).toString(),real.toString());
- assert.throws(()=>run((n,b)=>n==='farm-land.js'?change(b):b,a=>a.files['farm-land.js'].reviewedSha256=sha(change(real))),/A6 cannot change terrain, old farm membership or player clamp/);
+ assert.throws(()=>run((n,b)=>n==='farm-land.js'?change(b):b,a=>a.files['farm-land.js'].reviewedSha256=sha(change(real))),/A8 cannot change old farm membership|A8 reviewed movement clamp changed|A8 cannot change terrain heights/);
 });

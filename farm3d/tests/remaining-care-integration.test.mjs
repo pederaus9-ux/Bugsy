@@ -25,9 +25,13 @@ test('protected implementations and approved pen adapters retain exact reviewed 
   }
   if(f==='farm-land.js'){
    const scope=entry.scope,source=actual.toString(),start=source.indexOf(scope.start),end=source.indexOf(scope.end);
-   assert.equal(entry.amendment,'A6-immediate-buildable-land');assert(start>=0&&end>start,'land-mask source boundaries exist');
+   assert.equal(entry.amendment,'A6-buildable-mask-A8-player-clamp');assert(start>=0&&end>start,'land-mask source boundaries exist');
    assert.equal(crypto.createHash('sha256').update(source.slice(0,start)).digest('hex'),scope.prefixSha256,'A6 cannot change A1 prefix');
-   assert.equal(crypto.createHash('sha256').update(source.slice(end)).digest('hex'),scope.suffixSha256,'A6 cannot change terrain, old farm membership or player clamp');
+   const player=source.indexOf(scope.playerStart,end),terrain=source.indexOf(scope.terrainStart,player);
+   assert(player>end&&terrain>player,'A8 movement and frozen terrain boundaries exist');
+   assert.equal(crypto.createHash('sha256').update(source.slice(end,player)).digest('hex'),scope.oldFarmSha256,'A8 cannot change old farm membership');
+   assert.equal(crypto.createHash('sha256').update(source.slice(player,terrain)).digest('hex'),scope.playerSha256,'A8 reviewed movement clamp changed');
+   assert.equal(crypto.createHash('sha256').update(source.slice(terrain)).digest('hex'),scope.terrainSha256,'A8 cannot change terrain heights');
   }
  }
 });
