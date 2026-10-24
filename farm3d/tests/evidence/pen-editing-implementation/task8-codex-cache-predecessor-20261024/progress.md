@@ -1,5 +1,11 @@
 # Exact-head offline boot graph: retained RED and scope hold
 
+## Real predecessor-to-current offline browser qualification
+
+Acceptance was written before execution in `offline-acceptance.md`. The pinned old Git snapshot `69d79e6` installed and controlled the real `sa3d-v70` worker with a saved custom four-horse pen. The pinned approved current snapshot `d4276b0` installed a distinct activated/controlled `sa3d-v71` worker. The old cache was deleted, unrelated `foreign-farm-cache` survived, and exact SHA-256 digests of cached `animal-pen-validation.js?v=2`, `animal-pen-placement-worker.js?v=2` and `farm-land.js?v=5` matched current Git bytes. No stale `farm-land.js?v=3` cache entry remained. Online and offline reloads preserved all non-lifecycle save fields, four owned horses, custom pen revision and installed polygon. Offline reload received zero server responses and zero browser exceptions; 16 external requests across the run were intercepted by the isolated harness, not delivered externally. Four browser stages **PASS** in `offline-current-supported/results.json`; transport and rendered offline frame are beside it.
+
+The first attempt `offline-current-candidate/` stopped before game startup when restricted Windows Chrome failed with a crashpad named-pipe error. That exact launch failure is retained and is not a game RED. A single supported isolated-browser retry outside the restricted process sandbox passed without changing the test, assertions or simulated deadlines. These are local Chromium/localhost results, not official hosted, installed phone PWA or physical-device clearance. The separate old UI fixture/locator REDs below remain unresolved.
+
 ## A9 approved version-only correction and remaining browser gate
 
 The owner approved the seven exact source files on October 24 at 22:29 UTC; see `docs/superpowers/specs/2026-10-24-cache-and-farm-transition-amendment.md`. Only module URL versions changed: nested land imports `v3` to `v5`, five pen importer/shell entries `v1` to `v2`, and offline cache `sa3d-v70` to `sa3d-v71`. Seven matching browser-test import URL versions changed without assertion edits. The focused oracle/cache/worker Node command passed **24/24**. Syntax and diff-whitespace checks passed. The historical two version REDs below remain preserved; the focused static boot-graph check is now green.
