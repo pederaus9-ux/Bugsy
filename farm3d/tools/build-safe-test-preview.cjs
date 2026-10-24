@@ -5,7 +5,9 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..', '..');
 const source = path.join(root, 'farm3d');
-const out = path.join(root, 'safe-test-preview');
+const requested=process.env.SAFE_PREVIEW_OUTPUT;
+const out = requested ? path.resolve(requested) : path.join(root, 'safe-test-preview');
+if(requested&&(path.dirname(out)!==path.dirname(root)||!path.basename(out).startsWith('SunnyAcres-preview-')))throw new Error('Candidate preview must be a named new sibling of the game worktree');
 if (fs.existsSync(out)) throw new Error('Refusing to reuse an existing preview output directory');
 fs.mkdirSync(out);
 for (const name of fs.readdirSync(source)) {
@@ -88,4 +90,4 @@ for (const file of ['auth.js', 'index.html', 'game.js']) {
     if (text.includes(forbidden)) throw new Error(`${file} still contains ${forbidden}`);
   }
 }
-console.log('Built disposable preview from committed game source');
+console.log('Built disposable preview from local game source');

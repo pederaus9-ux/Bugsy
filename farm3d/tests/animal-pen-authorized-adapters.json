@@ -1,7 +1,7 @@
 {
   "approvedDesign": "a2f0b8c5faa09fe5da96f35e4609185ffd1ace2c",
   "approvedPlan": "a1c583bc1733e8b80decbc4407ad62dca5ced871",
-  "scope": "Explicit owner-approved pen-layout exceptions; old protected fixture remains frozen. New exact digests supplement real default-geometry and care/save compatibility gates. No authority to change rig, ledger, auth, land or path bytes. Sole land exception: farm-land.js levels the west strip for the horse paddock under amendment A1 (docs/superpowers/specs/2026-10-22-player-editable-pens-amendment-horse-room.md), authorized by the owner on 2026-10-22. Sole path exception: farm-path.js turns the diagonal leg into a right-angle corner so the horse paddock can be square under amendment A2 (docs/superpowers/specs/2026-10-22-player-editable-pens-amendment-square-horse-paddock.md), chosen by the owner on 2026-10-22. Narrow rig exception A3: only cow3d.js::updateCow3D heading and hoof reach/release/recovery under docs/superpowers/specs/2026-10-23-cow-turn-release-amendment.md, owner Okay on 2026-10-23; all other rig bytes remain frozen.",
+  "scope": "Explicit owner-approved pen-layout exceptions; old protected fixture remains frozen. New exact digests supplement real default-geometry and care/save compatibility gates. No authority to change rig, ledger, auth, land or path bytes. Land exceptions: A1 levels the west horse strip, and A6 adds only an immediate buildable-land mask starting with the level north-east tract without changing terrain heights (docs/superpowers/specs/2026-10-24-immediate-buildable-land-proposed-amendment.md), explicitly approved by the owner on 2026-10-24. Sole path exception: farm-path.js turns the diagonal leg into a right-angle corner so the horse paddock can be square under amendment A2 (docs/superpowers/specs/2026-10-22-player-editable-pens-amendment-square-horse-paddock.md), chosen by the owner on 2026-10-22. Narrow rig exception A3: only cow3d.js::updateCow3D heading and hoof reach/release/recovery under docs/superpowers/specs/2026-10-23-cow-turn-release-amendment.md, owner Okay on 2026-10-23; all other rig bytes remain frozen.",
   "files": {
     "cow-yard.js": {
       "previousSha256": "677c4140b118f085f242480e36fe9d5435532e9fd8d938b2605d7a58e5e8cabb",
@@ -21,7 +21,15 @@
     },
     "farm-land.js": {
       "previousSha256": "a699c58b6394c9e77f0c7dc2d8361956d0e2db528b4e3d47fd87d0474499c35a",
-      "reviewedSha256": "6a739a8a18ed838f7e23fd37cfaad1768a2e21185fbb1ee6b3cb2f089ac45b70"
+      "reviewedSha256": "d736eb4e62d24d2402ff1a12ab0edcd8feca45f2372cf471f25698a922d5b947",
+      "amendment": "A6-immediate-buildable-land",
+      "priorReviewedSha256": "6a739a8a18ed838f7e23fd37cfaad1768a2e21185fbb1ee6b3cb2f089ac45b70",
+      "scope": {
+        "start": "// First immediately usable",
+        "end": "export function onFarm",
+        "prefixSha256": "9a31de2de76a551e79cb4e0c496a1abe1fa4c3e9733976e35b76ea7fcdb782d2",
+        "suffixSha256": "f48619d182ef8e44ea77c8dcd704b24c8f25bf3ea69a181a7833644cac068801"
+      }
     },
     "farm-path.js": {
       "previousSha256": "993d106615a1cdaee6379e230f35118c0e01450c27719a82795c8fba705db648",

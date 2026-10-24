@@ -1,5 +1,5 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
-import {NORTH_EXTENSION,WEST_CLEARING} from './farm-land.js?v=2';
+import {NORTH_EXTENSION,WEST_CLEARING,NORTH_EAST_BUILD_CLEARING} from './farm-land.js?v=3';
 import {resolveAnimalPens,defaultSiteRecord,animalPenYardLayout} from './animal-pen-layout.js?v=1';
 import {cowYardConflicts} from './cow-yard.js?v=4';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
@@ -17,6 +17,8 @@ export function penEditableLand(){
  const land=[{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:24},...Object.values(PEN_TEMPLATES).map(t=>({type:'polygon',points:t.baseline.renderFootprint.map(p=>[...p])}))];
  for(const kind of ['horse','sheep']){const b=PEN_TEMPLATES[kind].baseline,s=b.shelter,x0=Math.min(b.renderFootprint[0][0],s.x-s.width/2-.15),x1=Math.max(b.renderFootprint[1][0],s.x+s.width/2+.15),z0=Math.min(b.renderFootprint[0][1],s.z-s.depth/2-.125),z1=Math.max(b.renderFootprint[2][1],s.z+s.depth/2+.125);land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});}
  land.push({type:'polygon',points:[[-23-WEST_CLEARING,-46],[-19,-46],[-19,-17],[-23-WEST_CLEARING,-17]]});
+ const [x0,x1,z0,z1]=NORTH_EAST_BUILD_CLEARING;
+ land.push({type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]});
  return land;
 }
 export function penEditableLandContains(shape,world){

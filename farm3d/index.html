@@ -677,7 +677,7 @@ import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layo
 import {createRemainingCareController} from './remaining-care-controller.js?v=3';
 import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
 import {createDairyPath} from './farm-path.js?v=2';
-import {NORTH_EXTENSION,WEST_CLEARING,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=2';
+import {NORTH_EXTENSION,WEST_CLEARING,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=3';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
 let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
@@ -2334,7 +2334,7 @@ function placeCamera(dt = 1) {
   if (walk && inBarn && inBarn.phase === "inside") return barnPose();
   if (walk) return placeWalkCamera();
   if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up
-  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : 70);
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : editMode ? 110 : 70);
   const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
   view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
   const v = view;
@@ -2352,7 +2352,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
   if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around
-  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -18-NORTH_EXTENSION, 28); return; } // slide the map
+  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 27); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -46, 28); return; } // slide the map
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
     const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
@@ -2361,7 +2361,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
       if (d && last.d) cam.dist *= last.d / d;
       const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
       cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
-      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, -18-NORTH_EXTENSION, 28);
+      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, editMode?27:24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, editMode?-46:-18-NORTH_EXTENSION, 28);
     }
     last = {c, d};
   }
@@ -3432,7 +3432,7 @@ buildFarmer();
 // Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
 // to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
 const grid = createEditableGroundGrid(farmGroundY); scene.add(grid);
-function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=[{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:23}];return world;}
+function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=buildableLandShapes(23);return world;}
 const editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));
 editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
@@ -3478,7 +3478,7 @@ function editValid(key, x, z) {
   const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
   if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[[x,z,hw,hd]]}).length)return false;
   if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[[x,z,hw,hd]]}).length))return false;
-  if (!onFarm(x,z,23)||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;                                   // stay on the farm
+  if (!(t==='b'?onBuildableLand(x,z,hw,hd):onFarm(x,z,23))||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;
   if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
   if (t === "b") {
@@ -3581,7 +3581,7 @@ addEventListener('pointerdown',event=>{animalPenEditing?.pointers.set(event.poin
 addEventListener('pointermove',event=>{
  const s=animalPenEditing;if(!s||!s.pointers.has(event.pointerId))return;s.pointers.set(event.pointerId,[event.clientX,event.clientY]);if(!s.pan)return;
  const points=[...s.pointers.values()],c=[points.reduce((n,p)=>n+p[0],0)/points.length,points.reduce((n,p)=>n+p[1],0)/points.length],d=points.length>1?Math.hypot(points[0][0]-points[1][0],points[0][1]-points[1][1]):null;
- if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-24,24);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-18-NORTH_EXTENSION,28);}
+ if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-24,27);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-46,28);}
  s.last={c,d};event.preventDefault();event.stopImmediatePropagation();
 },true);
 for(const type of ['pointerup','pointercancel'])addEventListener(type,event=>{const s=animalPenEditing;if(s){s.pointers.delete(event.pointerId);s.last=null;if(!s.pointers.size)s.pan=false;}},true);

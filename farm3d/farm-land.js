@@ -2,6 +2,19 @@
 export const NORTH_EXTENSION=25;
 // Room for the horse paddock to move: the north clearing is level this much further west.
 export const WEST_CLEARING=10;
+// First immediately usable part of the level north-east grass. This is a placement
+// mask only: it neither changes terrain nor expands unrelated player/plot limits.
+export const NORTH_EAST_BUILD_CLEARING=[14,25,-44,-28];
+export function buildableLandShapes(radius=23){
+ const [x0,x1,z0,z1]=NORTH_EAST_BUILD_CLEARING;
+ return [{type:'capsule',a:[1,3-NORTH_EXTENSION],b:[1,3],r:radius},
+  {type:'polygon',points:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]]}];
+}
+export function onBuildableLand(x,z,hw=0,hd=0){
+ if(onFarm(x,z,23))return true;
+ const [x0,x1,z0,z1]=NORTH_EAST_BUILD_CLEARING;
+ return x-hw>=x0&&x+hw<=x1&&z-hd>=z0&&z+hd<=z1;
+}
 export function onFarm(x,z,radius=24){
  const nearest=Math.max(3-NORTH_EXTENSION,Math.min(3,z));
  return Math.hypot(x-1,z-nearest)<=radius+1e-9;

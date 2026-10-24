@@ -17,6 +17,12 @@ test('protected implementations and approved pen adapters retain exact reviewed 
    assert.equal(crypto.createHash('sha256').update(source.slice(0,start)).digest('hex'),scope.prefixSha256,'A3 cannot change anatomy, solver or gait constants');
    assert.equal(crypto.createHash('sha256').update(source.slice(end)).digest('hex'),scope.suffixSha256,'A3 cannot change face/tail behavior');
   }
+  if(f==='farm-land.js'){
+   const scope=entry.scope,source=actual.toString(),start=source.indexOf(scope.start),end=source.indexOf(scope.end);
+   assert.equal(entry.amendment,'A6-immediate-buildable-land');assert(start>=0&&end>start,'land-mask source boundaries exist');
+   assert.equal(crypto.createHash('sha256').update(source.slice(0,start)).digest('hex'),scope.prefixSha256,'A6 cannot change A1 prefix');
+   assert.equal(crypto.createHash('sha256').update(source.slice(end)).digest('hex'),scope.suffixSha256,'A6 cannot change terrain, old farm membership or player clamp');
+  }
  }
 });
 import {createCowYard} from '../cow-yard.js';import {createChickenYard} from '../chicken-yard.js';import {meshReceipt} from './fixtures/animal-pen-mesh-probe.mjs';
