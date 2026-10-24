@@ -22,7 +22,7 @@ const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.jp
    if(state.candidateCount>25||state.baseCount<=500||!state.maskedCount||state.baseStates!=='unchecked'||errors.length)process.exitCode=1;
    if(viewport.width===844&&state.baseCount){
     await page.waitForFunction(()=>{const c=window.__dbg.scene.getObjectByName('Ground placement guide')?.userData.cells??[];return c.some(x=>x.status==='valid')&&c.some(x=>x.status==='blocked');},null,{timeout:45000});
-    const checks=await page.evaluate(async()=>{const cells=__dbg.scene.getObjectByName('Ground placement guide').userData.cells,{evaluatePenPlacement}=await import('./animal-pen-placement.js?v=2'),state=__dbg.penEditor.snapshot(),world=__dbg.penRuntime.world;return['valid','blocked'].map(status=>{const cell=cells.find(c=>c.status===status);return{cell,actual:evaluatePenPlacement(state,cell.at,world)};});});
+    const checks=await page.evaluate(async()=>{const cells=__dbg.scene.getObjectByName('Ground placement guide').userData.cells,{evaluatePenPlacement}=await import('./animal-pen-placement.js?v=3'),state=__dbg.penEditor.snapshot(),world=__dbg.penRuntime.world;return['valid','blocked'].map(status=>{const cell=cells.find(c=>c.status===status);return{cell,actual:evaluatePenPlacement(state,cell.at,world)};});});
     fs.writeFileSync(path.join(artifacts,'authoritative-cells.json'),JSON.stringify(checks,null,2));for(const check of checks)if(check.cell.status!==check.actual.status||check.cell.reason!==check.actual.reason)throw Error('Rendered candidate differs from Apply constraints');
    }
    await host.locator(state.compact?'[data-compact-dock] [data-action="cancel"]':'[aria-label="Animal pen editor"] [data-action="cancel"]').click();

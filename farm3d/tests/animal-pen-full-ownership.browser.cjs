@@ -26,7 +26,7 @@ function assertHerd(v){assert.deepEqual(v.owned,expected);assert.deepEqual(v.ani
  });
  const before=await state();record(stage,before);assertHerd(before);
  stage='validate accepted default against full live World';
- const baseline=await p.evaluate(async()=>{const d=__dbg,{validateAnimalPens}=await import('./animal-pen-validation.js?v=2');return validateAnimalPens(d.penRuntime.layout,d.penRuntime.world);});record(stage,baseline);assert.equal(baseline.ok,true,JSON.stringify(baseline.issues));
+ const baseline=await p.evaluate(async()=>{const d=__dbg,{validateAnimalPens}=await import('./animal-pen-validation.js?v=3');return validateAnimalPens(d.penRuntime.layout,d.penRuntime.world);});record(stage,baseline);assert.equal(baseline.ok,true,JSON.stringify(baseline.issues));
  stage='fixed chicken yard cardinal moves';
  for(const delta of [[1,0],[-1,0],[0,1],[0,-1]]){
   const result=await p.evaluate(async delta=>{const d=__dbg,e=d.penEditor,before=localStorage.getItem(d.G.SAVE_KEY);if(!e.begin('chicken'))throw Error('Chicken editor failed to open');e.dispatch({type:'movePen',kind:'chicken',delta});const valid=await e.validateNow(),snap=e.snapshot(),applied=await e.apply();e.cancel();return {delta,valid,applied,reason:snap.reason,unchanged:before===localStorage.getItem(d.G.SAVE_KEY),closed:!e.snapshot().open,validation:snap.validation};},delta);
