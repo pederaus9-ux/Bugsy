@@ -9,3 +9,5 @@ Static YAML structure/source preservation checks and all14 Bash syntax blocks PA
 Manual-restore receipts are copied only if newer than this invocation's marker, preventing an old checked-in PASS from being represented as fresh after an early failure. Original test still writes only the disposable runner checkout; source history remains untouched.
 
 Remote publication branch read before write:9d1ce4d0050578fed42f987d912c5bed72e29aad. Upload and exact-head manual dispatch have not yet executed at this preparation checkpoint. All oversized local archives stay untracked/hashed, no deletion or force-push. Official results pending; current care/wake1/30 and historical/deferred failures unchanged.
+
+Preparation note: a local relay-writing shell inline-JavaScript command failed at parsing before any relay write. A saved script records the relay correctly; no runtime/workflow retry or remote write was involved. Pre-edit JSON intentionally retains original CRLF receipt bytes; git whitespace check reports those carriage returns, not changed logic.
