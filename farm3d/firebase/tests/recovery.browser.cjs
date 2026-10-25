@@ -29,6 +29,7 @@ async function beginQuotaTiming(page) {
   const listen = (event, handler) => { page.on(event, handler); listeners.push([event, handler]); };
   listen('request', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request', {url: safeUrl(r.url()), method: r.method(), navigation: r.isNavigationRequest()}); });
   listen('response', r => { if (r.request().isNavigationRequest() || relevant(r.url())) mark('response', {url: safeUrl(r.url()), status: r.status()}); });
+  listen('requestfinished', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request-finished', {url: safeUrl(r.url()), method: r.method(), timing: r.timing()}); });
   listen('requestfailed', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request-failed', {url: safeUrl(r.url()), reason: r.failure()?.errorText}); });
   listen('framenavigated', f => { if (f === page.mainFrame()) mark('document-commit'); });
   listen('domcontentloaded', () => mark('dom-content-loaded'));
@@ -40,9 +41,58 @@ async function beginQuotaTiming(page) {
       mark('cdp-refusal-delivery', {browserEpochMs: e.timestamp});
   });
   await cdp.send('Runtime.enable');
+  // A31: bounded read-only timeline; leave the renderer and original wait alone.
+  // Trace draining happens after the quota observation, not inside its deadline.
+  let traceTimer, traceEnd, traceDrained = false;
+  const complete = new Promise(resolve => cdp.once('Tracing.tracingComplete', resolve));
+  cdp.on('Tracing.bufferUsage', e => { if (e.percentFull >= .9) mark('trace-buffer-near-full', {percentFull: e.percentFull}); });
+  await cdp.send('Tracing.start', {
+    traceConfig: {recordMode: 'recordUntilFull', traceBufferSizeInKb: 32768,
+      includedCategories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'loading', 'toplevel', 'blink', 'gpu']},
+    transferMode: 'ReturnAsStream', streamCompression: 'gzip', bufferUsageReportingInterval: 1000
+  });
+  const endTrace = reason => {
+    if (!traceEnd) {
+      clearTimeout(traceTimer); mark('trace-end-request', {reason});
+      traceEnd = cdp.send('Tracing.end');
+      void traceEnd.catch(e => mark('trace-end-error', {message: e.message}));
+    }
+    return traceEnd;
+  };
+  traceTimer = setTimeout(() => { void endTrace('45000ms diagnostic cap'); }, 45000);
+  mark('trace-start', {limitMs: 45000, bufferKiB: 32768});
+  const bounded = (promise, ms) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('A31 diagnostic collection timeout')), ms);
+    promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+  });
+  async function stopTrace() {
+    if (traceDrained) return;
+    traceDrained = true;
+    let handle, fd, bytes = 0;
+    try {
+      await bounded(endTrace('quota observation finished'), 15000);
+      const event = await bounded(complete, 15000); handle = event.stream;
+      if (!handle) throw new Error('A31 trace completion supplied no stream');
+      fd = fs.openSync(path.join(artifacts, 'quota-browser-timeline.json.gz'), 'w');
+      const drainStart = clock.now();
+      for (;;) {
+        const chunk = await bounded(cdp.send('IO.read', {handle, size: 1048576}), 5000);
+        const data = Buffer.from(chunk.data, chunk.base64Encoded ? 'base64' : 'utf8');
+        if (bytes + data.length > 134217728 || clock.now() - drainStart > 15000) throw new Error('A31 trace drain exceeded diagnostic size/time cap');
+        fs.writeSync(fd, data); bytes += data.length;
+        if (chunk.eof) break;
+      }
+      mark('trace-saved', {bytes, dataLossOccurred: !!event.dataLossOccurred});
+    } catch (e) { mark('trace-incomplete', {bytes, message: e.message}); }
+    finally {
+      if (fd !== undefined) fs.closeSync(fd);
+      if (handle) { try { await bounded(cdp.send('IO.close', {handle}), 5000); } catch (e) { mark('trace-close-error', {message: e.message}); } }
+    }
+  }
   mark('observer-ready');
   const flush = () => fs.writeFileSync(path.join(artifacts, 'quota-timing.jsonl'), rows.concat({event: 'record-count', count: rows.length, dropped}).map(r => JSON.stringify(r)).join('\n') + '\n');
-  return {mark, flush, async finish() {
+  return {mark, flush, stopTrace, async finish() {
+    await stopTrace();
     for (const [event, handler] of listeners) page.off(event, handler);
     try { await cdp.detach(); } catch (e) { mark('diagnostic-detach-after-close', {message: e.message}); }
     mark('observer-finished'); flush();
@@ -375,6 +425,7 @@ async function main() {
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
   if (timing) await timing.finish();
+  if (quotaTiming) await quotaTiming.stopTrace();
   quotaTiming?.mark('emulator-browser-close-call');
   await E.close();
   quotaTiming?.mark('emulator-browser-close-return');

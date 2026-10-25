@@ -14,11 +14,11 @@ on:
   workflow_dispatch:
     inputs:
       qualification_set:
-        description: Select all checks or the A30 affected cache/recovery follow-up
+        description: Select all checks, cache/recovery, or the A31 recovery-only diagnostic
         type: choice
         required: true
         default: all
-        options: [all, affected-cache-recovery]
+        options: [all, affected-cache-recovery, affected-recovery]
 permissions:
   contents: read
 concurrency:
@@ -27,7 +27,7 @@ concurrency:
 jobs:
   conflicts:
     name: Same-account conflicting saves (emulator)
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.qualification_set != 'affected-cache-recovery' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.qualification_set == 'all' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -62,7 +62,7 @@ jobs:
           retention-days: 14
   pen_cache:
     name: Targeted pen, restore guards and installed cache transitions
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'affected-recovery' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
@@ -160,18 +160,33 @@ jobs:
       - name: Install pinned Chromium and system dependencies
         working-directory: farm3d/firebase
         run: npx playwright install --with-deps chromium
-      - name: Original 27 recovery checks and three A28 restore groups
+      - name: Original 27 recovery checks with bounded quota diagnostic
         working-directory: farm3d/firebase
         run: |
           set -o pipefail
           touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/execution-start"
-          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/recovery.browser.cjs && node tests/manual-restore.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/recovery-restore.log"
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/recovery.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/recovery-restore.log"
+      - name: Preserve recovery evidence before independent emulator reset
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p artifacts/a29/recovery/original-recovery
+          cp -a farm3d/firebase/artifacts/. artifacts/a29/recovery/original-recovery/
+          for file in farm3d/firebase/*debug.log; do
+            if test -f "$file"; then cp "$file" artifacts/a29/recovery/original-recovery/; fi
+          done
+      - name: Three independent A28 manual-restore groups
+        if: ${{ !cancelled() }}
+        working-directory: farm3d/firebase
+        run: |
+          set -o pipefail
+          touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-execution-start"
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/manual-restore.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-restore.log"
       - name: Preserve fresh manual-restore receipts from disposable checkout
         if: always()
         run: |
           source=farm3d/tests/evidence/pen-editing-implementation/task8-codex-restore-repair-20261025/emulator
           for file in manual-restore.json restored.png; do
-            if test -f artifacts/a29/recovery/execution-start && test "$source/$file" -nt artifacts/a29/recovery/execution-start; then
+            if test -f artifacts/a29/recovery/manual-execution-start && test "$source/$file" -nt artifacts/a29/recovery/manual-execution-start; then
               cp "$source/$file" "artifacts/a29/recovery/$file"
             else
               echo "No fresh $file receipt generated" >> artifacts/a29/recovery/missing-fresh-receipts.txt
