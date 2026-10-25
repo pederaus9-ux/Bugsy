@@ -2010,3 +2010,12 @@ Owner19:22:14UTC Yes approves new branch codex/a28-publication-20261025 fromremo
 ### A28 publication payload uploaded and remote verified
 
 Normalnewbranch codex/a28-publication-20261025 now contains verifiedpayload9d1ce4d0050578fed42f987d912c5bed72e29aad. Read-onlyremotecheck confirmsmain1115f93 andoldpreview4c3335a unchanged. Game121files exact888383b; finalretainedpriorcount4054 plus2relayupdates/3test-onlymappings.49focusedchecks,5snapshotcontrolgroups andbothcachetransitionsPASS. Originalcheckoutclean2deffa9/allarchivesretained;3oversizedZIPs remainlocalonly. Sitev5 unchanged. No merge/live/Firebasechange. Evidence: farm3d/tests/evidence/pen-editing-implementation/task8-codex-a28-publication-branch-20261025/remote-receipt.json. OfficialhostedCI/currentphone/releaseapproval stillpending; carewake1/30 anddeferralsunchanged.
+
+
+### Final gate1/120 retained wake failure; conditional merge not executable
+
+Original unchanged gate-relocation seed1/120Hz journey onacb5230 ran once181.977s. All46 beds completed allthree nights284.5917/292.5917/289.0s; firsttwo full40s wakesPASS326.8667/343.15s. Prior night3Sheep4 water blockage didnotrecur. ThirdwakeFAIL Cow1(cow:0) frame4746,firstdeparture241: original<.025m/2.5s stuck-core check before40s. No onward recovery/frequency/care-impact measurement, no guessedfix/rerun, not automaticallydeferred. Complete currentcare/wake1/30 remains; no newmatrixcredit. Existingassembly head/jaw physicalRED isowner-deferredvisualpolish with observedbedarrival14.9safterhit, notmeasuredclipduration.
+
+Read-onlyremote9d1ce4d has0Actionsruns/0checks/0statuses: hostedNOTRUN. Smallestproposal onefile .github/workflows/farm3d-release-qualification.yml addingmanual-onlytargetedpen/cache+recoveryjobs; originalconflictsjob/tests/limits preserved. Amendment/upload/dispatchpending, notattempted. Owner20:03:28UTCYes conditionallyapprovesmergeonlyafterrequiredchecks; currentphoneunconfirmed andnewwakeimpactopen. Freshread ofPages39691471875 provesprior main1115f93 automaticallypublishedaftermerge; parentmustresolve live-deploymentboundarybeforemerge. CurrentPagesconfigurationnotfreshlyexposed.
+
+Evidence:farm3d/tests/evidence/pen-editing-implementation/task8-codex-final-gate-20261025/progress.md andhosted-proposal.md. Raw131,960,286byteZIPpreserveduntracked/localonly withSHA256manifest, nosilentdeletion/ignorechange or oversizedGitobject. Runtime/tests/workflowsunchanged; originalsandallarchivespreserved. Allownedjourneyprocessesfinished. No upload,externaljob,PR,Siteupdate,merge/deployment/productionFirebase.
