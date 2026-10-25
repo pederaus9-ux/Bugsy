@@ -12,6 +12,13 @@ on:
       - 'farm3d/index.html'
       - '.github/workflows/farm3d-release-qualification.yml'
   workflow_dispatch:
+    inputs:
+      qualification_set:
+        description: Select all checks or the A30 affected cache/recovery follow-up
+        type: choice
+        required: true
+        default: all
+        options: [all, affected-cache-recovery]
 permissions:
   contents: read
 concurrency:
@@ -20,6 +27,7 @@ concurrency:
 jobs:
   conflicts:
     name: Same-account conflicting saves (emulator)
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.qualification_set != 'affected-cache-recovery' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -55,7 +63,7 @@ jobs:
   pen_cache:
     name: Targeted pen, restore guards and installed cache transitions
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
@@ -82,11 +90,12 @@ jobs:
           echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
       - name: Original selected 49 focused checks
+        if: ${{ success() && inputs.qualification_set != 'affected-cache-recovery' }}
         run: |
           set -o pipefail
           node --test farm3d/tests/restore-recovery.test.mjs farm3d/tests/restore-recovery-scope.test.mjs farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/ordinary-layout-transaction.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/versions.test.mjs farm3d/tests/sdk.test.mjs 2>&1 | tee artifacts/a29/pen-cache/focused.log
       - name: Historical source resolver and corruption controls
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' }}
         run: |
           set -o pipefail
           node --test farm3d/tests/qualification-source.test.cjs 2>&1 | tee artifacts/a29/pen-cache/source-controls.log
@@ -105,7 +114,7 @@ jobs:
           set -o pipefail
           node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v73-v74.log
       - name: Original gate relocation seed1 at120Hz three-night journey
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' }}
         env:
           PEN_MATRIX_EDIT_CLASS: gate
           PEN_MATRIX_SEED: '1'

@@ -15,6 +15,40 @@ const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
 const {startRecoveryTiming} = require('./recovery-timing.cjs');
 
+// A30 timing-only: bounded event records, no page state writes or renderer release.
+async function beginQuotaTiming(page) {
+  const clock = require('node:perf_hooks').performance, started = clock.now(), rows = [];
+  let dropped = 0;
+  const mark = (event, detail = {}) => {
+    if (rows.length < 2048) rows.push({event, ms: clock.now() - started, utc: new Date().toISOString(), ...detail});
+    else dropped++;
+  };
+  const relevant = url => /^http:\/\/127\.0\.0\.1:(8085|9099)\//.test(url);
+  const safeUrl = url => { const u = new URL(url); return u.origin + u.pathname; };
+  const listeners = [];
+  const listen = (event, handler) => { page.on(event, handler); listeners.push([event, handler]); };
+  listen('request', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request', {url: safeUrl(r.url()), method: r.method(), navigation: r.isNavigationRequest()}); });
+  listen('response', r => { if (r.request().isNavigationRequest() || relevant(r.url())) mark('response', {url: safeUrl(r.url()), status: r.status()}); });
+  listen('requestfailed', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request-failed', {url: safeUrl(r.url()), reason: r.failure()?.errorText}); });
+  listen('framenavigated', f => { if (f === page.mainFrame()) mark('document-commit'); });
+  listen('domcontentloaded', () => mark('dom-content-loaded'));
+  listen('load', () => mark('document-load'));
+  listen('console', m => { if (m.text().includes("Couldn't put the cloud farm on this phone")) mark('playwright-refusal-delivery'); });
+  const cdp = await page.context().newCDPSession(page);
+  cdp.on('Runtime.consoleAPICalled', e => {
+    if (e.args.some(a => typeof a.value === 'string' && a.value.includes("Couldn't put the cloud farm on this phone")))
+      mark('cdp-refusal-delivery', {browserEpochMs: e.timestamp});
+  });
+  await cdp.send('Runtime.enable');
+  mark('observer-ready');
+  const flush = () => fs.writeFileSync(path.join(artifacts, 'quota-timing.jsonl'), rows.concat({event: 'record-count', count: rows.length, dropped}).map(r => JSON.stringify(r)).join('\n') + '\n');
+  return {mark, flush, async finish() {
+    for (const [event, handler] of listeners) page.off(event, handler);
+    try { await cdp.detach(); } catch (e) { mark('diagnostic-detach-after-close', {message: e.message}); }
+    mark('observer-finished'); flush();
+  }};
+}
+
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
 const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
@@ -54,7 +88,7 @@ async function main() {
   const standInWrites = (token) => (g.farmWrites || []).filter(w => !has(w.save, token)).length;
   // the next load finds this text as the saved farm (written before any game script runs)
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
-  let failed = false, timing = null;
+  let failed = false, timing = null, quotaTiming = null;
   try {
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
@@ -126,11 +160,20 @@ async function main() {
       const base=await establish(uid,'edited-quota');g.farmWrites=[];
       await g.context.addInitScript(()=>{if(sessionStorage.getItem('a27-block-save')){const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='sunny-acres-3d-v1'&&v!=='{"a27 quota cut')throw new DOMException('A27 fixture quota','QuotaExceededError');return set.call(this,k,v);};}});
       await P(g,()=>sessionStorage.setItem('a27-block-save','1'));await corruptOnNextLoad('{"a27 quota cut');
-      const refusal=g.page.waitForEvent('console',{predicate:m=>m.text().includes("Couldn't put the cloud farm on this phone"),timeout:30000});await g.page.reload({waitUntil:'load'});await refusal;
+      quotaTiming=await beginQuotaTiming(g.page);
+      quotaTiming.mark('wait-arm',{deadlineMs:30000});
+      const refusal=g.page.waitForEvent('console',{predicate:m=>m.text().includes("Couldn't put the cloud farm on this phone"),timeout:30000});
+      void refusal.then(()=>quotaTiming.mark('wait-resolved'),e=>quotaTiming.mark('wait-rejected',{message:e.message}));
+      quotaTiming.mark('reload-call');
+      await g.page.reload({waitUntil:'load'});
+      quotaTiming.mark('reload-return');
+      await refusal;
+      quotaTiming.mark('refusal-await-return');
       const bad=await watch(uid,25000,c=>c&&c.save===base.save&&c.rev===base.rev),blocked=await st();
       check('edited cloud recovery with blocked primary storage preserves exact cloud and pending recovery',blocked.recover==='1'&&blocked.raw==='{"a27 quota cut'&&bad.length===0&&standInWrites(base.token)===0);
       await P(g,()=>sessionStorage.removeItem('a27-block-save'));await g.page.reload({waitUntil:'load'});await gameUp();const restored=await st();
       check('edited cloud recovery succeeds after storage becomes writable',restored.recover===null&&progress(restored.raw)===progress(base.save)&&(await cloud(uid)).save===base.save);
+      await quotaTiming.finish();quotaTiming=null;
     }
 
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
@@ -326,12 +369,16 @@ async function main() {
         `restored ${back}, page loads +${(loads.grandma || 0) - n0}, cloud rev ${c3.rev}`);
     }
   } catch (e) {
+    quotaTiming?.mark('outer-catch',{message:e.message});quotaTiming?.flush();
     timing?.mark('recovery-error', {message: e.message});
     failed = true; console.log('RECOVERY ERROR', e.message); try { console.log('STATE', JSON.stringify(await st())); } catch (_) {}
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
   if (timing) await timing.finish();
+  quotaTiming?.mark('emulator-browser-close-call');
   await E.close();
+  quotaTiming?.mark('emulator-browser-close-return');
+  if (quotaTiming) await quotaTiming.finish();
   const bad = results.filter(r => !r.ok);
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);
   fs.writeFileSync(path.join(artifacts, 'recovery.json'), JSON.stringify(results, null, 1));
