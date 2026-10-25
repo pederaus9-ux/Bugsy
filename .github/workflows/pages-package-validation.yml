@@ -22,6 +22,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 2
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch immutable evidence baseline
+        run: git fetch --no-tags --depth=1 origin 2f9a8241b8230938dd816e1c0fac52551a263f69
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
