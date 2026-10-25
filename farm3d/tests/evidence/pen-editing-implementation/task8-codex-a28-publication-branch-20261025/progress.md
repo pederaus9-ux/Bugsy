@@ -27,3 +27,11 @@ These are local isolated Chromium/disposable-save checks, not official hosted CI
 The approved new-branch upload follows the final object/remote preflight. Exact upload outcome and remote SHA will be recorded separately. Existing preview branch4c3335a, main1115f93 and owner-private Sitev5 must remain unchanged. No force-push, merge, live deployment, Site update, credentials or production Firebase change.
 
 After upload: official exact-source hosted qualification, current-phone review/performance, and owner release/merge decisions remain. The three omitted raw archives have local/hash-verified preservation, not independent remote backup. Snapshot README contains the reproducible cache-test commands.
+
+## Confirmed upload
+
+The new publication branch uploaded normally and read-only remote verification confirmed9d1ce4d0050578fed42f987d912c5bed72e29aad. Main and the original preview branch remain at their exact prior SHAs; Sitev5 was not changed. See remote-receipt.json. No uncertain outcome or access denial remains for this payload upload.
+
+Final source accounting after updating relays:4054 prior files remain byte-exact, plus the2 documented relay updates and3 invertible test-source mappings. All121 game/asset files remain exact888383b. source-equivalence-final.json supersedes the earlier pre-relay4056 count. Raw Windows console receipts retain original CRLF, so broad whitespace checks flag those evidence files; authored source/docs pass their scoped checks. No raw evidence was normalized.
+
+The final documentation-only checkpoint records this receipt and final source accounting on the same publication branch. No gameplay or test changes after the passing candidate. Remaining gates are unchanged: official hosted CI, current-phone acceptance/performance and severity-scoped owner readiness decisions; the three omitted raw archives remain locally preserved, not independently remotely backed up.
