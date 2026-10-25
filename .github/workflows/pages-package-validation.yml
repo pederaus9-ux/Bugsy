@@ -1,0 +1,45 @@
+name: Pages package validation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '_config.yml'
+      - 'farm3d/**'
+      - '.github/workflows/pages-package-validation.yml'
+permissions:
+  contents: read
+concurrency:
+  group: pages-package-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  package:
+    name: Pages-compatible build and runtime package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify source contract and deliberate failure controls
+        run: node farm3d/tests/pages-package.verify.cjs --source-only
+      - name: Build using the official GitHub Pages toolchain
+        uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1
+        with:
+          source: ./
+          destination: ./_site
+          build_revision: ${{ github.event.pull_request.head.sha }}
+      - name: Verify actual output, game bytes and dependency paths
+        run: node farm3d/tests/pages-package.verify.cjs --output _site --report "$RUNNER_TEMP/pages-package.json"
+      - name: Retain small package receipt
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: pages-package-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pages-package.json
+          if-no-files-found: error
+          retention-days: 14
