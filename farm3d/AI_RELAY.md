@@ -1998,3 +1998,10 @@ Owner18:41:53UTC Okay approved exact888383b upload/privateupdate/hostedverificat
 One GitHubpush of888383b stopped afterconfirmingthreeincomingtraceZIPs exceed100MiB. Rawarchives/history preserved; remote codex/safe-test-preview-20261023 still4c3335a,main1115f93. No serverlimitrejection claimed; disconnect reflectsownedtransportcancellation. No unchangedretry/forcepush/LFS/deletion. Read-onlyproposal: separatepublicationbranch fromremotehead, exactgamesource/smalltests/evidence withoriginalhashmanifest and independentlyretainedlargeartifacts; requiresownerapproval. Two cachetests dependonunpublishedpredecessorSHAs and needexactinputs preservedbeforehostedexecution, noassertionchanges. No branchproposalimplemented.
 
 Evidence/precisepaths/checklist: farm3d/tests/evidence/pen-editing-implementation/task8-codex-a28-publication-20261025/progress.md. Currentcare/wake1/30 andhistorical/deferredREDs unchanged. Allownedsessionsfinished. No merge/livegamedeployment/productionFirebasechange.
+
+
+### A28 separate publication packaging approved and verified
+
+Owner19:22:14UTC Yes approves new branch codex/a28-publication-20261025 fromremote4c3335a. Game source121files exact888383b;4056 retained priorfiles exact2deffa9. Three test-only source-mapping edits preserve every assertion by exactinverse. All3 oversizedarchives/originalhistory remain untouched inoriginalworktree, hashes inprovenance; newpublicationtree intentionally differs. Three historical snapshots preserve360inputs and originalblob/SHA256 checks, allowing both cachetransitions withoutunpublishedhistory.
+
+49focusedchecks+5snapshotcontrolgroupsPASS. Installed historicalv72-to-v73 andv73-to-publication-v74 online/offlinePASS. RestrictedChrome pipelaunchfailure retained; permittedexecution PASS withunchangedtests. Incomingpreflight0blobs>100MiB; largest97,874,190bytes. Normalnewbranchupload pending finalpreflight/outcome receipt. ExistingSitev5/remoteoldbranch/main unchanged; no merge/live/Firebasechanges. Evidence: farm3d/tests/evidence/pen-editing-implementation/task8-codex-a28-publication-branch-20261025/progress.md. No newcare/wake/phone/hostedCI claim.
