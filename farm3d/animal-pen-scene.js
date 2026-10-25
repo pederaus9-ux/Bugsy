@@ -10,7 +10,7 @@ export function createAnimalPenSceneRegistry({scene,blocks,obstacles,fences,init
   for(const [kind,site]of Object.entries(layout.sites)){
    const yard=yards[kind];if(!yard?.group||yard.group.parent)throw Error('Yard must be prepared off scene: '+kind);
    const cowLegacy=kind==='cow'&&!site.custom;
-   const bounds=[...site.obstacles.map(b=>[...b]),...(cowLegacy?site.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05]):[])];
+   const bounds=[...site.obstacles.map(b=>[...b]),...(cowLegacy?site.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05]):[]),...(kind==='cow'?yard.gateObstacleBounds():[])];
    const segments=cowLegacy?[]:site.fenceSegments.map(f=>[...f]);
    const bs=bounds.map(b=>active[kind]?[...b]:[10000+serial++,10000,b[2],b[3]]),fs=segments.map(f=>active[kind]?[...f]:[10000+serial++,10000,10001+serial,10000]);
    const blockObstacles=bs.map(rectangle),fenceObstacles=fs.map(f=>oriented(f,kind==='cow'?.05:.1)),os=[...blockObstacles,...fenceObstacles];

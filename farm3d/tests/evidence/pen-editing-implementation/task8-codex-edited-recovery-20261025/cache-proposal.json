@@ -1,0 +1,413 @@
+{
+  "status": "PROPOSED_NOT_APPLIED",
+  "baseline": "bf352071d01cef475b6658fbe4aaf7db7fa84dc8",
+  "versions": {
+    "cow-yard.js": [
+      4,
+      5
+    ],
+    "chicken-stations.js": [
+      6,
+      7
+    ],
+    "remaining-care-controller.js": [
+      3,
+      4
+    ],
+    "animal-pen-scene.js": [
+      1,
+      2
+    ],
+    "animal-pen-runtime.js": [
+      1,
+      2
+    ],
+    "animal-pen-validation.js": [
+      3,
+      4
+    ],
+    "animal-pen-placement.js": [
+      3,
+      4
+    ],
+    "animal-pen-placement-worker.js": [
+      3,
+      4
+    ],
+    "animal-pen-placement-controller.js": [
+      3,
+      4
+    ],
+    "animal-pen-editor-view.js": [
+      3,
+      4
+    ]
+  },
+  "cache": [
+    "sa3d-v72",
+    "sa3d-v73"
+  ],
+  "runtime": [
+    {
+      "file": "farm3d/animal-pen-editor-view.js",
+      "preimageSha256": "1c0d434ba9060e510ea94954df3e1026e421c7d06da8b5b7592dc61db6fff3c5",
+      "changes": [
+        {
+          "line": 3,
+          "from": "animal-pen-placement-controller.js?v=3",
+          "to": "animal-pen-placement-controller.js?v=4",
+          "context": "import {createPenPlacementController} from './animal-pen-placement-controller.js?v=3';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/animal-pen-placement-controller.js",
+      "preimageSha256": "09a5dda829d0278558d8f85b1ff0d82c029844c76d3e6499f5f0d65e3620bde8",
+      "changes": [
+        {
+          "line": 1,
+          "from": "animal-pen-placement.js?v=3",
+          "to": "animal-pen-placement.js?v=4",
+          "context": "import {placementCandidates} from './animal-pen-placement.js?v=3';"
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-placement-worker.js?v=3",
+          "to": "animal-pen-placement-worker.js?v=4",
+          "context": "export function createPenPlacementController({onUpdate,workerFactory=()=>new Worker(new URL('./animal-pen-placement-worker.js?v=3',import.meta.url),{type:'module'}),schedule=(fn,ms)=>setTimeout(fn,ms),unschedule=clearTimeout}){"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/animal-pen-placement-worker.js",
+      "preimageSha256": "1032d64b5de2209fda52148df4f3ba9b1b49eb8154af6648ea461bb46f2360e8",
+      "changes": [
+        {
+          "line": 1,
+          "from": "animal-pen-placement.js?v=3",
+          "to": "animal-pen-placement.js?v=4",
+          "context": "import {evaluatePenPlacement} from './animal-pen-placement.js?v=3';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/animal-pen-placement.js",
+      "preimageSha256": "0e16fc6539ece730128bf20693f9980013f83964d960f992bbc609a99b3b4ba0",
+      "changes": [
+        {
+          "line": 3,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "import {validateAnimalPens} from './animal-pen-validation.js?v=3';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/animal-pen-runtime.js",
+      "preimageSha256": "a5e40ec95420da1d376979d06fd538cd65de53a93f3d90adb6ea705429672d5f",
+      "changes": [
+        {
+          "line": 2,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "import {createCowYard} from './cow-yard.js?v=4';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/animal-pen-validation.js",
+      "preimageSha256": "732888b66045d7b44e039915e5410d03a56b8b878c9bb82f413f1ab704930442",
+      "changes": [
+        {
+          "line": 4,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "import {cowYardConflicts} from './cow-yard.js?v=4';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/index.html",
+      "preimageSha256": "ca167044153001ebdb4d85e2822123221de0a9f7e71e37cf13690c90665ff53e",
+      "changes": [
+        {
+          "line": 674,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=4';"
+        },
+        {
+          "line": 677,
+          "from": "remaining-care-controller.js?v=3",
+          "to": "remaining-care-controller.js?v=4",
+          "context": "import {createRemainingCareController} from './remaining-care-controller.js?v=3';"
+        },
+        {
+          "line": 689,
+          "from": "animal-pen-scene.js?v=1",
+          "to": "animal-pen-scene.js?v=2",
+          "context": "import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';"
+        },
+        {
+          "line": 691,
+          "from": "animal-pen-runtime.js?v=1",
+          "to": "animal-pen-runtime.js?v=2",
+          "context": "import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';"
+        },
+        {
+          "line": 692,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=3';"
+        },
+        {
+          "line": 694,
+          "from": "animal-pen-editor-view.js?v=3",
+          "to": "animal-pen-editor-view.js?v=4",
+          "context": "import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=3';"
+        },
+        {
+          "line": 699,
+          "from": "chicken-stations.js?v=6",
+          "to": "chicken-stations.js?v=7",
+          "context": "import {createChickenStationController} from './chicken-stations.js?v=6';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/sw.js",
+      "preimageSha256": "22e0a342a02f895103fcfb586e899a187e3d77008267f116c88bc2597eae4256",
+      "changes": [
+        {
+          "from": "sa3d-v72",
+          "to": "sa3d-v73"
+        },
+        {
+          "line": 4,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "chicken-stations.js?v=6",
+          "to": "chicken-stations.js?v=7",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "remaining-care-controller.js?v=3",
+          "to": "remaining-care-controller.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-scene.js?v=1",
+          "to": "animal-pen-scene.js?v=2",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-runtime.js?v=1",
+          "to": "animal-pen-runtime.js?v=2",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-placement.js?v=3",
+          "to": "animal-pen-placement.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-placement-worker.js?v=3",
+          "to": "animal-pen-placement-worker.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-placement-controller.js?v=3",
+          "to": "animal-pen-placement-controller.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        },
+        {
+          "line": 4,
+          "from": "animal-pen-editor-view.js?v=3",
+          "to": "animal-pen-editor-view.js?v=4",
+          "context": "const SHELL = [\"animal-pen-placement.js?v=3\",\"animal-pen-placement-controller.js?v=3\",\"animal-pen-placement-worker.js?v=3\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=3\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=1\",\"animal-pen-runtime.js?v=1\",\"animal-pen-validation.js?v=3\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"an..."
+        }
+      ]
+    }
+  ],
+  "matchingTestReferences": [
+    {
+      "file": "farm3d/tests/animal-pen-cache-v71-to-v72.browser.cjs",
+      "preimageSha256": "051d9dc10d8af1e7353640882c9c11040b1f8dd81768a9ed14b5ea6a8c5c6a41",
+      "changes": [
+        {
+          "line": 31,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " const cache=await h.cdp.evaluate(`(async()=>{const keys=await caches.keys(),c=await caches.open('sa3d-v72'),files=['animal-pen-validation.js?v=3','animal-pen-placement-worker.js?v=3','farm-land.js?v=5'],sha={};for(const file of files){const r=await c.match(new URL(file,location.href));if(!r){sha[file]=null;continue;}const d=await crypto.subtle.digest('SHA-256',await r.arrayBuffer());sha[file]=Arr..."
+        },
+        {
+          "line": 31,
+          "from": "animal-pen-placement-worker.js?v=3",
+          "to": "animal-pen-placement-worker.js?v=4",
+          "context": " const cache=await h.cdp.evaluate(`(async()=>{const keys=await caches.keys(),c=await caches.open('sa3d-v72'),files=['animal-pen-validation.js?v=3','animal-pen-placement-worker.js?v=3','farm-land.js?v=5'],sha={};for(const file of files){const r=await c.match(new URL(file,location.href));if(!r){sha[file]=null;continue;}const d=await crypto.subtle.digest('SHA-256',await r.arrayBuffer());sha[file]=Arr..."
+        },
+        {
+          "line": 34,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " for(const [url,file]of [['animal-pen-validation.js?v=3','animal-pen-validation.js'],['animal-pen-placement-worker.js?v=3','animal-pen-placement-worker.js'],['farm-land.js?v=5','farm-land.js']])assert.equal(cache.sha[url],digest(file),url+' exact cached bytes');"
+        },
+        {
+          "line": 34,
+          "from": "animal-pen-placement-worker.js?v=3",
+          "to": "animal-pen-placement-worker.js?v=4",
+          "context": " for(const [url,file]of [['animal-pen-validation.js?v=3','animal-pen-validation.js'],['animal-pen-placement-worker.js?v=3','animal-pen-placement-worker.js'],['farm-land.js?v=5','farm-land.js']])assert.equal(cache.sha[url],digest(file),url+' exact cached bytes');"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-cow-roaming.browser.cjs",
+      "preimageSha256": "51bc8879883ebc7cae9b42b2b7c0be674128fb513b9c37efda8a3fa4cea757a3",
+      "changes": [
+        {
+          "line": 36,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " const reload=await p.evaluate(async()=>{const d=__dbg,{validateAnimalPens}=await import('./animal-pen-validation.js?v=3');return{count:d.animals.length,layout:d.G.S.layout.animalPens,world:d.penRuntime.world,validation:validateAnimalPens(d.penRuntime.layout,d.penRuntime.world)};});record(stage,reload);assert.equal(reload.count,46);assert.deepEqual(reload.layout,applied.layout);assert(reload.valid..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-full-ground-grid.browser.cjs",
+      "preimageSha256": "64e3ce5bcc94ebab388057d7ed8bfe21fb7bfc213d1333d0d4b1ff911d98253a",
+      "changes": [
+        {
+          "line": 25,
+          "from": "animal-pen-placement.js?v=3",
+          "to": "animal-pen-placement.js?v=4",
+          "context": "    const checks=await page.evaluate(async()=>{const cells=__dbg.scene.getObjectByName('Ground placement guide').userData.cells,{evaluatePenPlacement}=await import('./animal-pen-placement.js?v=3'),state=__dbg.penEditor.snapshot(),world=__dbg.penRuntime.world;return['valid','blocked'].map(status=>{const cell=cells.find(c=>c.status===status);return{cell,actual:evaluatePenPlacement(state,cell.at,worl..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-full-ownership.browser.cjs",
+      "preimageSha256": "f8df3c1057d3bee56e8efa52aaf88eeacdad72ab60312d732a44fb110a0ffe86",
+      "changes": [
+        {
+          "line": 29,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " const baseline=await p.evaluate(async()=>{const d=__dbg,{validateAnimalPens}=await import('./animal-pen-validation.js?v=3');return validateAnimalPens(d.penRuntime.layout,d.penRuntime.world);});record(stage,baseline);assert.equal(baseline.ok,true,JSON.stringify(baseline.issues));"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-occupied-shelter.browser.cjs",
+      "preimageSha256": "24be87de9b71f2ddd2764c99b41dd44d9516e779c07c53f9bb186bfa4530216b",
+      "changes": [
+        {
+          "line": 10,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "const geometry=()=>p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js'),{resolveAnimalPens,defaultSiteRecord}=await import('./animal-pen-layout.js?v=1'),{createCowYard}=await import('./cow-yard.js?v=4'),{cowPenSupportHeight}=await import('./animal-pen-cow-support.js?v=1'),y=d.cowYard,o=createCowYard({north:25,layout:resolveAnimalPens().sites.cow}),box=g=>{const b=new T.Bo..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-outer-map.browser.cjs",
+      "preimageSha256": "d22a41ecf3b2f451809958ccd0c08d670a21e91b1b79d9efd5bb4361bb0d5e5e",
+      "changes": [
+        {
+          "line": 15,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " report.stage='actual-world outer and blocked candidates';const candidates=await p.evaluate(async()=>{const L=await import('./animal-pen-layout.js?v=1'),V=await import('./animal-pen-validation.js?v=3'),world=__dbg.penRuntime.world,checks=[];for(const x of [-40,-37,-34]){const site=L.defaultSiteRecord('horse');for(const v of site.boundary)if(v.id==='v0'||v.id==='v3')v.x=x;const layout=L.resolveAnim..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-placement.browser.cjs",
+      "preimageSha256": "b75115c7c89c371ee983668b75896583d58aa6ef7bb609a9e7051f5559da3044",
+      "changes": [
+        {
+          "line": 15,
+          "from": "animal-pen-placement.js?v=3",
+          "to": "animal-pen-placement.js?v=4",
+          "context": " entry.authoritative=await p.evaluate(async expected=>{const {evaluatePenPlacement}=await import('./animal-pen-placement.js?v=3'),state=__dbg.penEditor.snapshot(),world=__dbg.penRuntime.world;return expected.map(c=>({at:c.at,...evaluatePenPlacement(state,c.at,world)}));},entry.catCells);assert.deepEqual(entry.authoritative,entry.catCells,'worker must agree with production constraints for every ren..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-resource-cycles.browser.cjs",
+      "preimageSha256": "6767a1edfa6601a2b1bc700663bfc0a68e0375adb991379bc1517effde6747a0",
+      "changes": [
+        {
+          "line": 22,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": " report.stage='qualified supported warmup';const candidate=await p.evaluate(async()=>{const L=await import('./animal-pen-layout.js?v=1'),V=await import('./animal-pen-validation.js?v=3'),world=__dbg.penRuntime.world,check=[];for(const x of [-37,-36]){const site=L.defaultSiteRecord('horse');for(const v of site.boundary)if(v.id==='v0'||v.id==='v3')v.x=x;const r=V.validateAnimalPens(L.resolveAnimalPen..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-restore.browser.cjs",
+      "preimageSha256": "36c5330b469c6939d534246d3d157f0dc95bbaaf3e3b65d3bd6c22e8ee7bd094",
+      "changes": [
+        {
+          "line": 21,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "   const V=await import('./animal-pen-validation.js?v=3'),rt=d.penRuntime,started=performance.now(),check=V.validateAnimalPens(rt.layout,rt.world);"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-robot-install.browser.cjs",
+      "preimageSha256": "a94a95623713ea6d3d6569853ff9d9ca16580ed445f844c0165c5f1d6da9c842",
+      "changes": [
+        {
+          "line": 10,
+          "from": "cow-yard.js?v=4",
+          "to": "cow-yard.js?v=5",
+          "context": "async function geometry(){return p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js'),{resolveAnimalPens,defaultSiteRecord}=await import('./animal-pen-layout.js?v=1'),{createCowYard}=await import('./cow-yard.js?v=4'),y=d.cowYard,bounds=o=>{const b=new T.Box3().setFromObject(o);return{min:b.min.toArray(),max:b.max.toArray()};},oracle=createCowYard({north:25,layout:resolveA..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/animal-pen-shelter-feasibility.cjs",
+      "preimageSha256": "b1b98e59667dbbdf72d002f2e7d01b17cc72d5900e5dcb3d6fa4fdc24acff02f",
+      "changes": [
+        {
+          "line": 4,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "const probe=` stage='read-only candidate feasibility';const diagnostic=await p.evaluate(async()=>{const {resolveAnimalPens,defaultSiteRecord}=await import('./animal-pen-layout.js?v=1'),{validateAnimalPens}=await import('./animal-pen-validation.js?v=3'),world=__dbg.penRuntime.world,results=[];for(const position of [[-3,-38],[-4,-38],[-3,-39],[-4,-39],[-3,-37],[-4,-37],[-5,-39],[-2,-39]]){const r=de..."
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/horse-square.browser.cjs",
+      "preimageSha256": "cf463ffa6583f9b23a8c0b7569f3be418f36205be7bf1a834abf5b617fc84cfd",
+      "changes": [
+        {
+          "line": 20,
+          "from": "animal-pen-validation.js?v=3",
+          "to": "animal-pen-validation.js?v=4",
+          "context": "  const valid=await p.evaluate(async()=>{const V=await import('./animal-pen-validation.js?v=3'),L=await import('./animal-pen-layout.js?v=1'),r=V.validateAnimalPens(L.resolveAnimalPens(),__dbg.penRuntime.world);return {ok:r.ok,issues:r.issues.map(i=>i.code+'/'+i.kind+'/'+i.target)};});"
+        }
+      ]
+    }
+  ],
+  "restrictions": "Version references only. Retain source assertions and historical evidence. Review historical-baseline contexts before editing; no frozen evidence changes. Actual installed predecessor browser transition required after approval. Existing v72 cached clients must receive changed module URLs as well as a new worker cache."
+}

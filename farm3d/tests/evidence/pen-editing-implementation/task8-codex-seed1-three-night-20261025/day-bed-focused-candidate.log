@@ -1,0 +1,131 @@
+OFFLINE BOOT CLOCK PROOF [{"paused":false,"distance":6.75000000000001,"job":null,"tank":1,"xp":3},{"paused":true,"distance":0,"job":"exiting","tank":1,"xp":3}]
+Γ£ö actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking (3081.697ms)
+Γ£ö restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry (6.6692ms)
+Γ£ö a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit (164.4524ms)
+Γ£ö cows request straw beds only at effective night and stand at dawn even in rain (9.2128ms)
+Γ£ö eating cannot satisfy the separate drinking visit before the cow goes to bed (17.5228ms)
+Γ£ö slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach (5.2438ms)
+Γ£ö display removal releases the departing cow reservation before disposing its rig (5.0824ms)
+Γ£ö all five hungry cows complete distinct feed and water visits before settling into nighttime beds (200.7125ms)
+Γ£ö a newly paid production cycle gets a real feed visit even when transient hunger is low (5.9494ms)
+Γ£ö ordinary cow grass targets reject the existing pillar clearance, not only its small visual footprint (6.749ms)
+Γ£û an awake cow leaving its occupied bed takes the existing station exit before crossing the yard (6.3764ms)
+Γ£û seed-1 daytime cow wander cannot choose its old sleeping core as an idle destination (6.5132ms)
+Γ£û five manual requests pass the actual moving herd through the single robot in FIFO order (96.8071ms)
+Γ£ö switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations (5.5253ms)
+Γ£û legacy rig stroll releases a held bed instead of measuring care approach movement (20.5617ms)
+Γ£ö expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles (789.5714ms)
+Γ£û expanded northern herd clears all five robot requests in FIFO order (8.3551ms)
+Γ£ö releasing the last bed leaves an awake cow able to accept the next nighttime task (13.8114ms)
+Γ£ö visible frames longer than one second retain cow walking pace without hidden-tab catchup (9.8829ms)
+Γ£ö the longest expanded robot approach meets the original60s deadline on2.4s visible frames (17.7026ms)
+Γ£ö offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames (12.7505ms)
+Γ£û a seeded herd clears care docks while waiting through three nights and full forty-second wakes (322.9182ms)
+Γ£ö bedtime cow near another cow bed avoids a false shared approach while a real bed departure keeps its exit (5.7131ms)
+Γ£ö a waiting cow physically clears a released feed dock without a new reservation or save mutation (9.1064ms)
+Γ£ö a real robot job advancing during a pen draft retains credit and walks its relocated exit (146.2873ms)
+Γ£û ordinary daytime cow choices cannot start a generic rest (8.0757ms)
+Γ£ö a chicken leaving overnight bedding keeps its individual forty-second awake window before ordinary naps (40.4495ms)
+Γ£ö seed-1 horse and cow ordinary targets cannot stop inside their old bed cores (5.7729ms)
+Γä╣ tests 28
+Γä╣ suites 0
+Γä╣ pass 21
+Γä╣ fail 7
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 5172.4009
+
+Γ£û failing tests:
+
+test at farm3d\tests\cow-scene.test.mjs:42:1
+Γ£û an awake cow leaving its occupied bed takes the existing station exit before crossing the yard (6.3764ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:45:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d\tests\cow-scene.test.mjs:52:1
+Γ£û seed-1 daytime cow wander cannot choose its old sleeping core as an idle destination (6.5132ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:56:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d\tests\cow-scene.test.mjs:65:1
+Γ£û five manual requests pass the actual moving herd through the single robot in FIFO order (96.8071ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at waitCowStation (evalmachine.<anonymous>:23:7)
+      at chooseCowTask (evalmachine.<anonymous>:33:94)
+      at Beast.think (evalmachine.<anonymous>:38:27)
+      at Beast.update (evalmachine.<anonymous>:117:122)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:65:359)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+
+test at farm3d\tests\cow-scene.test.mjs:69:1
+Γ£û legacy rig stroll releases a held bed instead of measuring care approach movement (20.5617ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at legacy (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:74:110)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:79:25)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at farm3d\tests\cow-scene.test.mjs:104:1
+Γ£û expanded northern herd clears all five robot requests in FIFO order (8.3551ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at waitCowStation (evalmachine.<anonymous>:23:7)
+      at chooseCowTask (evalmachine.<anonymous>:32:132)
+      at Beast.think (evalmachine.<anonymous>:38:27)
+      at Beast.update (evalmachine.<anonymous>:117:122)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:107:127)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+
+test at farm3d\tests\cow-scene.test.mjs:152:1
+Γ£û a seeded herd clears care docks while waiting through three nights and full forty-second wakes (322.9182ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at waitCowStation (evalmachine.<anonymous>:23:7)
+      at chooseCowTask (evalmachine.<anonymous>:33:94)
+      at Beast.think (evalmachine.<anonymous>:38:27)
+      at Beast.update (evalmachine.<anonymous>:117:122)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:158:96)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+
+test at farm3d\tests\cow-scene.test.mjs:205:1
+Γ£û ordinary daytime cow choices cannot start a generic rest (8.0757ms)
+  ReferenceError: ordinaryDayTarget is not defined
+      at Beast.go (evalmachine.<anonymous>:24:31)
+      at Beast.think (evalmachine.<anonymous>:60:123)
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:209:94)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

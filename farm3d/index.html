@@ -661,7 +661,7 @@ html[data-motion="reduce"] button:active{transform:none!important}
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=19"></script>
+<script type="module" src="auth.js?v=20"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -669,12 +669,12 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=33"; window.__gameVer = 33; // bump this version whenever game.js changes
+import * as G from "./game.js?v=34"; window.__gameVer = 34; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
-import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=4';
+import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=5';
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
 import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
-import {createRemainingCareController} from './remaining-care-controller.js?v=3';
+import {createRemainingCareController} from './remaining-care-controller.js?v=4';
 import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
 import {createDairyPath} from './farm-path.js?v=2';
 import {NORTH_EXTENSION,WEST_CLEARING,MAP_EDGE,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=5';
@@ -686,17 +686,17 @@ let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayou
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
 import {cowPenSupportHeight,cowPenStep,applyCowPenSupport} from './animal-pen-cow-support.js?v=1';
-import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=1';
+import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=2';
 import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
-import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=1';
-import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=3';
+import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=2';
+import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=4';
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
-import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=3';
+import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=4';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
 import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
 import {createEditableGroundGrid} from './edit-ground-grid.js?v=2';
 import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
-import {createChickenStationController} from './chicken-stations.js?v=6';
+import {createChickenStationController} from './chicken-stations.js?v=7';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 import {createCowDockGate} from './cow-stations.js?v=1';
 import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
@@ -1640,7 +1640,17 @@ const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5
 // are authored seeds and remain stable if their display order later changes.
 const HILL_TREE_BLOCKS=hills.map(t=>[t.position.x,t.position.z,.45,.45]);BLOCKS.push(...HILL_TREE_BLOCKS);
 const FAR_TREE_BLOCKS=far.map(t=>[t.position.x,t.position.z,.48,.48]);BLOCKS.push(...FAR_TREE_BLOCKS);
-const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05])];
+const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05]),...cowYard.gateObstacleBounds()];
+function syncCowGateBlocks(){
+  // These final two entries belong to the same scene revision as the yard.
+  // Keep their identities when a leaf rotates; replace them with the yard.
+  cowYard.gateObstacleBounds().forEach((bounds,i)=>{
+    const j=cowBlocks.length-2+i,b=cowBlocks[j],o=OBST.find(o=>o.c===1&&o.s===0&&o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]);
+    cowBlockBounds[j].splice(0,4,...bounds);const next=cowYardActive?bounds:[b[0],b[1],bounds[2],bounds[3]];
+    if(!o)throw Error('Missing cow gate obstacle binding');
+    Object.assign(o,{x:next[0],z:next[1],hw:next[2],hd:next[3]});b.splice(0,4,...next);
+  });
+}
 const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
 const remainingBlocks=[];for(const [kind,yard]of Object.entries(remainingYards)){remainingSites[kind].blocks=yard.obstacles.map((b,i)=>{const p=[1200+remainingBlocks.length,1200,b[2],b[3]];remainingBlocks.push(p);BLOCKS.push(p);return p;});}
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
@@ -1697,10 +1707,10 @@ function petSegmentClear(a,from,to){
   return careSegmentClear(start,end,{pad,rectangles:BLOCKS,segments:fenceSegs,circles,polygons,escape:true})&&
     carePointRuleClear(start,end,{pad:pad+.15,polygons,clearPoint:(x,z)=>fitsPen(null,x,z,pad+.15)});
 }
-function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null, clearance = .5) {
   if(pen===PENS.courtyard||pen?.care){
     const x0=Math.min(...pen.poly.map(p=>p[0])),z0=Math.min(...pen.poly.map(p=>p[1])),x1=Math.max(...pen.poly.map(p=>p[0])),z1=Math.max(...pen.poly.map(p=>p[1]));
-    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5)&&fitsPen(pen,x,z,.7))return new THREE.Vector2(x,z);}
+    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+clearance&&Math.abs(z-bz)<hd+clearance)&&fitsPen(pen,x,z,Math.max(.7,clearance)))return new THREE.Vector2(x,z);}
     return new THREE.Vector2(pen.bed[0],pen.bed[1]);
   }
   for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if ((pen===PENS.courtyard?!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5):!blocked(x,z)) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
@@ -1720,6 +1730,13 @@ function emoteMat(e) {
   return emoteMats[e];
 }
 const rnd = rng(4242);
+function ordinaryDayTarget(to,stations,margin){
+  // Beast.arrive can stop up to .35 m before its target. Keep that full
+  // arrival region outside a real occupied-bed core, then use the authored
+  // approach instead; care trips and night beds still keep their own docks.
+  const bed=stations.find(s=>s.kind==='bed'&&Math.hypot(to.x-s.dock[0],to.y-s.dock[2])<=margin+.35);
+  return bed?new THREE.Vector2(bed.approach[0],bed.approach[2]):to;
+}
 class Beast {
   constructor(kind, name, pers, x, z, ref) {
     const S = SPECIES[kind], live = Live3D && Live3D.createLiveAnimal(kind, S.h, x, z);
@@ -1739,13 +1756,27 @@ class Beast {
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
   // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
   fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
-  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)),pet=this.kind==='dog'||this.kind==='cat'; this.path = route(this.pos, to, this.S.r + .7, this.pen, [], pet?(a,b)=>petSegmentClear(this,a,b):null); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = (pet||this.pen?.custom)&&!this.target?"idle":"moving"; this.stuckT = 0; }
+  go(x, z, running, label, doing) {
+    let to=this.fit(new THREE.Vector2(x,z));const pet=this.kind==='dog'||this.kind==='cat';
+    const dayBeds=this.kind==='cow'?(cowYardActive?{stations:cowYard.stations,margin:.65}:null):
+      ['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active?remainingLayouts[this.kind]:null;
+    if(dayBeds&&!PRESET.night)to=ordinaryDayTarget(to,dayBeds.stations,dayBeds.margin);
+    // A bed dock is an intentional occupied support point. The visibility
+    // planner skips an obstacle containing its start, so ordinary cow travel
+    // must use the same physical bed exit as the accepted care adapter first.
+    const fromBed=this.kind==='cow'&&cowYardActive?cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.95):null;
+    const exit=fromBed?new THREE.Vector2(fromBed.approach[0],fromBed.approach[2]):null;
+    this.path=route(exit||this.pos,to,this.S.r+.7,this.pen,[],pet?(a,b)=>petSegmentClear(this,a,b):null);
+    if(exit)this.path.unshift(exit);
+    this.target=this.path.shift();this.running=running;this.label=label;this.doing=doing||null;
+    this.act=(pet||this.pen?.custom)&&!this.target?'idle':'moving';this.stuckT=0;
+  }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
     if(this.kind==='cow'&&chooseCowTask(this))return;
     const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
-    const pen = this.pen, lerp = THREE.MathUtils.lerp;
+    const pen = this.pen, lerp = THREE.MathUtils.lerp, roamClearance=this.kind==='cow'?this.S.r+.6:.5;
     // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
     if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));
       return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
@@ -1759,12 +1790,14 @@ class Beast {
     ];
     let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
     for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    if (this.kind === 'cow' && pick === 'rest') pick = 'idle';
+    if (this.kind === 'chicken' && pick === 'rest' && clockT < (this.postNightAwakeUntil??0)) pick = 'idle';
     if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active&&(pick==='rest'||pick==='drink')){
       const kind=pick==='rest'?'bed':'drink',after=kind==='bed'?(this.remainingNapAt??0):(this.remainingDrinkAt??0);if(clockT<after){this.stay('Taking in the view',2);return;}if(remainingCare.request(this,kind)){if(kind==='bed')this.remainingTask.nap=true;return;}this.stay('Making room at the care stations',.5);return;
     }
     switch (pick) {
-      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, "Going for a stroll"); }
-      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen, roamClearance); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen, roamClearance); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
       case "drink": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;
         return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
       case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
@@ -1775,7 +1808,7 @@ class Beast {
       }
       case "play":
         if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? "Running along the fence after " + hen.name + "!" : "Chasing " + hen.name + "!", "chase"); } }
-        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen, roamClearance); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
       case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
     }
     this.stay("Taking in the view", 2 + rnd() * 4);
@@ -1799,7 +1832,12 @@ class Beast {
   }
   update(dt, t) {
     if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,feedStamp:this.ref.type==='pen'&&G.S?.pens[this.kind]?.list[this.ref.i]}))return;
-    if(this.kind==='chicken'&&chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies}))return;
+    if(this.kind==='chicken'){
+      const departingNightBed=this.chickenTask?.kind==='bed'&&!this.chickenTask.nap&&this.chickenTask.stage==='exit';
+      const cared=chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies});
+      if(departingNightBed&&!this.chickenTask)this.postNightAwakeUntil=t+40;
+      if(cared)return;
+    }
     if(this.kind==='cow'&&cowYardActive&&!this.cowTask&&cowStatus?.job?.cowId===cowIdOf(this))chooseCowTask(this);
     if(this.kind==='cow'&&cowYardActive&&this.cowTask){updateCowTask(this,dt,t);return;}
     const ox = this.g.position.x, oz = this.g.position.z;
@@ -1848,8 +1886,11 @@ class Beast {
         this.g.position.x = held.x; this.g.position.z = held.y;
         this.phase += this.vel.length() * dt * this.S.step;
         // give up on a target it can't reach
-        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;
-          if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
+        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length);
+          const bedCore=this.kind==='cow'&&!PRESET.night&&cowYardActive&&!this.cowTask&&cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.65);
+          this.target = null; this.path = null;
+          if (bedCore) this.go(bedCore.approach[0],bedCore.approach[2],false,"Leaving the straw beds");
+          else if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
       }
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
     if (this.rig3d) {
@@ -1928,12 +1969,12 @@ let locoNext = 4, locoI = 0;
 function locoParade(t) {
   if (t < locoNext || !animals.length) return; locoNext = t + 4;
   const a = animals[locoI++ % animals.length]; if (!a || a.gone || a.act === "sleeping" || a.act === "fleeing") return;
-  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen);
+  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen, a.kind==='cow'?a.S.r+.6:.5);
   a.go(p.x, p.y, run, run ? "Showing off a run" : "Out for a walk");
 }
 let animals = [];
 let chickenSupplies={feedMs:0,waterMs:0};
-const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!CHICKEN_YARD_LAYOUT.obstacles.includes(b)&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
+const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!(CHICKEN_YARD_LAYOUT.obstacles.includes(b)||penSceneBindings?.chicken?.blocks.includes(b))&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
 const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,groundY,forbiddenPolygons:a=>a.pen?[]:PEN_LIST.map(p=>p.poly),clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
@@ -2001,7 +2042,7 @@ function syncCowYard(){
   if(active!==cowYardActive){setCowGrass(active);cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
   if(penSceneBindings?.cow&&COW_YARD_LAYOUT.custom){const b=penSceneBindings.cow;b.fences.forEach((f,i)=>{const coords=active?b.segments[i]:[1500+i,1500,1501+i,1500];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax);Object.assign(b.fenceObstacles[i],{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.05,c:Math.cos(a),s:Math.sin(a)});});}
   cowYardChecked=true;cowYard.group.visible=active;
-  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);
+  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);syncCowGateBlocks();
 }
 // Called only by a prepared scene revision, after the complete save is durable.
 // Existing arrays/maps and pen objects stay stable for every live consumer.
@@ -2030,6 +2071,7 @@ function installAnimalPenScene({layout,yards,bindings,active}){
  const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
  // The accepted chicken yard keeps its legacy collision; a customised yard must not leave it behind.
  moveBlock(legacyHenPanBlock,...(layout.sites.chicken.custom?[1450,1450]:[-9.6,-2.4]));
+ syncCowGateBlocks();
 }
 // Saved custom pens install before herds spawn; page reloads cover account
 // switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay
@@ -2101,13 +2143,32 @@ function snapshotPenWorld(){
 const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
 let animalPenEditing=null;
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
+function cowGateSegmentClear(from,to){
+  const leaves=cowYard.gateObstacleBounds().map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0}));
+  return hitsBlock(from,to,.42,null,leaves)<0;
+}
+function cowRobotExitWaypoints(){
+  const r=COW_YARD_LAYOUT.robot,d=Math.hypot(r.exit[0]-r.turn[0],r.exit[2]-r.turn[2]);
+  // Turn before the leading hoof reaches the final bed divider. Keep the
+  // authored exit and clear points and let the ordinary rig execute the turn.
+  const turn=[r.turn[0]+(r.exit[0]-r.turn[0])/d*.35,r.turn[1],r.turn[2]+(r.exit[2]-r.turn[2])/d*.35];
+  return[r.exit,turn,r.clear];
+}
 const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
 function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
 function beginCowTask(a,kind){
   const id=cowIdOf(a);if(!id)return false;
   const preferred=kind==='bed'?cowYard.stations.filter(s=>s.kind==='bed')[a.ref.i]?.id:null;
   const token=cowStations.request(id,kind,preferred);if(!token)return false;
-  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95),waypoints=[...(fromBed&&fromBed.id!==station.id?[fromBed.approach]:[]),station.approach,station.dock];a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
+  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95);
+  const waypoints=kind!=='bed'&&fromBed&&fromBed.id!==station.id?[fromBed.approach]:[];
+  if(kind==='robot'){
+    // Start turning before the entrance post; the native rig still owns yaw,
+    // hoof release and speed. The extra point must pass the same route checks.
+    const p=station.approach,q=station.dock,d=Math.hypot(p[0]-q[0],p[2]-q[2]);
+    waypoints.push([p[0]+(p[0]-q[0])/d*.5,p[1],p[2]+(p[2]-q[2])/d*.5]);
+  }
+  waypoints.push(station.approach,station.dock);a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
 }
 function waitCowStation(a,label){
   // A released dock is still physically occupied until its former visitor
@@ -2133,7 +2194,7 @@ function chooseCowTask(a){
   const paid=cowStatus?.cows[a.ref.i]?.feedCharged&&!cowStatus?.cows[a.ref.i]?.ready;
   if((paid&&a.cowMealCycle!==cowStatus.cows[a.ref.i].cycle)||(cowStatus?.feed>0&&a.need.hunger>.35))return beginCowTask(a,'feed')||waitCowStation(a,'Waiting for a feed space');
   if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink')||waitCowStation(a,'Waiting for the water trough');
-  if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
+  if(PRESET.night)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
   return false;
 }
 function updateCowTask(a,dt,t){
@@ -2145,6 +2206,29 @@ function updateCowTask(a,dt,t){
   for(let used=0;used<elapsed-1e-8&&a.cowTask;){const step=Math.min(1/30,elapsed-used);used+=step;updateCowTaskStep(a,step,t-elapsed+used);}
 }
 function cowSupportY(x,z){return cowPenSupportHeight(installedAnimalPens.sites.cow,x,z,groundY);}
+function cowSharedCornerDetour(a,b,task,t){
+  const other=b.cowTask,corner=task.path?.[0],otherCorner=other?.path?.[0],next=task.path?.[1];
+  if(task.kind!=='bed'||task.stage!=='approach'||other?.kind!=='bed'||other.stage!=='approach'||!corner||!otherCorner||a.ref.i>=b.ref.i)return false;
+  const intermediate=!!next,shared=intermediate&&corner.distanceTo(otherCorner)<=.08;
+  const finalDock=job=>job.waypoints.length===1&&Math.hypot(job.waypoints[0][0]-job.station.dock[0],job.waypoints[0][2]-job.station.dock[2])<.01;
+  const opposingFinal=!next&&!other.path?.[1]&&finalDock(task)&&finalDock(other)&&corner.distanceTo(otherCorner)>.08;
+  if(!intermediate&&!opposingFinal)return false;
+  const towardA=corner.clone().sub(a.pos),towardB=otherCorner.clone().sub(b.pos);
+  if(towardA.dot(towardB)>=0)return false; // A following cow keeps the ordinary corridor.
+  // New intermediate rejoins never exempt a containing static obstacle.
+  if(intermediate&&!shared&&OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,next,.42)))return false;
+  const tried=task.detourTried;if(tried?.id===b.ref.i&&(t-tried.t<2||Math.hypot(tried.x-b.g.position.x,tried.z-b.g.position.z)<1))return false;
+  task.detourTried={id:b.ref.i,x:b.g.position.x,z:b.g.position.z,t};
+  // A circle keeps the true 0.85 m body clearance. A box would classify this
+  // captured 0.853 m starting gap as inside and skip the other cow entirely.
+  const avoid={x:b.g.position.x,z:b.g.position.z,hw:.43,hd:.43,radius:.43,c:1,s:0};
+  const supported=(u,v)=>{const n=Math.max(1,Math.ceil(u.distanceTo(v)/.4));for(let k=0;k<=n;k++){const x=u.x+(v.x-u.x)*k/n,z=u.y+(v.y-u.y)*k/n;if(!fitsPen(PENS.courtyard,x,z,.42)||!Number.isFinite(cowSupportY(x,z)))return false;}return true;};
+  const detour=route(a.pos,intermediate?next:corner,.42,PENS.courtyard,[avoid],supported);
+  if(detour.length<(shared||!intermediate?2:1)||(shared&&detour[0].distanceTo(corner)<.3))return false;
+  const toward=detour[0].clone().sub(a.pos),step=Math.min(toward.length(),a.S.walk/30),first=a.pos.clone().addScaledVector(toward,step/(toward.length()||1));
+  if(first.distanceTo(b.pos)<.85-1e-9)return false;
+  task.path=intermediate?[...detour,...task.path.slice(2)]:detour;task.detourFor=b.ref.i;return true;
+}
 function updateCowTaskStep(a,dt,t){
   const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
   // A relocated occupied visit must regain real full-weight mouth contact.
@@ -2155,33 +2239,49 @@ function updateCowTaskStep(a,dt,t){
   const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
   const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
   const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
-  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
+  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night);
   if(waking||(isRobot&&!currentJob)){task.stage='stand';delete task.layoutReturn;}
   const ox=a.g.position.x,oz=a.g.position.z;let robotDockTarget=null;
   if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){if(task.layoutReturn)task.stage='approach';else{releaseCowTask(a);a.act='idle';a.until=0;}}}
   else if(task.stage==='approach'||task.stage==='exit'){
     // Docked jobs restored from disk resume their physical approach without a
     // second credit. Approaching/queued jobs still require a fresh dock proof.
-    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];}
-    if(!task.path?.length&&task.waypoints.length){const p=task.waypoints.shift();task.path=route(a.pos,new THREE.Vector2(p[0],p[2]),.42,PENS.courtyard);}
-    const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
-      const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
-      if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}
+    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();}
+    if(!task.path?.length&&task.waypoints.length){
+      const p=task.waypoints[0],target=new THREE.Vector2(p[0],p[2]);
+      // A failed route must retain the real visit and target, never imply arrival.
+      task.path=route(a.pos,target,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(task.path.length)task.waypoints.shift();
+    }
+    // A lateral yield changes the start of the remaining leg. Revalidate it
+    // before resuming bed travel, so an old waypoint cannot cut through a post.
+    let blockedBedLeg=false;
+    if(task.kind==='bed'&&task.stage==='approach'&&task.avoidSide&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
+      const endpoint=task.path[0],contained=OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,endpoint,.42));
+      const detour=contained?[]:route(a.pos,endpoint,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(detour.length&&detour.every((p,i)=>hitsBlock(i?detour[i-1]:a.pos,p,.42,null)<0))task.path=[...detour,...task.path.slice(1)];
+      else blockedBedLeg=true;
+    }
+    const p=blockedBedLeg?null:task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+      const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
+      if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}
       else{
-        // Keep the same body clearance while yielding around a moving or
-        // waiting neighbour. Never jump to a waypoint to break a blockage.
-        const side=task.avoidSide||1;
-        for(const sign of [side,-side]){
-          const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
-          const clear=fitsPen(PENS.courtyard,x,z,.42)&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
-          if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+        if(blockingCows.length&&!blockingCows.some(b=>cowSharedCornerDetour(a,b,task,t))){
+          // Keep the same body clearance while yielding around a moving or
+          // waiting neighbour. Never jump to a waypoint to break a blockage.
+          const side=task.avoidSide||1;
+          for(const sign of [side,-side]){
+            const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
+            const clear=fitsPen(PENS.courtyard,x,z,.42)&&cowGateSegmentClear(a.pos,new THREE.Vector2(x,z))&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
+            if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+          }
         }
       }
       // Finish the final robot approach physically: the ordinary waypoint
       // shortcut can leave the teat centers outside the cluster openings.
       if(isRobot&&task.stage==='approach'&&!task.waypoints.length&&task.path.length===1)robotDockTarget=p;
       else if(d<.035)task.path.shift();
-    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+    }else if(!blockedBedLeg&&!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
     const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
@@ -2189,7 +2289,7 @@ function updateCowTaskStep(a,dt,t){
     if(task.stage==='hold'){
       if(isRobot&&currentJob){
         if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
-        if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];task.path=null;}
+        if(job.stage==='exiting'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();task.path=null;}
         a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
       }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(returnedContact)delete task.layoutReturn;if(task.kind!=='bed'&&t>task.until&&!task.layoutReturn){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
     }

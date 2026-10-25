@@ -1,0 +1,24 @@
+# Physical-phone benchmark plan only
+
+No build, publication or phone measurement occurred. Existing owner-private Sitev4 remains unchanged. The current moving reference throws during turning and has desktop hitches; resolve/classify that exact guard failure before treating a phone comparison as a useful full-sequence acceptance test. A future run must display any remaining error as RED and must not skip the turn.
+
+## Minimum artifact
+
+- Reuse `farm3d/tools/build-safe-test-preview.cjs` to generate a fresh disposable build from an explicit immutable sourcehead. It replaces auth with the no-cloud stub, disables real-save/2D/backup imports and service-worker registration, removes the production error webhook and installs self-only connection CSP. Audit every shipped script/asset for production endpoints, not just the three files scanned by the current builder. Do not ship the Node/Playwright runner, profiles, unrelated tests or credentials.
+- Add only a benchmark entry, timing hooks in its generated index, and these transitive test helpers: `cow-reference-moving-fixture`, `cow-hierarchical-sweep`, `cow-motion-domains`, `cow-leg-enclosure`, `cow-skin-interval`, `cow-rigid-sweep`, `cow-pose-preview`. Exclude the rejected envelope candidate. Production modules/rig remain byte-identical except the existing generated isolation substitutions. Queries remain diagnostic observers, not a runtime collision fix.
+- Add a versioned benchmark subdirectory to the existing owner-private Site `appgprj_6adb7f0aa0388191aa0ddab595515d06`, preserving its existing root preview files. A subdirectory is NOT a new storage origin. Force testfarm and install a benchmark-only memory-backed Storage layer before all game code, so even preferences/direct editor transactions cannot write the existing preview save. Ordinary `load/save` bypass storage under SANDBOX (`game.js:320/354`), but other direct storage paths exist; testfarm alone is insufficient as a blanket guarantee. Disable unrelated interactive game controls while benchmarking. Verify the shim and sentinel-save preservation locally before publication; no real save is copied.
+- Visible Start/Stop, sourcehead and mode, current phase/frame, final CPU/dispatch median/p95/worst,>33.3/>50ms counts, query rejection/error totals, reservation/motion counters. Optional GPU timer only when available and nondisjoint. Report viewport,DPR,quality,device/browser/OS and visibility interruptions. Keep metrics in memory, provide explicit Copy/download summary; no automatic telemetry/upload.
+
+## Owner run
+
+1. Owner opens the approved private benchmark URL on the actual phone in landscape, records device/browser and power-saving state, and taps Start. Keep tab visible; stop/mark interrupted on hide or orientation change. No unattended inference from emulated desktop viewports.
+2. One bounded baseline then unchanged-reference sequence:30warmup+180measured30Hz simulation frames each. Capture native requestAnimationFrame intervals separately from CPU time; browser display pacing is not replaced by desktop headless timing. Errors must remain visible and terminate the affected run. The owner sends the copied summary or screenshot explicitly.
+3. Compare original16.7/22.2/33.3ms goals and>50ms hitches. A short trial is a screening result, not sustained thermal,complete controller/collision or release qualification. Do not call a crash/aborted sequence a pass.
+
+Phone allocation rate cannot be promised by a normal webpage. `performance.memory` is nonstandard,Chromium-only and can misrepresent heap use; it is not allocation sampling ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory)). GPU timer availability is also limited and requires the matching WebGL extension and disjoint checks ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/EXT_disjoint_timer_query)). Report unavailable fields as unavailable. Genuine phone allocation profiling would require a separate explicitly selected device/remote-debug session; no new access or persistent credentials are assumed.
+
+## Exact publication approval to obtain later
+
+After an artifact with exact sourcehead/hash and local isolation checks exists, request: "May I upload and publish this diagnostic-only cow benchmark to your existing owner-private Sunny Acres test Site (appgprj_6adb7f0aa0388191aa0ddab595515d06), preserving the current game preview, with no production-cloud access, real-save import, live deployment or merge? It will use an in-memory test farm and show performance/errors; it does not fix gameplay collisions."
+
+This turn authorizes the plan only. Publication is pending a future explicit approval; no upload was attempted or denied in this turn. Use the supported Sites helper and owner-only audience, retain exact source provenance, verify deployed version and isolation, then have the owner run it. No new Site/account/tunnel/security settings/billing are required or authorized.

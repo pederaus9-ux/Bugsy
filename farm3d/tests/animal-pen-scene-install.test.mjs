@@ -28,21 +28,37 @@ const source=[
 ].join('\n');
 function fixture({pets=['dog','cat'],synced=true,animals=[{kind:'chicken'},{kind:'cow'},{kind:'horse'},{kind:'sheep'}],animalPens}={}){
  const unrelatedBlock=[-30,-30,1,1],unrelatedFence=[-40,-40,-39,-40],scene=new THREE.Scene(),events=[];
+ // Production creates trees before BLOCKS and installs clearing after meadow
+ // creation. Supply both dependencies; keep scenery inputs nonempty.
+ const hills=[new THREE.Object3D()],far=[new THREE.Object3D()],clearing=[];hills[0].position.set(-45,0,45);far[0].position.set(60,0,50);
+ const cowPlantClearing={setActive(value){clearing.push(value);}};
  // Care controllers are spies here; their own rebind contracts have dedicated suites.
  const care=kind=>({release(a){events.push('release '+a.kind);},prepareLayoutRebind({site,now,placements}){events.push('prepare '+site.kind);assert.equal(site.kind,kind);assert(Number.isFinite(now));assert.deepEqual(Object.keys(placements),[]);return{revision:site.revision,publish(){events.push('care '+site.kind+(c.live.installed.revision===site.revision?' after registries':' before registries'));},dispose(){events.push('discard '+site.kind);}};}});
  const remainingCare={release(a){events.push('release '+a.kind);},prepareLayoutRebind:a=>care(a.site.kind).prepareLayoutRebind(a)};
  const c=vm.createContext({penEditableLand,pointInPolygon,groundY:farmGroundY,visiting:false,cowIdOf:a=>'cow-paid-'+a.ref.i,dairyPath:{points:[[-1.4,8.1],[-18.4,8.1],[-18.4,-18.6],[-3.25,-18.6],[-3.25,-32.88]]},releaseCowTask:a=>events.push('release cow task'),chickenCare:care('chicken'),cowPenCare:care('cow'),remainingCare,clockT:0,decodeAnimalPens,prepareAnimalPenRevision,preparePenYards,structuredClone,THREE,scene,createChickenYard,DEFAULT_CHICKEN_YARD_LAYOUT:CHICKEN_YARD_LAYOUT,createCowYard,cowYardLayout,createRemainingCareYards,remainingCareLayouts,NORTH_EXTENSION,createStationScheduler,createAnimalPenSceneRegistry,resolveAnimalPens,
-  BLOCKS_EXTRA:[unrelatedBlock],fenceSegs:[unrelatedFence],CLEARS:new Map(),GRASS:{},animals,chickenSupplies:{feedMs:0,waterMs:0},chickenPreview:null,petBowl:{visible:true},
+  hills,far,fixtureCowPlantClearing:cowPlantClearing,BLOCKS_EXTRA:[unrelatedBlock],fenceSegs:[unrelatedFence],CLEARS:new Map(),GRASS:{},animals,chickenSupplies:{feedMs:0,waterMs:0},chickenPreview:null,petBowl:{visible:true},
   G:{DECOR:{bench:{size:1},fountain:{size:2}},S:{decor:{placed:[{id:'fountain',x:-3.6,z:2.4}]},pens:{chicken:{owned:true,list:[0,0]},cow:{owned:true,list:[0]},horse:{owned:true,list:[0]}},pets:pets.map(kind=>({kind})),layout:{b:{},t:{},...(animalPens===undefined?{}:{animalPens})}},CHICKEN_DEFAULT_STYLE:{}}});
  vm.runInContext(source,c);const live=c.live;
+ // The extracted early boot declares this binding null; production installs
+ // its plant-clearing object after meadow creation, before later Apply calls.
+ vm.runInContext('cowPlantClearing=fixtureCowPlantClearing;',c);
  // Runtime Apply follows syncCowYard, which always stores getCowCareStatus()'s object.
  if(synced)live.setCowStatus({cows:[],queue:[],job:null,tank:{normal:0,gold:0},feed:0,waterUntil:0,capacity:6,reason:'unavailable'});
  const before={blocks:[...live.BLOCKS],obstacles:[...live.OBST],fences:[...live.fenceSegs],yards:{chicken:live.chickenYard,cow:live.cowYard,...live.remainingYards},
   penBlocks:[...live.chickenLayout.obstacles,...live.cowBlocks,...live.remainingBlocks],penFences:[...live.chickenLayout.fenceSegments,...Object.values(live.remainingSites).flatMap(s=>s.fences)]};
- return {c,live,before,animals,events,unrelatedBlock,unrelatedFence,dispose(){for(const y of Object.values(before.yards))y.dispose();}};
+ return {c,live,before,animals,events,clearing,unrelatedBlock,unrelatedFence,dispose(){for(const y of Object.values(before.yards))y.dispose();}};
 }
 function customLayout(){const cow=defaultSiteRecord('cow'),horse=defaultSiteRecord('horse');cow.boundary[1].z+=1;return resolveAnimalPens({v:1,revision:1,sites:{cow,horse}});}
 const all={chicken:true,cow:true,horse:true,sheep:true,dog:true,cat:true};
+
+test('nonempty hill and woods collisions survive pen publication and clearing follows activation',()=>{
+ for(const activeCow of [true,false]){const f=fixture({animals:[]}),next=preparePenYards(customLayout());try{
+  const trees=[[-45,45,.45,.45],[60,50,.48,.48]].map(expected=>{const b=f.live.BLOCKS.find(b=>same(b,expected));assert(b,'missing actual tree block');assert(!f.live.penSceneRegistry.ownsBlock(b));return b;});
+  const p=f.live.penSceneRegistry.prepare(customLayout(),next.yards,{...all,cow:activeCow});p.publish();
+  for(const b of trees){assert(f.live.BLOCKS.includes(b));assert(f.live.OBST.some(o=>o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]));assert(f.live.snapshot().blocked.some(o=>o.type==='rectangle'&&o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]));}
+  assert.deepEqual(f.clearing,[activeCow]);p.retire();
+ }finally{next.dispose();f.dispose();}}
+});
 test('actual index installs a published custom revision into every live pen consumer',()=>{
  const f=fixture(),{live}=f,layout=customLayout(),next=preparePenYards(layout);
  try{

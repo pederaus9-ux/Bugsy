@@ -132,7 +132,7 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   // Departing sleepers have the lane first; cosmetic visits resume afterward.
   if(!night&&!wet&&[...tasks.values()].some(task=>task.kind==='bed'&&!task.nap))wakeUntil=t+2;
   if(!a.chickenTask&&t>wakeUntil){
-   if(night||wet||a.need.tired>.85){if(request(a,'bed'))a.chickenTask.nap=!night&&!wet;}
+   if((night||wet||a.need.tired>.85)&&t>=(a.postNightAwakeUntil??0)){if(request(a,'bed'))a.chickenTask.nap=!night&&!wet;}
    else if(a.need.hunger>.35&&supplies.feedMs>0&&t>(a.chickenMealAt||0))request(a,'feed');
    else if(t>(a.chickenDrinkAt??25+a.ref.i)&&supplies.waterMs>0)request(a,'drink');
   }
@@ -166,7 +166,11 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
    // waypoint. Aim beyond that intermediate point; the same physical steps
    // still steer around the sleeper, walls and support edges. Never skip docks
    // or height transitions needed for the doorway/ramp.
-   if(task.stage==='approach'&&task.kind==='bed'&&task.groundLeg===false&&a.g.position.y>.1)while(task.path.length>1){const p=task.path[0],next=task.path[1];if(p[1]<=.1||p[1]!==next[1]||!neighbours().some(b=>b!==a&&b.chickenTask?.kind==='bed'&&b.chickenTask.stage==='hold'&&Math.abs(b.g.position.y-p[1])<.08&&Math.hypot(b.g.position.x-p[0],b.g.position.z-p[2])<.34))break;task.path.shift();task.detour=null;}
+   // A later bedtime can begin while a bird is already on the raised floor.
+   // In that case groundLeg may still be true even though both next waypoints
+   // are on the same supported floor. Only bypass an occupied intermediate
+   // waypoint; the dock and every physical step remain mandatory.
+   if(task.stage==='approach'&&task.kind==='bed'&&a.g.position.y>.1)while(task.path.length>1){const p=task.path[0],next=task.path[1];if(p[1]<=.1||p[1]!==next[1]||!neighbours().some(b=>b!==a&&b.chickenTask?.kind==='bed'&&b.chickenTask.stage==='hold'&&Math.abs(b.g.position.y-p[1])<.08&&Math.hypot(b.g.position.x-p[0],b.g.position.z-p[2])<.34))break;task.path.shift();task.detour=null;}
    const p=task.path[0];task.access=task.kind==='bed'&&((p?.[1]||0)>0||a.g.position.y>1e-6);
    if(p){const d=Math.hypot(p[0]-ox,p[2]-oz);walk(a,task,p,dt,t);if(d<.008){task.path.shift();task.detour=null;if(task.kind==='bed'&&p===A.rampStart)task.groundLeg=false;if(task.stage==='exit'&&p===A.outside)task.groundLeg=true;}}
    else if(task.stage==='exit'){release(a);a.need.tired=0;a.act='idle';a.until=t+1;}

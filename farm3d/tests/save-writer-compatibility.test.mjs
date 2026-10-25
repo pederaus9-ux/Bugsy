@@ -1,3 +1,4 @@
+import {createRestoreRecovery} from '../restore-recovery.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -18,6 +19,7 @@ function load(source,raw){
  document:{hidden:false,addEventListener(){},getElementById:id=>id==='loading'?{}:null,querySelector(){return null;}},
  window:{addEventListener(){},dispatchEvent:e=>events.push(e.type),matchMedia:()=>({matches:false,addEventListener(){}})},
  navigator:{},CHICKEN_CARE:{},MARKET_WINDOW_MS:21600000,settleChickenCare(){return null;},Event:class{constructor(type){this.type=type;}}};
+ctx.restoreRecovery=createRestoreRecovery(ctx.localStorage);
  const executable=source.replace(/^import .*?;\s*$/gm,'').replace(/export\s*\{[^}]*\};?/g,'').replace(/\bexport\s+/g,'');
  vm.runInNewContext(executable+';globalThis.G={load,save,upgrade,migrate,SAVE_VERSION,MIGRATIONS,get S(){return S}};',ctx);
  ctx.G.load();return {G:ctx.G,storage,events};

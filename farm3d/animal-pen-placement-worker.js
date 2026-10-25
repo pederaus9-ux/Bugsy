@@ -1,4 +1,4 @@
-import {evaluatePenPlacement} from './animal-pen-placement.js?v=3';
+import {evaluatePenPlacement} from './animal-pen-placement.js?v=4';
 import {farmGroundY} from './farm-land.js?v=5';
 let context=null;
 self.onmessage=({data})=>{

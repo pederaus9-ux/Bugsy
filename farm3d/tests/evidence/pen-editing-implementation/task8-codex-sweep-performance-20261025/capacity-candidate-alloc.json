@@ -1,0 +1,238 @@
+{
+  "status": "CAPACITY_VALID_QUERY_COST_MEASURED",
+  "name": "capacity-candidate-alloc",
+  "allocationInstrumented": true,
+  "engine": {
+    "node": "24.19.0",
+    "acorn": "8.17.0",
+    "ada": "3.4.4",
+    "amaro": "1.1.10",
+    "ares": "1.34.6",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "137",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.69.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.7",
+    "simdjson": "4.6.4",
+    "simdutf": "6.4.0",
+    "sqlite": "3.53.3",
+    "tz": "2026b",
+    "undici": "7.29.0",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "13.6.233.17-node.51",
+    "zlib": "1.3.2.1-motley-3246f1b",
+    "zstd": "1.5.7"
+  },
+  "completedFrames": 120,
+  "measuredFrames": 100,
+  "fixtures": [
+    {
+      "id": "cow-feed-1",
+      "kind": "feed",
+      "root": [
+        -9.5,
+        0.08,
+        -34
+      ],
+      "costMs": {
+        "median": 3.779899999999998,
+        "p95": 6.257100000000037,
+        "max": 10.626200000000154
+      }
+    },
+    {
+      "id": "cow-feed-2",
+      "kind": "feed",
+      "root": [
+        -7.2,
+        0.08,
+        -34
+      ],
+      "costMs": {
+        "median": 3.5334000000000287,
+        "p95": 5.782500000000027,
+        "max": 12.841100000000097
+      }
+    },
+    {
+      "id": "cow-drink",
+      "kind": "drink",
+      "root": [
+        6.15,
+        0.08,
+        -35.4
+      ],
+      "costMs": {
+        "median": 2.5604000000000724,
+        "p95": 4.1381999999999834,
+        "max": 5.059600000000046
+      }
+    },
+    {
+      "id": "cow-robot",
+      "kind": "robot",
+      "root": [
+        8.600000000000001,
+        0.08,
+        -36.3
+      ],
+      "costMs": {
+        "median": 1.4277999999999338,
+        "p95": 2.6476000000000113,
+        "max": 3.8309000000000424
+      }
+    },
+    {
+      "id": "free-cow",
+      "kind": "free",
+      "root": [
+        0,
+        0.08,
+        -34.1
+      ],
+      "costMs": {
+        "median": 1.3819999999999482,
+        "p95": 2.4470000000000027,
+        "max": 2.7573999999999614
+      }
+    }
+  ],
+  "minSeparation": 2.3,
+  "obstacles": 62,
+  "rootObstacles": 8,
+  "addedFiveCowMs": {
+    "median": 13.424399999999878,
+    "p95": 17.93500000000006,
+    "max": 22.346599999999853
+  },
+  "warmupWorstMs": 34.911500000000046,
+  "averageCounters": {
+    "domains": 5,
+    "visited": 585.36,
+    "leafVisits": 65.14,
+    "certificateHits": 4.49,
+    "nodeCertificateHits": 28.27
+  },
+  "memory": {
+    "cacheBuildMs": 101.57069999999999,
+    "cacheRetainedHeapBytes": 44694008,
+    "heapBeforeFinalGC": 82284360,
+    "retainedAfterQueries": 12821992
+  },
+  "allocation": {
+    "method": "V8 sampling,16384-byte interval; collected minor/major objects included; estimates, not exact byte counts",
+    "totalEstimatedBytes": 2535426120,
+    "queryEstimatedBytes": 2152653968,
+    "copyEstimatedBytes": 372289552,
+    "estimatedQueryBytesPerFive": 21526539.68,
+    "estimatedCopyBytesPerFive": 3722895.52,
+    "top": [
+      {
+        "fn": "copyCowRig",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-pose-preview.mjs",
+        "line": 21,
+        "bytes": 290462664
+      },
+      {
+        "fn": "triangleMayHit",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 43,
+        "bytes": 199113632
+      },
+      {
+        "fn": "",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-skin-interval.mjs",
+        "line": 14,
+        "bytes": 78852128
+      },
+      {
+        "fn": "bound",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 29,
+        "bytes": 74920472
+      },
+      {
+        "fn": "",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-skin-interval.mjs",
+        "line": 14,
+        "bytes": 66659112
+      },
+      {
+        "fn": "triangleMayHit",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 43,
+        "bytes": 59093032
+      },
+      {
+        "fn": "M",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 7,
+        "bytes": 51934176
+      },
+      {
+        "fn": "M",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 7,
+        "bytes": 43533280
+      },
+      {
+        "fn": "bound",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 29,
+        "bytes": 40511880
+      },
+      {
+        "fn": "multiply",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-skin-interval.mjs",
+        "line": 11,
+        "bytes": 35220848
+      },
+      {
+        "fn": "project",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 43,
+        "bytes": 34021784
+      },
+      {
+        "fn": "M",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 7,
+        "bytes": 27460872
+      },
+      {
+        "fn": "triangleMayHit",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 43,
+        "bytes": 26842160
+      },
+      {
+        "fn": "series",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-leg-enclosure.mjs",
+        "line": 32,
+        "bytes": 26814672
+      },
+      {
+        "fn": "",
+        "url": "file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/helpers/cow-hierarchical-sweep.mjs",
+        "line": 26,
+        "bytes": 25170976
+      }
+    ]
+  },
+  "error": null,
+  "sourceHashes": {
+    "helpers/cow-hierarchical-sweep.mjs": "611f50a6c60fbceb1df6d662c9802efa8cd56fbe76f464b354f734f94cff03fd",
+    "helpers/cow-motion-domains.mjs": "7f2bfcab0aee21473ff6d9382e7fb35f8b1db5f4bb6f7e5d652bfcec47fc6fb8"
+  },
+  "limits": "Capacity-valid independent scene fixture, no live controller/reservation completion claim. Same obstacle set for all five; two feed, one drink, one robot, one free awake cow. All queries include displayed copy and complete temporal traversal. Excludes renderer, ordinary animation and controller. Node desktop only. Allocation-profiled timing is diagnostic, not the uninstrumented performance comparison."
+}

@@ -23,18 +23,21 @@ export function createRemainingCareController({layouts,neighbours,active,obstacl
   if(!carePointRuleClear(from,to,{pad:l.margin,polygons:forbiddenPolygons(a),clearPoint:(x,z)=>clearPoint(a,x,z)}))return false;
   const d=distance(from,to),n=Math.max(1,Math.ceil(d/.08));for(let i=1;i<=n;i++){const x=from[0]+(to[0]-from[0])*i/n,z=from[2]+(to[2]-from[2])*i/n;if(!inside(l,x,z,l.margin)||!clearPoint(a,x,z))return false;}return true;
  }
- function plan(a,goal){
+ function plan(a,goal,startAligned=false){
   const from=a.g.position.toArray(),l=layouts[a.kind];if(!free(a,goal[0],goal[2]))return [];if(line(a,from,goal,true))return [goal];
   // Pets roam beyond the original yard (friends in the north field): the search box
   // also covers where the pet stands and where it is going.
   const xs=[-20,20,from[0]-1.5,from[0]+1.5,goal[0]-1.5,goal[0]+1.5],zs=[-15,23,from[2]-1.5,from[2]+1.5,goal[2]-1.5,goal[2]+1.5];
-  const p=l.polygon||[[Math.min(...xs),Math.min(...zs)],[Math.max(...xs),Math.min(...zs)],[Math.max(...xs),Math.max(...zs)],[Math.min(...xs),Math.max(...zs)]],x0=Math.min(...p.map(v=>v[0]))+.05,z0=Math.min(...p.map(v=>v[1]))+.05,x1=Math.max(...p.map(v=>v[0]))-.05,z1=Math.max(...p.map(v=>v[1]))-.05,step=.3,nx=Math.ceil((x1-x0)/step),nz=Math.ceil((z1-z0)/step),n=nx*nz,dist=new Float64Array(n).fill(Infinity),prev=new Int32Array(n).fill(-1),closed=new Uint8Array(n),valid=new Int8Array(n),heap=[];
+  // A fixed grid can miss a legal narrow gap containing the actor. Only after
+  // that search fails, align one grid of the same spacing with its start.
+  // Every node and edge still passes the identical physical predicates.
+  const p=l.polygon||[[Math.min(...xs),Math.min(...zs)],[Math.max(...xs),Math.min(...zs)],[Math.max(...xs),Math.max(...zs)],[Math.min(...xs),Math.max(...zs)]],left=Math.min(...p.map(v=>v[0]))+.05,bottom=Math.min(...p.map(v=>v[1]))+.05,step=.3,x0=left+(startAligned?((from[0]-left)%step+step)%step:0),z0=bottom+(startAligned?((from[2]-bottom)%step+step)%step:0),x1=Math.max(...p.map(v=>v[0]))-.05,z1=Math.max(...p.map(v=>v[1]))-.05,nx=Math.ceil((x1-x0)/step),nz=Math.ceil((z1-z0)/step),n=nx*nz,dist=new Float64Array(n).fill(Infinity),prev=new Int32Array(n).fill(-1),closed=new Uint8Array(n),valid=new Int8Array(n),heap=[];
   const xy=i=>[x0+(i%nx)*step,0,z0+Math.floor(i/nx)*step],ok=i=>{if(!valid[i]){const q=xy(i);valid[i]=free(a,q[0],q[2])?1:-1;}return valid[i]===1;};
   function push(i,g){let at=heap.length;const item={i,f:g+distance(xy(i),goal)};heap.push(item);while(at){const parent=(at-1)>>1;if(heap[parent].f<=item.f)break;heap[at]=heap[parent];at=parent;}heap[at]=item;}
   function pop(){const first=heap[0],last=heap.pop();if(heap.length){let at=0;while(at*2+1<heap.length){let child=at*2+1;if(child+1<heap.length&&heap[child+1].f<heap[child].f)child++;if(last.f<=heap[child].f)break;heap[at]=heap[child];at=child;}heap[at]=last;}return first.i;}
   const cx=Math.round((from[0]-x0)/step),cz=Math.round((from[2]-z0)/step);for(let iz=Math.max(0,cz-5);iz<=Math.min(nz-1,cz+5);iz++)for(let ix=Math.max(0,cx-5);ix<=Math.min(nx-1,cx+5);ix++){const i=iz*nx+ix;if(ok(i)&&line(a,from,xy(i),true)){dist[i]=distance(from,xy(i));push(i,dist[i]);}}
   let end=-1;while(heap.length){const i=pop();if(closed[i])continue;closed[i]=1;const q=xy(i);if(distance(q,goal)<.6&&line(a,q,goal)){end=i;break;}const x=i%nx,z=Math.floor(i/nx);for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const xx=x+dx,zz=z+dz;if(xx<0||xx>=nx||zz<0||zz>=nz)continue;const j=zz*nx+xx;if(closed[j]||!ok(j))continue;const g=dist[i]+step*Math.hypot(dx,dz);if(g<dist[j]&&line(a,q,xy(j))){dist[j]=g;prev[j]=i;push(j,g);}}}
-  if(end<0)return [];
+  if(end<0)return startAligned?[]:plan(a,goal,true);
   const path=[goal];for(let i=end;i>=0;i=prev[i])path.unshift(xy(i));const compact=[];let old=from;for(let i=0;i<path.length;){let j=path.length-1;while(j>i&&!line(a,old,path[j],i===0))j--;compact.push(path[j]);old=path[j];i=j+1;}return compact;
  }
  function release(a){const task=a.remainingTask;if(!task)return;a.remainingPose?.reset();scheduler.release(task.token);tasks.delete(id(a));a.remainingTask=null;a.target=null;a.path=null;a.act='idle';a.doing=null;a.vel.set(0,0);}

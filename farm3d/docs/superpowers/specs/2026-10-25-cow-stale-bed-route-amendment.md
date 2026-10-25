@@ -1,0 +1,11 @@
+# A26: stale cow bed approach after lateral avoidance
+
+Authority: A14 owner routine pen fix grant (Sentinel_a02a5c05ed288191a922065b1ee35036) and explicit parent continuation after ee60e51. Exact pre-edit scope and digests recorded in tests/evidence/pen-editing-implementation/task8-codex-stale-bed-route-20261025/a26-pre-edit.json BEFORE production edit. Only index.html::updateCowTaskStep bed-approach static-segment revalidation/replan may change. Geometry,rig,terrain,save/economy,auth,clock,care reservations and all original tolerances/deadlines remain.
+
+Retained evidence shows497 animated body vertices inside the solid post2.175s into original assembly4242/120 night2. Direct travel resumes on a static-obstructed segment after lateral avoidance; fresh existing route planner returns a detour. Do not ignore containing obstacles or force escape.
+
+Acceptance before implementation: captured pre-entry centre trajectory must avoid original.4padded posts and reach actual held bed by original500s at30/60/120, speed<=.8m/s,separation>=.85m,support/reservation identity unchanged. Empty repaired path must retain approach and cannot pretend arrival. Clear original leg stays unchanged. Scope guard rejects unrelated edits. Existing cow regressions stay unchanged.
+
+Native bounded qualification: current-source assembly4242/120 through firstwake and second-night actual all46bed arrival, maximum original500s; record physical post samples for cow:1 at10Hz/transition and original root speed/separation/support. Retain first ordinary jaw collision as observation and keep logging without declaring the original physical test green. Only bed-approach body/post collision halts the bed-path diagnostic. Originalwakeoracle remains unchanged. No fullmatrix or universal-proof criteria. Failure triggers evidence diagnosis, not blind rerun.
+
+Pre-edit refinement: initial42/43 run caught a scope regression in the old final-approach capture, which starts inside padded post space without lateral invalidation. A26 now applies only when task.avoidSide records lateral displacement, as the diagnosed source requires. Existing final-route behavior is not redefined; containing-obstacle rejection remains for the new repair. Original test unchanged and original failure retained. Preimage in before-causal-scope-refinement.json.

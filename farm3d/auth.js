@@ -5,6 +5,7 @@
 // Authentication › Sign-in method › turn on Email/Password; Firestore Database › create it, and use these rules:
 //   match /farms/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
 import {installAnalytics} from './analytics.js?v=3';
+import {restoreRecovery} from './restore-recovery.js?v=1';
 const firebaseConfig = {
   apiKey: "AIzaSyCgijKMHpJqvzl5IdQxIE_4yu1_oH2Twtk",
   authDomain: "fir-config-18b64.firebaseapp.com",
@@ -131,6 +132,7 @@ function open(user) {
 // No account: the farm is saved on this phone only. It is a farm "from before accounts" (no owner), so if the guest makes an
 // account later, linkFarm moves it into the new account like any other (or lets them choose, if the account has a farm already).
 function playAsGuest() {
+  if (holdRestore()) return;
   try { window.saMetrics?.end(performance.now()); } catch {}
   const owner = ls.get(OWNER) || "";
   ls.set(GUEST, "1"); ls.set(SEEN, "1"); window.saStats("guest");
@@ -172,6 +174,7 @@ function summary(raw) {
 }
 // put a farm on this phone and restart the game with it (the game mustn't save its old farm over it on the way out)
 function useFarm(raw, uid, rev, dirty) {
+  if (holdRestore()) return;
   window.__saHold = true;
   if (raw) ls.set(SAVE_KEY, raw); else ls.del(SAVE_KEY);
   ls.set(OWNER, uid); ls.set(SYNC_REV, String(rev || 0)); if (dirty) ls.set(DIRTY, "1"); else ls.del(DIRTY);
@@ -183,12 +186,15 @@ function useFarm(raw, uid, rev, dirty) {
 // player has already chosen (or a farm from before accounts moves in).
 async function upload(force) {
   clearTimeout(upload.t);
+  if (restoreRecovery.blocked()) return false;
+  const restoreStamp = restoreRecovery.stamp();
   const raw = ls.get(SAVE_KEY), s = raw && summary(raw);
   if (!cloud || !cloud.uid || !s || ls.get(OWNER) !== cloud.uid) return false;
   if (ls.get(RECOVER)) return false; // the farm here is a stand-in for one that couldn't be read: never send it over the cloud copy
   if (!force && ls.get(DIRTY) !== "1") return true; // nothing new
   try {
-    const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0);
+    const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0, restoreStamp);
+    if (restoreRecovery.blocked() || restoreRecovery.stamp() !== restoreStamp) return false;
     if (rev == null) { console.warn("This farm was saved from another phone meanwhile; you'll get to choose next time."); return false; }
     ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); window.dispatchEvent(new CustomEvent("sa3d:uploaded", {detail:raw})); return true;
   } catch (e) { console.warn("Cloud save will try again later:", e.code || e.message); return false; }
@@ -229,7 +235,15 @@ function readCloud(attempt) {
       (e) => { if (done) return; done = true; clearTimeout(t); reject(e); });
   });
 }
+function holdRestore(stamp = restoreRecovery.stamp()) {
+  if (!restoreRecovery.blocked() && restoreRecovery.stamp() === stamp) return false;
+  window.__saHold = true;
+  show('offline'); say('Backup recovery is unfinished or another tab restored a farm. Free storage if needed, then try again to reload. Your recovery copies are kept.');
+  return true;
+}
 async function linkFarm(user) {
+  if (holdRestore()) return;
+  const restoreStamp = restoreRecovery.stamp();
   const attempt = ++linkAttempt; // only the newest attempt may act: an older one that answers late changes nothing
   const uid = user.uid, owner = ls.get(OWNER) || "", raw = ls.get(SAVE_KEY), here = raw && summary(raw), dirty = ls.get(DIRTY) === "1";
   const recovering = owner === uid && (!!ls.get(RECOVER) || (!!raw && !here));
@@ -237,6 +251,7 @@ async function linkFarm(user) {
   let remote = null;
   try { remote = await readCloud(attempt); }
   catch (e) {
+    if (holdRestore(restoreStamp)) return;
     if (attempt !== linkAttempt) return; // a newer attempt has started: leave everything to it
     console.warn("Cloud farm unavailable, playing the farm on this phone:", e.code || e.message); cloud.uid = null;
     // A slow or busy phone often misses the first try (Firestore gives up after 10 s while the 3D farm is being built).
@@ -249,6 +264,7 @@ async function linkFarm(user) {
     linkFarm.retry = setTimeout(() => { if (window.saAuth.user && window.saAuth.user.uid === uid && !cloud.uid) linkFarm(user); }, wait);
     return open(user);
   }
+  if (holdRestore(restoreStamp)) return;
   if (attempt !== linkAttempt) return console.warn("Cloud farm read #" + attempt + " was overtaken by a newer one; ignored.");
   recoveryTry = 0;
   cloud.uid = uid;
@@ -282,6 +298,7 @@ async function linkFarm(user) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       if (attempt !== linkAttempt || window.saAuth.fb.auth.currentUser?.uid !== uid) return;
     }
+    if (holdRestore(restoreStamp)) return;
     if (attempt !== linkAttempt || window.saAuth.fb.auth.currentUser?.uid !== uid) return;
     ls.del(RECOVER); ls.set(SYNC_REV, "0"); // nothing in the cloud to protect: this farm may start the account's cloud save
   } else if (ls.get(RECOVER)) ls.del(RECOVER); // a leftover from another account's farm on this phone: never acts for this one
@@ -309,11 +326,13 @@ async function linkFarm(user) {
 }
 // two different farms for one account: show both and let the player keep one; the other stays on this phone as a backup
 async function pickFarm(user, raw, here, remote) {
+  const restoreStamp = restoreRecovery.stamp();
   const uid = user.uid, there = summary(remote.save) || {level:1, coins:0}; here = here || {level:1, coins:0};
   choose.querySelector('[data-pick="phone"] small').textContent = `Level ${here.level} · ${here.coins.toLocaleString()} 🪙`;
   choose.querySelector('[data-pick="cloud"] small').textContent = `Level ${there.level} · ${there.coins.toLocaleString()} 🪙`;
   show("choose");
   const pick = await new Promise((res) => { choose.onclick = (e) => { const b = e.target.closest("[data-pick]"); if (b) res(b.dataset.pick); }; });
+  if (holdRestore(restoreStamp)) return;
   if (pick === "phone") { ls.set(SAVE_KEY + "-backup-account", remote.save); ls.set(OWNER, uid); await upload(true); return open(user); }
   ls.set(SAVE_KEY + "-backup-phone", raw); return useFarm(remote.save, uid, remote.rev || 0);
 }
@@ -336,8 +355,9 @@ async function start() {
     cloud = {uid:null,
       get:async () => { const d = await F.getDoc(F.doc(db, "farms", auth.currentUser.uid)); return d.exists() ? d.data() : null; },
       // write a new version, only if the cloud still has the version this phone expects (null: write regardless)
-      put:(raw, s, expect) => F.runTransaction(db, async (tx) => {
+      put:(raw, s, expect, restoreStamp) => F.runTransaction(db, async (tx) => {
         const ref = F.doc(db, "farms", cloud.uid), d = await tx.get(ref), cur = d.exists() ? d.data().rev || 0 : 0;
+        if (restoreRecovery.blocked() || restoreRecovery.stamp() !== restoreStamp) return null;
         if (expect != null && cur !== expect) return null;
         tx.set(ref, {save:raw, level:s.level, coins:s.coins, rev:cur + 1, updatedAt:Date.now()});
         return cur + 1;

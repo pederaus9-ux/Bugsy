@@ -1,0 +1,173 @@
+{
+  "source": "4a457e4086b4f8fe88de0e48fe79de7b8f250bdf",
+  "controls": [
+    {
+      "name": "live paid field",
+      "status": "REJECTED"
+    },
+    {
+      "name": "durable paid field",
+      "status": "REJECTED"
+    },
+    {
+      "name": "installed polygon",
+      "status": "REJECTED"
+    },
+    {
+      "name": "durable layout",
+      "status": "REJECTED"
+    },
+    {
+      "name": "restore intent",
+      "status": "REJECTED"
+    },
+    {
+      "name": "missing animal",
+      "status": "REJECTED"
+    },
+    {
+      "name": "duplicate animal",
+      "status": "REJECTED"
+    }
+  ],
+  "cases": [
+    {
+      "target": "sa3d-restored",
+      "status": "FAIL",
+      "trace": [
+        {
+          "key": "sunny-acres-3d-v1",
+          "completed": true
+        },
+        {
+          "key": "sa3d-restored",
+          "completed": false
+        }
+      ],
+      "before": {
+        "coins": 9017,
+        "revision": 2
+      },
+      "afterRefusal": {
+        "liveCoins": 9017,
+        "savedCoins": 9000,
+        "liveRevision": 2,
+        "savedRevision": 1,
+        "restored": null,
+        "dirty": null
+      },
+      "ordinarySave": {
+        "returned": true,
+        "exactPreAttemptSave": true,
+        "restored": null,
+        "dirty": null
+      },
+      "browserErrors": []
+    },
+    {
+      "target": "sa3d-dirty",
+      "status": "FAIL",
+      "trace": [
+        {
+          "key": "sunny-acres-3d-v1",
+          "completed": true
+        },
+        {
+          "key": "sa3d-restored",
+          "completed": true
+        },
+        {
+          "key": "sa3d-dirty",
+          "completed": false
+        }
+      ],
+      "before": {
+        "coins": 9017,
+        "revision": 2
+      },
+      "afterRefusal": {
+        "liveCoins": 9017,
+        "savedCoins": 9000,
+        "liveRevision": 2,
+        "savedRevision": 1,
+        "restored": "1",
+        "dirty": null
+      },
+      "ordinarySave": {
+        "returned": true,
+        "exactPreAttemptSave": true,
+        "restored": "1",
+        "dirty": null
+      },
+      "browserErrors": []
+    },
+    {
+      "target": "sunny-acres-3d-v1-weather",
+      "status": "FAIL",
+      "trace": [
+        {
+          "key": "sunny-acres-3d-v1",
+          "completed": true
+        },
+        {
+          "key": "sa3d-restored",
+          "completed": true
+        },
+        {
+          "key": "sa3d-dirty",
+          "completed": true
+        },
+        {
+          "key": "sunny-acres-3d-v1-weather",
+          "completed": false
+        }
+      ],
+      "before": {
+        "coins": 9017,
+        "revision": 2
+      },
+      "afterRefusal": {
+        "liveCoins": 9017,
+        "savedCoins": 9000,
+        "liveRevision": 2,
+        "savedRevision": 1,
+        "restored": "1",
+        "dirty": "1"
+      },
+      "ordinarySave": {
+        "returned": true,
+        "exactPreAttemptSave": true,
+        "restored": "1",
+        "dirty": "1"
+      },
+      "browserErrors": []
+    }
+  ],
+  "interruption": {
+    "status": "FAIL",
+    "guestBoot": "PASS",
+    "restoreIntent": "FAIL",
+    "trace": [
+      "sunny-acres-3d-v1"
+    ],
+    "termination": "Debugger.resume terminateOnResume=true",
+    "atBootRestored": null,
+    "atBootDirty": null,
+    "animals": 46,
+    "scope": "disposable guest; logical tab close, not physical crash; no cloud claim"
+  },
+  "originals": [
+    {
+      "file": "native-first/results.json",
+      "sha256": "9da358cddf9e90c4048cac329be9b36f861c9f17aa8bf873eb868987c9079543"
+    },
+    {
+      "file": "interruption-first/interruption.json",
+      "sha256": "b809416a2c8638a7ffe6612a76ec0049e47e3de39f0ac906e087fb1fdc0d0565"
+    },
+    {
+      "file": "interruption-terminated/interruption.json",
+      "sha256": "560449283c6e13e065355691ef168c3d090b8ce32b0642af01211bd3c5ee16fe"
+    }
+  ]
+}

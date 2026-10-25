@@ -17,7 +17,7 @@ const {start}=require('./browser-harness.cjs');
    let t2=d.clock(),outside=0;for(let n=0;n<900;n++){t2+=1/30;d.setClock(t2);for(const a of d.animals)a.update(1/30,t2);for(const a of d.animals.filter(a=>a.kind==='horse'))if(!d.inPen(pen,a.g.position.x,a.g.position.z,-.05))outside++;}
    const v=d.penRuntime;return {poly:pen.poly.map(q=>[...q]),custom:!!pen.custom,path:pts,onNewLeg,onOldDiagonal,horses:d.animals.filter(a=>a.kind==='horse').length,horseFramesOutside:outside,revision:v.revision};});
   report.steps.push({step:'default farm',farm,errors:[...s.errors]});
-  const valid=await p.evaluate(async()=>{const V=await import('./animal-pen-validation.js?v=3'),L=await import('./animal-pen-layout.js?v=1'),r=V.validateAnimalPens(L.resolveAnimalPens(),__dbg.penRuntime.world);return {ok:r.ok,issues:r.issues.map(i=>i.code+'/'+i.kind+'/'+i.target)};});
+  const valid=await p.evaluate(async()=>{const V=await import('./animal-pen-validation.js?v=4'),L=await import('./animal-pen-layout.js?v=1'),r=V.validateAnimalPens(L.resolveAnimalPens(),__dbg.penRuntime.world);return {ok:r.ok,issues:r.issues.map(i=>i.code+'/'+i.kind+'/'+i.target)};});
   report.steps.push({step:'default validates against the live snapshot',valid});
   assert.deepEqual(farm.poly,[[-23.5,-31.8],[-4.8,-31.8],[-4.8,-19.8],[-23.5,-19.8]]);assert.equal(farm.custom,false);
   assert.equal(farm.path.length,5);assert.deepEqual(farm.path[2],[-18.4,-18.6]);assert.equal(farm.path[3][1],-18.6);for(let i=1;i<5;i++)assert(farm.path[i][0]===farm.path[i-1][0]||farm.path[i][1]===farm.path[i-1][1],'diagonal path segment '+i);

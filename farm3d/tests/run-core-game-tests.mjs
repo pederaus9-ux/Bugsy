@@ -6,6 +6,7 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'restore-recovery.test.mjs','restore-recovery-scope.test.mjs',
  'animal-pen-placement.test.mjs','animal-pen-placement-controller.test.mjs','animal-pen-placement-preview.test.mjs',
  'animal-pen-access-reservation.test.mjs',
  'animal-pen-cow-contact-rebind.test.mjs',
@@ -14,6 +15,7 @@ const nodeFiles=[
  'animal-pen-robot-arrival.test.mjs',
  'animal-pen-cow-wait.test.mjs','animal-pen-cow-wait-route.test.mjs',
  'animal-pen-cow-resume.test.mjs',
+ 'cow-stale-bed-route.test.mjs',
  'animal-pen-integration.test.mjs',
  'animal-pen-route-recovery.test.mjs',
  'remaining-care-pet-collision.test.mjs',

@@ -1,0 +1,96 @@
+Γ£û captured stale leg safely reaches its bed at 30Hz (77.8623ms)
+Γ£û captured stale leg safely reaches its bed at 60Hz (13.0095ms)
+Γ£û captured stale leg safely reaches its bed at 120Hz (11.2447ms)
+Γ£û blocked repair cannot advance or claim bed arrival (12.1772ms)
+Γ£ö a clear original bed leg does not trigger a replacement route (8.6303ms)
+Γ£ö A26 exact outside-function scope and corruption controls (4.9155ms)
+Γä╣ tests 6
+Γä╣ suites 0
+Γä╣ pass 2
+Γä╣ fail 4
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 268.2425
+
+Γ£û failing tests:
+
+test at farm3d\tests\cow-stale-bed-route.test.mjs:4:28
+Γ£û captured stale leg safely reaches its bed at 30Hz (77.8623ms)
+  AssertionError [ERR_ASSERTION]: stale direct leg enters a padded static obstacle
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-stale-bed-route.test.mjs:4:445)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\cow-stale-bed-route.test.mjs:4:28
+Γ£û captured stale leg safely reaches its bed at 60Hz (13.0095ms)
+  AssertionError [ERR_ASSERTION]: stale direct leg enters a padded static obstacle
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-stale-bed-route.test.mjs:4:445)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\cow-stale-bed-route.test.mjs:4:28
+Γ£û captured stale leg safely reaches its bed at 120Hz (11.2447ms)
+  AssertionError [ERR_ASSERTION]: stale direct leg enters a padded static obstacle
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-stale-bed-route.test.mjs:4:445)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\cow-stale-bed-route.test.mjs:5:1
+Γ£û blocked repair cannot advance or claim bed arrival (12.1772ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -1.1667873334439485,
+  -   -1.1601932273076467,
+      0.08,
+  +   -36.624223128712345
+  -   -36.62520405108829
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-stale-bed-route.test.mjs:5:194)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -1.1667873334439485, 0.08, -36.624223128712345 ],
+    expected: [ -1.1601932273076467, 0.08, -36.62520405108829 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

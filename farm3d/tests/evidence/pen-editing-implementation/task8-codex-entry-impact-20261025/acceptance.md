@@ -1,0 +1,11 @@
+# Bounded impact diagnosis
+
+Recover da167ca, no runtime edits. Preserve original tests and failures. First capture cow:1 entry around post[-1.8,-36.45,.065,.065] using the original assembly/4242/120 source2f1138393563a56b8fd693e477c2d0f4d8bf102f, real46actors and original Apply. Read-only observer retains before/after paths, task stage and neighbours; stop at first positive actual skin vertex in the solid post or30seconds after first padded entry, at most original3cycles and original500s/40s. No original assertion suppressed. This is diagnostic evidence, never a replacement PASS. If earlier unrelated failure prevents capture, report that without a retry loop.
+
+Sample real skinned vertices at first entry and10Hz while within the padded area; positive strict vertex containment proves a mesh/post intersection at that instant, negative samples cannot prove no continuous or triangle-edge collision. Distinguish existing.42route/.4sidestep clearance from actual.065post halfwidth and physical yextent verified from geometry. No radius/tolerance changes, escape or prototype numerical proof.
+
+New sheep wake: a single bounded60second reconstruction can establish whether the captured ordinary target is physically reachable with retained neighbours frozen. Report missing original path/pose/RNG/needs/timing; rerouting is an isolated recovery capability, not exact original continuation. Do not patch or call the original wake PASS. Decide any nextfix by measured care harm, not act label or short timing failure alone.
+
+No uploads, Site, merge, deployment, geometry/rig/terrain changes or broadmatrix.
+
+One finite test-only candidate probe after cause confirmation: serve original immutable A22 source with a narrow bed-approach remaining-segment revalidation/replan before direct motion. Keep .42 planner margin, all guards, authored route destinations, no geometry or runtime-file edit. Refuse a newly blocked segment if no executable detour exists. Sample target post skin at10Hz within1.3m, keeping positive-only interpretation. Stop after10seconds of second night (past original2.175s hit) or first positive skin intersection/unchanged oracle failure. This does not qualify all500seconds or wholematrix and cannot be reported as a production fix. No second candidate iteration in this checkpoint.

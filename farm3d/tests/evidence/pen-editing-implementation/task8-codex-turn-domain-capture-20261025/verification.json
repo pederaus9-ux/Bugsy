@@ -1,0 +1,156 @@
+{
+  "status": "DIAGNOSTIC_COMPLETE_ORIGINAL_RED_RETAINED",
+  "source": "3bd7a07d443589122a5092c493d4e2d3f2a160e7",
+  "exactReproduction": true,
+  "frame": 166,
+  "station": "cow-drink",
+  "leg": 3,
+  "offending": {
+    "tx": [
+      -0.16231107039199685,
+      0.12974380060460608
+    ],
+    "tz": [
+      0.11940176569778972,
+      0.5240209425525728
+    ],
+    "lift": [
+      0.05345598267084745,
+      0.05345598267084767
+    ]
+  },
+  "historyMismatches": 0,
+  "liveQueryNonmutationChecks": 827,
+  "weight": {
+    "range": [
+      0.7999999999999999,
+      0.9333333333333332
+    ],
+    "formula": "1-t*t*(3-2*t)",
+    "derivative": "-6*t*(1-t), nonpositive on[0,1]",
+    "monotoneRange": [
+      0.01274074074074072,
+      0.10400000000000009
+    ],
+    "dependencyLostInterval": [
+      -0.2195555555555555,
+      0.2746666666666666
+    ]
+  },
+  "capturedConstantCoefficient": {
+    "x": -0.5909383630776559,
+    "z": -0.6704854402662643
+  },
+  "diagnosticOnlyMonotoneWeightPropagationBeforeReachClip": {
+    "tx": [
+      -0.061457589760076266,
+      -0.007528992477730122
+    ],
+    "tz": [
+      0.3070816534353067,
+      0.3682696580581269
+    ],
+    "limits": "Arithmetic diagnosis only; no provider/bounds edit or claimed new implementation. Native hard reach guard remains.34m."
+  },
+  "nativeFailedFrameSamples": {
+    "n": 10,
+    "maxAbsTx": 0.00787818412958576,
+    "maxAbsTz": 0.3399289678996534,
+    "maxReach": 0.3400000000000001,
+    "lift": [
+      0.05345598268240646,
+      0.06363595023970711
+    ]
+  },
+  "rejections": {
+    "n": 41,
+    "classes": {
+      "NO_SAMPLED_INTERSECTION_TEMPORAL_UNRESOLVED": 38,
+      "ACTUAL_SAMPLED_SKIN_INTERSECTION": 3
+    },
+    "byStation": {
+      "cow-feed-1": {
+        "total": 7,
+        "actual": 0,
+        "unresolved": 7
+      },
+      "cow-feed-2": {
+        "total": 7,
+        "actual": 0,
+        "unresolved": 7
+      },
+      "cow-drink": {
+        "total": 10,
+        "actual": 0,
+        "unresolved": 10
+      },
+      "cow-robot": {
+        "total": 12,
+        "actual": 3,
+        "unresolved": 9
+      },
+      "cow-bed-5": {
+        "total": 5,
+        "actual": 0,
+        "unresolved": 5
+      }
+    },
+    "nativeSamplePoses": 316,
+    "displayedStarts": 41,
+    "endpointMatrixDifference": 0,
+    "actualFrames": [
+      {
+        "frame": 162,
+        "station": "cow-robot",
+        "triangle": 3820,
+        "primitive": 34,
+        "displayed": false,
+        "hitFractions": [
+          0.25,
+          0.5,
+          0.75,
+          1
+        ]
+      },
+      {
+        "frame": 163,
+        "station": "cow-robot",
+        "triangle": 3775,
+        "primitive": 34,
+        "displayed": true,
+        "hitFractions": [
+          0.000001,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ]
+      },
+      {
+        "frame": 164,
+        "station": "cow-robot",
+        "triangle": 3775,
+        "primitive": 34,
+        "displayed": true,
+        "hitFractions": [
+          0.000001,
+          0.25
+        ]
+      }
+    ],
+    "limits": "3 actual robot upper-rail intersections;38 no sampled intersection, continuous unresolved. All41 shadow endpoints exactly equal recorded actual next display. No false-positive safety clearance from finite samples."
+  },
+  "cause": "Dependency inflation in recovery smoothstep interval plus uncorrelated radial clip; original native input remains within reach. Phase history matches. Three actual robot intersections come from scripted reversal inside lane, not authored forward exit; no new live-controller collision claim.",
+  "protectedUnchanged": {
+    "farm3d/index.html": true,
+    "farm3d/cow3d.js": true,
+    "farm3d/cow-yard.js": true,
+    "farm3d/farm-land.js": true,
+    "farm3d/game.js": true,
+    "farm3d/sw.js": true,
+    "farm3d/tests/helpers/cow-hierarchical-sweep.mjs": true,
+    "farm3d/tests/helpers/cow-motion-domains.mjs": true,
+    "farm3d/tests/helpers/cow-leg-enclosure.mjs": true
+  },
+  "next": "Finite test-provider correction of monotone residual range/radial invariant with exact retained state, unchanged guard and controls; separately use authored robot exit for any representative benchmark. No correction performed. Original performanceRED retained."
+}

@@ -1,7 +1,7 @@
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
 import {NORTH_EXTENSION,WEST_CLEARING,NORTH_LEVEL_BUILD_CLEARING,MAP_EDGE} from './farm-land.js?v=5';
 import {resolveAnimalPens,defaultSiteRecord,animalPenYardLayout} from './animal-pen-layout.js?v=1';
-import {cowYardConflicts} from './cow-yard.js?v=4';
+import {cowYardConflicts} from './cow-yard.js?v=5';
 import {polygonArea,pointInPolygon,pointSegmentDistance,segmentDistance,segmentInPolygon,simplePolygon,shapePolygon,pointInShape,shapeIntersectsPolygon,segmentClearOfShapes,segmentInShapeUnion,volumesOverlap} from './animal-pen-geometry.js?v=1';
 const EPS=1e-8,GRID=.3,MAX_NODES=200000,POST=.15;
 // Beast.go's ordinary cow contract. Care keeps its separate accepted .42 margin.

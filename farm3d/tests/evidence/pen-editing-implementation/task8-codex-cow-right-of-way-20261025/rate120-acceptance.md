@@ -1,0 +1,3 @@
+# First 120 Hz Task 8 care/wake cases
+
+Run the existing real sheep whole-pen and dog-nook individual-assembly Apply journeys at seed 1 with actual `dt=1/120`. Each has all 46 owned animals, three consecutive nights, unchanged 500-second bed and physical-departure deadlines and each individual's continuous 40-second wake. Require stable identities, unique installed beds, saved paid state/revision, containment and zero browser errors. Save separate raw results and rendered frames. A pass qualifies only that edit/seed/rate care/wake combination, not full speed/contact/pose breadth or physical-device behavior. On failure preserve the exact RED and investigate before any fix; no changed seeds, limits or assertions.

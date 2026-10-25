@@ -7,11 +7,21 @@ const root = path.resolve(__dirname, '../..');
 const artifacts = path.resolve(process.env.TEST_ARTIFACTS || path.join(__dirname, 'artifacts'));
 fs.mkdirSync(artifacts, {recursive:true});
 
+// Served to disposable local test browsers only. The checked-in game keeps
+// rng(4242); this replaces exactly that one ordinary-animal RNG declaration.
+function applyTestGameplaySeed(source,seed){
+  if(!Number.isInteger(seed)||![1,4242].includes(seed))throw Error('Unsupported gameplay test seed');
+  const declaration='const rnd = rng(4242);',count=source.split(declaration).length-1;
+  if(count!==1)throw Error('Expected exactly one ordinary gameplay RNG declaration; found '+count);
+  const replacement=`const __testRnd = rng(${seed}); const rnd = () => { const value = __testRnd(); if(window.__testGameplaySeed.firstCall === null) window.__testGameplaySeed.firstCall = value; window.__testGameplaySeed.calls++; return value; }; window.__testGameplaySeed = {value:${seed},firstCall:null,calls:0};`;
+  return source.replace(declaration,replacement);
+}
+
 async function start(options = {}) {
   let servedRef=options.ref||null;
   let keepCurrentWorker=false;
   const sourceCache=new Map();
-  const fileBytes=file=>{const relative=path.relative(root,file).split(path.sep).join('/');if(!servedRef||(keepCurrentWorker&&relative==='farm3d/sw.js'))return fs.readFileSync(file);const key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}));return sourceCache.get(key);};
+  const fileBytes=file=>{const relative=path.relative(root,file).split(path.sep).join('/');let bytes;if(!servedRef||(keepCurrentWorker&&relative==='farm3d/sw.js'))bytes=fs.readFileSync(file);else{const key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}));bytes=sourceCache.get(key);}return options.gameplaySeed!==undefined&&relative==='farm3d/index.html'?Buffer.from(applyTestGameplaySeed(bytes.toString('utf8'),options.gameplaySeed)):bytes;};
   const server = http.createServer((req, res) => {
     try {
       let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
@@ -69,4 +79,4 @@ async function start(options = {}) {
     }
   };
 }
-module.exports = {start, artifacts, root};
+module.exports = {start, artifacts, root, applyTestGameplaySeed};

@@ -25,7 +25,7 @@ const restDelete = (uid) => fetch(fsUrl('farms/' + uid), {method: 'DELETE', head
 // the farm's real progress (the game re-saves a restored farm straight away with a new lastSeen and orders, so the phone
 // copy is compared on this; the CLOUD copy is compared byte for byte)
 const cowProgress=o=>{const c=o.pens?.cow?.care;return c?[c.feed,c.waterUntil,c.tank,c.queue,c.job,c.receipts,c.cows.map(b=>[b.id,b.cycle,b.ready]),o.gold?.milk,o.decor]:null;};
-const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o)]); } catch (e) { return 'unreadable'; } };
+const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o),o.layout?.animalPens,o.pens?.horse,o.v]); } catch (e) { return 'unreadable'; } };
 const has = (save, token) => typeof save === 'string' && save.includes('"__sentinel":"' + token + '"');
 
 async function main() {
@@ -102,10 +102,36 @@ async function main() {
     const cowRestored=await P(g,()=>({save:JSON.parse(JSON.stringify(__dbg.G.S)),site:__dbg.cowYardActive,conflicts:__dbg.cowYardIssues}));
     check('authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint',JSON.stringify(cowProgress(cowRestored.save))===JSON.stringify(cowProgress(cowCloud))&&cowRestored.save.v===3&&cowRestored.save.pens.cow.meta[0].name==='Snapshot Bessie'&&cowRestored.save.pens.cow.meta[1].name==='Snapshot Clover'&&!cowRestored.site&&cowRestored.conflicts.some(c=>c.type==='decor')&&cowRestored.save.pens.chicken.list.length===30);
 
+    // A27: use the already-qualified west horse boundary as a serialized recovery
+    // fixture. This is not an additional native Apply claim: the original cow
+    // snapshot deliberately contains a paid lamp occupying the cow site.
+    await P(g,async()=>{const G=__dbg.G,L=await import('./animal-pen-layout.js?v=1'),horse=L.defaultSiteRecord('horse');for(const v of horse.boundary)if(['v0','v3'].includes(v.id))v.x=-37;
+      G.S.pens.horse={owned:true,list:[0,0,0,0],meta:Array.from({length:4},(_,i)=>({name:'Recovery Horse '+i,love:50,loveAt:Date.now()}))};G.S.layout.animalPens={v:1,revision:2,sites:{horse}};G.view.refresh('all');G.commit();});
+    const editedBase=await establish(uid,'edited-writer4');
+    const editedExpected=JSON.parse(editedBase.save);
+    check('edited pen uploads writer4, stable horse ownership and exact paid cow snapshot',editedExpected.v===4&&editedExpected.layout.animalPens.revision===2&&editedExpected.pens.horse.list.length===4&&JSON.stringify(cowProgress(editedExpected))===JSON.stringify(cowProgress(cowCloud)));
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const installed=await P(g,()=>({raw:localStorage.getItem(__dbg.G.SAVE_KEY),custom:__dbg.remainingLayouts.horse.custom,revision:__dbg.penRuntime.revision,polygon:__dbg.remainingLayouts.horse.polygon,horses:__dbg.animals.filter(a=>a.kind==='horse'&&!a.gone).length}));
+    check('edited cloud snapshot reload installs exact boundary and four owned horses',progress(installed.raw)===progress(editedBase.save)&&installed.custom===true&&installed.revision===2&&installed.horses===4&&JSON.stringify(installed.polygon)===JSON.stringify(editedExpected.layout.animalPens.sites.horse.boundary.map(v=>[v.x,v.z])));
+
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;
     // keep its already-paid egg on the pallet through subsequent recovery.
     await P(g,()=>{const G=__dbg.G;G.S.pens.chicken.care.feedUntil=0;G.S.pens.chicken.care.waterUntil=0;G.commit();});
+
+    // A27 quota negative control: damaged phone cannot replace edited cloud
+    // when the cloud restore cannot persist. Retain the original 15s debounce
+    // and observe 25s without changing any existing recovery deadlines.
+    {
+      const base=await establish(uid,'edited-quota');g.farmWrites=[];
+      await g.context.addInitScript(()=>{if(sessionStorage.getItem('a27-block-save')){const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='sunny-acres-3d-v1'&&v!=='{"a27 quota cut')throw new DOMException('A27 fixture quota','QuotaExceededError');return set.call(this,k,v);};}});
+      await P(g,()=>sessionStorage.setItem('a27-block-save','1'));await corruptOnNextLoad('{"a27 quota cut');
+      const refusal=g.page.waitForEvent('console',{predicate:m=>m.text().includes("Couldn't put the cloud farm on this phone"),timeout:30000});await g.page.reload({waitUntil:'load'});await refusal;
+      const bad=await watch(uid,25000,c=>c&&c.save===base.save&&c.rev===base.rev),blocked=await st();
+      check('edited cloud recovery with blocked primary storage preserves exact cloud and pending recovery',blocked.recover==='1'&&blocked.raw==='{"a27 quota cut'&&bad.length===0&&standInWrites(base.token)===0);
+      await P(g,()=>sessionStorage.removeItem('a27-block-save'));await g.page.reload({waitUntil:'load'});await gameUp();const restored=await st();
+      check('edited cloud recovery succeeds after storage becomes writable',restored.recover===null&&progress(restored.raw)===progress(base.save)&&(await cloud(uid)).save===base.save);
+    }
 
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
@@ -197,6 +223,13 @@ async function main() {
         (loads.grandma || 0) - n0 === 1 && s.recover === null && s.kept === '{"v":1,"coins":12' && c && c.rev === 1,
         `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, first copy kept ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
     }
+
+    // The preceding missing-cloud cases intentionally create a fresh farm.
+    // Re-establish an edited disposable farm for the later offline/read-timeout
+    // and sign-out recovery cases instead of claiming they cover the lost layout.
+    await P(g,async()=>{const G=__dbg.G,L=await import('./animal-pen-layout.js?v=1'),horse=L.defaultSiteRecord('horse');for(const v of horse.boundary)if(['v0','v3'].includes(v.id))v.x=-37;
+      G.S.pens.horse={owned:true,list:[0,0,0,0],meta:Array.from({length:4},(_,i)=>({name:'Second Recovery Horse '+i,love:50,loveAt:Date.now()}))};G.S.layout.animalPens={v:1,revision:3,sites:{horse}};G.S.decor.inv.utilitylamp=1;G.S.decor.placed.push({id:'utilitylamp',x:20,z:20,rotation:.57});G.view.refresh('all');G.commit();});
+    const laterEdited=await establish(uid,'later-edited');check('later recovery scenarios start with edited layout and paid object',JSON.parse(laterEdited.save).layout.animalPens.revision===3&&JSON.parse(laterEdited.save).decor.inv.utilitylamp===1);
 
     // ---- 11. no recovery, but the cloud can't be reached when the game opens: the same visit still syncs once it's back
     {

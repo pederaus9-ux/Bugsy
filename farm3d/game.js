@@ -7,6 +7,7 @@
    ============================================================ */
 
 import {decodeAnimalPens} from './animal-pen-layout.js?v=1';
+import {restoreRecovery} from './restore-recovery.js?v=1';
 import {ensureChickenCare, settleChickenCare, quoteChickenRefill, refillChickenCare, takeChickenEggs, chickenCareStatus, CHICKEN_CARE} from './chicken-care.js?v=2';
 import {quoteMarketGoods,MARKET_WINDOW_MS} from './market-sales.js?v=1';
 import {ensureCowCare,validateCowCare,settleCowCare,stockCowFeed,refillCowWater,requestCowMilking,dockCowMilking,finishCowRobotExit,takeCowMilk,acknowledgeCowReward,COW_CARE} from './cow-care.js?v=1';
@@ -318,6 +319,8 @@ export const UNREADABLE_KEY = SAVE_KEY + "-unreadable";
 const RECOVER = "sa3d-recover";
 let newerSave = false; // saved by a newer version of the game than this one: play it, but don't write it back older
 export function load() {
+  restoring = restoreRecovery.blocked();
+  if (restoring) notice('Backup recovery is unfinished. Free some storage, then reopen the game. Your recovery copies are being kept; saving is paused.');
   if (SANDBOX) { S = sandboxFarm(); return "sandbox"; }
   let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}
   if (raw) {
@@ -352,7 +355,7 @@ function notice(msg) { const show = () => (document.getElementById("loading") ? 
 // true when the farm is safely on the phone
 export function save() {
   if (SANDBOX) return true;
-  if (penPublicationFailed || restoring || window.__saHold || homeS) return false; // never save while visiting a friend's farm // __saHold: accounts (auth.js) are swapping in the farm from the cloud and reloading
+  if (penPublicationFailed || restoring || restoreRecovery.blocked() || window.__saHold || homeS) return false; // also protect an unfinished restore or an old tab after another tab restored
   if (newerSave) { // an older copy of the game (still cached) mustn't write a newer farm back in an older shape
     if (!saveWarned) { saveWarned = true; notice("🔄 A newer version of the game saved this farm. Close the game and open it again to update."); }
     return false;
@@ -383,14 +386,14 @@ function prepareOrdinarySave(){
 // ordinary saving; no actor/scheduler state is serialized into the farm.
 export function commitAnimalPenLayout({expectedFarm,expectedRevision,animalPens,canCommit,prepare,onFatal}){
  const result=code=>({ok:code==='OK',code});
- if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
+ if(SANDBOX||penPublicationFailed||restoring||restoreRecovery.blocked()||window.__saHold||homeS||newerSave)return result('READONLY');
  if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
  if(!decodeRemovedTrees(S.layout?.removedTrees).ok)return result('READONLY');
  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
  if(S!==expectedFarm||(S.layout?.animalPens?.revision??0)!==expectedRevision)return result('STALE');
  const decoded=decodeAnimalPens(structuredClone(animalPens));
  if(decoded.status!=='ok'||!decoded.value||!Number.isSafeInteger(expectedRevision+1)||decoded.value.revision!==expectedRevision+1)return result('INVALID');
- const current=()=>S===expectedFarm&&(S.layout?.animalPens?.revision??0)===expectedRevision&&!restoring&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
+ const current=()=>S===expectedFarm&&(S.layout?.animalPens?.revision??0)===expectedRevision&&!restoring&&!restoreRecovery.blocked()&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
  try{if(!current())return result('STALE');}catch{return result('STALE');}
  const oldVersion=S.v;prepareOrdinarySave();
  const candidate=structuredClone(S);candidate.layout={...candidate.layout,animalPens:decoded.value};candidate.v=Math.max(candidate.v||1,4);
@@ -416,14 +419,14 @@ export function commitAnimalPenLayout({expectedFarm,expectedRevision,animalPens,
 // Keep the same recovery barrier as pen publication if an installed scene fails.
 export function commitOrdinaryLayout({expectedFarm,expectedLayout,nextLayout,nextDecor,canCommit,prepare,onFatal}){
  const result=code=>({ok:code==='OK',code});
- if(SANDBOX||penPublicationFailed||restoring||window.__saHold||homeS||newerSave)return result('READONLY');
+ if(SANDBOX||penPublicationFailed||restoring||restoreRecovery.blocked()||window.__saHold||homeS||newerSave)return result('READONLY');
  if(S!==expectedFarm||JSON.stringify(S.layout)!==expectedLayout)return result('STALE');
  if(S.layout?.animalPens!==undefined&&decodeAnimalPens(structuredClone(S.layout.animalPens)).status!=='ok')return result('READONLY');
  if(!decodeRemovedTrees(S.layout?.removedTrees).ok)return result('READONLY');
  if(S.pens.cow?.care&&!ensureCowCare(structuredClone(S.pens.cow),now()))return result('READONLY');
  if(!nextLayout||typeof nextLayout!=='object'||!nextLayout.b||!nextLayout.t)return result('INVALID');
  if(!decodeRemovedTrees(nextLayout.removedTrees).ok)return result('INVALID');
- const current=()=>S===expectedFarm&&JSON.stringify(S.layout)===expectedLayout&&!restoring&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
+ const current=()=>S===expectedFarm&&JSON.stringify(S.layout)===expectedLayout&&!restoring&&!restoreRecovery.blocked()&&!window.__saHold&&!homeS&&!penPublicationFailed&&canCommit();
  try{if(!current())return result('STALE');}catch{return result('STALE');}
  const oldVersion=S.v;prepareOrdinarySave();
  const candidate=structuredClone(S);candidate.layout=structuredClone(nextLayout);
@@ -2269,11 +2272,15 @@ async function restoreFrom(text) {
   const when = data.at ? " from " + new Date(data.at).toLocaleDateString() : "";
   askConfirm("Restore farm?", "Restore the level " + farm.level + " farm" + when + "? The farm on this phone will be replaced.", "Restore", () => {
     restoring = true;
+    let result;
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(adopt(farm)));
-      localStorage.setItem("sa3d-restored", "1"); localStorage.setItem("sa3d-dirty", "1"); // signed in: the restored farm becomes the account's farm too (auth.js)
-      if (data.weather) localStorage.setItem(WX_KEY, JSON.stringify(Object.assign({look:"real"}, data.weather)));
-    } catch (e) { restoring = false; toast("Couldn't restore. Is the phone's storage full?"); return; }
+      result = restoreRecovery.begin(JSON.stringify(adopt(farm)), data.weather ? JSON.stringify(Object.assign({look:"real"}, data.weather)) : undefined);
+    } catch (e) { result = {status:restoreRecovery.blocked() ? 'pending' : 'refused'}; }
+    if (result.status !== 'committed') {
+      restoring = result.status === 'pending';
+      toast(restoring ? 'Backup recovery is unfinished. Free some storage, then reopen the game. Both recovery copies are kept and saving is paused.' : "Couldn't restore. Is the phone's storage full?");
+      return;
+    }
     location.reload();
   });
 }

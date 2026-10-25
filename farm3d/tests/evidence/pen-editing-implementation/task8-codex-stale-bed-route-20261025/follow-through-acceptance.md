@@ -1,0 +1,7 @@
+# Diagnostic follow-through after retained physical RED
+
+Native candidate at ddb4746 stopped on second-night bed approach skin/post intersection. Original raw result remains FAIL. First night 277.7166667 s and first full-herd wake 330.6583333 s completed. New collision is outside padded root area on an A25 intermediate cow-avoidance detour; retained first witness vertices are 100% head-bone weighted. It is distinct from the original 497-body-vertex stale-leg entry and earlier ordinary running jaw hit. Do not infer this was caused by A26 or that it blocks gameplay solely from a skin sample.
+
+One bounded diagnostic follows the same seed4242/120Hz/assembly setup through first wake and second-night bed arrival. The observer records rather than aborts on skin hits only in explicitly selected observation mode. It reports physical RED regardless of arrival and exits nonzero; default observer retains immediate failure. Original test/oracle/seeds/500-second limits/40-second wakes are unchanged. No runtime change since focused43PASS.
+
+Question: do the same46 identities actually reach their assigned beds within the original second-night500 seconds, or is bed care still blocked? Continue root speed<=.8m/s, separation>=.85m, support, containment, unique reservations, revisions, paid-state and browser-error assertions. Keep all hits including first/last time and impacted bones; no continuous-clearance or full-matrix PASS. Stop after this single observation, with remaining physical/functional failures classified separately. No third night or repeated matrix.

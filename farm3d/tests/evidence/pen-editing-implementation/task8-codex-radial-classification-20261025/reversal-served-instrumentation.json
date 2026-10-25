@@ -1,0 +1,72 @@
+[
+  {
+    "file": "farm3d/index.html",
+    "before": "clock.update(); const t =",
+    "after": "window.__movingProbe?.beginFrame(); clock.update(); const t ="
+  },
+  {
+    "file": "farm3d/index.html",
+    "before": "if(!animalPenEditing)for (const a of animals) a.update(dt, t);",
+    "after": "window.__movingProbe?.step(); if(!animalPenEditing)for (const a of animals) a.update(dt, t);"
+  },
+  {
+    "file": "farm3d/index.html",
+    "before": "if (photoWant) takePhoto();",
+    "after": "if (photoWant) takePhoto(); window.__movingProbe?.endFrame();"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "if(mode==='reference'){\n     const result=",
+    "after": "if(mode==='reference'){\n     window.__turnDiag.before(c,q,frame,stage,boxes); const result="
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "measure.queryCalls++;",
+    "after": "measure.queryCalls++;window.__turnDiag.result(result);"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "updateCow3D(c.r,dx,dz,dt,frame*dt,q.act);",
+    "after": "window.__turnDiag.nativeBegin(c,frame);updateCow3D(c.r,dx,dz,dt,frame*dt,q.act);"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "c.r.g.updateMatrixWorld(true);\n    if(dx||dz)",
+    "after": "c.r.g.updateMatrixWorld(true);window.__turnDiag.after(c);\n    if(dx||dz)"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "if(frame>=210){",
+    "after": "if(frame>=166){"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-turn-domain-diagnostic.mjs",
+    "before": "if(frame>=149)this.history.push",
+    "after": "if(frame===166)this.history.push"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-reference-moving-fixture.mjs",
+    "before": "const scheduler=createStationScheduler(yard.stations)",
+    "after": "window.__turnDiag.rootObstacles=rootObstacles;const scheduler=createStationScheduler(yard.stations)"
+  },
+  {
+    "file": "farm3d/cow3d.js",
+    "before": "export function poseCowLeg(leg,tx,tz,lift,rig){",
+    "after": "export function poseCowLeg(leg,tx,tz,lift,rig){globalThis.__turnDiag?.pose(rig,leg,tx,tz,lift);"
+  },
+  {
+    "file": "farm3d/cow3d.js",
+    "before": "l.rt=Math.min(1,l.rt+dt/.25);",
+    "after": "globalThis.__turnDiag?.recovery(r,l,l.rt);l.rt=Math.min(1,l.rt+dt/.25);"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-motion-domains.mjs",
+    "before": "let pose=ordinaryLeg(l,{tx,tz,lift},B,{planted:true,footYaw});",
+    "after": "globalThis.__turnDiag?.domain(r,request,lo,hi,i,tx,tz,lift,{reach,oldYaw,yaw,rootPos,amount,lphase,duty,step,nz,leg:Object.fromEntries(Object.entries(l).filter(([k])=>![\"hip\",\"knee\",\"foot\"].includes(k)))});let pose=ordinaryLeg(l,{tx,tz,lift},B,{planted:true,footYaw});"
+  },
+  {
+    "file": "farm3d/tests/helpers/cow-leg-enclosure.mjs",
+    "before": "throw Error('Unsupported limb domain');",
+    "after": "{globalThis.__turnDiag?.fail(p);throw Error('Unsupported limb domain');}"
+  }
+]

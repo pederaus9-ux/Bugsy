@@ -1,5 +1,5 @@
 import {createChickenYard} from './chicken-yard.js?v=5';
-import {createCowYard} from './cow-yard.js?v=4';
+import {createCowYard} from './cow-yard.js?v=5';
 import {createRemainingCareYards} from './remaining-care-yard.js?v=3';
 // Preparation owns only new resources. Nothing is attached to the live scene.
 export function preparePenYards(layout){
