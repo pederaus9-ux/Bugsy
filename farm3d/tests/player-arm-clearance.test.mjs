@@ -46,10 +46,12 @@ function collarPlanes(mesh,hand){
 }
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const cameraSource=html.slice(html.indexOf('function placeWalkCamera()'),html.indexOf('// Ultra graphics while walking:'));
+const supportStart=html.indexOf('function workshopWalkY('),supportEnd=html.indexOf('\n}',supportStart);assert(supportStart>=0&&supportEnd>supportStart,'missing supported walk height');
+const supportSource=html.slice(supportStart,supportEnd+2);
 const records=[];
 for(const pitch of [-80,-69,0,80])for(const mode of ['idle','walk','run','reach','pat'])test(`native fallback full cap has strict clearance: ${mode}, pitch ${pitch}`,()=>{
  const f=fallbackFixture(installPlayerMotion);Object.assign(f.ctx.walk,{pitch:pitch*Math.PI/180,yaw:.7});f.ctx.ground=1.2;
- const place=vm.runInNewContext(cameraSource+';placeWalkCamera',{walk:f.ctx.walk,groundY:()=>f.ctx.ground,farmer:{visible:false},thirdPerson:false,camera:f.camera,EYE:1.6,sun:{target:{position:new T.Vector3()},position:new T.Vector3()},sunDir:new T.Vector3(0,1,0)});
+ const place=vm.runInNewContext(supportSource+'\n'+cameraSource+';placeWalkCamera',{walk:f.ctx.walk,workshopGroundY:()=>f.ctx.ground,buildings:{},BUILD_SPOT:{},farmer:{visible:false},thirdPerson:false,camera:f.camera,EYE:1.6,sun:{target:{position:new T.Vector3()},position:new T.Vector3()},sunDir:new T.Vector3(0,1,0)});
  const attachment=installArmAttachment({THREE:T,camera:f.camera,fallback:f.hands,getContext:()=>f.ctx}),points=f.hands.children.map(nativeCap);
  let minimum=Infinity,samples=0,firstFailure=null;
  try{for(let frame=0;frame<90;frame++){
@@ -77,3 +79,5 @@ for(const pitch of [-80,-69,0,80])for(const mode of ['idle','walk','run','reach'
  }finally{attachment.dispose();f.motion.dispose();}
 });
 test.after(()=>{if(!process.env.TEST_ARTIFACTS)return;mkdirSync(process.env.TEST_ARTIFACTS,{recursive:true});writeFileSync(path.join(process.env.TEST_ARTIFACTS,'native-cap-clearance.json'),JSON.stringify({cases:records.length,joints:records.reduce((n,r)=>n+r.samples,0),records},null,2)+'\n');});
+
+test('native walk support resolves flat ground and authored ramp, rejecting wrong-height substitution',()=>{const ctx={workshopGroundY:()=>1.2,buildings:{loom:{site:{ok:true,needsRamp:true,floorY:1.55,approachY:1.2}}},BUILD_SPOT:{loom:[0,0]}};const y=vm.runInNewContext(supportSource+';workshopWalkY',ctx);const check=fn=>{for(const[x,z,h]of [[0,1.7,1.55],[0,3.2,1.375],[0,4.7,1.2],[1,3.2,1.2]])assert(Math.abs(fn(x,z)-h)<1e-12,'support height '+[x,z]);};check(y);assert.throws(()=>check(()=>1.2));const f=fallbackFixture(installPlayerMotion);try{assert.throws(()=>vm.runInNewContext(cameraSource+';placeWalkCamera();',{walk:f.ctx.walk,groundY:()=>1.2}),/workshopWalkY is not defined/);}finally{f.motion.dispose();}});

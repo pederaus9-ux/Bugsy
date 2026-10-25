@@ -58,7 +58,11 @@ const {start,artifacts}=require('./browser-harness.cjs');
    assert.equal(integration.phase,integration.afterPhase);assert.ok(integration.amount<1e-10);assert.equal(integration.hit,'animal');assert.equal(integration.kind,'cow');assert.ok(integration.savePreserved);
    assert.equal(integration.picking.skinHit,true,'actual skinned cow is picked without the screen-distance fallback');
    assert.deepEqual(errors,[]);console.log('PASS 3D cow farm travel, blocking, picking and sandbox save',viewport.width);
-   await page.goto(h.base+'farm3d/characters3d.html?capture&debug');await page.waitForFunction(()=>window.cowPreview,null,{timeout:30000});
+   const navigation=viewport.width===1280?await require('./navigation-timing-diagnostic.cjs').navigationTiming(page,artifacts,'cow3d-1280'):null;
+   navigation?.mark('goto-call',{deadlineMs:30000});
+   try{await page.goto(h.base+'farm3d/characters3d.html?capture&debug');navigation?.mark('goto-return');await page.waitForFunction(()=>window.cowPreview,null,{timeout:30000});navigation?.mark('preview-ready');}
+   catch(e){navigation?.mark('navigation-or-preview-failed',{message:e.message});throw e;}
+   finally{await navigation?.finish();}
    for(const mode of ['idle','walk','run','eat']){
     await page.locator('[data-mode="'+mode+'"]').click();
     const check=await page.evaluate(()=>{for(let i=0;i<180;i++)cowPreview.step(1/60);const c=cowPreview.cow;return {amount:c.state.amount,distance:c.state.distance,run:c.state.run,bones:c.card.skeleton.bones.length,angle:c.neck.rotation.x};});

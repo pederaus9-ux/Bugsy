@@ -14,7 +14,7 @@ const edited=raw=>{const o=JSON.parse(raw);return {layout:o.layout.animalPens,ho
   for(const mutate of [o=>o.layout.animalPens.revision++,o=>o.layout.animalPens.sites.horse.boundary[0].x++,o=>o.pens.horse.list.pop(),o=>o.decor.inv.utilitylamp=0,o=>o.v=3]){const bad=structuredClone(sample);mutate(bad);assert.throws(()=>assertEdited(JSON.stringify(bad),expected));}console.log('PASS five edited-save corruption controls');
   await resetEmulators();
   const E = await startEmu(); let failed = true;
-  const devices = [];
+  const devices = [], diagnostics = [];
   try {
     const state = p => E.P(p, () => ({raw:localStorage.getItem('sunny-acres-3d-v1'),
       dirty:localStorage.getItem('sa3d-dirty'), rev:+localStorage.getItem('sa3d-sync-rev'),
@@ -117,12 +117,14 @@ const edited=raw=>{const o=JSON.parse(raw);return {layout:o.layout.animalPens,ho
       assert.equal((await readDoc('farms/'+uid)).save,cloud.save,'showing chooser changes no cloud farm');
       // The inactive document is hidden, so dispatch through the actual DOM
       // handler rather than asking Playwright to bring it to the foreground.
+      const diagnostic=await require('./conflict-choice-diagnostic.cjs').choiceDiagnostic(b.page,artifacts,mode+'-'+choice);diagnostics.push(diagnostic);diagnostic.choice();
       await E.P(b,pick=>document.querySelector('[data-pick="'+pick+'"]').click(),choice);
       const selected = choice+'-'+choice;
       await E.until(b,marker=>window.__ready&&window.__dbg?.G.S.__sentinel===marker&&window.saAuth.user,selected,180000);
       await freeze(b);
       let c = await readDoc('farms/'+uid), s = await state(b);
-      assert.equal(JSON.parse(c.save).__sentinel,selected);
+      try{assert.equal(JSON.parse(c.save).__sentinel,selected);diagnostic.assertion(c,s,selected,false);}
+      catch(error){diagnostic.assertion(c,s,selected,true);await diagnostic.follow(()=>readDoc('farms/'+uid));throw error;}
       assert.equal(s.coins,choice==='cloud'?320:220);
       if(choice==='cloud') {
         assert.equal(s.backupPhone,exactPhone,'unselected phone save backed up byte for byte');
@@ -143,12 +145,13 @@ const edited=raw=>{const o=JSON.parse(raw);return {layout:o.layout.animalPens,ho
         selectedMarker:s.marker,coins:s.coins,backupBytes:Buffer.byteLength(backup),staleFarmWrites:0});
       fs.writeFileSync(path.join(artifacts,'conflicts-results.json'),JSON.stringify({results,failed:true},null,2));
       console.log('PASS same-account '+mode+' '+choice+' choice: stale upload refused, progress and byte-exact backup survive reload');
-      await E.sleep(b); await a.context.close(); await b.context.close();
+      await diagnostic.finish();await E.sleep(b); await a.context.close(); await b.context.close();
     }
     assert.deepEqual(E.denials,[],'no permissions errors in intended game operations');
     assert.equal(economyCalls.length,0,'production-shaped test never enables verified economy');
     failed = false;
   } finally {
+    for(const diagnostic of diagnostics)await diagnostic.finish();
     fs.writeFileSync(path.join(artifacts,'conflicts-results.json'),JSON.stringify({results,failed},null,2));
     if(failed)for(const p of devices)if(p.page&&!p.page.isClosed())
       await p.page.screenshot({path:path.join(artifacts,p.name+'-failure.png'),timeout:15000}).catch(()=>{});
