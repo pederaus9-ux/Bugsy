@@ -18,7 +18,7 @@ on:
         type: choice
         required: true
         default: all
-        options: [all, affected-cache-recovery, affected-recovery, a35-fixtures-integrity]
+        options: [all, affected-cache-recovery, affected-recovery, a35-fixtures-integrity, a38-cache-only]
 permissions:
   contents: read
 concurrency:
@@ -156,31 +156,36 @@ jobs:
           echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
       - name: Original selected 49 focused checks
-        if: ${{ success() && inputs.qualification_set != 'affected-cache-recovery' }}
+        if: ${{ success() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
         run: |
           set -o pipefail
           node --test farm3d/tests/restore-recovery.test.mjs farm3d/tests/restore-recovery-scope.test.mjs farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/ordinary-layout-transaction.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/versions.test.mjs farm3d/tests/sdk.test.mjs 2>&1 | tee artifacts/a29/pen-cache/focused.log
       - name: Historical source resolver and corruption controls
-        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
         run: |
           set -o pipefail
           node --test farm3d/tests/qualification-source.test.cjs 2>&1 | tee artifacts/a29/pen-cache/source-controls.log
       - name: Original installed v72 to v73 transition
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'a38-cache-only' }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v72-v73
         run: |
           set -o pipefail
           node farm3d/tests/animal-pen-cache-v72-to-v73.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v72-v73.log
       - name: Original installed v73 to current v74 transition
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'a38-cache-only' }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v73-v74
         run: |
           set -o pipefail
           node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v73-v74.log
+      - name: Installed v74 to v75 auth update (A38 only)
+        if: ${{ !cancelled() && inputs.qualification_set == 'a38-cache-only' }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v74-v75
+        run: node farm3d/tests/animal-pen-cache-v74-to-v75.browser.cjs
       - name: Original gate relocation seed1 at120Hz three-night journey
-        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' }}
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
         env:
           PEN_MATRIX_EDIT_CLASS: gate
           PEN_MATRIX_SEED: '1'
@@ -199,7 +204,7 @@ jobs:
           retention-days: 14
   recovery_restore:
     name: Original recovery and interrupted manual restore (demo emulators)
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'a35-fixtures-integrity' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'a35-fixtures-integrity' && inputs.qualification_set != 'a38-cache-only' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
