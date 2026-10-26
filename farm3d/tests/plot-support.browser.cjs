@@ -1,4 +1,4 @@
-const fs=require('fs'),assert=require('assert/strict');const {start}=require('./qualification-cdp.cjs');const out='C:/Users/peder/Documents/Codex/2026-10-22/task/SunnyAcres-field-diagnosis-20261026/native-actions-guest-approved';
+const fs=require('fs'),assert=require('assert/strict');const {start}=require('./qualification-cdp.cjs');const out=require('path').resolve(process.env.TEST_ARTIFACTS||require('path').join(__dirname,'artifacts','plot-support-native'));
 (async()=>{let h,phase='setup';const report={steps:[],events:[],status:'RUNNING',disposable:true,cloudBlocked:true};try{h=await start(out,'HEAD');
 const record=(event,data)=>{if(report.events.length<96)report.events.push({event,phase,ms:performance.now(),...data});};
 h.cdp.on('Page.frameNavigated',p=>record('frameNavigated',{frame:p.frame.id,path:(()=>{try{return new URL(p.frame.url).pathname;}catch{return '[none]';}})()}));

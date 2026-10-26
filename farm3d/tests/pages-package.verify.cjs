@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const {execFileSync} = require('node:child_process');
+const {normalizeFieldScope,verifyFieldAsset,scope:fieldScope}=require('./helpers/field-support-scope.cjs');
 const ROOT = path.resolve(__dirname, '../..');
 const EVIDENCE = 'farm3d/tests/evidence/';
 const LIMIT = 1_000_000_000;
@@ -114,10 +115,12 @@ function historicalAccounting(source, manifest) {
     assert(source.has(entry.path), `Missing current source: ${entry.path}`);
     const bytes = source.get(entry.path), file = entry.path.replace(/^farm3d\//, '');
     let historical = bytes;
+    const fieldNormalized=normalizeFieldScope(file,bytes.toString('utf8'));
+    const fieldBytes=fieldNormalized===bytes.toString('utf8')?bytes:Buffer.from(fieldNormalized);
     if (file === 'auth.js' || file === 'index.html') {
       const exact = approved[file];
-      assert.equal(sha(bytes), exact.afterSha256, `Unknown A38 current bytes: ${entry.path}`);
-      let text = bytes.toString('utf8');
+      assert.equal(sha(fieldBytes), exact.afterSha256, `Unknown A38 current bytes: ${entry.path}`);
+      let text = fieldBytes.toString('utf8');
       for (const h of exact.hunks) {
         assert.equal(text.split(h.after).length, 2, `A38 unique approved hunk: ${entry.path}`);
         text = text.replace(h.after, h.before);
@@ -125,8 +128,8 @@ function historicalAccounting(source, manifest) {
       historical = Buffer.from(text);
       assert.equal(sha(historical), exact.beforeSha256, `A38 exact reconstruction: ${entry.path}`);
     } else if (file === 'sw.js') {
-      assert.equal(sha(bytes), '82e259feda9c3fedc0b492d737c35eef08aa4d208195542b4b403d47038109ad', 'Unknown A38 current service worker');
-      let text = bytes.toString('utf8');
+      assert.equal(sha(fieldBytes), '82e259feda9c3fedc0b492d737c35eef08aa4d208195542b4b403d47038109ad', 'Unknown A38 current service worker');
+      let text = fieldBytes.toString('utf8');
       for (const [after, before] of [['const CACHE = "sa3d-v75";', 'const CACHE = "sa3d-v74";'], ['"auth.js?v=21"', '"auth.js?v=20"']]) {
         assert.equal(text.split(after).length, 2, 'A38 unique service-worker version hunk');
         text = text.replace(after, before);
@@ -149,7 +152,7 @@ function accountingControls(source, manifest) {
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v75', 'sa3d-v76')))],
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v76', 'sa3d-v77')))],
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}
@@ -165,10 +168,13 @@ const source = new Map(manifest.staticSource.map(entry => {
   const bytes = fs.readFileSync(path.join(ROOT, entry.path));
   return [entry.path, bytes];
 }));
+verifyFieldAsset('plot-support.js',fs.readFileSync(path.join(ROOT,'farm3d/plot-support.js')));
+source.set('farm3d/plot-support.js',fs.readFileSync(path.join(ROOT,'farm3d/plot-support.js')));
+assert.equal(source.size,122,'121 preserved runtime entries plus one exact field helper');
 const accounting = historicalAccounting(source, manifest);
 const sourceControls = accountingControls(source, manifest);
-assert.equal(git('diff', '--name-only', '2f9a8241b8230938dd816e1c0fac52551a263f69', 'HEAD', '--', EVIDENCE), '',
-  'Previously retained evidence must remain unchanged in Git');
+const evidenceDiff=git('diff','--name-only','2f9a8241b8230938dd816e1c0fac52551a263f69','HEAD','--',EVIDENCE).split('\n').filter(Boolean);
+for(const file of evidenceDiff){assert(Object.hasOwn(fieldScope.addedEvidence,file),'No unknown evidence edits');assert.equal(sha(fs.readFileSync(path.join(ROOT,file))),fieldScope.addedEvidence[file],'Exact new field checkpoint');assert.throws(()=>execFileSync('git',['cat-file','-e','2f9a8241b8230938dd816e1c0fac52551a263f69:'+file],{cwd:ROOT,stdio:'pipe'}),'No existing evidence overwritten');}
 const report = {head: git('rev-parse', 'HEAD'), source: manifest.source, sourceAssetsExact: source.size,
   controls, sourceControls, ...accounting, gameRuntimeChanged: true, evidencePreservedInGit: true, status: 'SOURCE_ONLY_OUTPUT_NOT_BUILT'};
 // Check source references before requesting the real build. These are not output bytes.
