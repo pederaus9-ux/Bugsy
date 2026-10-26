@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import * as THREE from '../lib/three.module.min.js';import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from '../animal-pen-geometry.js';
+import {resolveAnimalPens} from '../animal-pen-layout.js';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 function fixture(poly){const pen={poly,custom:true},c={THREE,pen,pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint,PENS:{courtyard:{}},PEN_LIST:[pen],OBST:[],HOME:new THREE.Vector2(1,3),ROAM:19};vm.createContext(c);vm.runInContext(html.slice(html.indexOf('function edgeDepths('),html.indexOf('// where the animals may not walk')),c);c.fitsPen=(p,x,z,m)=>pointInPolygon([x,z],p.poly,m);vm.runInContext(html.slice(html.indexOf('const toLocal ='),html.indexOf('const blocked =')),c);return c;}
 const L=[[0,0],[6,0],[6,2],[2,2],[2,6],[0,6]];
@@ -14,6 +15,8 @@ test('narrow cow expansion retains the ordinary planner margin and failed go ret
  assert(segmentInPolygon([from.x,from.y],[goal.x,goal.y],poly,.95));
  assert(!pointInPolygon([from.x,from.y],poly,1.6));
  const a={kind:'cow',pen:c.pen,pos:from,S:{r:.9},fit:v=>c.intoPen(c.pen,v,1.25)};
+ Object.assign(c,{cowYardActive:true,cowYard:{stations:resolveAnimalPens().sites.cow.stations},PRESET:{}});a.g={position:new THREE.Vector3(from.x,0,from.y)};
+ vm.runInContext(html.slice(html.indexOf('function ordinaryDayTarget('),html.indexOf('\nclass Beast {')),c);
  c.a=a;const start=html.indexOf('  go(x, z, running, label, doing) {'),end=html.indexOf('\n  stay(',start);assert(start>=0&&end>start);
  vm.runInContext('({'+html.slice(start,end)+'}).go.call(a,10.6,-39.1,false,"narrow target")',c);
  assert.equal(a.target,undefined);assert.equal(a.path.length,0);

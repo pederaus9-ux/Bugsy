@@ -3,12 +3,13 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const {start,root}=require('./qualification-cdp.cjs');
+const {readSource}=require('./qualification-source.cjs');
 const oldRef='806182677159e955cab914fcd0a1c2c0d197dbab';
-const currentRef=execFileSync('git',['rev-parse','HEAD'],{cwd:root}).toString().trim();
+const currentRef='4c3335ac80393aaf261ebac87a5c3da062982ba7'; // Immutable historical candidate; not the current HEAD.
 const out=path.resolve(process.env.TEST_ARTIFACTS||path.join(__dirname,'artifacts','animal-pen-cache-predecessor'));
 const report={status:'RUNNING',oldRef,currentRef,steps:[]};let h,stage='launch';
 const record=(name,value)=>{report.steps.push({name,value});fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2));console.log('PASS '+name);};
-const digest=file=>crypto.createHash('sha256').update(execFileSync('git',['show',currentRef+':farm3d/'+file],{cwd:root})).digest('hex');
+const digest=file=>crypto.createHash('sha256').update(readSource(currentRef,'farm3d/'+file)).digest('hex');
 const snapshot=()=>h.cdp.evaluate(`(()=>{const d=__dbg,S=d.G.S;return {raw:localStorage.getItem(d.G.SAVE_KEY),horses:d.animals.filter(a=>a.kind==='horse'&&!a.gone).length,owned:!!S.pens.horse?.owned,custom:!!d.remainingLayouts.horse.custom,revision:S.layout?.animalPens?.revision??null,polygon:d.PEN_LIST.find(p=>p.care==='horse')?.poly};})()`);
 function sameFarm(before,after,window){
  const a=JSON.parse(before.raw),b=JSON.parse(after.raw),prior=a.lastSeen;

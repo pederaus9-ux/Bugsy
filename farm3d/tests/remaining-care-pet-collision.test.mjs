@@ -1,10 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {remainingWorld} from './remaining-care-world.mjs';
 import * as N from '../remaining-care-navigation.js';
 import {pointInPolygon} from '../animal-pen-geometry.js';
 const retained=JSON.parse(fs.readFileSync(new URL('./evidence/pen-editing-implementation/task7-codex-pet-pocket-20261022/source-five-snapshots.json',import.meta.url),'utf8'));
+test('shared remaining-care fixture includes native daytime bed targeting and rejects its omission',()=>{
+ const f=remainingWorld(41);
+ try{for(const kind of ['horse','sheep','dog','cat']){const a=f.animals.find(a=>a.kind===kind),layout=f.layouts[kind],bed=layout.stations.find(s=>s.kind==='bed'),dock=a.pos.clone().set(bed.dock[0],bed.dock[2]),expected=[bed.approach[0],bed.approach[2]];
+  assert.deepEqual(f.api.ordinaryDayTarget(dock,layout.stations,layout.margin).toArray(),expected);
+  assert.notDeepEqual(dock.toArray(),expected,'identity helper must not satisfy this control');
+  const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'),i=html.indexOf('  go(x, z, running, label, doing) {'),j=html.indexOf('\n  stay(',i),c={THREE:f.c.THREE,PRESET:{},remainingSites:f.c.remainingSites,remainingLayouts:f.layouts,a};
+  assert.throws(()=>vm.runInNewContext('({'+html.slice(i,j)+'}).go.call(a,0,0,false)',c),/ordinaryDayTarget is not defined/);
+ }}finally{f.dispose();}
+});
 
 for(const kind of ['dog','cat'])for(const hz of [30,60,120])test(`ordinary ${kind} at ${hz}Hz cannot steer into the real barn`,()=>{
  const f=remainingWorld(41),a=f.animals.find(a=>a.kind===kind),dt=1/hz;

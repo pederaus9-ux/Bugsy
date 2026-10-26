@@ -7,10 +7,14 @@ import * as Cow3D from '../cow3d.js';
 import * as support from '../animal-pen-cow-support.js';
 import {getAnimalCarePose} from '../animal-care-poses.js';
 import {resolveAnimalPens,defaultSiteRecord} from '../animal-pen-layout.js';
+import {createCowYard} from '../cow-yard.js';
+import {pointInPolygon,segmentInPolygon} from '../animal-pen-geometry.js';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 function slice(start,end){const a=html.indexOf(start),b=html.indexOf(end,a+start.length);assert(a>=0&&b>a);return html.slice(a,b);}
 const ordinary=slice('    if (this.rig3d) {','    // face the way it walks');
 const directed=slice('function updateCowTaskStep(', '\nbootStep("making the sky")');
+function nativeFunction(name){const a=html.indexOf('function '+name+'('),b=html.indexOf('\n}',a);assert(a>=0&&b>a,'missing native '+name);return html.slice(a,b+2);}
+const directedDependencies=slice('const toLocal =','const blocked =')+'\n'+nativeFunction('cowGateSegmentClear')+'\n'+nativeFunction('cowSharedCornerDetour');
 const record=defaultSiteRecord('cow');record.boundary[1].x+=3;
 const site=resolveAnimalPens({v:1,revision:1,sites:{cow:record}}).sites.cow;
 const sample=(x,z)=>x<=9.8&&z>=-40.2&&z<=-32.8?.08:0;
@@ -21,7 +25,9 @@ for(const mode of ['ordinary','directed'])test('actual '+mode+' runtime supports
   a.rig3d.model.rotation.y=Math.atan2(-direction,0);
   a.cowTask={kind:'feed',stage:'approach',weight:0,station:{id:'feed',facing:0},path:[new THREE.Vector2(goal,-39.1)],waypoints:[]};
   const c=vm.createContext({THREE,Cow3D,...support,cowSupportY:sample,COW_YARD_LAYOUT:{custom:true,floor:.08,obstacles:[]},PENS:{courtyard:a.pen},animals:[a],cowStatus:{feed:1,cows:[{}]},getAnimalCarePose,PRESET:{},nowMs:()=>0,cowIdOf:()=> 'cow',cowStations:{arrive(){}},cowSurfaces:new Map(),P:a.P,releaseCowTask(){a.cowTask=null;},a,dt:1/hz,t:0});
-  if(mode==='directed')vm.runInContext(directed,c);
+  const yard=createCowYard({north:25,layout:site});
+  Object.assign(c,{cowYard:yard,OBST:site.obstacles.map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0})),HOME:new THREE.Vector2(1,3),ROAM:19,pointInPolygon,segmentInPolygon,fitsPen:(p,x,z,m)=>pointInPolygon([x,z],site.polygon,m)});
+  if(mode==='directed')vm.runInContext(directedDependencies+'\n'+directed,c);
   let previous=[],movingPlanted=0;
   try{for(let i=0;i<4*hz;i++){
    const before=a.g.position.clone();c.ox=before.x;c.oz=before.z;c.t=(i+1)/hz;
@@ -39,7 +45,7 @@ for(const mode of ['ordinary','directed'])test('actual '+mode+' runtime supports
    if(mode==='directed'&&a.cowTask.stage==='align')break;
   }
   assert(movingPlanted>hz,'nonvacuous planted coverage');assert(Math.abs(a.g.position.x-goal)<.04);assert(Math.abs(a.g.position.y-sample(goal,-39.1))<1e-10);
-  }finally{a.carePose?.reset();a.rig3d.dispose();}
+  }finally{a.carePose?.reset();a.rig3d.dispose();yard.dispose();}
  }
 });
 test('runtime support sampler follows the shelter slab, independently of expanded fence',()=>{

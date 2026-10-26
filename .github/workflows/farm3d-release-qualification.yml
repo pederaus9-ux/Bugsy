@@ -18,7 +18,7 @@ on:
         type: choice
         required: true
         default: all
-        options: [all, affected-cache-recovery, affected-recovery]
+        options: [all, affected-cache-recovery, affected-recovery, a35-fixtures-integrity]
 permissions:
   contents: read
 concurrency:
@@ -60,9 +60,75 @@ jobs:
           path: farm3d/firebase/artifacts/
           if-no-files-found: error
           retention-days: 14
+  a35_fixtures_integrity:
+    name: Consolidated fixtures and supplemental fresh-context integrity
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set == 'a35-fixtures-integrity' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Fetch immutable historical test inputs
+        run: git fetch --no-tags --depth=1 origin 806182677159e955cab914fcd0a1c2c0d197dbab 4c3335ac80393aaf261ebac87a5c3da062982ba7 1115f93101a0e86fdcc9780e053c17b73dd6dac5 bf404a2a1261f3c7581025b249f2bd00c4539964
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Install locked test dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned sandboxed Chromium
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Record exact source and disposable browser paths
+        run: |
+          mkdir -p artifacts/a35
+          git rev-parse HEAD > artifacts/a35/source-sha.txt
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Original affected fixtures and shared dependents with added controls
+        run: node --test farm3d/tests/animal-pen-cow-runtime.test.mjs farm3d/tests/animal-pen-cow-wait-route.test.mjs farm3d/tests/animal-pen-route-recovery.test.mjs farm3d/tests/animal-pen-scene-routing.test.mjs farm3d/tests/remaining-care-pet-collision.test.mjs farm3d/tests/remaining-care-decisions.test.mjs farm3d/tests/remaining-care-beast.test.mjs
+      - name: Preserved historical v71 to v72 transition
+        if: ${{ !cancelled() }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v71-v72
+        run: node farm3d/tests/animal-pen-cache-v71-to-v72.browser.cjs
+      - name: Preserved main v63 to v73 transition
+        if: ${{ !cancelled() }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v63-v73
+        run: node farm3d/tests/animal-pen-cache-main-v63-to-v73.browser.cjs
+      - name: Original cow predecessor to current installed candidate
+        if: ${{ !cancelled() }}
+        run: node farm3d/tests/cow-update.browser.cjs
+      - name: Supplemental integrity controls and isolated demo scenario
+        if: ${{ !cancelled() }}
+        working-directory: farm3d/firebase
+        run: |
+          node tests/quota-state-integrity.browser.cjs --controls
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/quota-state-integrity.browser.cjs"
+      - name: Retain separate small outcomes without raw console logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-a35-fixtures-integrity-${{ github.run_attempt }}
+          path: |
+            artifacts/a35/source-sha.txt
+            artifacts/a35/**/results.json
+            farm3d/tests/artifacts/cow-update/results.json
+            farm3d/firebase/artifacts/quota-state-integrity.json
+          if-no-files-found: error
+          retention-days: 14
   pen_cache:
     name: Targeted pen, restore guards and installed cache transitions
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'affected-recovery' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'affected-recovery' && inputs.qualification_set != 'a35-fixtures-integrity' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
@@ -133,7 +199,7 @@ jobs:
           retention-days: 14
   recovery_restore:
     name: Original recovery and interrupted manual restore (demo emulators)
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'a35-fixtures-integrity' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
