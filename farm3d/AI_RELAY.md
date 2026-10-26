@@ -2060,3 +2060,7 @@ AutomaticreviewREJECTEDprepare-field-releasescriptbeforeexecution because broads
 ### Approved narrow field-only release accounting
 
 Owner Sentinel_38e100e109b0819181fe40eee50ca435 approves immutable historical v75 pinning, separate v75-to-v76 journey and exact field hash reconstruction; the denied broad script was not replayed. Pre-edit digests are in FIELD_RELEASE_APPROVAL.json. New scope reconstructs ac4c438 exactly before unchanged A38/frozen guards. Seven scope/arm checks and source-only package with122assets and all11existing corruption controls PASS. Current main unchanged; field runtime only index/support/SW, controls9fcaaf2 excluded. Browser upgrade and real package build remain pending; no remote writes yet.
+
+### Field-only local release qualification complete
+
+At082669d,132focusedchecksPASS including unchanged A25/A26/A28 and new exact field controls. Independent v75-to-v76 upgrade: fivephasesPASS, exactindex/support/game/auth/recoverycachehashes,30supportedroots,plantedcrop and4horsecustompen preserved,zerooffline responses. RestrictedChromecrashpadlaunchfailedbeforegame; normalprocessaccesswithsandboxflagsunchangedpassed, originalreceiptretained. Matchedbefore/afterrendersinspectedshowexposedfrontbeds. Originalstrictnativefivephases/nineassertionsat5085remain source-equivalent; hostednative rerun configured. YAMLread-onlyworkflowvalid. RealPagesbuild andexact-headCI/independentreviewpending. Controlsremain9fcaaf2separate;no mergeyet.
