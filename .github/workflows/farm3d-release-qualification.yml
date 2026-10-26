@@ -135,6 +135,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Fetch and verify immutable v74 input (A38 only)
+        if: ${{ inputs.qualification_set == 'a38-cache-only' }}
+        run: |
+          git fetch --no-tags --depth=1 origin 4e91a6628bb53b709b5ef643551651a44180ab94
+          test "$(git rev-parse FETCH_HEAD)" = "4e91a6628bb53b709b5ef643551651a44180ab94"
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
