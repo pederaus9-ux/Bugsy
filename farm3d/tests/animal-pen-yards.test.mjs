@@ -4,7 +4,40 @@ const pr95=JSON.parse(fs.readFileSync(new URL('./fixtures/animal-pen-render-pr95
 const frozen={...pr95,sites:{...pr95.sites,horse:a2.render}};
 function site(kind,component=null,delta=[2,-1]){const s=defaultSiteRecord(kind);if(component){s.structures[component]=s.structures[component].map((n,i)=>n+delta[i]);}return resolveAnimalPens({v:1,revision:1,sites:{[kind]:s}}).sites[kind];}
 const dispose=ys=>Object.values(ys).forEach(y=>y.dispose());
-test('identityFactoriesMatchAcceptedGeometry',()=>{const defs={chicken:createChickenYard(),cow:createCowYard({north:25}),...createRemainingCareYards()},layouts=Object.fromEntries(['chicken','cow','horse','sheep','dog','cat'].map(k=>[k,site(k)])),custom={chicken:createChickenYard({layout:layouts.chicken}),cow:createCowYard({north:25,layout:layouts.cow}),...createRemainingCareYards({layouts})};try{for(const kind of Object.keys(defs)){assert.deepEqual(meshReceipt(defs[kind].group),frozen.sites[kind],kind+' default changed');assert.deepEqual(meshReceipt(custom[kind].group),frozen.sites[kind],kind+' identity custom geometry changed');}}finally{dispose(defs);dispose(custom);}});
+// A37: account only for A21's approved parked-open poses; retain the full PR95 receipt.
+function acceptedIdentityReceipt(y,kind){
+  if(kind!=='cow')return meshReceipt(y.group);
+  const entry=y.robot.entryGate,exit=y.robot.exitGate;
+  assert.equal(entry.rotation.y,Math.PI/2,'A21 entry parked rotation');
+  assert.equal(exit.rotation.y,-Math.PI/2,'A21 exit parked rotation');
+  assert.equal(entry.position.x,-4.35+.10,'A21 entry parked offset');
+  assert.equal(exit.position.x,-4.35+.18,'A21 exit parked offset');
+  const native=[entry.rotation.y,exit.rotation.y,entry.position.x,exit.position.x];
+  try{
+    entry.rotation.y=-Math.PI/2;exit.rotation.y=Math.PI/2;
+    entry.position.x=exit.position.x=-4.35;
+    return meshReceipt(y.group);
+  }finally{
+    [entry.rotation.y,exit.rotation.y,entry.position.x,exit.position.x]=native;
+    y.group.updateMatrixWorld(true);
+  }
+}
+test('identityFactoriesMatchAcceptedGeometry',()=>{const defs={chicken:createChickenYard(),cow:createCowYard({north:25}),...createRemainingCareYards()},layouts=Object.fromEntries(['chicken','cow','horse','sheep','dog','cat'].map(k=>[k,site(k)])),custom={chicken:createChickenYard({layout:layouts.chicken}),cow:createCowYard({north:25,layout:layouts.cow}),...createRemainingCareYards({layouts})};try{for(const kind of Object.keys(defs)){assert.deepEqual(acceptedIdentityReceipt(defs[kind],kind),frozen.sites[kind],kind+' default changed');assert.deepEqual(acceptedIdentityReceipt(custom[kind],kind),frozen.sites[kind],kind+' identity custom geometry changed');}}finally{dispose(defs);dispose(custom);}});
+
+for(const custom of[false,true]){
+  const make=()=>createCowYard({north:25,...(custom?{layout:site('cow')}:{})});
+  for(const[name,mutate]of[
+    ['wrong parked rotation',y=>{y.robot.entryGate.rotation.y=-Math.PI/2;}],
+    ['missing parked offset',y=>{y.robot.exitGate.position.x=-4.35;}],
+    ['missing gate mesh',y=>{y.robot.entryGate.parent.remove(y.robot.entryGate);}],
+    ['unrelated yard translation',y=>{y.group.position.x=.001;}]
+  ])test('A37 '+(custom?'identity-custom':'default')+' receipt rejects '+name,()=>{
+    const y=make();try{mutate(y);assert.throws(()=>assert.deepEqual(acceptedIdentityReceipt(y,'cow'),frozen.sites.cow));}finally{y.dispose();}
+  });
+  test('A37 '+(custom?'identity-custom':'default')+' accounting restores native poses',()=>{
+    const y=make();try{const before=meshReceipt(y.group);assert.deepEqual(acceptedIdentityReceipt(y,'cow'),frozen.sites.cow);assert.deepEqual(meshReceipt(y.group),before);}finally{y.dispose();}
+  });
+}
 test('translatedRobotIncludesTankPipeAndAnimatedParts',()=>{const before=createCowYard({north:25}),after=createCowYard({north:25,layout:site('cow','robot')});try{for(const name of ['cow-robot','cow-pipe','cow-tank']){const old=before.group.getObjectByName(name),next=after.group.getObjectByName(name);const original=old.userData.bounds?old.userData.bounds.clone().union(bounds(old)):bounds(old);assertShift(assert,original,bounds(next),[2,0,-1]);}assert.deepEqual(after.layout.robot.dock,[before.layout.robot.dock[0]+2,before.layout.robot.dock[1],before.layout.robot.dock[2]-1]);after.setRobotPose(.5);assertShift(assert,bounds(before.robot.entryGate),bounds(after.robot.entryGate),[2,0,-1]);assertShift(assert,bounds(before.group.getObjectByName('cow-feed')),bounds(after.group.getObjectByName('cow-feed')),[0,0,0]);}finally{before.dispose();after.dispose();}});
 test('translatedCoopIncludesBothRamps30Beds',()=>{const before=createChickenYard(),after=createChickenYard({layout:site('chicken','coop')});try{assert.equal(after.stations.filter(s=>s.kind==='bed').length,30);for(let i=0;i<2;i++){const old=before.accesses[i],next=after.accesses[i];assert.deepEqual(next.rampStart,[old.rampStart[0]+2,old.rampStart[1],old.rampStart[2]-1]);const mid=[next.rampStart[0],(next.rampStart[2]+next.rampEnd[2])/2];assert(Math.abs(after.sampleStationSupport('hen-bed-0',...mid).height-next.floor/2)<1e-8);}assertShift(assert,bounds(before.targets[0].object),bounds(after.targets[0].object),[2,0,-1]);assertShift(assert,bounds(before.targets[1].object),bounds(after.targets[1].object),[0,0,0]);assert.equal(after.sampleStationSupport('hen-bed-0',-14.2,-4.5).inside,false);}finally{before.dispose();after.dispose();}});
 test('oldFootprintsNoLongerCollide',()=>{const before=createRemainingCareYards(),after=createRemainingCareYards({layouts:{dog:site('dog','nook'),horse:site('horse','shelter')}});try{for(const kind of ['dog','horse'])for(let i=0;i<before[kind].beds.length;i++){assertShift(assert,bounds(before[kind].beds[i]),bounds(after[kind].beds[i]),[2,0,-1]);assert.deepEqual(after[kind].layout.stations[i*3]?.id,before[kind].layout.stations[i*3]?.id);}assert.equal(after.horse.beds.length,4);assert.equal(after.sheep.beds.length,5);assert.equal(after.cat.beds.length,1);for(let i=0;i<before.dog.obstacles.length;i++){const old=before.dog.obstacles[i],next=after.dog.obstacles[i];assert.deepEqual(next,[old[0]+2,old[1]-1,...old.slice(2)]);}}finally{dispose(before);dispose(after);}});
