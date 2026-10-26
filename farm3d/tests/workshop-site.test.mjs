@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from '../lib/three.module.min.js';
-import {farmGroundY,onBuildableLand} from '../farm-land.js';
+import {farmGroundY,onBuildableLand,clampToFarm,MAP_EDGE} from '../farm-land.js';
 import {terrainMeshY,assessWorkshopSite} from '../workshop-site.js';
 
 test('site sampler agrees with the rendered 220 m terrain triangles',()=>{
@@ -24,7 +24,13 @@ test('gentle reachable hillside gets an upright supported site; steep and blocke
  assert.equal(assessWorkshopSite(110,-30,ground).code,'LAND');
 });
 
-test('a supported hillside inside the current player reach is eligible for a whole workshop',()=>{
+// A8/full-map commit0f62550 superseded the former pending-reach restriction.
+// This checks land eligibility only; support and entrance guards remain above.
+test('approved outer-map land is eligible and player reach is unchanged there',()=>{
  assert.equal(onBuildableLand(30,-30,1.9,1.7),true);
- assert.equal(onBuildableLand(55,-30,1.9,1.7),false,'unreachable outer land waits for its player-boundary amendment');
+ assert.equal(onBuildableLand(55,-30,1.9,1.7),true,'A8 admits suitable grass across the existing map');
+ assert.deepEqual(clampToFarm(55,-30),[55,-30]);
+ assert.equal(onBuildableLand(MAP_EDGE-2,-30,1.9,1.7),true);
+ for(const [x,z]of [[MAP_EDGE-1,-30],[-MAP_EDGE+1,-30],[55,MAP_EDGE-1],[55,-MAP_EDGE+1]])
+  assert.equal(onBuildableLand(x,z,1.9,1.7),false,'entire footprint must remain within map edge');
 });

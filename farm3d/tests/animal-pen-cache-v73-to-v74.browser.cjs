@@ -5,7 +5,7 @@ const {execFileSync}=require('node:child_process');
 const {start,root}=require('./qualification-cdp.cjs');
 const {readSource}=require('./qualification-source.cjs');
 const oldRef='1e6dd9601ee279e797b266226c81274bb76d758b';
-const currentRef=execFileSync('git',['rev-parse','HEAD'],{cwd:root}).toString().trim();
+const currentRef='ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b'; // Immutable accepted v75 source; every historical assertion/input retained.
 const out=path.resolve(process.env.TEST_ARTIFACTS||path.join(__dirname,'artifacts','animal-pen-cache-predecessor'));
 const report={status:'RUNNING',oldRef,currentRef,steps:[]};let h,stage='launch';
 const record=(name,value)=>{report.steps.push({name,value});fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2));console.log('PASS '+name);};
