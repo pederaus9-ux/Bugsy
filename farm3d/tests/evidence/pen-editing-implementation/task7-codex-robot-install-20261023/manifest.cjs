@@ -1,0 +1,4 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),assert=require('node:assert/strict'),file=path.join(__dirname,'artifact-manifest.json'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+function files(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):[path.join(dir,e.name)]);}
+if(!fs.existsSync(file)){const manifest=Object.fromEntries(files(__dirname).filter(p=>p!==file).map(p=>[path.relative(__dirname,p).split(path.sep).join('/'),sha(fs.readFileSync(p))]));fs.writeFileSync(file,JSON.stringify({files:manifest},null,2)+'\n');}
+const manifest=JSON.parse(fs.readFileSync(file));for(const [p,h]of Object.entries(manifest.files))assert.equal(sha(fs.readFileSync(path.join(__dirname,p))),h,p);assert.equal(files(__dirname).length,Object.keys(manifest.files).length+1);console.log(JSON.stringify({status:'PASS',artifacts:Object.keys(manifest.files).length}));

@@ -1,0 +1,217 @@
+Γ£û displaced feed hold disengages without changing identity, timers or reservations (46.3511ms)
+Γ£û displaced drink hold disengages without changing identity, timers or reservations (3.0125ms)
+Γ£ö discarding a contact rebind leaves the live hold and scheduler untouched (2.8475ms)
+Γ£ö unchanged contact-relative placement keeps its hold moved=false (2.7252ms)
+Γ£ö unchanged contact-relative placement keeps its hold moved=true (2.4885ms)
+Γ£ö an already departing visit is not reopened by a moved fixture (2.3717ms)
+Γ£û displaced alignment returns to physical approach before entering a hold (2.764ms)
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 30Hz (5.0688ms)
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 60Hz (2.9187ms)
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 120Hz (3.1283ms)
+Γ£û blocked reapproach retains the same reservation without inventing a meal (6.6765ms)
+Γ£ö supply preemption during disengage releases normally instead of retrying forever (4.8118ms)
+Γ£û a second edit during disengage preserves the pending return and original deadline (5.3448ms)
+Γä╣ tests 13
+Γä╣ suites 0
+Γä╣ pass 5
+Γä╣ fail 8
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 202.3002
+
+Γ£û failing tests:
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:22:36
+Γ£û displaced feed hold disengages without changing identity, timers or reservations (46.3511ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'hold' !== 'stand'
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:22:509)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'hold',
+    expected: 'stand',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:22:36
+Γ£û displaced drink hold disengages without changing identity, timers or reservations (3.0125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'hold' !== 'stand'
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:22:509)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'hold',
+    expected: 'stand',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:26:1
+Γ£û displaced alignment returns to physical approach before entering a hold (2.764ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'align'
+  - 'approach'
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:26:151)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'align',
+    expected: 'approach',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:33:29
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 30Hz (5.0688ms)
+  AssertionError [ERR_ASSERTION]: no credit before observed real full contact
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:34:684)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:33:29
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 60Hz (2.9187ms)
+  AssertionError [ERR_ASSERTION]: no credit before observed real full contact
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:34:684)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:33:29
+Γ£û expired unchanged timer cannot credit until physical reapproach and full contact at 120Hz (3.1283ms)
+  AssertionError [ERR_ASSERTION]: no credit before observed real full contact
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:34:684)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:37:1
+Γ£û blocked reapproach retains the same reservation without inventing a meal (6.6765ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - {
+  -   avoidSide: undefined,
+  -   held: 3,
+  -   kind: 'feed',
+  -   path: null,
+  -   stage: 'stand',
+  -   station: {
+  -     approach: [
+  -       -9.3,
+  -       0.08,
+  -       -36.25
+  -     ],
+  -     dock: [
+  -       -9.3,
+  -       0.08,
+  -       -34.95
+  -     ],
+  -     facing: 0,
+  -     id: 'cow-feed-1',
+  -     kind: 'feed',
+  -     surface: 0.53
+  -   },
+  -   token: {
+  -     animalId: 'cow-1',
+  -     arrived: false,
+  -     generation: 1,
+  -     stationId: 'cow-feed-1'
+  -   },
+  -   until: 5,
+  -   waypoints: [],
+  -   weight: 0
+  - }
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:37:267)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { kind: 'feed', stage: 'stand', station: { id: 'cow-feed-1', kind: 'feed', dock: [Array], approach: [Array], facing: 0, surface: 0.53 }, token: { stationId: 'cow-feed-1', animalId: 'cow-1', generation: 1, arrived: false }, held: 3, weight: 0, until: 5, waypoints: [], path: null, avoidSide: undefined },
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d\tests\animal-pen-cow-contact-rebind.test.mjs:39:1
+Γ£û a second edit during disengage preserves the pending return and original deadline (5.3448ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'stand'
+  - 'approach'
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-pet-pocket/farm3d/tests/animal-pen-cow-contact-rebind.test.mjs:39:453)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'stand',
+    expected: 'approach',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

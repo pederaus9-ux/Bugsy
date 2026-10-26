@@ -1,0 +1,17 @@
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');
+const read=n=>JSON.parse(fs.readFileSync(path.join(__dirname,n))),take=(r,name)=>r.steps.find(s=>s.name===name).value,rows=[];
+const hash=crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,'../../../../index.html'))).digest('hex');
+for(const hz of [30,60,120])for(const stage of ['approaching','milking','exiting']){
+ const name=`final-${stage}-${hz}`,r=read(name+'/results.json');assert.equal(r.status,'PASS');assert.equal(r.hashes['index.html'],hash);
+ const before=take(r,'pre-edit installed state'),applied=take(r,'native Apply installs independent robot'),m=take(r,'actual robot docking service and exit'),loaded=take(r,'saved edited robot and credit reload');
+ let tasks=0;for(const a of before.held.actors.filter(a=>a.kind==='cow')){const next=applied.published.tasks.find(b=>b.i===a.ref.i);assert(next);if(!a.task){assert.equal(next.task,null);continue;}tasks++;for(const k of ['kind','stage','jobId','token','held','weight'])assert.deepEqual(next.task[k],a.task[k]);
+  if(a.task.kind==='robot'){for(const key of ['dock','approach'])for(let i=0;i<3;i++)assert(Math.abs(next.task.station[key][i]-a.task.station[key][i]-applied.delta[i])<1e-8);}else assert.deepEqual(next.task.station,a.task.station);
+ }
+ assert.equal(loaded.loaded.actors,46);const input=take(r,'native editor input');assert(input.length&&input.every(e=>e.trusted));
+ if(stage==='milking')for(const name of ['pre-edit contact observation','publication contact observation'])for(const cup of take(r,name).cups)assert(cup.radial<=.025);
+ if(stage==='approaching')assert(m.maxDockDwell>=.25);
+ rows.push({name,status:r.status,hz,editStage:stage,seconds:m.completedSeconds,frames:m.frames,cupFrames:m.cupFrames,maxCupRadial:m.maxCupRadial,minCowSeparation:m.minSeparation,maxStepExcess:m.maxStepExcess,maxSupportError:m.maxSupport,maxPlantedDrift:m.maxDrift,maxLiftoff:m.maxLiftoff,dockDwell:m.maxDockDwell??null,tankDelta:m.tankDelta,xpDelta:m.xpDelta,barnMilk:m.barnMilk,heldTasksPreserved:tasks,trustedEvents:input.length,stages:m.stages.map(s=>({stage:s.kind,seconds:s.t})),result:name+'/results.json'});
+}
+const red=read('milking-baseline-contact-120/results.json'),pre=take(red,'pre-edit contact observation'),post=take(red,'publication contact observation');assert(pre.cups[0].radial>.025);assert(post.cups[0].radial>.025);assert(Math.abs(pre.cups[0].radial-post.cups[0].radial)<1e-10);
+const out={status:'PASS',indexSha256:hash,cases:rows.length,rows,aggregate:{maxCupRadial:Math.max(...rows.map(r=>r.maxCupRadial)),cupFrames:rows.reduce((n,r)=>n+r.cupFrames,0),minCowSeparation:Math.min(...rows.map(r=>r.minCowSeparation)),maxSupportError:Math.max(...rows.map(r=>r.maxSupportError)),maxPlantedDrift:Math.max(...rows.map(r=>r.maxPlantedDrift)),maxLiftoff:Math.max(...rows.map(r=>r.maxLiftoff)),observedFrames:rows.reduce((n,r)=>n+r.frames,0),trustedEvents:rows.reduce((n,r)=>n+r.trustedEvents,0)},baselineContactRed:{pre:pre.cups[0].radial,post:post.cups[0].radial,limit:.025,classification:'Actual default-layout terminal docking defect, preserved by a correct rigid publication translation'},guardScope:'Selected robot cow contact/speed/containment and separation against all other actual cows; all five cows updated, non-cows static. Not an all-animal motion proof.'};
+const file=path.join(__dirname,'results-summary.json');assert(!fs.existsSync(file));fs.writeFileSync(file,JSON.stringify(out,null,2)+'\n');console.log(JSON.stringify(out,null,2));

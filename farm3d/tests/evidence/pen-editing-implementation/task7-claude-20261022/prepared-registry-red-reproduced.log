@@ -1,0 +1,103 @@
+# source: exact d20e9fe (tree 2786fe65a071ba641a5c392b2f90979a0dc9ff62), unmodified; node v22.22.2; utc 2026-10-22T13:24:53Z
+# cmd: node --test farm3d/tests/animal-pen-publication.test.mjs
+TAP version 13
+# Subtest: preparation does not publish; publish installs once and retires previous resources last
+ok 1 - preparation does not publish; publish installs once and retires previous resources last
+  ---
+  duration_ms: 109.393033
+  type: 'test'
+  ...
+# Subtest: cancel disposes care once and cannot subsequently publish
+ok 2 - cancel disposes care once and cannot subsequently publish
+  ---
+  duration_ms: 97.349508
+  type: 'test'
+  ...
+# Subtest: invalid or stale validation cannot prepare resources or care
+ok 3 - invalid or stale validation cannot prepare resources or care
+  ---
+  duration_ms: 0.388108
+  type: 'test'
+  ...
+# Subtest: publication failure is terminal and does not dispose possibly installed resources or old revision
+ok 4 - publication failure is terminal and does not dispose possibly installed resources or old revision
+  ---
+  duration_ms: 39.439933
+  type: 'test'
+  ...
+# Subtest: live registry preparation finishes before publication and is discarded on care preparation failure
+not ok 5 - live registry preparation finishes before publication and is discarded on care preparation failure
+  ---
+  duration_ms: 70.707605
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/pen-red/farm3d/tests/animal-pen-publication.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    -   'prepare registries',
+        'prepare care',
+    -   'discard registries'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'prepare registries'
+    1: 'prepare care'
+    2: 'discard registries'
+  actual:
+    0: 'prepare care'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/pen-red/farm3d/tests/animal-pen-publication.test.mjs:35:370)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared registry publishes before care and retires after care, with cancellation isolated
+not ok 6 - prepared registry publishes before care and retires after care, with cancellation isolated
+  ---
+  duration_ms: 101.911247
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/pen-red/farm3d/tests/animal-pen-publication.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   'prepare registries'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'prepare registries'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/pen-red/farm3d/tests/animal-pen-publication.test.mjs:39:81)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 597.977844
+# exit 1

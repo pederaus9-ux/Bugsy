@@ -1,0 +1,350 @@
+{
+  "status": "NARROW_CORRECTION_VERIFIED_PERFORMANCE_AND_GENERAL_SAFETY_NOT_CLEARED",
+  "base": "810fbc83c36997a401aaf3a1bb5a051f20e579ae",
+  "branch": "codex/safe-test-preview-20261023",
+  "at": "2026-10-25T06:53:50Z",
+  "scope": "Only test-helper shared-phase polynomial correction. No radial correction, runtime integration, architecture or remote writes.",
+  "helperSha256": "d70f5f575a12a704e632b2c68e7e03791ba54a1b6a6896f322c8f5c68d214ed1",
+  "range": {
+    "status": "PASS",
+    "checks": 19018,
+    "groups": 75
+  },
+  "controls": {
+    "status": "PASS",
+    "groups": 21
+  },
+  "containment": {
+    "status": "PASS",
+    "cases": 11,
+    "vertices": 1903680,
+    "sourceLabelNote": "Existing probe prints legacy source d9651da; this invocation ran at base810fbc8 with the helper SHA above. Existing assertion and raw label left unchanged."
+  },
+  "capturedDrink": {
+    "status": "PASS",
+    "exactSerializedPrestate": true,
+    "vertices": 317280,
+    "weight": [
+      0.012740740740736608,
+      0.10400000000000423
+    ],
+    "nonmutation": true,
+    "rng": true,
+    "query": {
+      "clear": true,
+      "hit": null,
+      "domains": 2,
+      "visited": 42,
+      "leafVisits": 0,
+      "refinements": 0,
+      "certificateHits": 1,
+      "nodeCertificateHits": 18,
+      "events": [
+        "recovery-phase",
+        "reach-clip"
+      ],
+      "classification": "TEST_ONLY_CONTINUOUS_SUPPORTED_DOMAIN"
+    },
+    "nonmutationQueries": 828,
+    "phaseMismatches": 0
+  },
+  "remainingAdversary": {
+    "frame": 166,
+    "station": "cow-robot",
+    "leg": 0,
+    "offending": {
+      "tx": [
+        -1.0887550776577005e-15,
+        1.0887550776577005e-15
+      ],
+      "tz": [
+        0.23015380992057194,
+        0.5022728063458718
+      ],
+      "lift": [
+        0,
+        0
+      ]
+    },
+    "reach": [
+      0.34095021969949774,
+      0.5036765402138478
+    ],
+    "guardUnchanged": ".5m helper / .34m native",
+    "cause": "Independent radial interval scaling loses tz/norm correlation after the polynomial correction. Native rt is1; this is a separate provider overestimate, not observed native excessive reach.",
+    "originalRejections": 41,
+    "originalActualIntersections": 3,
+    "originalUnresolved": 38,
+    "scope": "The whole-trace verifier still RED; focused drink verifier separately expects and records this remaining guard. No accepted assertion removed."
+  },
+  "performance": {
+    "status": "MEASUREMENT_COMPLETE_NOT_SAFETY_CLEARANCE",
+    "browser": "151.0.7922.34",
+    "baseline": {
+      "cpu": {
+        "n": 420,
+        "median": 5.399999976158142,
+        "p95": 9.699999988079071,
+        "max": 15.099999964237213,
+        "over33": 0,
+        "over50": 0
+      },
+      "interval": {
+        "n": 420,
+        "median": 5.700000047683716,
+        "p95": 10,
+        "max": 15.399999976158142,
+        "over33": 0,
+        "over50": 0
+      },
+      "query": {
+        "n": 420,
+        "median": 1,
+        "p95": 1.399999976158142,
+        "max": 2,
+        "over33": 0,
+        "over50": 0
+      },
+      "gpu": {
+        "n": 420,
+        "median": 1.95424,
+        "p95": 2.708096,
+        "max": 3.615616,
+        "over33": 0,
+        "over50": 0
+      }
+    },
+    "reference": {
+      "cpu": {
+        "n": 420,
+        "median": 9.899999976158142,
+        "p95": 25.19999998807907,
+        "max": 76.80000001192093,
+        "over33": 14,
+        "over50": 4
+      },
+      "interval": {
+        "n": 420,
+        "median": 10.299999952316284,
+        "p95": 25.5,
+        "max": 77.10000002384186,
+        "over33": 14,
+        "over50": 4
+      },
+      "query": {
+        "n": 420,
+        "median": 4.199999988079071,
+        "p95": 19,
+        "max": 72.19999998807907,
+        "over33": 6,
+        "over50": 3
+      },
+      "gpu": {
+        "n": 420,
+        "median": 1.907008,
+        "p95": 2.583392,
+        "max": 3.95136,
+        "over33": 0,
+        "over50": 0
+      }
+    },
+    "referenceStages": {
+      "approach": {
+        "cpu": {
+          "n": 60,
+          "median": 11.599999964237213,
+          "p95": 20.399999976158142,
+          "max": 22.099999964237213,
+          "over33": 0,
+          "over50": 0
+        },
+        "query": {
+          "n": 60,
+          "median": 6.700000047683716,
+          "p95": 15.700000047683716,
+          "max": 16.69999998807907,
+          "over33": 0,
+          "over50": 0
+        }
+      },
+      "stop-recovery": {
+        "cpu": {
+          "n": 60,
+          "median": 8.800000011920929,
+          "p95": 10.699999988079071,
+          "max": 13.299999952316284,
+          "over33": 0,
+          "over50": 0
+        },
+        "query": {
+          "n": 60,
+          "median": 4.100000023841858,
+          "p95": 5.399999976158142,
+          "max": 5.699999988079071,
+          "over33": 0,
+          "over50": 0
+        }
+      },
+      "departure": {
+        "cpu": {
+          "n": 300,
+          "median": 10.100000023841858,
+          "p95": 30.299999952316284,
+          "max": 76.80000001192093,
+          "over33": 14,
+          "over50": 4
+        },
+        "query": {
+          "n": 300,
+          "median": 4.099999964237213,
+          "p95": 25.30000001192093,
+          "max": 72.19999998807907,
+          "over33": 6,
+          "over50": 3
+        }
+      }
+    },
+    "cacheBuildMs": 67.19999998807907,
+    "allocation": {
+      "frames": 450,
+      "estimatedWholeBrowserBytesPerFrame": 17117491.99111111,
+      "attributionBytesPerFrame": {
+        "reference": 13172678.32,
+        "copy": 938156.0444444445,
+        "other": 3006657.6266666665
+      },
+      "method": "Separate fresh context, identical450-frame sequence including30idlewarmup. CDP128KiBsampling includescollectedobjects. No profiledtimingused. Estimates notexactbytes."
+    },
+    "queries": 2250,
+    "rejections": 125,
+    "minSeparation": 1.5231546211727807,
+    "maxSpeed": 0.8,
+    "maxRootHeightError": 0,
+    "route": {
+      "remaining": [],
+      "visited": [
+        {
+          "name": "dock",
+          "point": [
+            8.600000000000001,
+            0.08,
+            -36.3
+          ],
+          "actual": [
+            8.600000000000001,
+            0.08,
+            -36.3
+          ],
+          "frame": 177
+        },
+        {
+          "name": "exit",
+          "point": [
+            8.600000000000001,
+            0.08,
+            -39.2
+          ],
+          "actual": [
+            8.600000000000001,
+            0.08,
+            -39.2
+          ],
+          "frame": 286
+        },
+        {
+          "name": "turn",
+          "point": [
+            6.95,
+            0.08,
+            -39.2
+          ],
+          "actual": [
+            6.95,
+            0.08,
+            -39.2
+          ],
+          "frame": 348
+        },
+        {
+          "name": "clear",
+          "point": [
+            6.95,
+            0.08,
+            -37
+          ],
+          "actual": [
+            6.95,
+            0.08,
+            -37
+          ],
+          "frame": 431
+        }
+      ]
+    },
+    "semanticCorrection": "Robot now follows authored dock/exit/turn/clear rather than reversed lane.30warm+420measured steps permit complete route at unchanged.8m/s; other4 originalmotions unchanged. Prior reversal remains separate adversarial evidence. This is scripted cost, not live route safety.",
+    "decision": "25.2ms whole-frame p95 exceeds16.7/22.2ms goals;14/420frames exceed33.3ms and4 exceed50ms. Desktop only; no phone or integration readiness. 125observer rejections remain unclassified and did not stop movement."
+  },
+  "protectedFiles": {
+    "farm3d/index.html": {
+      "unchanged": true,
+      "sha256": "c68f7dd240c4dd724453d3bad914ec213e8d30e4c01ff01c3ef195556fc401d0"
+    },
+    "farm3d/cow3d.js": {
+      "unchanged": true,
+      "sha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01"
+    },
+    "farm3d/cow-yard.js": {
+      "unchanged": true,
+      "sha256": "cff13ae644221cdbb71933c02fc296cf627377937f83afeb7f0ab2788037f47b"
+    },
+    "farm3d/farm-land.js": {
+      "unchanged": true,
+      "sha256": "ffbdffffdf01ee6b54575b60daf872d30375c87e02eb172b526eef3e6cdc66ee"
+    },
+    "farm3d/game.js": {
+      "unchanged": true,
+      "sha256": "f0e809fda7038d1fb5d78d671e2c2f5d5e21cf4aeba642a1647c23a0fca5e32a"
+    },
+    "farm3d/sw.js": {
+      "unchanged": true,
+      "sha256": "22e0a342a02f895103fcfb586e899a187e3d77008267f116c88bc2597eae4256"
+    },
+    "farm3d/tests/helpers/cow-leg-enclosure.mjs": {
+      "unchanged": true,
+      "sha256": "6d2ed2fd64d43c0f30f935492526ea03386e9f376db903d8ebfe57807f0c2d5b"
+    },
+    "farm3d/tests/helpers/cow-hierarchical-sweep.mjs": {
+      "unchanged": true,
+      "sha256": "611f50a6c60fbceb1df6d662c9802efa8cd56fbe76f464b354f734f94cff03fd"
+    },
+    "farm3d/tests/helpers/cow-reference-moving-fixture.mjs": {
+      "unchanged": true,
+      "sha256": "44c26cc7d564d0132052e1d070020fb694f874c89d4664bf545fc923bca36c11"
+    },
+    "farm3d/tests/cow-reference-moving.browser.cjs": {
+      "unchanged": true,
+      "sha256": "3b9307949263fd46329989a3bad93febee728b4a45b72f5a5f9e11d7ce624e49"
+    },
+    "farm3d/tests/cow-hierarchical-controls.mjs": {
+      "unchanged": true,
+      "sha256": "499ff398be867e081f1d3cac8a89b742c47a275431d57c65102ea5d01788254c"
+    },
+    "farm3d/tests/cow-hierarchical-sweep-probe.mjs": {
+      "unchanged": true,
+      "sha256": "695ce7fbc10405e520a1ca690bca868149819fb85450b999cce4c4f7c590a7eb"
+    },
+    "farm3d/tests/evidence/pen-editing-implementation/task8-codex-turn-domain-capture-20261025/capture.json": {
+      "unchanged": true,
+      "sha256": "5f48a69eda48f18d46a9656e2aac06b324dfc984cd5337b2a5d16c1d23e0fe3f"
+    },
+    "farm3d/tests/evidence/pen-editing-implementation/task8-codex-turn-domain-capture-20261025/verification.json": {
+      "unchanged": true,
+      "sha256": "e8ce6260b980c6d2c796647974d45cec710d30a4a461447c0c4449a1208f9ecb"
+    },
+    "farm3d/tests/evidence/pen-editing-implementation/task8-codex-reference-moving-browser-20261025/measurement.json": {
+      "unchanged": true,
+      "sha256": "33a1d57de090698e75bbdc0c050c89aa0f24221281a515aa197577dceb79404e"
+    }
+  },
+  "remaining": "A20 gameplay physical RED; care/wake1/30 unchanged. Broad matrix paused. No process/approval wait. No uploads,Site,merge,deployment. Stop after the single comparison."
+}

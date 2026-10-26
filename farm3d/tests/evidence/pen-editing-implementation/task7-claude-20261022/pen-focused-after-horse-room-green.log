@@ -1,0 +1,1151 @@
+# source: 41b6c96 + A1 applied with owner-authorized farm-land.js registration (uncommitted); node v22.22.2; utc 2026-10-22T20:42:22Z
+# cmd: node --test farm3d/tests/animal-pen-concave-care.test.mjs farm3d/tests/animal-pen-cow-rebind.test.mjs farm3d/tests/animal-pen-cow-support.test.mjs farm3d/tests/animal-pen-editor-view.test.mjs farm3d/tests/animal-pen-editor.test.mjs farm3d/tests/animal-pen-geometry.test.mjs farm3d/tests/animal-pen-layout.test.mjs farm3d/tests/animal-pen-preview.test.mjs farm3d/tests/animal-pen-publication.test.mjs farm3d/tests/animal-pen-rebind.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/animal-pen-scene-registry.test.mjs farm3d/tests/animal-pen-scene-routing.test.mjs farm3d/tests/animal-pen-validation.test.mjs farm3d/tests/animal-pen-writer-compatibility.test.mjs farm3d/tests/animal-pen-yards.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/versions.test.mjs farm3d/tests/cow-scene.test.mjs farm3d/tests/cow-writer-compatibility.test.mjs farm3d/tests/animal-pen-world.test.mjs farm3d/tests/animal-pen-scene-install.test.mjs  farm3d/tests/horse-room-land.test.mjs farm3d/tests/north-land.test.mjs farm3d/tests/farm-path.test.mjs farm3d/tests/cow-room.test.mjs farm3d/tests/remaining-care-layout.test.mjs
+TAP version 13
+# Subtest: pets avoid the actual concave pen arms while the open notch remains usable in either winding
+ok 1 - pets avoid the actual concave pen arms while the open notch remains usable in either winding
+  ---
+  duration_ms: 1.89473
+  type: 'test'
+  ...
+# Subtest: care containment accepts both arms and rejects routes crossing the concave notch
+ok 2 - care containment accepts both arms and rejects routes crossing the concave notch
+  ---
+  duration_ms: 53.926217
+  type: 'test'
+  ...
+# Subtest: cow rebind preserves ledger and physical dock proof at approaching
+ok 3 - cow rebind preserves ledger and physical dock proof at approaching
+  ---
+  duration_ms: 20.681029
+  type: 'test'
+  ...
+# Subtest: cow rebind preserves ledger and physical dock proof at milking
+ok 4 - cow rebind preserves ledger and physical dock proof at milking
+  ---
+  duration_ms: 4.480023
+  type: 'test'
+  ...
+# Subtest: cow rebind preserves ledger and physical dock proof at exiting
+ok 5 - cow rebind preserves ledger and physical dock proof at exiting
+  ---
+  duration_ms: 7.716576
+  type: 'test'
+  ...
+# Subtest: straddling the concrete edge keeps actual planted hoof bones on their own support heights
+ok 6 - straddling the concrete edge keeps actual planted hoof bones on their own support heights
+  ---
+  duration_ms: 142.627754
+  type: 'test'
+  ...
+# Subtest: concrete to soil and soil to concrete steps obey full 3D walking speed at30/60/120Hz
+ok 7 - concrete to soil and soil to concrete steps obey full 3D walking speed at30/60/120Hz
+  ---
+  duration_ms: 1.986169
+  type: 'test'
+  ...
+# Subtest: flat accepted support leaves every leg matrix exactly unchanged
+ok 8 - flat accepted support leaves every leg matrix exactly unchanged
+  ---
+  duration_ms: 2.786313
+  type: 'test'
+  ...
+# Subtest: moving planted hooves retain their own world contact across a concrete edge
+ok 9 - moving planted hooves retain their own world contact across a concrete edge
+  ---
+  duration_ms: 138.395187
+  type: 'test'
+  ...
+# Subtest: concrete transitions retain original planted contact and liftoff tolerances
+ok 10 - concrete transitions retain original planted contact and liftoff tolerances
+  ---
+  duration_ms: 65.095142
+  type: 'test'
+  ...
+# Subtest: smooth turns across both slab edges retain planted contact at30/60/120Hz
+ok 11 - smooth turns across both slab edges retain planted contact at30/60/120Hz
+  ---
+  duration_ms: 48.28732
+  type: 'test'
+  ...
+# Subtest: a second pointer anywhere on the page cancels only the current drag
+ok 12 - a second pointer anywhere on the page cancels only the current drag
+  ---
+  duration_ms: 18.323138
+  type: 'test'
+  ...
+# Subtest: pointer cancellation restores the pre-drag draft and releases capture
+ok 13 - pointer cancellation restores the pre-drag draft and releases capture
+  ---
+  duration_ms: 6.716076
+  type: 'test'
+  ...
+# Subtest: open and Cancel never round decimal coordinates or write a farm
+ok 14 - open and Cancel never round decimal coordinates or write a farm
+  ---
+  duration_ms: 2.740219
+  type: 'test'
+  ...
+# Subtest: a second pointer cancels only its current gesture and preserves earlier edits
+ok 15 - a second pointer cancels only its current gesture and preserves earlier edits
+  ---
+  duration_ms: 1.705119
+  type: 'test'
+  ...
+# Subtest: late valid results cannot authorize a newer invalid draft
+ok 16 - late valid results cannot authorize a newer invalid draft
+  ---
+  duration_ms: 13.086111
+  type: 'test'
+  ...
+# Subtest: whole pen translation preserves decimals and Apply increments the saved revision once
+ok 17 - whole pen translation preserves decimals and Apply increments the saved revision once
+  ---
+  duration_ms: 3.848761
+  type: 'test'
+  ...
+# Subtest: gate identities survive removed runs and can be explicitly reanchored
+ok 18 - gate identities survive removed runs and can be explicitly reanchored
+  ---
+  duration_ms: 1.049706
+  type: 'test'
+  ...
+# Subtest: unowned species and pet fence commands cannot edit, and snapshots cannot mutate drafts
+ok 19 - unowned species and pet fence commands cannot edit, and snapshots cannot mutate drafts
+  ---
+  duration_ms: 0.274461
+  type: 'test'
+  ...
+# Subtest: world replacement or an unfinished drag prevents Apply
+ok 20 - world replacement or an unfinished drag prevents Apply
+  ---
+  duration_ms: 0.521356
+  type: 'test'
+  ...
+# Subtest: a new obstacle invalidates the visible Apply state immediately
+ok 21 - a new obstacle invalidates the visible Apply state immediately
+  ---
+  duration_ms: 3.333714
+  type: 'test'
+  ...
+# Subtest: all fence commands preserve stable identities and snap only edited coordinates
+ok 22 - all fence commands preserve stable identities and snap only edited coordinates
+  ---
+  duration_ms: 2.015633
+  type: 'test'
+  ...
+# Subtest: splitting a gate-bearing edge and removing its post never silently deletes a gate
+ok 23 - splitting a gate-bearing edge and removing its post never silently deletes a gate
+  ---
+  duration_ms: 0.902821
+  type: 'test'
+  ...
+# Subtest: malformed commands and all unowned command variants leave the draft byte-identical
+ok 24 - malformed commands and all unowned command variants leave the draft byte-identical
+  ---
+  duration_ms: 0.637807
+  type: 'test'
+  ...
+# Subtest: future layout schema or template stays read-only without overwriting its bytes
+ok 25 - future layout schema or template stays read-only without overwriting its bytes
+  ---
+  duration_ms: 0.261353
+  type: 'test'
+  ...
+# Subtest: concaveNotchRejectsCrossing
+ok 26 - concaveNotchRejectsCrossing
+  ---
+  duration_ms: 1.666872
+  type: 'test'
+  ...
+# Subtest: windingAndBoundaryDoNotChangeContainment
+ok 27 - windingAndBoundaryDoNotChangeContainment
+  ---
+  duration_ms: 0.371786
+  type: 'test'
+  ...
+# Subtest: continuousClearanceRejectsExitReentryAndGrazing
+ok 28 - continuousClearanceRejectsExitReentryAndGrazing
+  ---
+  duration_ms: 0.41007
+  type: 'test'
+  ...
+# Subtest: nearestLegalPointHandlesConcaveInsetAndImpossibleClearance
+ok 29 - nearestLegalPointHandlesConcaveInsetAndImpossibleClearance
+  ---
+  duration_ms: 6.020335
+  type: 'test'
+  ...
+# Subtest: degenerateAndNonfiniteGeometryCannotBeInside
+ok 30 - degenerateAndNonfiniteGeometryCannotBeInside
+  ---
+  duration_ms: 0.211933
+  type: 'test'
+  ...
+# Subtest: negativeClearanceProjectsToTheExpandedBoundary
+ok 31 - negativeClearanceProjectsToTheExpandedBoundary
+  ---
+  duration_ms: 2.652872
+  type: 'test'
+  ...
+# Subtest: continuousObstacleClearanceIncludesRotatedRectanglesAndCircles
+ok 32 - continuousObstacleClearanceIncludesRotatedRectanglesAndCircles
+  ---
+  duration_ms: 0.803354
+  type: 'test'
+  ...
+# Subtest: physicalVolumesAllowSupportContactButRejectPenetration
+ok 33 - physicalVolumesAllowSupportContactButRejectPenetration
+  ---
+  duration_ms: 0.213415
+  type: 'test'
+  ...
+# Subtest: defaultsMatchFrozenPR95
+ok 34 - defaultsMatchFrozenPR95
+  ---
+  duration_ms: 9.533524
+  type: 'test'
+  ...
+# Subtest: unknownTemplateIsReadOnly
+ok 35 - unknownTemplateIsReadOnly
+  ---
+  duration_ms: 0.358813
+  type: 'test'
+  ...
+# Subtest: invalidSchemaHasNoSideEffects
+ok 36 - invalidSchemaHasNoSideEffects
+  ---
+  duration_ms: 3.733526
+  type: 'test'
+  ...
+# Subtest: customComponentsCarryTheirStationAndColliderCoordinates
+ok 37 - customComponentsCarryTheirStationAndColliderCoordinates
+  ---
+  duration_ms: 2.657796
+  type: 'test'
+  ...
+# Subtest: missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate
+ok 38 - missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate
+  ---
+  duration_ms: 3.329998
+  type: 'test'
+  ...
+# Subtest: petSitesCannotAcquireFenceTools
+ok 39 - petSitesCannotAcquireFenceTools
+  ---
+  duration_ms: 0.222601
+  type: 'test'
+  ...
+# Subtest: payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation
+ok 40 - payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation
+  ---
+  duration_ms: 349.385581
+  type: 'test'
+  ...
+# Subtest: translatedWaitingPositionsAreMovedOnce
+ok 41 - translatedWaitingPositionsAreMovedOnce
+  ---
+  duration_ms: 3.912897
+  type: 'test'
+  ...
+# Subtest: preview uses the resolved fence openings and building footprints, without touching live meshes
+ok 42 - preview uses the resolved fence openings and building footprints, without touching live meshes
+  ---
+  duration_ms: 21.830328
+  type: 'test'
+  ...
+# Subtest: twenty preview replacements and cancellation dispose only their own resources exactly once
+ok 43 - twenty preview replacements and cancellation dispose only their own resources exactly once
+  ---
+  duration_ms: 58.905413
+  type: 'test'
+  ...
+# Subtest: unchanged defaults have no misleading draft geometry, and validation feedback changes color
+ok 44 - unchanged defaults have no misleading draft geometry, and validation feedback changes color
+  ---
+  duration_ms: 6.577993
+  type: 'test'
+  ...
+# Subtest: preparation does not publish; publish installs once and retires previous resources last
+ok 45 - preparation does not publish; publish installs once and retires previous resources last
+  ---
+  duration_ms: 77.816202
+  type: 'test'
+  ...
+# Subtest: cancel disposes care once and cannot subsequently publish
+ok 46 - cancel disposes care once and cannot subsequently publish
+  ---
+  duration_ms: 52.517923
+  type: 'test'
+  ...
+# Subtest: invalid or stale validation cannot prepare resources or care
+ok 47 - invalid or stale validation cannot prepare resources or care
+  ---
+  duration_ms: 0.297175
+  type: 'test'
+  ...
+# Subtest: publication failure is terminal and does not dispose possibly installed resources or old revision
+ok 48 - publication failure is terminal and does not dispose possibly installed resources or old revision
+  ---
+  duration_ms: 45.600947
+  type: 'test'
+  ...
+# Subtest: live registry preparation finishes before publication and is discarded on care preparation failure
+ok 49 - live registry preparation finishes before publication and is discarded on care preparation failure
+  ---
+  duration_ms: 40.479116
+  type: 'test'
+  ...
+# Subtest: prepared registry publishes before care and retires after care, with cancellation isolated
+ok 50 - prepared registry publishes before care and retires after care, with cancellation isolated
+  ---
+  duration_ms: 49.867724
+  type: 'test'
+  ...
+# Subtest: resolved sites carry their immutable parent revision
+ok 51 - resolved sites carry their immutable parent revision
+  ---
+  duration_ms: 12.988073
+  type: 'test'
+  ...
+# Subtest: remaining care preparation retains reservations and progress and moves an occupied unit exactly once
+ok 52 - remaining care preparation retains reservations and progress and moves an occupied unit exactly once
+  ---
+  duration_ms: 187.720465
+  type: 'test'
+  ...
+# Subtest: preparing two species together cannot overwrite the other species published layout
+ok 53 - preparing two species together cannot overwrite the other species published layout
+  ---
+  duration_ms: 16.524913
+  type: 'test'
+  ...
+# Subtest: discarded preparation and missing placements cannot mutate live care
+ok 54 - discarded preparation and missing placements cannot mutate live care
+  ---
+  duration_ms: 11.264086
+  type: 'test'
+  ...
+# Subtest: chicken rebind preserves bed reservation and held pose without retaining old yard resources
+ok 55 - chicken rebind preserves bed reservation and held pose without retaining old yard resources
+  ---
+  duration_ms: 65.160993
+  type: 'test'
+  ...
+# Subtest: a translated chicken enclosure completes three physical sleep and wake cycles outside old bounds
+ok 56 - a translated chicken enclosure completes three physical sleep and wake cycles outside old bounds
+  ---
+  duration_ms: 278.469294
+  type: 'test'
+  ...
+# Subtest: successful Apply preserves farm identity, writes once and notifies after publication
+ok 57 - successful Apply preserves farm identity, writes once and notifies after publication
+  ---
+  duration_ms: 19.256129
+  type: 'test'
+  ...
+# Subtest: quota failure preserves stored bytes and old live layout and writer
+ok 58 - quota failure preserves stored bytes and old live layout and writer
+  ---
+  duration_ms: 7.774477
+  type: 'test'
+  ...
+# Subtest: persisted candidate survives publication failure and old writes are blocked
+ok 59 - persisted candidate survives publication failure and old writes are blocked
+  ---
+  duration_ms: 18.665375
+  type: 'test'
+  ...
+# Subtest: prepare failure and stale world reject without storage or publication
+ok 60 - prepare failure and stale world reject without storage or publication
+  ---
+  duration_ms: 13.770143
+  type: 'test'
+  ...
+# Subtest: ordinary ticks do not stale a draft; another layout revision does
+ok 61 - ordinary ticks do not stale a draft; another layout revision does
+  ---
+  duration_ms: 7.010753
+  type: 'test'
+  ...
+# Subtest: unknown saved templates block ordinary writes without discarding bytes
+ok 62 - unknown saved templates block ordinary writes without discarding bytes
+  ---
+  duration_ms: 8.109984
+  type: 'test'
+  ...
+# Subtest: invalid candidate, overflow revision and account swap cannot write
+ok 63 - invalid candidate, overflow revision and account swap cannot write
+  ---
+  duration_ms: 14.46445
+  type: 'test'
+  ...
+# Subtest: Apply paid settlement equals ordinary save at the same clock
+ok 64 - Apply paid settlement equals ordinary save at the same clock
+  ---
+  duration_ms: 12.871652
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 11999ms
+ok 65 - Apply retains exact paid state at robot boundary 11999ms
+  ---
+  duration_ms: 13.147203
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 12000ms
+ok 66 - Apply retains exact paid state at robot boundary 12000ms
+  ---
+  duration_ms: 128.755797
+  type: 'test'
+  ...
+# Subtest: robot completion during failed prepare equals ordinary paid settlement
+ok 67 - robot completion during failed prepare equals ordinary paid settlement
+  ---
+  duration_ms: 22.097651
+  type: 'test'
+  ...
+# Subtest: robot completion during failed storage equals ordinary paid settlement
+ok 68 - robot completion during failed storage equals ordinary paid settlement
+  ---
+  duration_ms: 24.215282
+  type: 'test'
+  ...
+# Subtest: supplies expiring during a draft settle exactly as an ordinary save
+ok 69 - supplies expiring during a draft settle exactly as an ordinary save
+  ---
+  duration_ms: 49.147022
+  type: 'test'
+  ...
+# Subtest: actual index installs a published custom revision into every live pen consumer
+ok 70 - actual index installs a published custom revision into every live pen consumer
+  ---
+  duration_ms: 197.615438
+  type: 'test'
+  ...
+# Subtest: actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+ok 71 - actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+  ---
+  duration_ms: 184.427316
+  type: 'test'
+  ...
+# Subtest: a boot-time install before the first cow sync leaves cow status display to syncCowYard
+ok 72 - a boot-time install before the first cow sync leaves cow status display to syncCowYard
+  ---
+  duration_ms: 66.576601
+  type: 'test'
+  ...
+# Subtest: a default boot keeps every later farm block and pen block solid exactly once
+ok 73 - a default boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 77.994953
+  type: 'test'
+  ...
+# Subtest: a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+ok 74 - a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 71.829002
+  type: 'test'
+  ...
+# Subtest: a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+ok 75 - a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+  ---
+  duration_ms: 83.603121
+  type: 'test'
+  ...
+# Subtest: a absent saved pen layout keeps the accepted default without rewriting the save
+ok 76 - a absent saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 57.638527
+  type: 'test'
+  ...
+# Subtest: a future schema saved pen layout keeps the accepted default without rewriting the save
+ok 77 - a future schema saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 39.856401
+  type: 'test'
+  ...
+# Subtest: a unknown template saved pen layout keeps the accepted default without rewriting the save
+ok 78 - a unknown template saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 58.431325
+  type: 'test'
+  ...
+# Subtest: a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+ok 79 - a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 46.073888
+  type: 'test'
+  ...
+# Subtest: a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+ok 80 - a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+  ---
+  duration_ms: 99.062546
+  type: 'test'
+  ...
+# Subtest: the same saved layout on a later refresh keeps the live herd untouched
+ok 81 - the same saved layout on a later refresh keeps the live herd untouched
+  ---
+  duration_ms: 63.90298
+  type: 'test'
+  ...
+# Subtest: the full farm refresh restores saved pens after the saved object layout and before herds spawn
+ok 82 - the full farm refresh restores saved pens after the saved object layout and before herds spawn
+  ---
+  duration_ms: 0.385294
+  type: 'test'
+  ...
+# Subtest: the invisible legacy hen water pan block stays for the accepted chicken yard and leaves with a customised one
+ok 83 - the invisible legacy hen water pan block stays for the accepted chicken yard and leaves with a customised one
+  ---
+  duration_ms: 113.309637
+  type: 'test'
+  ...
+# Subtest: the live World snapshot carries full shapes, controller IDs and stable revisions from the running farm
+ok 84 - the live World snapshot carries full shapes, controller IDs and stable revisions from the running farm
+  ---
+  duration_ms: 39.113058
+  type: 'test'
+  ...
+# Subtest: prepared scene revision leaves live registries intact and publishes all six yards coherently
+ok 85 - prepared scene revision leaves live registries intact and publishes all six yards coherently
+  ---
+  duration_ms: 163.780638
+  type: 'test'
+  ...
+# Subtest: diagonal custom fences keep oriented route obstacles and exact gate gaps
+ok 86 - diagonal custom fences keep oriented route obstacles and exact gate gaps
+  ---
+  duration_ms: 109.526665
+  type: 'test'
+  ...
+# Subtest: stale prepared revisions cannot overwrite a newer published scene
+ok 87 - stale prepared revisions cannot overwrite a newer published scene
+  ---
+  duration_ms: 134.619123
+  type: 'test'
+  ...
+# Subtest: inactive sites keep off-farm collision placeholders and do not disappear from ownership
+ok 88 - inactive sites keep off-farm collision placeholders and do not disappear from ownership
+  ---
+  duration_ms: 76.709606
+  type: 'test'
+  ...
+# Subtest: a discarded preparation cannot publish and leaves live registries and yards untouched
+ok 89 - a discarded preparation cannot publish and leaves live registries and yards untouched
+  ---
+  duration_ms: 103.778122
+  type: 'test'
+  ...
+# Subtest: actual scene routes around a concave corner, winding false
+ok 90 - actual scene routes around a concave corner, winding false
+  ---
+  duration_ms: 27.667069
+  type: 'test'
+  ...
+# Subtest: actual scene routes around a concave corner, winding true
+ok 91 - actual scene routes around a concave corner, winding true
+  ---
+  duration_ms: 7.392047
+  type: 'test'
+  ...
+# Subtest: actual containment accepts both arms of a concave pen and projects an illegal point inside
+ok 92 - actual containment accepts both arms of a concave pen and projects an illegal point inside
+  ---
+  duration_ms: 2.703378
+  type: 'test'
+  ...
+# Subtest: a blocked custom route never falls back to an illegal straight crossing
+ok 93 - a blocked custom route never falls back to an illegal straight crossing
+  ---
+  duration_ms: 6.631667
+  type: 'test'
+  ...
+# Subtest: free-roaming pets are pushed out of either arm of a custom concave pen
+ok 94 - free-roaming pets are pushed out of either arm of a custom concave pen
+  ---
+  duration_ms: 3.215959
+  type: 'test'
+  ...
+# Subtest: actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+ok 95 - actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+  ---
+  duration_ms: 2.71799
+  type: 'test'
+  ...
+# Subtest: legacyHorseLandIsEditable
+ok 96 - legacyHorseLandIsEditable
+  ---
+  duration_ms: 18.337034
+  type: 'test'
+  ...
+# Subtest: continuousFootprintCannotBridgeOffFarm
+ok 97 - continuousFootprintCannotBridgeOffFarm
+  ---
+  duration_ms: 0.671205
+  type: 'test'
+  ...
+# Subtest: all46PlacementsAreDistinct
+ok 98 - all46PlacementsAreDistinct
+  ---
+  duration_ms: 1497.041252
+  type: 'test'
+  ...
+# Subtest: interiorRunCannotCutBedRoute
+ok 99 - interiorRunCannotCutBedRoute
+  ---
+  duration_ms: 1314.362866
+  type: 'test'
+  ...
+# Subtest: everyGateHasTwoClearApproaches
+ok 100 - everyGateHasTwoClearApproaches
+  ---
+  duration_ms: 1297.235515
+  type: 'test'
+  ...
+# Subtest: areaAndGateFloorsApplyToEachSpecies
+ok 101 - areaAndGateFloorsApplyToEachSpecies
+  ---
+  duration_ms: 10913.205432
+  type: 'test'
+  ...
+# Subtest: wholeComponentCrossingStonePathCannotPassByCentre
+ok 102 - wholeComponentCrossingStonePathCannotPassByCentre
+  ---
+  duration_ms: 1400.857311
+  type: 'test'
+  ...
+# Subtest: movedBuildingCannotUseUnsupportedTerrain
+ok 103 - movedBuildingCannotUseUnsupportedTerrain
+  ---
+  duration_ms: 1328.600921
+  type: 'test'
+  ...
+# Subtest: newPaidObstacleCannotBeGrandfatheredAsBaselineScenery
+ok 104 - newPaidObstacleCannotBeGrandfatheredAsBaselineScenery
+  ---
+  duration_ms: 1263.867075
+  type: 'test'
+  ...
+# Subtest: crossedBoundaryAndTouchingInteriorRunsAreRejected
+ok 105 - crossedBoundaryAndTouchingInteriorRunsAreRejected
+  ---
+  duration_ms: 2857.562979
+  type: 'test'
+  ...
+# Subtest: boundedSearchReturnsDiagnosticsForImpossibleStaging
+ok 106 - boundedSearchReturnsDiagnosticsForImpossibleStaging
+  ---
+  duration_ms: 739.322471
+  type: 'test'
+  ...
+# Subtest: baselineValidationCompletesWithinBoundedBudget
+ok 107 - baselineValidationCompletesWithinBoundedBudget
+  ---
+  duration_ms: 1381.687225
+  type: 'test'
+  ...
+# Subtest: enlargedFenceCannotCutNewDecorAtItsMidpoint
+ok 108 - enlargedFenceCannotCutNewDecorAtItsMidpoint
+  ---
+  duration_ms: 1289.933513
+  type: 'test'
+  ...
+# Subtest: paidObjectInsideExpandedAreaCannotBeIgnored
+ok 109 - paidObjectInsideExpandedAreaCannotBeIgnored
+  ---
+  duration_ms: 1296.735511
+  type: 'test'
+  ...
+# Subtest: occupiedCoopBedRetainsItsLocalSupportFrame
+ok 110 - occupiedCoopBedRetainsItsLocalSupportFrame
+  ---
+  duration_ms: 1317.957415
+  type: 'test'
+  ...
+# Subtest: bothCoopDoorwaysHaveSeparateProofs
+ok 111 - bothCoopDoorwaysHaveSeparateProofs
+  ---
+  duration_ms: 1231.192668
+  type: 'test'
+  ...
+# Subtest: legalNookMovePreservesWorldAndOwnership
+ok 112 - legalNookMovePreservesWorldAndOwnership
+  ---
+  duration_ms: 1228.574194
+  type: 'test'
+  ...
+# Subtest: fallbackOtherSiteDoesNotBlockAnUnrelatedLegalEdit
+ok 113 - fallbackOtherSiteDoesNotBlockAnUnrelatedLegalEdit
+  ---
+  duration_ms: 1259.305631
+  type: 'test'
+  ...
+# Subtest: secondMoveUsesDifferenceFromInstalledOrigin
+ok 114 - secondMoveUsesDifferenceFromInstalledOrigin
+  ---
+  duration_ms: 1239.90898
+  type: 'test'
+  ...
+# Subtest: exteriorGateApproachIncludesOtherAnimalsCareFixtures
+ok 115 - exteriorGateApproachIncludesOtherAnimalsCareFixtures
+  ---
+  duration_ms: 1041.922916
+  type: 'test'
+  ...
+# Subtest: sleeping flock gets separate ground waiting places clear of both door approaches
+ok 116 - sleeping flock gets separate ground waiting places clear of both door approaches
+  ---
+  duration_ms: 712.973744
+  type: 'test'
+  ...
+# Subtest: unownedSitesStayReservedForOtherPens
+ok 117 - unownedSitesStayReservedForOtherPens
+  ---
+  duration_ms: 1632.213774
+  type: 'test'
+  ...
+# Subtest: acceptedLayoutValidatesWithAnyOneSpeciesUnowned
+ok 118 - acceptedLayoutValidatesWithAnyOneSpeciesUnowned
+  ---
+  duration_ms: 6985.893761
+  type: 'test'
+  ...
+# Subtest: horsePaddockSlidesWestOntoLevelledStrip
+ok 119 - horsePaddockSlidesWestOntoLevelledStrip
+  ---
+  duration_ms: 7391.231939
+  type: 'test'
+  ...
+# Subtest: pen-editable land is one shared definition equal to the calibrated validator world
+ok 120 - pen-editable land is one shared definition equal to the calibrated validator world
+  ---
+  duration_ms: 3.838181
+  type: 'test'
+  ...
+# Subtest: actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+ok 121 - actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+  ---
+  duration_ms: 28.379996
+  type: 'test'
+  ...
+# Subtest: ordinary farms retain their existing writer until first successful pen Apply
+ok 122 - ordinary farms retain their existing writer until first successful pen Apply
+  ---
+  duration_ms: 20.357327
+  type: 'test'
+  ...
+# Subtest: identityFactoriesMatchAcceptedGeometry
+ok 123 - identityFactoriesMatchAcceptedGeometry
+  ---
+  duration_ms: 376.608386
+  type: 'test'
+  ...
+# Subtest: translatedRobotIncludesTankPipeAndAnimatedParts
+ok 124 - translatedRobotIncludesTankPipeAndAnimatedParts
+  ---
+  duration_ms: 21.402561
+  type: 'test'
+  ...
+# Subtest: translatedCoopIncludesBothRamps30Beds
+ok 125 - translatedCoopIncludesBothRamps30Beds
+  ---
+  duration_ms: 41.26136
+  type: 'test'
+  ...
+# Subtest: oldFootprintsNoLongerCollide
+ok 126 - oldFootprintsNoLongerCollide
+  ---
+  duration_ms: 11.290581
+  type: 'test'
+  ...
+# Subtest: cowShelterCarriesWholeFoundation
+ok 127 - cowShelterCarriesWholeFoundation
+  ---
+  duration_ms: 10.810049
+  type: 'test'
+  ...
+# Subtest: prepareDisposeDoesNotTouchInstalledYard
+ok 128 - prepareDisposeDoesNotTouchInstalledYard
+  ---
+  duration_ms: 51.80385
+  type: 'test'
+  ...
+# Subtest: identitySavedBoundaryPreservesFenceDirectionAndExactGap
+ok 129 - identitySavedBoundaryPreservesFenceDirectionAndExactGap
+  ---
+  duration_ms: 7.870843
+  type: 'test'
+  ...
+# Subtest: componentLayoutsCoverRealOwnedPrimitives
+ok 130 - componentLayoutsCoverRealOwnedPrimitives
+  ---
+  duration_ms: 38.390515
+  type: 'test'
+  ...
+# Subtest: clearingReplacementCannotRestoreAnotherOwnerOrCaptureHiddenBase
+ok 131 - clearingReplacementCannotRestoreAnotherOwnerOrCaptureHiddenBase
+  ---
+  duration_ms: 1.461012
+  type: 'test'
+  ...
+# Subtest: plantOwnershipCleanupWorksAsAnUnboundResourceCallback
+ok 132 - plantOwnershipCleanupWorksAsAnUnboundResourceCallback
+  ---
+  duration_ms: 12.633912
+  type: 'test'
+  ...
+# COW ROOM {"oldFloor":88.06,"floor":176.12000000000015,"oldConnected":24.85,"connected":95.85000000000001}
+# EXPANDED YARD COST {"calls":24,"triangles":1692}
+# Subtest: northern yard provides double the floor and double the connected cow-width walking area
+ok 133 - northern yard provides double the floor and double the connected cow-width walking area
+  ---
+  duration_ms: 61.768199
+  type: 'test'
+  ...
+# Subtest: each of five resting cows has actual standing-skin clearance for a full turn
+ok 134 - each of five resting cows has actual standing-skin clearance for a full turn
+  ---
+  duration_ms: 1840.910965
+  type: 'test'
+  ...
+# Subtest: enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+ok 135 - enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+  ---
+  duration_ms: 162.161107
+  type: 'test'
+  ...
+# Subtest: care-pose contact targets follow the actual moved feed and water geometry
+ok 136 - care-pose contact targets follow the actual moved feed and water geometry
+  ---
+  duration_ms: 20.08146
+  type: 'test'
+  ...
+# Subtest: owned grass clearings cover the full enlarged foundation
+ok 137 - owned grass clearings cover the full enlarged foundation
+  ---
+  duration_ms: 9.546417
+  type: 'test'
+  ...
+# Subtest: ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+ok 138 - ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+  ---
+  duration_ms: 12.03429
+  type: 'test'
+  ...
+# Subtest: expanded shelter retains the original model draw and triangle budgets
+ok 139 - expanded shelter retains the original model draw and triangle budgets
+  ---
+  duration_ms: 7.600887
+  type: 'test'
+  ...
+# Subtest: station navigation and native tap aiming follow the moved real targets
+ok 140 - station navigation and native tap aiming follow the moved real targets
+  ---
+  duration_ms: 7.973292
+  type: 'test'
+  ...
+# COW RIG FIXTURE RED/GREEN {"red":{"distance":0,"measured":0},"green":{"distance":0.8838860428279578,"measured":0.8838860428279571},"setup":{"before":{"position":[-11.8,0.08,-13.186666666666666],"task":"bed","stage":"hold"},"after":{"position":[-8.2,0.08,-11.2],"task":null,"target":[-7.299999999999999,-10.6],"path":[]}}}
+# OFFLINE BOOT CLOCK PROOF [{"paused":false,"distance":6.75000000000001,"job":null,"tank":1,"xp":3},{"paused":true,"distance":0,"job":"exiting","tank":1,"xp":3}]
+# Subtest: actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+ok 141 - actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+  ---
+  duration_ms: 5843.000393
+  type: 'test'
+  ...
+# Subtest: restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+ok 142 - restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+  ---
+  duration_ms: 9.806625
+  type: 'test'
+  ...
+# Subtest: a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+ok 143 - a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+  ---
+  duration_ms: 255.609766
+  type: 'test'
+  ...
+# Subtest: eating cannot satisfy the separate drinking visit before the cow goes to bed
+ok 144 - eating cannot satisfy the separate drinking visit before the cow goes to bed
+  ---
+  duration_ms: 25.757008
+  type: 'test'
+  ...
+# Subtest: slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+ok 145 - slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+  ---
+  duration_ms: 8.265588
+  type: 'test'
+  ...
+# Subtest: display removal releases the departing cow reservation before disposing its rig
+ok 146 - display removal releases the departing cow reservation before disposing its rig
+  ---
+  duration_ms: 5.7896
+  type: 'test'
+  ...
+# Subtest: all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+ok 147 - all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+  ---
+  duration_ms: 411.708653
+  type: 'test'
+  ...
+# Subtest: a newly paid production cycle gets a real feed visit even when transient hunger is low
+ok 148 - a newly paid production cycle gets a real feed visit even when transient hunger is low
+  ---
+  duration_ms: 7.495811
+  type: 'test'
+  ...
+# Subtest: five manual requests pass the actual moving herd through the single robot in FIFO order
+ok 149 - five manual requests pass the actual moving herd through the single robot in FIFO order
+  ---
+  duration_ms: 1347.275614
+  type: 'test'
+  ...
+# Subtest: switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+ok 150 - switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+  ---
+  duration_ms: 8.060157
+  type: 'test'
+  ...
+# Subtest: legacy rig stroll releases a held bed instead of measuring care approach movement
+ok 151 - legacy rig stroll releases a held bed instead of measuring care approach movement
+  ---
+  duration_ms: 51.717231
+  type: 'test'
+  ...
+# Subtest: expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+ok 152 - expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+  ---
+  duration_ms: 2050.713495
+  type: 'test'
+  ...
+# Subtest: expanded northern herd clears all five robot requests in FIFO order
+ok 153 - expanded northern herd clears all five robot requests in FIFO order
+  ---
+  duration_ms: 1712.957095
+  type: 'test'
+  ...
+# Subtest: releasing the last bed leaves an awake cow able to accept the next nighttime task
+ok 154 - releasing the last bed leaves an awake cow able to accept the next nighttime task
+  ---
+  duration_ms: 28.001612
+  type: 'test'
+  ...
+# Subtest: visible frames longer than one second retain cow walking pace without hidden-tab catchup
+ok 155 - visible frames longer than one second retain cow walking pace without hidden-tab catchup
+  ---
+  duration_ms: 24.59262
+  type: 'test'
+  ...
+# Subtest: the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+ok 156 - the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+  ---
+  duration_ms: 45.862441
+  type: 'test'
+  ...
+# Subtest: offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+ok 157 - offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+  ---
+  duration_ms: 24.948275
+  type: 'test'
+  ...
+# Subtest: a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+ok 158 - a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+  ---
+  duration_ms: 7196.783506
+  type: 'test'
+  ...
+# Subtest: a waiting cow physically clears a released feed dock without a new reservation or save mutation
+ok 159 - a waiting cow physically clears a released feed dock without a new reservation or save mutation
+  ---
+  duration_ms: 13.057259
+  type: 'test'
+  ...
+# Subtest: a real robot job advancing during a pen draft retains credit and walks its relocated exit
+ok 160 - a real robot job advancing during a pen draft retains credit and walks its relocated exit
+  ---
+  duration_ms: 227.975038
+  type: 'test'
+  ...
+# Subtest: exact actual game29 predecessor refuses cow writer3; current restores tank, paid timer, animals and lamp exactly
+ok 161 - exact actual game29 predecessor refuses cow writer3; current restores tank, paid timer, animals and lamp exactly
+  ---
+  duration_ms: 28.260301
+  type: 'test'
+  ...
+# Subtest: default migration supports4 while the unchanged explicit2 migration remains shape preserving
+ok 162 - default migration supports4 while the unchanged explicit2 migration remains shape preserving
+  ---
+  duration_ms: 4.442911
+  type: 'test'
+  ...
+# Subtest: stone path joins the main farm to the northern gate without crossing fixed pens or barn
+ok 163 - stone path joins the main farm to the northern gate without crossing fixed pens or barn
+  ---
+  duration_ms: 13.285452
+  type: 'test'
+  ...
+# Subtest: path hit area and disposal preserve caller-owned materials and textures
+ok 164 - path hit area and disposal preserve caller-owned materials and textures
+  ---
+  duration_ms: 4.478146
+  type: 'test'
+  ...
+# Subtest: only the west strip changes, it only flattens, and the horse ground is level
+ok 165 - only the west strip changes, it only flattens, and the horse ground is level
+  ---
+  duration_ms: 310.150905
+  type: 'test'
+  ...
+# Subtest: no hill tree stands in the levelled strip and only trees inside the widened band move
+ok 166 - no hill tree stands in the levelled strip and only trees inside the widened band move
+  ---
+  duration_ms: 6.08503
+  type: 'test'
+  ...
+# Subtest: northern cow entrance rejects buildings and paid decorations on its outside approach
+ok 167 - northern cow entrance rejects buildings and paid decorations on its outside approach
+  ---
+  duration_ms: 57.332961
+  type: 'test'
+  ...
+# Subtest: northern cow entrance opens toward clear farm ground with a full-height walkable gap
+ok 168 - northern cow entrance opens toward clear farm ground with a full-height walkable gap
+  ---
+  duration_ms: 34.885519
+  type: 'test'
+  ...
+# Subtest: usable land extends exactly25 metres north and preserves every former placement
+ok 169 - usable land extends exactly25 metres north and preserves every former placement
+  ---
+  duration_ms: 0.842212
+  type: 'test'
+  ...
+# Subtest: expanded courtyard clears an occupied legacy site without altering those objects
+ok 170 - expanded courtyard clears an occupied legacy site without altering those objects
+  ---
+  duration_ms: 12.053359
+  type: 'test'
+  ...
+# Subtest: new flat land joins existing terrain without changing old farm heights
+ok 171 - new flat land joins existing terrain without changing old farm heights
+  ---
+  duration_ms: 1.025787
+  type: 'test'
+  ...
+# Subtest: remaining physical care is installed before ordinary Beast behavior and herd synchronization
+ok 172 - remaining physical care is installed before ordinary Beast behavior and herd synchronization
+  ---
+  duration_ms: 1.2633
+  type: 'test'
+  ...
+# Subtest: protected implementations and approved pen adapters retain exact reviewed bytes
+ok 173 - protected implementations and approved pen adapters retain exact reviewed bytes
+  ---
+  duration_ms: 1.802165
+  type: 'test'
+  ...
+# Subtest: authorized yard adapters retain exact accepted default rendered geometry
+ok 174 - authorized yard adapters retain exact accepted default rendered geometry
+  ---
+  duration_ms: 190.469823
+  type: 'test'
+  ...
+# Subtest: one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+ok 175 - one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+  ---
+  duration_ms: 4.197613
+  type: 'test'
+  ...
+# Subtest: each supported horse/sheep has a spacious separate pen and stable bed, feed and drink places
+ok 176 - each supported horse/sheep has a spacious separate pen and stable bed, feed and drink places
+  ---
+  duration_ms: 2.143601
+  type: 'test'
+  ...
+# Subtest: new sites do not intersect the accepted dairy footprint or stone path
+ok 177 - new sites do not intersect the accepted dairy footprint or stone path
+  ---
+  duration_ms: 10.314725
+  type: 'test'
+  ...
+# Subtest: pet beds and separate bowls are distinct, attainable, and never occupy the main doorway
+ok 178 - pet beds and separate bowls are distinct, attainable, and never occupy the main doorway
+  ---
+  duration_ms: 1.515217
+  type: 'test'
+  ...
+# Subtest: paid-object conflicts are reported without editing any saved object
+ok 179 - paid-object conflicts are reported without editing any saved object
+  ---
+  duration_ms: 0.485605
+  type: 'test'
+  ...
+# Subtest: all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle
+ok 180 - all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle
+  ---
+  duration_ms: 1.015953
+  type: 'test'
+  ...
+# Subtest: saved buildings outside the sheep fence cannot silently seal its usable gate approach
+ok 181 - saved buildings outside the sheep fence cannot silently seal its usable gate approach
+  ---
+  duration_ms: 0.28859
+  type: 'test'
+  ...
+# Subtest: nested authored module versions cannot evade the cache consistency check
+ok 182 - nested authored module versions cannot evade the cache consistency check
+  ---
+  duration_ms: 2.736169
+  type: 'test'
+  ...
+# Subtest: every versioned script is imported with one version only
+ok 183 - every versioned script is imported with one version only
+  ---
+  duration_ms: 0.542349
+  type: 'test'
+  ...
+# Subtest: window.__gameVer matches the game.js version it imports
+ok 184 - window.__gameVer matches the game.js version it imports
+  ---
+  duration_ms: 0.279196
+  type: 'test'
+  ...
+# Subtest: the offline shell caches the same versions the page imports
+ok 185 - the offline shell caches the same versions the page imports
+  ---
+  duration_ms: 0.518497
+  type: 'test'
+  ...
+# Subtest: the cache name is versioned and namespaced away from the 2D game
+ok 186 - the cache name is versioned and namespaced away from the 2D game
+  ---
+  duration_ms: 0.341352
+  type: 'test'
+  ...
+# Subtest: chicken dependencies of both the page and game rules are cached offline
+ok 187 - chicken dependencies of both the page and game rules are cached offline
+  ---
+  duration_ms: 0.364012
+  type: 'test'
+  ...
+# Subtest: offline shell contains the complete local JavaScript boot graph
+ok 188 - offline shell contains the complete local JavaScript boot graph
+  ---
+  duration_ms: 0.41288
+  type: 'test'
+  ...
+# Subtest: native scene-polish fixture imports the same scenery version as the page
+ok 189 - native scene-polish fixture imports the same scenery version as the page
+  ---
+  duration_ms: 0.320351
+  type: 'test'
+  ...
+1..189
+# tests 189
+# suites 0
+# pass 189
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 52407.611529
+exit 0

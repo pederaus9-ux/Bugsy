@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: preparation does not publish; publish installs once and retires previous resources last
+ok 1 - preparation does not publish; publish installs once and retires previous resources last
+  ---
+  duration_ms: 38.0413
+  type: 'test'
+  ...
+# Subtest: cancel disposes care once and cannot subsequently publish
+ok 2 - cancel disposes care once and cannot subsequently publish
+  ---
+  duration_ms: 22.6612
+  type: 'test'
+  ...
+# Subtest: invalid or stale validation cannot prepare resources or care
+ok 3 - invalid or stale validation cannot prepare resources or care
+  ---
+  duration_ms: 0.1965
+  type: 'test'
+  ...
+# Subtest: publication failure is terminal and does not dispose possibly installed resources or old revision
+ok 4 - publication failure is terminal and does not dispose possibly installed resources or old revision
+  ---
+  duration_ms: 23.1385
+  type: 'test'
+  ...
+# Subtest: live registry preparation finishes before publication and is discarded on care preparation failure
+ok 5 - live registry preparation finishes before publication and is discarded on care preparation failure
+  ---
+  duration_ms: 18.3184
+  type: 'test'
+  ...
+# Subtest: prepared registry publishes before care and retires after care, with cancellation isolated
+ok 6 - prepared registry publishes before care and retires after care, with cancellation isolated
+  ---
+  duration_ms: 18.9005
+  type: 'test'
+  ...
+# Subtest: successful Apply preserves farm identity, writes once and notifies after publication
+ok 7 - successful Apply preserves farm identity, writes once and notifies after publication
+  ---
+  duration_ms: 6.4696
+  type: 'test'
+  ...
+# Subtest: quota failure preserves stored bytes and old live layout and writer
+ok 8 - quota failure preserves stored bytes and old live layout and writer
+  ---
+  duration_ms: 2.8197
+  type: 'test'
+  ...
+# Subtest: persisted candidate survives publication failure and old writes are blocked
+ok 9 - persisted candidate survives publication failure and old writes are blocked
+  ---
+  duration_ms: 4.8092
+  type: 'test'
+  ...
+# Subtest: prepare failure and stale world reject without storage or publication
+ok 10 - prepare failure and stale world reject without storage or publication
+  ---
+  duration_ms: 4.6799
+  type: 'test'
+  ...
+# Subtest: ordinary ticks do not stale a draft; another layout revision does
+ok 11 - ordinary ticks do not stale a draft; another layout revision does
+  ---
+  duration_ms: 2.2323
+  type: 'test'
+  ...
+# Subtest: unknown saved templates block ordinary writes without discarding bytes
+ok 12 - unknown saved templates block ordinary writes without discarding bytes
+  ---
+  duration_ms: 4.8127
+  type: 'test'
+  ...
+# Subtest: invalid candidate, overflow revision and account swap cannot write
+ok 13 - invalid candidate, overflow revision and account swap cannot write
+  ---
+  duration_ms: 7.5865
+  type: 'test'
+  ...
+# Subtest: Apply paid settlement equals ordinary save at the same clock
+ok 14 - Apply paid settlement equals ordinary save at the same clock
+  ---
+  duration_ms: 7.9425
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 11999ms
+ok 15 - Apply retains exact paid state at robot boundary 11999ms
+  ---
+  duration_ms: 7.7352
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 12000ms
+ok 16 - Apply retains exact paid state at robot boundary 12000ms
+  ---
+  duration_ms: 18.5253
+  type: 'test'
+  ...
+# Subtest: robot completion during failed prepare equals ordinary paid settlement
+ok 17 - robot completion during failed prepare equals ordinary paid settlement
+  ---
+  duration_ms: 9.7612
+  type: 'test'
+  ...
+# Subtest: robot completion during failed storage equals ordinary paid settlement
+ok 18 - robot completion during failed storage equals ordinary paid settlement
+  ---
+  duration_ms: 6.7029
+  type: 'test'
+  ...
+# Subtest: supplies expiring during a draft settle exactly as an ordinary save
+ok 19 - supplies expiring during a draft settle exactly as an ordinary save
+  ---
+  duration_ms: 6.0403
+  type: 'test'
+  ...
+# Subtest: actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+ok 20 - actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+  ---
+  duration_ms: 12.3205
+  type: 'test'
+  ...
+# Subtest: ordinary farms retain their existing writer until first successful pen Apply
+ok 21 - ordinary farms retain their existing writer until first successful pen Apply
+  ---
+  duration_ms: 11.3291
+  type: 'test'
+  ...
+# Subtest: remaining physical care is installed before ordinary Beast behavior and herd synchronization
+ok 22 - remaining physical care is installed before ordinary Beast behavior and herd synchronization
+  ---
+  duration_ms: 0.7356
+  type: 'test'
+  ...
+# Subtest: protected implementations and approved pen adapters retain exact reviewed bytes
+ok 23 - protected implementations and approved pen adapters retain exact reviewed bytes
+  ---
+  duration_ms: 6.0392
+  type: 'test'
+  ...
+# Subtest: authorized yard adapters retain exact accepted default rendered geometry
+ok 24 - authorized yard adapters retain exact accepted default rendered geometry
+  ---
+  duration_ms: 77.0177
+  type: 'test'
+  ...
+# Subtest: one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+ok 25 - one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+  ---
+  duration_ms: 2.3848
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 690.3274

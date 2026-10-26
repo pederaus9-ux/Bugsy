@@ -1,0 +1,50 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from '../lib/three.module.min.js';import {createChickenYard} from '../chicken-yard.js';import {createCowYard} from '../cow-yard.js';import {createRemainingCareYards} from '../remaining-care-yard.js';import {resolveAnimalPens,defaultSiteRecord} from '../animal-pen-layout.js';import {meshReceipt,bounds,assertShift} from './fixtures/animal-pen-mesh-probe.mjs';
+const pr95=JSON.parse(fs.readFileSync(new URL('./fixtures/animal-pen-render-pr95.json',import.meta.url),'utf8')),a2=JSON.parse(fs.readFileSync(new URL('./fixtures/animal-pen-a2-horse.json',import.meta.url),'utf8'));
+// Amendment A2 (square horse paddock) supersedes the PR95 horse render; PR95 stays the record for every other site.
+const frozen={...pr95,sites:{...pr95.sites,horse:a2.render}};
+function site(kind,component=null,delta=[2,-1]){const s=defaultSiteRecord(kind);if(component){s.structures[component]=s.structures[component].map((n,i)=>n+delta[i]);}return resolveAnimalPens({v:1,revision:1,sites:{[kind]:s}}).sites[kind];}
+const dispose=ys=>Object.values(ys).forEach(y=>y.dispose());
+// A37: account only for A21's approved parked-open poses; retain the full PR95 receipt.
+function acceptedIdentityReceipt(y,kind){
+  if(kind!=='cow')return meshReceipt(y.group);
+  const entry=y.robot.entryGate,exit=y.robot.exitGate;
+  assert.equal(entry.rotation.y,Math.PI/2,'A21 entry parked rotation');
+  assert.equal(exit.rotation.y,-Math.PI/2,'A21 exit parked rotation');
+  assert.equal(entry.position.x,-4.35+.10,'A21 entry parked offset');
+  assert.equal(exit.position.x,-4.35+.18,'A21 exit parked offset');
+  const native=[entry.rotation.y,exit.rotation.y,entry.position.x,exit.position.x];
+  try{
+    entry.rotation.y=-Math.PI/2;exit.rotation.y=Math.PI/2;
+    entry.position.x=exit.position.x=-4.35;
+    return meshReceipt(y.group);
+  }finally{
+    [entry.rotation.y,exit.rotation.y,entry.position.x,exit.position.x]=native;
+    y.group.updateMatrixWorld(true);
+  }
+}
+test('identityFactoriesMatchAcceptedGeometry',()=>{const defs={chicken:createChickenYard(),cow:createCowYard({north:25}),...createRemainingCareYards()},layouts=Object.fromEntries(['chicken','cow','horse','sheep','dog','cat'].map(k=>[k,site(k)])),custom={chicken:createChickenYard({layout:layouts.chicken}),cow:createCowYard({north:25,layout:layouts.cow}),...createRemainingCareYards({layouts})};try{for(const kind of Object.keys(defs)){assert.deepEqual(acceptedIdentityReceipt(defs[kind],kind),frozen.sites[kind],kind+' default changed');assert.deepEqual(acceptedIdentityReceipt(custom[kind],kind),frozen.sites[kind],kind+' identity custom geometry changed');}}finally{dispose(defs);dispose(custom);}});
+
+for(const custom of[false,true]){
+  const make=()=>createCowYard({north:25,...(custom?{layout:site('cow')}:{})});
+  for(const[name,mutate]of[
+    ['wrong parked rotation',y=>{y.robot.entryGate.rotation.y=-Math.PI/2;}],
+    ['missing parked offset',y=>{y.robot.exitGate.position.x=-4.35;}],
+    ['missing gate mesh',y=>{y.robot.entryGate.parent.remove(y.robot.entryGate);}],
+    ['unrelated yard translation',y=>{y.group.position.x=.001;}]
+  ])test('A37 '+(custom?'identity-custom':'default')+' receipt rejects '+name,()=>{
+    const y=make();try{mutate(y);assert.throws(()=>assert.deepEqual(acceptedIdentityReceipt(y,'cow'),frozen.sites.cow));}finally{y.dispose();}
+  });
+  test('A37 '+(custom?'identity-custom':'default')+' accounting restores native poses',()=>{
+    const y=make();try{const before=meshReceipt(y.group);assert.deepEqual(acceptedIdentityReceipt(y,'cow'),frozen.sites.cow);assert.deepEqual(meshReceipt(y.group),before);}finally{y.dispose();}
+  });
+}
+test('translatedRobotIncludesTankPipeAndAnimatedParts',()=>{const before=createCowYard({north:25}),after=createCowYard({north:25,layout:site('cow','robot')});try{for(const name of ['cow-robot','cow-pipe','cow-tank']){const old=before.group.getObjectByName(name),next=after.group.getObjectByName(name);const original=old.userData.bounds?old.userData.bounds.clone().union(bounds(old)):bounds(old);assertShift(assert,original,bounds(next),[2,0,-1]);}assert.deepEqual(after.layout.robot.dock,[before.layout.robot.dock[0]+2,before.layout.robot.dock[1],before.layout.robot.dock[2]-1]);after.setRobotPose(.5);assertShift(assert,bounds(before.robot.entryGate),bounds(after.robot.entryGate),[2,0,-1]);assertShift(assert,bounds(before.group.getObjectByName('cow-feed')),bounds(after.group.getObjectByName('cow-feed')),[0,0,0]);}finally{before.dispose();after.dispose();}});
+test('translatedCoopIncludesBothRamps30Beds',()=>{const before=createChickenYard(),after=createChickenYard({layout:site('chicken','coop')});try{assert.equal(after.stations.filter(s=>s.kind==='bed').length,30);for(let i=0;i<2;i++){const old=before.accesses[i],next=after.accesses[i];assert.deepEqual(next.rampStart,[old.rampStart[0]+2,old.rampStart[1],old.rampStart[2]-1]);const mid=[next.rampStart[0],(next.rampStart[2]+next.rampEnd[2])/2];assert(Math.abs(after.sampleStationSupport('hen-bed-0',...mid).height-next.floor/2)<1e-8);}assertShift(assert,bounds(before.targets[0].object),bounds(after.targets[0].object),[2,0,-1]);assertShift(assert,bounds(before.targets[1].object),bounds(after.targets[1].object),[0,0,0]);assert.equal(after.sampleStationSupport('hen-bed-0',-14.2,-4.5).inside,false);}finally{before.dispose();after.dispose();}});
+test('oldFootprintsNoLongerCollide',()=>{const before=createRemainingCareYards(),after=createRemainingCareYards({layouts:{dog:site('dog','nook'),horse:site('horse','shelter')}});try{for(const kind of ['dog','horse'])for(let i=0;i<before[kind].beds.length;i++){assertShift(assert,bounds(before[kind].beds[i]),bounds(after[kind].beds[i]),[2,0,-1]);assert.deepEqual(after[kind].layout.stations[i*3]?.id,before[kind].layout.stations[i*3]?.id);}assert.equal(after.horse.beds.length,4);assert.equal(after.sheep.beds.length,5);assert.equal(after.cat.beds.length,1);for(let i=0;i<before.dog.obstacles.length;i++){const old=before.dog.obstacles[i],next=after.dog.obstacles[i];assert.deepEqual(next,[old[0]+2,old[1]-1,...old.slice(2)]);}}finally{dispose(before);dispose(after);}});
+test('cowShelterCarriesWholeFoundation',()=>{const before=createCowYard({north:25}),after=createCowYard({north:25,layout:site('cow','shelter')});try{const old=before.group.getObjectByName('cow-foundation'),next=after.group.getObjectByName('cow-foundation');assertShift(assert,old.userData.bounds,bounds(next),[2,0,-1]);assert.equal(after.stations.filter(s=>s.kind==='bed').length,5);}finally{before.dispose();after.dispose();}});
+test('prepareDisposeDoesNotTouchInstalledYard',async()=>{const R=await import('../animal-pen-runtime.js').catch(e=>{if(e.code==='ERR_MODULE_NOT_FOUND')return {};throw e;});assert.equal(typeof R.preparePenYards,'function');const installed=createCowYard({north:25}),scene=new T.Scene();scene.add(installed.group);const old=meshReceipt(installed.group),prepared=R.preparePenYards(resolveAnimalPens());try{assert.equal(scene.children.length,1);assert.equal(Object.keys(prepared.yards).length,6);prepared.dispose();prepared.dispose();assert.strictEqual(installed.group.parent,scene);assert.deepEqual(meshReceipt(installed.group),old);}finally{prepared.dispose();installed.dispose();}});
+
+test('identitySavedBoundaryPreservesFenceDirectionAndExactGap',()=>{const raw=JSON.parse(fs.readFileSync(new URL('./fixtures/animal-pens-pr95.json',import.meta.url),'utf8'));for(const kind of ['chicken','cow','horse','sheep'])assert.deepEqual(site(kind).fenceSegments,kind==='horse'?a2.baseline.fenceSegments:raw.sites[kind].fenceSegments,kind+' fence construction changed without a fence edit');});
+test('componentLayoutsCoverRealOwnedPrimitives',async()=>{const {PEN_TEMPLATES}=await import('../animal-pen-templates.js'),{preparePenYards}=await import('../animal-pen-runtime.js'),p=preparePenYards(resolveAnimalPens());try{for(const[k,y]of Object.entries(p.yards))for(const[id,boxes]of Object.entries(y.componentVolumes())){const f=PEN_TEMPLATES[k].components[id].footprint;assert(boxes.length>0,k+'/'+id+' missing physical geometry');for(const b of boxes){assert(b[0]>=f[0][0]-1e-8&&b[3]<=f[1][0]+1e-8,k+'/'+id+' x envelope omits real geometry');assert(b[2]>=f[0][1]-1e-8&&b[5]<=f[2][1]+1e-8,k+'/'+id+' z envelope omits real geometry');}}}finally{p.dispose();}});
+test('clearingReplacementCannotRestoreAnotherOwnerOrCaptureHiddenBase',async()=>{const {createCowYardPlantClearing}=await import('../cow-yard.js'),{createRemainingCarePlantClearing}=await import('../remaining-care-yard.js');const mesh=new T.InstancedMesh(new T.BoxGeometry(.1,.1,.1),new T.MeshBasicMaterial(),3);for(let i=0;i<3;i++)mesh.setMatrixAt(i,new T.Matrix4().makeTranslation(i*3,0,0));const original=mesh.instanceMatrix.array.slice(),site={footprint:[[-1,-1],[1,-1],[1,1],[-1,1]]},cow=createCowYardPlantClearing([mesh],site);cow.setActive(true);const next=createRemainingCarePlantClearing([mesh],{dog:site});next.setActive('dog',true);cow.setActive(false);assert.equal(mesh.instanceMatrix.array[0],0,'removing old yard restored another owner');next.setActive('dog',false);assert.deepEqual(mesh.instanceMatrix.array,original,'replacement captured an already hidden base');cow.dispose?.();next.dispose?.();mesh.geometry.dispose();mesh.material.dispose();});
+test('plantOwnershipCleanupWorksAsAnUnboundResourceCallback',async()=>{const {createRemainingCarePlantClearing}=await import('../remaining-care-yard.js'),mesh=new T.InstancedMesh(new T.BoxGeometry(.1,.1,.1),new T.MeshBasicMaterial(),1);mesh.setMatrixAt(0,new T.Matrix4());const original=mesh.instanceMatrix.array.slice(),c=createRemainingCarePlantClearing([mesh],{dog:{footprint:[[-1,-1],[1,-1],[1,1],[-1,1]]}});c.setActive('dog',true);const cleanup=c.dispose;try{cleanup();cleanup();assert.deepEqual(mesh.instanceMatrix.array,original);}finally{mesh.geometry.dispose();mesh.material.dispose();}});

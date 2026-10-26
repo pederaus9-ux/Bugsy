@@ -1,0 +1,5 @@
+const fs=require('fs'),path=require('path'),file=path.resolve(__dirname,'../../../animal-pen-robot-install.browser.cjs');let source=fs.readFileSync(file,'utf8');
+function replace(a,b){if(!source.includes(a))throw Error('Missing boundary anchor');source=source.replace(a,b);}
+replace('};let prev=[],last=',"};r.g.updateMatrixWorld(true);let prev=r.legs.map(l=>({planted:l.planted,p:l.foot.localToWorld(new T.Vector3(0,-COW_GAIT.hoof,0))})),dockDwell=0,last=");
+replace("if(j&&j.id!==jobId)throw Error('job identity');","if(editStage==='approaching'&&dockedAt===null){const dock=new T.Vector3(...d.cowYard.layout.robot.dock),facing=a.cowTask.station.facing+Math.PI,yaw=r.model.rotation.y,qualified=a.g.position.distanceTo(dock)<=.1&&Math.abs(Math.atan2(Math.sin(yaw-facing),Math.cos(yaw-facing)))<=.1&&a.lastSpd<=.035;dockDwell=qualified?dockDwell+dt:0;m.maxDockDwell=Math.max(m.maxDockDwell||0,dockDwell);if(kind==='milking'&&dockDwell<.25-1e-9)throw Error('continuous physical dock dwell');}if(j&&j.id!==jobId)throw Error('job identity');");
+fs.writeFileSync(file,source);

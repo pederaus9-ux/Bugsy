@@ -1,0 +1,102 @@
+✖ enlargedFenceCannotCutNewDecorAtItsMidpoint (785.515347ms)
+✖ paidObjectInsideExpandedAreaCannotBeIgnored (837.220042ms)
+✖ occupiedCoopBedRetainsItsLocalSupportFrame (757.204186ms)
+✖ bothCoopDoorwaysHaveSeparateProofs (738.01689ms)
+✔ legalNookMovePreservesWorldAndOwnership (796.477895ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4037.612966
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-validation.test.mjs:17:1
+✖ enlargedFenceCannotCutNewDecorAtItsMidpoint (785.515347ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.issues.some(i=>i.code==='OVERLAP'))
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-validation.test.mjs:17:349)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-validation.test.mjs:18:1
+✖ paidObjectInsideExpandedAreaCannotBeIgnored (837.220042ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.issues.some(i=>i.code==='OVERLAP'))
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-validation.test.mjs:18:386)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-validation.test.mjs:19:1
+✖ occupiedCoopBedRetainsItsLocalSupportFrame (757.204186ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -14.819999999999997,
+  +   0,
+  +   -3.820000000000001
+  -   -12.299999999999999,
+  -   0.67305,
+  -   -3.85
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-validation.test.mjs:19:284)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -14.819999999999997, 0, -3.820000000000001 ],
+    expected: [ -12.299999999999999, 0.67305, -3.85 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at farm3d/tests/animal-pen-validation.test.mjs:20:1
+✖ bothCoopDoorwaysHaveSeparateProofs (738.01689ms)
+  AssertionError [ERR_ASSERTION]: coop-door-0 route proof missing
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-validation.test.mjs:20:159)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

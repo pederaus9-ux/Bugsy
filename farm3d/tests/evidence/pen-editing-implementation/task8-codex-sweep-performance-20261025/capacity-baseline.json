@@ -1,0 +1,139 @@
+{
+  "status": "CAPACITY_VALID_QUERY_COST_MEASURED",
+  "name": "capacity-baseline",
+  "allocationInstrumented": false,
+  "engine": {
+    "node": "24.19.0",
+    "acorn": "8.17.0",
+    "ada": "3.4.4",
+    "amaro": "1.1.10",
+    "ares": "1.34.6",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "137",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.69.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.7",
+    "simdjson": "4.6.4",
+    "simdutf": "6.4.0",
+    "sqlite": "3.53.3",
+    "tz": "2026b",
+    "undici": "7.29.0",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "13.6.233.17-node.51",
+    "zlib": "1.3.2.1-motley-3246f1b",
+    "zstd": "1.5.7"
+  },
+  "completedFrames": 120,
+  "measuredFrames": 100,
+  "fixtures": [
+    {
+      "id": "cow-feed-1",
+      "kind": "feed",
+      "root": [
+        -9.5,
+        0.08,
+        -34
+      ],
+      "costMs": {
+        "median": 4.529099999999971,
+        "p95": 7.872199999999907,
+        "max": 9.928899999999999
+      }
+    },
+    {
+      "id": "cow-feed-2",
+      "kind": "feed",
+      "root": [
+        -7.2,
+        0.08,
+        -34
+      ],
+      "costMs": {
+        "median": 4.358500000000049,
+        "p95": 7.326800000000048,
+        "max": 24.7837999999997
+      }
+    },
+    {
+      "id": "cow-drink",
+      "kind": "drink",
+      "root": [
+        6.15,
+        0.08,
+        -35.4
+      ],
+      "costMs": {
+        "median": 3.0995000000000346,
+        "p95": 5.276699999999892,
+        "max": 14.717299999999796
+      }
+    },
+    {
+      "id": "cow-robot",
+      "kind": "robot",
+      "root": [
+        8.600000000000001,
+        0.08,
+        -36.3
+      ],
+      "costMs": {
+        "median": 1.1199999999998909,
+        "p95": 1.7109000000000378,
+        "max": 2.2975000000001273
+      }
+    },
+    {
+      "id": "free-cow",
+      "kind": "free",
+      "root": [
+        0,
+        0.08,
+        -34.1
+      ],
+      "costMs": {
+        "median": 1.0705000000000382,
+        "p95": 1.459100000000035,
+        "max": 1.8079000000000178
+      }
+    }
+  ],
+  "minSeparation": 2.3,
+  "obstacles": 62,
+  "rootObstacles": 8,
+  "addedFiveCowMs": {
+    "median": 14.904700000000048,
+    "p95": 20.20900000000006,
+    "max": 37.01509999999962
+  },
+  "warmupWorstMs": 46.28109999999998,
+  "averageCounters": {
+    "domains": 5,
+    "visited": 585.36,
+    "leafVisits": 65.14,
+    "certificateHits": 4.49,
+    "nodeCertificateHits": 28.27
+  },
+  "memory": {
+    "cacheBuildMs": 96.12799999999999,
+    "cacheRetainedHeapBytes": 40801096,
+    "heapBeforeFinalGC": 174476768,
+    "retainedAfterQueries": 3800968
+  },
+  "allocation": null,
+  "error": null,
+  "sourceHashes": {
+    "helpers/cow-hierarchical-sweep.mjs": "6aac9ddacb6be8e5ccf9b78934ff8ae98281e9e751a52b76987319c0f0bbe228",
+    "helpers/cow-motion-domains.mjs": "7f2bfcab0aee21473ff6d9382e7fb35f8b1db5f4bb6f7e5d652bfcec47fc6fb8"
+  },
+  "limits": "Capacity-valid independent scene fixture, no live controller/reservation completion claim. Same obstacle set for all five; two feed, one drink, one robot, one free awake cow. All queries include displayed copy and complete temporal traversal. Excludes renderer, ordinary animation and controller. Node desktop only. Allocation-profiled timing is diagnostic, not the uninstrumented performance comparison."
+}

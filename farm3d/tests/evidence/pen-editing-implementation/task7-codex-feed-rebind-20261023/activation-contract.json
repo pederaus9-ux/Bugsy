@@ -1,0 +1,219 @@
+{
+  "input": "Retained real46 World; production farmGroundY restored; read-only current production validator and locked legacy guard",
+  "validation": {
+    "ok": true,
+    "issues": []
+  },
+  "layout": {
+    "polygon": [
+      [
+        -14,
+        -40.2
+      ],
+      [
+        9.8,
+        -40.2
+      ],
+      [
+        10,
+        -32
+      ],
+      [
+        -14,
+        -32
+      ]
+    ],
+    "footprint": [
+      [
+        -14,
+        -40.29999990463257
+      ],
+      [
+        13.049999976158142,
+        -40.29999990463257
+      ],
+      [
+        13.049999976158142,
+        -32
+      ],
+      [
+        -14,
+        -32
+      ]
+    ],
+    "access": [
+      -5.200000000000001,
+      -1.9000000000000004,
+      -34.5,
+      -29.5
+    ],
+    "gate": {
+      "id": "gate0",
+      "edge": [
+        "v2",
+        "v3"
+      ],
+      "run": null,
+      "offset": 11.9,
+      "width": 3.3000000000000003,
+      "inside": [
+        -3.5500000000000007,
+        0,
+        -33.5
+      ],
+      "outside": [
+        -3.5500000000000007,
+        0,
+        -30.5
+      ],
+      "segment": [
+        -1.9000000000000004,
+        -32,
+        -5.200000000000001,
+        -32
+      ]
+    }
+  },
+  "actorClearance": 0.42,
+  "legacyConflicts": [
+    {
+      "type": "block",
+      "bounds": [
+        -14.15,
+        -31.45,
+        9.35,
+        0.06
+      ]
+    },
+    {
+      "type": "block",
+      "bounds": [
+        -4.92,
+        -31.33,
+        0.065,
+        0.065
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "bounds": [
+        -14.15,
+        -31.45,
+        9.35,
+        0.06
+      ],
+      "insideEnclosure": false,
+      "componentHits": [],
+      "axisClear": true
+    },
+    {
+      "bounds": [
+        -4.92,
+        -31.33,
+        0.065,
+        0.065
+      ],
+      "insideEnclosure": false,
+      "componentHits": [],
+      "axisClear": true
+    }
+  ],
+  "controls": [
+    {
+      "name": "gate-axis obstruction",
+      "block": [
+        -3.5500000000000007,
+        -32,
+        0.2,
+        0.2
+      ],
+      "validation": false,
+      "issues": [
+        {
+          "code": "OVERLAP",
+          "kind": "cow",
+          "target": null,
+          "message": "Keep existing objects outside the animal enclosure."
+        },
+        {
+          "code": "ROUTE",
+          "kind": "cow",
+          "target": "gate0",
+          "message": "Keep clear approaches on both sides of every gate."
+        },
+        {
+          "code": "ROUTE",
+          "kind": "cow",
+          "target": "gate0",
+          "message": "Keep clear approaches on both sides of every gate."
+        },
+        {
+          "code": "ROUTE",
+          "kind": "cow",
+          "target": "gate0",
+          "message": "Keep clear approaches on both sides of every gate."
+        },
+        {
+          "code": "ROUTE",
+          "kind": "cow",
+          "target": "gate0",
+          "message": "Keep clear approaches on both sides of every gate."
+        },
+        {
+          "code": "ROUTE",
+          "kind": "cow",
+          "target": "gate0",
+          "message": "Keep clear approaches on both sides of every gate."
+        }
+      ],
+      "legacy": [
+        {
+          "type": "block",
+          "bounds": [
+            -3.5500000000000007,
+            -32,
+            0.2,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "enclosure obstruction",
+      "block": [
+        0,
+        -35,
+        0.5,
+        0.5
+      ],
+      "validation": false,
+      "issues": [
+        {
+          "code": "OVERLAP",
+          "kind": "cow",
+          "target": null,
+          "message": "Keep existing objects outside the animal enclosure."
+        },
+        {
+          "code": "OVERLAP",
+          "kind": "cow",
+          "target": "shelter",
+          "message": "This building overlaps an existing farm object."
+        }
+      ],
+      "legacy": [
+        {
+          "type": "block",
+          "bounds": [
+            0,
+            -35,
+            0.5,
+            0.5
+          ]
+        }
+      ]
+    }
+  ],
+  "status": "PASS diagnosis and obstruction controls; native integration remains FAIL"
+}

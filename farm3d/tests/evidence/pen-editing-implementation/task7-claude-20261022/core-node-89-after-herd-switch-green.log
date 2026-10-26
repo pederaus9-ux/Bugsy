@@ -1,0 +1,5004 @@
+# source: 3187131 + retireAnimal extraction + herd rebuild on saved-layout change (uncommitted); node v22.22.2; start 2026-10-22T14:23:34Z
+# cmd: FARM3D_CORE_GROUP=node node farm3d/tests/run-core-game-tests.mjs
+[CI-ISOLATION] START animal-pen-concave-care.test.mjs 2026-10-22T14:23:35.019Z
+TAP version 13
+# Subtest: pets avoid the actual concave pen arms while the open notch remains usable in either winding
+ok 1 - pets avoid the actual concave pen arms while the open notch remains usable in either winding
+  ---
+  duration_ms: 2.265799
+  type: 'test'
+  ...
+# Subtest: care containment accepts both arms and rejects routes crossing the concave notch
+ok 2 - care containment accepts both arms and rejects routes crossing the concave notch
+  ---
+  duration_ms: 37.18513
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 188.056061
+[CI-ISOLATION] END animal-pen-concave-care.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START animal-pen-cow-rebind.test.mjs 2026-10-22T14:23:35.271Z
+TAP version 13
+# Subtest: cow rebind preserves ledger and physical dock proof at approaching
+ok 1 - cow rebind preserves ledger and physical dock proof at approaching
+  ---
+  duration_ms: 16.41153
+  type: 'test'
+  ...
+# Subtest: cow rebind preserves ledger and physical dock proof at milking
+ok 2 - cow rebind preserves ledger and physical dock proof at milking
+  ---
+  duration_ms: 6.838025
+  type: 'test'
+  ...
+# Subtest: cow rebind preserves ledger and physical dock proof at exiting
+ok 3 - cow rebind preserves ledger and physical dock proof at exiting
+  ---
+  duration_ms: 6.45849
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 180.31745
+[CI-ISOLATION] END animal-pen-cow-rebind.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START animal-pen-cow-support.test.mjs 2026-10-22T14:23:35.530Z
+TAP version 13
+# Subtest: straddling the concrete edge keeps actual planted hoof bones on their own support heights
+ok 1 - straddling the concrete edge keeps actual planted hoof bones on their own support heights
+  ---
+  duration_ms: 109.892246
+  type: 'test'
+  ...
+# Subtest: concrete to soil and soil to concrete steps obey full 3D walking speed at30/60/120Hz
+ok 2 - concrete to soil and soil to concrete steps obey full 3D walking speed at30/60/120Hz
+  ---
+  duration_ms: 3.333043
+  type: 'test'
+  ...
+# Subtest: flat accepted support leaves every leg matrix exactly unchanged
+ok 3 - flat accepted support leaves every leg matrix exactly unchanged
+  ---
+  duration_ms: 4.057684
+  type: 'test'
+  ...
+# Subtest: moving planted hooves retain their own world contact across a concrete edge
+ok 4 - moving planted hooves retain their own world contact across a concrete edge
+  ---
+  duration_ms: 76.510241
+  type: 'test'
+  ...
+# Subtest: concrete transitions retain original planted contact and liftoff tolerances
+ok 5 - concrete transitions retain original planted contact and liftoff tolerances
+  ---
+  duration_ms: 49.880935
+  type: 'test'
+  ...
+# Subtest: smooth turns across both slab edges retain planted contact at30/60/120Hz
+ok 6 - smooth turns across both slab edges retain planted contact at30/60/120Hz
+  ---
+  duration_ms: 45.384994
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 447.396965
+[CI-ISOLATION] END animal-pen-cow-support.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START animal-pen-editor-view.test.mjs 2026-10-22T14:23:36.060Z
+TAP version 13
+# Subtest: a second pointer anywhere on the page cancels only the current drag
+ok 1 - a second pointer anywhere on the page cancels only the current drag
+  ---
+  duration_ms: 20.459837
+  type: 'test'
+  ...
+# Subtest: pointer cancellation restores the pre-drag draft and releases capture
+ok 2 - pointer cancellation restores the pre-drag draft and releases capture
+  ---
+  duration_ms: 7.114293
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 155.176564
+[CI-ISOLATION] END animal-pen-editor-view.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-pen-editor.test.mjs 2026-10-22T14:23:36.290Z
+TAP version 13
+# Subtest: open and Cancel never round decimal coordinates or write a farm
+ok 1 - open and Cancel never round decimal coordinates or write a farm
+  ---
+  duration_ms: 3.301045
+  type: 'test'
+  ...
+# Subtest: a second pointer cancels only its current gesture and preserves earlier edits
+ok 2 - a second pointer cancels only its current gesture and preserves earlier edits
+  ---
+  duration_ms: 2.156581
+  type: 'test'
+  ...
+# Subtest: late valid results cannot authorize a newer invalid draft
+ok 3 - late valid results cannot authorize a newer invalid draft
+  ---
+  duration_ms: 13.360384
+  type: 'test'
+  ...
+# Subtest: whole pen translation preserves decimals and Apply increments the saved revision once
+ok 4 - whole pen translation preserves decimals and Apply increments the saved revision once
+  ---
+  duration_ms: 3.23175
+  type: 'test'
+  ...
+# Subtest: gate identities survive removed runs and can be explicitly reanchored
+ok 5 - gate identities survive removed runs and can be explicitly reanchored
+  ---
+  duration_ms: 1.304227
+  type: 'test'
+  ...
+# Subtest: unowned species and pet fence commands cannot edit, and snapshots cannot mutate drafts
+ok 6 - unowned species and pet fence commands cannot edit, and snapshots cannot mutate drafts
+  ---
+  duration_ms: 0.330938
+  type: 'test'
+  ...
+# Subtest: world replacement or an unfinished drag prevents Apply
+ok 7 - world replacement or an unfinished drag prevents Apply
+  ---
+  duration_ms: 1.343924
+  type: 'test'
+  ...
+# Subtest: a new obstacle invalidates the visible Apply state immediately
+ok 8 - a new obstacle invalidates the visible Apply state immediately
+  ---
+  duration_ms: 2.150298
+  type: 'test'
+  ...
+# Subtest: all fence commands preserve stable identities and snap only edited coordinates
+ok 9 - all fence commands preserve stable identities and snap only edited coordinates
+  ---
+  duration_ms: 2.098857
+  type: 'test'
+  ...
+# Subtest: splitting a gate-bearing edge and removing its post never silently deletes a gate
+ok 10 - splitting a gate-bearing edge and removing its post never silently deletes a gate
+  ---
+  duration_ms: 1.10183
+  type: 'test'
+  ...
+# Subtest: malformed commands and all unowned command variants leave the draft byte-identical
+ok 11 - malformed commands and all unowned command variants leave the draft byte-identical
+  ---
+  duration_ms: 0.635469
+  type: 'test'
+  ...
+# Subtest: future layout schema or template stays read-only without overwriting its bytes
+ok 12 - future layout schema or template stays read-only without overwriting its bytes
+  ---
+  duration_ms: 0.342643
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.404036
+[CI-ISOLATION] END animal-pen-editor.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-pen-geometry.test.mjs 2026-10-22T14:23:36.502Z
+TAP version 13
+# Subtest: concaveNotchRejectsCrossing
+ok 1 - concaveNotchRejectsCrossing
+  ---
+  duration_ms: 1.605188
+  type: 'test'
+  ...
+# Subtest: windingAndBoundaryDoNotChangeContainment
+ok 2 - windingAndBoundaryDoNotChangeContainment
+  ---
+  duration_ms: 0.327437
+  type: 'test'
+  ...
+# Subtest: continuousClearanceRejectsExitReentryAndGrazing
+ok 3 - continuousClearanceRejectsExitReentryAndGrazing
+  ---
+  duration_ms: 0.366844
+  type: 'test'
+  ...
+# Subtest: nearestLegalPointHandlesConcaveInsetAndImpossibleClearance
+ok 4 - nearestLegalPointHandlesConcaveInsetAndImpossibleClearance
+  ---
+  duration_ms: 4.256235
+  type: 'test'
+  ...
+# Subtest: degenerateAndNonfiniteGeometryCannotBeInside
+ok 5 - degenerateAndNonfiniteGeometryCannotBeInside
+  ---
+  duration_ms: 0.167567
+  type: 'test'
+  ...
+# Subtest: negativeClearanceProjectsToTheExpandedBoundary
+ok 6 - negativeClearanceProjectsToTheExpandedBoundary
+  ---
+  duration_ms: 1.192567
+  type: 'test'
+  ...
+# Subtest: continuousObstacleClearanceIncludesRotatedRectanglesAndCircles
+ok 7 - continuousObstacleClearanceIncludesRotatedRectanglesAndCircles
+  ---
+  duration_ms: 0.662698
+  type: 'test'
+  ...
+# Subtest: physicalVolumesAllowSupportContactButRejectPenetration
+ok 8 - physicalVolumesAllowSupportContactButRejectPenetration
+  ---
+  duration_ms: 0.299949
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.553911
+[CI-ISOLATION] END animal-pen-geometry.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-pen-layout.test.mjs 2026-10-22T14:23:36.682Z
+TAP version 13
+# Subtest: defaultsMatchFrozenPR95
+ok 1 - defaultsMatchFrozenPR95
+  ---
+  duration_ms: 14.656527
+  type: 'test'
+  ...
+# Subtest: unknownTemplateIsReadOnly
+ok 2 - unknownTemplateIsReadOnly
+  ---
+  duration_ms: 0.379888
+  type: 'test'
+  ...
+# Subtest: invalidSchemaHasNoSideEffects
+ok 3 - invalidSchemaHasNoSideEffects
+  ---
+  duration_ms: 4.942382
+  type: 'test'
+  ...
+# Subtest: customComponentsCarryTheirStationAndColliderCoordinates
+ok 4 - customComponentsCarryTheirStationAndColliderCoordinates
+  ---
+  duration_ms: 4.532493
+  type: 'test'
+  ...
+# Subtest: missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate
+ok 5 - missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate
+  ---
+  duration_ms: 4.815469
+  type: 'test'
+  ...
+# Subtest: petSitesCannotAcquireFenceTools
+ok 6 - petSitesCannotAcquireFenceTools
+  ---
+  duration_ms: 0.311759
+  type: 'test'
+  ...
+# Subtest: payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation
+ok 7 - payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation
+  ---
+  duration_ms: 367.553873
+  type: 'test'
+  ...
+# Subtest: translatedWaitingPositionsAreMovedOnce
+ok 8 - translatedWaitingPositionsAreMovedOnce
+  ---
+  duration_ms: 3.631183
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 522.61784
+[CI-ISOLATION] END animal-pen-layout.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START animal-pen-preview.test.mjs 2026-10-22T14:23:37.269Z
+TAP version 13
+# Subtest: preview uses the resolved fence openings and building footprints, without touching live meshes
+ok 1 - preview uses the resolved fence openings and building footprints, without touching live meshes
+  ---
+  duration_ms: 18.56774
+  type: 'test'
+  ...
+# Subtest: twenty preview replacements and cancellation dispose only their own resources exactly once
+ok 2 - twenty preview replacements and cancellation dispose only their own resources exactly once
+  ---
+  duration_ms: 48.336914
+  type: 'test'
+  ...
+# Subtest: unchanged defaults have no misleading draft geometry, and validation feedback changes color
+ok 3 - unchanged defaults have no misleading draft geometry, and validation feedback changes color
+  ---
+  duration_ms: 8.549157
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.807423
+[CI-ISOLATION] END animal-pen-preview.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START animal-pen-publication.test.mjs 2026-10-22T14:23:37.535Z
+TAP version 13
+# Subtest: preparation does not publish; publish installs once and retires previous resources last
+ok 1 - preparation does not publish; publish installs once and retires previous resources last
+  ---
+  duration_ms: 93.114015
+  type: 'test'
+  ...
+# Subtest: cancel disposes care once and cannot subsequently publish
+ok 2 - cancel disposes care once and cannot subsequently publish
+  ---
+  duration_ms: 55.484966
+  type: 'test'
+  ...
+# Subtest: invalid or stale validation cannot prepare resources or care
+ok 3 - invalid or stale validation cannot prepare resources or care
+  ---
+  duration_ms: 0.322938
+  type: 'test'
+  ...
+# Subtest: publication failure is terminal and does not dispose possibly installed resources or old revision
+ok 4 - publication failure is terminal and does not dispose possibly installed resources or old revision
+  ---
+  duration_ms: 43.902714
+  type: 'test'
+  ...
+# Subtest: live registry preparation finishes before publication and is discarded on care preparation failure
+ok 5 - live registry preparation finishes before publication and is discarded on care preparation failure
+  ---
+  duration_ms: 50.004114
+  type: 'test'
+  ...
+# Subtest: prepared registry publishes before care and retires after care, with cancellation isolated
+ok 6 - prepared registry publishes before care and retires after care, with cancellation isolated
+  ---
+  duration_ms: 37.779841
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 480.273283
+[CI-ISOLATION] END animal-pen-publication.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START animal-pen-rebind.test.mjs 2026-10-22T14:23:38.075Z
+TAP version 13
+# Subtest: resolved sites carry their immutable parent revision
+ok 1 - resolved sites carry their immutable parent revision
+  ---
+  duration_ms: 12.522624
+  type: 'test'
+  ...
+# Subtest: remaining care preparation retains reservations and progress and moves an occupied unit exactly once
+ok 2 - remaining care preparation retains reservations and progress and moves an occupied unit exactly once
+  ---
+  duration_ms: 144.930197
+  type: 'test'
+  ...
+# Subtest: preparing two species together cannot overwrite the other species published layout
+ok 3 - preparing two species together cannot overwrite the other species published layout
+  ---
+  duration_ms: 11.450768
+  type: 'test'
+  ...
+# Subtest: discarded preparation and missing placements cannot mutate live care
+ok 4 - discarded preparation and missing placements cannot mutate live care
+  ---
+  duration_ms: 11.66678
+  type: 'test'
+  ...
+# Subtest: chicken rebind preserves bed reservation and held pose without retaining old yard resources
+ok 5 - chicken rebind preserves bed reservation and held pose without retaining old yard resources
+  ---
+  duration_ms: 84.747192
+  type: 'test'
+  ...
+# Subtest: a translated chicken enclosure completes three physical sleep and wake cycles outside old bounds
+ok 6 - a translated chicken enclosure completes three physical sleep and wake cycles outside old bounds
+  ---
+  duration_ms: 289.701823
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 737.722017
+[CI-ISOLATION] END animal-pen-rebind.test.mjs code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START animal-pen-save.test.mjs 2026-10-22T14:23:38.878Z
+TAP version 13
+# Subtest: successful Apply preserves farm identity, writes once and notifies after publication
+ok 1 - successful Apply preserves farm identity, writes once and notifies after publication
+  ---
+  duration_ms: 13.720063
+  type: 'test'
+  ...
+# Subtest: quota failure preserves stored bytes and old live layout and writer
+ok 2 - quota failure preserves stored bytes and old live layout and writer
+  ---
+  duration_ms: 4.006865
+  type: 'test'
+  ...
+# Subtest: persisted candidate survives publication failure and old writes are blocked
+ok 3 - persisted candidate survives publication failure and old writes are blocked
+  ---
+  duration_ms: 11.226471
+  type: 'test'
+  ...
+# Subtest: prepare failure and stale world reject without storage or publication
+ok 4 - prepare failure and stale world reject without storage or publication
+  ---
+  duration_ms: 7.841357
+  type: 'test'
+  ...
+# Subtest: ordinary ticks do not stale a draft; another layout revision does
+ok 5 - ordinary ticks do not stale a draft; another layout revision does
+  ---
+  duration_ms: 3.726865
+  type: 'test'
+  ...
+# Subtest: unknown saved templates block ordinary writes without discarding bytes
+ok 6 - unknown saved templates block ordinary writes without discarding bytes
+  ---
+  duration_ms: 8.56141
+  type: 'test'
+  ...
+# Subtest: invalid candidate, overflow revision and account swap cannot write
+ok 7 - invalid candidate, overflow revision and account swap cannot write
+  ---
+  duration_ms: 14.488817
+  type: 'test'
+  ...
+# Subtest: Apply paid settlement equals ordinary save at the same clock
+ok 8 - Apply paid settlement equals ordinary save at the same clock
+  ---
+  duration_ms: 13.015689
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 11999ms
+ok 9 - Apply retains exact paid state at robot boundary 11999ms
+  ---
+  duration_ms: 13.259036
+  type: 'test'
+  ...
+# Subtest: Apply retains exact paid state at robot boundary 12000ms
+ok 10 - Apply retains exact paid state at robot boundary 12000ms
+  ---
+  duration_ms: 29.19486
+  type: 'test'
+  ...
+# Subtest: robot completion during failed prepare equals ordinary paid settlement
+ok 11 - robot completion during failed prepare equals ordinary paid settlement
+  ---
+  duration_ms: 14.422249
+  type: 'test'
+  ...
+# Subtest: robot completion during failed storage equals ordinary paid settlement
+ok 12 - robot completion during failed storage equals ordinary paid settlement
+  ---
+  duration_ms: 14.521753
+  type: 'test'
+  ...
+# Subtest: supplies expiring during a draft settle exactly as an ordinary save
+ok 13 - supplies expiring during a draft settle exactly as an ordinary save
+  ---
+  duration_ms: 11.06745
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 264.518599
+[CI-ISOLATION] END animal-pen-save.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START animal-pen-scene-install.test.mjs 2026-10-22T14:23:39.203Z
+TAP version 13
+# Subtest: actual index installs a published custom revision into every live pen consumer
+ok 1 - actual index installs a published custom revision into every live pen consumer
+  ---
+  duration_ms: 132.103624
+  type: 'test'
+  ...
+# Subtest: actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+ok 2 - actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+  ---
+  duration_ms: 76.838926
+  type: 'test'
+  ...
+# Subtest: a boot-time install before the first cow sync leaves cow status display to syncCowYard
+ok 3 - a boot-time install before the first cow sync leaves cow status display to syncCowYard
+  ---
+  duration_ms: 76.010138
+  type: 'test'
+  ...
+# Subtest: a default boot keeps every later farm block and pen block solid exactly once
+ok 4 - a default boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 62.84396
+  type: 'test'
+  ...
+# Subtest: a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+ok 5 - a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 74.90999
+  type: 'test'
+  ...
+# Subtest: a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+ok 6 - a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+  ---
+  duration_ms: 64.012276
+  type: 'test'
+  ...
+# Subtest: a absent saved pen layout keeps the accepted default without rewriting the save
+ok 7 - a absent saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 31.377374
+  type: 'test'
+  ...
+# Subtest: a future schema saved pen layout keeps the accepted default without rewriting the save
+ok 8 - a future schema saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 26.646685
+  type: 'test'
+  ...
+# Subtest: a unknown template saved pen layout keeps the accepted default without rewriting the save
+ok 9 - a unknown template saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 36.871953
+  type: 'test'
+  ...
+# Subtest: a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+ok 10 - a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 30.203901
+  type: 'test'
+  ...
+# Subtest: a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+ok 11 - a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+  ---
+  duration_ms: 58.202754
+  type: 'test'
+  ...
+# Subtest: the same saved layout on a later refresh keeps the live herd untouched
+ok 12 - the same saved layout on a later refresh keeps the live herd untouched
+  ---
+  duration_ms: 55.883667
+  type: 'test'
+  ...
+# Subtest: the full farm refresh restores saved pens after the saved object layout and before herds spawn
+ok 13 - the full farm refresh restores saved pens after the saved object layout and before herds spawn
+  ---
+  duration_ms: 0.625235
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 984.804055
+[CI-ISOLATION] END animal-pen-scene-install.test.mjs code=0 signal=null elapsed=1.1s
+[CI-ISOLATION] START animal-pen-scene-registry.test.mjs 2026-10-22T14:23:40.264Z
+TAP version 13
+# Subtest: prepared scene revision leaves live registries intact and publishes all six yards coherently
+ok 1 - prepared scene revision leaves live registries intact and publishes all six yards coherently
+  ---
+  duration_ms: 148.297938
+  type: 'test'
+  ...
+# Subtest: diagonal custom fences keep oriented route obstacles and exact gate gaps
+ok 2 - diagonal custom fences keep oriented route obstacles and exact gate gaps
+  ---
+  duration_ms: 110.973725
+  type: 'test'
+  ...
+# Subtest: stale prepared revisions cannot overwrite a newer published scene
+ok 3 - stale prepared revisions cannot overwrite a newer published scene
+  ---
+  duration_ms: 117.785731
+  type: 'test'
+  ...
+# Subtest: inactive sites keep off-farm collision placeholders and do not disappear from ownership
+ok 4 - inactive sites keep off-farm collision placeholders and do not disappear from ownership
+  ---
+  duration_ms: 71.853151
+  type: 'test'
+  ...
+# Subtest: a discarded preparation cannot publish and leaves live registries and yards untouched
+ok 5 - a discarded preparation cannot publish and leaves live registries and yards untouched
+  ---
+  duration_ms: 84.464835
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 698.261905
+[CI-ISOLATION] END animal-pen-scene-registry.test.mjs code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START animal-pen-scene-routing.test.mjs 2026-10-22T14:23:41.035Z
+TAP version 13
+# Subtest: actual scene routes around a concave corner, winding false
+ok 1 - actual scene routes around a concave corner, winding false
+  ---
+  duration_ms: 10.847927
+  type: 'test'
+  ...
+# Subtest: actual scene routes around a concave corner, winding true
+ok 2 - actual scene routes around a concave corner, winding true
+  ---
+  duration_ms: 6.106605
+  type: 'test'
+  ...
+# Subtest: actual containment accepts both arms of a concave pen and projects an illegal point inside
+ok 3 - actual containment accepts both arms of a concave pen and projects an illegal point inside
+  ---
+  duration_ms: 3.901775
+  type: 'test'
+  ...
+# Subtest: a blocked custom route never falls back to an illegal straight crossing
+ok 4 - a blocked custom route never falls back to an illegal straight crossing
+  ---
+  duration_ms: 4.332049
+  type: 'test'
+  ...
+# Subtest: free-roaming pets are pushed out of either arm of a custom concave pen
+ok 5 - free-roaming pets are pushed out of either arm of a custom concave pen
+  ---
+  duration_ms: 3.484342
+  type: 'test'
+  ...
+# Subtest: actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+ok 6 - actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+  ---
+  duration_ms: 3.658246
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 196.508045
+[CI-ISOLATION] END animal-pen-scene-routing.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START animal-pen-validation.test.mjs 2026-10-22T14:23:41.309Z
+TAP version 13
+[CI-ISOLATION] RUNNING animal-pen-validation.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451912   01:11:10 claude | 11466 11460 125896      00:09 node | 11263 11258 53176       00:16 node | 11460 11263 47340       00:10 node |  1485    83 44784    01:11:12 environment-man |     1     0  6176    01:11:22 process_api
+[CI-ISOLATION] RUNNING animal-pen-validation.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 454560   01:11:20 claude | 11466 11460 159532      00:19 node | 11263 11258 53408       00:26 node | 11460 11263 47340       00:20 node |  1485    83 44784    01:11:22 environment-man |     1     0  6176    01:11:32 process_api
+[CI-ISOLATION] RUNNING animal-pen-validation.test.mjs elapsed=30s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 448448   01:11:30 claude | 11466 11460 170744      00:29 node | 11263 11258 53540       00:36 node | 11460 11263 47340       00:30 node |  1485    83 44784    01:11:32 environment-man |     1     0  6176    01:11:42 process_api
+[CI-ISOLATION] RUNNING animal-pen-validation.test.mjs elapsed=40s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 449048   01:11:40 claude | 11466 11460 166480      00:39 node | 11263 11258 53680       00:46 node | 11460 11263 47340       00:40 node |  1485    83 44784    01:11:42 environment-man |     1     0  6176    01:11:52 process_api
+# Subtest: legacyHorseLandIsEditable
+ok 1 - legacyHorseLandIsEditable
+  ---
+  duration_ms: 9.144229
+  type: 'test'
+  ...
+# Subtest: continuousFootprintCannotBridgeOffFarm
+ok 2 - continuousFootprintCannotBridgeOffFarm
+  ---
+  duration_ms: 0.602584
+  type: 'test'
+  ...
+# Subtest: all46PlacementsAreDistinct
+ok 3 - all46PlacementsAreDistinct
+  ---
+  duration_ms: 1287.306821
+  type: 'test'
+  ...
+# Subtest: interiorRunCannotCutBedRoute
+ok 4 - interiorRunCannotCutBedRoute
+  ---
+  duration_ms: 1300.552747
+  type: 'test'
+  ...
+# Subtest: everyGateHasTwoClearApproaches
+ok 5 - everyGateHasTwoClearApproaches
+  ---
+  duration_ms: 1593.39958
+  type: 'test'
+  ...
+# Subtest: areaAndGateFloorsApplyToEachSpecies
+ok 6 - areaAndGateFloorsApplyToEachSpecies
+  ---
+  duration_ms: 11855.493546
+  type: 'test'
+  ...
+# Subtest: wholeComponentCrossingStonePathCannotPassByCentre
+ok 7 - wholeComponentCrossingStonePathCannotPassByCentre
+  ---
+  duration_ms: 1676.915207
+  type: 'test'
+  ...
+# Subtest: movedBuildingCannotUseUnsupportedTerrain
+ok 8 - movedBuildingCannotUseUnsupportedTerrain
+  ---
+  duration_ms: 1593.824486
+  type: 'test'
+  ...
+# Subtest: newPaidObstacleCannotBeGrandfatheredAsBaselineScenery
+ok 9 - newPaidObstacleCannotBeGrandfatheredAsBaselineScenery
+  ---
+  duration_ms: 1350.802673
+  type: 'test'
+  ...
+# Subtest: crossedBoundaryAndTouchingInteriorRunsAreRejected
+ok 10 - crossedBoundaryAndTouchingInteriorRunsAreRejected
+  ---
+  duration_ms: 3362.974527
+  type: 'test'
+  ...
+# Subtest: boundedSearchReturnsDiagnosticsForImpossibleStaging
+ok 11 - boundedSearchReturnsDiagnosticsForImpossibleStaging
+  ---
+  duration_ms: 1116.284174
+  type: 'test'
+  ...
+# Subtest: baselineValidationCompletesWithinBoundedBudget
+ok 12 - baselineValidationCompletesWithinBoundedBudget
+  ---
+  duration_ms: 1936.602241
+  type: 'test'
+  ...
+# Subtest: enlargedFenceCannotCutNewDecorAtItsMidpoint
+ok 13 - enlargedFenceCannotCutNewDecorAtItsMidpoint
+  ---
+  duration_ms: 1786.948144
+  type: 'test'
+  ...
+# Subtest: paidObjectInsideExpandedAreaCannotBeIgnored
+ok 14 - paidObjectInsideExpandedAreaCannotBeIgnored
+  ---
+  duration_ms: 1930.20599
+  type: 'test'
+  ...
+# Subtest: occupiedCoopBedRetainsItsLocalSupportFrame
+ok 15 - occupiedCoopBedRetainsItsLocalSupportFrame
+  ---
+  duration_ms: 1559.712187
+  type: 'test'
+  ...
+# Subtest: bothCoopDoorwaysHaveSeparateProofs
+ok 16 - bothCoopDoorwaysHaveSeparateProofs
+  ---
+  duration_ms: 1515.478718
+  type: 'test'
+  ...
+# Subtest: legalNookMovePreservesWorldAndOwnership
+ok 17 - legalNookMovePreservesWorldAndOwnership
+  ---
+  duration_ms: 1546.918133
+  type: 'test'
+  ...
+# Subtest: fallbackOtherSiteDoesNotBlockAnUnrelatedLegalEdit
+ok 18 - fallbackOtherSiteDoesNotBlockAnUnrelatedLegalEdit
+  ---
+  duration_ms: 1414.076073
+  type: 'test'
+  ...
+# Subtest: secondMoveUsesDifferenceFromInstalledOrigin
+ok 19 - secondMoveUsesDifferenceFromInstalledOrigin
+  ---
+  duration_ms: 1503.596184
+  type: 'test'
+  ...
+# Subtest: exteriorGateApproachIncludesOtherAnimalsCareFixtures
+ok 20 - exteriorGateApproachIncludesOtherAnimalsCareFixtures
+  ---
+  duration_ms: 806.656799
+  type: 'test'
+  ...
+# Subtest: sleeping flock gets separate ground waiting places clear of both door approaches
+ok 21 - sleeping flock gets separate ground waiting places clear of both door approaches
+  ---
+  duration_ms: 837.974511
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40114.655631
+[CI-ISOLATION] END animal-pen-validation.test.mjs code=0 signal=null elapsed=40.2s
+[CI-ISOLATION] START animal-pen-writer-compatibility.test.mjs 2026-10-22T14:24:21.501Z
+TAP version 13
+# Subtest: actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+ok 1 - actual game30 writer3 cannot overwrite a custom writer4 farm or emit cloud save
+  ---
+  duration_ms: 21.84787
+  type: 'test'
+  ...
+# Subtest: ordinary farms retain their existing writer until first successful pen Apply
+ok 2 - ordinary farms retain their existing writer until first successful pen Apply
+  ---
+  duration_ms: 23.746118
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 169.96855
+[CI-ISOLATION] END animal-pen-writer-compatibility.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-pen-yards.test.mjs 2026-10-22T14:24:21.734Z
+TAP version 13
+# Subtest: identityFactoriesMatchAcceptedGeometry
+ok 1 - identityFactoriesMatchAcceptedGeometry
+  ---
+  duration_ms: 350.264929
+  type: 'test'
+  ...
+# Subtest: translatedRobotIncludesTankPipeAndAnimatedParts
+ok 2 - translatedRobotIncludesTankPipeAndAnimatedParts
+  ---
+  duration_ms: 20.85382
+  type: 'test'
+  ...
+# Subtest: translatedCoopIncludesBothRamps30Beds
+ok 3 - translatedCoopIncludesBothRamps30Beds
+  ---
+  duration_ms: 61.239723
+  type: 'test'
+  ...
+# Subtest: oldFootprintsNoLongerCollide
+ok 4 - oldFootprintsNoLongerCollide
+  ---
+  duration_ms: 16.18252
+  type: 'test'
+  ...
+# Subtest: cowShelterCarriesWholeFoundation
+ok 5 - cowShelterCarriesWholeFoundation
+  ---
+  duration_ms: 16.755576
+  type: 'test'
+  ...
+# Subtest: prepareDisposeDoesNotTouchInstalledYard
+ok 6 - prepareDisposeDoesNotTouchInstalledYard
+  ---
+  duration_ms: 62.727019
+  type: 'test'
+  ...
+# Subtest: identitySavedBoundaryPreservesFenceDirectionAndExactGap
+ok 7 - identitySavedBoundaryPreservesFenceDirectionAndExactGap
+  ---
+  duration_ms: 7.949244
+  type: 'test'
+  ...
+# Subtest: componentLayoutsCoverRealOwnedPrimitives
+ok 8 - componentLayoutsCoverRealOwnedPrimitives
+  ---
+  duration_ms: 40.945824
+  type: 'test'
+  ...
+# Subtest: clearingReplacementCannotRestoreAnotherOwnerOrCaptureHiddenBase
+ok 9 - clearingReplacementCannotRestoreAnotherOwnerOrCaptureHiddenBase
+  ---
+  duration_ms: 2.277384
+  type: 'test'
+  ...
+# Subtest: plantOwnershipCleanupWorksAsAnUnboundResourceCallback
+ok 10 - plantOwnershipCleanupWorksAsAnUnboundResourceCallback
+  ---
+  duration_ms: 0.967161
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 753.303421
+[CI-ISOLATION] END animal-pen-yards.test.mjs code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START remaining-care-beast.test.mjs 2026-10-22T14:24:22.570Z
+TAP version 13
+# START seed 4242 horse feed t 0
+# DONE seed 4242 horse feed t 3.899999999999996
+# START seed 4242 horse exits feed t 3.899999999999996
+# DONE seed 4242 horse exits feed t 15.633333333333288
+# START seed 4242 horse drink t 15.633333333333288
+# DONE seed 4242 horse drink t 19.533333333333463
+# START seed 4242 horse exits drink t 19.533333333333463
+# DONE seed 4242 horse exits drink t 45.33333333333332
+# START seed 4242 sheep feed t 45.33333333333332
+# DONE seed 4242 sheep feed t 70.19999999999858
+# START seed 4242 sheep exits feed t 70.19999999999858
+# DONE seed 4242 sheep exits feed t 109.26666666666303
+# START seed 4242 sheep drink t 109.26666666666303
+# DONE seed 4242 sheep drink t 114.09999999999609
+# START seed 4242 sheep exits drink t 114.09999999999609
+# DONE seed 4242 sheep exits drink t 126.69999999999537
+# START seed 4242 dog feed t 126.69999999999537
+# DONE seed 4242 dog feed t 131.93333333332842
+# START seed 4242 dog exits feed t 131.93333333332842
+# DONE seed 4242 dog exits feed t 143.2666666666611
+# START seed 4242 dog drink t 143.2666666666611
+# DONE seed 4242 dog drink t 146.4333333333276
+# START seed 4242 dog exits drink t 146.4333333333276
+# DONE seed 4242 dog exits drink t 157.5666666666603
+# START seed 4242 cat feed t 157.5666666666603
+# DONE seed 4242 cat feed t 178.9999999999924
+# START seed 4242 cat exits feed t 178.9999999999924
+# DONE seed 4242 cat exits feed t 190.89999999999173
+# START seed 4242 cat drink t 190.89999999999173
+# DONE seed 4242 cat drink t 195.99999999999145
+# START seed 4242 cat exits drink t 195.99999999999145
+# DONE seed 4242 cat exits drink t 208.59999999999073
+# START seed 4242 bedtime 0 t 208.59999999999073
+# DONE seed 4242 bedtime 0 t 232.0999999999894
+# START seed 4242 all awake 0 t 232.0999999999894
+# DONE seed 4242 all awake 0 t 236.49999999998914
+[CI-ISOLATION] RUNNING remaining-care-beast.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451264   01:11:51 claude | 11533 11527 193888      00:09 node | 11263 11258 54120       00:57 node | 11527 11263 47628       00:10 node |  1485    83 44784    01:11:53 environment-man |     1     0  6176    01:12:04 process_api
+# START seed 4242 bedtime 1 t 276.5000000000043
+# DONE seed 4242 bedtime 1 t 293.83333333335145
+# START seed 4242 all awake 1 t 293.83333333335145
+# DONE seed 4242 all awake 1 t 298.23333333335495
+# START seed 4242 bedtime 2 t 338.2333333333868
+# DONE seed 4242 bedtime 2 t 351.96666666673104
+# START seed 4242 all awake 2 t 351.96666666673104
+# DONE seed 4242 all awake 2 t 356.36666666673455
+# START seed 4242 all nine paid feeder visits t 396.3666666667664
+# DONE seed 4242 all nine paid feeder visits t 421.70000000011987
+# START seed 1 horse feed t 0
+# DONE seed 1 horse feed t 3.899999999999996
+# START seed 1 horse exits feed t 3.899999999999996
+# DONE seed 1 horse exits feed t 16.266666666666634
+# START seed 1 horse drink t 16.266666666666634
+# DONE seed 1 horse drink t 20.166666666666828
+# START seed 1 horse exits drink t 20.166666666666828
+# DONE seed 1 horse exits drink t 31.900000000000745
+# START seed 1 sheep feed t 31.900000000000745
+# DONE seed 1 sheep feed t 44.30000000000005
+# START seed 1 sheep exits feed t 44.30000000000005
+# DONE seed 1 sheep exits feed t 56.89999999999933
+# START seed 1 sheep drink t 56.89999999999933
+# DONE seed 1 sheep drink t 61.73333333333239
+# START seed 1 sheep exits drink t 61.73333333333239
+# DONE seed 1 sheep exits drink t 74.33333333333168
+# START seed 1 dog feed t 74.33333333333168
+# DONE seed 1 dog feed t 115.23333333332936
+# START seed 1 dog exits feed t 115.23333333332936
+# DONE seed 1 dog exits feed t 126.56666666666204
+# START seed 1 dog drink t 126.56666666666204
+# DONE seed 1 dog drink t 129.73333333332855
+# START seed 1 dog exits drink t 129.73333333332855
+# DONE seed 1 dog exits drink t 140.86666666666125
+# START seed 1 cat feed t 140.86666666666125
+# DONE seed 1 cat feed t 146.56666666666092
+# START seed 1 cat exits feed t 146.56666666666092
+# DONE seed 1 cat exits feed t 158.46666666666025
+# START seed 1 cat drink t 158.46666666666025
+# DONE seed 1 cat drink t 163.56666666665996
+# START seed 1 cat exits drink t 163.56666666665996
+# DONE seed 1 cat exits drink t 176.16666666665924
+# START seed 1 bedtime 0 t 176.16666666665924
+[CI-ISOLATION] RUNNING remaining-care-beast.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 449880   01:12:01 claude | 11533 11527 224972      00:19 node | 11263 11258 54264       01:07 node | 11527 11263 53924       00:20 node |  1485    83 44788    01:12:03 environment-man |     1     0  6176    01:12:14 process_api
+# DONE seed 1 bedtime 0 t 202.96666666665772
+# START seed 1 all awake 0 t 202.96666666665772
+# DONE seed 1 all awake 0 t 207.36666666665747
+# START seed 1 bedtime 1 t 247.3666666666552
+# DONE seed 1 bedtime 1 t 272.0333333333341
+# START seed 1 all awake 1 t 272.0333333333341
+# DONE seed 1 all awake 1 t 276.4333333333376
+# START seed 1 bedtime 2 t 316.43333333336943
+# DONE seed 1 bedtime 2 t 350.73333333339673
+# START seed 1 all awake 2 t 350.73333333339673
+# DONE seed 1 all awake 2 t 355.13333333340023
+# START seed 1 all nine paid feeder visits t 395.13333333343206
+# DONE seed 1 all nine paid feeder visits t 419.6666666667849
+# Subtest: actual maximum Beast herd completes physical care and three nights with forty-second full waking lives, seed 4242
+ok 1 - actual maximum Beast herd completes physical care and three nights with forty-second full waking lives, seed 4242
+  ---
+  duration_ms: 13652.165087
+  type: 'test'
+  ...
+# Subtest: actual maximum Beast herd completes physical care and three nights with forty-second full waking lives, seed 1
+ok 2 - actual maximum Beast herd completes physical care and three nights with forty-second full waking lives, seed 1
+  ---
+  duration_ms: 9437.453447
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 23358.795256
+[CI-ISOLATION] END remaining-care-beast.test.mjs code=0 signal=null elapsed=23.4s
+[CI-ISOLATION] START remaining-care-decisions.test.mjs 2026-10-22T14:24:45.993Z
+TAP version 13
+# Subtest: horse ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+ok 1 - horse ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+  ---
+  duration_ms: 211.642499
+  type: 'test'
+  ...
+# Subtest: horse ordinary drinking decision uses its actual new water place
+ok 2 - horse ordinary drinking decision uses its actual new water place
+  ---
+  duration_ms: 30.954853
+  type: 'test'
+  ...
+# Subtest: sheep ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+ok 3 - sheep ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+  ---
+  duration_ms: 17.914266
+  type: 'test'
+  ...
+# Subtest: sheep ordinary drinking decision uses its actual new water place
+ok 4 - sheep ordinary drinking decision uses its actual new water place
+  ---
+  duration_ms: 12.910554
+  type: 'test'
+  ...
+# Subtest: dog ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+ok 5 - dog ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+  ---
+  duration_ms: 10.04096
+  type: 'test'
+  ...
+# Subtest: dog ordinary drinking decision uses its actual new water place
+ok 6 - dog ordinary drinking decision uses its actual new water place
+  ---
+  duration_ms: 14.081934
+  type: 'test'
+  ...
+# Subtest: cat ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+ok 7 - cat ordinary daytime rest decision uses its real bed and retains a nap until it is rested
+  ---
+  duration_ms: 9.427871
+  type: 'test'
+  ...
+# Subtest: cat ordinary drinking decision uses its actual new water place
+ok 8 - cat ordinary drinking decision uses its actual new water place
+  ---
+  duration_ms: 10.627927
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 485.4207
+[CI-ISOLATION] END remaining-care-decisions.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START remaining-care-navigation.test.mjs 2026-10-22T14:24:46.539Z
+TAP version 13
+# Subtest: continuous visibility rejects the retained rectangular trough corner and fence end cap
+ok 1 - continuous visibility rejects the retained rectangular trough corner and fence end cap
+  ---
+  duration_ms: 1.252834
+  type: 'test'
+  ...
+# Subtest: continuous visibility preserves physical clearances, rejects crossing neighbours and allows a monotone escape
+ok 2 - continuous visibility preserves physical clearances, rejects crossing neighbours and allows a monotone escape
+  ---
+  duration_ms: 0.601089
+  type: 'test'
+  ...
+# Subtest: a straight pet route cannot cross an expanded pen even when both endpoints are outside
+ok 3 - a straight pet route cannot cross an expanded pen even when both endpoints are outside
+  ---
+  duration_ms: 0.630686
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.071082
+[CI-ISOLATION] END remaining-care-navigation.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START remaining-care-layout.test.mjs 2026-10-22T14:24:46.705Z
+TAP version 13
+# Subtest: each supported horse/sheep has a spacious separate pen and stable bed, feed and drink places
+ok 1 - each supported horse/sheep has a spacious separate pen and stable bed, feed and drink places
+  ---
+  duration_ms: 4.776987
+  type: 'test'
+  ...
+# Subtest: new sites do not intersect the accepted dairy footprint or stone path
+ok 2 - new sites do not intersect the accepted dairy footprint or stone path
+  ---
+  duration_ms: 5.34028
+  type: 'test'
+  ...
+# Subtest: pet beds and separate bowls are distinct, attainable, and never occupy the main doorway
+ok 3 - pet beds and separate bowls are distinct, attainable, and never occupy the main doorway
+  ---
+  duration_ms: 2.414159
+  type: 'test'
+  ...
+# Subtest: paid-object conflicts are reported without editing any saved object
+ok 4 - paid-object conflicts are reported without editing any saved object
+  ---
+  duration_ms: 0.625201
+  type: 'test'
+  ...
+# Subtest: all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle
+ok 5 - all four care areas fit the retained full-world board, fields and scenery without moving any existing obstacle
+  ---
+  duration_ms: 1.337051
+  type: 'test'
+  ...
+# Subtest: saved buildings outside the sheep fence cannot silently seal its usable gate approach
+ok 6 - saved buildings outside the sheep fence cannot silently seal its usable gate approach
+  ---
+  duration_ms: 0.315297
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.967445
+[CI-ISOLATION] END remaining-care-layout.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START remaining-care-pose.test.mjs 2026-10-22T14:24:46.981Z
+TAP version 13
+# Subtest: horse folds onto a real bed with skin above ground and restores the accepted pose
+ok 1 - horse folds onto a real bed with skin above ground and restores the accepted pose
+  ---
+  duration_ms: 447.90165
+  type: 'test'
+  ...
+# Subtest: horse visibly lowers its actual muzzle to feed and water surfaces without moving the root
+ok 2 - horse visibly lowers its actual muzzle to feed and water surfaces without moving the root
+  ---
+  duration_ms: 21.158995
+  type: 'test'
+  ...
+# Subtest: sheep folds onto a real bed with skin above ground and restores the accepted pose
+ok 3 - sheep folds onto a real bed with skin above ground and restores the accepted pose
+  ---
+  duration_ms: 217.529656
+  type: 'test'
+  ...
+# Subtest: sheep visibly lowers its actual muzzle to feed and water surfaces without moving the root
+ok 4 - sheep visibly lowers its actual muzzle to feed and water surfaces without moving the root
+  ---
+  duration_ms: 10.418324
+  type: 'test'
+  ...
+# Subtest: dog folds onto a real bed with skin above ground and restores the accepted pose
+ok 5 - dog folds onto a real bed with skin above ground and restores the accepted pose
+  ---
+  duration_ms: 245.447615
+  type: 'test'
+  ...
+# Subtest: dog visibly lowers its actual muzzle to feed and water surfaces without moving the root
+ok 6 - dog visibly lowers its actual muzzle to feed and water surfaces without moving the root
+  ---
+  duration_ms: 19.983256
+  type: 'test'
+  ...
+# Subtest: cat folds onto a real bed with skin above ground and restores the accepted pose
+ok 7 - cat folds onto a real bed with skin above ground and restores the accepted pose
+  ---
+  duration_ms: 307.629038
+  type: 'test'
+  ...
+# Subtest: cat visibly lowers its actual muzzle to feed and water surfaces without moving the root
+ok 8 - cat visibly lowers its actual muzzle to feed and water surfaces without moving the root
+  ---
+  duration_ms: 15.997777
+  type: 'test'
+  ...
+# Subtest: horse feeding moves its real mouth while keeping contact at the food surface
+ok 9 - horse feeding moves its real mouth while keeping contact at the food surface
+  ---
+  duration_ms: 33.932198
+  type: 'test'
+  ...
+# Subtest: sheep feeding moves its real mouth while keeping contact at the food surface
+ok 10 - sheep feeding moves its real mouth while keeping contact at the food surface
+  ---
+  duration_ms: 10.907865
+  type: 'test'
+  ...
+# Subtest: dog feeding moves its real mouth while keeping contact at the food surface
+ok 11 - dog feeding moves its real mouth while keeping contact at the food surface
+  ---
+  duration_ms: 10.181623
+  type: 'test'
+  ...
+# Subtest: cat feeding moves its real mouth while keeping contact at the food surface
+ok 12 - cat feeding moves its real mouth while keeping contact at the food surface
+  ---
+  duration_ms: 9.923008
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1515.632754
+[CI-ISOLATION] END remaining-care-pose.test.mjs code=0 signal=null elapsed=1.6s
+[CI-ISOLATION] START remaining-care-yard.test.mjs 2026-10-22T14:24:48.570Z
+TAP version 13
+# Subtest: all new care furniture is actual solid geometry with bounded draw cost and owned disposal
+ok 1 - all new care furniture is actual solid geometry with bounded draw cost and owned disposal
+  ---
+  duration_ms: 25.119555
+  type: 'test'
+  ...
+# Subtest: removing one care site preserves the other sites and every unrelated scenery instance
+ok 2 - removing one care site preserves the other sites and every unrelated scenery instance
+  ---
+  duration_ms: 2.560105
+  type: 'test'
+  ...
+# Subtest: both pen gates have real body-width openings and clear outside-to-inside approaches
+ok 3 - both pen gates have real body-width openings and clear outside-to-inside approaches
+  ---
+  duration_ms: 17.999885
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.165626
+[CI-ISOLATION] END remaining-care-yard.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START remaining-care-controller.test.mjs 2026-10-22T14:24:48.839Z
+TAP version 13
+[CI-ISOLATION] RUNNING remaining-care-controller.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 450368   01:12:18 claude | 11621 11615 180908      00:09 node | 11263 11258 54924       01:23 node | 11615 11263 47376       00:10 node |  1485    83 44788    01:12:19 environment-man |     1     0  6176    01:12:30 process_api
+[CI-ISOLATION] RUNNING remaining-care-controller.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 449272   01:12:28 claude | 11621 11615 157100      00:19 node | 11263 11258 55024       01:33 node | 11615 11263 47376       00:20 node |  1485    83 44788    01:12:29 environment-man |     1     0  6176    01:12:40 process_api
+# Subtest: horse 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 1 - horse 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 2105.653535
+  type: 'test'
+  ...
+# Subtest: horse 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 2 - horse 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 2869.339835
+  type: 'test'
+  ...
+# Subtest: horse 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 3 - horse 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 7446.895556
+  type: 'test'
+  ...
+# Subtest: sheep 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 4 - sheep 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 976.326534
+  type: 'test'
+  ...
+# Subtest: sheep 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 5 - sheep 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 2158.151132
+  type: 'test'
+  ...
+# Subtest: sheep 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 6 - sheep 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 3999.958125
+  type: 'test'
+  ...
+# Subtest: dog 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 7 - dog 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 332.733196
+  type: 'test'
+  ...
+# Subtest: dog 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 8 - dog 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 519.098699
+  type: 'test'
+  ...
+# Subtest: dog 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 9 - dog 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 943.134964
+  type: 'test'
+  ...
+# Subtest: cat 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 10 - cat 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 220.512962
+  type: 'test'
+  ...
+# Subtest: cat 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 11 - cat 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 627.953716
+  type: 'test'
+  ...
+# Subtest: cat 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 12 - cat 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 1023.038231
+  type: 'test'
+  ...
+# Subtest: removing a visited animal releases occupancy and resets its transient task
+ok 13 - removing a visited animal releases occupancy and resets its transient task
+  ---
+  duration_ms: 7.673003
+  type: 'test'
+  ...
+# Subtest: the last standing-up frame stays still before the first exit step
+ok 14 - the last standing-up frame stays still before the first exit step
+  ---
+  duration_ms: 292.226889
+  type: 'test'
+  ...
+# Subtest: retained dog corner path starts with a genuinely traversable physical step and reaches its station
+ok 15 - retained dog corner path starts with a genuinely traversable physical step and reaches its station
+  ---
+  duration_ms: 274.390884
+  type: 'test'
+  ...
+# Subtest: retained cat corner path starts with a genuinely traversable physical step and reaches its station
+ok 16 - retained cat corner path starts with a genuinely traversable physical step and reaches its station
+  ---
+  duration_ms: 27.966099
+  type: 'test'
+  ...
+# Subtest: care walking follows the preserved uneven pasture surface with the original three-dimensional speed limit
+ok 17 - care walking follows the preserved uneven pasture surface with the original three-dimensional speed limit
+  ---
+  duration_ms: 450.565135
+  type: 'test'
+  ...
+# Subtest: horse ordinary movement in its new pasture keeps the existing rig on actual ground
+ok 18 - horse ordinary movement in its new pasture keeps the existing rig on actual ground
+  ---
+  duration_ms: 4.913207
+  type: 'test'
+  ...
+# Subtest: sheep ordinary movement in its new pasture keeps the existing rig on actual ground
+ok 19 - sheep ordinary movement in its new pasture keeps the existing rig on actual ground
+  ---
+  duration_ms: 2.862102
+  type: 'test'
+  ...
+# Subtest: an occupied care destination waits between planning attempts instead of running a full search every frame
+ok 20 - an occupied care destination waits between planning attempts instead of running a full search every frame
+  ---
+  duration_ms: 6.115585
+  type: 'test'
+  ...
+# Subtest: overnight departures keep new station traffic out until the last sleeper walks clear
+ok 21 - overnight departures keep new station traffic out until the last sleeper walks clear
+  ---
+  duration_ms: 1905.914615
+  type: 'test'
+  ...
+# Subtest: a real daytime nap joins wet-weather sheltering, stays supported and exits when the weather clears
+ok 22 - a real daytime nap joins wet-weather sheltering, stays supported and exits when the weather clears
+  ---
+  duration_ms: 286.372823
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26727.936527
+[CI-ISOLATION] END remaining-care-controller.test.mjs code=0 signal=null elapsed=26.8s
+[CI-ISOLATION] START remaining-care-integration.test.mjs 2026-10-22T14:25:15.643Z
+TAP version 13
+# Subtest: remaining physical care is installed before ordinary Beast behavior and herd synchronization
+ok 1 - remaining physical care is installed before ordinary Beast behavior and herd synchronization
+  ---
+  duration_ms: 1.830039
+  type: 'test'
+  ...
+# Subtest: protected implementations and approved pen adapters retain exact reviewed bytes
+ok 2 - protected implementations and approved pen adapters retain exact reviewed bytes
+  ---
+  duration_ms: 2.635814
+  type: 'test'
+  ...
+# Subtest: authorized yard adapters retain exact accepted default rendered geometry
+ok 3 - authorized yard adapters retain exact accepted default rendered geometry
+  ---
+  duration_ms: 240.607708
+  type: 'test'
+  ...
+# Subtest: one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+ok 4 - one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+  ---
+  duration_ms: 6.488328
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 477.534391
+[CI-ISOLATION] END remaining-care-integration.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START north-land.test.mjs 2026-10-22T14:25:16.205Z
+TAP version 13
+# Subtest: northern cow entrance rejects buildings and paid decorations on its outside approach
+ok 1 - northern cow entrance rejects buildings and paid decorations on its outside approach
+  ---
+  duration_ms: 45.133446
+  type: 'test'
+  ...
+# Subtest: northern cow entrance opens toward clear farm ground with a full-height walkable gap
+ok 2 - northern cow entrance opens toward clear farm ground with a full-height walkable gap
+  ---
+  duration_ms: 23.186733
+  type: 'test'
+  ...
+# Subtest: usable land extends exactly25 metres north and preserves every former placement
+ok 3 - usable land extends exactly25 metres north and preserves every former placement
+  ---
+  duration_ms: 1.439998
+  type: 'test'
+  ...
+# Subtest: expanded courtyard clears an occupied legacy site without altering those objects
+ok 4 - expanded courtyard clears an occupied legacy site without altering those objects
+  ---
+  duration_ms: 17.428054
+  type: 'test'
+  ...
+# Subtest: new flat land joins existing terrain without changing old farm heights
+ok 5 - new flat land joins existing terrain without changing old farm heights
+  ---
+  duration_ms: 1.685366
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.392857
+[CI-ISOLATION] END north-land.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START farm-path.test.mjs 2026-10-22T14:25:16.515Z
+TAP version 13
+# Subtest: stone path joins the main farm to the northern gate without crossing fixed pens or barn
+ok 1 - stone path joins the main farm to the northern gate without crossing fixed pens or barn
+  ---
+  duration_ms: 12.46598
+  type: 'test'
+  ...
+# Subtest: path hit area and disposal preserve caller-owned materials and textures
+ok 2 - path hit area and disposal preserve caller-owned materials and textures
+  ---
+  duration_ms: 5.546674
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.525004
+[CI-ISOLATION] END farm-path.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START seasonal-leaves.test.mjs 2026-10-22T14:25:16.738Z
+TAP version 13
+# Subtest: season changes recolour existing canopies and winter removes leaves without new geometry
+ok 1 - season changes recolour existing canopies and winter removes leaves without new geometry
+  ---
+  duration_ms: 3.134594
+  type: 'test'
+  ...
+# Subtest: tree variation is deterministic and late-added or merged woods receive the active season
+ok 2 - tree variation is deterministic and late-added or merged woods receive the active season
+  ---
+  duration_ms: 0.973127
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.686277
+[CI-ISOLATION] END seasonal-leaves.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-stations.test.mjs 2026-10-22T14:25:16.935Z
+TAP version 13
+# Subtest: each animal and station has one stable reservation and occupied capacity cannot be exceeded
+ok 1 - each animal and station has one stable reservation and occupied capacity cannot be exceeded
+  ---
+  duration_ms: 3.021929
+  type: 'test'
+  ...
+# Subtest: wrong owner, stale generation and repeated release cannot steal a station
+ok 2 - wrong owner, stale generation and repeated release cannot steal a station
+  ---
+  duration_ms: 0.311888
+  type: 'test'
+  ...
+# Subtest: snapshot restoration is validated atomically and retains ownership without stale resets
+ok 3 - snapshot restoration is validated atomically and retains ownership without stale resets
+  ---
+  duration_ms: 0.582974
+  type: 'test'
+  ...
+# Subtest: a preferred resting bay retains per-animal identity without taking another occupied bay
+ok 4 - a preferred resting bay retains per-animal identity without taking another occupied bay
+  ---
+  duration_ms: 0.24916
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 118.056494
+[CI-ISOLATION] END animal-stations.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-yard.test.mjs 2026-10-22T14:25:17.123Z
+TAP version 13
+# Subtest: five distinct beds and care stations have world approaches and supported docks
+ok 1 - five distinct beds and care stations have world approaches and supported docks
+  ---
+  duration_ms: 33.111902
+  type: 'test'
+  ...
+# Subtest: site fits authorized land and clears the barn, chicken yard, old paddock, rocks and field
+ok 2 - site fits authorized land and clears the barn, chicken yard, old paddock, rocks and field
+  ---
+  duration_ms: 11.149883
+  type: 'test'
+  ...
+# Subtest: model has selected shelter, five straw beds, separate robot and visible pipe/tank within bounded cost
+ok 3 - model has selected shelter, five straw beds, separate robot and visible pipe/tank within bounded cost
+  ---
+  duration_ms: 8.552044
+  type: 'test'
+  ...
+# Subtest: status and robot animation retain resources and all owned resources dispose once
+ok 4 - status and robot animation retain resources and all owned resources dispose once
+  ---
+  duration_ms: 9.362869
+  type: 'test'
+  ...
+# Subtest: the long feed row has real overhead shelter while cow docks remain accessible
+ok 5 - the long feed row has real overhead shelter while cow docks remain accessible
+  ---
+  duration_ms: 16.963902
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 235.06472
+[CI-ISOLATION] END cow-yard.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START cow-room.test.mjs 2026-10-22T14:25:17.434Z
+TAP version 13
+# COW ROOM {"oldFloor":88.06,"floor":176.12000000000015,"oldConnected":24.85,"connected":95.85000000000001}
+# EXPANDED YARD COST {"calls":24,"triangles":1692}
+# Subtest: northern yard provides double the floor and double the connected cow-width walking area
+ok 1 - northern yard provides double the floor and double the connected cow-width walking area
+  ---
+  duration_ms: 68.650878
+  type: 'test'
+  ...
+# Subtest: each of five resting cows has actual standing-skin clearance for a full turn
+ok 2 - each of five resting cows has actual standing-skin clearance for a full turn
+  ---
+  duration_ms: 2660.449656
+  type: 'test'
+  ...
+# Subtest: enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+ok 3 - enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+  ---
+  duration_ms: 98.829034
+  type: 'test'
+  ...
+# Subtest: care-pose contact targets follow the actual moved feed and water geometry
+ok 4 - care-pose contact targets follow the actual moved feed and water geometry
+  ---
+  duration_ms: 9.661082
+  type: 'test'
+  ...
+# Subtest: owned grass clearings cover the full enlarged foundation
+ok 5 - owned grass clearings cover the full enlarged foundation
+  ---
+  duration_ms: 5.954589
+  type: 'test'
+  ...
+# Subtest: ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+ok 6 - ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+  ---
+  duration_ms: 8.883289
+  type: 'test'
+  ...
+# Subtest: expanded shelter retains the original model draw and triangle budgets
+ok 7 - expanded shelter retains the original model draw and triangle budgets
+  ---
+  duration_ms: 6.707259
+  type: 'test'
+  ...
+# Subtest: station navigation and native tap aiming follow the moved real targets
+ok 8 - station navigation and native tap aiming follow the moved real targets
+  ---
+  duration_ms: 8.028475
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3074.383206
+[CI-ISOLATION] END cow-room.test.mjs code=0 signal=null elapsed=3.1s
+[CI-ISOLATION] START cow-rest-pose.test.mjs 2026-10-22T14:25:20.579Z
+TAP version 13
+# Subtest: lying folds all legs onto a supported bed and the actual skin stays above the floor
+ok 1 - lying folds all legs onto a supported bed and the actual skin stays above the floor
+  ---
+  duration_ms: 241.830416
+  type: 'test'
+  ...
+# Subtest: feed and drink place the actual muzzle on the target surface with planted feet
+ok 2 - feed and drink place the actual muzzle on the target surface with planted feet
+  ---
+  duration_ms: 42.225913
+  type: 'test'
+  ...
+# Subtest: the complete lie and stand transition keeps actual skin above the floor at every blend
+ok 3 - the complete lie and stand transition keeps actual skin above the floor at every blend
+  ---
+  duration_ms: 851.123164
+  type: 'test'
+  ...
+# Subtest: lying torso rests on the authored straw support surface
+ok 4 - lying torso rests on the authored straw support surface
+  ---
+  duration_ms: 11.985939
+  type: 'test'
+  ...
+# Subtest: physical feed contact retains the accepted chewing channel; drinking has a distinct jaw pose
+ok 5 - physical feed contact retains the accepted chewing channel; drinking has a distinct jaw pose
+  ---
+  duration_ms: 14.287094
+  type: 'test'
+  ...
+# Subtest: standing and folded cows remain directly pickable at their actual torso
+ok 6 - standing and folded cows remain directly pickable at their actual torso
+  ---
+  duration_ms: 109.756365
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1414.321732
+[CI-ISOLATION] END cow-rest-pose.test.mjs code=0 signal=null elapsed=1.5s
+[CI-ISOLATION] START cow-stations.test.mjs 2026-10-22T14:25:22.075Z
+TAP version 13
+# Subtest: robot docking needs continuous physical center, yaw and stopped-speed proof
+ok 1 - robot docking needs continuous physical center, yaw and stopped-speed proof
+  ---
+  duration_ms: 1.25306
+  type: 'test'
+  ...
+# Subtest: a new or disappearing job cannot reuse a previous physical dock observation
+ok 2 - a new or disappearing job cannot reuse a previous physical dock observation
+  ---
+  duration_ms: 0.306483
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 87.706533
+[CI-ISOLATION] END cow-stations.test.mjs code=0 signal=null elapsed=0.1s
+[CI-ISOLATION] START cow-scene.test.mjs 2026-10-22T14:25:22.221Z
+TAP version 13
+# COW RIG FIXTURE RED/GREEN {"red":{"distance":0,"measured":0},"green":{"distance":0.8838860428279578,"measured":0.8838860428279571},"setup":{"before":{"position":[-11.8,0.08,-13.186666666666666],"task":"bed","stage":"hold"},"after":{"position":[-8.2,0.08,-11.2],"task":null,"target":[-7.299999999999999,-10.6],"path":[]}}}
+[CI-ISOLATION] RUNNING cow-scene.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 450828   01:12:51 claude | 11763 11757 141412      00:09 node | 11263 11258 55184       01:57 node | 11757 11263 47336       00:10 node |  1485    83 44788    01:12:53 environment-man |     1     0  6176    01:13:03 process_api
+# OFFLINE BOOT CLOCK PROOF [{"paused":false,"distance":6.75000000000001,"job":null,"tank":1,"xp":3},{"paused":true,"distance":0,"job":"exiting","tank":1,"xp":3}]
+[CI-ISOLATION] RUNNING cow-scene.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 449552   01:13:01 claude | 11763 11757 165552      00:19 node | 11263 11258 55188       02:07 node | 11757 11263 47372       00:20 node |  1485    83 44788    01:13:03 environment-man |     1     0  6176    01:13:13 process_api
+# Subtest: actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+ok 1 - actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+  ---
+  duration_ms: 5732.010916
+  type: 'test'
+  ...
+# Subtest: restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+ok 2 - restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+  ---
+  duration_ms: 9.847966
+  type: 'test'
+  ...
+# Subtest: a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+ok 3 - a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+  ---
+  duration_ms: 281.173136
+  type: 'test'
+  ...
+# Subtest: eating cannot satisfy the separate drinking visit before the cow goes to bed
+ok 4 - eating cannot satisfy the separate drinking visit before the cow goes to bed
+  ---
+  duration_ms: 40.857095
+  type: 'test'
+  ...
+# Subtest: slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+ok 5 - slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+  ---
+  duration_ms: 10.087495
+  type: 'test'
+  ...
+# Subtest: display removal releases the departing cow reservation before disposing its rig
+ok 6 - display removal releases the departing cow reservation before disposing its rig
+  ---
+  duration_ms: 9.020397
+  type: 'test'
+  ...
+# Subtest: all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+ok 7 - all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+  ---
+  duration_ms: 511.797889
+  type: 'test'
+  ...
+# Subtest: a newly paid production cycle gets a real feed visit even when transient hunger is low
+ok 8 - a newly paid production cycle gets a real feed visit even when transient hunger is low
+  ---
+  duration_ms: 8.548078
+  type: 'test'
+  ...
+# Subtest: five manual requests pass the actual moving herd through the single robot in FIFO order
+ok 9 - five manual requests pass the actual moving herd through the single robot in FIFO order
+  ---
+  duration_ms: 1374.821886
+  type: 'test'
+  ...
+# Subtest: switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+ok 10 - switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+  ---
+  duration_ms: 7.309762
+  type: 'test'
+  ...
+# Subtest: legacy rig stroll releases a held bed instead of measuring care approach movement
+ok 11 - legacy rig stroll releases a held bed instead of measuring care approach movement
+  ---
+  duration_ms: 51.864727
+  type: 'test'
+  ...
+# Subtest: expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+ok 12 - expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+  ---
+  duration_ms: 2153.364117
+  type: 'test'
+  ...
+# Subtest: expanded northern herd clears all five robot requests in FIFO order
+ok 13 - expanded northern herd clears all five robot requests in FIFO order
+  ---
+  duration_ms: 1678.427731
+  type: 'test'
+  ...
+# Subtest: releasing the last bed leaves an awake cow able to accept the next nighttime task
+ok 14 - releasing the last bed leaves an awake cow able to accept the next nighttime task
+  ---
+  duration_ms: 22.70545
+  type: 'test'
+  ...
+# Subtest: visible frames longer than one second retain cow walking pace without hidden-tab catchup
+ok 15 - visible frames longer than one second retain cow walking pace without hidden-tab catchup
+  ---
+  duration_ms: 14.015245
+  type: 'test'
+  ...
+# Subtest: the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+ok 16 - the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+  ---
+  duration_ms: 27.584613
+  type: 'test'
+  ...
+# Subtest: offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+ok 17 - offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+  ---
+  duration_ms: 14.803162
+  type: 'test'
+  ...
+# Subtest: a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+ok 18 - a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+  ---
+  duration_ms: 7749.294919
+  type: 'test'
+  ...
+# Subtest: a waiting cow physically clears a released feed dock without a new reservation or save mutation
+ok 19 - a waiting cow physically clears a released feed dock without a new reservation or save mutation
+  ---
+  duration_ms: 13.019448
+  type: 'test'
+  ...
+# Subtest: a real robot job advancing during a pen draft retains credit and walks its relocated exit
+ok 20 - a real robot job advancing during a pen draft retains credit and walks its relocated exit
+  ---
+  duration_ms: 271.505384
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20208.425407
+[CI-ISOLATION] END cow-scene.test.mjs code=0 signal=null elapsed=20.3s
+[CI-ISOLATION] START cow-clearings.test.mjs 2026-10-22T14:25:42.509Z
+TAP version 13
+# Subtest: courtyard activation clears grass and its removal restores grass while preserving existing clearings
+ok 1 - courtyard activation clears grass and its removal restores grass while preserving existing clearings
+  ---
+  duration_ms: 5.876703
+  type: 'test'
+  ...
+# Subtest: saved building and tree positions are applied before the first courtyard herd decision
+ok 2 - saved building and tree positions are applied before the first courtyard herd decision
+  ---
+  duration_ms: 3.534014
+  type: 'test'
+  ...
+# Subtest: authored square grass clearings cover every foundation tile
+ok 3 - authored square grass clearings cover every foundation tile
+  ---
+  duration_ms: 5.691354
+  type: 'test'
+  ...
+# Subtest: actual scenery meadow stems and heads clear only the courtyard and restore exactly on removal
+ok 4 - actual scenery meadow stems and heads clear only the courtyard and restore exactly on removal
+  ---
+  duration_ms: 12.50332
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.72807
+[CI-ISOLATION] END cow-clearings.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-controls.test.mjs 2026-10-22T14:25:42.743Z
+TAP version 13
+# Subtest: the visible full-milk symbol selects its own cow, respects occlusion and is inactive when hidden
+ok 1 - the visible full-milk symbol selects its own cow, respects occlusion and is inactive when hidden
+  ---
+  duration_ms: 7.940613
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.112936
+[CI-ISOLATION] END cow-controls.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-ready-action.test.mjs 2026-10-22T14:25:42.951Z
+TAP version 13
+# Subtest: Ready-cow action retains the displayed moving cow when the crosshair has missed
+ok 1 - Ready-cow action retains the displayed moving cow when the crosshair has missed
+  ---
+  duration_ms: 7.862353
+  type: 'test'
+  ...
+# Subtest: Ready-cow action does not silently switch to a different cow under the crosshair
+ok 2 - Ready-cow action does not silently switch to a different cow under the crosshair
+  ---
+  duration_ms: 5.599246
+  type: 'test'
+  ...
+# Subtest: Ready-cow selection still rejects an occluded or distant displayed cow
+ok 3 - Ready-cow selection still rejects an occluded or distant displayed cow
+  ---
+  duration_ms: 7.393229
+  type: 'test'
+  ...
+# Subtest: Ready-cow selection rejects removed, hidden, no-longer-ready and former-farm cows
+ok 4 - Ready-cow selection rejects removed, hidden, no-longer-ready and former-farm cows
+  ---
+  duration_ms: 11.642926
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.540742
+[CI-ISOLATION] END cow-ready-action.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-robot-contact.test.mjs 2026-10-22T14:25:43.179Z
+TAP version 13
+# Subtest: all four actual cluster cup openings contain the rendered teat centers at the physical dock
+ok 1 - all four actual cluster cup openings contain the rendered teat centers at the physical dock
+  ---
+  duration_ms: 134.472007
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 281.911889
+[CI-ISOLATION] END cow-robot-contact.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START cow-care.test.mjs 2026-10-22T14:25:43.518Z
+TAP version 13
+# Subtest: legacy paid running and ready cows import once without spending feed or losing names
+ok 1 - legacy paid running and ready cows import once without spending feed or losing names
+  ---
+  duration_ms: 2.640712
+  type: 'test'
+  ...
+# Subtest: five identities survive rename, serialized reload and newly purchased cow without reuse
+ok 2 - five identities survive rename, serialized reload and newly purchased cow without reuse
+  ---
+  duration_ms: 0.373737
+  type: 'test'
+  ...
+# Subtest: missing pen, invalid timestamp, oversized herd and damaged legacy data remain untouched
+ok 3 - missing pen, invalid timestamp, oversized herd and damaged legacy data remain untouched
+  ---
+  duration_ms: 1.602454
+  type: 'test'
+  ...
+# Subtest: future or malformed valuable care is preserved exactly rather than reset
+ok 4 - future or malformed valuable care is preserved exactly rather than reset
+  ---
+  duration_ms: 0.725855
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.534011
+[CI-ISOLATION] END cow-care.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-milking.test.mjs 2026-10-22T14:25:43.688Z
+TAP version 13
+# Subtest: one paid feed creates one ready batch at the exact normal boundary without more offline batches
+ok 1 - one paid feed creates one ready batch at the exact normal boundary without more offline batches
+  ---
+  duration_ms: 4.501011
+  type: 'test'
+  ...
+# Subtest: happy cycle is144seconds and batch quality never rerolls on duplicate commands or reload
+ok 2 - happy cycle is144seconds and batch quality never rerolls on duplicate commands or reload
+  ---
+  duration_ms: 0.628851
+  type: 'test'
+  ...
+# Subtest: water exhaustion pauses earned progress and refill resumes without charging another feed
+ok 3 - water exhaustion pauses earned progress and refill resumes without charging another feed
+  ---
+  duration_ms: 0.193483
+  type: 'test'
+  ...
+# Subtest: stock capacity, invalid inputs, backwards time and free water duration are bounded
+ok 4 - stock capacity, invalid inputs, backwards time and free water duration are bounded
+  ---
+  duration_ms: 0.374982
+  type: 'test'
+  ...
+# Subtest: manual request alone never milks; physical docking starts the12second service
+ok 5 - manual request alone never milks; physical docking starts the12second service
+  ---
+  duration_ms: 0.486446
+  type: 'test'
+  ...
+# Subtest: single robot holds the exit until acknowledged, then serves FIFO with stable cow IDs
+ok 6 - single robot holds the exit until acknowledged, then serves FIFO with stable cow IDs
+  ---
+  duration_ms: 0.484361
+  type: 'test'
+  ...
+# Subtest: tank room includes the reserved active batch and a happy double cannot be truncated
+ok 7 - tank room includes the reserved active batch and a happy double cannot be truncated
+  ---
+  duration_ms: 0.733567
+  type: 'test'
+  ...
+# Subtest: reload before/after robot completion credits output and XP receipt once; pickup is bounded and quality preserved
+ok 8 - reload before/after robot completion credits output and XP receipt once; pickup is bounded and quality preserved
+  ---
+  duration_ms: 0.5396
+  type: 'test'
+  ...
+# Subtest: already-paid legacy output becomes ready with no fresh supplies and remains stable
+ok 9 - already-paid legacy output becomes ready with no fresh supplies and remains stable
+  ---
+  duration_ms: 0.549523
+  type: 'test'
+  ...
+# Subtest: new cow gets no production for time before purchase
+ok 10 - new cow gets no production for time before purchase
+  ---
+  duration_ms: 0.48123
+  type: 'test'
+  ...
+# Subtest: damaged robot stage, reserved capacity and queue state cannot manufacture milk
+ok 11 - damaged robot stage, reserved capacity and queue state cannot manufacture milk
+  ---
+  duration_ms: 0.766564
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.809695
+[CI-ISOLATION] END cow-milking.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-care-integration.test.mjs 2026-10-22T14:25:43.870Z
+TAP version 13
+# Subtest: shared stations spend only accepted real inventory and cow output cannot bypass robot
+ok 1 - shared stations spend only accepted real inventory and cow output cannot bypass robot
+  ---
+  duration_ms: 26.278983
+  type: 'test'
+  ...
+# Subtest: robot completion credits tank and XP once; barn pickup cannot grant another reward
+ok 2 - robot completion credits tank and XP once; barn pickup cannot grant another reward
+  ---
+  duration_ms: 5.263966
+  type: 'test'
+  ...
+# Subtest: full barn retains tank milk and partial pickup preserves gold
+ok 3 - full barn retains tank milk and partial pickup preserves gold
+  ---
+  duration_ms: 4.147692
+  type: 'test'
+  ...
+# Subtest: cow state promotes only owning farms to writer3 while lamp-only2 and ordinary1 stay compatible
+ok 4 - cow state promotes only owning farms to writer3 while lamp-only2 and ordinary1 stay compatible
+  ---
+  duration_ms: 0.705031
+  type: 'test'
+  ...
+# Subtest: malformed future care refuses save and purchases without erasing raw paid state
+ok 5 - malformed future care refuses save and purchases without erasing raw paid state
+  ---
+  duration_ms: 1.508493
+  type: 'test'
+  ...
+# Subtest: cow actions are read-only during a visit and stable IDs survive purchase and rename
+ok 6 - cow actions are read-only during a visit and stable IDs survive purchase and rename
+  ---
+  duration_ms: 1.827729
+  type: 'test'
+  ...
+# Subtest: untouched legacy cow farm retains its writer1 and paid timer until a cow station action
+ok 7 - untouched legacy cow farm retains its writer1 and paid timer until a cow station action
+  ---
+  duration_ms: 0.460572
+  type: 'test'
+  ...
+# Subtest: a mixed legacy timer beside active cow care refuses overwriting the valuable raw farm
+ok 8 - a mixed legacy timer beside active cow care refuses overwriting the valuable raw farm
+  ---
+  duration_ms: 0.433299
+  type: 'test'
+  ...
+[CI-ISOLATION] RUNNING cow-care-integration.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451052   01:13:13 claude | 11865 11859 64524       00:09 node | 11263 11258 55188       02:18 node | 11859 11263 47568       00:10 node |  1485    83 44788    01:13:14 environment-man |     1     0  6176    01:13:25 process_api
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12153.764699
+[CI-ISOLATION] END cow-care-integration.test.mjs code=0 signal=null elapsed=12.2s
+[CI-ISOLATION] START cow-writer-compatibility.test.mjs 2026-10-22T14:25:56.087Z
+TAP version 13
+# Subtest: exact actual game29 predecessor refuses cow writer3; current restores tank, paid timer, animals and lamp exactly
+ok 1 - exact actual game29 predecessor refuses cow writer3; current restores tank, paid timer, animals and lamp exactly
+  ---
+  duration_ms: 24.246202
+  type: 'test'
+  ...
+# Subtest: default migration supports4 while the unchanged explicit2 migration remains shape preserving
+ok 2 - default migration supports4 while the unchanged explicit2 migration remains shape preserving
+  ---
+  duration_ms: 4.051502
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 147.183868
+[CI-ISOLATION] END cow-writer-compatibility.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START save-writer-compatibility.test.mjs 2026-10-22T14:25:56.297Z
+TAP version 13
+# Subtest: actual predecessor drops unknown placed IDs and can overwrite an unguarded v1 farm
+ok 1 - actual predecessor drops unknown placed IDs and can overwrite an unguarded v1 farm
+  ---
+  duration_ms: 25.862825
+  type: 'test'
+  ...
+# Subtest: paid utility placed requires v2; real predecessor cannot overwrite; current writer recovers
+ok 2 - paid utility placed requires v2; real predecessor cannot overwrite; current writer recovers
+  ---
+  duration_ms: 15.349059
+  type: 'test'
+  ...
+# Subtest: paid utility inventory requires v2; real predecessor cannot overwrite; current writer recovers
+ok 3 - paid utility inventory requires v2; real predecessor cannot overwrite; current writer recovers
+  ---
+  duration_ms: 13.017741
+  type: 'test'
+  ...
+# Subtest: ordinary v1 farms retain predecessor write compatibility,30 birds and paid stock
+ok 4 - ordinary v1 farms retain predecessor write compatibility,30 birds and paid stock
+  ---
+  duration_ms: 11.112661
+  type: 'test'
+  ...
+# Subtest: future-version farms remain byte-for-byte protected by the actual save guard
+ok 5 - future-version farms remain byte-for-byte protected by the actual save guard
+  ---
+  duration_ms: 7.411287
+  type: 'test'
+  ...
+# Subtest: writer-barrier migration is shape-preserving and upgrade remains idempotent
+ok 6 - writer-barrier migration is shape-preserving and upgrade remains idempotent
+  ---
+  duration_ms: 4.834958
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 207.204191
+[CI-ISOLATION] END save-writer-compatibility.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START utility-lights.test.mjs 2026-10-22T14:25:56.565Z
+TAP version 13
+# Subtest: utility lamp is an ordinary coin purchase; insufficient coins and full placement preserve ownership
+ok 1 - utility lamp is an ordinary coin purchase; insufficient coins and full placement preserve ownership
+  ---
+  duration_ms: 26.407327
+  type: 'test'
+  ...
+# Subtest: utility pole is solid, grounded, within the existing small footprint and owns its resources
+ok 2 - utility pole is solid, grounded, within the existing small footprint and owns its resources
+  ---
+  duration_ms: 12.488022
+  type: 'test'
+  ...
+# Subtest: placed lamp light follows actual rotated/moved source; day disables light and night illuminates again
+ok 3 - placed lamp light follows actual rotated/moved source; day disables light and night illuminates again
+  ---
+  duration_ms: 5.767929
+  type: 'test'
+  ...
+# Subtest: many purchased lamps cannot allocate unbounded real lights; nearby sources change without moving models
+ok 4 - many purchased lamps cannot allocate unbounded real lights; nearby sources change without moving models
+  ---
+  duration_ms: 39.966987
+  type: 'test'
+  ...
+# Subtest: actual world consumer installs once, renders lighting after movement and precaches the new dependency
+ok 5 - actual world consumer installs once, renders lighting after movement and precaches the new dependency
+  ---
+  duration_ms: 1.052118
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2578.418864
+[CI-ISOLATION] END utility-lights.test.mjs code=0 signal=null elapsed=2.7s
+[CI-ISOLATION] START decor-models.test.mjs 2026-10-22T14:25:59.246Z
+TAP version 13
+# Subtest: the catalog audit preserves all54 legacy IDs and adds one utility lamp
+ok 1 - the catalog audit preserves all54 legacy IDs and adds one utility lamp
+  ---
+  duration_ms: 1.196745
+  type: 'test'
+  ...
+# Subtest: tulips uses complete grounded geometry within its existing footprint and draw budget
+ok 2 - tulips uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 34.310935
+  type: 'test'
+  ...
+# Subtest: sunflowers uses complete grounded geometry within its existing footprint and draw budget
+ok 3 - sunflowers uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 15.524577
+  type: 'test'
+  ...
+# Subtest: roses uses complete grounded geometry within its existing footprint and draw budget
+ok 4 - roses uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 9.106856
+  type: 'test'
+  ...
+# Subtest: mailbox uses complete grounded geometry within its existing footprint and draw budget
+ok 5 - mailbox uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 7.127016
+  type: 'test'
+  ...
+# Subtest: bench uses complete grounded geometry within its existing footprint and draw budget
+ok 6 - bench uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.652084
+  type: 'test'
+  ...
+# Subtest: lantern uses complete grounded geometry within its existing footprint and draw budget
+ok 7 - lantern uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 8.607402
+  type: 'test'
+  ...
+# Subtest: utilitylamp uses complete grounded geometry within its existing footprint and draw budget
+ok 8 - utilitylamp uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.623247
+  type: 'test'
+  ...
+# Subtest: statue uses complete grounded geometry within its existing footprint and draw budget
+ok 9 - statue uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.075923
+  type: 'test'
+  ...
+# Subtest: fountain uses complete grounded geometry within its existing footprint and draw budget
+ok 10 - fountain uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 10.486366
+  type: 'test'
+  ...
+# Subtest: mushroom uses complete grounded geometry within its existing footprint and draw budget
+ok 11 - mushroom uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.911541
+  type: 'test'
+  ...
+# Subtest: flamingo uses complete grounded geometry within its existing footprint and draw budget
+ok 12 - flamingo uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.666787
+  type: 'test'
+  ...
+# Subtest: balloons uses complete grounded geometry within its existing footprint and draw budget
+ok 13 - balloons uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.311154
+  type: 'test'
+  ...
+# Subtest: cactus uses complete grounded geometry within its existing footprint and draw budget
+ok 14 - cactus uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.659517
+  type: 'test'
+  ...
+# Subtest: unicorn uses complete grounded geometry within its existing footprint and draw budget
+ok 15 - unicorn uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.451403
+  type: 'test'
+  ...
+# Subtest: trophy uses complete grounded geometry within its existing footprint and draw budget
+ok 16 - trophy uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.629906
+  type: 'test'
+  ...
+# Subtest: tent uses complete grounded geometry within its existing footprint and draw budget
+ok 17 - tent uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.341801
+  type: 'test'
+  ...
+# Subtest: rainbow uses complete grounded geometry within its existing footprint and draw budget
+ok 18 - rainbow uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 7.860559
+  type: 'test'
+  ...
+# Subtest: carousel uses complete grounded geometry within its existing footprint and draw budget
+ok 19 - carousel uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 13.944407
+  type: 'test'
+  ...
+# Subtest: ferris uses complete grounded geometry within its existing footprint and draw budget
+ok 20 - ferris uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 6.689247
+  type: 'test'
+  ...
+# Subtest: castle uses complete grounded geometry within its existing footprint and draw budget
+ok 21 - castle uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.885316
+  type: 'test'
+  ...
+# Subtest: blossom uses complete grounded geometry within its existing footprint and draw budget
+ok 22 - blossom uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 18.213671
+  type: 'test'
+  ...
+# Subtest: hive uses complete grounded geometry within its existing footprint and draw budget
+ok 23 - hive uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.581498
+  type: 'test'
+  ...
+# Subtest: birdhouse uses complete grounded geometry within its existing footprint and draw budget
+ok 24 - birdhouse uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 1.97936
+  type: 'test'
+  ...
+# Subtest: parasol uses complete grounded geometry within its existing footprint and draw budget
+ok 25 - parasol uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 7.499766
+  type: 'test'
+  ...
+# Subtest: melon uses complete grounded geometry within its existing footprint and draw budget
+ok 26 - melon uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.29886
+  type: 'test'
+  ...
+# Subtest: pool uses complete grounded geometry within its existing footprint and draw budget
+ok 27 - pool uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.447625
+  type: 'test'
+  ...
+# Subtest: maple uses complete grounded geometry within its existing footprint and draw budget
+ok 28 - maple uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.653393
+  type: 'test'
+  ...
+# Subtest: hay uses complete grounded geometry within its existing footprint and draw budget
+ok 29 - hay uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.632639
+  type: 'test'
+  ...
+# Subtest: cider uses complete grounded geometry within its existing footprint and draw budget
+ok 30 - cider uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.724935
+  type: 'test'
+  ...
+# Subtest: sled uses complete grounded geometry within its existing footprint and draw budget
+ok 31 - sled uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.085583
+  type: 'test'
+  ...
+# Subtest: skates uses complete grounded geometry within its existing footprint and draw budget
+ok 32 - skates uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.074582
+  type: 'test'
+  ...
+# Subtest: igloo uses complete grounded geometry within its existing footprint and draw budget
+ok 33 - igloo uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.892525
+  type: 'test'
+  ...
+# Subtest: orbiting the camera cannot rotate placed shop or seasonal models
+ok 34 - orbiting the camera cannot rotate placed shop or seasonal models
+  ---
+  duration_ms: 21.260786
+  type: 'test'
+  ...
+# Subtest: each new model owns and releases its geometry/materials exactly once without touching another instance
+ok 35 - each new model owns and releases its geometry/materials exactly once without touching another instance
+  ---
+  duration_ms: 130.371807
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 570.022074
+[CI-ISOLATION] END decor-models.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START decor-save.test.mjs 2026-10-22T14:25:59.887Z
+TAP version 13
+# Subtest: all54 legacy decor IDs and the utility lamp retain paid counts, positions and rotations through actual save/load
+ok 1 - all54 legacy decor IDs and the utility lamp retain paid counts, positions and rotations through actual save/load
+  ---
+  duration_ms: 3.185377
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.110608
+[CI-ISOLATION] END decor-save.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START market-sales.test.mjs 2026-10-22T14:26:00.076Z
+TAP version 13
+# Subtest: barn exposes Market Sales and renders whole-dozen, gallon and quoted payout controls
+ok 1 - barn exposes Market Sales and renders whole-dozen, gallon and quoted payout controls
+  ---
+  duration_ms: 2.89171
+  type: 'test'
+  ...
+# Subtest: quotes hold across six real hours, reopening and save/load without save-schema changes
+ok 2 - quotes hold across six real hours, reopening and save/load without save-schema changes
+  ---
+  duration_ms: 3.381127
+  type: 'test'
+  ...
+# Subtest: milk mapping keeps existing stock as gallons, price bounds and same-window deterministic quotes
+ok 3 - milk mapping keeps existing stock as gallons, price bounds and same-window deterministic quotes
+  ---
+  duration_ms: 0.80132
+  type: 'test'
+  ...
+# Subtest: selling whole dozens pays the displayed gold-inclusive amount and preserves leftover stock
+ok 4 - selling whole dozens pays the displayed gold-inclusive amount and preserves leftover stock
+  ---
+  duration_ms: 22.134258
+  type: 'test'
+  ...
+# Subtest: gold milk doubles its part and Haggler applies to the visible quote
+ok 5 - gold milk doubles its part and Haggler applies to the visible quote
+  ---
+  duration_ms: 0.666697
+  type: 'test'
+  ...
+# Subtest: quote expiry, changed stock, gold or perks reject stale sales without mutation
+ok 6 - quote expiry, changed stock, gold or perks reject stale sales without mutation
+  ---
+  duration_ms: 0.569978
+  type: 'test'
+  ...
+# Subtest: invalid, fractional, insufficient and unsupported sale requests never spend or pay
+ok 7 - invalid, fractional, insufficient and unsupported sale requests never spend or pay
+  ---
+  duration_ms: 0.579062
+  type: 'test'
+  ...
+# Subtest: existing season milestone pays exactly once in addition to the quoted sale amounts
+ok 8 - existing season milestone pays exactly once in addition to the quoted sale amounts
+  ---
+  duration_ms: 1.406889
+  type: 'test'
+  ...
+# Subtest: visiting, cloud replacement and future-version saves reject market mutations
+ok 9 - visiting, cloud replacement and future-version saves reject market mutations
+  ---
+  duration_ms: 1.536773
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2540.06827
+[CI-ISOLATION] END market-sales.test.mjs code=0 signal=null elapsed=2.6s
+[CI-ISOLATION] START seed-target-readiness.test.mjs 2026-10-22T14:26:02.676Z
+TAP version 13
+# Subtest: fresh ray and identical Plant label cannot certify a frame-old keyboard target
+ok 1 - fresh ray and identical Plant label cannot certify a frame-old keyboard target
+  ---
+  duration_ms: 2.44893
+  type: 'test'
+  ...
+# Subtest: a matching cached target still requires the original fresh ray and visible label
+ok 2 - a matching cached target still requires the original fresh ray and visible label
+  ---
+  duration_ms: 4.161383
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 121.606866
+[CI-ISOLATION] END seed-target-readiness.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow-test-preset.test.mjs 2026-10-22T14:26:02.883Z
+TAP version 13
+# Subtest: lighting inspection leaves matching fair-weather conditions for the real travel probe
+ok 1 - lighting inspection leaves matching fair-weather conditions for the real travel probe
+  ---
+  duration_ms: 2.329548
+  type: 'test'
+  ...
+# Subtest: the unchanged production night transition still cancels a fair-weather target
+ok 2 - the unchanged production night transition still cancels a fair-weather target
+  ---
+  duration_ms: 2.570132
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.149168
+[CI-ISOLATION] END cow-test-preset.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START chicken-stations.test.mjs 2026-10-22T14:26:03.104Z
+TAP version 13
+# Subtest: resting chicken skin stays inside the actual coop side walls at every bed
+ok 1 - resting chicken skin stays inside the actual coop side walls at every bed
+  ---
+  duration_ms: 246.558809
+  type: 'test'
+  ...
+# Subtest: both coop doors are real openings with independent continuous supported ramps
+ok 2 - both coop doors are real openings with independent continuous supported ramps
+  ---
+  duration_ms: 181.070858
+  type: 'test'
+  ...
+# Subtest: thirty separately reserved resting places fit inside the raised coop
+ok 3 - thirty separately reserved resting places fit inside the raised coop
+  ---
+  duration_ms: 26.631413
+  type: 'test'
+  ...
+# Subtest: feed and water visits reserve limited visible contact surfaces without producing supplies
+ok 4 - feed and water visits reserve limited visible contact surfaces without producing supplies
+  ---
+  duration_ms: 23.479299
+  type: 'test'
+  ...
+# Subtest: the doorway is a real opening and ramp support continuously meets the interior floor
+ok 5 - the doorway is a real opening and ramp support continuously meets the interior floor
+  ---
+  duration_ms: 78.783169
+  type: 'test'
+  ...
+# Subtest: chicken lying pose folds the actual legs above the raised floor and restores the accepted rig
+ok 6 - chicken lying pose folds the actual legs above the raised floor and restores the accepted rig
+  ---
+  duration_ms: 84.754893
+  type: 'test'
+  ...
+# Subtest: feed peck and water sip place the actual beak at the visible surface with feet supported
+ok 7 - feed peck and water sip place the actual beak at the visible surface with feet supported
+  ---
+  duration_ms: 47.011504
+  type: 'test'
+  ...
+# Subtest: opt-in ramp support keeps planted poultry feet on the actual access surface
+ok 8 - opt-in ramp support keeps planted poultry feet on the actual access surface
+  ---
+  duration_ms: 12.637528
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 885.576602
+[CI-ISOLATION] END chicken-stations.test.mjs code=0 signal=null elapsed=1.0s
+[CI-ISOLATION] START chicken-care-controller.test.mjs 2026-10-22T14:26:04.063Z
+TAP version 13
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451208   01:13:33 claude | 12002 11996 166316      00:09 node | 11263 11258 55188       02:39 node | 11996 11263 47340       00:10 node |  1485    83 44788    01:13:34 environment-man |     1     0  6176    01:13:45 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451100   01:13:43 claude | 12002 11996 165368      00:19 node | 11263 11258 55188       02:49 node | 11996 11263 47340       00:20 node |  1485    83 44788    01:13:44 environment-man |     1     0  6176    01:13:55 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=30s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 451896   01:13:53 claude | 12002 11996 164020      00:29 node | 11263 11258 55188       02:59 node | 11996 11263 47340       00:30 node |  1485    83 44788    01:13:54 environment-man |     1     0  6176    01:14:05 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=40s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437464   01:14:03 claude | 12002 11996 172636      00:39 node | 11263 11258 55192       03:09 node | 11996 11263 47340       00:40 node |  1485    83 44788    01:14:04 environment-man |     1     0  6176    01:14:15 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=50s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438168   01:14:13 claude | 12002 11996 160536      00:49 node | 11263 11258 55192       03:19 node | 11996 11263 47340       00:50 node |  1485    83 44788    01:14:14 environment-man |     1     0  6176    01:14:25 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=60s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438672   01:14:23 claude | 12002 11996 171068      00:59 node | 11263 11258 55192       03:29 node | 11996 11263 47340       01:00 node |  1485    83 44788    01:14:24 environment-man |     1     0  6176    01:14:35 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=70s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437460   01:14:33 claude | 12002 11996 162068      01:10 node | 11263 11258 55192       03:39 node | 11996 11263 47340       01:10 node |  1485    83 44788    01:14:34 environment-man |     1     0  6176    01:14:45 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=80s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437176   01:14:43 claude | 12002 11996 160328      01:20 node | 11263 11258 55200       03:49 node | 11996 11263 47340       01:20 node |  1485    83 44788    01:14:44 environment-man |     1     0  6176    01:14:55 process_api
+[CI-ISOLATION] RUNNING chicken-care-controller.test.mjs elapsed=90s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438500   01:14:53 claude | 12002 11996 161308      01:30 node | 11263 11258 55200       03:59 node | 11996 11263 47340       01:30 node |  1485    83 44788    01:14:55 environment-man |     1     0  6176    01:15:05 process_api
+# Subtest: physical visit walks to reserved feed, stops, then releases without changing game supplies
+ok 1 - physical visit walks to reserved feed, stops, then releases without changing game supplies
+  ---
+  duration_ms: 129.62689
+  type: 'test'
+  ...
+# Subtest: thirty hens queue through the ramp to distinct beds and walk back out on waking
+ok 2 - thirty hens queue through the ramp to distinct beds and walk back out on waking
+  ---
+  duration_ms: 3388.984979
+  type: 'test'
+  ...
+# Subtest: empty stations never start a feeding or drinking visit; removed animals release occupancy
+ok 3 - empty stations never start a feeding or drinking visit; removed animals release occupancy
+  ---
+  duration_ms: 39.084815
+  type: 'test'
+  ...
+# Subtest: nearby ordinary spawn positions do not make waking hens compete for one return point
+ok 4 - nearby ordinary spawn positions do not make waking hens compete for one return point
+  ---
+  duration_ms: 116.611054
+  type: 'test'
+  ...
+# Subtest: a tired hen can finish a physical daytime coop nap before standing and leaving
+ok 5 - a tired hen can finish a physical daytime coop nap before standing and leaving
+  ---
+  duration_ms: 51.827819
+  type: 'test'
+  ...
+# Subtest: the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+ok 6 - the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+  ---
+  duration_ms: 1435.054919
+  type: 'test'
+  ...
+# Subtest: retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+ok 7 - retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+  ---
+  duration_ms: 93.384106
+  type: 'test'
+  ...
+# Subtest: ground return routes cannot re-enter raised coop access after the exit is clear
+ok 8 - ground return routes cannot re-enter raised coop access after the exit is clear
+  ---
+  duration_ms: 78.630762
+  type: 'test'
+  ...
+# Subtest: the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+ok 9 - the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+  ---
+  duration_ms: 68.357018
+  type: 'test'
+  ...
+# Subtest: ordinary emotes finish their lifetime while a physical care task owns movement
+ok 10 - ordinary emotes finish their lifetime while a physical care task owns movement
+  ---
+  duration_ms: 28.892176
+  type: 'test'
+  ...
+# Subtest: ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+ok 11 - ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+  ---
+  duration_ms: 56.593795
+  type: 'test'
+  ...
+# Subtest: two doors admit and release birds concurrently while each lane stays exclusive
+ok 12 - two doors admit and release birds concurrently while each lane stays exclusive
+  ---
+  duration_ms: 2822.408109
+  type: 'test'
+  ...
+# Subtest: retained second-bedtime crowd yields physically instead of enclosing the active entrant
+ok 13 - retained second-bedtime crowd yields physically instead of enclosing the active entrant
+  ---
+  duration_ms: 1130.683938
+  type: 'test'
+  ...
+# Subtest: every feed and water place remains physically reachable beside both access ramps
+ok 14 - every feed and water place remains physically reachable beside both access ramps
+  ---
+  duration_ms: 289.657681
+  type: 'test'
+  ...
+# Subtest: retained wake return north of the barn stays accessible beside the enlarged coop
+ok 15 - retained wake return north of the barn stays accessible beside the enlarged coop
+  ---
+  duration_ms: 49.168602
+  type: 'test'
+  ...
+# Subtest: retained portrait full flock clears the feeder pocket and reaches all thirty beds
+ok 16 - retained portrait full flock clears the feeder pocket and reaches all thirty beds
+  ---
+  duration_ms: 887.040488
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 30Hz
+ok 17 - portrait crowd completes three sleep/wake cycles at 30Hz
+  ---
+  duration_ms: 20437.39794
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 60Hz
+ok 18 - portrait crowd completes three sleep/wake cycles at 60Hz
+  ---
+  duration_ms: 25698.810766
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 120Hz
+ok 19 - portrait crowd completes three sleep/wake cycles at 120Hz
+  ---
+  duration_ms: 38345.577257
+  type: 'test'
+  ...
+# Subtest: a departed idle bird yields from the waking flock return corridor
+ok 20 - a departed idle bird yields from the waking flock return corridor
+  ---
+  duration_ms: 103.172549
+  type: 'test'
+  ...
+# Subtest: a legal north-boundary position can leave the strip behind the coop
+ok 21 - a legal north-boundary position can leave the strip behind the coop
+  ---
+  duration_ms: 77.177702
+  type: 'test'
+  ...
+# Subtest: idle traffic yielding still expires an existing interaction emote
+ok 22 - idle traffic yielding still expires an existing interaction emote
+  ---
+  duration_ms: 101.37529
+  type: 'test'
+  ...
+# Subtest: one doorway can admit a daytime nap while the other releases a waking bird
+ok 23 - one doorway can admit a daytime nap while the other releases a waking bird
+  ---
+  duration_ms: 66.239953
+  type: 'test'
+  ...
+# Subtest: a daytime nap joins the overnight flock and wake exits exclude new care admissions
+ok 24 - a daytime nap joins the overnight flock and wake exits exclude new care admissions
+  ---
+  duration_ms: 72.473289
+  type: 'test'
+  ...
+# Subtest: late interior entry reaches its free bed without traversing a sleeping neighbour
+ok 25 - late interior entry reaches its free bed without traversing a sleeping neighbour
+  ---
+  duration_ms: 34.568427
+  type: 'test'
+  ...
+# Subtest: the complete captured late-entry flock reaches all thirty separate beds
+ok 26 - the complete captured late-entry flock reaches all thirty separate beds
+  ---
+  duration_ms: 4186.749715
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100011.899858
+[CI-ISOLATION] END chicken-care-controller.test.mjs code=0 signal=null elapsed=100.1s
+[CI-ISOLATION] START chicken-care.test.mjs 2026-10-22T14:27:44.135Z
+TAP version 13
+# Subtest: chicken care module is available
+ok 1 - chicken care module is available
+  ---
+  duration_ms: 2.435508
+  type: 'test'
+  ...
+# Subtest: one_six_and_zero_chickens
+ok 2 - one_six_and_zero_chickens
+  ---
+  duration_ms: 3.192494
+  type: 'test'
+  ...
+# Subtest: earlier_supply_deadline credits an egg exactly at expiry only
+ok 3 - earlier_supply_deadline credits an egg exactly at expiry only
+  ---
+  duration_ms: 0.362479
+  type: 'test'
+  ...
+# Subtest: early_topup_quote costs by missing fraction and rejects duplicate revision
+ok 4 - early_topup_quote costs by missing fraction and rejects duplicate revision
+  ---
+  duration_ms: 2.530189
+  type: 'test'
+  ...
+# Subtest: pause_and_resume preserves active progress without empty-supply backlog
+ok 5 - pause_and_resume preserves active progress without empty-supply backlog
+  ---
+  duration_ms: 0.518165
+  type: 'test'
+  ...
+# Subtest: pallet_boundary_and_barn_room never exceed capacity and collect gold first
+ok 6 - pallet_boundary_and_barn_room never exceed capacity and collect gold first
+  ---
+  duration_ms: 15.488453
+  type: 'test'
+  ...
+# Subtest: clock_partition produces the same batches and RNG as one catch-up
+ok 7 - clock_partition produces the same batches and RNG as one catch-up
+  ---
+  duration_ms: 17.048012
+  type: 'test'
+  ...
+# Subtest: clock_backwards neither credits time nor extends a refill into the past
+ok 8 - clock_backwards neither credits time nor extends a refill into the past
+  ---
+  duration_ms: 0.38708
+  type: 'test'
+  ...
+# Subtest: new_chicken starts fresh with current supplies
+ok 9 - new_chicken starts fresh with current supplies
+  ---
+  duration_ms: 0.57266
+  type: 'test'
+  ...
+# Subtest: legacy_migration_once retains paid ready and future eggs without free feed
+ok 10 - legacy_migration_once retains paid ready and future eggs without free feed
+  ---
+  duration_ms: 0.769751
+  type: 'test'
+  ...
+# Subtest: unknown_care_version_preserved rejects actions without deleting data
+ok 11 - unknown_care_version_preserved rejects actions without deleting data
+  ---
+  duration_ms: 0.304486
+  type: 'test'
+  ...
+# Subtest: happy_cycles_and_rewards persist and split double eggs without double XP
+ok 12 - happy_cycles_and_rewards persist and split double eggs without double XP
+  ---
+  duration_ms: 26.70765
+  type: 'test'
+  ...
+# Subtest: status is a read-only projection, even before first migration
+ok 13 - status is a read-only projection, even before first migration
+  ---
+  duration_ms: 0.266439
+  type: 'test'
+  ...
+# Subtest: malformed current-version care is preserved without crashing or paying invalid rewards
+ok 14 - malformed current-version care is preserved without crashing or paying invalid rewards
+  ---
+  duration_ms: 1.254704
+  type: 'test'
+  ...
+# Subtest: a legacy timer written by an older cached client is migrated even when care already exists
+ok 15 - a legacy timer written by an older cached client is migrated even when care already exists
+  ---
+  duration_ms: 0.29467
+  type: 'test'
+  ...
+# Subtest: overlapping already-paid legacy timers for the same hen are preserved once each
+ok 16 - overlapping already-paid legacy timers for the same hen are preserved once each
+  ---
+  duration_ms: 0.279356
+  type: 'test'
+  ...
+# Subtest: thirty ordinary birds produce720 eggs over12 hours and survive reload
+ok 17 - thirty ordinary birds produce720 eggs over12 hours and survive reload
+  ---
+  duration_ms: 9.217046
+  type: 'test'
+  ...
+# Subtest: thirty birds retain partition-independent bonuses and pause at1200 eggs
+ok 18 - thirty birds retain partition-independent bonuses and pause at1200 eggs
+  ---
+  duration_ms: 50.118365
+  type: 'test'
+  ...
+# Subtest: all30 paid legacy timers migrate once, while31 birds remain untouched
+ok 19 - all30 paid legacy timers migrate once, while31 birds remain untouched
+  ---
+  duration_ms: 0.658992
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 253.77771
+[CI-ISOLATION] END chicken-care.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START chicken-care-integration.test.mjs 2026-10-22T14:27:44.468Z
+TAP version 13
+# Subtest: insufficient_feed_and_duplicate_confirmation
+ok 1 - insufficient_feed_and_duplicate_confirmation
+  ---
+  duration_ms: 22.444384
+  type: 'test'
+  ...
+# Subtest: water_is_free_and_pallet_pays_once_with_barn_limit
+ok 2 - water_is_free_and_pallet_pays_once_with_barn_limit
+  ---
+  duration_ms: 5.028279
+  type: 'test'
+  ...
+# Subtest: legacy_chicken_buttons_do_not_bypass_stations
+ok 3 - legacy_chicken_buttons_do_not_bypass_stations
+  ---
+  duration_ms: 0.994013
+  type: 'test'
+  ...
+# Subtest: read_only_farms_reject_all_new_mutations
+ok 4 - read_only_farms_reject_all_new_mutations
+  ---
+  duration_ms: 1.432271
+  type: 'test'
+  ...
+# Subtest: other_species_exact and farm_roundtrip
+ok 5 - other_species_exact and farm_roundtrip
+  ---
+  duration_ms: 2.09098
+  type: 'test'
+  ...
+# Subtest: unowned_and_future_care cannot spend or overwrite appearance
+ok 6 - unowned_and_future_care cannot spend or overwrite appearance
+  ---
+  duration_ms: 0.223746
+  type: 'test'
+  ...
+# Subtest: passive clock progress does not dirty an otherwise unchanged cloud snapshot
+ok 7 - passive clock progress does not dirty an otherwise unchanged cloud snapshot
+  ---
+  duration_ms: 2.324866
+  type: 'test'
+  ...
+# Subtest: a stale displayed top-up cost cannot charge more feed than confirmed
+ok 8 - a stale displayed top-up cost cannot charge more feed than confirmed
+  ---
+  duration_ms: 0.794978
+  type: 'test'
+  ...
+# Subtest: malformed existing care blocks chicken purchase without spending
+ok 9 - malformed existing care blocks chicken purchase without spending
+  ---
+  duration_ms: 0.970066
+  type: 'test'
+  ...
+# Subtest: petting after time away cannot retroactively upgrade eggs already earned
+ok 10 - petting after time away cannot retroactively upgrade eggs already earned
+  ---
+  duration_ms: 1.651024
+  type: 'test'
+  ...
+# Subtest: buying between outputs never gives the new bird pre-purchase progress
+ok 11 - buying between outputs never gives the new bird pre-purchase progress
+  ---
+  duration_ms: 0.824477
+  type: 'test'
+  ...
+# Subtest: thirty-bird purchase limit, refill charge and whole-flock save are consistent
+ok 12 - thirty-bird purchase limit, refill charge and whole-flock save are consistent
+  ---
+  duration_ms: 8.307081
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2550.808371
+[CI-ISOLATION] END chicken-care-integration.test.mjs code=0 signal=null elapsed=2.6s
+[CI-ISOLATION] START chicken-yard.test.mjs 2026-10-22T14:27:47.082Z
+TAP version 13
+# Subtest: physical coop and distinct reachable stations fit the chicken yard
+ok 1 - physical coop and distinct reachable stations fit the chicken yard
+  ---
+  duration_ms: 76.287762
+  type: 'test'
+  ...
+# Subtest: geometry stays under a bounded component budget
+ok 2 - geometry stays under a bounded component budget
+  ---
+  duration_ms: 43.228949
+  type: 'test'
+  ...
+# Subtest: netting encloses the east side and the coop has complete gable faces
+ok 3 - netting encloses the east side and the coop has complete gable faces
+  ---
+  duration_ms: 28.011994
+  type: 'test'
+  ...
+# Subtest: pallet center remains selectable through slat gaps with stable station bounds
+ok 4 - pallet center remains selectable through slat gaps with stable station bounds
+  ---
+  duration_ms: 23.506876
+  type: 'test'
+  ...
+# Subtest: appearance and status reuse resources and restore preview without affecting footprint
+ok 5 - appearance and status reuse resources and restore preview without affecting footprint
+  ---
+  duration_ms: 29.055558
+  type: 'test'
+  ...
+# Subtest: thirty-bird yard has expanded room and a proportionately larger coop
+ok 6 - thirty-bird yard has expanded room and a proportionately larger coop
+  ---
+  duration_ms: 29.087765
+  type: 'test'
+  ...
+# Subtest: enlarged stations and ramp clear the existing rock and bush collision footprints
+ok 7 - enlarged stations and ramp clear the existing rock and bush collision footprints
+  ---
+  duration_ms: 29.537704
+  type: 'test'
+  ...
+# Subtest: default flock resting and spawn fallback point stays clear of enlarged stations
+ok 8 - default flock resting and spawn fallback point stays clear of enlarged stations
+  ---
+  duration_ms: 21.490476
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 545.021333
+[CI-ISOLATION] END chicken-yard.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START chicken-yard-interaction.test.mjs 2026-10-22T14:27:47.693Z
+TAP version 13
+# Subtest: chicken card retains naming and petting without old feeding controls
+ok 1 - chicken card retains naming and petting without old feeding controls
+  ---
+  duration_ms: 3.372686
+  type: 'test'
+  ...
+# Subtest: feed and water trays show exact quote and 12-hour station confirmation
+ok 2 - feed and water trays show exact quote and 12-hour station confirmation
+  ---
+  duration_ms: 3.04869
+  type: 'test'
+  ...
+# Subtest: customization offers real color previews, apply, cancel and two roofs
+ok 3 - customization offers real color previews, apply, cancel and two roofs
+  ---
+  duration_ms: 1.759087
+  type: 'test'
+  ...
+# Subtest: full barn pallet tray reports stored stock and cannot offer a paid pickup
+ok 4 - full barn pallet tray reports stored stock and cannot offer a paid pickup
+  ---
+  duration_ms: 1.42557
+  type: 'test'
+  ...
+# Subtest: walking taps cannot collect a distant station outside interaction reach
+ok 5 - walking taps cannot collect a distant station outside interaction reach
+  ---
+  duration_ms: 2.543824
+  type: 'test'
+  ...
+# Subtest: replacing the coop tray discards its uncommitted preview
+ok 6 - replacing the coop tray discards its uncommitted preview
+  ---
+  duration_ms: 1.748318
+  type: 'test'
+  ...
+# Subtest: supply countdown cannot replace customization controls during a gesture
+ok 7 - supply countdown cannot replace customization controls during a gesture
+  ---
+  duration_ms: 24.523214
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.376613
+[CI-ISOLATION] END chicken-yard-interaction.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START seed-selection.test.mjs 2026-10-22T14:27:47.922Z
+TAP version 13
+# Subtest: picking a seed plants the selected plot, closes the picker and keeps it equipped
+ok 1 - picking a seed plants the selected plot, closes the picker and keeps it equipped
+  ---
+  duration_ms: 5.28721
+  type: 'test'
+  ...
+# Subtest: opening seeds discards an uncommitted coop preview
+ok 2 - opening seeds discards an uncommitted coop preview
+  ---
+  duration_ms: 2.348965
+  type: 'test'
+  ...
+# Subtest: walking Plant repeats the selected crop without reopening its picker
+ok 3 - walking Plant repeats the selected crop without reopening its picker
+  ---
+  duration_ms: 2.485777
+  type: 'test'
+  ...
+# Subtest: changing the equipped seed does not plant an old pending plot
+ok 4 - changing the equipped seed does not plant an old pending plot
+  ---
+  duration_ms: 2.252016
+  type: 'test'
+  ...
+# Subtest: failed purchase keeps the equipped seed and does not change or charge a plot
+ok 5 - failed purchase keeps the equipped seed and does not change or charge a plot
+  ---
+  duration_ms: 2.443946
+  type: 'test'
+  ...
+# Subtest: opening information and changing view context do not unequip a seed
+ok 6 - opening information and changing view context do not unequip a seed
+  ---
+  duration_ms: 2.183951
+  type: 'test'
+  ...
+# Subtest: putting seeds away explicitly clears the selection and target without spending
+ok 7 - putting seeds away explicitly clears the selection and target without spending
+  ---
+  duration_ms: 2.376868
+  type: 'test'
+  ...
+# Subtest: locked and unknown crops cannot become equipped or call the planting rule
+ok 8 - locked and unknown crops cannot become equipped or call the planting rule
+  ---
+  duration_ms: 2.227389
+  type: 'test'
+  ...
+# Subtest: equipped planting cannot modify a visited farm or another blocked mode
+ok 9 - equipped planting cannot modify a visited farm or another blocked mode
+  ---
+  duration_ms: 10.312434
+  type: 'test'
+  ...
+# Subtest: walking action label names the equipped crop while keeping its Plant action identity
+ok 10 - walking action label names the equipped crop while keeping its Plant action identity
+  ---
+  duration_ms: 2.518337
+  type: 'test'
+  ...
+# Subtest: E and Enter plant once and repeated keydown events do not spend twice
+ok 11 - E and Enter plant once and repeated keydown events do not spend twice
+  ---
+  duration_ms: 6.9396
+  type: 'test'
+  ...
+# Subtest: equipped seed chip steps aside while the picker is open and returns when it closes
+ok 12 - equipped seed chip steps aside while the picker is open and returns when it closes
+  ---
+  duration_ms: 2.793417
+  type: 'test'
+  ...
+# Subtest: equipped display does not reuse the picker action attribute
+ok 13 - equipped display does not reuse the picker action attribute
+  ---
+  duration_ms: 2.058205
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.846497
+[CI-ISOLATION] END seed-selection.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START perf.test.mjs 2026-10-22T14:27:48.128Z
+TAP version 13
+# Subtest: frame intervals: empty, median, nearest-rank p95 and foreground hitch
+ok 1 - frame intervals: empty, median, nearest-rank p95 and foreground hitch
+  ---
+  duration_ms: 2.094863
+  type: 'test'
+  ...
+# Subtest: rolling windows expire old frames and retain bounded ring data
+ok 2 - rolling windows expire old frames and retain bounded ring data
+  ---
+  duration_ms: 0.250455
+  type: 'test'
+  ...
+# Subtest: pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+ok 3 - pause reset excludes resume gap; rendered intervals reflect a 30 FPS cap
+  ---
+  duration_ms: 0.139165
+  type: 'test'
+  ...
+# Subtest: p95 uses nearest rank across 20 distinct intervals
+ok 4 - p95 uses nearest rank across 20 distinct intervals
+  ---
+  duration_ms: 0.342305
+  type: 'test'
+  ...
+# Subtest: composer counters include every pass and restore reset policy
+ok 5 - composer counters include every pass and restore reset policy
+  ---
+  duration_ms: 0.443862
+  type: 'test'
+  ...
+# Subtest: display throttles updates, resets visibility gaps and remains collapsible
+ok 6 - display throttles updates, resets visibility gaps and remains collapsible
+  ---
+  duration_ms: 14.253674
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 129.53473
+[CI-ISOLATION] END perf.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START cow3d.test.mjs 2026-10-22T14:27:48.313Z
+TAP version 13
+# Subtest: actual joints reach hoof targets and keep hooves level in three dimensions
+ok 1 - actual joints reach hoof targets and keep hooves level in three dimensions
+  ---
+  duration_ms: 96.570062
+  type: 'test'
+  ...
+# Subtest: planted feet stay in place through real travel; stationary phase freezes and settles
+ok 2 - planted feet stay in place through real travel; stationary phase freezes and settles
+  ---
+  duration_ms: 69.104394
+  type: 'test'
+  ...
+# Subtest: head turns, independent ears flick, blinking/tail move; sleeping is quieter
+ok 3 - head turns, independent ears flick, blinking/tail move; sleeping is quieter
+  ---
+  duration_ms: 19.690038
+  type: 'test'
+  ...
+# Subtest: skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+ok 4 - skin geometry is shared, animation belongs to each cow, and teleport is not a stride
+  ---
+  duration_ms: 0.705755
+  type: 'test'
+  ...
+# Subtest: planted hoof drift stays small at walk and run, then returns to neutral
+ok 5 - planted hoof drift stays small at walk and run, then returns to neutral
+  ---
+  duration_ms: 17.262497
+  type: 'test'
+  ...
+# Subtest: hips stay parented to the body and do not drop during a full stride
+ok 6 - hips stay parented to the body and do not drop during a full stride
+  ---
+  duration_ms: 4.193582
+  type: 'test'
+  ...
+# Subtest: equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+ok 7 - equal travel at 30/60/120 Hz gives equal idle/walk cadence and finite turns
+  ---
+  duration_ms: 6.41866
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 373.038923
+[CI-ISOLATION] END cow3d.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START cow-b17-performance.test.mjs 2026-10-22T14:27:48.753Z
+TAP version 13
+# {"b17Performance":{"cows":12,"seconds":30,"hz":60,"updates":21600,"elapsedMs":261.362,"msPerUpdate":0.0121}}
+# Subtest: B17 production topology stays inside the frozen cow envelope
+ok 1 - B17 production topology stays inside the frozen cow envelope
+  ---
+  duration_ms: 102.956033
+  type: 'test'
+  ...
+# Subtest: B17 herd instances share immutable render resources but own animation state
+ok 2 - B17 herd instances share immutable render resources but own animation state
+  ---
+  duration_ms: 7.66654
+  type: 'test'
+  ...
+# Subtest: B17 twelve-cow mixed-state soak remains finite and records update cost
+ok 3 - B17 twelve-cow mixed-state soak remains finite and records update cost
+  ---
+  duration_ms: 271.445338
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 555.688465
+[CI-ISOLATION] END cow-b17-performance.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START cow-anatomy.test.mjs 2026-10-22T14:27:49.384Z
+TAP version 13
+# Subtest: cow anatomy has outward closed surfaces, finite normalized weights and rigid flat cloven soles
+ok 1 - cow anatomy has outward closed surfaces, finite normalized weights and rigid flat cloven soles
+  ---
+  duration_ms: 220.93638
+  type: 'test'
+  ...
+# Subtest: actual neutral cow skin fits the B1 envelope and exposes attached neck/head/limbs
+ok 2 - actual neutral cow skin fits the B1 envelope and exposes attached neck/head/limbs
+  ---
+  duration_ms: 773.083076
+  type: 'test'
+  ...
+# Subtest: head/neck transitions remain finite and independent; motion algorithm stays externally controlled
+ok 3 - head/neck transitions remain finite and independent; motion algorithm stays externally controlled
+  ---
+  duration_ms: 86.814293
+  type: 'test'
+  ...
+# Subtest: udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source
+ok 4 - udder attachment, four teats and tail root overlap the actual torso; refinement preserves motion source
+  ---
+  duration_ms: 227.220801
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1491.271354
+[CI-ISOLATION] END cow-anatomy.test.mjs code=0 signal=null elapsed=1.6s
+[CI-ISOLATION] START versions.test.mjs 2026-10-22T14:27:50.956Z
+TAP version 13
+# Subtest: nested authored module versions cannot evade the cache consistency check
+ok 1 - nested authored module versions cannot evade the cache consistency check
+  ---
+  duration_ms: 3.113293
+  type: 'test'
+  ...
+# Subtest: every versioned script is imported with one version only
+ok 2 - every versioned script is imported with one version only
+  ---
+  duration_ms: 0.757385
+  type: 'test'
+  ...
+# Subtest: window.__gameVer matches the game.js version it imports
+ok 3 - window.__gameVer matches the game.js version it imports
+  ---
+  duration_ms: 0.341443
+  type: 'test'
+  ...
+# Subtest: the offline shell caches the same versions the page imports
+ok 4 - the offline shell caches the same versions the page imports
+  ---
+  duration_ms: 0.98302
+  type: 'test'
+  ...
+# Subtest: the cache name is versioned and namespaced away from the 2D game
+ok 5 - the cache name is versioned and namespaced away from the 2D game
+  ---
+  duration_ms: 0.56905
+  type: 'test'
+  ...
+# Subtest: chicken dependencies of both the page and game rules are cached offline
+ok 6 - chicken dependencies of both the page and game rules are cached offline
+  ---
+  duration_ms: 0.310301
+  type: 'test'
+  ...
+# Subtest: offline shell contains the complete local JavaScript boot graph
+ok 7 - offline shell contains the complete local JavaScript boot graph
+  ---
+  duration_ms: 0.585316
+  type: 'test'
+  ...
+# Subtest: native scene-polish fixture imports the same scenery version as the page
+ok 8 - native scene-polish fixture imports the same scenery version as the page
+  ---
+  duration_ms: 0.559521
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162.704561
+[CI-ISOLATION] END versions.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START animal-modules.test.mjs 2026-10-22T14:27:51.187Z
+TAP version 13
+# Subtest: horse hips stay on the body and planted drift stays bounded
+ok 1 - horse hips stay on the body and planted drift stays bounded
+  ---
+  duration_ms: 196.12438
+  type: 'test'
+  ...
+# Subtest: dog and cat are not scaled sheep and return to neutral
+ok 2 - dog and cat are not scaled sheep and return to neutral
+  ---
+  duration_ms: 37.126217
+  type: 'test'
+  ...
+# Subtest: chicken and farmer modules load and return to neutral
+ok 3 - chicken and farmer modules load and return to neutral
+  ---
+  duration_ms: 41.713523
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 450.840534
+[CI-ISOLATION] END animal-modules.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START horse-c1-baseline.test.mjs 2026-10-22T14:27:51.719Z
+TAP version 13
+# {"horseC1":{"triangles":5640,"bones":24,"skinnedMeshes":1,"height":1.85}}
+# Subtest: C1 freezes production horse topology and render structure
+ok 1 - C1 freezes production horse topology and render structure
+  ---
+  duration_ms: 138.162532
+  type: 'test'
+  ...
+# Subtest: C1 horse instances share render resources but own skeleton state
+ok 2 - C1 horse instances share render resources but own skeleton state
+  ---
+  duration_ms: 15.238477
+  type: 'test'
+  ...
+# Subtest: C1 horse runtime is repeatable at the same frame rate and remains finite
+ok 3 - C1 horse runtime is repeatable at the same frame rate and remains finite
+  ---
+  duration_ms: 356.633939
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 837.894788
+[CI-ISOLATION] END horse-c1-baseline.test.mjs code=0 signal=null elapsed=0.9s
+[CI-ISOLATION] START horse-rebuild.test.mjs 2026-10-22T14:27:52.633Z
+TAP version 13
+# Subtest: ground-up horse is dedicated, finite, and keeps integration contracts
+ok 1 - ground-up horse is dedicated, finite, and keeps integration contracts
+  ---
+  duration_ms: 94.518398
+  type: 'test'
+  ...
+# Subtest: ground-up horse no longer depends on generic quadruped implementation
+ok 2 - ground-up horse no longer depends on generic quadruped implementation
+  ---
+  duration_ms: 11.317738
+  type: 'test'
+  ...
+# Subtest: dog and cat remain on their unchanged generic production path
+ok 3 - dog and cat remain on their unchanged generic production path
+  ---
+  duration_ms: 30.143803
+  type: 'test'
+  ...
+# Subtest: horse gait state distinguishes idle walk trot and canter without non-finite joints
+ok 4 - horse gait state distinguishes idle walk trot and canter without non-finite joints
+  ---
+  duration_ms: 65.756405
+  type: 'test'
+  ...
+# Subtest: horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter
+ok 5 - horse gait phase map encodes four-beat walk, diagonal trot, and three-beat left-lead canter
+  ---
+  duration_ms: 2.486109
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 364.629933
+[CI-ISOLATION] END horse-rebuild.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START horse-r2-anatomy.test.mjs 2026-10-22T14:27:53.058Z
+TAP version 13
+# Subtest: R2 barrel has a long horizontal torso, not stacked spherical chest
+ok 1 - R2 barrel has a long horizontal torso, not stacked spherical chest
+  ---
+  duration_ms: 131.957624
+  type: 'test'
+  ...
+# Subtest: R2 neck rises less than 40 degrees and positions head ahead of withers
+ok 2 - R2 neck rises less than 40 degrees and positions head ahead of withers
+  ---
+  duration_ms: 8.437103
+  type: 'test'
+  ...
+# Subtest: R2 muzzle is long and tapered; no pale vertical forehead horn exists
+ok 3 - R2 muzzle is long and tapered; no pale vertical forehead horn exists
+  ---
+  duration_ms: 11.641416
+  type: 'test'
+  ...
+# Subtest: R2 forehips attach forward at shoulders while hoof IK roots remain fixed
+ok 4 - R2 forehips attach forward at shoulders while hoof IK roots remain fixed
+  ---
+  duration_ms: 4.887593
+  type: 'test'
+  ...
+# Subtest: ear bases meet actual skull triangles within 5 mm at farm scale
+ok 5 - ear bases meet actual skull triangles within 5 mm at farm scale
+  ---
+  duration_ms: 32.118341
+  type: 'test'
+  ...
+# Subtest: muzzle narrows in width and height while its face slopes downward
+ok 6 - muzzle narrows in width and height while its face slopes downward
+  ---
+  duration_ms: 4.589001
+  type: 'test'
+  ...
+# Subtest: authored withers overlaps both actual barrel and neck bounds
+ok 7 - authored withers overlaps both actual barrel and neck bounds
+  ---
+  duration_ms: 2.570346
+  type: 'test'
+  ...
+# Subtest: resting forelegs reach at least 95 percent without moving hip roots
+ok 8 - resting forelegs reach at least 95 percent without moving hip roots
+  ---
+  duration_ms: 61.548237
+  type: 'test'
+  ...
+# Subtest: continuous withers uses body-neck split weights and stays joined at 20 degrees
+ok 9 - continuous withers uses body-neck split weights and stays joined at 20 degrees
+  ---
+  duration_ms: 11.510159
+  type: 'test'
+  ...
+# Subtest: idle foreknee stays under 15 degrees with fixed hip roots
+ok 10 - idle foreknee stays under 15 degrees with fixed hip roots
+  ---
+  duration_ms: 50.783827
+  type: 'test'
+  ...
+# Subtest: continuous limbs keep knee and fetlock radius below cannon radius
+ok 11 - continuous limbs keep knee and fetlock radius below cannon radius
+  ---
+  duration_ms: 3.596937
+  type: 'test'
+  ...
+# Subtest: six-bone tapered tail tip hangs below the hock
+ok 12 - six-bone tapered tail tip hangs below the hock
+  ---
+  duration_ms: 5.313619
+  type: 'test'
+  ...
+# Subtest: fore carpus and hind hock have distinct directional surface contours
+ok 13 - fore carpus and hind hock have distinct directional surface contours
+  ---
+  duration_ms: 1.392036
+  type: 'test'
+  ...
+# Subtest: tail retains hanging hair volume with a blunt end rather than a needle
+ok 14 - tail retains hanging hair volume with a blunt end rather than a needle
+  ---
+  duration_ms: 1.23558
+  type: 'test'
+  ...
+# Subtest: head length and resting face angle are horse proportions, not an anteater snout
+ok 15 - head length and resting face angle are horse proportions, not an anteater snout
+  ---
+  duration_ms: 1.770372
+  type: 'test'
+  ...
+# Subtest: deep rounded jowl over a narrower muzzle, with a throatlatch notch into the neck
+ok 16 - deep rounded jowl over a narrower muzzle, with a throatlatch notch into the neck
+  ---
+  duration_ms: 11.558318
+  type: 'test'
+  ...
+# Subtest: eyes sit a third down the head, below the forehead line, seated on the skull with orbits
+ok 17 - eyes sit a third down the head, below the forehead line, seated on the skull with orbits
+  ---
+  duration_ms: 61.475656
+  type: 'test'
+  ...
+# Subtest: nostrils and lips sit on a broad muzzle, not a narrow tube tip
+ok 18 - nostrils and lips sit on a broad muzzle, not a narrow tube tip
+  ---
+  duration_ms: 2.374952
+  type: 'test'
+  ...
+# Subtest: leaf ears stand closer together than the skull edges and are flattened front to back
+ok 19 - leaf ears stand closer together than the skull edges and are flattened front to back
+  ---
+  duration_ms: 4.336065
+  type: 'test'
+  ...
+# Subtest: head, throat, crest and mane share one junction field with normalized weights
+ok 20 - head, throat, crest and mane share one junction field with normalized weights
+  ---
+  duration_ms: 7.545097
+  type: 'test'
+  ...
+# Subtest: junction bends without folding or tearing under head/neck pitch and turns
+ok 21 - junction bends without folding or tearing under head/neck pitch and turns
+  ---
+  duration_ms: 41.662049
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 686.899267
+[CI-ISOLATION] END horse-r2-anatomy.test.mjs code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START horse-evidence-placement.test.mjs 2026-10-22T14:27:53.808Z
+TAP version 13
+# Subtest: negative control: raw capture relocation leaves world anchors behind
+ok 1 - negative control: raw capture relocation leaves world anchors behind
+  ---
+  duration_ms: 134.561169
+  type: 'test'
+  ...
+# Subtest: capture placement resets idle contacts at both horse sizes
+ok 2 - capture placement resets idle contacts at both horse sizes
+  ---
+  duration_ms: 22.992546
+  type: 'test'
+  ...
+# Subtest: capture recentering preserves articulated pose and contacts for all modes
+ok 3 - capture recentering preserves articulated pose and contacts for all modes
+  ---
+  duration_ms: 43.456921
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 352.238016
+[CI-ISOLATION] END horse-evidence-placement.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START horse-stance-core.test.mjs 2026-10-22T14:27:54.234Z
+TAP version 13
+# Subtest: world-space stance anchor never drifts when updated
+ok 1 - world-space stance anchor never drifts when updated
+  ---
+  duration_ms: 1.317787
+  type: 'test'
+  ...
+# Subtest: swing captures actual pose, has smooth endpoint velocities and lands without a jump
+ok 2 - swing captures actual pose, has smooth endpoint velocities and lands without a jump
+  ---
+  duration_ms: 0.645244
+  type: 'test'
+  ...
+# Subtest: swing touchdown matches across 30, 60 and 120 Hz
+ok 3 - swing touchdown matches across 30, 60 and 120 Hz
+  ---
+  duration_ms: 1.803471
+  type: 'test'
+  ...
+# Subtest: ordinary gait changes do not reset a swinging hoof; teleport explicitly resets it
+ok 4 - ordinary gait changes do not reset a swinging hoof; teleport explicitly resets it
+  ---
+  duration_ms: 0.207962
+  type: 'test'
+  ...
+# Subtest: stopping midway through a fast swing lands vertically without a hoof teleport
+ok 5 - stopping midway through a fast swing lands vertically without a hoof teleport
+  ---
+  duration_ms: 0.363377
+  type: 'test'
+  ...
+# Subtest: high-speed turning footstep respects bounded swing velocity instead of teleporting
+ok 6 - high-speed turning footstep respects bounded swing velocity instead of teleporting
+  ---
+  duration_ms: 0.248563
+  type: 'test'
+  ...
+# Subtest: gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged
+ok 7 - gait profile: zero-velocity endpoints, monotone, peak rate 1/(1-ramp), default unchanged
+  ---
+  duration_ms: 5.621154
+  type: 'test'
+  ...
+# Subtest: re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks
+ok 8 - re-aiming a gait swing keeps pose and progress, lands exactly, and refuses minimum-jerk tracks
+  ---
+  duration_ms: 0.536514
+  type: 'test'
+  ...
+# Subtest: a late re-aim of a gait swing stays continuous and lands where asked
+ok 9 - a late re-aim of a gait swing stays continuous and lands where asked
+  ---
+  duration_ms: 0.761965
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.686537
+[CI-ISOLATION] END horse-stance-core.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START horse-locomotion-contract.test.mjs 2026-10-22T14:27:54.425Z
+TAP version 13
+# Subtest: horse hips remain anatomically attached to the body through walk and canter
+ok 1 - horse hips remain anatomically attached to the body through walk and canter
+  ---
+  duration_ms: 172.609374
+  type: 'test'
+  ...
+# Subtest: every hoof trajectory remains continuous through gait change, turn and stop
+ok 2 - every hoof trajectory remains continuous through gait change, turn and stop
+  ---
+  duration_ms: 89.910077
+  type: 'test'
+  ...
+# Subtest: trot/canter threshold does not chatter under small speed variations
+ok 3 - trot/canter threshold does not chatter under small speed variations
+  ---
+  duration_ms: 17.344053
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 562.698285
+[CI-ISOLATION] END horse-locomotion-contract.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START horse-contact-feasibility.test.mjs 2026-10-22T14:27:55.074Z
+TAP version 13
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 439220   01:15:24 claude | 12290 12284 169080      00:09 node | 11263 11258 55208       04:30 node | 12284 11263 47356       00:10 node |  1485    83 44788    01:15:25 environment-man |     1     0  6176    01:15:36 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=20s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437628   01:15:34 claude | 12290 12284 173584      00:19 node | 11263 11258 55208       04:40 node | 12284 11263 47356       00:20 node |  1485    83 44788    01:15:35 environment-man |     1     0  6176    01:15:46 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=30s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437512   01:15:44 claude | 12290 12284 198176      00:29 node | 11263 11258 55212       04:50 node | 12284 11263 47356       00:30 node |  1485    83 44788    01:15:45 environment-man |     1     0  6176    01:15:56 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=40s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 439632   01:15:54 claude | 12290 12284 200132      00:39 node | 11263 11258 55212       05:00 node | 12284 11263 47356       00:40 node |  1485    83 44788    01:15:55 environment-man |     1     0  6176    01:16:06 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=50s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438020   01:16:04 claude | 12290 12284 203680      00:49 node | 11263 11258 55212       05:10 node | 12284 11263 47356       00:50 node |  1485    83 44788    01:16:05 environment-man |     1     0  6176    01:16:16 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=60s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437980   01:16:14 claude | 12290 12284 200800      00:59 node | 11263 11258 55212       05:20 node | 12284 11263 47356       01:00 node |  1485    83 44788    01:16:15 environment-man |     1     0  6176    01:16:26 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=70s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 439160   01:16:24 claude | 12290 12284 222928      01:09 node | 11263 11258 55212       05:30 node | 12284 11263 47356       01:10 node |  1485    83 44788    01:16:25 environment-man |     1     0  6176    01:16:36 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=80s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437928   01:16:34 claude | 12290 12284 222928      01:20 node | 11263 11258 55212       05:40 node | 12284 11263 47356       01:20 node |  1485    83 44788    01:16:36 environment-man |     1     0  6176    01:16:46 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=90s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437836   01:16:44 claude | 12290 12284 201128      01:30 node | 11263 11258 55212       05:50 node | 12284 11263 47356       01:30 node |  1485    83 44788    01:16:46 environment-man |     1     0  6176    01:16:56 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=100s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 439192   01:16:54 claude | 12290 12284 207928      01:40 node | 11263 11258 55224       06:00 node | 12284 11263 47356       01:40 node |  1485    83 44788    01:16:56 environment-man |     1     0  6176    01:17:06 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=110s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437916   01:17:04 claude | 12290 12284 207568      01:50 node | 11263 11258 55224       06:10 node | 12284 11263 47356       01:50 node |  1485    83 44788    01:17:06 environment-man |     1     0  6176    01:17:16 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=120s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438000   01:17:14 claude | 12290 12284 205756      02:00 node | 11263 11258 55224       06:20 node | 12284 11263 47356       02:00 node |  1485    83 44788    01:17:16 environment-man |     1     0  6176    01:17:26 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=130s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437568   01:17:24 claude | 12290 12284 199892      02:10 node | 11263 11258 55224       06:30 node | 12284 11263 47356       02:10 node |  1485    83 44788    01:17:26 environment-man |     1     0  6176    01:17:36 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=140s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437584   01:17:34 claude | 12290 12284 200144      02:20 node | 11263 11258 55224       06:40 node | 12284 11263 47356       02:20 node |  1485    83 44788    01:17:36 environment-man |     1     0  6176    01:17:46 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=150s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437500   01:17:44 claude | 12290 12284 200144      02:30 node | 11263 11258 55224       06:50 node | 12284 11263 47356       02:30 node |  1485    83 44788    01:17:46 environment-man |     1     0  6176    01:17:56 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=160s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437308   01:17:54 claude | 12290 12284 203040      02:40 node | 11263 11258 55228       07:00 node | 12284 11263 47356       02:40 node |  1485    83 44788    01:17:56 environment-man |     1     0  6176    01:18:06 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=170s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437748   01:18:04 claude | 12290 12284 203512      02:50 node | 11263 11258 55232       07:10 node | 12284 11263 47356       02:50 node |  1485    83 44788    01:18:06 environment-man |     1     0  6176    01:18:16 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=180s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437532   01:18:14 claude | 12290 12284 204364      03:00 node | 11263 11258 55232       07:20 node | 12284 11263 47356       03:00 node |  1485    83 44788    01:18:16 environment-man |     1     0  6176    01:18:26 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=190s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438620   01:18:24 claude | 12290 12284 213736      03:10 node | 11263 11258 55232       07:30 node | 12284 11263 47356       03:10 node |  1485    83 44788    01:18:26 environment-man |     1     0  6176    01:18:36 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=200s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437664   01:18:34 claude | 12290 12284 223172      03:20 node | 11263 11258 55232       07:40 node | 12284 11263 47356       03:20 node |  1485    83 44788    01:18:36 environment-man |     1     0  6176    01:18:46 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=210s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437564   01:18:44 claude | 12290 12284 237064      03:30 node | 11263 11258 55232       07:50 node | 12284 11263 47356       03:30 node |  1485    83 44788    01:18:46 environment-man |     1     0  6176    01:18:56 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=220s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438684   01:18:54 claude | 12290 12284 234676      03:40 node | 11263 11258 55232       08:00 node | 12284 11263 47356       03:40 node |  1485    83 44788    01:18:56 environment-man |     1     0  6176    01:19:06 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=230s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437684   01:19:04 claude | 12290 12284 236772      03:50 node | 11263 11258 55232       08:10 node | 12284 11263 47356       03:50 node |  1485    83 44788    01:19:06 environment-man |     1     0  6176    01:19:16 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=240s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437572   01:19:14 claude | 12290 12284 235716      04:00 node | 11263 11258 55232       08:20 node | 12284 11263 47356       04:00 node |  1485    83 44788    01:19:16 environment-man |     1     0  6176    01:19:26 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=250s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438720   01:19:24 claude | 12290 12284 246092      04:10 node | 11263 11258 55232       08:30 node | 12284 11263 47356       04:10 node |  1485    83 44788    01:19:26 environment-man |     1     0  6176    01:19:36 process_api
+[CI-ISOLATION] RUNNING horse-contact-feasibility.test.mjs elapsed=260s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437928   01:19:34 claude | 12290 12284 251968      04:20 node | 11263 11258 55232       08:40 node | 12284 11263 47356       04:20 node |  1485    83 44788    01:19:36 environment-man |     1     0  6176    01:19:46 process_api
+# Subtest: horse contact and support invariants hold, h 2.3, 104 scenarios x 30/60/120 Hz
+ok 1 - horse contact and support invariants hold, h 2.3, 104 scenarios x 30/60/120 Hz
+  ---
+  duration_ms: 83022.633598
+  type: 'test'
+  ...
+# Subtest: horse contact and support invariants hold, h 1.6, 104 scenarios x 30/60/120 Hz
+ok 2 - horse contact and support invariants hold, h 1.6, 104 scenarios x 30/60/120 Hz
+  ---
+  duration_ms: 75190.868403
+  type: 'test'
+  ...
+# Subtest: game-like roaming holds every invariant, 56 sessions (review reproductions pinned)
+ok 3 - game-like roaming holds every invariant, 56 sessions (review reproductions pinned)
+  ---
+  duration_ms: 73265.35819
+  type: 'test'
+  ...
+# Subtest: pinned randomised sequences hold every invariant
+ok 4 - pinned randomised sequences hold every invariant
+  ---
+  duration_ms: 4597.962934
+  type: 'test'
+  ...
+# Subtest: a 90-degree walking turn completes within 1.5 s at 1 and 1.25 m/s, 30/60/120 Hz
+ok 5 - a 90-degree walking turn completes within 1.5 s at 1 and 1.25 m/s, 30/60/120 Hz
+  ---
+  duration_ms: 356.7767
+  type: 'test'
+  ...
+# Subtest: tight circles keep every hoof on its target and every invariant
+ok 6 - tight circles keep every hoof on its target and every invariant
+  ---
+  duration_ms: 4495.383707
+  type: 'test'
+  ...
+# Subtest: circles beyond the turn rate, slaloms and a straightened circle hold every invariant
+ok 7 - circles beyond the turn rate, slaloms and a straightened circle hold every invariant
+  ---
+  duration_ms: 15537.554595
+  type: 'test'
+  ...
+# Subtest: R6 review reproductions hold every invariant
+ok 8 - R6 review reproductions hold every invariant
+  ---
+  duration_ms: 6991.686194
+  type: 'test'
+  ...
+# Subtest: a turned walk returns to walk, and walking reversals keep a hoof down
+ok 9 - a turned walk returns to walk, and walking reversals keep a hoof down
+  ---
+  duration_ms: 483.238154
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 264141.044966
+[CI-ISOLATION] END horse-contact-feasibility.test.mjs code=0 signal=null elapsed=264.2s
+[CI-ISOLATION] START horse-motion-evidence.test.mjs 2026-10-22T14:32:19.279Z
+TAP version 13
+# Subtest: motion evidence clips exercise actual gaits, transitions, turns, stops and teleport
+ok 1 - motion evidence clips exercise actual gaits, transitions, turns, stops and teleport
+  ---
+  duration_ms: 1164.275117
+  type: 'test'
+  ...
+# Subtest: slow reversals preserve actual contact without compensatory crouch
+ok 2 - slow reversals preserve actual contact without compensatory crouch
+  ---
+  duration_ms: 911.403933
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2413.619977
+[CI-ISOLATION] END horse-motion-evidence.test.mjs code=0 signal=null elapsed=2.5s
+[CI-ISOLATION] START sheep3d.test.mjs 2026-10-22T14:32:21.759Z
+TAP version 13
+# Subtest: sheep hips stay on the body and the gait stays finite
+ok 1 - sheep hips stay on the body and the gait stays finite
+  ---
+  duration_ms: 50.891293
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 189.100612
+[CI-ISOLATION] END sheep3d.test.mjs code=0 signal=null elapsed=0.3s
+[CI-ISOLATION] START dog-face.test.mjs 2026-10-22T14:32:22.012Z
+TAP version 13
+# Subtest: dog face correction and later authorized cat regions preserve frozen meshes and rest bones
+ok 1 - dog face correction and later authorized cat regions preserve frozen meshes and rest bones
+  ---
+  duration_ms: 515.796979
+  type: 'test'
+  ...
+# Subtest: dog has one embedded central nose, a narrow muzzle, mouth and attached lower jaw
+ok 2 - dog has one embedded central nose, a narrow muzzle, mouth and attached lower jaw
+  ---
+  duration_ms: 10.289261
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 691.199033
+[CI-ISOLATION] END dog-face.test.mjs code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START dog-stop-continuity.test.mjs 2026-10-22T14:32:22.770Z
+TAP version 13
+# Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=30
+ok 1 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=30
+  ---
+  duration_ms: 45.576707
+  type: 'test'
+  ...
+# Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=60
+ok 2 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=60
+  ---
+  duration_ms: 7.212081
+  type: 'test'
+  ...
+# Subtest: dog grounded planted paws retain contact on first idle frame h=0.55 hz=120
+ok 3 - dog grounded planted paws retain contact on first idle frame h=0.55 hz=120
+  ---
+  duration_ms: 9.966467
+  type: 'test'
+  ...
+# Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=30
+ok 4 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=30
+  ---
+  duration_ms: 4.55984
+  type: 'test'
+  ...
+# Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=60
+ok 5 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=60
+  ---
+  duration_ms: 4.256546
+  type: 'test'
+  ...
+# Subtest: dog grounded planted paws retain contact on first idle frame h=1.15 hz=120
+ok 6 - dog grounded planted paws retain contact on first idle frame h=1.15 hz=120
+  ---
+  duration_ms: 4.259016
+  type: 'test'
+  ...
+# Subtest: dog stop recovery holds contacts and lands all actual soles across gait phases
+ok 7 - dog stop recovery holds contacts and lands all actual soles across gait phases
+  ---
+  duration_ms: 1025.099611
+  type: 'test'
+  ...
+# Subtest: dog stop recovery also preserves contacts after left and right turns
+ok 8 - dog stop recovery also preserves contacts after left and right turns
+  ---
+  duration_ms: 41.035479
+  type: 'test'
+  ...
+# Subtest: dog recovery caches are per-rig, ignore invalid dt and release on teleport
+ok 9 - dog recovery caches are per-rig, ignore invalid dt and release on teleport
+  ---
+  duration_ms: 2.652778
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1312.846489
+[CI-ISOLATION] END dog-stop-continuity.test.mjs code=0 signal=null elapsed=1.4s
+[CI-ISOLATION] START dog-evidence-placement.test.mjs 2026-10-22T14:32:24.145Z
+TAP version 13
+# Subtest: active dog restart cache follows staging translation
+ok 1 - active dog restart cache follows staging translation
+  ---
+  duration_ms: 53.670337
+  type: 'test'
+  ...
+# Subtest: negative control reproduces dog root-only staging errors
+ok 2 - negative control reproduces dog root-only staging errors
+  ---
+  duration_ms: 2.885046
+  type: 'test'
+  ...
+# Subtest: negative control reproduces stale recovery targets during neutral stage reset
+ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+  ---
+  duration_ms: 4.235862
+  type: 'test'
+  ...
+# Subtest: neutral dog stage reset clears previous recovery at both sizes
+ok 4 - neutral dog stage reset clears previous recovery at both sizes
+  ---
+  duration_ms: 9.39589
+  type: 'test'
+  ...
+# Subtest: stopping dog contacts remain translated on subsequent idle updates
+ok 5 - stopping dog contacts remain translated on subsequent idle updates
+  ---
+  duration_ms: 7.25525
+  type: 'test'
+  ...
+# Subtest: dog evidence translation preserves mesh, pose and contacts at both sizes
+ok 6 - dog evidence translation preserves mesh, pose and contacts at both sizes
+  ---
+  duration_ms: 124.269571
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 358.045046
+[CI-ISOLATION] END dog-evidence-placement.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START cat-visual.test.mjs 2026-10-22T14:32:24.561Z
+TAP version 13
+[CI-ISOLATION] RUNNING cat-visual.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 437344   01:19:53 claude | 12496 12490 191656      00:09 node | 11263 11258 55232       08:59 node | 12490 11263 48308       00:10 node |  1485    83 44788    01:19:55 environment-man |     1     0  6176    01:20:06 process_api
+# Subtest: cat visual correction preserves other species, cat body/tail/lower legs/paws and every rest bone
+ok 1 - cat visual correction preserves other species, cat body/tail/lower legs/paws and every rest bone
+  ---
+  duration_ms: 514.387703
+  type: 'test'
+  ...
+# Subtest: cat has compact cheek pads, one triangular nose, whiskers and embedded ears
+ok 2 - cat has compact cheek pads, one triangular nose, whiskers and embedded ears
+  ---
+  duration_ms: 24.164472
+  type: 'test'
+  ...
+# Subtest: cat upper legs are continuous and remain attached to actual body across motion
+ok 3 - cat upper legs are continuous and remain attached to actual body across motion
+  ---
+  duration_ms: 10969.780182
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11685.808527
+[CI-ISOLATION] END cat-visual.test.mjs code=0 signal=null elapsed=11.7s
+[CI-ISOLATION] START cat-stop-continuity.test.mjs 2026-10-22T14:32:36.309Z
+TAP version 13
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=30
+ok 1 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=30
+  ---
+  duration_ms: 55.896548
+  type: 'test'
+  ...
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=60
+ok 2 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=60
+  ---
+  duration_ms: 6.092008
+  type: 'test'
+  ...
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.4 hz=120
+ok 3 - cat grounded planted paws retain contact on first idle frame h=0.4 hz=120
+  ---
+  duration_ms: 8.66134
+  type: 'test'
+  ...
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=30
+ok 4 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=30
+  ---
+  duration_ms: 5.890426
+  type: 'test'
+  ...
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=60
+ok 5 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=60
+  ---
+  duration_ms: 3.480815
+  type: 'test'
+  ...
+# Subtest: cat grounded planted paws retain contact on first idle frame h=0.85 hz=120
+ok 6 - cat grounded planted paws retain contact on first idle frame h=0.85 hz=120
+  ---
+  duration_ms: 3.857479
+  type: 'test'
+  ...
+# Subtest: cat stop recovery holds contacts and lands all actual soles across gait phases
+ok 7 - cat stop recovery holds contacts and lands all actual soles across gait phases
+  ---
+  duration_ms: 974.99605
+  type: 'test'
+  ...
+# Subtest: cat stop recovery also preserves contacts after left and right turns
+ok 8 - cat stop recovery also preserves contacts after left and right turns
+  ---
+  duration_ms: 46.57667
+  type: 'test'
+  ...
+# Subtest: cat recovery caches are per-rig, ignore invalid dt and release on teleport
+ok 9 - cat recovery caches are per-rig, ignore invalid dt and release on teleport
+  ---
+  duration_ms: 2.671328
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1293.457821
+[CI-ISOLATION] END cat-stop-continuity.test.mjs code=0 signal=null elapsed=1.4s
+[CI-ISOLATION] START cat-evidence-placement.test.mjs 2026-10-22T14:32:37.663Z
+TAP version 13
+# Subtest: active cat restart cache follows staging translation
+ok 1 - active cat restart cache follows staging translation
+  ---
+  duration_ms: 77.459179
+  type: 'test'
+  ...
+# Subtest: negative control reproduces cat root-only staging errors
+ok 2 - negative control reproduces cat root-only staging errors
+  ---
+  duration_ms: 3.749226
+  type: 'test'
+  ...
+# Subtest: negative control reproduces stale recovery targets during neutral stage reset
+ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+  ---
+  duration_ms: 3.641146
+  type: 'test'
+  ...
+# Subtest: neutral cat stage reset clears previous recovery at both sizes
+ok 4 - neutral cat stage reset clears previous recovery at both sizes
+  ---
+  duration_ms: 9.770202
+  type: 'test'
+  ...
+# Subtest: stopping cat contacts remain translated on subsequent idle updates
+ok 5 - stopping cat contacts remain translated on subsequent idle updates
+  ---
+  duration_ms: 8.136097
+  type: 'test'
+  ...
+# Subtest: cat evidence translation preserves mesh, pose and contacts at both sizes
+ok 6 - cat evidence translation preserves mesh, pose and contacts at both sizes
+  ---
+  duration_ms: 182.175269
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 461.542221
+[CI-ISOLATION] END cat-evidence-placement.test.mjs code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START chicken-coordinated-motion.test.mjs 2026-10-22T14:32:38.207Z
+TAP version 13
+[CI-ISOLATION] RUNNING chicken-coordinated-motion.test.mjs elapsed=10s cgroup=unknown; processes=  PID  PPID   RSS     ELAPSED COMMAND |  1506  1485 438124   01:20:07 claude | 12542 12536 119288      00:09 node | 11263 11258 55232       09:13 node | 12536 11263 47352       00:10 node |  1485    83 44788    01:20:09 environment-man |     1     0  6176    01:20:19 process_api
+# Subtest: coordinated chicken meets every original 96-cell turn gate
+ok 1 - coordinated chicken meets every original 96-cell turn gate
+  ---
+  duration_ms: 7921.16354
+  type: 'test'
+  ...
+# Subtest: seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+ok 2 - seeded chicken changes, stops and reversals preserve physical contacts at 30/60/120 Hz
+  ---
+  duration_ms: 11205.832495
+  type: 'test'
+  ...
+# Subtest: restart during partial settling retains first-frame continuity
+ok 3 - restart during partial settling retains first-frame continuity
+  ---
+  duration_ms: 12.456283
+  type: 'test'
+  ...
+# Subtest: chicken geometry, skinning and factory rest transforms preserve frozen main
+ok 4 - chicken geometry, skinning and factory rest transforms preserve frozen main
+  ---
+  duration_ms: 13.820596
+  type: 'test'
+  ...
+# Subtest: real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+ok 5 - real 0.1-second frame cap preserves reachable feet without changing gameplay travel
+  ---
+  duration_ms: 10.977223
+  type: 'test'
+  ...
+# Subtest: the same chicken travel produces the same physical feet at 30/60/120 Hz
+ok 6 - the same chicken travel produces the same physical feet at 30/60/120 Hz
+  ---
+  duration_ms: 8.777103
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19331.099769
+[CI-ISOLATION] END chicken-coordinated-motion.test.mjs code=0 signal=null elapsed=19.4s
+[CI-ISOLATION] START chicken-start-turn.test.mjs 2026-10-22T14:32:57.600Z
+TAP version 13
+# Subtest: chicken first walk frame cannot jump farther than root travel hz=30
+ok 1 - chicken first walk frame cannot jump farther than root travel hz=30
+  ---
+  duration_ms: 33.058705
+  type: 'test'
+  ...
+# Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=30
+ok 2 - chicken right turn retains real grounded contacts even if a flag resets hz=30
+  ---
+  duration_ms: 97.588007
+  type: 'test'
+  ...
+# Subtest: chicken first walk frame cannot jump farther than root travel hz=60
+ok 3 - chicken first walk frame cannot jump farther than root travel hz=60
+  ---
+  duration_ms: 0.652008
+  type: 'test'
+  ...
+# Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=60
+ok 4 - chicken right turn retains real grounded contacts even if a flag resets hz=60
+  ---
+  duration_ms: 98.058864
+  type: 'test'
+  ...
+# Subtest: chicken first walk frame cannot jump farther than root travel hz=120
+ok 5 - chicken first walk frame cannot jump farther than root travel hz=120
+  ---
+  duration_ms: 1.717085
+  type: 'test'
+  ...
+# Subtest: chicken right turn retains real grounded contacts even if a flag resets hz=120
+ok 6 - chicken right turn retains real grounded contacts even if a flag resets hz=120
+  ---
+  duration_ms: 167.483024
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 556.141216
+[CI-ISOLATION] END chicken-start-turn.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START chicken-stop-continuity.test.mjs 2026-10-22T14:32:58.235Z
+TAP version 13
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+ok 1 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=30
+  ---
+  duration_ms: 46.859172
+  type: 'test'
+  ...
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+ok 2 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=60
+  ---
+  duration_ms: 6.3325
+  type: 'test'
+  ...
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+ok 3 - chicken grounded planted feet retain contact on first idle frame h=0.35 hz=120
+  ---
+  duration_ms: 6.058594
+  type: 'test'
+  ...
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+ok 4 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=30
+  ---
+  duration_ms: 11.019006
+  type: 'test'
+  ...
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+ok 5 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=60
+  ---
+  duration_ms: 6.312233
+  type: 'test'
+  ...
+# Subtest: chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+ok 6 - chicken grounded planted feet retain contact on first idle frame h=0.72 hz=120
+  ---
+  duration_ms: 6.529824
+  type: 'test'
+  ...
+# Subtest: chicken stop recovery holds contacts and lands all actual soles across gait phases
+ok 7 - chicken stop recovery holds contacts and lands all actual soles across gait phases
+  ---
+  duration_ms: 1304.114711
+  type: 'test'
+  ...
+# Subtest: chicken stop recovery also preserves contacts after left and right turns
+ok 8 - chicken stop recovery also preserves contacts after left and right turns
+  ---
+  duration_ms: 21.875913
+  type: 'test'
+  ...
+# Subtest: chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+ok 9 - chicken recovery caches are per-rig, ignore invalid dt and release on teleport
+  ---
+  duration_ms: 3.016898
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1589.526117
+[CI-ISOLATION] END chicken-stop-continuity.test.mjs code=0 signal=null elapsed=1.7s
+[CI-ISOLATION] START chicken-evidence-placement.test.mjs 2026-10-22T14:32:59.907Z
+TAP version 13
+# Subtest: active chicken restart cache follows staging translation
+ok 1 - active chicken restart cache follows staging translation
+  ---
+  duration_ms: 50.845405
+  type: 'test'
+  ...
+# Subtest: negative control reproduces chicken root-only staging errors
+ok 2 - negative control reproduces chicken root-only staging errors
+  ---
+  duration_ms: 3.301138
+  type: 'test'
+  ...
+# Subtest: negative control reproduces stale recovery targets during neutral stage reset
+ok 3 - negative control reproduces stale recovery targets during neutral stage reset
+  ---
+  duration_ms: 4.491865
+  type: 'test'
+  ...
+# Subtest: neutral chicken stage reset clears previous recovery at both sizes
+ok 4 - neutral chicken stage reset clears previous recovery at both sizes
+  ---
+  duration_ms: 9.913396
+  type: 'test'
+  ...
+# Subtest: stopping chicken contacts remain translated on subsequent idle updates
+ok 5 - stopping chicken contacts remain translated on subsequent idle updates
+  ---
+  duration_ms: 5.700582
+  type: 'test'
+  ...
+# Subtest: chicken evidence translation preserves mesh, pose and contacts at both sizes
+ok 6 - chicken evidence translation preserves mesh, pose and contacts at both sizes
+  ---
+  duration_ms: 106.269452
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 372.304402
+[CI-ISOLATION] END chicken-evidence-placement.test.mjs code=0 signal=null elapsed=0.4s
+[CI-ISOLATION] START live3d.test.mjs 2026-10-22T14:33:00.349Z
+TAP version 13
+# Subtest: sheep movement changes the gait
+ok 1 - sheep movement changes the gait
+  ---
+  duration_ms: 32.323639
+  type: 'test'
+  ...
+# Subtest: horse movement changes the gait
+ok 2 - horse movement changes the gait
+  ---
+  duration_ms: 125.020976
+  type: 'test'
+  ...
+# Subtest: dog movement changes the gait
+ok 3 - dog movement changes the gait
+  ---
+  duration_ms: 19.519379
+  type: 'test'
+  ...
+# Subtest: cat movement changes the gait
+ok 4 - cat movement changes the gait
+  ---
+  duration_ms: 17.826604
+  type: 'test'
+  ...
+# Subtest: chicken movement changes the gait
+ok 5 - chicken movement changes the gait
+  ---
+  duration_ms: 13.804591
+  type: 'test'
+  ...
+# Subtest: horse translated root articulates hip without moving a planted hoof
+ok 6 - horse translated root articulates hip without moving a planted hoof
+  ---
+  duration_ms: 2.258574
+  type: 'test'
+  ...
+# Subtest: horse delta without root movement leaves the world contact fixed
+ok 7 - horse delta without root movement leaves the world contact fixed
+  ---
+  duration_ms: 2.058626
+  type: 'test'
+  ...
+# Subtest: two saved hair styles produce different hair meshes
+ok 8 - two saved hair styles produce different hair meshes
+  ---
+  duration_ms: 45.690767
+  type: 'test'
+  ...
+# Subtest: two saved looks produce different farmer materials
+ok 9 - two saved looks produce different farmer materials
+  ---
+  duration_ms: 35.631954
+  type: 'test'
+  ...
+# Subtest: live farmer idle update stays finite
+ok 10 - live farmer idle update stays finite
+  ---
+  duration_ms: 22.054012
+  type: 'test'
+  ...
+# Subtest: replacing a rig removes the old group and disposes it
+ok 11 - replacing a rig removes the old group and disposes it
+  ---
+  duration_ms: 79.257381
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 560.732459
+[CI-ISOLATION] END live3d.test.mjs code=0 signal=null elapsed=0.6s
+[CI-ISOLATION] START farmer3d.test.mjs 2026-10-22T14:33:00.972Z
+TAP version 13
+# Subtest: all eight hair styles and all six hat states remain distinct; faces clear in the full matrix
+ok 1 - all eight hair styles and all six hat states remain distinct; faces clear in the full matrix
+  ---
+  duration_ms: 2148.112481
+  type: 'test'
+  ...
+# Subtest: every exposed skin vertex matches the selected tone, including arms and head
+ok 2 - every exposed skin vertex matches the selected tone, including arms and head
+  ---
+  duration_ms: 51.774895
+  type: 'test'
+  ...
+# Subtest: real knees and elbows articulate; planted soles stay on the ground through walk/run at 30/60 Hz
+ok 3 - real knees and elbows articulate; planted soles stay on the ground through walk/run at 30/60 Hz
+  ---
+  duration_ms: 71.093422
+  type: 'test'
+  ...
+# Subtest: equal-distance cadence is frame-rate independent; caller phase and interaction poses are honored
+ok 4 - equal-distance cadence is frame-rate independent; caller phase and interaction poses are honored
+  ---
+  duration_ms: 31.227306
+  type: 'test'
+  ...
+# Subtest: idle head turn and wave return to neutral; villagers have independent skeletons and owned geometry
+ok 5 - idle head turn and wave return to neutral; villagers have independent skeletons and owned geometry
+  ---
+  duration_ms: 19.223507
+  type: 'test'
+  ...
+# Subtest: wardrobe foreground material is local, self-depth is retained and cleanup is idempotent
+ok 6 - wardrobe foreground material is local, self-depth is retained and cleanup is idempotent
+  ---
+  duration_ms: 16.131162
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2525.731502
+[CI-ISOLATION] END farmer3d.test.mjs code=0 signal=null elapsed=2.6s
+[CI-ISOLATION] START animal-visual.test.mjs :: all six have an exposed 2026-10-22T14:33:03.562Z
+TAP version 13
+# [RAY-DIAG] cow before-create rss=53MiB heap=9MiB external=2MiB
+# [RAY-DIAG] cow created vertices=31728 rss=86MiB heap=23MiB external=4MiB
+# [RAY-DIAG] cow before-neck-raycast rss=86MiB heap=23MiB external=4MiB
+# [RAY-DIAG] cow after-neck-raycast hits=1 rss=102MiB heap=16MiB external=4MiB
+# [RAY-DIAG] cow before-head-raycast rss=102MiB heap=16MiB external=4MiB
+# [RAY-DIAG] cow after-head-raycast rss=102MiB heap=27MiB external=4MiB
+# [RAY-DIAG] cow disposed rss=102MiB heap=27MiB external=4MiB
+# [RAY-DIAG] sheep before-create rss=102MiB heap=27MiB external=4MiB
+# [RAY-DIAG] sheep created vertices=11100 rss=109MiB heap=21MiB external=5MiB
+# [RAY-DIAG] sheep before-neck-raycast rss=109MiB heap=21MiB external=5MiB
+# [RAY-DIAG] sheep after-neck-raycast hits=1 rss=106MiB heap=21MiB external=5MiB
+# [RAY-DIAG] sheep before-head-raycast rss=106MiB heap=21MiB external=5MiB
+# [RAY-DIAG] sheep after-head-raycast rss=106MiB heap=28MiB external=5MiB
+# [RAY-DIAG] sheep disposed rss=106MiB heap=28MiB external=5MiB
+# [RAY-DIAG] horse before-create rss=106MiB heap=28MiB external=5MiB
+# [RAY-DIAG] horse created vertices=16920 rss=114MiB heap=39MiB external=6MiB
+# [RAY-DIAG] horse before-neck-raycast rss=114MiB heap=39MiB external=6MiB
+# [RAY-DIAG] horse after-neck-raycast hits=1 rss=112MiB heap=29MiB external=6MiB
+# [RAY-DIAG] horse before-head-raycast rss=112MiB heap=29MiB external=6MiB
+# [RAY-DIAG] horse after-head-raycast rss=112MiB heap=25MiB external=6MiB
+# [RAY-DIAG] horse disposed rss=112MiB heap=25MiB external=6MiB
+# [RAY-DIAG] dog before-create rss=112MiB heap=25MiB external=6MiB
+# [RAY-DIAG] dog created vertices=11112 rss=118MiB heap=36MiB external=7MiB
+# [RAY-DIAG] dog before-neck-raycast rss=117MiB heap=36MiB external=7MiB
+# [RAY-DIAG] dog after-neck-raycast hits=1 rss=113MiB heap=33MiB external=7MiB
+# [RAY-DIAG] dog before-head-raycast rss=113MiB heap=33MiB external=7MiB
+# [RAY-DIAG] dog after-head-raycast rss=113MiB heap=40MiB external=7MiB
+# [RAY-DIAG] dog disposed rss=113MiB heap=40MiB external=7MiB
+# [RAY-DIAG] cat before-create rss=113MiB heap=40MiB external=7MiB
+# [RAY-DIAG] cat created vertices=11328 rss=121MiB heap=37MiB external=7MiB
+# [RAY-DIAG] cat before-neck-raycast rss=121MiB heap=37MiB external=7MiB
+# [RAY-DIAG] cat after-neck-raycast hits=1 rss=115MiB heap=33MiB external=7MiB
+# [RAY-DIAG] cat before-head-raycast rss=115MiB heap=33MiB external=7MiB
+# [RAY-DIAG] cat after-head-raycast rss=115MiB heap=41MiB external=7MiB
+# [RAY-DIAG] cat disposed rss=115MiB heap=41MiB external=7MiB
+# [RAY-DIAG] chicken before-create rss=115MiB heap=41MiB external=7MiB
+# [RAY-DIAG] chicken created vertices=5796 rss=118MiB heap=32MiB external=7MiB
+# [RAY-DIAG] chicken before-neck-raycast rss=118MiB heap=32MiB external=7MiB
+# [RAY-DIAG] chicken after-neck-raycast hits=1 rss=119MiB heap=40MiB external=7MiB
+# [RAY-DIAG] chicken before-head-raycast rss=119MiB heap=40MiB external=7MiB
+# [RAY-DIAG] chicken after-head-raycast rss=117MiB heap=45MiB external=7MiB
+# [RAY-DIAG] chicken disposed rss=117MiB heap=45MiB external=7MiB
+# Subtest: all six have an exposed connected neck and a pickable head, not just head bones
+ok 1 - all six have an exposed connected neck and a pickable head, not just head bones
+  ---
+  duration_ms: 516.895798
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 683.699989
+[CI-ISOLATION] END animal-visual.test.mjs :: all six have an exposed code=0 signal=null elapsed=0.8s
+[CI-ISOLATION] START animal-visual.test.mjs :: six species keep flat feet 2026-10-22T14:33:04.317Z
+TAP version 13
+# Subtest: six species keep flat feet above ground and planted feet steady at 30/60Hz
+ok 1 - six species keep flat feet above ground and planted feet steady at 30/60Hz
+  ---
+  duration_ms: 1984.835534
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2167.083737
+[CI-ISOLATION] END animal-visual.test.mjs :: six species keep flat feet code=0 signal=null elapsed=2.2s
+[CI-ISOLATION] START animal-visual.test.mjs :: new rigs preserve distance cadence 2026-10-22T14:33:06.556Z
+TAP version 13
+# Subtest: new rigs preserve distance cadence, turn with travel, and release teleported feet
+ok 1 - new rigs preserve distance cadence, turn with travel, and release teleported feet
+  ---
+  duration_ms: 272.761194
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 408.760441
+[CI-ISOLATION] END animal-visual.test.mjs :: new rigs preserve distance cadence code=0 signal=null elapsed=0.5s
+[CI-ISOLATION] START animal-visual.test.mjs :: actual shin geometry reaches 2026-10-22T14:33:07.025Z
+TAP version 13
+# Subtest: actual shin geometry reaches the feet with no floating sole pieces
+ok 1 - actual shin geometry reaches the feet with no floating sole pieces
+  ---
+  duration_ms: 1141.575629
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1284.507873
+[CI-ISOLATION] END animal-visual.test.mjs :: actual shin geometry reaches code=0 signal=null elapsed=1.3s
+[CI-ISOLATION] START features.test.mjs 2026-10-22T14:33:08.371Z
+TAP version 13
+# Subtest: public site: the verified economy is off, even with a debug URL, a saved setting or the test flag itself
+ok 1 - public site: the verified economy is off, even with a debug URL, a saved setting or the test flag itself
+  ---
+  duration_ms: 7.491355
+  type: 'test'
+  ...
+# Subtest: local test server: off unless the harness set the flag (exactly true) before load
+ok 2 - local test server: off unless the harness set the flag (exactly true) before load
+  ---
+  duration_ms: 3.026455
+  type: 'test'
+  ...
+# Subtest: the switch can't be changed after load
+ok 3 - the switch can't be changed after load
+  ---
+  duration_ms: 0.838721
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.339578
+[CI-ISOLATION] END features.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START sdk.test.mjs 2026-10-22T14:33:08.532Z
+TAP version 13
+# Subtest: production, locked browser package and emulator use one exact modular SDK
+ok 1 - production, locked browser package and emulator use one exact modular SDK
+  ---
+  duration_ms: 8.479631
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 110.60538
+[CI-ISOLATION] END sdk.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START scene-polish.test.mjs 2026-10-22T14:33:08.708Z
+TAP version 13
+# Subtest: sculpted hands keep the camera envelope, six draws and bounded geometry
+ok 1 - sculpted hands keep the camera envelope, six draws and bounded geometry
+  ---
+  duration_ms: 33.051413
+  type: 'test'
+  ...
+# Subtest: near animal markers stay readable without filling the first-person view
+ok 2 - near animal markers stay readable without filling the first-person view
+  ---
+  duration_ms: 1.708597
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.891839
+[CI-ISOLATION] END scene-polish.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START asset-policy.test.mjs 2026-10-22T14:33:08.944Z
+TAP version 13
+# Subtest: embedded untextured production-policy fixture passes
+ok 1 - embedded untextured production-policy fixture passes
+  ---
+  duration_ms: 2.619586
+  type: 'test'
+  ...
+# Subtest: truncated and malformed containers fail closed
+ok 2 - truncated and malformed containers fail closed
+  ---
+  duration_ms: 1.638624
+  type: 'test'
+  ...
+# Subtest: external dependencies, unsupported extensions and uncompressed images rejected
+ok 3 - external dependencies, unsupported extensions and uncompressed images rejected
+  ---
+  duration_ms: 0.358313
+  type: 'test'
+  ...
+# Subtest: invalid ranges, missing normals and oversized geometry rejected
+ok 4 - invalid ranges, missing normals and oversized geometry rejected
+  ---
+  duration_ms: 0.333621
+  type: 'test'
+  ...
+# Subtest: root transform and animation contract enforced
+ok 5 - root transform and animation contract enforced
+  ---
+  duration_ms: 0.331182
+  type: 'test'
+  ...
+# Subtest: download, surfaces and materials are independent budgets
+ok 6 - download, surfaces and materials are independent budgets
+  ---
+  duration_ms: 0.408509
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.467392
+[CI-ISOLATION] END asset-policy.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] START ambient-render-observation.test.mjs 2026-10-22T14:33:09.102Z
+TAP version 13
+# Subtest: elapsed time without a draw cannot pass pause or resume
+ok 1 - elapsed time without a draw cannot pass pause or resume
+  ---
+  duration_ms: 1.795327
+  type: 'test'
+  ...
+# Subtest: an update callback without a completed draw cannot pass
+ok 2 - an update callback without a completed draw cannot pass
+  ---
+  duration_ms: 1.620969
+  type: 'test'
+  ...
+# Subtest: one draw or two draws before 700 ms cannot satisfy observation coverage
+ok 3 - one draw or two draws before 700 ms cannot satisfy observation coverage
+  ---
+  duration_ms: 1.928958
+  type: 'test'
+  ...
+# Subtest: actual stable pause and updating resume pass exact geometry checks
+ok 4 - actual stable pause and updating resume pass exact geometry checks
+  ---
+  duration_ms: 0.402967
+  type: 'test'
+  ...
+# Subtest: a rendered moving pause is rejected
+ok 5 - a rendered moving pause is rejected
+  ---
+  duration_ms: 0.431448
+  type: 'test'
+  ...
+# Subtest: a frozen resume and a resume that updates only once are rejected
+ok 6 - a frozen resume and a resume that updates only once are rejected
+  ---
+  duration_ms: 0.35123
+  type: 'test'
+  ...
+# Subtest: wrong motion state and invalid geometry remain failures
+ok 7 - wrong motion state and invalid geometry remain failures
+  ---
+  duration_ms: 0.425791
+  type: 'test'
+  ...
+# Subtest: early movement cannot disappear when later good receipts roll over
+ok 8 - early movement cannot disappear when later good receipts roll over
+  ---
+  duration_ms: 0.765498
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105.478307
+[CI-ISOLATION] END ambient-render-observation.test.mjs code=0 signal=null elapsed=0.2s
+[CI-ISOLATION] ALL 89 Node test files and 0 browser suites passed (group node).
+# exit 0 end 2026-10-22T14:33:09Z

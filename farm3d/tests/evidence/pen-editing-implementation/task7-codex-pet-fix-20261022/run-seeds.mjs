@@ -1,0 +1,11 @@
+import fs from 'node:fs';import crypto from 'node:crypto';import {spawn,execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+const dir=new URL('./',import.meta.url),tests=new URL('../../../',dir),label=process.argv[2],seeds=JSON.parse(process.argv[3]||'null');
+if(!/^[a-z0-9-]+$/.test(label||'')||!Array.isArray(seeds)||!seeds.length||!seeds.every(Number.isSafeInteger))throw Error('label and seed array required');
+const source=fs.readFileSync(new URL('remaining-care-beast.test.mjs',tests),'utf8'),needle='for(const seed of [4242,1])',replacement='for(const seed of '+JSON.stringify(seeds)+')';
+if(source.split(needle).length!==2)throw Error('original loop missing');const generated=source.replace(needle,replacement);if(generated.replace(replacement,needle)!==source)throw Error('body changed');
+const target=new URL('remaining-care-pet-fix-'+label+'.generated.test.mjs',tests),logPath=new URL(label+'.log',dir),manifest=new URL(label+'-manifest.json',dir);
+for(const p of[target,logPath,manifest])if(fs.existsSync(p))throw Error('Do not overwrite evidence');fs.writeFileSync(target,generated,{flag:'wx'});
+const record={utc:new Date().toISOString(),node:process.version,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),seeds,unchangedBody:true,originalSha256:crypto.hash('sha256',source),generatedSha256:crypto.hash('sha256',generated),command:[process.execPath,'--test',fileURLToPath(target)]};
+record.runtimeHashes=Object.fromEntries(['farm3d/index.html','farm3d/remaining-care-controller.js','farm3d/remaining-care-navigation.js','farm3d/tests/remaining-care-world.mjs'].map(p=>[p,crypto.hash('sha256',fs.readFileSync(p))]));
+fs.writeFileSync(manifest,JSON.stringify(record,null,2)+'\n',{flag:'wx'});const fd=fs.openSync(logPath,'wx'),child=spawn(process.execPath,['--test',fileURLToPath(target)],{stdio:['ignore',fd,fd]});
+child.on('exit',code=>{fs.closeSync(fd);record.exitCode=code;record.finishedUtc=new Date().toISOString();fs.writeFileSync(manifest,JSON.stringify(record,null,2)+'\n');console.log(JSON.stringify({label,code,seeds}));process.exitCode=code;});

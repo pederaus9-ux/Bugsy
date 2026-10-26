@@ -1,0 +1,9 @@
+# Boundary seed4242/120: final runtime targeted care follow-through
+
+Base 8f4413a798ee6d2045173ea975fefcd0403a6498; runtime A26 ddb4746. No runtime changes planned. Parent explicitly requests boundary third-night completion and minimum remaining targeted readiness reconciliation. Owner severity policy defers recoverable timing/visual issues; it does not turn a failed test into PASS.
+
+Run the original sheep boundary expansion command, seed4242,120Hz,46 identities, three nights,500-second bed/departure deadlines and40-second continuous wakes. Preserve original test and wake-oracle files byte-for-byte. Retain paid state, layout/revision, installed supports, unique reservations, containment and browser-error assertions. Observe native cow bed speed<=.8m/s,separation>=.85m and unchanged support height using existing tolerances; no new mesh/continuous-proof requirement.
+
+The earlier A25 boundary run reached two nights but stopped on sheep:0's physical-core immobility wake check. One separate diagnostic runner may retain that precise known sheep:0 stuck-core failure and continue live updates through the original maximum540-second wake observation window. It must keep original wake assertions failed, not replace them with an easier oracle or claim a full matrix PASS. Every other failure stops the run. Identity/paid/save/containment/reservation checks continue independently. Any observed sheep departure/recovery is measured, not inferred from the old reconstruction.
+
+Stop after this one three-night case (including original wake checks where assessable). A failed wake plus third-night completion is supporting gameplay evidence only. No full-matrix rerun, clipping/rig/geometry work, changed test limits, uploads, Site, merge or deployment. Reconcile final-runtime evidence by actual dependency changes, then save a concise readiness list with gameplay blockers, unrun checks and owner-deferred polish kept separate.

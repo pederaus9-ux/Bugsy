@@ -1,0 +1,13 @@
+# A5 full access and placement overlay
+
+Recovered clean cb4759d7; remote exact, main1115f93 unchanged. Sole writer, parent-disclosed Astra/xhigh. Existing worktrees/evidence preserved. No owned test process at recovery; prior denied external CIM inventory is not retried.
+
+## Acceptance before changes
+
+1. Reproduce production validation accepting the exact retained occupied-feed south-post/gate-widen/bunk-move record while unchanged runtime guard rejects it. New full-access assertion must fail before code. Preserve historical native failures unchanged.
+2. Reuse the actual runtime cow guard's full reservation with candidate resolved geometry and current fixed/decor/other-pen obstacles. Reject before commit with a clear access reason; no clearance, runtime guard or protected-file modification. Cover default/valid layout, exact failing record, inserted axis/interior/full-access-only blockers, other-pen fixture changes, ownership/fallback and no input mutation.
+3. Native exact draft must show blocked reason/disabled Apply and preserve save, paid state, tokens,46 animals and installed geometry. Prove programmatic Apply also refuses. Separate clearly identified valid gate position may complete real occupied feed rebind/return with original0.08mouth/0.85separation/speed/60s at30/60/120, reservations/timers/paid state and reload46. The valid journey does not erase the original failures; A5 explicitly changes acceptance of their illegal draft.
+4. Overlay design uses selected-operation snapped candidate positions, retaining current geometry/orientation and existing command semantics. Full Apply validation determines valid/blocked; unknown/pending is distinct. Include non-color-only markings/legend and selected candidate reason. No generic land tint or between-sample fit claims. All46 live route/care context participates.
+5. Hover/preview cannot mutate draft, saved layout, resources, tasks or paid state. Stale result cancellation covers selection/draft/world/care changes. Apply revalidates authoritative current World. Work is bounded and kept off the animation frame; released resources and cancelled jobs are measured.
+6. Native pointer/touch and keyboard coverage; real390x844 and1280x720 previews minimum, four prescribed viewport journeys as relevant; readable legend/reasons,44px targets. Local viewport evidence remains distinct from device/hosted/owner visual acceptance. Preserve old tests/seeds/deadlines/assertions, A1-A4 and locked implementations.
+7. First checkpoint closes validation/activation mismatch and records remaining coverage before overlay implementation if a new functional blocker appears. Both relays updated at clean pushed checkpoints. No merge/deploy or new locked scope.

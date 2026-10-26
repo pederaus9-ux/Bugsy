@@ -1,0 +1,63 @@
+# source: 68b9c3d + boot-order tests in animal-pen-scene-install.test.mjs; index.html unchanged; node v22.22.2; utc 2026-10-22T13:49:18Z
+# cmd: node --test farm3d/tests/animal-pen-scene-install.test.mjs
+TAP version 13
+# Subtest: actual index installs a published custom revision into every live pen consumer
+ok 1 - actual index installs a published custom revision into every live pen consumer
+  ---
+  duration_ms: 155.780646
+  type: 'test'
+  ...
+# Subtest: actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+ok 2 - actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+  ---
+  duration_ms: 87.366053
+  type: 'test'
+  ...
+# Subtest: a boot-time install before the first cow sync leaves cow status display to syncCowYard
+ok 3 - a boot-time install before the first cow sync leaves cow status display to syncCowYard
+  ---
+  duration_ms: 70.977119
+  type: 'test'
+  ...
+# Subtest: a default boot keeps every later farm block and pen block solid exactly once
+ok 4 - a default boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 71.445816
+  type: 'test'
+  ...
+# Subtest: a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+not ok 5 - a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 66.90666
+  type: 'test'
+  location: '/home/user/Bugsy/farm3d/tests/animal-pen-scene-install.test.mjs:105:35'
+  failureType: 'testCodeFailure'
+  error: |-
+    later farm block [-10,17.5,6.6,8] must have exactly one route obstacle
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/Bugsy/farm3d/tests/animal-pen-scene-install.test.mjs:108:30)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 630.520259
+# exit 1

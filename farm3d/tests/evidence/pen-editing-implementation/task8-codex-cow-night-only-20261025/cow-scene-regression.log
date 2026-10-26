@@ -1,0 +1,57 @@
+OFFLINE BOOT CLOCK PROOF [{"paused":false,"distance":6.75000000000001,"job":null,"tank":1,"xp":3},{"paused":true,"distance":0,"job":"exiting","tank":1,"xp":3}]
+Γ£ö actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking (3070.895ms)
+Γ£ö restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry (6.7693ms)
+Γ£ö a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit (168.7769ms)
+Γ£ö cows request straw beds only at effective night and stand at dawn even in rain (10.0757ms)
+Γ£ö eating cannot satisfy the separate drinking visit before the cow goes to bed (18.8084ms)
+Γ£ö slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach (5.7186ms)
+Γ£ö display removal releases the departing cow reservation before disposing its rig (5.1161ms)
+Γ£ö all five hungry cows complete distinct feed and water visits before settling into nighttime beds (216.327ms)
+Γ£ö a newly paid production cycle gets a real feed visit even when transient hunger is low (6.5279ms)
+Γ£ö five manual requests pass the actual moving herd through the single robot in FIFO order (770.8511ms)
+Γ£ö switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations (5.6529ms)
+Γ£û legacy rig stroll releases a held bed instead of measuring care approach movement (22.0395ms)
+Γ£ö expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles (825.7587ms)
+Γ£ö expanded northern herd clears all five robot requests in FIFO order (911.0352ms)
+Γ£ö releasing the last bed leaves an awake cow able to accept the next nighttime task (14.4788ms)
+Γ£ö visible frames longer than one second retain cow walking pace without hidden-tab catchup (10.1913ms)
+Γ£ö the longest expanded robot approach meets the original60s deadline on2.4s visible frames (17.7657ms)
+Γ£ö offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames (13.4227ms)
+Γ£ö a seeded herd clears care docks while waiting through three nights and full forty-second wakes (4383.0227ms)
+Γ£ö bedtime cow near another cow bed avoids a false shared approach while a real bed departure keeps its exit (6.531ms)
+Γ£ö a waiting cow physically clears a released feed dock without a new reservation or save mutation (10.6699ms)
+Γ£ö a real robot job advancing during a pen draft retains credit and walks its relocated exit (141.9473ms)
+Γ£ö ordinary daytime cow choices cannot start a generic rest (40.4519ms)
+Γä╣ tests 23
+Γä╣ suites 0
+Γä╣ pass 22
+Γä╣ fail 1
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 10835.009
+
+Γ£û failing tests:
+
+test at farm3d\tests\cow-scene.test.mjs:36:1
+Γ£û legacy rig stroll releases a held bed instead of measuring care approach movement (22.0395ms)
+  AssertionError [ERR_ASSERTION]: retained held-bed fixture no longer reproduces the browser failure
+  + actual - expected
+  
+  + 0.37807955384452807
+  - 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/peder/Documents/Codex/2026-10-22/task/Bugsy-safe-preview/farm3d/tests/cow-scene.test.mjs:44:40)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0.37807955384452807,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

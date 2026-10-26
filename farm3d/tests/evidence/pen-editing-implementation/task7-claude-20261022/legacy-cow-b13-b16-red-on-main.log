@@ -1,0 +1,216 @@
+# source: exact main 1115f93101a0e86fdcc9780e053c17b73dd6dac5 (unmodified); node v22.22.2; utc 2026-10-22T13:36:43Z
+# purpose: show legacy cow B13/B16 failures pre-exist on main and are outside every runner/workflow
+# cmd: node --test --test-concurrency=1 farm3d/tests/cow-b13-microbehavior.test.mjs farm3d/tests/cow-b16-long-duration.test.mjs
+TAP version 13
+# node:internal/modules/run_main:123
+#     triggerUncaughtException(
+#     ^
+# AssertionError [ERR_ASSERTION]: chew fade missing
+#     at must (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b13-microbehavior.test.mjs:6:37)
+#     at file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b13-microbehavior.test.mjs:12:1
+#     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+#     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+#     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+#   generatedMessage: false,
+#   code: 'ERR_ASSERTION',
+#   actual: "// Owner-requested 3D character prototype. The farm's AI/saves are kept outside this module.\\n" +
+#     "import * as THREE from './lib/three.module.min.js';\\n" +
+#     'const TAU=Math.PI*2, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));\\n' +
+#     'const ease=(dt,k)=>1-Math.exp(-dt*k), mix=(a,b,k)=>a+(b-a)*k;\\n' +
+#     'const UP=new THREE.Vector3(0,1,0);\\n' +
+#     'export const COW_GAIT=Object.freeze({walk:.8,run:2.6,stride:1.09,runStride:1.35,stance:.65,runStance:.45,upper:.36,lower:.37,hip:.77,hoof:.055});\\n' +
+#     'let template;\\n' +
+#     'function buildTemplate(){\\n' +
+#     "  const defs=[{name:'root',parent:-1,p:[0,0,0]}],slots={legs:[],ears:[],eyes:[],tail:[]};\\n" +
+#     '  const bone=(name,parent,p)=>{const i=defs.length;defs.push({name,parent,p});return i;};\\n' +
+#     "  slots.body=bone('body',0,[0,1.03,0]);\\n" +
+#     "  slots.neck=bone('neck',0,[0,1.12,-.59]);slots.head=bone('head',slots.neck,[0,.21,-.15]);\\n" +
+#     "  slots.jaw=bone('jaw',slots.head,[0,-.09,-.08]);\\n" +
+#     "  for(const side of [-1,1]){slots.ears.push(bone('ear'+side,slots.head,[side*.20,.15,.01]));slots.eyes.push(bone('eye'+side,slots.head,[side*.145,.045,-.125]));}\\n" +
+#     '  // Hips are body children. The offset is body-local so the rest hip stays at the old root position.\\n' +
+#     '  for(const [x,z,phase,walkPhase]of [[-.265,-.46,0,0.75],[.265,-.46,.5,0.25],[-.265,.48,.5,0],[.265,.48,0,0.5]]){\\n' +
+#     "    const hip=bone('hip'+slots.legs.length,slots.body,[x,COW_GAIT.hip-1.03,z]);\\n" +
+#     "    const knee=bone('knee'+slots.legs.length,hip,[0,-COW_GAIT.upper,0]);\\n" +
+#     "    const foot=bone('hoof'+slots.legs.length,knee,[0,-COW_GAIT.lower,0]);slots.legs.push({hip,knee,foot,x,z,phase,walkPhase});\\n" +
+#     '  }\\n' +
+#     '  let parent=0;\\n' +
+#     "  for(let i=0;i<3;i++){const b=bone('tail'+i,parent,i?[0,-.22,.02]:[0,1.17,.74]);slots.tail.push(b);parent=b;}\\n" +
+#     '  // One immutable skin/material/draw; instances keep independent skeletons.\\n' +
+#     '  const rest=defs.map((b,i)=>{const p=new THREE.Vector3(...b.p);if(i)p.add(restParent(i));return p;});\\n' +
+#     '  function restParent(i){let p=new THREE.Vector3(),j=defs[i].parent;while(j>=0){p.add(new THREE.Vector3(...defs[j].p));j=defs[j].parent;}return p;}\\n' +
+#     '  const pos=[],norm=[],color=[],skin=[],weight=[];\\n' +
+#     '  const cream=0xf2eee1,ink=0x282b2a,pink=0xd89b91,horn=0xc8bba1;\\n' +
+#     '  const white=new THREE.Color(cream),black=new THREE.Color(ink),matCol=new THREE.Color();\\n' +
+#     '  function coat(x,y,z){\\n' +
+#     '    // Rounded, irregular Holstein patches in object space; no image cards or texture atlas.\\n' +
+#     '    const side=x>0?1:-1;\\n' +
+#     '    const p1=((x-side*.30)/.22)**2+((y-1.12)/.34)**2+((z+.37)/.36)**2;\\n' +
+#     '    const p2=((x-side*.26)/.27)**2+((y-1.13-side*.06)/.29)**2+((z-.40)/.32)**2;\\n' +
+#     '    const p3=(x/.29)**2+((y-1.37)/.16)**2+((z-.04)/.34)**2;\\n' +
+#     '    const d=Math.min(p1,p2,p3)+Math.sin(y*24+z*15)*.10+Math.sin(x*35-z*22)*.07;\\n' +
+#     '    const k=clamp((1.02-d)/.16,0,1);matCol.copy(white).lerp(black,k);return matCol;\\n' +
+#     '  }\\n' +
+#     '  function add(geo,col,p,scale,b=0,rx=0,rz=0,blend=null){\\n' +
+#     '    const g=geo.index?geo.toNonIndexed():geo.clone();geo.dispose();\\n' +
+#     '    const origin=rest[b];g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(p[0]+origin.x,p[1]+origin.y,p[2]+origin.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,0,rz)),new THREE.Vector3(...scale)));\\n' +
+#     "    const a=g.attributes.position,n=g.attributes.normal,c=typeof col==='number'?new THREE.Color(col):null;\\n" +
+#     '    for(let i=0;i<a.count;i++){\\n' +
+#     '      const x=a.getX(i),y=a.getY(i),z=a.getZ(i),rgb=c||col(x,y,z);\\n' +
+#     '      pos.push(x,y,z);norm.push(n.getX(i),n.getY(i),n.getZ(i));color.push(rgb.r,rgb.g,rgb.b);\\n' +
+#     '      const influences=blend?blend(x,y,z):[[b,1]];\\n' +
+#     '      const sum=influences.reduce((s,w)=>s+w[1],0);\\n' +
+#     '      for(let j=0;j<4;j++){skin.push(influences[j]?.[0]||0);weight.push((influences[j]?.[1]||0)/sum);}\\n' +
+#     '    }\\n' +
+#     '    g.dispose();\\n' +
+#     '  }\\n' +
+#     '  const oval=(col,p,scale,b=0,rx=0,rz=0,detail=12)=>add(new THREE.SphereGeometry(1,detail,Math.round(detail*.65)),col,p,scale,b,rx,rz);\\n' +
+#     '  const subdivide=(sections,steps)=>sections.flatMap((a,i)=>i===sections.length-1?[a]:Array.from({length:steps},(_,j)=>a.map((x,k)=>mix(x,sections[i+1][k],j/steps))));\\n' +
+#     '  const smoothSections=(sections,steps)=>sections.flatMap((a,i)=>i===sections.length-1?[a]:Array.from({length:steps},(_,j)=>a.map((x,k)=>{\\n' +
+#     '    const p=sections[Math.max(0,i-1)][k],q=sections[i+1][k],r=sections[Math.min(sections.length-1,i+2)][k],t=j/steps;\\n' +
+#     '    return .5*((2*x)+(-p+q)*t+(2*p-5*x+4*q-r)*t*t+(-p+3*x-3*q+r)*t*t*t);\\n' +
+#     '  })));\\n' +
+#     '  // Authored sections are [axis, transverse center1/2, radius1/2].\\n' +
+#     '  // Closed, smooth section surfaces define anatomy instead of stacked spheres.\\n' +
+#     '  function loft(col,axis,sections,b=0,blend=null,sides=20,warp=null){\\n' +
+#     '    const vertices=[],indices=[];\\n' +
+#     '    for(const [along,u,v,ru,rv,lower=rv] of sections)for(let j=0;j<sides;j++){\\n' +
+#     '      const a=j/sides*TAU,s=Math.sin(a);let pu=u+Math.cos(a)*ru,pv=v+s*(s<0?lower:rv);\\n' +
+#     '      if(warp)[pu,pv]=warp(pu,pv,along,a,s);\\n' +
+#     "      if(axis==='z')vertices.push(pu,pv,along);\\n" +
+#     "      else if(axis==='y')vertices.push(pu,along,pv);\\n" +
+#     '      else vertices.push(along,pv,pu);\\n' +
+#     '    }\\n' +
+#     '    for(let i=0;i<sections.length-1;i++)for(let j=0;j<sides;j++){\\n' +
+#     '      const a=i*sides+j,c=i*sides+(j+1)%sides,d=c+sides,e=a+sides;\\n' +
+#     '      indices.push(a,c,e,c,d,e);\\n' +
+#     '    }\\n' +
+#     '    for(const end of [0,sections.length-1]){\\n' +
+#     '      const [along,u,v]=sections[end],center=vertices.length/3;\\n' +
+#     "      if(axis==='z')vertices.push(u,v,along);else if(axis==='y')vertices.push(u,along,v);else vertices.push(along,v,u);\\n" +
+#     '      for(let j=0;j<sides;j++){const a=end*sides+j,c=end*sides+(j+1)%sides;indices.push(...(end===0?[center,c,a]:[center,a,c]));}\\n' +
+#     '    }\\n' +
+#     "    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.setIndex(indices);g.computeVertexNormals();\\n" +
+#     '    // Axis basis and section direction both determine outward winding.\\n' +
+#     "    if((axis==='z'?1:-1)*(sections.at(-1)[0]-sections[0][0])<0){for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];g.setIndex(indices);g.computeVertexNormals();}\\n" +
+#     '    add(g,col,[0,0,0],[1,1,1],b,0,0,blend);\\n' +
+#     '  }\\n' +
+#     '  const bodyY=rest[slots.body].y;\\n' +
+#     '  // Independently shaped dorsal/ventral radii: brisket, deep ribs, rising flank,\\n' +
+#     '  // loin and angular dairy pelvis. Rear stations expose hooks, pins and rump slope.\\n' +
+#     '  const torso=[[-.64,1.13,.075,.22,.20],[-.58,1.14,.20,.265,.28],[-.50,1.13,.275,.30,.33],[-.42,1.12,.315,.335,.335],[-.30,1.11,.32,.34,.335],[-.16,1.11,.335,.34,.365],[.03,1.10,.343,.345,.395],[.20,1.13,.33,.325,.345],[.32,1.17,.27,.29,.28],[.43,1.205,.315,.29,.265],[.53,1.185,.275,.265,.245],[.62,1.155,.225,.225,.215],[.695,1.135,.145,.175,.17],[.735,1.13,.065,.13,.125],[.755,1.13,.015,.10,.10]];\\n' +
+#     '  const torsoBlend = (x,y,z) => {\\n' +
+#     '    let influences = [[slots.body, 1]];\\n' +
+#     '    for (const l of slots.legs) {\\n' +
+#     '      const h = rest[l.hip];\\n' +
+#     '      // Localized deformation zone: shift center up to mesh intersection, tighter radius, lower max weight\\n' +
+#     '      const dist = Math.hypot(x - h.x, (y - (h.y + 0.10)) * 0.8, z - h.z);\\n' +
+#     '      const w = clamp((.18 - dist) / .18, 0, 1) * 0.35;\\n' +
+#     '      if (w > 0) influences.push([l.hip, w]);\\n' +
+#     '    }\\n' +
+#     '    return influences;\\n' +
+#     '  };\\n' +
+#     "  loft(coat,'z',smoothSections(torso.map(([z,y,w,top,bottom])=>[z,0,y-bodyY,w,top,bottom]),3),slots.body,torsoBlend,32);\\n" +
+#     '  // Neck overlaps the chest internally; dominant neck weights retain its hit contract.\\n' +
+#     "  loft(coat,'z',subdivide([\\n" +
+#     '    [.14,0,.01,.215,.23],[.07,0,.04,.205,.22],[-.01,0,.08,.195,.205],\\n' +
+#     '    [-.10,0,.14,.175,.18],[-.18,0,.18,.155,.155],[-.24,0,.19,.13,.125]\\n' +
+#     '  ],2),slots.neck,(x,y,z)=>{\\n' +
+#     '    const body=clamp((z+.70)/.25,0,1)*.32,head=clamp((-z-.72)/.12,0,1)*.3;\\n' +
+#     '    return [[slots.neck,1-body-head],[slots.body,body],[slots.head,head]];\\n' +
+#     '  },24);\\n' +
+#     '  const faceCoat=(x,y,z)=>{const whiteBridge=clamp((.065-Math.abs(x))/.025,0,1);return matCol.copy(black).lerp(white,whiteBridge);};\\n' +
+#     "  loft(faceCoat,'z',subdivide([\\n" +
+#     '    [.09,0,.045,.12,.17],[.025,0,.055,.18,.235],[-.05,0,.035,.182,.23],\\n' +
+#     '    [-.14,0,-.015,.155,.19],[-.23,0,-.07,.12,.135],[-.31,0,-.11,.135,.105],[-.37,0,-.12,.143,.083]\\n' +
+#     '  ],2),slots.head,(x,y,z)=>[[slots.head,1-clamp((z+.70)/.11,0,1)*.22],[slots.neck,clamp((z+.70)/.11,0,1)*.22]],24);\\n' +
+#     "  loft(cream,'z',[[.015,0,-.025,.09,.08],[-.06,0,-.03,.13,.087],[-.14,0,-.06,.12,.07],[-.26,0,-.055,.135,.065]],slots.jaw,null,20);\\n" +
+#     '  // Wider, flatter bovine muzzle plane; fuller below the lip than above it.\\n' +
+#     "  loft(pink,'z',[[-.20,0,-.045,.138,.076,.098],[-.26,0,-.055,.168,.073,.098],[-.30,0,-.055,.172,.068,.09],[-.33,0,-.05,.148,.055,.068]],slots.jaw,null,24);\\n" +
+#     '  for(const side of [-1,1]){\\n' +
+#     '    oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,12);\\n' +
+#     '    const ear=slots.ears[side===-1?0:1];\\n' +
+#     '    const leaf=[[0,0,0,.037,.020],[side*.045,0,.01,.055,.030],[side*.115,0,.028,.074,.034],[side*.185,0,.034,.046,.023],[side*.23,0,.027,.008,.006]];\\n' +
+#     '    if(side<0)leaf.reverse();\\n' +
+#     "    loft(cream,'x',leaf,ear,null,16);\\n" +
+#     '    // The inset follows the ear bone and sits on its forward-facing cup.\\n' +
+#     '    oval(pink,[side*.115,.028,-.050],[.072,.019,.009],ear,0,side*.10,12);\\n' +
+#     "    loft(horn,'y',[[.20,side*.14,.012,.032,.029],[.265,side*.145,.022,.025,.023],[.325,side*.17,.040,.014,.013],[.365,side*.19,.052,.002,.002]],slots.head,null,10);\\n" +
+#     '    const eye=slots.eyes[side===-1?0:1];\\n' +
+#     '    oval(ink,[0,0,.004],[.038,.040,.026],eye,0,0,12);\\n' +
+#     '    oval(0x60442a,[side*.006,0,-.012],[.027,.030,.017],eye,0,0,12);\\n' +
+#     '    oval(0x101816,[side*.009,0,-.025],[.018,.025,.009],eye,0,0,12);\\n' +
+#     '    oval(0xffffff,[-.005,.009,-.032],[.005,.006,.004],eye,0,0,8);\\n' +
+#     '    oval(ink,[side*.145,.081,-.121],[.04,.012,.023],slots.head,0,0,12);\\n' +
+#     '  }\\n' +
+#     '  // A small forelock follows the refined poll rather than a round hair helmet.\\n' +
+#     '  for(let i=0;i<3;i++)oval(0xe7dfc8,[(i-1)*.035,.251,-.085],[.030,.026,.035],slots.head,0,0,8);\\n' +
+#     '  const udder=(x,y,z)=>{const centerGroove=Math.exp(-x*x/.0005)*.06;matCol.setHex(pink).lerp(white,clamp((y-.81)/.13,0,1)*.55).multiplyScalar(1-centerGroove);return matCol;};\\n' +
+#     '  const quarterUdder=(x,y,z)=>{\\n' +
+#     '    const rear=clamp((z-.22)/.28,0,1),underside=clamp((.86-y)/.18,0,1);\\n' +
+#     '    const cleft=Math.exp(-(x*x)/.0011)*rear*underside;\\n' +
+#     '    const lobe=Math.exp(-((Math.abs(x)-.085)**2)/.0016)*rear*underside;\\n' +
+#     '    return [x,y+.034*cleft-.005*lobe];\\n' +
+#     '  };\\n' +
+#     '  // Broad attachment stays inside the bel'... 16558 more characters,
+#   expected: /s\\.chewAmount=mix\\(s\\.chewAmount,feeding\\?1:0,ease\\(dt,feeding\\?4\\.5:3\\)\\)/,
+#   operator: 'match',
+#   diff: 'simple'
+# }
+# Node.js v22.22.2
+# Subtest: farm3d/tests/cow-b13-microbehavior.test.mjs
+not ok 1 - farm3d/tests/cow-b13-microbehavior.test.mjs
+  ---
+  duration_ms: 81.77836
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b13-microbehavior.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: B16 long-duration cow state remains finite and bounded for 180s at 30/60/120 Hz
+ok 2 - B16 long-duration cow state remains finite and bounded for 180s at 30/60/120 Hz
+  ---
+  duration_ms: 754.553125
+  type: 'test'
+  ...
+# Subtest: B16 repeated run is deterministic at each frame rate
+ok 3 - B16 repeated run is deterministic at each frame rate
+  ---
+  duration_ms: 691.433926
+  type: 'test'
+  ...
+# Subtest: B16 terminal state stays frame-rate consistent
+not ok 4 - B16 terminal state stays frame-rate consistent
+  ---
+  duration_ms: 226.993824
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b16-long-duration.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: '30Hz phase: 0.6439902652569154 vs 0.6336422291556492'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    near (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b16-long-duration.test.mjs:16:34)
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-Bugsy/bbcb497e-0ced-5eca-aa23-477584b9c73d/scratchpad/main-ref/farm3d/tests/cow-b16-long-duration.test.mjs:19:169)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1960.264435
+# exit 1

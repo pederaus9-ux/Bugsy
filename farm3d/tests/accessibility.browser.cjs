@@ -72,7 +72,10 @@ async function targets(page){
  auth=auth.replace('else if (configured) start();','else if (configured) { window.__showForm=show; fb={A:{async createUserWithEmailAndPassword(a,e,p){window.__created={e,p};}},auth:{}}; show("signin"); }');
  for(const [width,height,touch]of [[740,360,true],[390,844,true],[1280,720,false]]){
   const s=await h.setup({width,height},touch,'accessibility-auth-'+width),p=s.page;
-  await p.setContent('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+css+'</style>'+form);await p.addScriptTag({content:auth,type:'module'});await p.waitForFunction(()=>window.__showForm);await p.waitForTimeout(80);
+  const sdkRequests=[],fixtureUrl=h.base+'farm3d/__isolated_auth_form__';
+  await p.route('https://www.gstatic.com/firebasejs/**',r=>{sdkRequests.push(r.request().url());return r.abort('blockedbyclient');});
+  await p.route(fixtureUrl,r=>r.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+css+'</style>'+form}));
+  await p.goto(fixtureUrl);await p.addScriptTag({content:auth,type:'module'});await p.waitForFunction(()=>window.__showForm);await p.waitForTimeout(80);
   assert.equal(await p.evaluate(()=>innerWidth),width,'auth fixture uses the production mobile viewport');
   assert.equal(await p.evaluate(()=>document.activeElement.tagName),touch?'BODY':'INPUT','touch forms do not force open the keyboard; desktop keeps default focus');
   await p.locator('[data-mode="register"]').click();await p.locator('#authEmail').fill('probe@example.invalid');await p.locator('#authPass').fill('hunter22');await p.locator('#authPass2').fill('hunter22');await p.waitForTimeout(80);
@@ -82,6 +85,8 @@ async function targets(page){
   // Rapid tab changes cancel the earlier request, then explicit focus wins.
   await p.evaluate(()=>{__showForm('signin');__showForm('register');document.getElementById('authPass2').focus();});await p.waitForTimeout(80);assert.equal(await p.evaluate(()=>document.activeElement.id),'authPass2');
   await p.locator('[data-mode="signin"]').focus();await p.keyboard.press('Shift+Tab');assert.equal(await p.evaluate(()=>document.activeElement.id),'authGuest');await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement.dataset.mode),'signin');
+  assert.equal(await p.evaluate(async()=>{const {restoreRecovery}=await import('./restore-recovery.js?v=1');return typeof restoreRecovery.stamp==='function'&&!restoreRecovery.blocked();}),true,'actual recovery dependency loads on disposable local origin');
+  assert.deepEqual(sdkRequests,[],'isolated form never starts a production SDK');
   await s.finish();pass('touch auth sizing, rapid registration and focus preservation '+width+'x'+height);
  }
  failed=false;

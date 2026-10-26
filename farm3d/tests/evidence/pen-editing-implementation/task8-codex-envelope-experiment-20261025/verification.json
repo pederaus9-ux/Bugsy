@@ -1,0 +1,153 @@
+{
+  "status": "EXPERIMENT_PERFORMANCE_FAIL_DO_NOT_INTEGRATE",
+  "sourceHead": "f33012bdf9e94762cfc4d9ec4251411d3f145e8c",
+  "utc": "2026-10-25T06:14:53.685Z",
+  "baseline": {
+    "cpu": {
+      "n": 120,
+      "median": 5.199999988079071,
+      "p95": 6.5,
+      "max": 10.100000023841858,
+      "over33": 0,
+      "over50": 0
+    },
+    "interval": {
+      "n": 120,
+      "median": 5.600000023841858,
+      "p95": 6.899999976158142,
+      "max": 10.600000023841858,
+      "over33": 0,
+      "over50": 0
+    },
+    "query": {
+      "n": 120,
+      "median": 0.9000000357627869,
+      "p95": 1.300000011920929,
+      "max": 1.800000011920929,
+      "over33": 0,
+      "over50": 0
+    },
+    "gpu": {
+      "n": 120,
+      "median": 2.004288,
+      "p95": 2.653952,
+      "max": 2.953248,
+      "over33": 0,
+      "over50": 0
+    }
+  },
+  "reference": {
+    "cpu": {
+      "n": 120,
+      "median": 10,
+      "p95": 12.400000035762787,
+      "max": 17.100000023841858,
+      "over33": 0,
+      "over50": 0
+    },
+    "interval": {
+      "n": 120,
+      "median": 10.400000035762787,
+      "p95": 12.800000011920929,
+      "max": 18.30000001192093,
+      "over33": 0,
+      "over50": 0
+    },
+    "query": {
+      "n": 120,
+      "median": 5.400000035762787,
+      "p95": 7.199999988079071,
+      "max": 9.600000023841858,
+      "over33": 0,
+      "over50": 0
+    },
+    "gpu": {
+      "n": 120,
+      "median": 1.918784,
+      "p95": 2.617504,
+      "max": 7.471648,
+      "over33": 0,
+      "over50": 0
+    }
+  },
+  "candidate": {
+    "cpu": {
+      "n": 120,
+      "median": 10.300000011920929,
+      "p95": 67.10000002384186,
+      "max": 75.10000002384186,
+      "over33": 15,
+      "over50": 15
+    },
+    "interval": {
+      "n": 120,
+      "median": 10.699999988079071,
+      "p95": 67.40000003576279,
+      "max": 75.40000003576279,
+      "over33": 15,
+      "over50": 15
+    },
+    "query": {
+      "n": 120,
+      "median": 6,
+      "p95": 62.40000003576279,
+      "max": 69.19999998807907,
+      "over33": 15,
+      "over50": 15
+    },
+    "gpu": {
+      "n": 120,
+      "median": 1.753216,
+      "p95": 2.362496,
+      "max": 4.995072,
+      "over33": 0,
+      "over50": 0
+    }
+  },
+  "frames": 120,
+  "warmupFrames": 30,
+  "referenceSetupMs": 69.19999998807907,
+  "candidateSetupMs": 65.70000004768372,
+  "candidateWarmupWorstMs": 92.89999997615814,
+  "candidateHits": 300,
+  "candidateMisses": 450,
+  "candidatePreparations": 95,
+  "maxPreparationMs": 24.100000023841858,
+  "referenceAllocation": {
+    "measuredAdditionalFrames": 30,
+    "estimatedWholeBrowserBytesPerFrame": 12337541.733333332,
+    "attributionBytesPerFrame": {
+      "reference": 9615127.066666666,
+      "prepare": 0,
+      "signature": 0,
+      "other": 2722414.6666666665
+    },
+    "method": "Separate 30-frame CDP sampling window after timing, 128KiB interval, collected objects included; whole-browser allocations, not exact bytes; profile overhead excluded from timed comparison"
+  },
+  "candidateAllocation": {
+    "measuredAdditionalFrames": 30,
+    "estimatedWholeBrowserBytesPerFrame": 22010772.933333334,
+    "attributionBytesPerFrame": {
+      "reference": 7342182.8,
+      "prepare": 11187052.4,
+      "signature": 1112649.7333333334,
+      "other": 2368888
+    },
+    "method": "Separate 30-frame CDP sampling window after timing, 128KiB interval, collected objects included; whole-browser allocations, not exact bytes; profile overhead excluded from timed comparison"
+  },
+  "additionalControls": 10,
+  "preservedControls": 21,
+  "containmentCases": 11,
+  "actualVertexChecks": 1903680,
+  "protectedHashes": {
+    "farm3d/index.html": "c68f7dd240c4dd724453d3bad914ec213e8d30e4c01ff01c3ef195556fc401d0",
+    "farm3d/cow3d.js": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+    "farm3d/cow-yard.js": "cff13ae644221cdbb71933c02fc296cf627377937f83afeb7f0ab2788037f47b",
+    "farm3d/farm-land.js": "ffbdffffdf01ee6b54575b60daf872d30375c87e02eb172b526eef3e6cdc66ee",
+    "farm3d/game.js": "f0e809fda7038d1fb5d78d671e2c2f5d5e21cf4aeba642a1647c23a0fca5e32a",
+    "farm3d/sw.js": "22e0a342a02f895103fcfb586e899a187e3d77008267f116c88bc2597eae4256"
+  },
+  "physicalLimits": "Full .42m root padding, .85m separation, .8m/s care speed and .08m mouth limit unchanged; original500s/40s and seeds unchanged. Stationary scripted native care, no new full-controller movement/traffic credit.",
+  "decision": "Reject forecast-envelope fast path: 3/5 near-fixture cases always fall back, window preparation adds repeated >50ms frames. One comparison completed; no further optimization attempted. Reference fits bounded desktop scene, phone and moving/live-mode costs remain unmeasured.",
+  "execution": "All tests/profiles finished; test browser/server closed. No production edits, uploads, Site update, merge or deployment. Prior upload denial held."
+}

@@ -1,0 +1,90 @@
+{
+  "status": "FINITE_PERFORMANCE_STEP_COMPLETE_RUNTIME_INTEGRATION_HELD",
+  "sourceHead": "525cdccf4afc52346603aaa0802498fb31204472",
+  "createdUtc": "2026-10-25T05:48:52.339Z",
+  "scope": "One test-only bound-calculation optimization, two new bounded diagnostic harnesses and evidence/relay updates. No runtime or existing test edits.",
+  "exactBounds": {
+    "cases": 11,
+    "variants": 36,
+    "nodesPerVariant": 35176,
+    "coefficients": 7598016,
+    "status": "PASS"
+  },
+  "controls": 21,
+  "containment": {
+    "cases": 11,
+    "actualVertexChecks": 1903680
+  },
+  "sameTraversalCounters": {
+    "domains": 5,
+    "visited": 585.36,
+    "leafVisits": 65.14,
+    "certificateHits": 4.49,
+    "nodeCertificateHits": 28.27
+  },
+  "cost": {
+    "unit": "milliseconds per five-cow batch",
+    "baseline": {
+      "median": 14.904700000000048,
+      "p95": 20.20900000000006,
+      "max": 37.01509999999962
+    },
+    "candidate": {
+      "median": 7.908200000000079,
+      "p95": 10.179499999999962,
+      "max": 14.493900000000053
+    },
+    "p95ReductionPercent": 49.628878222574436,
+    "baselineWarmupWorst": 46.28109999999998,
+    "candidateWarmupWorst": 33.29589999999996,
+    "method": "Same capacity-valid fixtures, Node24.19/V8, sequential uninstrumented 20 warmup+100 measured frames. All5 cows evolve. Includes displayed-copy/query/disposal, excludes ordinary animation/controller/rendering. Finite sample, no worst-case proof or phone extrapolation."
+  },
+  "allocations": {
+    "unit": "estimated bytes per five-cow batch",
+    "baselineQuery": 45824311.12,
+    "candidateQuery": 21526539.68,
+    "reductionPercent": 53.023757141425406,
+    "candidateCopiesWholeFixture": 3722895.52,
+    "method": "Separate V8 16KiB allocation sampling with collected objects included. Query attribution follows cowSweptQuery only. Copy attribution includes both timed collision displayed-copy and untimed fixture displayed-state capture; not an exact timed-copy allocation count. Sampling changes timing and is excluded from cost comparison."
+  },
+  "memory": {
+    "baseline": {
+      "cacheBuildMs": 96.12799999999999,
+      "cacheRetainedHeapBytes": 40801096,
+      "heapBeforeFinalGC": 174476768,
+      "retainedAfterQueries": 3800968
+    },
+    "candidate": {
+      "cacheBuildMs": 102.11610000000002,
+      "cacheRetainedHeapBytes": 44694488,
+      "heapBeforeFinalGC": 301568296,
+      "retainedAfterQueries": 3798384
+    },
+    "extraCacheBytes": 3893392,
+    "note": "Post-GC retained deltas, not exact ownership accounting. heapBeforeFinalGC is one observation, not peak process memory. Allocation profiler retention is excluded."
+  },
+  "projectBudget": {
+    "source": "farm3d/PHASE7_PLAN.md:146-148; PHASE7K_MEASURED_PERFORMANCE.md:35-38",
+    "wholeFrameTargetsMs": [
+      16.7,
+      22.2,
+      33.3
+    ],
+    "candidateAddedP95Percent": [
+      60.955089820359056,
+      45.85360360360343,
+      30.569069069068956
+    ],
+    "decision": "Do not integrate yet: 61% of ideal frame budget for this subsystem on desktop plus substantial allocation pressure; no full browser/frame or physical-phone measurement. No numeric subsystem threshold invented."
+  },
+  "protectedHashes": {
+    "farm3d/index.html": "c68f7dd240c4dd724453d3bad914ec213e8d30e4c01ff01c3ef195556fc401d0",
+    "farm3d/cow3d.js": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+    "farm3d/cow-yard.js": "cff13ae644221cdbb71933c02fc296cf627377937f83afeb7f0ab2788037f47b",
+    "farm3d/farm-land.js": "ffbdffffdf01ee6b54575b60daf872d30375c87e02eb172b526eef3e6cdc66ee",
+    "farm3d/game.js": "f0e809fda7038d1fb5d78d671e2c2f5d5e21cf4aeba642a1647c23a0fca5e32a",
+    "farm3d/sw.js": "22e0a342a02f895103fcfb586e899a187e3d77008267f116c88bc2597eae4256"
+  },
+  "helperSha256": "611f50a6c60fbceb1df6d662c9802efa8cd56fbe76f464b354f734f94cff03fd",
+  "remaining": "Gameplay A20 unchanged, care/wake1/30, physical safetyRED; broad matrix paused. Exact animated browser replays, live support integration and full authored bed/robot approaches remain prior blockers. No new proof gate. No uploads, Site update, merge or deployment."
+}

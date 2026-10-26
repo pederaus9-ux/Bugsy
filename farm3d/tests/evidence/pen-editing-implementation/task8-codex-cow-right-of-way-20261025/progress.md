@@ -1,0 +1,44 @@
+# Task 8 cow shared-corner right-of-way: local checkpoint
+
+Baseline `92197ab` retained the real dog-nook individual-assembly Apply failure at seed 1/30 Hz: on night two, Cow 1 and Cow 3 approached the same static waypoint from opposite sides for distinct reserved beds, then missed the unchanged 500-second deadline. Their 0.85351 m gap could not take an ordinary 0.8 m/s frame step without violating 0.85 m separation. The captured-state cow test retained that RED for 500 seconds. The static route planner does not model another cow, while local side steps kept both at the corner. See the preceding `task8-codex-assembly-matrix-20261025/` raw result and diagnosis.
+
+Acceptance was written before runtime changes in `acceptance.md`. A first diagnostic fixture incorrectly retained paid-feed state and canceled the bed tasks on frame one. That fixture was corrected to acquire real bed tokens and clear paid-feed state; its first outcome is not credited. An axis-aligned dynamic obstacle caused the planner to treat the start gap as inside the inflated box and skip it. A circular cow obstacle at 0.43 m radius with the existing 0.42 m route padding produced a physically executable 0.85 m detour. The correction gives stable lower cow identity the right-of-way decision only for opposing bedtime approaches to the same corner. It publishes a supported, pen-contained route detour if one exists; otherwise the prior path and collision guard remain. The other cow can proceed and the yielding cow resumes its own reserved bed route. No teleport, care-token substitution, margin change, or speed increase.
+
+`cow-scene-verified.log` records **32/32 pass**, including captured-state RED-to-green, 30/60/120 Hz, swapped identities/update order, post/support/pen/0.85 m/0.8 m/s controls, blocked detour and bounded replanning, following and non-bed negative controls. Local Chromium browser runs used a real saved dog-nook `moveStructure` Apply, all 46 owned animals, three consecutive nights, unchanged seed/deadlines and individual 40-second wakes:
+
+| Case | Bed holds, seconds | Latest physical release, seconds | Full wakes, seconds | Result |
+|---|---|---|---|---|
+| Dog nook assembly, seed 1, 30 Hz | 298.10 / 306.97 / 299.33 | 286.70 / 316.10 / 301.03 | 326.70 / 356.10 / 341.03 | PASS |
+| Dog nook assembly, seed 4242, 30 Hz | 287.70 / 277.50 / 312.33 | 295.87 / 302.00 / 307.63 | 335.87 / 342.00 / 347.63 | PASS |
+| Sheep whole-pen, seed 1, 30 Hz recheck | 298.10 / 288.63 / 294.07 | 291.00 / 314.83 / 291.50 | 331.00 / 354.83 / 331.50 | PASS |
+
+Each raw `results.json` confirms 46 stable identities, unique installed beds, saved paid state/revision, containment and zero browser errors. Rendered local frames are alongside the results. `source` records launch HEAD `92197ab` because the candidate was uncommitted during the run; the candidate runtime and focused tests are being committed at this checkpoint. These are local Chromium diagnostics, not hosted CI or physical-device clearance.
+
+**Current-head Task 8 care/wake credit is 3/30 edit-class × seed × rate combinations:** assembly seed 1 and 4242/30 Hz, whole-pen seed 1/30 Hz. Three historical sheep whole-pen passes await requalification after the runtime change. Other edit classes and rates, full speed/contact/pose breadth, recovery/cloud, hosted/device and merge gates remain open. This correction does not establish the whole matrix. Earlier remote relay-only upload denial remains held. No remote write, Site update, merge or live deployment.
+
+The named A18 digest entry was recorded after the first prototype protected-file edit, contrary to A14's before-edit sequencing rule; the entry explicitly records the mistake and exact prior/candidate digests. No further protected edit followed that entry.
+
+After local commit `12f6781`, a further bounded **dog-nook assembly seed 1/60 Hz** run passed three nights under unchanged limits. Bed holds were 289.75 / 269.17 / 289.82 seconds; latest physical releases 287.15 / 313.83 / 279.83 seconds; full 40-second individual wakes 327.15 / 353.83 / 319.83 seconds. All 46 stable identities and saved-state, unique-bed, containment and browser-error assertions passed. Acceptance and raw evidence are in `dog-nook-seed1-60-acceptance.md` and `dog-nook-seed1-60-candidate/`. The `source` field names committed `12f6781`. Changed-runtime care/wake credit is now **4/30**; the three older sheep cases still need requalification. No runtime change followed `12f6781`.
+
+## Immutable-tree audit and next four cases
+
+The separate A18 retrospective audit directly hashed `git show 92197ab:farm3d/index.html` and compared the exact protected-file diff in `92197ab..12f6781`. The 399,290-byte preimage SHA-256 `c00d44360477aef1a67ccc31650f4c870573276ad38d0915d5c708a6ff87c898` and 401,026-byte candidate SHA-256 `226e31d5dce4c3453877e563eb0378ffc4ac3545e93bc77122eac9a3e7222317` match A18. Only the named helper and blocked-cow branch changed in `index.html`. This validates scope retrospectively; it does not pretend the named entry preceded the first prototype edit.
+
+With no runtime changes after `12f6781`, all three historical sheep cases were rechecked and one new dog-nook case was added on launch HEAD `0e0a123`. Every case used the original 500-second bed/departure deadlines, 40-second individual wake, all 46 animals and three nights:
+
+| Current-runtime case | Bed holds, seconds | Latest physical releases, seconds | Full wakes, seconds | Result |
+|---|---|---|---|---|
+| Sheep whole-pen, seed 4242/30 Hz | 287.70 / 330.80 / 327.13 | 296.67 / 320.00 / 314.33 | 336.67 / 360.00 / 354.33 | PASS |
+| Sheep whole-pen, seed 1/60 Hz | 289.75 / 312.83 / 263.68 | 288.77 / 332.02 / 300.03 | 328.77 / 372.02 / 340.03 | PASS |
+| Sheep whole-pen, seed 4242/60 Hz | 278.07 / 301.40 / 325.07 | 292.22 / 296.12 / 318.70 | 332.22 / 336.12 / 358.70 | PASS |
+| Dog nook assembly, seed 4242/60 Hz | 263.63 / 267.55 / 313.97 | 293.18 / 304.28 / 304.45 | 333.18 / 344.28 / 344.45 | PASS |
+
+All 46 identities, installed distinct beds, saved paid state/revision, containment and zero browser errors passed each cycle. Raw `results.json` and local rendered frames are in the named recheck/candidate folders. The historical sheep cases are now current-runtime qualified for **care/wake**. Current count is **8/30**: four sheep whole-pen and four dog-nook individual assembly cases; the untested 120 Hz cases and three other edit classes remain. Full speed/contact/pose breadth, recovery/cloud, hosted/device and merge gates remain separate. No remote write, Site update, merge or live deployment.
+
+## Seed 1/120 Hz result and A19 runtime boundary
+
+On the A18 byte set (`e8b2395`), sheep whole-pen seed 1/120 Hz passed three nights: beds 279.27 / 298.09 / 311.32 seconds; latest releases 282.64 / 308.86 / 314.67 seconds; all individual wakes 322.64 / 348.86 / 354.67 seconds. The companion dog-nook assembly seed 1/120 Hz run passed night one but failed on night-two wake frame 2,513: Cow 4 was idle 0.577 m inside its old 0.65 m sleeping core. The original failure and one assertion-identical trace replay are retained. `dog-nook-seed1-120-diagnosis.md` explains the researched mechanism: a legal external ordinary destination, steering back through the bed core, then the general 2.5-second target-abandonment heuristic calling `arrive()` while still 0.64 m from that destination.
+
+A19 was recorded **before** the protected `index.html` edit. A captured-state RED turned green when only daytime cow ordinary abandonment inside an installed bed core was routed to the authored physical exit. Outside-core arrival, night behavior and blocked-exit negative controls pass; cow-scene 35/35. The unchanged original dog-nook seed 1/120 Hz three-night browser case then passed: beds 283.55 / 313.01 / 255.35 seconds; latest physical releases 287.25 / 304.02 / 307.72 seconds; full wakes 327.25 / 344.02 / 347.72 seconds. All 46 stable identities, unique beds, saved paid state/revision, containment and browser-error assertions pass. `dog-nook-seed1-120-corrected/results.json` records the launch baseline HEAD before the uncommitted A19 candidate; the candidate's protected SHA-256 is recorded in A19.
+
+The A19 runtime change can affect cow ordinary movement in the previously passed cases. Therefore **only the corrected dog-nook seed 1/120 Hz case is credited for care/wake on the new A19 bytes (1/30)** until impacted combinations are requalified; the preceding nine A18 cases remain valid historical evidence, not silently counted as current-runtime passes. The other three edit classes also require test-only harness support: the existing three-night harness accepts only `wholePen` and `assembly`. Full physical speed/contact/pose breadth, recovery/cloud, hosted/device and merge gates remain open. No remote write, Site update, merge or live deployment.

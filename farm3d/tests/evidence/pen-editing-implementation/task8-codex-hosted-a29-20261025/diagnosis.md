@@ -1,0 +1,29 @@
+# A29 hosted failures: retained findings, no repair or rerun
+
+Exact source: `1a13bbb7f8d3f921c44fc4e5553f14b9bd22a13b`, branch `codex/a28-publication-20261025`. One normal fast-forward upload and one manual dispatch, run [40230653120](https://github.com/pederaus9-ux/Bugsy/actions/runs/40230653120). No runtime or test edits, sandbox/security changes, retry, merge or Site update.
+
+## Completed pen/cache job
+
+Job [121281452522](https://github.com/pederaus9-ux/Bugsy/actions/runs/40230653120/job/121281452522) concluded FAILURE. The unchanged 49 focused tests and five historical-source/corruption groups passed. The unchanged gate-relocation seed 1 / 120 Hz journey passed all three nights and wakes, all 46 identities, original 500-second limits and 40-second continuous wakes. Night/wake seconds: 274.7917/326.1667, 289.2583/326.0583, 314.7083/316.25. This is care/wake evidence, not complete skin/contact/phone qualification.
+
+The same case's earlier local failure remains a failure. The instrumented local reproduction exactly matched its failure state and recovered naturally: outside the original bed core after 13.1917 seconds, native exit-target arrival at 13.925 seconds. Next independent feeding/milking target completion was not measured. Hosted timings differ, so the hosted pass does not erase that local RED or establish cross-environment deterministic equivalence.
+
+Both installed-cache transitions failed before browser startup. Their complete `chrome-launch.txt` receipts report `No usable sandbox!`, from Chromium's Linux zygote host. No transition assertion ran; their empty steps are not cache passes. The raw CDP helper (`farm3d/tests/qualification-cdp.cjs:60`) launches the pinned downloaded Chromium directly; it does not pass `--no-sandbox`. The runner was Ubuntu 24.04. This establishes an environment/browser launch incompatibility, not a reproduced game-cache defect.
+
+[Chromium's primary documentation](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md) explains the Ubuntu 23.10+ user-namespace restriction for downloaded Chromium builds. The retained error alone does not prove the runner's precise AppArmor policy. No AppArmor/sysctl changes, setuid helper installation or sandbox disablement were attempted. Such changes would exceed this approval's security boundary.
+
+Smallest proposed environment-only follow-up: qualify the cache job on the supported `ubuntu-22.04` image, keeping the same pinned browser, sandbox flags, tests and limits. [GitHub's runner image catalog](https://github.com/actions/runner-images/blob/main/README.md) lists that image. This is a candidate, not a verified fix or guarantee; confirm sandbox startup in that image before running the affected transitions. The exact proposed file remains `.github/workflows/farm3d-release-qualification.yml`. No change was applied in this checkpoint, and no second job was dispatched.
+
+## Completed recovery/restore job
+
+Job [121281452763](https://github.com/pederaus9-ux/Bugsy/actions/runs/40230653120/job/121281452763) concluded FAILURE. Eight original recovery checks passed, including edited pen cloud restoration, four owned horses and exact paid cow state. The quota-control console wait at `farm3d/firebase/tests/recovery.browser.cjs:129` then exceeded its unchanged 30,000 ms timeout. The subsequent 19 recovery checks and all three manual-restore groups did not run. The log's `8/8 passed` counts emitted results only; it is not a complete recovery pass. The command exited 1, and `&&` correctly prevented the dependent manual-restore suite from starting. The fresh-receipt guard did not copy historical manual-restore PASS files.
+
+The refusal listener was armed before reload, so there is no evidence for a late-listener setup error. Failure state retained the damaged disposable phone bytes, recovery marker `1`, and `user:null`. Navigation duration was 16,502.8 ms. The console artifact contains the expected refusal warning at relative 257.9 seconds, after aborted Firestore requests at 257.8 seconds. Without a common timestamp for listener arm, timeout and console callback, these receipts cannot distinguish late auth/read/storage handling from delivery during failure cleanup. They do not prove saved-cloud corruption, successful recovery, or a harmless oracle bug.
+
+Relevant existing source: `auth.js:285-289` emits that warning only after the cloud snapshot cannot be persisted exactly and leaves recovery pending. `recovery-timing.cjs` already records navigation/Node timing and a renderer-release diagnostic for two later scenarios, but it was not active for this earlier quota scenario. Do not assume its earlier SwiftShader diagnosis applies here or pre-emptively change fixture behavior.
+
+Smallest proposed diagnostic follow-up: test-only timestamp capture around this existing quota scenario in `farm3d/firebase/tests/recovery.browser.cjs` (using existing timing hooks where suitable), recording listener arm/reload boundaries, document load, auth/read/refusal delivery and failure cleanup against a shared clock. Preserve the original wait predicate, 30-second deadline, corruption fixture and all assertions. No runtime fix, timeout extension, early renderer release or new broad campaign is justified by current evidence. This is beyond the present one-workflow-file amendment and is proposed, not implemented.
+
+## Remaining boundaries
+
+The original conflict job remains unchanged; its terminal outcome is recorded separately in the final run receipt. Current-phone acceptance is pending. Conditional merge/automatic-publication authority is recorded, but unmet required checks and parent final coordination prevent execution. Site v5 is unchanged. Original oversized traces remain local and hashed. No test failure is waived by this report.

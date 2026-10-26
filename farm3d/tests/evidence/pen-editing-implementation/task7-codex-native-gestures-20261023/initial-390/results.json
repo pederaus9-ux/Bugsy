@@ -1,0 +1,603 @@
+{
+  "status": "PASS",
+  "view": "390x844",
+  "input": "Trusted Playwright mouse/keyboard and CDP native touch; debug reads/setup only",
+  "drawingScale": 0.5,
+  "physicalDevice": false,
+  "hashes": {
+    "index.html": "776e87d489f35b43ceabae8205ac991223824095076552a783a77ca305bdd7c3",
+    "animal-pen-editor-view.js": "1a29eae45b35345786c63ce1ba56c4c4ae83f1f9e9e0a723888725c2a5b8cb3a",
+    "animal-pen-editor.js": "5ea2706a1735b22c9e0245650b366358d70a33c929c0d61171ec4e90b102466c"
+  },
+  "steps": [
+    {
+      "name": "open native editor and retain completed sheep nudge",
+      "value": {
+        "draft": {
+          "v": 1,
+          "revision": 0,
+          "sites": {
+            "sheep": {
+              "template": "sa3d-pr95-sheep-v1",
+              "structures": {
+                "shelter": [
+                  12.5,
+                  -28.65
+                ]
+              },
+              "boundary": [
+                {
+                  "id": "v0",
+                  "x": 3,
+                  "z": -31.3
+                },
+                {
+                  "id": "v1",
+                  "x": 22,
+                  "z": -31.3
+                },
+                {
+                  "id": "v2",
+                  "x": 22,
+                  "z": -21
+                },
+                {
+                  "id": "v3",
+                  "x": 3,
+                  "z": -21
+                }
+              ],
+              "runs": [],
+              "gates": [
+                {
+                  "id": "gate0",
+                  "edge": [
+                    "v2",
+                    "v3"
+                  ],
+                  "run": null,
+                  "offset": 8,
+                  "width": 4
+                }
+              ]
+            }
+          }
+        },
+        "saveSha": "5e1da683f2a18af1f27018a06015c1d44712d29cb0dfc165aff22b5fd7c10303"
+      }
+    },
+    {
+      "name": "handle hit target",
+      "value": {
+        "a": {
+          "x": 168,
+          "y": 354.09375
+        },
+        "b": {
+          "x": 144,
+          "y": 330.09375,
+          "width": 48,
+          "height": 48
+        },
+        "hit": "Drag selected pen item"
+      }
+    },
+    {
+      "name": "native mouse drag snaps exactly one metre",
+      "value": {
+        "v": 1,
+        "revision": 0,
+        "sites": {
+          "sheep": {
+            "template": "sa3d-pr95-sheep-v1",
+            "structures": {
+              "shelter": [
+                11.5,
+                -28.65
+              ]
+            },
+            "boundary": [
+              {
+                "id": "v0",
+                "x": 2,
+                "z": -31.3
+              },
+              {
+                "id": "v1",
+                "x": 21,
+                "z": -31.3
+              },
+              {
+                "id": "v2",
+                "x": 21,
+                "z": -21
+              },
+              {
+                "id": "v3",
+                "x": 2,
+                "z": -21
+              }
+            ],
+            "runs": [],
+            "gates": [
+              {
+                "id": "gate0",
+                "edge": [
+                  "v2",
+                  "v3"
+                ],
+                "run": null,
+                "offset": 8,
+                "width": 4
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "handle hit target",
+      "value": {
+        "a": {
+          "x": 140.8125,
+          "y": 354.3125
+        },
+        "b": {
+          "x": 116.8125,
+          "y": 330.3125,
+          "width": 48,
+          "height": 48
+        },
+        "hit": "Drag selected pen item"
+      }
+    },
+    {
+      "name": "second native touch cancels only active drag",
+      "value": {
+        "draft": {
+          "v": 1,
+          "revision": 0,
+          "sites": {
+            "sheep": {
+              "template": "sa3d-pr95-sheep-v1",
+              "structures": {
+                "shelter": [
+                  11.5,
+                  -28.65
+                ]
+              },
+              "boundary": [
+                {
+                  "id": "v0",
+                  "x": 2,
+                  "z": -31.3
+                },
+                {
+                  "id": "v1",
+                  "x": 21,
+                  "z": -31.3
+                },
+                {
+                  "id": "v2",
+                  "x": 21,
+                  "z": -21
+                },
+                {
+                  "id": "v3",
+                  "x": 2,
+                  "z": -21
+                }
+              ],
+              "runs": [],
+              "gates": [
+                {
+                  "id": "gate0",
+                  "edge": [
+                    "v2",
+                    "v3"
+                  ],
+                  "run": null,
+                  "offset": 8,
+                  "width": 4
+                }
+              ]
+            }
+          }
+        },
+        "camera": {
+          "target": [
+            13.046534279443593,
+            0,
+            -26.452310480370937
+          ],
+          "dist": 33.59005337454873
+        }
+      }
+    },
+    {
+      "name": "handle hit target",
+      "value": {
+        "a": {
+          "x": 185.421875,
+          "y": 378.9375
+        },
+        "b": {
+          "x": 161.421875,
+          "y": 354.9375,
+          "width": 48,
+          "height": 48
+        },
+        "hit": "Drag selected pen item"
+      }
+    },
+    {
+      "name": "native touchCancel restores pre-gesture draft",
+      "value": "PASS"
+    },
+    {
+      "name": "Cancel preserves raw save and native input evidence",
+      "value": {
+        "inputs": 45
+      }
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "playwright": "1.62.1",
+  "inputs": [
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 8223.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 8224.200000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 8330.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 8330.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 9330.800000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 9331.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 9331.700000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 9331.800000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9358.40000000596,
+      "key": "Home",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9362.40000000596,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9367.90000000596,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9372.800000011921,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9377.700000017881,
+      "key": "Enter",
+      "target": "Animal"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 9777.09999999404,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 9778.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 9778.700000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 9778.700000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 12251.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 12263.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 12455.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 12455.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 12849.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 13049.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 13241.09999999404,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 15415.90000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 15416.09999999404,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 15416.200000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 17223.90000000596,
+      "pointerId": 2,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 17900.90000000596,
+      "pointerId": 2,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 17900.90000000596,
+      "pointerId": 2,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 18809.59999999404,
+      "pointerId": 3,
+      "pointerType": "touch",
+      "target": "Farm view"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 19649.09999999404,
+      "pointerId": 3,
+      "pointerType": "touch",
+      "target": "Farm view"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 19649.30000001192,
+      "pointerId": 2,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 20934.20000001788,
+      "pointerId": 2,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 20934.30000001192,
+      "pointerId": 3,
+      "pointerType": "touch",
+      "target": "Farm view"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 20934.5,
+      "pointerId": 3,
+      "pointerType": "touch",
+      "target": "Farm view"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 22004.70000001788,
+      "pointerId": 4,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 22682.20000001788,
+      "pointerId": 4,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 22682.20000001788,
+      "pointerId": 4,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointercancel",
+      "trusted": true,
+      "time": 23431,
+      "pointerId": 4,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 23431.09999999404,
+      "pointerId": 4,
+      "pointerType": "touch",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 24487.70000001788,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "cancel"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 24490.30000001192,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "cancel"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 24490.59999999404,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "cancel"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 24490.59999999404,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "cancel"
+    }
+  ]
+}

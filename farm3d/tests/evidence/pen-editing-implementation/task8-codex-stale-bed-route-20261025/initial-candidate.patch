@@ -1,0 +1,31 @@
+diff --git a/farm3d/index.html b/farm3d/index.html
+index 3efb30c..e020010 100644
+--- a/farm3d/index.html
++++ b/farm3d/index.html
+@@ -2253,7 +2253,16 @@ function updateCowTaskStep(a,dt,t){
+       task.path=route(a.pos,target,.42,PENS.courtyard,[],cowGateSegmentClear);
+       if(task.path.length)task.waypoints.shift();
+     }
+-    const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
++    // A lateral yield changes the start of the remaining leg. Revalidate it
++    // before resuming bed travel, so an old waypoint cannot cut through a post.
++    let blockedBedLeg=false;
++    if(task.kind==='bed'&&task.stage==='approach'&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
++      const endpoint=task.path[0],contained=OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,endpoint,.42));
++      const detour=contained?[]:route(a.pos,endpoint,.42,PENS.courtyard,[],cowGateSegmentClear);
++      if(detour.length&&detour.every((p,i)=>hitsBlock(i?detour[i-1]:a.pos,p,.42,null)<0))task.path=[...detour,...task.path.slice(1)];
++      else blockedBedLeg=true;
++    }
++    const p=blockedBedLeg?null:task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+       const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
+       if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}
+       else{
+@@ -2272,7 +2281,7 @@ function updateCowTaskStep(a,dt,t){
+       // shortcut can leave the teat centers outside the cluster openings.
+       if(isRobot&&task.stage==='approach'&&!task.waypoints.length&&task.path.length===1)robotDockTarget=p;
+       else if(d<.035)task.path.shift();
+-    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
++    }else if(!blockedBedLeg&&!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
+   }else if(task.stage==='align'||task.stage==='hold'){
+     const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);

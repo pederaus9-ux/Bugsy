@@ -1,10 +1,11 @@
 import * as THREE from './lib/three.module.min.js';
 
-// Follow the west side of the established chicken yard, then turn toward the
-// dairy's south gate. A ground surface only: never move saved farm objects.
+// Follow the west side of the established chicken yard, then turn a right angle
+// south of the horse paddock toward the dairy's south gate. A ground surface only:
+// never move saved farm objects.
 export function createDairyPath({layout,groundY,material}){
  const gate=(layout.gate[0]+layout.gate[1])/2,end=layout.polygon[2][1]-.08;
- const points=[[-1.4,8.1],[-18.4,8.1],[-18.4,-20.5],[gate,-25.5],[gate,end]],samples=[];
+ const points=[[-1.4,8.1],[-18.4,8.1],[-18.4,-18.6],[gate,-18.6],[gate,end]],samples=[];
  const distance=(x,z)=>Math.min(...points.slice(1).map(([bx,bz],i)=>{
   const[ax,az]=points[i],dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
   return Math.hypot(x-ax-t*dx,z-az-t*dz);

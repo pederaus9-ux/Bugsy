@@ -1,0 +1,9 @@
+// Camera-only supplement to the exact paid-feed case. No physics/assertion edits.
+const fs=require('fs'),path=require('path'),Module=require('module'),assert=require('node:assert/strict'),canonical=path.join(__dirname,'animal-pen-feed-bunk.browser.cjs'),out=path.resolve(process.env.TEST_ARTIFACTS);
+let source=fs.readFileSync(path.join(__dirname,'evidence/pen-editing-implementation/task7-codex-occupied-shelter-20261023/feed-paid-install-60/executed-source.cjs'),'utf8');
+function replace(a,b){assert.equal(source.split(a).length,2,a);source=source.replace(a,b);}
+replace(" stage='all five actual feed visits after installed bunk';",` await p.exposeFunction('__captureFeedPreview',async name=>{assert(['first-feed','retained-red-frame'].includes(name));await p.screenshot({path:path.join(artifacts,name+'.png')});});
+ stage='all five actual feed visits after installed bunk';`);
+replace('d.cam.dist=10;d.cam.yaw=0;d.cam.pitch=.3;d.placeCamera(1);d.renderScene();','d.cam.dist=10;d.cam.yaw=Math.PI/2;d.cam.pitch=.12;d.placeCamera(1);d.renderScene();await __captureFeedPreview("first-feed");');
+replace('  m.history.push({t:t-start,','  if(m.frames===2722){const a=cows[2],b=cows[3];d.cam.target.set((a.g.position.x+b.g.position.x)/2,.7,(a.g.position.z+b.g.position.z)/2);d.cam.dist=10;d.cam.yaw=Math.PI/2;d.cam.pitch=.12;d.placeCamera(1);d.renderScene();m.redFramePreview={t:t-start,positions:cows.map(a=>a.g.position.toArray())};await __captureFeedPreview("retained-red-frame");}\n  m.history.push({t:t-start,');
+fs.mkdirSync(out,{recursive:true});assert(!fs.existsSync(path.join(out,'executed-source.cjs')));fs.writeFileSync(path.join(out,'executed-source.cjs'),source);const run=new Module(canonical,module);run.filename=canonical;run.paths=Module._nodeModulePaths(__dirname);run._compile(source,canonical);

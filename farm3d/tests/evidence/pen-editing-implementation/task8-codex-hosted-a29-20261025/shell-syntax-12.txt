@@ -1,0 +1,3 @@
+set -o pipefail
+touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/execution-start"
+npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/recovery.browser.cjs && node tests/manual-restore.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/recovery-restore.log"

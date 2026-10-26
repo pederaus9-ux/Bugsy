@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: all three frozen snapshots verify every byte without historical Git objects
+ok 1 - all three frozen snapshots verify every byte without historical Git objects
+  ---
+  duration_ms: 134.862523
+  type: 'test'
+  ...
+# Subtest: returned buffers cannot mutate the frozen cache
+ok 2 - returned buffers cannot mutate the frozen cache
+  ---
+  duration_ms: 0.379122
+  type: 'test'
+  ...
+# Subtest: unknown files and path traversal fail instead of substituting current code
+ok 3 - unknown files and path traversal fail instead of substituting current code
+  ---
+  duration_ms: 0.629432
+  type: 'test'
+  ...
+# Subtest: unregistered current refs use exactly the requested Git ref and path
+ok 4 - unregistered current refs use exactly the requested Git ref and path
+  ---
+  duration_ms: 1.121536
+  type: 'test'
+  ...
+# Subtest: corrupt bytes, length, Git blob or source identity fail closed
+ok 5 - corrupt bytes, length, Git blob or source identity fail closed
+  ---
+  duration_ms: 2.111214
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.478297

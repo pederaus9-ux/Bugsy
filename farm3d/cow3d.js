@@ -257,13 +257,31 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
   s.blend=s.amount<.01?s.run:s.blend+clamp(s.run-s.blend,-dphase,dphase);
   const stride=mix(c.stride,c.runStride,s.blend),duty=mix(c.stance,c.runStance,s.blend);
   let yawDelta = 0;
-  if(speed>.02){const targetYaw=Math.atan2(-dx,-dz),d=targetYaw-r.model.rotation.y;yawDelta=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);r.model.rotation.y+=yawDelta;}
+  const oldYaw=r.model.rotation.y,scale=r.model.scale.x;
+  const anchorOffset=(l,yaw)=>{const wx=(l.ax-r.g.position.x)/scale,wz=(l.az-r.g.position.z)/scale;return [wx*Math.cos(yaw)-wz*Math.sin(yaw)-l.x,wx*Math.sin(yaw)+wz*Math.cos(yaw)-l.z];};
+  const turningRelease=new Set();
+  if(speed>.02){
+    const targetYaw=Math.atan2(-dx,-dz),d=targetYaw-oldYaw;
+    yawDelta=Math.atan2(Math.sin(d),Math.cos(d))*ease(dt,14);
+    // Limit abrupt requested heading changes even when every hoof is swinging.
+    // Stance feasibility below can further reduce this four-radian/second cap.
+    yawDelta=clamp(yawDelta,-4*dt,4*dt);
+    // A planted anchor must remain reachable before it can release. Restrict only
+    // the heading increment that would pull it outside the unchanged reach disc.
+    for(const l of r.legs)if(l.planted&&Math.hypot(...anchorOffset(l,oldYaw+yawDelta))>.34)turningRelease.add(l);
+    if(turningRelease.size){
+      const fits=t=>r.legs.every(l=>!l.planted||Math.hypot(...anchorOffset(l,oldYaw+yawDelta*t))<=.34);
+      if(fits(0)){let lo=0,hi=1;for(let i=0;i<32;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}yawDelta*=lo;}
+      else yawDelta=0;
+    }
+    r.model.rotation.y+=yawDelta;
+  }
   s.turnRatio = mix(s.turnRatio || 0, speed > 0.01 ? clamp((yawDelta/dt)/Math.max(speed, 0.5), -2, 2) : 0, ease(dt, 8));
   const sleeping=act==='sleeping'||act==='resting',quiet=sleeping?.12:1;
   r.body.scale.y=1+Math.sin(s.time*1.5+s.seed)*.007*quiet;
   r.body.rotation.y=s.turnRatio * 0.15 * s.amount;
   r.body.rotation.z=Math.sin(s.phase*TAU)*mix(.012,.009,s.blend)*s.amount;
-  const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw),scale=r.model.scale.x;
+  const yaw=r.model.rotation.y,cos=Math.cos(yaw),sin=Math.sin(yaw);
   for(const l of r.legs){
     const legStride = stride * clamp(1 + l.x * s.turnRatio, 0.4, 1.6);
     const phase=(s.phase+l.walkPhase+s.blend*l.blendDelta)%1,step=duty*legStride/2,idle=s.amount<.01,swing=phase>=duty;
@@ -275,17 +293,25 @@ export function updateCow3D(r,dx,dz,dt,time,act='idle',hop=0){
     const nz=idle?0:z*s.amount;if(idle)lift=0;
     // A hoof that leaves the ground for any reason (liftoff, standing still, reach limit) keeps its current position and
     // eases toward the nominal gait pose via a decaying residual, instead of snapping to it.
-    const release=()=>{l.planted=false;l.rx=tx;l.rz=tz-nz;l.r0=Math.hypot(l.rx,l.rz);l.rt=0;};
+    const release=()=>{l.planted=false;l.rx=tx;l.rz=tz-nz;l.r0=Math.hypot(l.rx,l.rz);l.ry=lift;l.rnz=nz;l.rax=(l.x+tx)*cos+(l.z+tz)*sin;l.raz=(l.z+tz)*cos-(l.x+tx)*sin;l.rt=0;l.ax=r.g.position.x+((l.x+tx)*cos+(l.z+tz)*sin)*scale;l.az=r.g.position.z+((l.z+tz)*cos-(l.x+tx)*sin)*scale;};
     if(idle||swing){l.slip=false;if(l.planted)release();}
-    else if(!l.planted&&!l.slip&&s.amount>.05&&Math.hypot(l.rx*(1-l.rt*l.rt*(3-2*l.rt)),nz+l.rz*(1-l.rt*l.rt*(3-2*l.rt)))<=.34){const w0=1-l.rt*l.rt*(3-2*l.rt),rx=l.x+l.rx*w0,rz=l.z+nz+l.rz*w0;l.ax=r.g.position.x+(rx*cos+rz*sin)*scale;l.az=r.g.position.z+(rz*cos-rx*sin)*scale;l.ayaw=yaw;l.planted=true;l.rx=l.rz=l.r0=0;l.rt=1;tx=rx-l.x;tz=rz-l.z;}
+    else if(l.planted&&(turningRelease.has(l)||Math.hypot(tx,tz)+distance/scale>.34)){release();l.slip=true;}
     if(!l.planted){
       // Residual eases out on a fixed time scale (smoothstep: zero start velocity), with a small step arch while a hoof recovers.
-      const w=1-l.rt*l.rt*(3-2*l.rt);tx=l.rx*w;tz=nz+l.rz*w;
+      const w=1-l.rt*l.rt*(3-2*l.rt);
+      // Keep the release direction in world axes while the torso turns. Root
+      // translation and nominal gait travel remain the accepted straight stride.
+      if(l.rt<1){tx=(l.rax*cos-l.raz*sin-l.x)*w;tz=nz+(l.rax*sin+l.raz*cos-l.z-l.rnz)*w;}else{tx=0;tz=nz;}
+      lift=Math.max(0,lift-(l.ry||0)*w);
       if(l.r0>1e-4&&l.rt<1)lift=Math.max(lift,Math.sin(Math.PI*l.rt)**2*Math.min(.08,l.r0*.25));
       l.rt=Math.min(1,l.rt+dt/.25);
     }
-    // A very tight turn can pull a planted foot beyond its reach: lift it early, but keep it where it is and do not re-plant
-    // until its next swing (releasing and re-planting every frame teleported the hoof).
+    if(!idle&&!swing&&!l.planted&&!l.slip&&s.amount>.05&&Math.hypot(tx,tz)+distance/scale<=.34){
+      l.ax=r.g.position.x+((l.x+tx)*cos+(l.z+tz)*sin)*scale;l.az=r.g.position.z+((l.z+tz)*cos-(l.x+tx)*sin)*scale;
+      l.ayaw=yaw;l.planted=true;l.rx=l.rz=l.r0=l.ry=0;l.rt=1;lift=0;
+    }
+    // Retain the hard reach guard for recovery poses or exceptional external
+    // displacement. Normal stance releases above, before heading overextension.
     if(Math.hypot(tx,tz)>.34){const k=.34/Math.hypot(tx,tz);tx*=k;tz*=k;if(l.planted){release();l.slip=true;}}
     poseCowLeg(l,tx,tz,lift,r);
   }

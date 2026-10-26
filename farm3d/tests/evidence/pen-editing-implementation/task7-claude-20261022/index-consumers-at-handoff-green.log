@@ -1,0 +1,1673 @@
+# source: b053188 (final code at handoff); node v22.22.2; utc 2026-10-22T23:00:13Z
+# cmd: node --test --test-concurrency=1 farm3d/tests/animal-pen-scene-install.test.mjs farm3d/tests/animal-pen-scene-routing.test.mjs farm3d/tests/chicken-care-controller.test.mjs farm3d/tests/chicken-pet-view.test.mjs farm3d/tests/chicken-yard-interaction.test.mjs farm3d/tests/chicken-yard.test.mjs farm3d/tests/cow-clearings.test.mjs farm3d/tests/cow-controls.test.mjs farm3d/tests/cow-ready-action.test.mjs farm3d/tests/cow-room.test.mjs farm3d/tests/cow-scene.test.mjs farm3d/tests/cow-test-preset.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/player-arm-attachment-integration.test.mjs farm3d/tests/player-arm-clearance.test.mjs farm3d/tests/player-motion.test.mjs farm3d/tests/remaining-care-controller.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/seed-selection.test.mjs farm3d/tests/utility-lights.test.mjs farm3d/tests/versions.test.mjs 
+TAP version 13
+# Subtest: actual index installs a published custom revision into every live pen consumer
+ok 1 - actual index installs a published custom revision into every live pen consumer
+  ---
+  duration_ms: 148.327638
+  type: 'test'
+  ...
+# Subtest: actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+ok 2 - actual index keeps inactive sites out of pens, clearings and collision while retaining fallback care
+  ---
+  duration_ms: 94.388121
+  type: 'test'
+  ...
+# Subtest: a boot-time install before the first cow sync leaves cow status display to syncCowYard
+ok 3 - a boot-time install before the first cow sync leaves cow status display to syncCowYard
+  ---
+  duration_ms: 77.507091
+  type: 'test'
+  ...
+# Subtest: a default boot keeps every later farm block and pen block solid exactly once
+ok 4 - a default boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 60.122801
+  type: 'test'
+  ...
+# Subtest: a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+ok 5 - a saved layout restored at boot keeps every later farm block and pen block solid exactly once
+  ---
+  duration_ms: 60.372786
+  type: 'test'
+  ...
+# Subtest: a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+ok 6 - a saved custom layout installs before herds spawn and rebinds every care controller after registries publish
+  ---
+  duration_ms: 61.845198
+  type: 'test'
+  ...
+# Subtest: a absent saved pen layout keeps the accepted default without rewriting the save
+ok 7 - a absent saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 26.149952
+  type: 'test'
+  ...
+# Subtest: a future schema saved pen layout keeps the accepted default without rewriting the save
+ok 8 - a future schema saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 28.926794
+  type: 'test'
+  ...
+# Subtest: a unknown template saved pen layout keeps the accepted default without rewriting the save
+ok 9 - a unknown template saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 33.441374
+  type: 'test'
+  ...
+# Subtest: a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+ok 10 - a invalid geometry saved pen layout keeps the accepted default without rewriting the save
+  ---
+  duration_ms: 32.887019
+  type: 'test'
+  ...
+# Subtest: a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+ok 11 - a different saved layout arriving with a live herd retires it through the ordinary removal path and rebinds no live animal
+  ---
+  duration_ms: 54.529328
+  type: 'test'
+  ...
+# Subtest: the same saved layout on a later refresh keeps the live herd untouched
+ok 12 - the same saved layout on a later refresh keeps the live herd untouched
+  ---
+  duration_ms: 56.394924
+  type: 'test'
+  ...
+# Subtest: the full farm refresh restores saved pens after the saved object layout and before herds spawn
+ok 13 - the full farm refresh restores saved pens after the saved object layout and before herds spawn
+  ---
+  duration_ms: 0.389711
+  type: 'test'
+  ...
+# Subtest: the invisible legacy hen water pan block stays for the accepted chicken yard and leaves with a customised one
+ok 14 - the invisible legacy hen water pan block stays for the accepted chicken yard and leaves with a customised one
+  ---
+  duration_ms: 116.822486
+  type: 'test'
+  ...
+# Subtest: the live World snapshot carries full shapes, controller IDs and stable revisions from the running farm
+ok 15 - the live World snapshot carries full shapes, controller IDs and stable revisions from the running farm
+  ---
+  duration_ms: 33.750951
+  type: 'test'
+  ...
+# Subtest: actual scene routes around a concave corner, winding false
+ok 16 - actual scene routes around a concave corner, winding false
+  ---
+  duration_ms: 9.409312
+  type: 'test'
+  ...
+# Subtest: actual scene routes around a concave corner, winding true
+ok 17 - actual scene routes around a concave corner, winding true
+  ---
+  duration_ms: 4.365107
+  type: 'test'
+  ...
+# Subtest: actual containment accepts both arms of a concave pen and projects an illegal point inside
+ok 18 - actual containment accepts both arms of a concave pen and projects an illegal point inside
+  ---
+  duration_ms: 2.350798
+  type: 'test'
+  ...
+# Subtest: a blocked custom route never falls back to an illegal straight crossing
+ok 19 - a blocked custom route never falls back to an illegal straight crossing
+  ---
+  duration_ms: 2.922377
+  type: 'test'
+  ...
+# Subtest: free-roaming pets are pushed out of either arm of a custom concave pen
+ok 20 - free-roaming pets are pushed out of either arm of a custom concave pen
+  ---
+  duration_ms: 2.643095
+  type: 'test'
+  ...
+# Subtest: actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+ok 21 - actual ordinary movement cannot tunnel between legal endpoints across a custom concavity
+  ---
+  duration_ms: 2.602104
+  type: 'test'
+  ...
+# Subtest: physical visit walks to reserved feed, stops, then releases without changing game supplies
+ok 22 - physical visit walks to reserved feed, stops, then releases without changing game supplies
+  ---
+  duration_ms: 124.154504
+  type: 'test'
+  ...
+# Subtest: thirty hens queue through the ramp to distinct beds and walk back out on waking
+ok 23 - thirty hens queue through the ramp to distinct beds and walk back out on waking
+  ---
+  duration_ms: 2635.172416
+  type: 'test'
+  ...
+# Subtest: empty stations never start a feeding or drinking visit; removed animals release occupancy
+ok 24 - empty stations never start a feeding or drinking visit; removed animals release occupancy
+  ---
+  duration_ms: 28.578847
+  type: 'test'
+  ...
+# Subtest: nearby ordinary spawn positions do not make waking hens compete for one return point
+ok 25 - nearby ordinary spawn positions do not make waking hens compete for one return point
+  ---
+  duration_ms: 87.921192
+  type: 'test'
+  ...
+# Subtest: a tired hen can finish a physical daytime coop nap before standing and leaving
+ok 26 - a tired hen can finish a physical daytime coop nap before standing and leaving
+  ---
+  duration_ms: 53.637211
+  type: 'test'
+  ...
+# Subtest: the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+ok 27 - the retained native thirty-hen blockage reaches the coop without moving waiting birds through obstacles
+  ---
+  duration_ms: 1180.725669
+  type: 'test'
+  ...
+# Subtest: retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+ok 28 - retained overlapping neighbours allow a bounded physical escape at30/60/120Hz
+  ---
+  duration_ms: 97.428109
+  type: 'test'
+  ...
+# Subtest: ground return routes cannot re-enter raised coop access after the exit is clear
+ok 29 - ground return routes cannot re-enter raised coop access after the exit is clear
+  ---
+  duration_ms: 71.794381
+  type: 'test'
+  ...
+# Subtest: the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+ok 30 - the full wake queue leaves safely before new cosmetic feed/drink/nap admissions resume
+  ---
+  duration_ms: 61.698766
+  type: 'test'
+  ...
+# Subtest: ordinary emotes finish their lifetime while a physical care task owns movement
+ok 31 - ordinary emotes finish their lifetime while a physical care task owns movement
+  ---
+  duration_ms: 25.833366
+  type: 'test'
+  ...
+# Subtest: ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+ok 32 - ordinary yard targets cannot use the flat ramp guard carve reserved for access legs
+  ---
+  duration_ms: 53.781643
+  type: 'test'
+  ...
+# Subtest: two doors admit and release birds concurrently while each lane stays exclusive
+ok 33 - two doors admit and release birds concurrently while each lane stays exclusive
+  ---
+  duration_ms: 2392.752202
+  type: 'test'
+  ...
+# Subtest: retained second-bedtime crowd yields physically instead of enclosing the active entrant
+ok 34 - retained second-bedtime crowd yields physically instead of enclosing the active entrant
+  ---
+  duration_ms: 1042.498616
+  type: 'test'
+  ...
+# Subtest: every feed and water place remains physically reachable beside both access ramps
+ok 35 - every feed and water place remains physically reachable beside both access ramps
+  ---
+  duration_ms: 215.300548
+  type: 'test'
+  ...
+# Subtest: retained wake return north of the barn stays accessible beside the enlarged coop
+ok 36 - retained wake return north of the barn stays accessible beside the enlarged coop
+  ---
+  duration_ms: 46.0355
+  type: 'test'
+  ...
+# Subtest: retained portrait full flock clears the feeder pocket and reaches all thirty beds
+ok 37 - retained portrait full flock clears the feeder pocket and reaches all thirty beds
+  ---
+  duration_ms: 797.014876
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 30Hz
+ok 38 - portrait crowd completes three sleep/wake cycles at 30Hz
+  ---
+  duration_ms: 16844.565117
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 60Hz
+ok 39 - portrait crowd completes three sleep/wake cycles at 60Hz
+  ---
+  duration_ms: 25620.644813
+  type: 'test'
+  ...
+# Subtest: portrait crowd completes three sleep/wake cycles at 120Hz
+ok 40 - portrait crowd completes three sleep/wake cycles at 120Hz
+  ---
+  duration_ms: 37374.890279
+  type: 'test'
+  ...
+# Subtest: a departed idle bird yields from the waking flock return corridor
+ok 41 - a departed idle bird yields from the waking flock return corridor
+  ---
+  duration_ms: 87.909263
+  type: 'test'
+  ...
+# Subtest: a legal north-boundary position can leave the strip behind the coop
+ok 42 - a legal north-boundary position can leave the strip behind the coop
+  ---
+  duration_ms: 94.589083
+  type: 'test'
+  ...
+# Subtest: idle traffic yielding still expires an existing interaction emote
+ok 43 - idle traffic yielding still expires an existing interaction emote
+  ---
+  duration_ms: 80.404622
+  type: 'test'
+  ...
+# Subtest: one doorway can admit a daytime nap while the other releases a waking bird
+ok 44 - one doorway can admit a daytime nap while the other releases a waking bird
+  ---
+  duration_ms: 46.259196
+  type: 'test'
+  ...
+# Subtest: a daytime nap joins the overnight flock and wake exits exclude new care admissions
+ok 45 - a daytime nap joins the overnight flock and wake exits exclude new care admissions
+  ---
+  duration_ms: 80.586124
+  type: 'test'
+  ...
+# Subtest: late interior entry reaches its free bed without traversing a sleeping neighbour
+ok 46 - late interior entry reaches its free bed without traversing a sleeping neighbour
+  ---
+  duration_ms: 33.611188
+  type: 'test'
+  ...
+# Subtest: the complete captured late-entry flock reaches all thirty separate beds
+ok 47 - the complete captured late-entry flock reaches all thirty separate beds
+  ---
+  duration_ms: 2916.305638
+  type: 'test'
+  ...
+# Subtest: real opaque coop can legitimately hide every valid bird in the old rear pet-test view
+ok 48 - real opaque coop can legitimately hide every valid bird in the old rear pet-test view
+  ---
+  duration_ms: 157.140922
+  type: 'test'
+  ...
+# Subtest: pet fixture chooses a genuinely selectable camera view without moving birds or changing native hit priority
+ok 49 - pet fixture chooses a genuinely selectable camera view without moving birds or changing native hit priority
+  ---
+  duration_ms: 120.707602
+  type: 'test'
+  ...
+# Subtest: chicken card retains naming and petting without old feeding controls
+ok 50 - chicken card retains naming and petting without old feeding controls
+  ---
+  duration_ms: 3.502143
+  type: 'test'
+  ...
+# Subtest: feed and water trays show exact quote and 12-hour station confirmation
+ok 51 - feed and water trays show exact quote and 12-hour station confirmation
+  ---
+  duration_ms: 3.087541
+  type: 'test'
+  ...
+# Subtest: customization offers real color previews, apply, cancel and two roofs
+ok 52 - customization offers real color previews, apply, cancel and two roofs
+  ---
+  duration_ms: 1.514176
+  type: 'test'
+  ...
+# Subtest: full barn pallet tray reports stored stock and cannot offer a paid pickup
+ok 53 - full barn pallet tray reports stored stock and cannot offer a paid pickup
+  ---
+  duration_ms: 1.260189
+  type: 'test'
+  ...
+# Subtest: walking taps cannot collect a distant station outside interaction reach
+ok 54 - walking taps cannot collect a distant station outside interaction reach
+  ---
+  duration_ms: 2.30797
+  type: 'test'
+  ...
+# Subtest: replacing the coop tray discards its uncommitted preview
+ok 55 - replacing the coop tray discards its uncommitted preview
+  ---
+  duration_ms: 1.693672
+  type: 'test'
+  ...
+# Subtest: supply countdown cannot replace customization controls during a gesture
+ok 56 - supply countdown cannot replace customization controls during a gesture
+  ---
+  duration_ms: 22.056221
+  type: 'test'
+  ...
+# Subtest: physical coop and distinct reachable stations fit the chicken yard
+ok 57 - physical coop and distinct reachable stations fit the chicken yard
+  ---
+  duration_ms: 76.139828
+  type: 'test'
+  ...
+# Subtest: geometry stays under a bounded component budget
+ok 58 - geometry stays under a bounded component budget
+  ---
+  duration_ms: 39.897903
+  type: 'test'
+  ...
+# Subtest: netting encloses the east side and the coop has complete gable faces
+ok 59 - netting encloses the east side and the coop has complete gable faces
+  ---
+  duration_ms: 27.284305
+  type: 'test'
+  ...
+# Subtest: pallet center remains selectable through slat gaps with stable station bounds
+ok 60 - pallet center remains selectable through slat gaps with stable station bounds
+  ---
+  duration_ms: 24.885469
+  type: 'test'
+  ...
+# Subtest: appearance and status reuse resources and restore preview without affecting footprint
+ok 61 - appearance and status reuse resources and restore preview without affecting footprint
+  ---
+  duration_ms: 29.335961
+  type: 'test'
+  ...
+# Subtest: thirty-bird yard has expanded room and a proportionately larger coop
+ok 62 - thirty-bird yard has expanded room and a proportionately larger coop
+  ---
+  duration_ms: 29.495201
+  type: 'test'
+  ...
+# Subtest: enlarged stations and ramp clear the existing rock and bush collision footprints
+ok 63 - enlarged stations and ramp clear the existing rock and bush collision footprints
+  ---
+  duration_ms: 29.684327
+  type: 'test'
+  ...
+# Subtest: default flock resting and spawn fallback point stays clear of enlarged stations
+ok 64 - default flock resting and spawn fallback point stays clear of enlarged stations
+  ---
+  duration_ms: 20.712072
+  type: 'test'
+  ...
+# Subtest: courtyard activation clears grass and its removal restores grass while preserving existing clearings
+ok 65 - courtyard activation clears grass and its removal restores grass while preserving existing clearings
+  ---
+  duration_ms: 4.939869
+  type: 'test'
+  ...
+# Subtest: saved building and tree positions are applied before the first courtyard herd decision
+ok 66 - saved building and tree positions are applied before the first courtyard herd decision
+  ---
+  duration_ms: 3.04923
+  type: 'test'
+  ...
+# Subtest: authored square grass clearings cover every foundation tile
+ok 67 - authored square grass clearings cover every foundation tile
+  ---
+  duration_ms: 5.269341
+  type: 'test'
+  ...
+# Subtest: actual scenery meadow stems and heads clear only the courtyard and restore exactly on removal
+ok 68 - actual scenery meadow stems and heads clear only the courtyard and restore exactly on removal
+  ---
+  duration_ms: 12.33708
+  type: 'test'
+  ...
+# Subtest: the visible full-milk symbol selects its own cow, respects occlusion and is inactive when hidden
+ok 69 - the visible full-milk symbol selects its own cow, respects occlusion and is inactive when hidden
+  ---
+  duration_ms: 8.844304
+  type: 'test'
+  ...
+# Subtest: Ready-cow action retains the displayed moving cow when the crosshair has missed
+ok 70 - Ready-cow action retains the displayed moving cow when the crosshair has missed
+  ---
+  duration_ms: 8.066292
+  type: 'test'
+  ...
+# Subtest: Ready-cow action does not silently switch to a different cow under the crosshair
+ok 71 - Ready-cow action does not silently switch to a different cow under the crosshair
+  ---
+  duration_ms: 3.705719
+  type: 'test'
+  ...
+# Subtest: Ready-cow selection still rejects an occluded or distant displayed cow
+ok 72 - Ready-cow selection still rejects an occluded or distant displayed cow
+  ---
+  duration_ms: 7.921033
+  type: 'test'
+  ...
+# Subtest: Ready-cow selection rejects removed, hidden, no-longer-ready and former-farm cows
+ok 73 - Ready-cow selection rejects removed, hidden, no-longer-ready and former-farm cows
+  ---
+  duration_ms: 15.739033
+  type: 'test'
+  ...
+# COW ROOM {"oldFloor":88.06,"floor":176.12000000000015,"oldConnected":24.85,"connected":95.85000000000001}
+# EXPANDED YARD COST {"calls":24,"triangles":1692}
+# Subtest: northern yard provides double the floor and double the connected cow-width walking area
+ok 74 - northern yard provides double the floor and double the connected cow-width walking area
+  ---
+  duration_ms: 51.277665
+  type: 'test'
+  ...
+# Subtest: each of five resting cows has actual standing-skin clearance for a full turn
+ok 75 - each of five resting cows has actual standing-skin clearance for a full turn
+  ---
+  duration_ms: 1968.091649
+  type: 'test'
+  ...
+# Subtest: enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+ok 76 - enlarged physical foundation stays on flat authorized land and preserves the stone-path entrance
+  ---
+  duration_ms: 104.523513
+  type: 'test'
+  ...
+# Subtest: care-pose contact targets follow the actual moved feed and water geometry
+ok 77 - care-pose contact targets follow the actual moved feed and water geometry
+  ---
+  duration_ms: 10.877137
+  type: 'test'
+  ...
+# Subtest: owned grass clearings cover the full enlarged foundation
+ok 78 - owned grass clearings cover the full enlarged foundation
+  ---
+  duration_ms: 6.629337
+  type: 'test'
+  ...
+# Subtest: ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+ok 79 - ordinary courtyard destinations use the enlarged width rather than the old central three-metre circle
+  ---
+  duration_ms: 9.212084
+  type: 'test'
+  ...
+# Subtest: expanded shelter retains the original model draw and triangle budgets
+ok 80 - expanded shelter retains the original model draw and triangle budgets
+  ---
+  duration_ms: 7.881418
+  type: 'test'
+  ...
+# Subtest: station navigation and native tap aiming follow the moved real targets
+ok 81 - station navigation and native tap aiming follow the moved real targets
+  ---
+  duration_ms: 9.013921
+  type: 'test'
+  ...
+# COW RIG FIXTURE RED/GREEN {"red":{"distance":0,"measured":0},"green":{"distance":0.8838860428279578,"measured":0.8838860428279571},"setup":{"before":{"position":[-11.8,0.08,-13.186666666666666],"task":"bed","stage":"hold"},"after":{"position":[-8.2,0.08,-11.2],"task":null,"target":[-7.299999999999999,-10.6],"path":[]}}}
+# OFFLINE BOOT CLOCK PROOF [{"paused":false,"distance":6.75000000000001,"job":null,"tank":1,"xp":3},{"paused":true,"distance":0,"job":"exiting","tank":1,"xp":3}]
+# Subtest: actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+ok 82 - actual scene adapter walks each bay to the robot without crossing static walls and credits once after docking
+  ---
+  duration_ms: 5322.862118
+  type: 'test'
+  ...
+# Subtest: restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+ok 83 - restoring an already-docked job rebuilds its cow at the saved physical dock, not another walk through the entry
+  ---
+  duration_ms: 9.957914
+  type: 'test'
+  ...
+# Subtest: a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+ok 84 - a sleeping cow stands before walking and night/rain cannot cancel its requested robot visit
+  ---
+  duration_ms: 319.101285
+  type: 'test'
+  ...
+# Subtest: eating cannot satisfy the separate drinking visit before the cow goes to bed
+ok 85 - eating cannot satisfy the separate drinking visit before the cow goes to bed
+  ---
+  duration_ms: 44.863255
+  type: 'test'
+  ...
+# Subtest: slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+ok 86 - slow rendered frames preserve station walking pace while returning from a hidden tab cannot catch up an approach
+  ---
+  duration_ms: 11.016808
+  type: 'test'
+  ...
+# Subtest: display removal releases the departing cow reservation before disposing its rig
+ok 87 - display removal releases the departing cow reservation before disposing its rig
+  ---
+  duration_ms: 9.124798
+  type: 'test'
+  ...
+# Subtest: all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+ok 88 - all five hungry cows complete distinct feed and water visits before settling into nighttime beds
+  ---
+  duration_ms: 394.028032
+  type: 'test'
+  ...
+# Subtest: a newly paid production cycle gets a real feed visit even when transient hunger is low
+ok 89 - a newly paid production cycle gets a real feed visit even when transient hunger is low
+  ---
+  duration_ms: 7.898124
+  type: 'test'
+  ...
+# Subtest: five manual requests pass the actual moving herd through the single robot in FIFO order
+ok 90 - five manual requests pass the actual moving herd through the single robot in FIFO order
+  ---
+  duration_ms: 1332.117166
+  type: 'test'
+  ...
+# Subtest: switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+ok 91 - switching or recovering a different farm rebuilds same-count cows and releases the former farm reservations
+  ---
+  duration_ms: 7.104891
+  type: 'test'
+  ...
+# Subtest: legacy rig stroll releases a held bed instead of measuring care approach movement
+ok 92 - legacy rig stroll releases a held bed instead of measuring care approach movement
+  ---
+  duration_ms: 49.859382
+  type: 'test'
+  ...
+# Subtest: expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+ok 93 - expanded northern courtyard completes three full-herd feed, drink, sleep and wake cycles
+  ---
+  duration_ms: 1744.004053
+  type: 'test'
+  ...
+# Subtest: expanded northern herd clears all five robot requests in FIFO order
+ok 94 - expanded northern herd clears all five robot requests in FIFO order
+  ---
+  duration_ms: 1743.834129
+  type: 'test'
+  ...
+# Subtest: releasing the last bed leaves an awake cow able to accept the next nighttime task
+ok 95 - releasing the last bed leaves an awake cow able to accept the next nighttime task
+  ---
+  duration_ms: 25.618273
+  type: 'test'
+  ...
+# Subtest: visible frames longer than one second retain cow walking pace without hidden-tab catchup
+ok 96 - visible frames longer than one second retain cow walking pace without hidden-tab catchup
+  ---
+  duration_ms: 17.140666
+  type: 'test'
+  ...
+# Subtest: the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+ok 97 - the longest expanded robot approach meets the original60s deadline on2.4s visible frames
+  ---
+  duration_ms: 29.686652
+  type: 'test'
+  ...
+# Subtest: offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+ok 98 - offline snapshot assertions distinguish ledger settlement from physical motion during slow boot frames
+  ---
+  duration_ms: 17.73341
+  type: 'test'
+  ...
+# Subtest: a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+ok 99 - a seeded herd clears care docks while waiting through three nights and full forty-second wakes
+  ---
+  duration_ms: 7498.742969
+  type: 'test'
+  ...
+# Subtest: a waiting cow physically clears a released feed dock without a new reservation or save mutation
+ok 100 - a waiting cow physically clears a released feed dock without a new reservation or save mutation
+  ---
+  duration_ms: 13.812797
+  type: 'test'
+  ...
+# Subtest: a real robot job advancing during a pen draft retains credit and walks its relocated exit
+ok 101 - a real robot job advancing during a pen draft retains credit and walks its relocated exit
+  ---
+  duration_ms: 213.235084
+  type: 'test'
+  ...
+# Subtest: lighting inspection leaves matching fair-weather conditions for the real travel probe
+ok 102 - lighting inspection leaves matching fair-weather conditions for the real travel probe
+  ---
+  duration_ms: 2.146071
+  type: 'test'
+  ...
+# Subtest: the unchanged production night transition still cancels a fair-weather target
+ok 103 - the unchanged production night transition still cancels a fair-weather target
+  ---
+  duration_ms: 0.777839
+  type: 'test'
+  ...
+# Subtest: the catalog audit preserves all54 legacy IDs and adds one utility lamp
+ok 104 - the catalog audit preserves all54 legacy IDs and adds one utility lamp
+  ---
+  duration_ms: 1.311081
+  type: 'test'
+  ...
+# Subtest: tulips uses complete grounded geometry within its existing footprint and draw budget
+ok 105 - tulips uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 36.022138
+  type: 'test'
+  ...
+# Subtest: sunflowers uses complete grounded geometry within its existing footprint and draw budget
+ok 106 - sunflowers uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 14.009234
+  type: 'test'
+  ...
+# Subtest: roses uses complete grounded geometry within its existing footprint and draw budget
+ok 107 - roses uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 10.044657
+  type: 'test'
+  ...
+# Subtest: mailbox uses complete grounded geometry within its existing footprint and draw budget
+ok 108 - mailbox uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 8.064776
+  type: 'test'
+  ...
+# Subtest: bench uses complete grounded geometry within its existing footprint and draw budget
+ok 109 - bench uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.508552
+  type: 'test'
+  ...
+# Subtest: lantern uses complete grounded geometry within its existing footprint and draw budget
+ok 110 - lantern uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 10.704753
+  type: 'test'
+  ...
+# Subtest: utilitylamp uses complete grounded geometry within its existing footprint and draw budget
+ok 111 - utilitylamp uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 6.892481
+  type: 'test'
+  ...
+# Subtest: statue uses complete grounded geometry within its existing footprint and draw budget
+ok 112 - statue uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 3.746721
+  type: 'test'
+  ...
+# Subtest: fountain uses complete grounded geometry within its existing footprint and draw budget
+ok 113 - fountain uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 14.110707
+  type: 'test'
+  ...
+# Subtest: mushroom uses complete grounded geometry within its existing footprint and draw budget
+ok 114 - mushroom uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.609776
+  type: 'test'
+  ...
+# Subtest: flamingo uses complete grounded geometry within its existing footprint and draw budget
+ok 115 - flamingo uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.010681
+  type: 'test'
+  ...
+# Subtest: balloons uses complete grounded geometry within its existing footprint and draw budget
+ok 116 - balloons uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.248634
+  type: 'test'
+  ...
+# Subtest: cactus uses complete grounded geometry within its existing footprint and draw budget
+ok 117 - cactus uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.354832
+  type: 'test'
+  ...
+# Subtest: unicorn uses complete grounded geometry within its existing footprint and draw budget
+ok 118 - unicorn uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.356438
+  type: 'test'
+  ...
+# Subtest: trophy uses complete grounded geometry within its existing footprint and draw budget
+ok 119 - trophy uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.242344
+  type: 'test'
+  ...
+# Subtest: tent uses complete grounded geometry within its existing footprint and draw budget
+ok 120 - tent uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.535331
+  type: 'test'
+  ...
+# Subtest: rainbow uses complete grounded geometry within its existing footprint and draw budget
+ok 121 - rainbow uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 9.852809
+  type: 'test'
+  ...
+# Subtest: carousel uses complete grounded geometry within its existing footprint and draw budget
+ok 122 - carousel uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 10.666711
+  type: 'test'
+  ...
+# Subtest: ferris uses complete grounded geometry within its existing footprint and draw budget
+ok 123 - ferris uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 6.420869
+  type: 'test'
+  ...
+# Subtest: castle uses complete grounded geometry within its existing footprint and draw budget
+ok 124 - castle uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.994889
+  type: 'test'
+  ...
+# Subtest: blossom uses complete grounded geometry within its existing footprint and draw budget
+ok 125 - blossom uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 21.990998
+  type: 'test'
+  ...
+# Subtest: hive uses complete grounded geometry within its existing footprint and draw budget
+ok 126 - hive uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.232549
+  type: 'test'
+  ...
+# Subtest: birdhouse uses complete grounded geometry within its existing footprint and draw budget
+ok 127 - birdhouse uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.982483
+  type: 'test'
+  ...
+# Subtest: parasol uses complete grounded geometry within its existing footprint and draw budget
+ok 128 - parasol uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.919025
+  type: 'test'
+  ...
+# Subtest: melon uses complete grounded geometry within its existing footprint and draw budget
+ok 129 - melon uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.214611
+  type: 'test'
+  ...
+# Subtest: pool uses complete grounded geometry within its existing footprint and draw budget
+ok 130 - pool uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 2.519951
+  type: 'test'
+  ...
+# Subtest: maple uses complete grounded geometry within its existing footprint and draw budget
+ok 131 - maple uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.86646
+  type: 'test'
+  ...
+# Subtest: hay uses complete grounded geometry within its existing footprint and draw budget
+ok 132 - hay uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.837243
+  type: 'test'
+  ...
+# Subtest: cider uses complete grounded geometry within its existing footprint and draw budget
+ok 133 - cider uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.69461
+  type: 'test'
+  ...
+# Subtest: sled uses complete grounded geometry within its existing footprint and draw budget
+ok 134 - sled uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.303507
+  type: 'test'
+  ...
+# Subtest: skates uses complete grounded geometry within its existing footprint and draw budget
+ok 135 - skates uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 4.189206
+  type: 'test'
+  ...
+# Subtest: igloo uses complete grounded geometry within its existing footprint and draw budget
+ok 136 - igloo uses complete grounded geometry within its existing footprint and draw budget
+  ---
+  duration_ms: 5.239783
+  type: 'test'
+  ...
+# Subtest: orbiting the camera cannot rotate placed shop or seasonal models
+ok 137 - orbiting the camera cannot rotate placed shop or seasonal models
+  ---
+  duration_ms: 23.331997
+  type: 'test'
+  ...
+# Subtest: each new model owns and releases its geometry/materials exactly once without touching another instance
+ok 138 - each new model owns and releases its geometry/materials exactly once without touching another instance
+  ---
+  duration_ms: 126.217961
+  type: 'test'
+  ...
+# Subtest: holiday placements clear overlapping grass and restore the old footprint on move/put-away
+ok 139 - holiday placements clear overlapping grass and restore the old footprint on move/put-away
+  ---
+  duration_ms: 4.015726
+  type: 'test'
+  ...
+# Subtest: ambient themes release their clearing without erasing another prop or fixed building
+ok 140 - ambient themes release their clearing without erasing another prop or fixed building
+  ---
+  duration_ms: 4.300712
+  type: 'test'
+  ...
+# Subtest: a solid non-holiday decoration clears its footprint and restores grass on put-away
+ok 141 - a solid non-holiday decoration clears its footprint and restores grass on put-away
+  ---
+  duration_ms: 1.601294
+  type: 'test'
+  ...
+# Subtest: spider is a complete above-ground volume rather than a camera-facing card
+ok 142 - spider is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 35.984785
+  type: 'test'
+  ...
+# Subtest: jack is a complete above-ground volume rather than a camera-facing card
+ok 143 - jack is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 42.635662
+  type: 'test'
+  ...
+# Subtest: haunted is a complete above-ground volume rather than a camera-facing card
+ok 144 - haunted is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 9.057355
+  type: 'test'
+  ...
+# Subtest: leaves is a complete above-ground volume rather than a camera-facing card
+ok 145 - leaves is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 10.090484
+  type: 'test'
+  ...
+# Subtest: turkey is a complete above-ground volume rather than a camera-facing card
+ok 146 - turkey is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 4.770462
+  type: 'test'
+  ...
+# Subtest: cornucopia is a complete above-ground volume rather than a camera-facing card
+ok 147 - cornucopia is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 6.092538
+  type: 'test'
+  ...
+# Subtest: gifts is a complete above-ground volume rather than a camera-facing card
+ok 148 - gifts is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 4.102005
+  type: 'test'
+  ...
+# Subtest: snowman is a complete above-ground volume rather than a camera-facing card
+ok 149 - snowman is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 5.277791
+  type: 'test'
+  ...
+# Subtest: xmastree is a complete above-ground volume rather than a camera-facing card
+ok 150 - xmastree is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 7.287204
+  type: 'test'
+  ...
+# Subtest: confetti is a complete above-ground volume rather than a camera-facing card
+ok 151 - confetti is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 3.415005
+  type: 'test'
+  ...
+# Subtest: popper is a complete above-ground volume rather than a camera-facing card
+ok 152 - popper is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 6.198386
+  type: 'test'
+  ...
+# Subtest: fireworks is a complete above-ground volume rather than a camera-facing card
+ok 153 - fireworks is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 2.516473
+  type: 'test'
+  ...
+# Subtest: heart is a complete above-ground volume rather than a camera-facing card
+ok 154 - heart is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 3.06135
+  type: 'test'
+  ...
+# Subtest: letter is a complete above-ground volume rather than a camera-facing card
+ok 155 - letter is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 3.771913
+  type: 'test'
+  ...
+# Subtest: chapel is a complete above-ground volume rather than a camera-facing card
+ok 156 - chapel is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 3.601529
+  type: 'test'
+  ...
+# Subtest: chick is a complete above-ground volume rather than a camera-facing card
+ok 157 - chick is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 2.954232
+  type: 'test'
+  ...
+# Subtest: bunny is a complete above-ground volume rather than a camera-facing card
+ok 158 - bunny is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 6.578956
+  type: 'test'
+  ...
+# Subtest: eggstatue is a complete above-ground volume rather than a camera-facing card
+ok 159 - eggstatue is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 2.416731
+  type: 'test'
+  ...
+# Subtest: clover is a complete above-ground volume rather than a camera-facing card
+ok 160 - clover is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 2.932363
+  type: 'test'
+  ...
+# Subtest: lucky is a complete above-ground volume rather than a camera-facing card
+ok 161 - lucky is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 3.953277
+  type: 'test'
+  ...
+# Subtest: tophat is a complete above-ground volume rather than a camera-facing card
+ok 162 - tophat is a complete above-ground volume rather than a camera-facing card
+  ---
+  duration_ms: 1.996714
+  type: 'test'
+  ...
+# Subtest: refresh disposal releases only the solid prop resources exactly once
+ok 163 - refresh disposal releases only the solid prop resources exactly once
+  ---
+  duration_ms: 42.011695
+  type: 'test'
+  ...
+# Subtest: unrelated shop/event/seasonal IDs retain their existing renderer
+ok 164 - unrelated shop/event/seasonal IDs retain their existing renderer
+  ---
+  duration_ms: 0.237978
+  type: 'test'
+  ...
+# Subtest: placed prop cleanup also owns its contact geometry without disposing the borrowed shadow material
+ok 165 - placed prop cleanup also owns its contact geometry without disposing the borrowed shadow material
+  ---
+  duration_ms: 15.346946
+  type: 'test'
+  ...
+# Subtest: spider fits the existing circular walking/placement clearance
+ok 166 - spider fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 4.459542
+  type: 'test'
+  ...
+# Subtest: jack fits the existing circular walking/placement clearance
+ok 167 - jack fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 15.258078
+  type: 'test'
+  ...
+# Subtest: haunted fits the existing circular walking/placement clearance
+ok 168 - haunted fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.836066
+  type: 'test'
+  ...
+# Subtest: leaves fits the existing circular walking/placement clearance
+ok 169 - leaves fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 3.740738
+  type: 'test'
+  ...
+# Subtest: turkey fits the existing circular walking/placement clearance
+ok 170 - turkey fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 4.452501
+  type: 'test'
+  ...
+# Subtest: cornucopia fits the existing circular walking/placement clearance
+ok 171 - cornucopia fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 3.375098
+  type: 'test'
+  ...
+# Subtest: gifts fits the existing circular walking/placement clearance
+ok 172 - gifts fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 3.115946
+  type: 'test'
+  ...
+# Subtest: snowman fits the existing circular walking/placement clearance
+ok 173 - snowman fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.788413
+  type: 'test'
+  ...
+# Subtest: xmastree fits the existing circular walking/placement clearance
+ok 174 - xmastree fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 5.485963
+  type: 'test'
+  ...
+# Subtest: confetti fits the existing circular walking/placement clearance
+ok 175 - confetti fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.431023
+  type: 'test'
+  ...
+# Subtest: popper fits the existing circular walking/placement clearance
+ok 176 - popper fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 3.373932
+  type: 'test'
+  ...
+# Subtest: fireworks fits the existing circular walking/placement clearance
+ok 177 - fireworks fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.104546
+  type: 'test'
+  ...
+# Subtest: heart fits the existing circular walking/placement clearance
+ok 178 - heart fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 1.989252
+  type: 'test'
+  ...
+# Subtest: letter fits the existing circular walking/placement clearance
+ok 179 - letter fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.199937
+  type: 'test'
+  ...
+# Subtest: chapel fits the existing circular walking/placement clearance
+ok 180 - chapel fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 3.031162
+  type: 'test'
+  ...
+# Subtest: chick fits the existing circular walking/placement clearance
+ok 181 - chick fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 4.585142
+  type: 'test'
+  ...
+# Subtest: bunny fits the existing circular walking/placement clearance
+ok 182 - bunny fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.915975
+  type: 'test'
+  ...
+# Subtest: eggstatue fits the existing circular walking/placement clearance
+ok 183 - eggstatue fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.100066
+  type: 'test'
+  ...
+# Subtest: clover fits the existing circular walking/placement clearance
+ok 184 - clover fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.665656
+  type: 'test'
+  ...
+# Subtest: lucky fits the existing circular walking/placement clearance
+ok 185 - lucky fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 2.928014
+  type: 'test'
+  ...
+# Subtest: tophat fits the existing circular walking/placement clearance
+ok 186 - tophat fits the existing circular walking/placement clearance
+  ---
+  duration_ms: 1.661254
+  type: 'test'
+  ...
+# Subtest: curved pumpkin skin shades continuously across shared back-surface vertices
+ok 187 - curved pumpkin skin shades continuously across shared back-surface vertices
+  ---
+  duration_ms: 16.108514
+  type: 'test'
+  ...
+# Subtest: native page installs one connection after motion, updates after current hand poses, and precaches the dependency
+ok 188 - native page installs one connection after motion, updates after current hand poses, and precaches the dependency
+  ---
+  duration_ms: 4.501323
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: idle, pitch -80
+ok 189 - native fallback full cap has strict clearance: idle, pitch -80
+  ---
+  duration_ms: 146.936275
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: walk, pitch -80
+ok 190 - native fallback full cap has strict clearance: walk, pitch -80
+  ---
+  duration_ms: 67.046721
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: run, pitch -80
+ok 191 - native fallback full cap has strict clearance: run, pitch -80
+  ---
+  duration_ms: 66.646292
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: reach, pitch -80
+ok 192 - native fallback full cap has strict clearance: reach, pitch -80
+  ---
+  duration_ms: 73.284378
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: pat, pitch -80
+ok 193 - native fallback full cap has strict clearance: pat, pitch -80
+  ---
+  duration_ms: 63.600015
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: idle, pitch -69
+ok 194 - native fallback full cap has strict clearance: idle, pitch -69
+  ---
+  duration_ms: 59.432878
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: walk, pitch -69
+ok 195 - native fallback full cap has strict clearance: walk, pitch -69
+  ---
+  duration_ms: 44.495952
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: run, pitch -69
+ok 196 - native fallback full cap has strict clearance: run, pitch -69
+  ---
+  duration_ms: 36.310836
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: reach, pitch -69
+ok 197 - native fallback full cap has strict clearance: reach, pitch -69
+  ---
+  duration_ms: 38.989774
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: pat, pitch -69
+ok 198 - native fallback full cap has strict clearance: pat, pitch -69
+  ---
+  duration_ms: 37.264027
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: idle, pitch 0
+ok 199 - native fallback full cap has strict clearance: idle, pitch 0
+  ---
+  duration_ms: 32.138875
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: walk, pitch 0
+ok 200 - native fallback full cap has strict clearance: walk, pitch 0
+  ---
+  duration_ms: 32.558111
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: run, pitch 0
+ok 201 - native fallback full cap has strict clearance: run, pitch 0
+  ---
+  duration_ms: 30.854793
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: reach, pitch 0
+ok 202 - native fallback full cap has strict clearance: reach, pitch 0
+  ---
+  duration_ms: 33.601501
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: pat, pitch 0
+ok 203 - native fallback full cap has strict clearance: pat, pitch 0
+  ---
+  duration_ms: 34.035288
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: idle, pitch 80
+ok 204 - native fallback full cap has strict clearance: idle, pitch 80
+  ---
+  duration_ms: 32.820407
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: walk, pitch 80
+ok 205 - native fallback full cap has strict clearance: walk, pitch 80
+  ---
+  duration_ms: 32.803752
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: run, pitch 80
+ok 206 - native fallback full cap has strict clearance: run, pitch 80
+  ---
+  duration_ms: 33.055651
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: reach, pitch 80
+ok 207 - native fallback full cap has strict clearance: reach, pitch 80
+  ---
+  duration_ms: 33.823967
+  type: 'test'
+  ...
+# Subtest: native fallback full cap has strict clearance: pat, pitch 80
+ok 208 - native fallback full cap has strict clearance: pat, pitch 80
+  ---
+  duration_ms: 31.705396
+  type: 'test'
+  ...
+# Subtest: accepted motion reference stays byte-pinned;production arm correction needs no browser globals
+ok 209 - accepted motion reference stays byte-pinned;production arm correction needs no browser globals
+  ---
+  duration_ms: 35.466965
+  type: 'test'
+  ...
+# Subtest: 360 frames preserve accepted locomotion,local hand animation,state and held-frame behavior around scoped action placement
+ok 210 - 360 frames preserve accepted locomotion,local hand animation,state and held-frame behavior around scoped action placement
+  ---
+  duration_ms: 138.060678
+  type: 'test'
+  ...
+# Subtest: restoration owns native values after subsequent native mutation
+ok 211 - restoration owns native values after subsequent native mutation
+  ---
+  duration_ms: 9.879332
+  type: 'test'
+  ...
+# Subtest: steady update reuses snapshots without vector or quaternion clones
+ok 212 - steady update reuses snapshots without vector or quaternion clones
+  ---
+  duration_ms: 12.103853
+  type: 'test'
+  ...
+# Subtest: root replacement at held time never writes detached bones
+ok 213 - root replacement at held time never writes detached bones
+  ---
+  duration_ms: 14.256578
+  type: 'test'
+  ...
+# Subtest: same-root bone subtree replacement invalidates cached references
+ok 214 - same-root bone subtree replacement invalidates cached references
+  ---
+  duration_ms: 12.307088
+  type: 'test'
+  ...
+# Subtest: customization materials and native channels remain current
+ok 215 - customization materials and native channels remain current
+  ---
+  duration_ms: 8.199672
+  type: 'test'
+  ...
+# Subtest: fallback finger replacement at held time invalidates reusable snapshots
+ok 216 - fallback finger replacement at held time invalidates reusable snapshots
+  ---
+  duration_ms: 8.544716
+  type: 'test'
+  ...
+# Subtest: independent instances share no mutable snapshots or scratch state
+ok 217 - independent instances share no mutable snapshots or scratch state
+  ---
+  duration_ms: 16.945794
+  type: 'test'
+  ...
+# Subtest: dispose and repeated disposal do not dispose borrowed renderer resources
+ok 218 - dispose and repeated disposal do not dispose borrowed renderer resources
+  ---
+  duration_ms: 9.797646
+  type: 'test'
+  ...
+# Subtest: hidden/classic, reduced motion and action handoff preserve native context ownership
+ok 219 - hidden/classic, reduced motion and action handoff preserve native context ownership
+  ---
+  duration_ms: 21.839366
+  type: 'test'
+  ...
+# Subtest: native page installs once, updates after native hands, and precaches its exact import
+ok 220 - native page installs once, updates after native hands, and precaches its exact import
+  ---
+  duration_ms: 4.362394
+  type: 'test'
+  ...
+# Subtest: horse 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 221 - horse 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 1861.214798
+  type: 'test'
+  ...
+# Subtest: horse 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 222 - horse 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 3343.660006
+  type: 'test'
+  ...
+# Subtest: horse 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 223 - horse 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 6126.520472
+  type: 'test'
+  ...
+# Subtest: sheep 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 224 - sheep 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 1069.69918
+  type: 'test'
+  ...
+# Subtest: sheep 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 225 - sheep 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 2042.229624
+  type: 'test'
+  ...
+# Subtest: sheep 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 226 - sheep 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 4699.403432
+  type: 'test'
+  ...
+# Subtest: dog 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 227 - dog 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 246.923243
+  type: 'test'
+  ...
+# Subtest: dog 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 228 - dog 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 417.199088
+  type: 'test'
+  ...
+# Subtest: dog 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 229 - dog 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 866.29632
+  type: 'test'
+  ...
+# Subtest: cat 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 230 - cat 30Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 320.363621
+  type: 'test'
+  ...
+# Subtest: cat 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 231 - cat 60Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 463.929449
+  type: 'test'
+  ...
+# Subtest: cat 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+ok 232 - cat 120Hz maximum ownership walks, rests in separate beds and clears them across three nights
+  ---
+  duration_ms: 1078.709145
+  type: 'test'
+  ...
+# Subtest: removing a visited animal releases occupancy and resets its transient task
+ok 233 - removing a visited animal releases occupancy and resets its transient task
+  ---
+  duration_ms: 5.427406
+  type: 'test'
+  ...
+# Subtest: the last standing-up frame stays still before the first exit step
+ok 234 - the last standing-up frame stays still before the first exit step
+  ---
+  duration_ms: 354.507129
+  type: 'test'
+  ...
+# Subtest: retained dog corner path starts with a genuinely traversable physical step and reaches its station
+ok 235 - retained dog corner path starts with a genuinely traversable physical step and reaches its station
+  ---
+  duration_ms: 301.811157
+  type: 'test'
+  ...
+# Subtest: retained cat corner path starts with a genuinely traversable physical step and reaches its station
+ok 236 - retained cat corner path starts with a genuinely traversable physical step and reaches its station
+  ---
+  duration_ms: 34.082362
+  type: 'test'
+  ...
+# Subtest: care walking follows the preserved uneven pasture surface with the original three-dimensional speed limit
+ok 237 - care walking follows the preserved uneven pasture surface with the original three-dimensional speed limit
+  ---
+  duration_ms: 530.299997
+  type: 'test'
+  ...
+# Subtest: horse ordinary movement in its new pasture keeps the existing rig on actual ground
+ok 238 - horse ordinary movement in its new pasture keeps the existing rig on actual ground
+  ---
+  duration_ms: 5.25146
+  type: 'test'
+  ...
+# Subtest: sheep ordinary movement in its new pasture keeps the existing rig on actual ground
+ok 239 - sheep ordinary movement in its new pasture keeps the existing rig on actual ground
+  ---
+  duration_ms: 3.076059
+  type: 'test'
+  ...
+# Subtest: an occupied care destination waits between planning attempts instead of running a full search every frame
+ok 240 - an occupied care destination waits between planning attempts instead of running a full search every frame
+  ---
+  duration_ms: 5.34739
+  type: 'test'
+  ...
+# Subtest: overnight departures keep new station traffic out until the last sleeper walks clear
+ok 241 - overnight departures keep new station traffic out until the last sleeper walks clear
+  ---
+  duration_ms: 1354.514905
+  type: 'test'
+  ...
+# Subtest: a real daytime nap joins wet-weather sheltering, stays supported and exits when the weather clears
+ok 242 - a real daytime nap joins wet-weather sheltering, stays supported and exits when the weather clears
+  ---
+  duration_ms: 208.089896
+  type: 'test'
+  ...
+# Subtest: sheep that must swap sides in front of their beds give way instead of mirroring each other, 30Hz
+ok 243 - sheep that must swap sides in front of their beds give way instead of mirroring each other, 30Hz
+  ---
+  duration_ms: 1078.628353
+  type: 'test'
+  ...
+# Subtest: sheep that must swap sides in front of their beds give way instead of mirroring each other, 60Hz
+ok 244 - sheep that must swap sides in front of their beds give way instead of mirroring each other, 60Hz
+  ---
+  duration_ms: 2214.529946
+  type: 'test'
+  ...
+# Subtest: sheep that must swap sides in front of their beds give way instead of mirroring each other, 120Hz
+ok 245 - sheep that must swap sides in front of their beds give way instead of mirroring each other, 120Hz
+  ---
+  duration_ms: 4029.157885
+  type: 'test'
+  ...
+# Subtest: a pet that wandered into the north field still finds its way back to its care station
+ok 246 - a pet that wandered into the north field still finds its way back to its care station
+  ---
+  duration_ms: 30.14346
+  type: 'test'
+  ...
+# Subtest: remaining physical care is installed before ordinary Beast behavior and herd synchronization
+ok 247 - remaining physical care is installed before ordinary Beast behavior and herd synchronization
+  ---
+  duration_ms: 1.243623
+  type: 'test'
+  ...
+# Subtest: protected implementations and approved pen adapters retain exact reviewed bytes
+ok 248 - protected implementations and approved pen adapters retain exact reviewed bytes
+  ---
+  duration_ms: 2.089717
+  type: 'test'
+  ...
+# Subtest: authorized yard adapters retain exact accepted default rendered geometry
+ok 249 - authorized yard adapters retain exact accepted default rendered geometry
+  ---
+  duration_ms: 157.409561
+  type: 'test'
+  ...
+# Subtest: one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+ok 250 - one obstructed pet nook retains the shared bowl for that existing pet while the other nook operates
+  ---
+  duration_ms: 4.368777
+  type: 'test'
+  ...
+# Subtest: picking a seed plants the selected plot, closes the picker and keeps it equipped
+ok 251 - picking a seed plants the selected plot, closes the picker and keeps it equipped
+  ---
+  duration_ms: 5.13896
+  type: 'test'
+  ...
+# Subtest: opening seeds discards an uncommitted coop preview
+ok 252 - opening seeds discards an uncommitted coop preview
+  ---
+  duration_ms: 2.355229
+  type: 'test'
+  ...
+# Subtest: walking Plant repeats the selected crop without reopening its picker
+ok 253 - walking Plant repeats the selected crop without reopening its picker
+  ---
+  duration_ms: 3.552683
+  type: 'test'
+  ...
+# Subtest: changing the equipped seed does not plant an old pending plot
+ok 254 - changing the equipped seed does not plant an old pending plot
+  ---
+  duration_ms: 2.297891
+  type: 'test'
+  ...
+# Subtest: failed purchase keeps the equipped seed and does not change or charge a plot
+ok 255 - failed purchase keeps the equipped seed and does not change or charge a plot
+  ---
+  duration_ms: 2.488356
+  type: 'test'
+  ...
+# Subtest: opening information and changing view context do not unequip a seed
+ok 256 - opening information and changing view context do not unequip a seed
+  ---
+  duration_ms: 2.276473
+  type: 'test'
+  ...
+# Subtest: putting seeds away explicitly clears the selection and target without spending
+ok 257 - putting seeds away explicitly clears the selection and target without spending
+  ---
+  duration_ms: 2.750595
+  type: 'test'
+  ...
+# Subtest: locked and unknown crops cannot become equipped or call the planting rule
+ok 258 - locked and unknown crops cannot become equipped or call the planting rule
+  ---
+  duration_ms: 2.312493
+  type: 'test'
+  ...
+# Subtest: equipped planting cannot modify a visited farm or another blocked mode
+ok 259 - equipped planting cannot modify a visited farm or another blocked mode
+  ---
+  duration_ms: 10.417928
+  type: 'test'
+  ...
+# Subtest: walking action label names the equipped crop while keeping its Plant action identity
+ok 260 - walking action label names the equipped crop while keeping its Plant action identity
+  ---
+  duration_ms: 2.623293
+  type: 'test'
+  ...
+# Subtest: E and Enter plant once and repeated keydown events do not spend twice
+ok 261 - E and Enter plant once and repeated keydown events do not spend twice
+  ---
+  duration_ms: 4.628868
+  type: 'test'
+  ...
+# Subtest: equipped seed chip steps aside while the picker is open and returns when it closes
+ok 262 - equipped seed chip steps aside while the picker is open and returns when it closes
+  ---
+  duration_ms: 2.147119
+  type: 'test'
+  ...
+# Subtest: equipped display does not reuse the picker action attribute
+ok 263 - equipped display does not reuse the picker action attribute
+  ---
+  duration_ms: 2.084151
+  type: 'test'
+  ...
+# Subtest: utility lamp is an ordinary coin purchase; insufficient coins and full placement preserve ownership
+ok 264 - utility lamp is an ordinary coin purchase; insufficient coins and full placement preserve ownership
+  ---
+  duration_ms: 28.08708
+  type: 'test'
+  ...
+# Subtest: utility pole is solid, grounded, within the existing small footprint and owns its resources
+ok 265 - utility pole is solid, grounded, within the existing small footprint and owns its resources
+  ---
+  duration_ms: 12.504181
+  type: 'test'
+  ...
+# Subtest: placed lamp light follows actual rotated/moved source; day disables light and night illuminates again
+ok 266 - placed lamp light follows actual rotated/moved source; day disables light and night illuminates again
+  ---
+  duration_ms: 6.09936
+  type: 'test'
+  ...
+# Subtest: many purchased lamps cannot allocate unbounded real lights; nearby sources change without moving models
+ok 267 - many purchased lamps cannot allocate unbounded real lights; nearby sources change without moving models
+  ---
+  duration_ms: 47.154076
+  type: 'test'
+  ...
+# Subtest: actual world consumer installs once, renders lighting after movement and precaches the new dependency
+ok 268 - actual world consumer installs once, renders lighting after movement and precaches the new dependency
+  ---
+  duration_ms: 1.215139
+  type: 'test'
+  ...
+# Subtest: nested authored module versions cannot evade the cache consistency check
+ok 269 - nested authored module versions cannot evade the cache consistency check
+  ---
+  duration_ms: 2.209656
+  type: 'test'
+  ...
+# Subtest: every versioned script is imported with one version only
+ok 270 - every versioned script is imported with one version only
+  ---
+  duration_ms: 0.548126
+  type: 'test'
+  ...
+# Subtest: window.__gameVer matches the game.js version it imports
+ok 271 - window.__gameVer matches the game.js version it imports
+  ---
+  duration_ms: 0.227245
+  type: 'test'
+  ...
+# Subtest: the offline shell caches the same versions the page imports
+ok 272 - the offline shell caches the same versions the page imports
+  ---
+  duration_ms: 0.503998
+  type: 'test'
+  ...
+# Subtest: the cache name is versioned and namespaced away from the 2D game
+ok 273 - the cache name is versioned and namespaced away from the 2D game
+  ---
+  duration_ms: 0.24599
+  type: 'test'
+  ...
+# Subtest: chicken dependencies of both the page and game rules are cached offline
+ok 274 - chicken dependencies of both the page and game rules are cached offline
+  ---
+  duration_ms: 0.143786
+  type: 'test'
+  ...
+# Subtest: offline shell contains the complete local JavaScript boot graph
+ok 275 - offline shell contains the complete local JavaScript boot graph
+  ---
+  duration_ms: 0.309596
+  type: 'test'
+  ...
+# Subtest: native scene-polish fixture imports the same scenery version as the page
+ok 276 - native scene-polish fixture imports the same scenery version as the page
+  ---
+  duration_ms: 0.28581
+  type: 'test'
+  ...
+1..276
+# tests 276
+# suites 0
+# pass 276
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 155410.86587
+exit 0

@@ -1,3 +1,5 @@
+import {animalPenYardLayout} from './animal-pen-layout.js?v=1';
+import {pointInPolygon,segmentInPolygon} from './animal-pen-geometry.js?v=1';
 import * as T from './lib/three.module.min.js';
 import {createStationScheduler} from './animal-stations.js?v=1';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
@@ -5,7 +7,8 @@ import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 // Cosmetic care adapter. The existing scheduler owns occupancy. No game,
 // inventory, clock, save or production API is reachable from this module.
 export function createChickenStationController({yard,route,neighbours,updateRig,clearPoint=()=>true}){
- const scheduler=createStationScheduler(yard.stations),byId=new Map(yard.stations.map(s=>[s.id,s])),tasks=new Map(),lanes=new Map();let wakeUntil=-Infinity;
+ const scheduler=createStationScheduler(yard.stations),byId=new Map(yard.stations.map(s=>[s.id,s])),tasks=new Map(),lanes=new Map();let wakeUntil=-Infinity,revision=yard.layout.revision??0;
+ const inside=(x,z)=>yard.layout.custom?pointInPolygon([x,z],yard.layout.polygon,.3):x>=-16.2&&x<=-5.2&&z>=-5.5&&z<=4.7;
  const steering=Array.from({length:64},(_,i)=>[Math.cos(i*Math.PI/32),Math.sin(i*Math.PI/32)]);
  const pos=a=>new T.Vector2(a.g.position.x,a.g.position.z),world=p=>new T.Vector2(p[0],p[2]);
  const eligible=t=>t.kind==='bed'&&['waiting','waitExit'].includes(t.stage);
@@ -15,7 +18,7 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
  function returnPoint(a){
   for(const radius of [0,.55,1.1,1.65,2.2,2.75,3.3,3.85,4.4,4.95,5.5])for(let k=0;k<12;k++){
    const x=a.g.position.x+Math.cos(k*Math.PI/6)*radius,z=a.g.position.z+Math.sin(k*Math.PI/6)*radius;
-   if(x<-16.2||x>-5.2||z<-5.5||z>4.7||!clearPoint(x,z)||yard.layout.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.3&&Math.abs(z-bz)<hd+.3))continue;
+   if(!inside(x,z)||!clearPoint(x,z)||yard.layout.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.3&&Math.abs(z-bz)<hd+.3))continue;
    if([...tasks.values()].some(t=>Math.hypot(x-t.returnPoint[0],z-t.returnPoint[2])<.5)||neighbours().some(b=>b!==a&&Math.hypot(x-b.g.position.x,z-b.g.position.z)<.34))continue;
    return [x,0,z];
   }
@@ -32,26 +35,26 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
  function groundRoute(a,from,to,avoid=neighbours().filter(b=>b!==a&&!b.gone&&b.g.position.y<.1)){
   const blockers=yard.layout.obstacles,depth=(p,b)=>Math.min(b[2]+.18-Math.abs(p[0]-b[0]),b[3]+.18-Math.abs(p[1]-b[1]));
   const support=p=>yard.sampleStationSupport(yard.stations[0].id,p[0],p[1]).height;
-  const point=p=>p[0]>-16.2&&p[0]<-5.2&&p[1]>-5.5&&p[1]<4.7&&clearPoint(...p)&&support(p)===0&&blockers.every(b=>depth(p,b)<=0)&&avoid.every(b=>Math.hypot(p[0]-b.g.position.x,p[1]-b.g.position.z)>=.34);
-  const line=(start,end,escape=false)=>{let prev=start;const n=Math.max(1,Math.ceil(Math.hypot(end[0]-start[0],end[1]-start[1])/.04));for(let k=1;k<=n;k++){const p=[start[0]+(end[0]-start[0])*k/n,start[1]+(end[1]-start[1])*k/n];if(!point(p)){
-   if(!escape||p[0]<=-16.2||p[0]>=-5.2||p[1]<=-5.5||p[1]>=4.7||!clearPoint(...p)||support(p)>support(prev)+1e-8||blockers.some(b=>depth(p,b)>0&&!(depth(prev,b)>0&&depth(p,b)<depth(prev,b)-1e-8))||avoid.some(b=>{const d=Math.hypot(p[0]-b.g.position.x,p[1]-b.g.position.z),old=Math.hypot(prev[0]-b.g.position.x,prev[1]-b.g.position.z);return d<.34&&d<=old+1e-8;}))return false;
+  const point=p=>inside(p[0],p[1])&&clearPoint(...p)&&support(p)===0&&blockers.every(b=>depth(p,b)<=0)&&avoid.every(b=>Math.hypot(p[0]-b.g.position.x,p[1]-b.g.position.z)>=.34);
+  const line=(start,end,escape=false)=>{if(yard.layout.custom&&!segmentInPolygon(start,end,yard.layout.polygon,.3))return false;let prev=start;const n=Math.max(1,Math.ceil(Math.hypot(end[0]-start[0],end[1]-start[1])/.04));for(let k=1;k<=n;k++){const p=[start[0]+(end[0]-start[0])*k/n,start[1]+(end[1]-start[1])*k/n];if(!point(p)){
+   if(!escape||!inside(p[0],p[1])||!clearPoint(...p)||support(p)>support(prev)+1e-8||blockers.some(b=>depth(p,b)>0&&!(depth(prev,b)>0&&depth(p,b)<depth(prev,b)-1e-8))||avoid.some(b=>{const d=Math.hypot(p[0]-b.g.position.x,p[1]-b.g.position.z),old=Math.hypot(prev[0]-b.g.position.x,prev[1]-b.g.position.z);return d<.34&&d<=old+1e-8;}))return false;
   }prev=p;}return true;};
   const original=route(new T.Vector2(...from),new T.Vector2(...to),.26,a.pen,avoid.map(b=>({x:b.g.position.x,z:b.g.position.z,hw:.08,hd:.08,radius:.08,c:1,s:0}))).map(v=>[v.x,v.y]);
   let previous=from;if(original.every((p,i)=>{const valid=line(previous,p,i===0);previous=p;return valid;}))return original.map(p=>[p[0],0,p[1]]);
   // Bounded fallback for this small enclosure only. The shared visibility
   // planner may ignore an obstacle containing either endpoint; care cannot.
-  const step=.16,nx=69,nz=64,count=nx*nz,valid=new Int8Array(count),dist=new Float64Array(count).fill(Infinity),parent=new Int32Array(count).fill(-1),done=new Uint8Array(count),heap=[],seedVia=new Map();
-  const xy=i=>[-16.1+(i%nx)*step,-5.4+Math.floor(i/nx)*step],free=i=>{if(!valid[i])valid[i]=point(xy(i))?1:-1;return valid[i]===1;};
+  const step=.16,x0=yard.layout.custom?Math.min(...yard.layout.polygon.map(p=>p[0]))+.4:-16.1,z0=yard.layout.custom?Math.min(...yard.layout.polygon.map(p=>p[1]))+.4:-5.4,nx=yard.layout.custom?Math.ceil((Math.max(...yard.layout.polygon.map(p=>p[0]))-.3-x0)/step):69,nz=yard.layout.custom?Math.ceil((Math.max(...yard.layout.polygon.map(p=>p[1]))-.3-z0)/step):64,count=nx*nz,valid=new Int8Array(count),dist=new Float64Array(count).fill(Infinity),parent=new Int32Array(count).fill(-1),done=new Uint8Array(count),heap=[],seedVia=new Map();
+  const xy=i=>[x0+(i%nx)*step,z0+Math.floor(i/nx)*step],free=i=>{if(!valid[i])valid[i]=point(xy(i))?1:-1;return valid[i]===1;};
   const push=(i,g)=>{const p=xy(i),item={i,f:g+Math.hypot(p[0]-to[0],p[1]-to[1])};heap.push(item);let n=heap.length-1;while(n){const up=(n-1)>>1;if(heap[up].f<=item.f)break;heap[n]=heap[up];n=up;}heap[n]=item;};
   const pop=()=>{const first=heap[0],last=heap.pop();if(heap.length){let n=0;while(n*2+1<heap.length){let child=n*2+1;if(child+1<heap.length&&heap[child+1].f<heap[child].f)child++;if(last.f<=heap[child].f)break;heap[n]=heap[child];n=child;}heap[n]=last;}return first.i;};
-  const cx=Math.round((from[0]+16.1)/step),cz=Math.round((from[1]+5.4)/step);
+  const cx=Math.round((from[0]-x0)/step),cz=Math.round((from[1]-z0)/step);
   for(let z=Math.max(0,cz-5);z<=Math.min(nz-1,cz+5);z++)for(let x=Math.max(0,cx-5);x<=Math.min(nx-1,cx+5);x++){const i=z*nx+x,p=xy(i);if(free(i)&&line(from,p,true)){dist[i]=Math.hypot(p[0]-from[0],p[1]-from[1]);push(i,dist[i]);}}
   // A legal boundary strip can be narrower than a grid cell. Connect its
   // start through real inflated obstacle corners, retaining the same physical
   // clearance and line checks, rather than leaving it outside the graph.
   if(!heap.length)for(const [bx,bz,hw,hd]of blockers)for(const sx of [-1,1])for(const sz of [-1,1]){
    const corner=[bx+sx*(hw+.181),bz+sz*(hd+.181)];if(!point(corner)||!line(from,corner,true))continue;
-   const xx=Math.round((corner[0]+16.1)/step),zz=Math.round((corner[1]+5.4)/step),lead=Math.hypot(corner[0]-from[0],corner[1]-from[1]);
+   const xx=Math.round((corner[0]-x0)/step),zz=Math.round((corner[1]-z0)/step),lead=Math.hypot(corner[0]-from[0],corner[1]-from[1]);
    for(let z=Math.max(0,zz-5);z<=Math.min(nz-1,zz+5);z++)for(let x=Math.max(0,xx-5);x<=Math.min(nx-1,xx+5);x++){
     const i=z*nx+x,p=xy(i),g=lead+Math.hypot(p[0]-corner[0],p[1]-corner[1]);if(g<dist[i]&&free(i)&&line(corner,p)){dist[i]=g;seedVia.set(i,corner);push(i,g);}
    }
@@ -75,7 +78,7 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   const ox=a.g.position.x,oz=a.g.position.z,A=accessFor(task),s=task.station,here=yard.sampleStationSupport(s.id,ox,oz),next=yard.sampleStationSupport(s.id,x,z);
   if(task.groundOverlap&&here.height===0)task.groundOverlap=false;
   if((!task.access&&next.height>1e-8&&!(task.groundOverlap&&next.height<=here.height))||(!task.groundOverlap&&Math.abs(next.height-here.height)>.08)||!clearPoint(x,z))return false;
-  if(x<-16.2||x>-5.2||z<-5.5||z>4.7)return false;
+  if(!inside(x,z))return false;
   const rampGoal=p[0]===A.rampStart[0]&&p[2]===A.rampStart[2],outsideGoal=p[0]===A.outside[0]&&p[2]===A.outside[2],accessLeg=task.access||rampGoal||(outsideGoal&&z>=oz-1e-8);
   if(yard.layout.obstacles.some(([bx,bz,hw,hd],i)=>!(i===0&&next.inside&&here.inside)&&!(i===(A.obstacle??1)&&accessLeg&&((next.inside&&here.inside)||(Math.abs(x-A.entry[0])<=.6&&z>=A.rampEnd[2]&&z<=A.outside[2])))&&Math.abs(x-bx)<hw+.18&&Math.abs(z-bz)<hd+.18&&!(Math.abs(ox-bx)<hw+.18&&Math.abs(oz-bz)<hd+.18&&Math.min(hw+.18-Math.abs(x-bx),hd+.18-Math.abs(z-bz))<Math.min(hw+.18-Math.abs(ox-bx),hd+.18-Math.abs(oz-bz))-1e-6)))return false;
   return neighbours().every(b=>b===a||b.gone||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.34||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-6);
@@ -129,7 +132,7 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   // Departing sleepers have the lane first; cosmetic visits resume afterward.
   if(!night&&!wet&&[...tasks.values()].some(task=>task.kind==='bed'&&!task.nap))wakeUntil=t+2;
   if(!a.chickenTask&&t>wakeUntil){
-   if(night||wet||a.need.tired>.85){if(request(a,'bed'))a.chickenTask.nap=!night&&!wet;}
+   if((night||wet||a.need.tired>.85)&&t>=(a.postNightAwakeUntil??0)){if(request(a,'bed'))a.chickenTask.nap=!night&&!wet;}
    else if(a.need.hunger>.35&&supplies.feedMs>0&&t>(a.chickenMealAt||0))request(a,'feed');
    else if(t>(a.chickenDrinkAt??25+a.ref.i)&&supplies.waterMs>0)request(a,'drink');
   }
@@ -163,7 +166,11 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
    // waypoint. Aim beyond that intermediate point; the same physical steps
    // still steer around the sleeper, walls and support edges. Never skip docks
    // or height transitions needed for the doorway/ramp.
-   if(task.stage==='approach'&&task.kind==='bed'&&task.groundLeg===false&&a.g.position.y>.1)while(task.path.length>1){const p=task.path[0],next=task.path[1];if(p[1]<=.1||p[1]!==next[1]||!neighbours().some(b=>b!==a&&b.chickenTask?.kind==='bed'&&b.chickenTask.stage==='hold'&&Math.abs(b.g.position.y-p[1])<.08&&Math.hypot(b.g.position.x-p[0],b.g.position.z-p[2])<.34))break;task.path.shift();task.detour=null;}
+   // A later bedtime can begin while a bird is already on the raised floor.
+   // In that case groundLeg may still be true even though both next waypoints
+   // are on the same supported floor. Only bypass an occupied intermediate
+   // waypoint; the dock and every physical step remain mandatory.
+   if(task.stage==='approach'&&task.kind==='bed'&&a.g.position.y>.1)while(task.path.length>1){const p=task.path[0],next=task.path[1];if(p[1]<=.1||p[1]!==next[1]||!neighbours().some(b=>b!==a&&b.chickenTask?.kind==='bed'&&b.chickenTask.stage==='hold'&&Math.abs(b.g.position.y-p[1])<.08&&Math.hypot(b.g.position.x-p[0],b.g.position.z-p[2])<.34))break;task.path.shift();task.detour=null;}
    const p=task.path[0];task.access=task.kind==='bed'&&((p?.[1]||0)>0||a.g.position.y>1e-6);
    if(p){const d=Math.hypot(p[0]-ox,p[2]-oz);walk(a,task,p,dt,t);if(d<.008){task.path.shift();task.detour=null;if(task.kind==='bed'&&p===A.rampStart)task.groundLeg=false;if(task.stage==='exit'&&p===A.outside)task.groundLeg=true;}}
    else if(task.stage==='exit'){release(a);a.need.tired=0;a.act='idle';a.until=t+1;}
@@ -190,5 +197,53 @@ export function createChickenStationController({yard,route,neighbours,updateRig,
   }
   return true;
  }
- return {scheduler,request,update,release};
+ function snapshotLayout(){
+  return {revision,tokens:scheduler.snapshot(),wakeUntil,lanes:[...lanes].map(([lane,t])=>({lane,animalId:t.token.animalId})),tasks:[...tasks].map(([animalId,t])=>({animalId,stationId:t.station.id,kind:t.kind,stage:t.stage,held:t.held,weight:t.weight,blocked:t.blocked,nap:t.nap,order:t.order}))};
+ }
+ function prepareLayoutRebind({site,now,placements,waiting}){
+  if(site.kind!=='chicken'||!Number.isFinite(now))throw new Error('Invalid chicken care revision');
+  const layout=animalPenYardLayout(site),stations=site.stations,accesses=site.accesses,delta=site.components.coop.delta;
+  // Capture immutable layout data only; retaining the previous yard here would
+  // retain its disposed meshes across every subsequent edit.
+  function sampleStationSupport(id,x,z){
+   if(!stations.some(s=>s.id===id))return {height:0,normal:[0,1,0],inside:false};
+   for(const A of accesses)if(Math.abs(x-A.entry[0])<=.6&&z>=A.rampEnd[2]-1e-8&&z<=A.rampStart[2]+1e-8)return {height:A.floor*Math.max(0,Math.min(1,(A.rampStart[2]-z)/(A.rampStart[2]-A.rampEnd[2]))),normal:[0,Math.cos(A.pitch),Math.sin(A.pitch)],inside:true};
+   if(x>=-14.25+delta[0]&&x<=-8.55+delta[0]&&z>=-4.58+delta[1]&&z<=.35+delta[1])return {height:accesses[0].floor,normal:[0,1,0],inside:true};
+   return {height:0,normal:[0,1,0],inside:false};
+  }
+  const next={layout,stations,accesses,access:accesses[0],sampleStationSupport},updates=[];
+  for(const a of neighbours().filter(a=>!a.gone)){
+   const id='hen-'+a.ref.i,position=placements[id],task=a.chickenTask,station=task?stations.find(s=>s.id===task.station.id):null,back=waiting?.[id];
+   if(!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite))throw new Error('Missing validated chicken placement '+id);
+   if(task&&(!station||!Array.isArray(back)||back.length!==3||!back.every(Number.isFinite)))throw new Error('Missing reserved station or validated waiting position '+id);
+   updates.push({a,task,station,position:[...position],back:back?[...back]:null});
+  }
+  let state='prepared';
+  return {revision:site.revision,publish(){
+   if(state==='published')return;if(state!=='prepared')throw new Error('Chicken revision '+state);
+   if(updates.some(u=>u.a.chickenTask!==u.task))throw new Error('Stale chicken care revision');
+   yard=next;revision=site.revision;byId.clear();for(const s of stations)byId.set(s.id,s);
+   for(const {a,task,station,position,back}of updates){
+    a.g.position.fromArray(position);a.path=null;a.target=null;a.vel.set(0,0);a.chickenYield=null;
+    if(!task)continue;
+    task.station=station;task.returnPoint=back;task.contact=station.contact?new T.Vector3(...station.contact):null;
+    task.path=null;task.detour=null;task.progressKey=null;task.blocked=0;task.replans=0;task.replanAt=now;task.groundGoal=null;task.groundTail=[];
+    a.rig3d.sampleSupport=(x,z)=>task.access?sampleStationSupport(station.id,x,z).height:0;
+    if(task.stage==='exit'){task.path=exitPath(a,task);}
+    else if(task.stage==='approach'&&task.kind==='bed'){
+     const A=accessFor(task);
+     if(position[1]===0){task.groundLeg=true;task.groundGoal=A.outside;task.groundTail=station.path;task.path=[...pathTo(a,A.outside),...station.path];}
+     else{
+      // Resume on the nearest authored ramp/interior segment, retaining its
+      // forward waypoints and the original physical per-frame step checks.
+      let best=Infinity,index=0;const path=station.path;
+      for(let i=0;i<path.length-1;i++){const p=path[i],q=path[i+1],v=q.map((n,k)=>n-p[k]),length=v.reduce((n,k)=>n+k*k,0),u=Math.max(0,Math.min(1,position.reduce((n,k,j)=>n+(k-p[j])*v[j],0)/(length||1))),d=Math.hypot(...position.map((n,k)=>n-p[k]-v[k]*u));if(d<best){best=d;index=i+1;}}
+      task.path=path.slice(index);task.groundLeg=false;
+     }
+    }
+   }
+   state='published';
+  },dispose(){if(state==='prepared')state='disposed';}};
+ }
+ return {scheduler,request,update,release,snapshotLayout,prepareLayoutRebind};
 }

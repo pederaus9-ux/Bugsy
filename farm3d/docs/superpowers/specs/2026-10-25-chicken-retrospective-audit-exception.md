@@ -1,0 +1,7 @@
+# A23: accepted retrospective chicken scope-audit exception
+
+Owner approval 2026-10-25 11:41 UTC, Sentinel_c16806660e4481919ff1a5cc33898beb: **"Yes"**, answering Sentinel_5403818ddfb88191b2cd635083c30057: "The chicken review found a process mistake: one earlier fix lacked the required before-edit record. Git history verifies exactly what changed, but it cannot make that missing record retroactive. May I document that exception and update the protected-file checksum to those audited bytes? No chicken behavior or tests would change."
+
+This is a retrospective exception, NOT a reconstructed pre-edit gate. ed0c09a15c079e9d4cffa03c9d293bb7d973779a has A17's named wake condition record. Its direct child e420efd63977d477707e41a6a277d36f796b36f1 removes only the stale groundLeg requirement on an occupied intermediate raised-floor waypoint and adds explanatory comments, but lacks A14's required separate pre-edit intent/hash entry. Immutable trees and the unchanged five-control retrospective test prove exact scope.
+
+Before registration, current chicken-stations.js is byte-identical to e420efd, SHA256 e4b680d02ce0c6485377bcd9acbb1cf99ae7663d69bce717469f3a71587dae4c. Previous reviewed digest2c4293ab5216a2cc88fb5ae6a1587a45537919b1af4027a0ae72e8ae05a5c065 and frozen predecessor remain recorded. Register these exact audited bytes only; no chicken behavior/test changes or future lock bypass. Existing runtime source and all negative controls remain unchanged. No upload, Site, merge or deployment.

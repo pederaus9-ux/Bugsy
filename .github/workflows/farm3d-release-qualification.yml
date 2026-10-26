@@ -12,6 +12,13 @@ on:
       - 'farm3d/index.html'
       - '.github/workflows/farm3d-release-qualification.yml'
   workflow_dispatch:
+    inputs:
+      qualification_set:
+        description: Select all checks, cache/recovery, or the A31 recovery-only diagnostic
+        type: choice
+        required: true
+        default: all
+        options: [all, affected-cache-recovery, affected-recovery, a35-fixtures-integrity, a38-cache-only]
 permissions:
   contents: read
 concurrency:
@@ -20,6 +27,7 @@ concurrency:
 jobs:
   conflicts:
     name: Same-account conflicting saves (emulator)
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.qualification_set == 'all' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -50,5 +58,224 @@ jobs:
         with:
           name: farm3d-release-conflicts-${{ github.run_attempt }}
           path: farm3d/firebase/artifacts/
+          if-no-files-found: error
+          retention-days: 14
+  a35_fixtures_integrity:
+    name: Consolidated fixtures and supplemental fresh-context integrity
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set == 'a35-fixtures-integrity' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Fetch immutable historical test inputs
+        run: git fetch --no-tags --depth=1 origin 806182677159e955cab914fcd0a1c2c0d197dbab 4c3335ac80393aaf261ebac87a5c3da062982ba7 1115f93101a0e86fdcc9780e053c17b73dd6dac5 bf404a2a1261f3c7581025b249f2bd00c4539964
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Install locked test dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned sandboxed Chromium
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Record exact source and disposable browser paths
+        run: |
+          mkdir -p artifacts/a35
+          git rev-parse HEAD > artifacts/a35/source-sha.txt
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Original affected fixtures and shared dependents with added controls
+        run: node --test farm3d/tests/animal-pen-cow-runtime.test.mjs farm3d/tests/animal-pen-cow-wait-route.test.mjs farm3d/tests/animal-pen-route-recovery.test.mjs farm3d/tests/animal-pen-scene-routing.test.mjs farm3d/tests/remaining-care-pet-collision.test.mjs farm3d/tests/remaining-care-decisions.test.mjs farm3d/tests/remaining-care-beast.test.mjs
+      - name: Preserved historical v71 to v72 transition
+        if: ${{ !cancelled() }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v71-v72
+        run: node farm3d/tests/animal-pen-cache-v71-to-v72.browser.cjs
+      - name: Preserved main v63 to v73 transition
+        if: ${{ !cancelled() }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v63-v73
+        run: node farm3d/tests/animal-pen-cache-main-v63-to-v73.browser.cjs
+      - name: Original cow predecessor to current installed candidate
+        if: ${{ !cancelled() }}
+        run: node farm3d/tests/cow-update.browser.cjs
+      - name: Supplemental integrity controls and isolated demo scenario
+        if: ${{ !cancelled() }}
+        working-directory: farm3d/firebase
+        run: |
+          node tests/quota-state-integrity.browser.cjs --controls
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/quota-state-integrity.browser.cjs"
+      - name: Retain separate small outcomes without raw console logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-a35-fixtures-integrity-${{ github.run_attempt }}
+          path: |
+            artifacts/a35/source-sha.txt
+            artifacts/a35/**/results.json
+            farm3d/tests/artifacts/cow-update/results.json
+            farm3d/firebase/artifacts/quota-state-integrity.json
+          if-no-files-found: error
+          retention-days: 14
+  pen_cache:
+    name: Targeted pen, restore guards and installed cache transitions
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'affected-recovery' && inputs.qualification_set != 'a35-fixtures-integrity' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Fetch and verify immutable v74 input (A38 only)
+        if: ${{ inputs.qualification_set == 'a38-cache-only' }}
+        run: |
+          git fetch --no-tags --depth=1 origin 4e91a6628bb53b709b5ef643551651a44180ab94
+          test "$(git rev-parse FETCH_HEAD)" = "4e91a6628bb53b709b5ef643551651a44180ab94"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Record exact source
+        run: |
+          mkdir -p artifacts/a29/pen-cache
+          git rev-parse HEAD | tee artifacts/a29/pen-cache/source-sha.txt
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Install locked browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Configure disposable browser paths
+        run: |
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Original selected 49 focused checks
+        if: ${{ success() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
+        run: |
+          set -o pipefail
+          node --test farm3d/tests/restore-recovery.test.mjs farm3d/tests/restore-recovery-scope.test.mjs farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/ordinary-layout-transaction.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/versions.test.mjs farm3d/tests/sdk.test.mjs 2>&1 | tee artifacts/a29/pen-cache/focused.log
+      - name: Historical source resolver and corruption controls
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
+        run: |
+          set -o pipefail
+          node --test farm3d/tests/qualification-source.test.cjs 2>&1 | tee artifacts/a29/pen-cache/source-controls.log
+      - name: Original installed v72 to v73 transition
+        if: ${{ !cancelled() && inputs.qualification_set != 'a38-cache-only' }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v72-v73
+        run: |
+          set -o pipefail
+          node farm3d/tests/animal-pen-cache-v72-to-v73.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v72-v73.log
+      - name: Original installed v73 to current v74 transition
+        if: ${{ !cancelled() && inputs.qualification_set != 'a38-cache-only' }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v73-v74
+        run: |
+          set -o pipefail
+          node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v73-v74.log
+      - name: Installed v74 to v75 auth update (A38 only)
+        if: ${{ !cancelled() && inputs.qualification_set == 'a38-cache-only' }}
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v74-v75
+        run: node farm3d/tests/animal-pen-cache-v74-to-v75.browser.cjs
+      - name: Original gate relocation seed1 at120Hz three-night journey
+        if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
+        env:
+          PEN_MATRIX_EDIT_CLASS: gate
+          PEN_MATRIX_SEED: '1'
+          PEN_MATRIX_RATE_HZ: '120'
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/gate-1-120
+        run: |
+          set -o pipefail
+          node farm3d/tests/animal-pen-three-night-extra-classes.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/gate-1-120.log
+      - name: Retain source, results and original failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-a29-pen-cache-${{ github.run_attempt }}
+          path: artifacts/a29/pen-cache/
+          if-no-files-found: error
+          retention-days: 14
+  recovery_restore:
+    name: Original recovery and interrupted manual restore (demo emulators)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification_set != 'a35-fixtures-integrity' && inputs.qualification_set != 'a38-cache-only' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Record exact source
+        run: |
+          mkdir -p artifacts/a29/recovery
+          git rev-parse HEAD | tee artifacts/a29/recovery/source-sha.txt
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Install locked emulator and browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Original 27 recovery checks with bounded quota diagnostic
+        working-directory: farm3d/firebase
+        run: |
+          set -o pipefail
+          touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/execution-start"
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/recovery.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/recovery-restore.log"
+      - name: Preserve recovery evidence before independent emulator reset
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p artifacts/a29/recovery/original-recovery
+          cp -a farm3d/firebase/artifacts/. artifacts/a29/recovery/original-recovery/
+          for file in farm3d/firebase/*debug.log; do
+            if test -f "$file"; then cp "$file" artifacts/a29/recovery/original-recovery/; fi
+          done
+      - name: Three independent A28 manual-restore groups
+        if: ${{ !cancelled() }}
+        working-directory: farm3d/firebase
+        run: |
+          set -o pipefail
+          touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-execution-start"
+          npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/manual-restore.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-restore.log"
+      - name: Preserve fresh manual-restore receipts from disposable checkout
+        if: always()
+        run: |
+          source=farm3d/tests/evidence/pen-editing-implementation/task8-codex-restore-repair-20261025/emulator
+          for file in manual-restore.json restored.png; do
+            if test -f artifacts/a29/recovery/manual-execution-start && test "$source/$file" -nt artifacts/a29/recovery/manual-execution-start; then
+              cp "$source/$file" "artifacts/a29/recovery/$file"
+            else
+              echo "No fresh $file receipt generated" >> artifacts/a29/recovery/missing-fresh-receipts.txt
+            fi
+          done
+      - name: Retain recovery outcomes and original failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: farm3d-a29-recovery-${{ github.run_attempt }}
+          path: |
+            artifacts/a29/recovery/
+            farm3d/firebase/artifacts/
+            farm3d/firebase/*debug.log
           if-no-files-found: error
           retention-days: 14

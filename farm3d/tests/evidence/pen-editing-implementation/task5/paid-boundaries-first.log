@@ -1,0 +1,78 @@
+✔ successful Apply preserves farm identity, writes once and notifies after publication (9.49465ms)
+✔ quota failure preserves stored bytes and old live layout and writer (4.231287ms)
+✔ persisted candidate survives publication failure and old writes are blocked (6.10948ms)
+✔ prepare failure and stale world reject without storage or publication (6.132585ms)
+✔ ordinary ticks do not stale a draft; another layout revision does (2.64366ms)
+✔ unknown saved templates block ordinary writes without discarding bytes (5.697539ms)
+✔ invalid candidate, overflow revision and account swap cannot write (9.860072ms)
+✔ Apply paid settlement equals ordinary save at the same clock (9.472706ms)
+✔ Apply retains exact paid state at robot boundary 11999ms (8.503204ms)
+✖ Apply retains exact paid state at robot boundary 12000ms (25.864216ms)
+✔ robot completion during failed prepare equals ordinary paid settlement (8.648022ms)
+✔ robot completion during failed storage equals ordinary paid settlement (11.428268ms)
+✔ supplies expiring during a draft settle exactly as an ordinary save (10.261908ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.171534
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-save.test.mjs:17:36
+✖ Apply retains exact paid state at robot boundary 12000ms (25.864216ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      ach: {},
+      barn: {
+        corn: 2,
+        wheat: 3
+  ...
+            got: 0,
+  +         m: 'harvest',
+  +         n: 12,
+  -         m: 'love',
+  -         n: 4,
+            prog: 0
+          },
+          {
+            got: 0,
+  +         m: 'milk',
+  +         n: 4,
+  +         prog: 1
+  -         m: 'orders',
+  -         n: 2,
+  -         prog: 0
+          },
+          {
+            got: 0,
+  +         m: 'market',
+  +         n: 40,
+  -         m: 'harvest',
+  -         n: 12,
+            prog: 0
+          }
+        ]
+      },
+      rush: null,
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-save.test.mjs:19:173)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { coins: 60, gems: 5, xp: 3, level: 1, barn: { wheat: 3, corn: 2 }, barnCap: 50, barnUps: 0, plots: [ [Object], [Object], [Object], [Object], [Object], [Object] ], stand: { slots: 4, list: [Array] }, decor: { inv: {}, placed: [] }, event: null, nextEventAt: 0, holidayDone: {}, lastCrop: 'wheat', pens: { chicken: [Object], cow: [Object], sheep: [Object], horse: [Object] }, pets: [], buildings: { feedmill: [Object], bakery: [Object], sugarmill: [Object], dairy: [Object], kitchen: [Object], loom: [Object] }, orders: [], lastDaily: '', stats: { orders: 0, harvests: 0, made: 0, earned: 0, gold: 0, water: 0, visitors: 0, rush: 0, bestCombo: 0, helped: 0 }, style: {}, tut: 0, gold: {}, sprinklers: 0, land: 0, perks: { grow: 0, sell: 0, owed: 0 }, quests: { day: '2030-03-18', list: [Array], bonus: 0 }, ach: {}, museum: {}, rush: null, nextRushAt: 0, visitor: null, nextVisitorAt: 0, villagers: {}, lastSeen: 1900000192000, streak: { n: 0, last: '' }, seasonTrack: { key: '2030-summer', ssn: 'summer', pts: 2, won: 0 }, look: null, unlocks: {}, layout: { b: {}, t: {} } },
+    expected: { coins: 60, gems: 5, xp: 3, level: 1, barn: { wheat: 3, corn: 2 }, barnCap: 50, barnUps: 0, plots: [ [Object], [Object], [Object], [Object], [Object], [Object] ], stand: { slots: 4, list: [Array] }, decor: { inv: {}, placed: [] }, event: null, nextEventAt: 0, holidayDone: {}, lastCrop: 'wheat', pens: { chicken: [Object], cow: [Object], sheep: [Object], horse: [Object] }, pets: [], buildings: { feedmill: [Object], bakery: [Object], sugarmill: [Object], dairy: [Object], kitchen: [Object], loom: [Object] }, orders: [], lastDaily: '', stats: { orders: 0, harvests: 0, made: 0, earned: 0, gold: 0, water: 0, visitors: 0, rush: 0, bestCombo: 0, helped: 0 }, style: {}, tut: 0, gold: {}, sprinklers: 0, land: 0, perks: { grow: 0, sell: 0, owed: 0 }, quests: { day: '2030-03-18', list: [Array], bonus: 0 }, ach: {}, museum: {}, rush: null, nextRushAt: 0, visitor: null, nextVisitorAt: 0, villagers: {}, lastSeen: 1900000192000, streak: { n: 0, last: '' }, seasonTrack: { key: '2030-summer', ssn: 'summer', pts: 2, won: 0 }, look: null, unlocks: {}, layout: { b: {}, t: {} } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

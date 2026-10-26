@@ -1,0 +1,68 @@
+{
+  "approvedDesign": "a2f0b8c5faa09fe5da96f35e4609185ffd1ace2c",
+  "approvedPlan": "a1c583bc1733e8b80decbc4407ad62dca5ced871",
+  "scope": "Explicit owner-approved pen-layout exceptions; old protected fixture remains frozen. New exact digests supplement real default-geometry and care/save compatibility gates. No authority to change rig, ledger, auth, land or path bytes. Land exceptions: A1 levels the west horse strip, and A6 adds only an immediate buildable-land mask starting with the level north-east tract without changing terrain heights (docs/superpowers/specs/2026-10-24-immediate-buildable-land-proposed-amendment.md), explicitly approved by the owner on 2026-10-24. Sole path exception: farm-path.js turns the diagonal leg into a right-angle corner so the horse paddock can be square under amendment A2 (docs/superpowers/specs/2026-10-22-player-editable-pens-amendment-square-horse-paddock.md), chosen by the owner on 2026-10-22. Narrow rig exception A3: only cow3d.js::updateCow3D heading and hoof reach/release/recovery under docs/superpowers/specs/2026-10-23-cow-turn-release-amendment.md, owner Okay on 2026-10-23; all other rig bytes remain frozen.",
+  "files": {
+    "cow-yard.js": {
+      "previousSha256": "677c4140b118f085f242480e36fe9d5435532e9fd8d938b2605d7a58e5e8cabb",
+      "reviewedSha256": "742127bce311d51b0f0f08c8d06ee42b2d22da84358fd692eed436e80e29235f",
+      "priorReviewedSha256A21": "cff13ae644221cdbb71933c02fc296cf627377937f83afeb7f0ab2788037f47b",
+      "amendment": "A21-robot-gate-parking",
+      "scope": "Only parked-open transforms, exact dynamic gate bounds and explanatory comment in createCowYard/setStatus. Preimage/negative-scope guard: cow-robot-gate-lock.test.mjs. Closed meshes/transforms exact; all other cow-yard bytes frozen."
+    },
+    "chicken-yard.js": {
+      "previousSha256": "3b692e8cc4e32e150b2977e33a3ab9aa8d678ee61744284662ac97cc9d5da0a0",
+      "reviewedSha256": "1248b7bc8fa9fc0c0f2be08ba9a5ca97e4b8f42470e44e777ba5e55524094b0a"
+    },
+    "chicken-stations.js": {
+      "previousSha256": "d8dd00c3c6bd6fc73782768ae9c0f56abc8970565ab9f6de602abe601af7b47d",
+      "reviewedSha256": "2c4293ab5216a2cc88fb5ae6a1587a45537919b1af4027a0ae72e8ae05a5c065"
+    },
+    "game.js": {
+      "previousSha256": "1b4e0f8385c18aeece9ec552e0f9ad569e53a3c9f6aa4dc98247c82d6d3bc307",
+      "reviewedSha256": "f0e809fda7038d1fb5d78d671e2c2f5d5e21cf4aeba642a1647c23a0fca5e32a",
+      "priorReviewedSha256": "c6b7a17a20e6a53f6a9b9fee8de5167f314949a9e74754546b64c9007ef20bfd",
+      "amendment": "A7-suitable-grass",
+      "scope": {
+        "start": "// ---------- save versions ----------",
+        "end": "// ---------- inventory ----------",
+        "prefixSha256": "a8ee1a850875994a7f63cae2c4450876533a40b160a53b2a3df91f67b3d53ccd",
+        "suffixSha256": "3dcdb951695c5fe046b8971853be9b75f8b90fb7a9de90aa705221dfc5fd1627"
+      }
+    },
+    "farm-land.js": {
+      "previousSha256": "a699c58b6394c9e77f0c7dc2d8361956d0e2db528b4e3d47fd87d0474499c35a",
+      "reviewedSha256": "ffbdffffdf01ee6b54575b60daf872d30375c87e02eb172b526eef3e6cdc66ee",
+      "amendment": "A6-buildable-mask-A8-player-clamp",
+      "priorReviewedSha256A8": "e5eb9821f1e06c3cffa316ff370ae11271da815f473917c41e64986b17907bff",
+      "priorReviewedSha256": "6a739a8a18ed838f7e23fd37cfaad1768a2e21185fbb1ee6b3cb2f089ac45b70",
+      "firstTractSha256": "d736eb4e62d24d2402ff1a12ab0edcd8feca45f2372cf471f25698a922d5b947",
+      "priorLevelClearingSha256": "13c639b261ea5f73ce946a4934200c82eca9f142f74f563ba5dd607c1b554614",
+      "scope": {
+        "start": "// The fully level part",
+        "end": "export function onFarm",
+        "prefixSha256": "9a31de2de76a551e79cb4e0c496a1abe1fa4c3e9733976e35b76ea7fcdb782d2",
+        "playerStart": "export function clampToFarm",
+        "terrainStart": "const smooth=",
+        "oldFarmSha256": "d9f5f61abe4d4cdf82e5b23fc98fe3851045ab253fa836a862815079d9990f54",
+        "playerSha256": "024abfb000b87fa16255a6bee31810334d6a59ad67c5c24ec604775807a0530d",
+        "terrainSha256": "b00ce1cb24c29849ed4af159cc177c97803f56c8cfca74dec649144a5cf4add5"
+      }
+    },
+    "farm-path.js": {
+      "previousSha256": "993d106615a1cdaee6379e230f35118c0e01450c27719a82795c8fba705db648",
+      "reviewedSha256": "7abd910b56c33d7a306380b8bbcdf313b0fa6b1b96a54ce82254f9075c826e05"
+    },
+    "cow3d.js": {
+      "previousSha256": "4d6c180cc70b8695a7e47ca792d7ddaf9311b9987b8ea34ad6a1e3821db87e44",
+      "reviewedSha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+      "amendment": "A3",
+      "scope": {
+        "start": "  let yawDelta = 0;",
+        "end": "  // B13: one deterministic attention",
+        "prefixSha256": "a2cd3dc9014c05dd93f547e3aa80ad6a31e18ad5a3f577843b49f9e6c1a3a3ca",
+        "suffixSha256": "53564e56b630655b1b7074eb06d0040b33603bdcf6951387f6157d3e531c7513"
+      }
+    }
+  }
+}

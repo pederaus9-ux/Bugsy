@@ -141,8 +141,8 @@ test('native page installs once, updates after native hands, and precaches its e
   requireCandidate();const html=readFileSync(new URL('../index.html',import.meta.url),'utf8'),sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   assert.equal((html.match(/import \{installPlayerMotion\} from "\.\/player-motion\.js\?v=1";/g)||[]).length,1);
   assert.equal((html.match(/const playerMotion = installPlayerMotion\(/g)||[]).length,1);
-  assert.match(html,/updateHands\(dt, t, tk\); playerMotion\.update\(dt, t\); updateDoors\(dt\)/);
-  assert.match(html,/getContext:\(\)=>\(\{walk,punch,thirdPerson,reducedMotion:G\.reducedMotion\(\),ground:walk\?groundY\(walk\.pos\.x,walk\.pos\.y\):0\}\)/);
+  assert.ok(/updateHands\(dt, t, tk\); playerMotion\.update\(dt, t\); updateDoors\(dt\)/.test(html),'native source contract');
+  assert.ok(/getContext:\(\)=>\(\{walk,punch,thirdPerson,reducedMotion:G\.reducedMotion\(\),ground:walk\?workshopWalkY\(walk\.pos\.x,walk\.pos\.y\):0\}\)/.test(html),'native source contract');
   const shell=JSON.parse(sw.match(/const SHELL = (\[[^\]]*\])/)[1]);assert.ok(shell.includes('player-motion.js?v=1'));
-  assert.doesNotMatch(html,/__playerMotion|__saPlayerStudy|playablePreview|previews\/player-motion/);
+  assert.ok(!/__playerMotion|__saPlayerStudy|playablePreview|previews\/player-motion/.test(html),'forbidden native source hook');
 });

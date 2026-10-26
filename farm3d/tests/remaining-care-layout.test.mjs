@@ -13,7 +13,7 @@ test('each supported horse/sheep has a spacious separate pen and stable bed, fee
  }
 });
 test('new sites do not intersect the accepted dairy footprint or stone path',()=>{
- assert.equal(typeof M.remainingCareLayouts,'function');const layouts=M.remainingCareLayouts(),cow=cowYardLayout(25),path=[[-1.4,8.1],[-18.4,8.1],[-18.4,-20.5],[-3.25,-25.5],[-3.25,-32.88]];
+ assert.equal(typeof M.remainingCareLayouts,'function');const layouts=M.remainingCareLayouts(),cow=cowYardLayout(25),path=[[-1.4,8.1],[-18.4,8.1],[-18.4,-18.6],[-3.25,-18.6],[-3.25,-32.88]];
  for(const l of [layouts.horse,layouts.sheep]){
   for(const p of cow.footprint)assert(!inside(l.polygon,...p));
   for(let i=1;i<path.length;i++)for(let t=0;t<=1;t+=.01){const a=path[i-1],b=path[i];assert(!inside(l.polygon,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,-.9),'stone approach intrudes into '+l.kind);}

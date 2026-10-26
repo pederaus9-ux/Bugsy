@@ -1,0 +1,71 @@
+✔ concaveNotchRejectsCrossing (1.444061ms)
+✔ windingAndBoundaryDoNotChangeContainment (0.202726ms)
+✔ continuousClearanceRejectsExitReentryAndGrazing (0.352953ms)
+✔ nearestLegalPointHandlesConcaveInsetAndImpossibleClearance (3.420716ms)
+✔ degenerateAndNonfiniteGeometryCannotBeInside (0.174193ms)
+✔ negativeClearanceProjectsToTheExpandedBoundary (0.414236ms)
+✔ continuousObstacleClearanceIncludesRotatedRectanglesAndCircles (0.420294ms)
+✔ defaultsMatchFrozenPR95 (11.337048ms)
+✔ unknownTemplateIsReadOnly (0.323438ms)
+✔ invalidSchemaHasNoSideEffects (3.452133ms)
+✔ customComponentsCarryTheirStationAndColliderCoordinates (3.282476ms)
+✔ missingGateEdgeIsAnEditableInvalidDraftNotADroppedGate (3.407355ms)
+✔ petSitesCannotAcquireFenceTools (0.242486ms)
+✔ payloadLimitCountsUtf8AndRejectsCyclicObjectsWithoutMutation (251.130828ms)
+✔ translatedWaitingPositionsAreMovedOnce (3.491392ms)
+✔ legacyHorseLandIsEditable (9.309127ms)
+✔ continuousFootprintCannotBridgeOffFarm (0.606315ms)
+✔ all46PlacementsAreDistinct (810.320191ms)
+✔ interiorRunCannotCutBedRoute (732.250229ms)
+✔ everyGateHasTwoClearApproaches (729.970579ms)
+✔ areaAndGateFloorsApplyToEachSpecies (5711.561145ms)
+✔ wholeComponentCrossingStonePathCannotPassByCentre (730.107661ms)
+✔ movedBuildingCannotUseUnsupportedTerrain (738.900312ms)
+✔ newPaidObstacleCannotBeGrandfatheredAsBaselineScenery (715.800067ms)
+✔ crossedBoundaryAndTouchingInteriorRunsAreRejected (1502.554703ms)
+✔ boundedSearchReturnsDiagnosticsForImpossibleStaging (506.407078ms)
+✔ baselineValidationCompletesWithinBoundedBudget (850.942663ms)
+✔ enlargedFenceCannotCutNewDecorAtItsMidpoint (748.650711ms)
+✔ paidObjectInsideExpandedAreaCannotBeIgnored (741.327266ms)
+✖ occupiedCoopBedRetainsItsLocalSupportFrame (705.521515ms)
+✔ bothCoopDoorwaysHaveSeparateProofs (719.952293ms)
+✔ legalNookMovePreservesWorldAndOwnership (708.739582ms)
+✔ fallbackOtherSiteDoesNotBlockAnUnrelatedLegalEdit (712.830365ms)
+✔ secondMoveUsesDifferenceFromInstalledOrigin (693.714728ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 33
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18189.757767
+
+✖ failing tests:
+
+test at farm3d/tests/animal-pen-validation.test.mjs:19:1
+✖ occupiedCoopBedRetainsItsLocalSupportFrame (705.521515ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      -12.299999999999999,
+      0.67305,
+  +   -3.8500000000000005
+  -   -3.85
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69b474674da0/Bugsy-pen-implementation/farm3d/tests/animal-pen-validation.test.mjs:19:284)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -12.299999999999999, 0.67305, -3.8500000000000005 ],
+    expected: [ -12.299999999999999, 0.67305, -3.85 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

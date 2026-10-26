@@ -1,0 +1,931 @@
+{
+  "status": "PASS",
+  "view": "390x844",
+  "input": "Trusted Playwright mouse/keyboard; unexpected capture loss and quota explicitly injected through browser APIs; debug setup/observations only",
+  "drawingScale": 0.5,
+  "physicalDevice": false,
+  "hashes": {
+    "index.html": "776e87d489f35b43ceabae8205ac991223824095076552a783a77ca305bdd7c3",
+    "animal-pen-editor-view.js": "e817c7a979d29c6019cb025fb35798764c306665e473fd2b6676cd97be92402d",
+    "animal-pen-editor.js": "5ea2706a1735b22c9e0245650b366358d70a33c929c0d61171ec4e90b102466c"
+  },
+  "steps": [
+    {
+      "name": "entry focus observation",
+      "value": {
+        "inside": true,
+        "visible": true,
+        "label": "Animal"
+      }
+    },
+    {
+      "name": "native Tab stays within editor",
+      "value": "PASS"
+    },
+    {
+      "name": "native canvas focus then Tab returns to editor",
+      "value": "PASS"
+    },
+    {
+      "name": "handle hit target",
+      "value": {
+        "a": {
+          "x": 168.0625,
+          "y": 354.109375
+        },
+        "b": {
+          "x": 144.0625,
+          "y": 330.109375,
+          "width": 48,
+          "height": 48
+        },
+        "hit": "Drag selected pen item"
+      }
+    },
+    {
+      "name": "unexpected capture-loss fault cancels only active native drag",
+      "value": "PASS: native drag plus browser-API fault trigger"
+    },
+    {
+      "name": "native focused handle keyboard nudge",
+      "value": "PASS"
+    },
+    {
+      "name": "native Escape and Keep editing preserve draft",
+      "value": "PASS"
+    },
+    {
+      "name": "quota fault preserves draft/save/installed revision",
+      "value": {
+        "revision": 0,
+        "reason": "The layout could not be saved. Your draft is still here.",
+        "saveSha": "895cc6b7adb85e2e9e0d8b7299aa0c20fa400f563f16d5993c58a2cc818f90b8"
+      }
+    },
+    {
+      "name": "fault recovery Apply and focus restoration",
+      "value": "PASS"
+    },
+    {
+      "name": "reload",
+      "value": "PASS"
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "playwright": "1.62.1",
+  "inputs": [
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 7904.800000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 7921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 8199.200000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 8199.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "editBtn"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 9677.600000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 9686.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 9740.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 9740.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "animalPensBtn"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9786.100000023842,
+      "key": "Tab",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9798.40000000596,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9809.300000011921,
+      "key": "Tab",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9817.40000000596,
+      "key": "Tab",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9825.200000017881,
+      "key": "Tab",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9832.40000000596,
+      "key": "Tab",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9840.40000000596,
+      "key": "Tab",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9851.600000023842,
+      "key": "Tab",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9861.40000000596,
+      "key": "Tab",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9869.700000017881,
+      "key": "Tab",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9877.100000023842,
+      "key": "Tab",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9884.5,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9891.200000017881,
+      "key": "Tab",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9897.90000000596,
+      "key": "Tab",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9905.600000023842,
+      "key": "Tab",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9913,
+      "key": "Tab",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9920.600000023842,
+      "key": "Tab",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9926.600000023842,
+      "key": "Tab",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9933.200000017881,
+      "key": "Tab",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9939.600000023842,
+      "key": "Tab",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9947,
+      "key": "Tab",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9954.300000011921,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9963,
+      "key": "Shift",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9963.40000000596,
+      "key": "Tab",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9971,
+      "key": "Shift",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9971.200000017881,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9977.40000000596,
+      "key": "Shift",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9977.700000017881,
+      "key": "Tab",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9984.100000023842,
+      "key": "Shift",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9984.300000011921,
+      "key": "Tab",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9990.600000023842,
+      "key": "Shift",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9991,
+      "key": "Tab",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9998.40000000596,
+      "key": "Shift",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 9998.800000011921,
+      "key": "Tab",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10004,
+      "key": "Shift",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10004.300000011921,
+      "key": "Tab",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10010.800000011921,
+      "key": "Shift",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10011.200000017881,
+      "key": "Tab",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10017.40000000596,
+      "key": "Shift",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10017.700000017881,
+      "key": "Tab",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10024.5,
+      "key": "Shift",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10024.90000000596,
+      "key": "Tab",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10032.5,
+      "key": "Shift",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10032.800000011921,
+      "key": "Tab",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10038.800000011921,
+      "key": "Shift",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10039.100000023842,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10045.300000011921,
+      "key": "Shift",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10045.600000023842,
+      "key": "Tab",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10051.800000011921,
+      "key": "Shift",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10052.100000023842,
+      "key": "Tab",
+      "target": "Close animal pen editor"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10059,
+      "key": "Shift",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10059.300000011921,
+      "key": "Tab",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10065.40000000596,
+      "key": "Shift",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10065.800000011921,
+      "key": "Tab",
+      "target": "cancel"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10070.800000011921,
+      "key": "Shift",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10071.100000023842,
+      "key": "Tab",
+      "target": "add-fence"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10076.40000000596,
+      "key": "Shift",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10076.700000017881,
+      "key": "Tab",
+      "target": "Move right 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10081.700000017881,
+      "key": "Shift",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10081.90000000596,
+      "key": "Tab",
+      "target": "Move down 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10087.200000017881,
+      "key": "Shift",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10087.5,
+      "key": "Tab",
+      "target": "Move up 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10093,
+      "key": "Shift",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10093.40000000596,
+      "key": "Tab",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10099.5,
+      "key": "Shift",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10099.800000011921,
+      "key": "Tab",
+      "target": "Selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 10447.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 10452.700000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 10512.100000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 10512.200000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 10512.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 10512.600000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10517.90000000596,
+      "key": "Tab",
+      "target": "Farm view"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10544.300000011921,
+      "key": "Home",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10549.200000017881,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10556.600000023842,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10564.40000000596,
+      "key": "ArrowDown",
+      "target": "Animal"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 10570,
+      "key": "Enter",
+      "target": "Animal"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 11155.100000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 11161,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 11220.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 11220.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Move left 1 metre"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 13528.300000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 13543.200000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "gotpointercapture",
+      "trusted": true,
+      "time": 13721,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 13721,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 13925.800000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 14152.5,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 14721.700000017881,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "lostpointercapture",
+      "trusted": true,
+      "time": 14922.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 14922.800000011921,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 14952,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "Farm view"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 14952.100000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "BODY"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 16015.700000017881,
+      "key": "ArrowLeft",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 16039.90000000596,
+      "key": "ArrowRight",
+      "target": "Drag selected pen item"
+    },
+    {
+      "type": "keydown",
+      "trusted": true,
+      "time": 17013.90000000596,
+      "key": "Escape",
+      "target": "apply"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 17600.40000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "exit-keep"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 17608.70000001788,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "exit-keep"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 17664.90000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "exit-keep"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 17664.90000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "exit-keep"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 18327.20000001788,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 18335,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 18399.90000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 18399.90000000596,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "pointermove",
+      "trusted": true,
+      "time": 21776.80000001192,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "time": 21784.20000001788,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "time": 21843.100000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "time": 21843.100000023842,
+      "pointerId": 1,
+      "pointerType": "mouse",
+      "target": "apply"
+    }
+  ]
+}

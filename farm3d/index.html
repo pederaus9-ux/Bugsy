@@ -661,7 +661,7 @@ html[data-motion="reduce"] button:active{transform:none!important}
     <button type="button" class="authguest" id="authGuest" hidden>🌱 Play as a guest</button>
   </form>
 </div>
-<script type="module" src="auth.js?v=19"></script>
+<script type="module" src="auth.js?v=21"></script>
 <script type="module" onerror="window.__bootFail && window.__bootFail('A game file didn\'t download. Check the internet and reload.')">
 import * as THREE from "./lib/three.module.min.js";
 import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
@@ -669,18 +669,34 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=30"; window.__gameVer = 30; // bump this version whenever game.js changes
-import {createChickenYard, CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=4';
-import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=3';
-import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=2';
-import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=2';
-import {createRemainingCareController} from './remaining-care-controller.js?v=2';
-import {createDairyPath} from './farm-path.js?v=1';
-import {NORTH_EXTENSION,onFarm,clampToFarm,farmGroundY} from './farm-land.js?v=1';
+import * as G from "./game.js?v=34"; window.__gameVer = 34; // bump this version whenever game.js changes
+import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
+import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=5';
+import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
+import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
+import {createRemainingCareController} from './remaining-care-controller.js?v=4';
+import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
+import {createDairyPath} from './farm-path.js?v=2';
+import {NORTH_EXTENSION,WEST_CLEARING,MAP_EDGE,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=5';
+import {TERRAIN_SPAN,TERRAIN_SEGMENTS,terrainMeshY,assessWorkshopSite} from './workshop-site.js?v=1';
+import {REMOVABLE_TREE_IDS,decodeRemovedTrees,addRemovedTree} from './tree-removal.js?v=1';
+import {FAR_TREE_SITES} from './far-tree-sites.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
-const COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
+let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
 import {createStationScheduler} from './animal-stations.js?v=1';
-import {createChickenStationController} from './chicken-stations.js?v=5';
+import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
+import {cowPenSupportHeight,cowPenStep,applyCowPenSupport} from './animal-pen-cow-support.js?v=1';
+import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=2';
+import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
+import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=2';
+import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=4';
+import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
+import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=4';
+import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
+import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
+import {createEditableGroundGrid} from './edit-ground-grid.js?v=2';
+import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
+import {createChickenStationController} from './chicken-stations.js?v=7';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 import {createCowDockGate} from './cow-stations.js?v=1';
 import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
@@ -1216,7 +1232,7 @@ const _pupV = new THREE.Vector3();
 bootStep("making the ground");
 // ---------------- ground ----------------
 const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
-const groundGeo = new THREE.PlaneGeometry(220, 220, 160, 160); groundGeo.rotateX(-Math.PI / 2);
+const groundGeo = new THREE.PlaneGeometry(TERRAIN_SPAN, TERRAIN_SPAN, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS); groundGeo.rotateX(-Math.PI / 2);
 { const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
   p.setY(i,farmGroundY(x,z)); }
   groundGeo.computeVertexNormals();
@@ -1395,16 +1411,26 @@ const barn = mergeStatic(makeBarn(), (o) => o.userData.door); scene.add(barn); c
 const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = "t:tree";
 const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
 const groundY=farmGroundY;
+const workshopGroundY=(x,z)=>terrainMeshY(x,z,farmGroundY);
 const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
-  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&Math.abs(t.position.x-1)<28)t.position.x=1+(t.position.x<1?-31:31);
-  t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
+  t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; t.userData.edit=`clear:hill:seed-${40+i}`;scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
 bootStep("planting the woods");
-// woods on the far hills: copies of a few real trees (they share their shapes, so this stays fast)
-const far = [], woods = new THREE.Group(); scene.add(woods); { const R = rng(91), kinds = [makeTree(201), makeTree(202), makeTree(203), makeTree(204)];
-  for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 70 + R() * 50, x = Math.cos(a) * r, z = Math.sin(a) * r;
-    const t = kinds[i % 4].clone(); t.position.set(x, groundY(x, z) - .2, z); t.rotation.y = R() * 7; t.scale.setScalar(1.1 + R() * .7);
-    t.traverse(o => { o.castShadow = false; }); woods.add(t); far.push(t); }
-  mergeStatic(woods);woods.traverse(o=>{if(o.isMesh&&o.material===leafMat)seasonalLeaves.register(o.geometry,91);}); } // 70 distant trees drawn as two pieces: all their bark, and all their leaves
+// Distant woods retain the exact authored positions, but small merged chunks
+// can be rebuilt independently after one stable-ID tree is cleared.
+const far=FAR_TREE_SITES.map(site=>({position:new THREE.Vector3(site.x,groundY(site.x,site.z)-.2,site.z),visible:true,userData:{edit:'clear:'+site.id}}));
+const woods=new THREE.Group(),woodChunks=[],WOOD_CHUNK_SIZE=8,woodKinds=[makeTree(201),makeTree(202),makeTree(203),makeTree(204)];woods.name='Distant woods';scene.add(woods);
+function rebuildWoodChunk(chunkIndex){
+ const old=woodChunks[chunkIndex];if(old){woods.remove(old);for(const c of old.children)if(c.isMesh)c.geometry.dispose();}
+ const chunk=new THREE.Group();for(let i=chunkIndex*WOOD_CHUNK_SIZE;i<Math.min((chunkIndex+1)*WOOD_CHUNK_SIZE,FAR_TREE_SITES.length);i++){
+  const site=FAR_TREE_SITES[i];if(!far[i].visible)continue;
+  const t=woodKinds[site.kind].clone();t.position.copy(far[i].position);t.rotation.y=site.rotation;t.scale.setScalar(site.scale);
+  t.traverse(o=>{o.castShadow=false;});chunk.add(t);
+ }
+ if(chunk.children.length){mergeStatic(chunk);chunk.traverse(o=>{if(o.isMesh&&o.material===leafMat)seasonalLeaves.register(o.geometry,91);});}
+ woods.add(chunk);woodChunks[chunkIndex]=chunk;
+}
+for(let i=0;i<Math.ceil(far.length/WOOD_CHUNK_SIZE);i++)rebuildWoodChunk(i);
 // fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard
 const FENCE_RUNS = [
   [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
@@ -1417,8 +1443,8 @@ for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
   const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
   scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
 }
-const chickenYard=createChickenYard();scene.add(chickenYard.group);
-const cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
+let chickenYard=createChickenYard();scene.add(chickenYard.group);
+let cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
 const remainingYards=createRemainingCareYards(),remainingLayouts=remainingCareLayouts(),remainingSites={};let remainingPlantClearing=null;
 for(const [kind,yard]of Object.entries(remainingYards)){yard.group.visible=false;scene.add(yard.group);const fences=yard.fences.map((f,i)=>{const placeholder=[1100+i,1100,1101+i,1100];fenceSegs.push(placeholder);return placeholder;});remainingSites[kind]={active:false,checked:false,needsReload:false,issues:[],fences};}
 let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0,cowPlantClearing=null;
@@ -1595,29 +1621,50 @@ function edgeDepths(poly, x, z) {
   return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
     return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });
 }
-const inPen = (pen, x, z, margin = 0) => edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
+const inPen = (pen, x, z, margin = 0) => pen.custom ? pointInPolygon([x,z],pen.poly,margin) : edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
 // pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)
 function intoPen(pen, v, margin) {
+  if(pen.custom){const p=nearestLegalPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);return v;}
   for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }
   return v;
 }
 function outOfPens(v, margin) {
-  for (const pen of PEN_LIST) { const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
+  for (const pen of PEN_LIST) { if(pen.custom){const p=nearestExteriorPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);continue;} const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
     const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }
   return v;
 }
 
 // where the animals may not walk: [x, z, halfWidth, halfDepth]
 const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
-const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05])];
+// Individually rendered hill trees have matching physical obstacles. The IDs
+// are authored seeds and remain stable if their display order later changes.
+const HILL_TREE_BLOCKS=hills.map(t=>[t.position.x,t.position.z,.45,.45]);BLOCKS.push(...HILL_TREE_BLOCKS);
+const FAR_TREE_BLOCKS=far.map(t=>[t.position.x,t.position.z,.48,.48]);BLOCKS.push(...FAR_TREE_BLOCKS);
+const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05]),...cowYard.gateObstacleBounds()];
+function syncCowGateBlocks(){
+  // These final two entries belong to the same scene revision as the yard.
+  // Keep their identities when a leaf rotates; replace them with the yard.
+  cowYard.gateObstacleBounds().forEach((bounds,i)=>{
+    const j=cowBlocks.length-2+i,b=cowBlocks[j],o=OBST.find(o=>o.c===1&&o.s===0&&o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]);
+    cowBlockBounds[j].splice(0,4,...bounds);const next=cowYardActive?bounds:[b[0],b[1],bounds[2],bounds[3]];
+    if(!o)throw Error('Missing cow gate obstacle binding');
+    Object.assign(o,{x:next[0],z:next[1],hw:next[2],hd:next[3]});b.splice(0,4,...next);
+  });
+}
 const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
 const remainingBlocks=[];for(const [kind,yard]of Object.entries(remainingYards)){remainingSites[kind].blocks=yard.obstacles.map((b,i)=>{const p=[1200+remainingBlocks.length,1200,b[2],b[3]];remainingBlocks.push(p);BLOCKS.push(p);return p;});}
 const HOME = new THREE.Vector2(1, 3), ROAM = 19;
-const legacyPetBowlBlock=[-3.1,7.1,.25,.25];BLOCKS.push([-9.6, -2.4, .4, .4], legacyPetBowlBlock); // hen water pan, pet bowl
+const legacyPetBowlBlock=[-3.1,7.1,.25,.25],legacyHenPanBlock=[-9.6,-2.4,.4,.4];BLOCKS.push(legacyHenPanBlock, legacyPetBowlBlock); // hen water pan (mesh long retired; collision kept for the accepted chicken yard), pet bowl
 // plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
 const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
   ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
-const OBST_BLOCKS = BLOCKS.length; // obstacles added later (buildings, fields, the board…) join the route planner at start-up
+const fenceRouteObstacles=new WeakMap(fenceSegs.map((f,i)=>[f,OBST[BLOCKS.length+i]]));
+const initialPenBlocks=[...CHICKEN_YARD_LAYOUT.obstacles,...cowBlocks,...remainingBlocks];
+const initialPenFences=[...CHICKEN_YARD_LAYOUT.fenceSegments,...Object.values(remainingSites).flatMap(s=>s.fences)];
+const penSceneRegistry=createAnimalPenSceneRegistry({scene,blocks:BLOCKS,obstacles:OBST,fences:fenceSegs,
+ initial:{yards:{chicken:chickenYard,cow:cowYard,...remainingYards},blocks:initialPenBlocks,fences:initialPenFences,obstacles:[...initialPenBlocks.map(b=>OBST[BLOCKS.indexOf(b)]),...initialPenFences.map(f=>fenceRouteObstacles.get(f))]},onPublish:installAnimalPenScene});
+let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;
+const OBST_BLOCKS = new Set(BLOCKS); // obstacles added later (buildings, fields, the board…) join the route planner at start-up
 const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
 const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
 const insideObst = (o, p, pad) => { const L = toLocal(o, p); return o.radius!==undefined ? Math.hypot(L.x,L.y)<o.radius+pad-1e-8 : Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
@@ -1630,29 +1677,40 @@ function hitsBlock(a, b, pad, skip, obstacles = OBST) {
   return -1;
 }
 // shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
-function route(from, to, pad, pen, avoid = []) {
+function route(from, to, pad, pen, avoid = [], traverse = null) {
   const obstacles = avoid.length ? [...OBST, ...avoid] : OBST;
   const skipA = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], from, pad))), skipB = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], to, pad)));
   const both = new Set([...skipA, ...skipB]);
-  if (hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
+  const contained=(a,b)=>(!pen?.custom||segmentInPolygon([a.x,a.y],[b.x,b.y],pen.poly,pad))&&(!traverse||traverse(a,b));
+  if (contained(from,to)&&hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
   const nodes = [from, to];
   for (const o of obstacles) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
     if (!obstacles.some(q => insideObst(q, c, pad)) && (pen===PENS.courtyard||pen?.care||Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+  if(pen?.custom)for(const [x,z]of pen.poly)for(let k=0;k<8;k++){
+    const r=(pad+.12)*Math.SQRT2,c=new THREE.Vector2(x+Math.cos(k*Math.PI/4)*r,z+Math.sin(k*Math.PI/4)*r);
+    if(pointInPolygon([c.x,c.y],pen.poly,pad)&&!obstacles.some(o=>insideObst(o,c,pad)))nodes.push(c);
+  }
   const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
-  const see = (i, j) => hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
+  const see = (i, j) => contained(nodes[i],nodes[j])&&hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
   for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
     if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
     for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
-  if (prev[1] < 0) return [to]; // no clear way: just try
+  if (prev[1] < 0) return pen?.custom||traverse?[]:[to]; // Custom pens and guarded pets require an executable route.
   const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
 }
 const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
 // a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
 const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
-function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null) {
+function petSegmentClear(a,from,to){
+  const start=[from.x,0,from.y],end=[to.x,0,to.y],pad=a.S.r,polygons=PEN_LIST.map(p=>p.poly);
+  const circles=animals.filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:pad+b.S.r}));
+  return careSegmentClear(start,end,{pad,rectangles:BLOCKS,segments:fenceSegs,circles,polygons,escape:true})&&
+    carePointRuleClear(start,end,{pad:pad+.15,polygons,clearPoint:(x,z)=>fitsPen(null,x,z,pad+.15)});
+}
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null, clearance = .5) {
   if(pen===PENS.courtyard||pen?.care){
     const x0=Math.min(...pen.poly.map(p=>p[0])),z0=Math.min(...pen.poly.map(p=>p[1])),x1=Math.max(...pen.poly.map(p=>p[0])),z1=Math.max(...pen.poly.map(p=>p[1]));
-    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5)&&fitsPen(pen,x,z,.7))return new THREE.Vector2(x,z);}
+    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+clearance&&Math.abs(z-bz)<hd+clearance)&&fitsPen(pen,x,z,Math.max(.7,clearance)))return new THREE.Vector2(x,z);}
     return new THREE.Vector2(pen.bed[0],pen.bed[1]);
   }
   for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if ((pen===PENS.courtyard?!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5):!blocked(x,z)) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
@@ -1672,6 +1730,13 @@ function emoteMat(e) {
   return emoteMats[e];
 }
 const rnd = rng(4242);
+function ordinaryDayTarget(to,stations,margin){
+  // Beast.arrive can stop up to .35 m before its target. Keep that full
+  // arrival region outside a real occupied-bed core, then use the authored
+  // approach instead; care trips and night beds still keep their own docks.
+  const bed=stations.find(s=>s.kind==='bed'&&Math.hypot(to.x-s.dock[0],to.y-s.dock[2])<=margin+.35);
+  return bed?new THREE.Vector2(bed.approach[0],bed.approach[2]):to;
+}
 class Beast {
   constructor(kind, name, pers, x, z, ref) {
     const S = SPECIES[kind], live = Live3D && Live3D.createLiveAnimal(kind, S.h, x, z);
@@ -1691,13 +1756,27 @@ class Beast {
   emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
   // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
   fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
-  go(x, z, running, label, doing) { const to = this.fit(new THREE.Vector2(x, z)); this.path = route(this.pos, to, this.S.r + .7, this.pen); this.target = this.path.shift(); this.running = running; this.label = label; this.doing = doing || null; this.act = "moving"; this.stuckT = 0; }
+  go(x, z, running, label, doing) {
+    let to=this.fit(new THREE.Vector2(x,z));const pet=this.kind==='dog'||this.kind==='cat';
+    const dayBeds=this.kind==='cow'?(cowYardActive?{stations:cowYard.stations,margin:.65}:null):
+      ['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active?remainingLayouts[this.kind]:null;
+    if(dayBeds&&!PRESET.night)to=ordinaryDayTarget(to,dayBeds.stations,dayBeds.margin);
+    // A bed dock is an intentional occupied support point. The visibility
+    // planner skips an obstacle containing its start, so ordinary cow travel
+    // must use the same physical bed exit as the accepted care adapter first.
+    const fromBed=this.kind==='cow'&&cowYardActive?cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.95):null;
+    const exit=fromBed?new THREE.Vector2(fromBed.approach[0],fromBed.approach[2]):null;
+    this.path=route(exit||this.pos,to,this.S.r+.7,this.pen,[],pet?(a,b)=>petSegmentClear(this,a,b):null);
+    if(exit)this.path.unshift(exit);
+    this.target=this.path.shift();this.running=running;this.label=label;this.doing=doing||null;
+    this.act=(pet||this.pen?.custom)&&!this.target?'idle':'moving';this.stuckT=0;
+  }
   stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
   // decide what to do next, from needs, personality, weather and time of day
   think() {
     if(this.kind==='cow'&&chooseCowTask(this))return;
     const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
-    const pen = this.pen, lerp = THREE.MathUtils.lerp;
+    const pen = this.pen, lerp = THREE.MathUtils.lerp, roamClearance=this.kind==='cow'?this.S.r+.6:.5;
     // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
     if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));
       return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
@@ -1711,12 +1790,14 @@ class Beast {
     ];
     let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
     for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    if (this.kind === 'cow' && pick === 'rest') pick = 'idle';
+    if (this.kind === 'chicken' && pick === 'rest' && clockT < (this.postNightAwakeUntil??0)) pick = 'idle';
     if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active&&(pick==='rest'||pick==='drink')){
       const kind=pick==='rest'?'bed':'drink',after=kind==='bed'?(this.remainingNapAt??0):(this.remainingDrinkAt??0);if(clockT<after){this.stay('Taking in the view',2);return;}if(remainingCare.request(this,kind)){if(kind==='bed')this.remainingTask.nap=true;return;}this.stay('Making room at the care stations',.5);return;
     }
     switch (pick) {
-      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen); return this.go(p.x, p.y, false, "Going for a stroll"); }
-      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen, roamClearance); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen, roamClearance); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
       case "drink": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;
         return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
       case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
@@ -1727,7 +1808,7 @@ class Beast {
       }
       case "play":
         if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? "Running along the fence after " + hen.name + "!" : "Chasing " + hen.name + "!", "chase"); } }
-        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen, roamClearance); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
       case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
     }
     this.stay("Taking in the view", 2 + rnd() * 4);
@@ -1751,7 +1832,12 @@ class Beast {
   }
   update(dt, t) {
     if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,feedStamp:this.ref.type==='pen'&&G.S?.pens[this.kind]?.list[this.ref.i]}))return;
-    if(this.kind==='chicken'&&chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies}))return;
+    if(this.kind==='chicken'){
+      const departingNightBed=this.chickenTask?.kind==='bed'&&!this.chickenTask.nap&&this.chickenTask.stage==='exit';
+      const cared=chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies});
+      if(departingNightBed&&!this.chickenTask)this.postNightAwakeUntil=t+40;
+      if(cared)return;
+    }
     if(this.kind==='cow'&&cowYardActive&&!this.cowTask&&cowStatus?.job?.cowId===cowIdOf(this))chooseCowTask(this);
     if(this.kind==='cow'&&cowYardActive&&this.cowTask){updateCowTask(this,dt,t);return;}
     const ox = this.g.position.x, oz = this.g.position.z;
@@ -1787,17 +1873,43 @@ class Beast {
         this.vel.lerp(want, Math.min(1, dt * 4));
         this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
         // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
-        const held = this.fit(this.pos, .05); this.g.position.x = held.x; this.g.position.z = held.y;
+        const held = this.fit(this.pos, .05);
+        if(this.kind==='dog'||this.kind==='cat'){
+          // Steering and pen projection alone can place a pet inside a neighbouring
+          // building. Sweep the proposed displacement; a slide never increases it.
+          const from=new THREE.Vector2(ox,oz),proposed=this.pos;
+          if(petSegmentClear(this,from,proposed))held.copy(proposed);
+          else held.copy([new THREE.Vector2(proposed.x,oz),new THREE.Vector2(ox,proposed.y)]
+            .filter(p=>petSegmentClear(this,from,p)).sort((a,b)=>a.distanceToSquared(this.target)-b.distanceToSquared(this.target))[0]||from);
+          if(dt>0)this.vel.set((held.x-ox)/dt,(held.y-oz)/dt);
+        }else if(this.pen?.custom&&!segmentInPolygon([ox,oz],[held.x,held.y],this.pen.poly,this.S.r+.05)){held.set(ox,oz);this.vel.set(0,0);}
+        this.g.position.x = held.x; this.g.position.z = held.y;
         this.phase += this.vel.length() * dt * this.S.step;
         // give up on a target it can't reach
-        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length); this.target = null; this.path = null;
-          if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
+        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length);
+          const bedCore=this.kind==='cow'&&!PRESET.night&&cowYardActive&&!this.cowTask&&cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.65);
+          this.target = null; this.path = null;
+          if (bedCore) this.go(bedCore.approach[0],bedCore.approach[2],false,"Leaving the straw beds");
+          else if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
       }
     } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
     if (this.rig3d) {
+      if(this.kind==='cow'&&this.pen?.custom){
+        const budget=(this.running?this.S.run:this.S.walk)*(.8+P.energy*.4)*(this.act==='fleeing'?1.3:1)*Math.max(0,dt);
+        const from=[ox,this.g.position.y,oz],next=cowPenStep(from,this.g.position.toArray(),budget,cowSupportY);
+        // Ordinary steering must respect the same cow clearance as care trips.
+        // Check the actual supported segment; stopping never adds displacement.
+        const dx=next[0]-ox,dz=next[2]-oz,clear=animals.every(b=>{
+          if(b===this||b.kind!=='cow')return true;
+          const x=ox-b.g.position.x,z=oz-b.g.position.z,u=THREE.MathUtils.clamp(-(x*dx+z*dz)/(dx*dx+dz*dz||1),0,1);
+          return Math.hypot(x+dx*u,z+dz*u)>=Math.min(.85,Math.hypot(x,z));
+        });
+        this.g.position.fromArray(clear?next:from);
+        if(dt>0)this.vel.set((this.g.position.x-ox)/dt,(this.g.position.z-oz)/dt);
+      }
       if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active)this.g.position.y=groundY(this.g.position.x,this.g.position.z);
       if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
-      if (this.kind === "cow") Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);
+      if (this.kind === "cow") {Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);if(this.pen?.custom)applyCowPenSupport(this.rig3d,cowSupportY);}
       else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act, this.running);
       return;
     }
@@ -1857,15 +1969,17 @@ let locoNext = 4, locoI = 0;
 function locoParade(t) {
   if (t < locoNext || !animals.length) return; locoNext = t + 4;
   const a = animals[locoI++ % animals.length]; if (!a || a.gone || a.act === "sleeping" || a.act === "fleeing") return;
-  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen);
+  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen, a.kind==='cow'?a.S.r+.6:.5);
   a.go(p.x, p.y, run, run ? "Showing off a run" : "Out for a walk");
 }
 let animals = [];
 let chickenSupplies={feedMs:0,waterMs:0};
-const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!CHICKEN_YARD_LAYOUT.obstacles.includes(b)&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
+const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!(CHICKEN_YARD_LAYOUT.obstacles.includes(b)||penSceneBindings?.chicken?.blocks.includes(b))&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
 const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,groundY,forbiddenPolygons:a=>a.pen?[]:PEN_LIST.map(p=>p.poly),clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
 // the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
 const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
+// Remove an animal through its care controllers; physical state only, never paid state.
+function retireAnimal(a) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);if(['horse','sheep','dog','cat'].includes(a.kind))remainingCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
 function syncHerd() {
   syncChickenYard();
   syncCowYard();
@@ -1874,7 +1988,7 @@ function syncHerd() {
   for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
   G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
   const keys = new Set(want.map(refKey));
-  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)||(['horse','sheep','dog','cat'].includes(a.kind)&&a.careFarm!==G.S)) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);if(['horse','sheep','dog','cat'].includes(a.kind))remainingCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)||(['horse','sheep','dog','cat'].includes(a.kind)&&a.careFarm!==G.S)) retireAnimal(a);
   animals = animals.filter(a => !a.gone);
   const have = new Set(animals.map(a => refKey(a.ref)));
   for (const r of want) {
@@ -1897,7 +2011,7 @@ function syncRemainingCareYards(){
   if(site.active!==active){
    site.active=active;const pen=remainingPens[kind],at=PEN_LIST.indexOf(pen);if(pen&&active&&at<0)PEN_LIST.push(pen);else if(pen&&!active&&at>=0)PEN_LIST.splice(at,1);
    site.blocks.forEach((b,i)=>moveBlock(b,...(active?yard.obstacles[i]:[1200+remainingBlocks.indexOf(b),1200])));
-   site.fences.forEach((f,i)=>{const old=fenceSegs.indexOf(f),coords=active?yard.fences[i]:[1100+i,1100,1101+i,1100];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax),o=OBST[OBST_BLOCKS+old];Object.assign(o,{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});});
+   site.fences.forEach((f,i)=>{const old=fenceSegs.indexOf(f),coords=active?yard.fences[i]:[1100+i,1100,1101+i,1100];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax),o=fenceRouteObstacles.get(f);Object.assign(o,{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});});
    // Reversible clearings own each tuft; removing a pen restores its meadow.
    const l=yard.layout,[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;
    for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8){const key='remaining-'+kind+':'+i++;moveClear(key,x,z,active?1.3:0);if(!active)CLEARS.delete(key);}
@@ -1926,16 +2040,135 @@ function syncCowYard(){
   if(cowYardChecked&&!cowYardActive&&owned&&animals.some(a=>a.kind==='cow'))cowYardNeedsReload=true;
   const active=owned&&!cowYardIssues.length&&!cowYardNeedsReload;
   if(active!==cowYardActive){setCowGrass(active);cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
+  if(penSceneBindings?.cow&&COW_YARD_LAYOUT.custom){const b=penSceneBindings.cow;b.fences.forEach((f,i)=>{const coords=active?b.segments[i]:[1500+i,1500,1501+i,1500];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax);Object.assign(b.fenceObstacles[i],{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.05,c:Math.cos(a),s:Math.sin(a)});});}
   cowYardChecked=true;cowYard.group.visible=active;
-  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);
+  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);syncCowGateBlocks();
 }
+// Called only by a prepared scene revision, after the complete save is durable.
+// Existing arrays/maps and pen objects stay stable for every live consumer.
+function installAnimalPenScene({layout,yards,bindings,active}){
+ for(const [key,[x,z]]of [...CLEARS])if(key.startsWith('chicken:')||key.startsWith('cow-yard:')||key.startsWith('remaining-')){moveClear(key,x,z,0);CLEARS.delete(key);}
+ chickenYard=yards.chicken;cowYard=yards.cow;CHICKEN_YARD_LAYOUT=chickenYard.layout;COW_YARD_LAYOUT=cowYard.layout;
+ installedAnimalPens=layout;penSceneBindings=bindings;
+ cowBlocks.splice(0,cowBlocks.length,...bindings.cow.blocks);cowBlockBounds.splice(0,cowBlockBounds.length,...bindings.cow.bounds);
+ remainingBlocks.splice(0,remainingBlocks.length,...['horse','sheep','dog','cat'].flatMap(k=>bindings[k].blocks));
+ for(const [kind,binding]of Object.entries(bindings))binding.fences.forEach((f,i)=>fenceRouteObstacles.set(f,binding.fenceObstacles[i]));
+ for(const kind of ['horse','sheep','dog','cat']){remainingYards[kind]=yards[kind];remainingLayouts[kind]=yards[kind].layout;Object.assign(remainingSites[kind],{blocks:bindings[kind].blocks,fences:bindings[kind].fences,active:!!active[kind],checked:true,needsReload:false,issues:[],farm:G.S});}
+ for(const [kind,pen]of [['chicken',PENS.yard],['cow',PENS.courtyard],...Object.entries(remainingPens)]){
+  const l=yards[kind].layout;pen.poly=l.polygon;pen.custom=!!layout.sites[kind].custom;
+  if(l.bed){pen.bed=l.bed;pen.shelter=l.shelter;pen.water=l.water;}
+  else{pen.bed=[l.turnouts[0][0],l.turnouts[0][2],2];pen.shelter={x:[l.shelter.x-1,l.shelter.x+1],z:[l.shelter.z-1,l.shelter.z+1]};pen.water=[l.stations[2].dock[0],l.stations[2].dock[2],.3,.3];}
+  const i=PEN_LIST.indexOf(pen),enabled=kind==='chicken'||!!active[kind];if(enabled&&i<0)PEN_LIST.push(pen);else if(!enabled&&i>=0)PEN_LIST.splice(i,1);
+ }
+ cowYardActive=!!active.cow;cowYardChecked=true;cowYardNeedsReload=false;cowYardIssues=[];
+ cowSurfaces.clear();cowYard.group.updateMatrixWorld(true);const centers=new Map(cowYard.targets.filter(t=>t.kind==='feed'||t.kind==='water').map(t=>[t.kind,new THREE.Box3().setFromObject(t.object).getCenter(new THREE.Vector3())]));
+ for(const station of cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink'))cowSurfaces.set(station.id,new THREE.Vector3(station.kind==='feed'?station.dock[0]:centers.get('water').x,station.surface,station.kind==='feed'?centers.get('feed').z:station.dock[2]));
+ CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
+ setCowGrass(cowYardActive);
+ for(const kind of ['horse','sheep','dog','cat']){const l=remainingLayouts[kind],[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8)if(active[kind])moveClear('remaining-'+kind+':'+i++,x,z,1.3);}
+ for(const a of animals)a.pen=penOf(a.kind);
+ chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus){cowYard.setStatus(cowStatus);cowYard.setRobotPose(cowStatus.job?.stage==='milking'?(nowMs()-cowStatus.job.startedAt)/12000:0);} // a boot-time install precedes the first syncCowYard
+ const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+ // The accepted chicken yard keeps its legacy collision; a customised yard must not leave it behind.
+ moveBlock(legacyHenPanBlock,...(layout.sites.chicken.custom?[1450,1450]:[-9.6,-2.4]));
+ syncCowGateBlocks();
+}
+// Saved custom pens install before herds spawn; page reloads cover account
+// switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay
+// read-only in the save (game.js will not overwrite them) and show the default.
+let installedPenRecord='null';
+function savedPenLayout(){const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));return decoded?.status==='ok'?decoded.value:undefined;}
+// Prepared yards and registries plus every care controller's rebind, using the
+// validator's placements and waiting points for each live animal.
+function penRevisionLive(validation){
+ const active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ return {prepareRegistries:(l,yards)=>penSceneRegistry.prepare(l,yards,active),
+  prepareCare:l=>[chickenCare.prepareLayoutRebind({site:l.sites.chicken,now:clockT,placements:validation.placements,waiting:validation.waiting}),cowPenCare.prepareLayoutRebind({site:l.sites.cow,now:clockT,placements:validation.placements}),
+   ...['horse','sheep','dog','cat'].map(kind=>remainingCare.prepareLayoutRebind({site:l.sites[kind],now:clockT,placements:validation.placements}))]};
+}
+function restoreSavedAnimalPens(){
+ const value=savedPenLayout(),record=JSON.stringify(value??null);
+ if(record===installedPenRecord)return;
+ // A different saved layout arriving with a live herd (visiting, going home, a new or
+ // imported farm) rebuilds the herd: no live animal is rebound without validated placements.
+ if(animals.length){for(const a of animals)retireAnimal(a);animals=animals.filter(a=>!a.gone);}
+ const layout=resolveAnimalPens(value),active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ // The saved layout was fully validated when applied, and no animal exists yet to place.
+ const saved={ok:true,revision:layout.revision,source:'saved-layout',placements:{},waiting:{}};
+ prepareAnimalPenRevision(layout,saved,penRevisionLive(saved)).publish();
+ installedPenRecord=record;
+}
+// Apply: fresh full validation on the newest live snapshot, then game.js writes the
+// complete farm once; yards, registries and validated care rebinds publish together.
+function commitPenDraft(value,base){
+ const world=snapshotPenWorld();if(world.epoch!==base.epoch)return false;
+ const validation=validateAnimalPens(resolveAnimalPens(value),world);if(!validation.ok)return false;
+ const result=G.commitAnimalPenLayout({expectedFarm:G.S,expectedRevision:base.revision,animalPens:value,
+  canCommit:()=>{const w=snapshotPenWorld();return w.epoch===world.epoch&&w.obstacleRevision===world.obstacleRevision;},
+  prepare:candidate=>{const layout=resolveAnimalPens(candidate.layout.animalPens);return prepareAnimalPenRevision(layout,validation,penRevisionLive(validation));},
+  // The complete new save is already on disk: reload it rather than keep a mixed scene.
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ if(result.ok)installedPenRecord=JSON.stringify(savedPenLayout()??null);
+ return result.ok;
+}
+// Live preflight input for the pen editor (plan World contract): full shapes from
+// the running farm, never centre probes. The epoch follows farm identity; the
+// obstacle revision follows physical and ownership state, not paid ticks or walking.
+const penFarmEpochs=new WeakMap();let penFarmSerial=0;
+function penStateHash(value){const text=JSON.stringify(value);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function snapshotPenWorld(){
+ const S=G.S,count=k=>S.pens[k]?.owned?S.pens[k].list.length:0,pets=k=>S.pets.filter(p=>p.kind===k).length;
+ const owned={chicken:count('chicken'),cow:count('cow'),horse:count('horse'),sheep:count('sheep'),dog:pets('dog'),cat:pets('cat')};
+ if(!penFarmEpochs.has(S))penFarmEpochs.set(S,'farm-'+(++penFarmSerial));
+ // Pen-owned collision, off-farm placeholders and the legacy hen pan belong to the pens themselves.
+ const blocked=[],baselineBlocked=[];
+ BLOCKS.forEach((b,i)=>{if(b[0]>=1000||penSceneRegistry.ownsBlock(b)||b===legacyHenPanBlock)return;const shape={type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner:'block-'+i};blocked.push(shape);if(OBST_BLOCKS.has(b))baselineBlocked.push(shape);});
+ fenceSegs.forEach((f,i)=>{if(f[0]>=1000||penSceneRegistry.ownsFence(f))return;const shape={type:'capsule',a:[f[0],f[1]],b:[f[2],f[3]],r:.1,owner:'fence-'+i};blocked.push(shape);baselineBlocked.push(shape);});
+ (S.decor?.placed||[]).forEach((d,i)=>blocked.push({type:'circle',x:d.x,z:d.z,r:G.DECOR[d.id]?.size===2?1.2:.6,owner:'decor-'+i}));
+ const path=dairyPath.points.slice(1).map((b,i)=>({type:'capsule',a:[...dairyPath.points[i]],b:[...b],r:.92,owner:'stone-path'}));
+ const installed={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ // IDs match each care controller; clearances are the accepted physical values
+ // (chicken step check, cow waiting clearance, remaining-care margins).
+ const idOf=a=>a.kind==='chicken'?'hen-'+a.ref.i:a.kind==='cow'?cowIdOf(a):a.ref.type==='pet'?'pet-'+a.kind:a.kind+'-'+a.ref.i;
+ const clearance=k=>k==='chicken'?.18:k==='cow'?.42:remainingLayouts[k].margin;
+ const actors=animals.filter(a=>!a.gone&&owned[a.kind]!==undefined).map(a=>{
+  const task=a.chickenTask||a.cowTask||a.remainingTask,stationId=task?.station?.id??null,site=installedAnimalPens.sites[a.kind],owner=stationId&&site.stationOwners?.[stationId],c=owner&&site.components[owner],p=a.g.position;
+  // update() starts an authoritative robot job before ordinary movement, even
+  // when its physical task has not yet been created. Re-read this at final Apply.
+  const careStationId=a.kind==='cow'?(a.cowTask?.station?.id??(cowStatus?.job&&cowStatus.job.cowId===idOf(a)?site.stations.find(s=>s.kind==='robot')?.id:null))??null:null;
+  return {id:idOf(a),kind:a.kind,position:[p.x,p.y,p.z],component:c&&pointInPolygon([p.x,p.z],c.footprint)?owner:null,stationId,careStationId,clearance:clearance(a.kind)};
+ });
+ return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
+}
+const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
+let animalPenEditing=null;
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
+function cowGateSegmentClear(from,to){
+  const leaves=cowYard.gateObstacleBounds().map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0}));
+  return hitsBlock(from,to,.42,null,leaves)<0;
+}
+function cowRobotExitWaypoints(){
+  const r=COW_YARD_LAYOUT.robot,d=Math.hypot(r.exit[0]-r.turn[0],r.exit[2]-r.turn[2]);
+  // Turn before the leading hoof reaches the final bed divider. Keep the
+  // authored exit and clear points and let the ordinary rig execute the turn.
+  const turn=[r.turn[0]+(r.exit[0]-r.turn[0])/d*.35,r.turn[1],r.turn[2]+(r.exit[2]-r.turn[2])/d*.35];
+  return[r.exit,turn,r.clear];
+}
+const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
 function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
 function beginCowTask(a,kind){
   const id=cowIdOf(a);if(!id)return false;
   const preferred=kind==='bed'?cowYard.stations.filter(s=>s.kind==='bed')[a.ref.i]?.id:null;
   const token=cowStations.request(id,kind,preferred);if(!token)return false;
-  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95),waypoints=[...(fromBed&&fromBed.id!==station.id?[fromBed.approach]:[]),station.approach,station.dock];a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
+  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95);
+  const waypoints=kind!=='bed'&&fromBed&&fromBed.id!==station.id?[fromBed.approach]:[];
+  if(kind==='robot'){
+    // Start turning before the entrance post; the native rig still owns yaw,
+    // hoof release and speed. The extra point must pass the same route checks.
+    const p=station.approach,q=station.dock,d=Math.hypot(p[0]-q[0],p[2]-q[2]);
+    waypoints.push([p[0]+(p[0]-q[0])/d*.5,p[1],p[2]+(p[2]-q[2])/d*.5]);
+  }
+  waypoints.push(station.approach,station.dock);a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
 }
 function waitCowStation(a,label){
   // A released dock is still physically occupied until its former visitor
@@ -1947,9 +2180,10 @@ function waitCowStation(a,label){
   }
   const nearCare=(x,z)=>corridors.some(([px,pz,qx,qz])=>{const dx=qx-px,dz=qz-pz,u=THREE.MathUtils.clamp(((x-px)*dx+(z-pz)*dz)/(dx*dx+dz*dz||1),0,1);return Math.hypot(x-px-u*dx,z-pz-u*dz)<1.1;});
   if(nearCare(a.g.position.x,a.g.position.z))for(const radius of [1.4,2.1,2.8,4.2,5.6])for(let k=0;k<24;k++){
-    const x=a.g.position.x+Math.cos(k*Math.PI/12)*radius,z=a.g.position.z+Math.sin(k*Math.PI/12)*radius;
+    const to=a.fit(new THREE.Vector2(a.g.position.x+Math.cos(k*Math.PI/12)*radius,a.g.position.z+Math.sin(k*Math.PI/12)*radius)),x=to.x,z=to.y;
     if(!fitsPen(PENS.courtyard,x,z,.7)||nearCare(x,z)||COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.65&&Math.abs(z-bz)<hd+.65)||animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(x-b.g.position.x,z-b.g.position.z)<1.3))continue;
-    a.go(x,z,false,'Making room at the care stations');return true;
+    // A fitted point can still have no ordinary route at the existing clearance.
+    a.go(x,z,false,'Making room at the care stations');if(a.target)return true;
   }
   a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;
 }
@@ -1960,7 +2194,7 @@ function chooseCowTask(a){
   const paid=cowStatus?.cows[a.ref.i]?.feedCharged&&!cowStatus?.cows[a.ref.i]?.ready;
   if((paid&&a.cowMealCycle!==cowStatus.cows[a.ref.i].cycle)||(cowStatus?.feed>0&&a.need.hunger>.35))return beginCowTask(a,'feed')||waitCowStation(a,'Waiting for a feed space');
   if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink')||waitCowStation(a,'Waiting for the water trough');
-  if(PRESET.night||PRESET.rain||PRESET.snowing||a.need.tired>.8)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
+  if(PRESET.night)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
   return false;
 }
 function updateCowTask(a,dt,t){
@@ -1971,51 +2205,101 @@ function updateCowTask(a,dt,t){
   a.cowTickAt=t;
   for(let used=0;used<elapsed-1e-8&&a.cowTask;){const step=Math.min(1/30,elapsed-used);used+=step;updateCowTaskStep(a,step,t-elapsed+used);}
 }
+function cowSupportY(x,z){return cowPenSupportHeight(installedAnimalPens.sites.cow,x,z,groundY);}
+function cowSharedCornerDetour(a,b,task,t){
+  const other=b.cowTask,corner=task.path?.[0],otherCorner=other?.path?.[0],next=task.path?.[1];
+  if(task.kind!=='bed'||task.stage!=='approach'||other?.kind!=='bed'||other.stage!=='approach'||!corner||!otherCorner||a.ref.i>=b.ref.i)return false;
+  const intermediate=!!next,shared=intermediate&&corner.distanceTo(otherCorner)<=.08;
+  const finalDock=job=>job.waypoints.length===1&&Math.hypot(job.waypoints[0][0]-job.station.dock[0],job.waypoints[0][2]-job.station.dock[2])<.01;
+  const opposingFinal=!next&&!other.path?.[1]&&finalDock(task)&&finalDock(other)&&corner.distanceTo(otherCorner)>.08;
+  if(!intermediate&&!opposingFinal)return false;
+  const towardA=corner.clone().sub(a.pos),towardB=otherCorner.clone().sub(b.pos);
+  if(towardA.dot(towardB)>=0)return false; // A following cow keeps the ordinary corridor.
+  // New intermediate rejoins never exempt a containing static obstacle.
+  if(intermediate&&!shared&&OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,next,.42)))return false;
+  const tried=task.detourTried;if(tried?.id===b.ref.i&&(t-tried.t<2||Math.hypot(tried.x-b.g.position.x,tried.z-b.g.position.z)<1))return false;
+  task.detourTried={id:b.ref.i,x:b.g.position.x,z:b.g.position.z,t};
+  // A circle keeps the true 0.85 m body clearance. A box would classify this
+  // captured 0.853 m starting gap as inside and skip the other cow entirely.
+  const avoid={x:b.g.position.x,z:b.g.position.z,hw:.43,hd:.43,radius:.43,c:1,s:0};
+  const supported=(u,v)=>{const n=Math.max(1,Math.ceil(u.distanceTo(v)/.4));for(let k=0;k<=n;k++){const x=u.x+(v.x-u.x)*k/n,z=u.y+(v.y-u.y)*k/n;if(!fitsPen(PENS.courtyard,x,z,.42)||!Number.isFinite(cowSupportY(x,z)))return false;}return true;};
+  const detour=route(a.pos,intermediate?next:corner,.42,PENS.courtyard,[avoid],supported);
+  if(detour.length<(shared||!intermediate?2:1)||(shared&&detour[0].distanceTo(corner)<.3))return false;
+  const toward=detour[0].clone().sub(a.pos),step=Math.min(toward.length(),a.S.walk/30),first=a.pos.clone().addScaledVector(toward,step/(toward.length()||1));
+  if(first.distanceTo(b.pos)<.85-1e-9)return false;
+  task.path=intermediate?[...detour,...task.path.slice(2)]:detour;task.detourFor=b.ref.i;return true;
+}
 function updateCowTaskStep(a,dt,t){
   const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
+  // A relocated occupied visit must regain real full-weight mouth contact.
+  // Read the previous applied pose before resetting it for this physical step.
+  let returnedContact=false;
+  if(task.layoutReturn&&task.stage==='hold'&&task.weight===1){const target=cowSurfaces.get(task.station.id);if(target){r.g.updateMatrixWorld(true);returnedContact=r.jaw.localToWorld(new THREE.Vector3(0,-.05,-.33)).distanceTo(target)<=.08;}}
   a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
   const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
   const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
   const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
-  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night&&!PRESET.rain&&!PRESET.snowing&&t>task.until);
-  if(waking||(isRobot&&!currentJob))task.stage='stand';
-  const ox=a.g.position.x,oz=a.g.position.z;
-  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){releaseCowTask(a);a.act='idle';a.until=0;}}
+  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night);
+  if(waking||(isRobot&&!currentJob)){task.stage='stand';delete task.layoutReturn;}
+  const ox=a.g.position.x,oz=a.g.position.z;let robotDockTarget=null;
+  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){if(task.layoutReturn)task.stage='approach';else{releaseCowTask(a);a.act='idle';a.until=0;}}}
   else if(task.stage==='approach'||task.stage==='exit'){
     // Docked jobs restored from disk resume their physical approach without a
     // second credit. Approaching/queued jobs still require a fresh dock proof.
-    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];}
-    if(!task.path?.length&&task.waypoints.length){const p=task.waypoints.shift();task.path=route(a.pos,new THREE.Vector2(p[0],p[2]),.42,PENS.courtyard);}
-    const p=task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
-      const next=new THREE.Vector2(ox+nx,oz+nz);const blockedByCow=animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
-      if(!blockedByCow){a.g.position.x=next.x;a.g.position.z=next.y;}
+    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();}
+    if(!task.path?.length&&task.waypoints.length){
+      const p=task.waypoints[0],target=new THREE.Vector2(p[0],p[2]);
+      // A failed route must retain the real visit and target, never imply arrival.
+      task.path=route(a.pos,target,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(task.path.length)task.waypoints.shift();
+    }
+    // A lateral yield changes the start of the remaining leg. Revalidate it
+    // before resuming bed travel, so an old waypoint cannot cut through a post.
+    let blockedBedLeg=false;
+    if(task.kind==='bed'&&task.stage==='approach'&&task.avoidSide&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
+      const endpoint=task.path[0],contained=OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,endpoint,.42));
+      const detour=contained?[]:route(a.pos,endpoint,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(detour.length&&detour.every((p,i)=>hitsBlock(i?detour[i-1]:a.pos,p,.42,null)<0))task.path=[...detour,...task.path.slice(1)];
+      else blockedBedLeg=true;
+    }
+    const p=blockedBedLeg?null:task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+      const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
+      if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}
       else{
-        // Keep the same body clearance while yielding around a moving or
-        // waiting neighbour. Never jump to a waypoint to break a blockage.
-        const side=task.avoidSide||1;
-        for(const sign of [side,-side]){
-          const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
-          const clear=fitsPen(PENS.courtyard,x,z,.42)&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
-          if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+        if(blockingCows.length&&!blockingCows.some(b=>cowSharedCornerDetour(a,b,task,t))){
+          // Keep the same body clearance while yielding around a moving or
+          // waiting neighbour. Never jump to a waypoint to break a blockage.
+          const side=task.avoidSide||1;
+          for(const sign of [side,-side]){
+            const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
+            const clear=fitsPen(PENS.courtyard,x,z,.42)&&cowGateSegmentClear(a.pos,new THREE.Vector2(x,z))&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
+            if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+          }
         }
       }
-      if(d<.035)task.path.shift();
-    }else if(!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+      // Finish the final robot approach physically: the ordinary waypoint
+      // shortcut can leave the teat centers outside the cluster openings.
+      if(isRobot&&task.stage==='approach'&&!task.waypoints.length&&task.path.length===1)robotDockTarget=p;
+      else if(d<.035)task.path.shift();
+    }else if(!blockedBedLeg&&!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
     a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
   }else if(task.stage==='align'||task.stage==='hold'){
     const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
-    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
+    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';if(!task.layoutReturn)task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
     if(task.stage==='hold'){
       if(isRobot&&currentJob){
         if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
-        if(job.stage==='exiting'){task.stage='exit';task.waypoints=[COW_YARD_LAYOUT.robot.exit,COW_YARD_LAYOUT.robot.turn,COW_YARD_LAYOUT.robot.clear];task.path=null;}
+        if(job.stage==='exiting'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();task.path=null;}
         a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
-      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(task.kind!=='bed'&&t>task.until){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
+      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(returnedContact)delete task.layoutReturn;if(task.kind!=='bed'&&t>task.until&&!task.layoutReturn){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
     }
   }
-  a.g.position.y=COW_YARD_LAYOUT.floor;
+  if(COW_YARD_LAYOUT.custom)a.g.position.fromArray(cowPenStep([ox,a.g.position.y,oz],a.g.position.toArray(),a.S.walk*Math.max(0,dt),cowSupportY));
+  else a.g.position.y=COW_YARD_LAYOUT.floor;
+  if(robotDockTarget&&Math.hypot(a.g.position.x-robotDockTarget.x,a.g.position.z-robotDockTarget.y)<1e-10)task.path.shift();
   const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
   Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
+  if(COW_YARD_LAYOUT.custom)applyCowPenSupport(r,cowSupportY);
   if(task.weight>0)a.carePose.apply({mode:task.kind==='bed'?'lie':task.kind==='feed'?'feed':'drink',weight:task.weight,target:cowSurfaces.get(task.station.id)});
   if(a.cowTask===null){a.carePose.reset();a.need.tired=0;a.act='idle';}
 }
@@ -2167,12 +2451,13 @@ function placeCamera(dt = 1) {
   if (walk && inBarn && inBarn.phase === "inside") return barnPose();
   if (walk) return placeWalkCamera();
   if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up
-  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : 70);
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : editMode ? 110 : 70);
   const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
   view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
   const v = view;
   camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);
   camera.lookAt(v.target);
+  if(editMode&&grid?.visible)grid.updateView({x:v.target.x,z:v.target.z,dist:v.dist,fov:camera.fov,aspect:camera.aspect});
   sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
 }
 const ptr = new Map(); let last = null;
@@ -2185,7 +2470,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
   const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
   if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around
-  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -18-NORTH_EXTENSION, 28); return; } // slide the map
+  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -MAP_EDGE, MAP_EDGE); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -MAP_EDGE, MAP_EDGE); return; } // slide the map
   if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
   else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
     const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
@@ -2194,7 +2479,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
       if (d && last.d) cam.dist *= last.d / d;
       const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
       cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
-      cam.target.x = THREE.MathUtils.clamp(cam.target.x, -24, 24); cam.target.z = THREE.MathUtils.clamp(cam.target.z, -18-NORTH_EXTENSION, 28);
+      cam.target.x = THREE.MathUtils.clamp(cam.target.x,-MAP_EDGE,MAP_EDGE); cam.target.z = THREE.MathUtils.clamp(cam.target.z,-MAP_EDGE,MAP_EDGE);
     }
     last = {c, d};
   }
@@ -2220,7 +2505,7 @@ let downAt = null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
-  if (editMode) return; // the layout editor only drags things
+  if (editMode || animalPenEditing) return; // draft input never acts on the farm
   if (visiting) { // a friend's farm is read-only, except that you can water their growing crops for them
     if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     const h = hitAt(e.clientX, e.clientY), p = h && h.type === "plot" && GS().plots[h.i];
@@ -2502,12 +2787,37 @@ function makeLot(bid) { // a roped-off gravel lot with a sign, before the buildi
 const buildings = {};
 const BLD_BLK = {}, BLD_DECAL = {}, HOME_SPOT = JSON.parse(JSON.stringify(BUILD_SPOT));
 for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push(BLD_BLK[bid] = [x, z, 1.9, 1.7]); clearGrass(x, z, 1.8, "b:" + bid); BLD_DECAL[bid] = contact(x, z, 5, 4.4); }
+function syncWorkshopGround(bid,x,z){
+ const B=buildings[bid];if(!B?.g)return;
+ const site=assessWorkshopSite(x,z,workshopGroundY,{floorOffset:B.owned ? .35 : .05});B.site=site;
+ B.g.position.set(x,Number.isFinite(site.y)?site.y:0,z);
+ const old=B.g.userData.foundation;if(old){B.g.remove(old);old.traverse(o=>o.geometry?.dispose());}
+ const support=new THREE.Group();support.name='Workshop foundation and entrance';B.g.userData.foundation=support;B.g.add(support);
+ if(site.ok&&site.needsRamp){
+  for(const dx of [-1.5,1.5])for(const dz of [-1.25,1.25]){
+   const gap=Math.max(0,site.y-workshopGroundY(x+dx,z+dz));if(gap>.025)support.add(box(.24,gap+.08,.24,M.stone,dx,-gap/2,dz));
+  }
+  const far=site.approachY-site.y+.02,near=site.floorOffset,len=3,ramp=new THREE.Mesh(new THREE.BoxGeometry(1.1,.08,len),M.stone);
+  ramp.position.set(0,(near+far)/2,1.7+len/2);ramp.rotation.x=Math.atan2(near-far,len);ramp.receiveShadow=ramp.castShadow=true;support.add(ramp);
+ }
+ BLD_DECAL[bid].visible=!(site.ok&&site.needsRamp);BLD_DECAL[bid].position.set(x,workshopGroundY(x,z)+.02,z);
+}
+function workshopWalkY(x,z){
+ let y=workshopGroundY(x,z);
+ for(const [bid,B] of Object.entries(buildings)){
+  const site=B.site;if(!site?.ok||!site.needsRamp)continue;
+  const [bx,bz]=BUILD_SPOT[bid],t=(z-(bz+1.7))/3;
+  if(Math.abs(x-bx)>.55||t<0||t>1)continue;
+  y=Math.max(y,site.floorY+(site.approachY-site.floorY)*t);
+ }
+ return y;
+}
 function syncBuildings() {
   for (const bid of Object.keys(G.BUILDINGS)) {
     const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];
     if (B.owned !== owned || !B.g) {
       if (B.g) scene.remove(B.g);
-      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.position.set(x, 0, z); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;
+      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;syncWorkshopGround(bid,x,z);
       if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
     }
     if (!owned) { const b = G.BUILDINGS[bid], open = GS().level >= b.lvl; B.g.userData.sign.userData.set([b.e + " " + b.n, open ? b.cost + " 🪙" : "🔒 Level " + b.lvl]);
@@ -2869,7 +3179,7 @@ function poseFarmerGait(w) {
   return (Math.abs(cs) * THREE.MathUtils.lerp(.035, .08, run) - run * .05) * env;
 }
 function placeWalkCamera() {
-  const w = walk, gy = groundY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
+  const w = walk, gy = workshopWalkY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
   farmer.visible = thirdPerson;
   if (thirdPerson) {
     // turn the farmer toward where they're walking, and swing arms and legs with each step
@@ -2939,6 +3249,7 @@ stick.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) moveJo
 const endJoy = (e) => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ""; };
 stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
 addEventListener("keydown", (e) => {
+  if (animalPenEditing) return;
   if (G.panel || (e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (["Enter","Space"].includes(e.code) && e.target.closest("button"))))) return;
   if (e.code === "Escape") { setWalk(false); setEdit(false); }
   if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); if ((e.code === "Space" || e.code === "KeyF") && !e.repeat) throwBait(); }
@@ -3263,13 +3574,39 @@ buildFarmer();
 
 // Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
 // to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
-const grid = new THREE.GridHelper(82, 82, 0xffffff, 0xffffff); grid.position.set(1, .05, 7-NORTH_EXTENSION/2); grid.visible = false;
-Object.assign(grid.material, {transparent:true, opacity:.3, depthWrite:false}); scene.add(grid);
-const editShade = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false}));
-editShade.rotation.x = -Math.PI / 2; editShade.position.y = .07; editShade.visible = false; scene.add(editShade);
+const grid = createEditableGroundGrid(farmGroundY); scene.add(grid);
+function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=buildableLandShapes(23);return world;}
+const shadeGeo=new THREE.BufferGeometry();shadeGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(18),3));
+const editShade = new THREE.Mesh(shadeGeo, new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false,side:THREE.DoubleSide}));
+editShade.visible = false; scene.add(editShade);
 const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
 const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
+const TREE_CATALOGUE=new Map([
+ ['courtyard:tree',{object:tree,block:TREE_BLK.tree,decal:tree.userData.decal}],
+ ['courtyard:tree2',{object:tree2,block:TREE_BLK.tree2,decal:tree2.userData.decal}],
+ ...hills.map((object,i)=>[`hill:seed-${40+i}`,{object,block:HILL_TREE_BLOCKS[i]}]),
+ ...FAR_TREE_SITES.map((site,i)=>[site.id,{object:far[i],block:FAR_TREE_BLOCKS[i],chunk:Math.floor(i/WOOD_CHUNK_SIZE)}])
+]);
+let selectedClearTree=null;
+function syncRemovedTrees(){
+ const parsed=decodeRemovedTrees(GS().layout?.removedTrees);if(!parsed.ok)return false;
+ const removed=new Set(parsed.ids),changedChunks=new Set();
+ for(const [id,entry] of TREE_CATALOGUE){
+  const present=!removed.has(id),{object,block,decal}=entry;if(object.visible!==present&&entry.chunk!==undefined)changedChunks.add(entry.chunk);object.visible=present;if(decal)decal.visible=present;
+  const x=object.position.x,z=object.position.z;
+  if(block)moveBlock(block,present?x:2000+REMOVABLE_TREE_IDS.indexOf(id),present?z:2000);
+ }
+ for(const chunk of changedChunks)rebuildWoodChunk(chunk);
+ if(selectedClearTree&&removed.has(selectedClearTree))selectedClearTree=null;
+ if(clearTreeButton)clearTreeButton.disabled=!selectedClearTree;
+ return true;
+}
+function clearTreeCandidate(id){
+ const entry=TREE_CATALOGUE.get(id),farm=GS();if(!entry||!entry.object.visible||!onBuildableLand(entry.object.position.x,entry.object.position.z))return null;
+ return addRemovedTree(farm.layout?.removedTrees,id);
+}
 function setEdit(on) {
+  if (!on && animalPenEditing) { penEditor.cancel(); setAnimalPenEditing(false); }
   if (!!editMode === on) return;
   if (on) {
     if (walk) setWalk(false);
@@ -3277,7 +3614,7 @@ function setEdit(on) {
     const yaw = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2; // north up, turning the short way round
     editMode = {yaw, drag:null, tilt:tiltH.enabled, saved:{yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, ty:cam.target.y}};
     cam.dist = Math.max(cam.dist, 34); cam.target.y = 0;
-    grid.visible = true; tiltH.enabled = tiltV.enabled = false;
+    grid.updateMask(editGridMask());grid.visible = true; tiltH.enabled = tiltV.enabled = false;
     document.body.classList.add("editing"); editBar.hidden = false;
   } else {
     const E = editMode; if (E.drag) editCancel(); editMode = null;
@@ -3287,12 +3624,11 @@ function setEdit(on) {
   }
   G.sfx("pop");
 }
-const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
-function groundAt(x, y) { return rayAt(x, y).ray.intersectPlane(groundPlane, new THREE.Vector3()); }
+function groundAt(x, y) { return rayAt(x, y).intersectObject(ground, false)[0]?.point??null; }
 function editHit(x, y) {
-  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), tree, tree2, ...decorObjs];
-  const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h) return null;
+  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), ...Object.values(TREES).filter(t=>t.visible), ...hills.filter(t=>t.visible), ...decorObjs];
+  const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h){const ground=groundAt(x,y),nearest=ground&&far.filter(t=>t.visible&&onBuildableLand(t.position.x,t.position.z)).map(t=>({tree:t,d:Math.hypot(ground.x-t.position.x,ground.z-t.position.z)})).sort((a,b)=>a.d-b.d)[0];return nearest?.d<2.5?{key:nearest.tree.userData.edit,obj:nearest.tree}:null;}
   let o = h.object; while (o && !o.userData.edit) o = o.parent;
   return o ? {key:o.userData.edit, obj:o} : null;
 }
@@ -3303,21 +3639,37 @@ function footprint(key) {
   const d = GS().decor.placed[+id], r = d && G.DECOR[d.id].size === 2 ? 1.2 : .6; return {hw:r, hd:r};
 }
 const segDist = (x, z, ax, az, bx, bz) => { const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez || 1), 0, 1); return Math.hypot(x - ax - ex * u, z - az - ez * u); };
+function workshopSite(id,x,z){
+ const own=BLD_BLK[id];
+ return assessWorkshopSite(x,z,workshopGroundY,{landContains:onBuildableLand,floorOffset:GS().buildings[id]?.owned ? .35 : .05,entranceClear:(door,approach,needsRamp)=>{
+  if(!needsRamp)return true;
+  const bz=(door[1]+approach[1])/2,hd=(approach[1]-door[1])/2,block=[x,bz,.65,hd];
+  if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[block]}).length)return false;
+  if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[block]}).length))return false;
+  if(BLOCKS.some(b=>b!==own&&Math.abs(x-b[0])<.65+b[2]&&Math.abs(bz-b[1])<hd+b[3]))return false;
+  if([...Object.values(TREES),...hills,...far].some(t=>t.visible&&Math.abs(x-t.position.x)<2.05&&Math.abs(bz-t.position.z)<hd+1.4))return false;
+  if(GS().decor.placed.some(d=>Math.abs(x-d.x)<.65+1.2&&Math.abs(bz-d.z)<hd+1.2))return false;
+  if(plots.some(P=>P.g.visible&&Math.abs(x-P.g.position.x)<.65+1.2&&Math.abs(bz-P.g.position.z)<hd+1.2))return false;
+  for(let i=0;i<=12;i++){const zz=door[1]+(approach[1]-door[1])*i/12;if(dairyPath.contains(x,zz,.65)||PEN_LIST.some(p=>inPen(p,x,zz,-.8)))return false;}
+  return true;
+ }});
+}
 function editValid(key, x, z) {
   const [t, id] = key.split(":");
   if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
   const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
   if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[[x,z,hw,hd]]}).length)return false;
   if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[[x,z,hw,hd]]}).length))return false;
-  if (!onFarm(x,z,23)||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;                                   // stay on the farm
+  if (!(t==='b'?onBuildableLand(x,z,hw,hd):onFarm(x,z,23))||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;
   if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
   for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
   if (t === "b") {
     for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;
-    for (const k of Object.keys(TREES)) if (Math.hypot(TREES[k].position.x - x, TREES[k].position.z - z) < hw + 1.4) return false; // not under a tree
+    for (const tree of [...Object.values(TREES),...hills,...far]) if (tree.visible&&Math.hypot(tree.position.x - x, tree.position.z - z) < hw + 1.4) return false; // not under a tree
   } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence
   if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;
   if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;
+  if(t==='b'&&!workshopSite(id,x,z).ok)return false;
   return true;
 }
 function moveBlock(b, x, z) { // keep the pets' route planner in step with the block
@@ -3325,48 +3677,136 @@ function moveBlock(b, x, z) { // keep the pets' route planner in step with the b
   b[0] = x; b[1] = z;
 }
 function commitEdit(key, x, z, save = true) {
+  if (save && !G.SANDBOX) {
+    const farm=GS(),expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout || {b:{},t:{}}),nextDecor=structuredClone(farm.decor),[type,id]=key.split(':');
+    if(type==='b')(nextLayout.b||(nextLayout.b={}))[id]=[x,z];
+    else if(type==='t')(nextLayout.t||(nextLayout.t={}))[id]=[x,z];
+    else if(type==='d'&&nextDecor.placed[+id]){nextDecor.placed[+id].x=x;nextDecor.placed[+id].z=z;}
+    else return false;
+    const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,nextDecor,
+      canCommit:()=>GS()===farm&&editValid(key,x,z),
+      prepare:()=>({publish(){commitEdit(key,x,z,false);if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());},dispose(){}}),
+      onFatal:()=>setTimeout(()=>location.reload(),0)});
+    if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the move was cancelled.':'This move could not be applied.');
+    return result.ok;
+  }
   const [t, id] = key.split(":"), L = GS().layout || (GS().layout = {b:{}, t:{}});
   if (t === "b") {
-    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; BLD_DECAL[id].position.set(x, .02, z); moveClear("b:" + id, x, z, 1.8);
-    const B = buildings[id]; if (B && B.g) B.g.position.set(x, 0, z);
+    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; moveClear("b:" + id, x, z, 1.8);
+    syncWorkshopGround(id,x,z);
     if (save) (L.b || (L.b = {}))[id] = [x, z];
   } else if (t === "t") {
     moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);
     if (save) (L.t || (L.t = {}))[id] = [x, z];
   } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }
-  if (save) G.save();
+  if (save) {G.save();if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());}
+  return true;
 }
 // put buildings and trees where the saved farm has them (or back home when it doesn't say)
 function applyLayout() {
   const L = GS().layout || {};
   for (const bid of Object.keys(BLD_BLK)) { const [x, z] = (L.b || {})[bid] || HOME_SPOT[bid]; if (x !== BLD_BLK[bid][0] || z !== BLD_BLK[bid][1]) commitEdit("b:" + bid, x, z, false); }
   for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit("t:" + k, x, z, false); }
+  syncRemovedTrees();
 }
 function showShade(d) {
-  const f = footprint(d.key); editShade.scale.set(f.hw * 2, f.hd * 2, 1); editShade.position.set(d.x, .07, d.z);
+  const f=footprint(d.key),corners=[[d.x-f.hw,d.z-f.hd],[d.x+f.hw,d.z-f.hd],[d.x+f.hw,d.z+f.hd],[d.x-f.hw,d.z+f.hd]],a=shadeGeo.attributes.position;
+  [0,1,2,0,2,3].forEach((j,i)=>{const [x,z]=corners[j],y=workshopGroundY(x,z);a.setXYZ(i,x,Number.isFinite(y)?y+.07:.07,z);});a.needsUpdate=true;shadeGeo.computeBoundingSphere();
   editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;
 }
 function editDown(e) {
+  if (animalPenEditing) return false;
   const h = editHit(e.clientX, e.clientY); if (!h) return false;
+  const clearId=h.key.startsWith('clear:')?h.key.slice(6):h.key.startsWith('t:')?'courtyard:'+h.key.slice(2):null;
+  selectedClearTree=clearId&&clearTreeCandidate(clearId)?clearId:null;clearTreeButton.disabled=!selectedClearTree;
+  if(h.key.startsWith('clear:')){editMode.treePointerId=e.pointerId;paintUsed=true;return true;}
   const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
   editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
-  p.y = .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
+  p.y += .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
   return true;
 }
 function editMove(e) {
+  if (animalPenEditing) return false;
+  if(editMode?.treePointerId===e.pointerId)return true;
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
   const g = groundAt(e.clientX, e.clientY); if (!g) return true;
   const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
-  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, .25, z); showShade(d); G.sfx("tick"); }
+  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, d.key.startsWith('b:')?(workshopSite(d.key.slice(2),x,z).y??0)+.25:.25, z); showShade(d); G.sfx("tick"); }
   return true;
 }
 function editUp(e) {
+  if (animalPenEditing) return;
+  if(editMode?.treePointerId===e.pointerId){editMode.treePointerId=null;return;}
   const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
   editMode.drag = null; editShade.visible = false;
-  if (d.moved && d.ok) { d.obj.position.y = 0; commitEdit(d.key, d.x, d.z); squish(d.obj, .6); G.sfx("place"); }
+  if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { squish(d.obj, .6); G.sfx("place"); }
   else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
 }
 function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
+// The pen draft owns input and physical pause, never the paid game clock.
+function animalPenEditingAllowed(){
+ return !visiting&&!G.isVisiting()&&!window.__saHold&&!G.SANDBOX&&G.S.v<=G.SAVE_VERSION&&decodeAnimalPens(G.S.layout?.animalPens).status==='ok';
+}
+function setAnimalPenEditing(active){
+ if(active){
+  if(animalPenEditing||!animalPenEditingAllowed())return false;
+  const owned=snapshotPenWorld().owned,kind=Object.keys(owned).find(k=>owned[k]>0);
+  if(!kind||!penEditor.begin(kind))return false;
+  if(!editMode)setEdit(true);
+  if(editMode.drag)editCancel();if(moving)endMove(true);closeTrays();G.close();
+  clearTimeout(pressTimer);pressTimer=0;farmDrag=null;downAt=null;ptr.clear();keys.clear();joy.x=joy.y=0;
+  const host=document.createElement('div');host.dataset.penEditorHost='';document.body.append(host);
+  const preview=createAnimalPenPreview(scene),placementPreview=createPenPlacementPreview(scene,farmGroundY),session={farm:G.S,host,preview,placementPreview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
+   camera:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,target:cam.target.clone()}};
+  animalPenEditing=session;grid.updateMask(editGridMask(true));editBar.hidden=true;document.body.classList.add('pen-editing');
+  session.view=createAnimalPenEditorView({editor:penEditor,host,canvas:renderer.domElement,
+   readWorld:snapshotPenWorld,placementPreview:placementPreview.update,clearPlacementPreview:placementPreview.clear,
+   onPlacementFocus:(at,screen)=>{cam.target.set(at[0],farmGroundY(...at),at[1]);cam.dist=22;placeCamera(1);camera.updateMatrixWorld(true);const hit=groundAt(...screen);if(hit){cam.target.x+=at[0]-hit.x;cam.target.z+=at[1]-hit.z;}},
+   ownedKinds:()=>Object.keys(owned).filter(k=>owned[k]>0),
+   project:p=>{const s=toScreen(new THREE.Vector3(...p));return s?[s.x,s.y]:[-100,-100];},
+   unproject:p=>groundAt(...p)?.toArray()??null,preview:preview.update,clearPreview:preview.clear,
+   onSelection:selection=>{if(!selection||session.kind===selection.kind)return;session.kind=selection.kind;const site=installedAnimalPens.sites[selection.kind],p=site.footprint;
+    cam.target.set(p.reduce((n,v)=>n+v[0],0)/p.length,0,p.reduce((n,v)=>n+v[1],0)/p.length);cam.dist=Math.max(24,Math.max(...p.map(v=>v[0]))-Math.min(...p.map(v=>v[0]))+14);},
+   panZoom:()=>{session.pan=true;session.last=null;},onClose:()=>setAnimalPenEditing(false)});
+  return true;
+ }
+ const session=animalPenEditing;if(!session)return false;
+ animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.placementPreview.dispose();session.host.remove();
+ Object.assign(cam,{yaw:session.camera.yaw,pitch:session.camera.pitch,dist:session.camera.dist});cam.target.copy(session.camera.target);
+ ptr.clear();keys.clear();farmDrag=null;downAt=null;frame.lastT=undefined;
+ if(editMode)grid.updateMask(editGridMask());document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;
+}
+const animalPensButton=document.createElement('button');animalPensButton.id='animalPensBtn';animalPensButton.type='button';animalPensButton.textContent='Animal pens';animalPensButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(animalPensButton,editBar.querySelector('[data-mode]'));
+animalPensButton.addEventListener('click',()=>{if(!setAnimalPenEditing(true))G.toast('Animal pens are unavailable on this farm.');});
+const clearTreeButton=document.createElement('button');clearTreeButton.type='button';clearTreeButton.textContent='Clear selected tree';clearTreeButton.disabled=true;clearTreeButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(clearTreeButton,editBar.querySelector('[data-mode]'));
+const clearTreeDialog=document.createElement('dialog');clearTreeDialog.setAttribute('aria-label','Confirm tree clearing');clearTreeDialog.style.cssText='max-width:min(340px,calc(100vw - 32px));border:2px solid #6b8548;border-radius:14px;padding:18px;background:#fff9e9;color:#302c20;font:16px system-ui;';
+clearTreeDialog.innerHTML='<strong>Clear this tree?</strong><p data-tree-message></p><div style="display:flex;gap:8px"><button type="button" data-tree-cancel>Keep tree</button><button type="button" data-tree-confirm>Remove free</button></div>';
+for(const button of clearTreeDialog.querySelectorAll('button'))button.style.cssText='min-width:44px;min-height:44px;font:inherit;';document.body.append(clearTreeDialog);
+let pendingClearTree=null;
+clearTreeButton.addEventListener('click',()=>{if(!editMode||animalPenEditing||!selectedClearTree||!clearTreeCandidate(selectedClearTree))return;pendingClearTree=selectedClearTree;clearTreeDialog.querySelector('[data-tree-message]').textContent=`${pendingClearTree} at ${TREE_CATALOGUE.get(pendingClearTree).object.position.x.toFixed(1)}, ${TREE_CATALOGUE.get(pendingClearTree).object.position.z.toFixed(1)}. This is free and cannot be undone.`;clearTreeDialog.showModal();});
+clearTreeDialog.querySelector('[data-tree-cancel]').addEventListener('click',()=>clearTreeDialog.close());
+clearTreeDialog.addEventListener('close',()=>{pendingClearTree=null;});
+clearTreeDialog.querySelector('[data-tree-confirm]').addEventListener('click',()=>{
+ const id=pendingClearTree,farm=GS(),nextIds=id&&clearTreeCandidate(id);if(!nextIds){clearTreeDialog.close();return;}
+ const expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout||{b:{},t:{}});nextLayout.removedTrees=nextIds;
+ const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,
+  canCommit:()=>!!editMode&&!animalPenEditing&&GS()===farm&&!!clearTreeCandidate(id),
+  prepare:()=>({publish(){syncRemovedTrees();grid.updateMask(editGridMask());},dispose(){}}),
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ clearTreeDialog.close();if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the tree remains.':'The tree could not be cleared.');
+});
+// Keep paid/care/purchase buttons behind the draft inert, without changing their
+// handlers or the existing account/restore guards in game.js.
+document.addEventListener('click',event=>{const s=animalPenEditing;if(s&&!s.host.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
+addEventListener('pointerdown',event=>{animalPenEditing?.pointers.set(event.pointerId,[event.clientX,event.clientY]);},true);
+addEventListener('pointermove',event=>{
+ const s=animalPenEditing;if(!s||!s.pointers.has(event.pointerId))return;s.pointers.set(event.pointerId,[event.clientX,event.clientY]);if(!s.pan)return;
+ const points=[...s.pointers.values()],c=[points.reduce((n,p)=>n+p[0],0)/points.length,points.reduce((n,p)=>n+p[1],0)/points.length],d=points.length>1?Math.hypot(points[0][0]-points[1][0],points[0][1]-points[1][1]):null;
+ if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-MAP_EDGE,MAP_EDGE);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-MAP_EDGE,MAP_EDGE);}
+ s.last={c,d};event.preventDefault();event.stopImmediatePropagation();
+},true);
+for(const type of ['pointerup','pointercancel'])addEventListener(type,event=>{const s=animalPenEditing;if(s){s.pointers.delete(event.pointerId);s.last=null;if(!s.pointers.size)s.pan=false;}},true);
+addEventListener('blur',()=>{if(animalPenEditing){animalPenEditing.pointers.clear();animalPenEditing.pan=false;animalPenEditing.last=null;}});
 document.getElementById("walkBtn").addEventListener("click", () => enterFP());
 throwBtn.addEventListener("click", throwBait);
 document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
@@ -3514,7 +3954,7 @@ const baitMat = emojiMat("🌾");
 function throwBait() {
   if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;
   if (authoredHands?.state.status === 'ready') handPunch('reach', 'feed');
-  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = groundY(walk.pos.x, walk.pos.y) + EYE - .35;
+  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = workshopWalkY(walk.pos.x, walk.pos.y) + EYE - .35;
   const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);
   spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
   G.sfx("throw");
@@ -3604,7 +4044,7 @@ function flyTo(kind, n, at) {
 Object.assign(GV, {
   sparkle(key) { const v = keyPos(key); if (v) { bits(v.clone().setY(1), "rgba(255,210,60,1)", 16, 5.5); bits(v.clone().setY(1.2), "rgba(255,255,230,1)", 8, 6.5); } },
   fly:flyTo,
-  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!animalPenEditing || !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
   openBuildingAt(x, y) {
     if (visiting || editMode || photoMode || wardrobeOn || inBarn) return false;
     const h = hitAt(x, y);
@@ -3616,6 +4056,7 @@ Object.assign(GV, {
   },
   refresh(what) {
     if (what === "all") applyLayout(); // Saved objects define whether the courtyard can be installed before cows spawn.
+    if (what === "all") restoreSavedAnimalPens(); // saved custom pens, before herds spawn
     if (what === "plots" || what === "all") syncPlots();
     if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
     if (what === "buildings" || what === "all") syncBuildings();
@@ -3855,6 +4296,7 @@ function plantAt(i) {
 }
 function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
 function farmDown(e) {
+  if (animalPenEditing) return false;
   if (visiting || photoMode || wardrobeOn) return false; // a friend's farm: look, don't touch
   paintUsed = false;
   if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
@@ -3887,6 +4329,7 @@ function paintAlong(x, y) {
   farmDrag.last = [x, y];
 }
 function farmMove(e) {
+  if (animalPenEditing) return false;
   if (moving && moving.id === e.pointerId) { moving.moved = true; moveTo(e.clientX, e.clientY); return true; }
   if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
   if (!farmDrag || farmDrag.id !== e.pointerId) return false;
@@ -4178,7 +4621,7 @@ if (qs.has("demo")) {
 }
 bootStep("putting your farm in place");
 GV.refresh("all");
-for (const [x, z, hw, hd] of BLOCKS.slice(OBST_BLOCKS)) OBST.push({x, z, hw, hd, c:1, s:0});
+for (const b of BLOCKS) if (!OBST_BLOCKS.has(b) && !penSceneRegistry.ownsBlock(b)) { const [x, z, hw, hd] = b; OBST.push({x, z, hw, hd, c:1, s:0}); } // by identity: a restored pen layout reorders BLOCKS
 if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
   G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
 updatePlots(0);
@@ -4192,15 +4635,15 @@ for(const name of ['Phase7M flower stems','Phase7M flower heads']){
 cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")],COW_YARD_LAYOUT);cowPlantClearing.setActive(cowYardActive);
 remainingPlantClearing=createRemainingCarePlantClearing([scene.getObjectByName('Phase7M flower stems'),scene.getObjectByName('Phase7M flower heads')],remainingLayouts);for(const [kind,site]of Object.entries(remainingSites))remainingPlantClearing.setActive(kind,site.active);
 const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
-  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
+  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
 const armAttachment = installArmAttachment({THREE,camera,fallback:hands,
-  getContext:()=>({walk,ground:walk?groundY(walk.pos.x,walk.pos.y):0})});
+  getContext:()=>({walk,ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
 setPreset(qs.get("preset") || G.lookNow());
 syncHoliday();
 if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
 Object.defineProperty(window, "__herd", {get:() => animals});
-if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, chickenYard, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
-  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},cowYard,cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, get chickenYard(){return chickenYard;}, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},penEditor,get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},get cowYard(){return cowYard;},cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
 // snapshots skip ahead a little so the animals have spread out and are busy
 if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
   if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
@@ -4224,7 +4667,8 @@ function frame() {
   if (G.reducedMotion()) shake = 0;
   if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
   if (LOCO) locoParade(t);
-  for (const a of animals) a.update(dt, t);
+  if(animalPenEditing&&(!animalPenEditingAllowed()||animalPenEditing.farm!==G.S||!penEditor.snapshot().open)){penEditor.cancel();setAnimalPenEditing(false);}
+  if(!animalPenEditing)for (const a of animals) a.update(dt, t);
   updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);
   // trees sway with the wind
   for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);

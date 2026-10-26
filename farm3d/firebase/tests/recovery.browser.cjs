@@ -15,6 +15,90 @@ const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
 const {startRecoveryTiming} = require('./recovery-timing.cjs');
 
+// A30 timing-only: bounded event records, no page state writes or renderer release.
+async function beginQuotaTiming(page) {
+  const clock = require('node:perf_hooks').performance, started = clock.now(), rows = [];
+  let dropped = 0;
+  const mark = (event, detail = {}) => {
+    if (rows.length < 2048) rows.push({event, ms: clock.now() - started, utc: new Date().toISOString(), ...detail});
+    else dropped++;
+  };
+  const relevant = url => /^http:\/\/127\.0\.0\.1:(8085|9099)\//.test(url);
+  const safeUrl = url => { const u = new URL(url); return u.origin + u.pathname; };
+  const listeners = [];
+  const listen = (event, handler) => { page.on(event, handler); listeners.push([event, handler]); };
+  listen('request', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request', {url: safeUrl(r.url()), method: r.method(), navigation: r.isNavigationRequest()}); });
+  listen('response', r => { if (r.request().isNavigationRequest() || relevant(r.url())) mark('response', {url: safeUrl(r.url()), status: r.status()}); });
+  listen('requestfinished', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request-finished', {url: safeUrl(r.url()), method: r.method(), timing: r.timing()}); });
+  listen('requestfailed', r => { if (r.isNavigationRequest() || relevant(r.url())) mark('request-failed', {url: safeUrl(r.url()), reason: r.failure()?.errorText}); });
+  listen('framenavigated', f => { if (f === page.mainFrame()) mark('document-commit'); });
+  listen('domcontentloaded', () => mark('dom-content-loaded'));
+  listen('load', () => mark('document-load'));
+  listen('console', m => { if (m.text().includes("Couldn't put the cloud farm on this phone")) mark('playwright-refusal-delivery'); });
+  const cdp = await page.context().newCDPSession(page);
+  cdp.on('Runtime.consoleAPICalled', e => {
+    if (e.args.some(a => typeof a.value === 'string' && a.value.includes("Couldn't put the cloud farm on this phone")))
+      mark('cdp-refusal-delivery', {browserEpochMs: e.timestamp});
+  });
+  await cdp.send('Runtime.enable');
+  // A31: bounded read-only timeline; leave the renderer and original wait alone.
+  // Trace draining happens after the quota observation, not inside its deadline.
+  let traceTimer, traceEnd, traceDrained = false;
+  const complete = new Promise(resolve => cdp.once('Tracing.tracingComplete', resolve));
+  cdp.on('Tracing.bufferUsage', e => { if (e.percentFull >= .9) mark('trace-buffer-near-full', {percentFull: e.percentFull}); });
+  await cdp.send('Tracing.start', {
+    traceConfig: {recordMode: 'recordUntilFull', traceBufferSizeInKb: 32768,
+      includedCategories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'loading', 'toplevel', 'blink', 'gpu']},
+    transferMode: 'ReturnAsStream', streamCompression: 'gzip', bufferUsageReportingInterval: 1000
+  });
+  const endTrace = reason => {
+    if (!traceEnd) {
+      clearTimeout(traceTimer); mark('trace-end-request', {reason});
+      traceEnd = cdp.send('Tracing.end');
+      void traceEnd.catch(e => mark('trace-end-error', {message: e.message}));
+    }
+    return traceEnd;
+  };
+  traceTimer = setTimeout(() => { void endTrace('45000ms diagnostic cap'); }, 45000);
+  mark('trace-start', {limitMs: 45000, bufferKiB: 32768});
+  const bounded = (promise, ms) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('A31 diagnostic collection timeout')), ms);
+    promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+  });
+  async function stopTrace() {
+    if (traceDrained) return;
+    traceDrained = true;
+    let handle, fd, bytes = 0;
+    try {
+      await bounded(endTrace('quota observation finished'), 15000);
+      const event = await bounded(complete, 15000); handle = event.stream;
+      if (!handle) throw new Error('A31 trace completion supplied no stream');
+      fd = fs.openSync(path.join(artifacts, 'quota-browser-timeline.json.gz'), 'w');
+      const drainStart = clock.now();
+      for (;;) {
+        const chunk = await bounded(cdp.send('IO.read', {handle, size: 1048576}), 5000);
+        const data = Buffer.from(chunk.data, chunk.base64Encoded ? 'base64' : 'utf8');
+        if (bytes + data.length > 134217728 || clock.now() - drainStart > 15000) throw new Error('A31 trace drain exceeded diagnostic size/time cap');
+        fs.writeSync(fd, data); bytes += data.length;
+        if (chunk.eof) break;
+      }
+      mark('trace-saved', {bytes, dataLossOccurred: !!event.dataLossOccurred});
+    } catch (e) { mark('trace-incomplete', {bytes, message: e.message}); }
+    finally {
+      if (fd !== undefined) fs.closeSync(fd);
+      if (handle) { try { await bounded(cdp.send('IO.close', {handle}), 5000); } catch (e) { mark('trace-close-error', {message: e.message}); } }
+    }
+  }
+  mark('observer-ready');
+  const flush = () => fs.writeFileSync(path.join(artifacts, 'quota-timing.jsonl'), rows.concat({event: 'record-count', count: rows.length, dropped}).map(r => JSON.stringify(r)).join('\n') + '\n');
+  return {mark, flush, stopTrace, async finish() {
+    await stopTrace();
+    for (const [event, handler] of listeners) page.off(event, handler);
+    try { await cdp.detach(); } catch (e) { mark('diagnostic-detach-after-close', {message: e.message}); }
+    mark('observer-finished'); flush();
+  }};
+}
+
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
 const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
@@ -25,7 +109,7 @@ const restDelete = (uid) => fetch(fsUrl('farms/' + uid), {method: 'DELETE', head
 // the farm's real progress (the game re-saves a restored farm straight away with a new lastSeen and orders, so the phone
 // copy is compared on this; the CLOUD copy is compared byte for byte)
 const cowProgress=o=>{const c=o.pens?.cow?.care;return c?[c.feed,c.waterUntil,c.tank,c.queue,c.job,c.receipts,c.cows.map(b=>[b.id,b.cycle,b.ready]),o.gold?.milk,o.decor]:null;};
-const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o)]); } catch (e) { return 'unreadable'; } };
+const progress = (raw) => { try { const o = JSON.parse(raw); return JSON.stringify([o.__sentinel, o.level, o.xp, o.coins, o.gems, o.barn, o.plots && o.plots.length, o.stats,cowProgress(o),o.layout?.animalPens,o.pens?.horse,o.v]); } catch (e) { return 'unreadable'; } };
 const has = (save, token) => typeof save === 'string' && save.includes('"__sentinel":"' + token + '"');
 
 async function main() {
@@ -54,7 +138,7 @@ async function main() {
   const standInWrites = (token) => (g.farmWrites || []).filter(w => !has(w.save, token)).length;
   // the next load finds this text as the saved farm (written before any game script runs)
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
-  let failed = false, timing = null;
+  let failed = false, timing = null, quotaTiming = null;
   try {
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
@@ -102,10 +186,45 @@ async function main() {
     const cowRestored=await P(g,()=>({save:JSON.parse(JSON.stringify(__dbg.G.S)),site:__dbg.cowYardActive,conflicts:__dbg.cowYardIssues}));
     check('authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint',JSON.stringify(cowProgress(cowRestored.save))===JSON.stringify(cowProgress(cowCloud))&&cowRestored.save.v===3&&cowRestored.save.pens.cow.meta[0].name==='Snapshot Bessie'&&cowRestored.save.pens.cow.meta[1].name==='Snapshot Clover'&&!cowRestored.site&&cowRestored.conflicts.some(c=>c.type==='decor')&&cowRestored.save.pens.chicken.list.length===30);
 
+    // A27: use the already-qualified west horse boundary as a serialized recovery
+    // fixture. This is not an additional native Apply claim: the original cow
+    // snapshot deliberately contains a paid lamp occupying the cow site.
+    await P(g,async()=>{const G=__dbg.G,L=await import('./animal-pen-layout.js?v=1'),horse=L.defaultSiteRecord('horse');for(const v of horse.boundary)if(['v0','v3'].includes(v.id))v.x=-37;
+      G.S.pens.horse={owned:true,list:[0,0,0,0],meta:Array.from({length:4},(_,i)=>({name:'Recovery Horse '+i,love:50,loveAt:Date.now()}))};G.S.layout.animalPens={v:1,revision:2,sites:{horse}};G.view.refresh('all');G.commit();});
+    const editedBase=await establish(uid,'edited-writer4');
+    const editedExpected=JSON.parse(editedBase.save);
+    check('edited pen uploads writer4, stable horse ownership and exact paid cow snapshot',editedExpected.v===4&&editedExpected.layout.animalPens.revision===2&&editedExpected.pens.horse.list.length===4&&JSON.stringify(cowProgress(editedExpected))===JSON.stringify(cowProgress(cowCloud)));
+    await g.page.reload({waitUntil:'load'});await gameUp();
+    const installed=await P(g,()=>({raw:localStorage.getItem(__dbg.G.SAVE_KEY),custom:__dbg.remainingLayouts.horse.custom,revision:__dbg.penRuntime.revision,polygon:__dbg.remainingLayouts.horse.polygon,horses:__dbg.animals.filter(a=>a.kind==='horse'&&!a.gone).length}));
+    check('edited cloud snapshot reload installs exact boundary and four owned horses',progress(installed.raw)===progress(editedBase.save)&&installed.custom===true&&installed.revision===2&&installed.horses===4&&JSON.stringify(installed.polygon)===JSON.stringify(editedExpected.layout.animalPens.sites.horse.boundary.map(v=>[v.x,v.z])));
+
     // Later recovery scenarios compare a quiescent snapshot byte-for-byte.
     // Pause this test fixture's supplies after proving active-state round-trip;
     // keep its already-paid egg on the pallet through subsequent recovery.
     await P(g,()=>{const G=__dbg.G;G.S.pens.chicken.care.feedUntil=0;G.S.pens.chicken.care.waterUntil=0;G.commit();});
+
+    // A27 quota negative control: damaged phone cannot replace edited cloud
+    // when the cloud restore cannot persist. Retain the original 15s debounce
+    // and observe 25s without changing any existing recovery deadlines.
+    {
+      const base=await establish(uid,'edited-quota');g.farmWrites=[];
+      await g.context.addInitScript(()=>{if(sessionStorage.getItem('a27-block-save')){const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='sunny-acres-3d-v1'&&v!=='{"a27 quota cut')throw new DOMException('A27 fixture quota','QuotaExceededError');return set.call(this,k,v);};}});
+      await P(g,()=>sessionStorage.setItem('a27-block-save','1'));await corruptOnNextLoad('{"a27 quota cut');
+      quotaTiming=await beginQuotaTiming(g.page);
+      quotaTiming.mark('wait-arm',{deadlineMs:30000});
+      const refusal=g.page.waitForEvent('console',{predicate:m=>m.text().includes("Couldn't put the cloud farm on this phone"),timeout:30000});
+      void refusal.then(()=>quotaTiming.mark('wait-resolved'),e=>quotaTiming.mark('wait-rejected',{message:e.message}));
+      quotaTiming.mark('reload-call');
+      await g.page.reload({waitUntil:'load'});
+      quotaTiming.mark('reload-return');
+      await refusal;
+      quotaTiming.mark('refusal-await-return');
+      const bad=await watch(uid,25000,c=>c&&c.save===base.save&&c.rev===base.rev),blocked=await st();
+      check('edited cloud recovery with blocked primary storage preserves exact cloud and pending recovery',blocked.recover==='1'&&blocked.raw==='{"a27 quota cut'&&bad.length===0&&standInWrites(base.token)===0);
+      await P(g,()=>sessionStorage.removeItem('a27-block-save'));await g.page.reload({waitUntil:'load'});await gameUp();const restored=await st();
+      check('edited cloud recovery succeeds after storage becomes writable',restored.recover===null&&progress(restored.raw)===progress(base.save)&&(await cloud(uid)).save===base.save);
+      await quotaTiming.finish();quotaTiming=null;
+    }
 
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
@@ -197,6 +316,13 @@ async function main() {
         (loads.grandma || 0) - n0 === 1 && s.recover === null && s.kept === '{"v":1,"coins":12' && c && c.rev === 1,
         `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, first copy kept ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
     }
+
+    // The preceding missing-cloud cases intentionally create a fresh farm.
+    // Re-establish an edited disposable farm for the later offline/read-timeout
+    // and sign-out recovery cases instead of claiming they cover the lost layout.
+    await P(g,async()=>{const G=__dbg.G,L=await import('./animal-pen-layout.js?v=1'),horse=L.defaultSiteRecord('horse');for(const v of horse.boundary)if(['v0','v3'].includes(v.id))v.x=-37;
+      G.S.pens.horse={owned:true,list:[0,0,0,0],meta:Array.from({length:4},(_,i)=>({name:'Second Recovery Horse '+i,love:50,loveAt:Date.now()}))};G.S.layout.animalPens={v:1,revision:3,sites:{horse}};G.S.decor.inv.utilitylamp=1;G.S.decor.placed.push({id:'utilitylamp',x:20,z:20,rotation:.57});G.view.refresh('all');G.commit();});
+    const laterEdited=await establish(uid,'later-edited');check('later recovery scenarios start with edited layout and paid object',JSON.parse(laterEdited.save).layout.animalPens.revision===3&&JSON.parse(laterEdited.save).decor.inv.utilitylamp===1);
 
     // ---- 11. no recovery, but the cloud can't be reached when the game opens: the same visit still syncs once it's back
     {
@@ -293,12 +419,17 @@ async function main() {
         `restored ${back}, page loads +${(loads.grandma || 0) - n0}, cloud rev ${c3.rev}`);
     }
   } catch (e) {
+    quotaTiming?.mark('outer-catch',{message:e.message});quotaTiming?.flush();
     timing?.mark('recovery-error', {message: e.message});
     failed = true; console.log('RECOVERY ERROR', e.message); try { console.log('STATE', JSON.stringify(await st())); } catch (_) {}
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
   if (timing) await timing.finish();
+  if (quotaTiming) await quotaTiming.stopTrace();
+  quotaTiming?.mark('emulator-browser-close-call');
   await E.close();
+  quotaTiming?.mark('emulator-browser-close-return');
+  if (quotaTiming) await quotaTiming.finish();
   const bad = results.filter(r => !r.ok);
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);
   fs.writeFileSync(path.join(artifacts, 'recovery.json'), JSON.stringify(results, null, 1));

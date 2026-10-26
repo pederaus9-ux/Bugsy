@@ -5,7 +5,7 @@ const path = require('node:path');
 const http = require('node:http');
 const os = require('node:os');
 const {spawn} = require('node:child_process');
-const {execFileSync} = require('node:child_process');
+const {readSource} = require('./qualification-source.cjs');
 const root = path.resolve(__dirname, '../..');
 const wait = ms => new Promise(r => setTimeout(r, ms));
 class CDP {
@@ -50,7 +50,7 @@ async function start(out, ref) {
       if(!rel || rel.endsWith('/')) rel+='index.html';
       if(rel.split('/').some(x=>x==='..')) {res.writeHead(403);res.end();return;}
       const key=sourceRef+':'+rel; let body=sourceCache.get(key);
-      if(!body) { body=execFileSync('git',['show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']});sourceCache.set(key,body); }
+      if(!body) { body=readSource(sourceRef,rel);sourceCache.set(key,body); }
       res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.webmanifest':'application/manifest+json'})[path.extname(rel)]||'application/octet-stream');
       res.setHeader('Cache-Control','no-store'); requests.push({ref:sourceRef,path:req.url,status:200});res.end(body);
     } catch {requests.push({ref:sourceRef,path:req.url,status:404});res.writeHead(404);res.end();}
