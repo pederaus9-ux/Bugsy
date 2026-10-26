@@ -196,13 +196,19 @@ async function upload(force) {
     const rev = await cloud.put(raw, s, force ? null : +ls.get(SYNC_REV) || 0, restoreStamp);
     if (restoreRecovery.blocked() || restoreRecovery.stamp() !== restoreStamp) return false;
     if (rev == null) { console.warn("This farm was saved from another phone meanwhile; you'll get to choose next time."); return false; }
-    ls.set(SYNC_REV, String(rev)); ls.del(DIRTY); window.dispatchEvent(new CustomEvent("sa3d:uploaded", {detail:raw})); return true;
+    ls.set(SYNC_REV, String(rev));
+    if (progressOf(ls.get(SAVE_KEY)) === progressOf(raw)) ls.del(DIRTY);
+    else {
+      // A save made while this upload awaited its response still needs its own upload.
+      ls.set(DIRTY, "1"); clearTimeout(upload.t); upload.t = setTimeout(upload, 15000);
+    }
+    window.dispatchEvent(new CustomEvent("sa3d:uploaded", {detail:raw})); return true;
   } catch (e) { console.warn("Cloud save will try again later:", e.code || e.message); return false; }
 }
 // the game saves often, even when nothing changed (like when the app is closed), and refreshes truck orders and
 // events by itself: only a change the player made counts
 function progressOf(raw) {
-  try { const s = JSON.parse(raw); for (const k of ["orders", "event", "nextEventAt", "lastNag", "lastBackup"]) delete s[k]; return JSON.stringify(s); } catch (e) { return raw; }
+  try { const s = JSON.parse(raw); for (const k of ["orders", "event", "nextEventAt", "lastNag", "lastBackup", "lastSeen"]) delete s[k]; return JSON.stringify(s); } catch (e) { return raw; }
 }
 let lastProgress = progressOf(ls.get(SAVE_KEY));
 addEventListener("sa3d:saved", () => {

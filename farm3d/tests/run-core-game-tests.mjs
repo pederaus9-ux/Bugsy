@@ -6,6 +6,7 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'auth-upload-race.test.mjs',
  'restore-recovery.test.mjs','restore-recovery-scope.test.mjs',
  'animal-pen-placement.test.mjs','animal-pen-placement-controller.test.mjs','animal-pen-placement-preview.test.mjs',
  'animal-pen-access-reservation.test.mjs',

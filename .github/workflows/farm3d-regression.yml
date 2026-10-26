@@ -510,8 +510,13 @@ jobs:
         working-directory: farm3d/tests
         run: npm ci --ignore-scripts
       - name: Install Chromium and system dependencies
+        if: ${{ matrix.width != 844 }}
         working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
+      - name: Diagnose pinned Chromium installation phases (844 only)
+        if: ${{ matrix.width == 844 }}
+        working-directory: farm3d/tests
+        run: node browser-install-diagnostic.cjs
       - name: Thirty-chicken full-flock touch + game evidence
         working-directory: farm3d/tests
         run: node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs && node chicken-flock30.browser.cjs

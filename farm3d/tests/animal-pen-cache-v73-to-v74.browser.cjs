@@ -1,4 +1,4 @@
-// Real v73 predecessor worker -> v74 cache update -> offline guest-farm reboot.
+// Real v73 predecessor -> current v75 candidate; historical filename and v73 input retained.
 // Local isolated Chromium only; never an owner profile or production save.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
@@ -29,10 +29,10 @@ function sameFarm(before,after,window){
  stage='distinct current worker activation';h.setRef(currentRef);
  await h.cdp.evaluate(`(async()=>{window.__penRegistration=await navigator.serviceWorker.getRegistration();window.__penOldWorker=window.__penRegistration.active;await window.__penRegistration.update();})()`);
  await h.cdp.until(`window.__penRegistration.active&&window.__penRegistration.active!==window.__penOldWorker&&window.__penRegistration.active.state==='activated'&&navigator.serviceWorker.controller===window.__penRegistration.active`);
- const cache=await h.cdp.evaluate(`(async()=>{const keys=await caches.keys(),c=await caches.open('sa3d-v74'),files=['game.js?v=34','auth.js?v=20','restore-recovery.js?v=1'],sha={};for(const file of files){const r=await c.match(new URL(file,location.href));if(!r){sha[file]=null;continue;}const d=await crypto.subtle.digest('SHA-256',await r.arrayBuffer());sha[file]=Array.from(new Uint8Array(d),n=>n.toString(16).padStart(2,'0')).join('');}return {keys,urls:(await c.keys()).map(r=>r.url),sha,foreign:await(await(await caches.open('foreign-farm-cache')).match('foreign-marker')).text(),controlled:!!navigator.serviceWorker.controller};})()`);
- assert(cache.keys.includes('sa3d-v74'));assert(!cache.keys.includes('sa3d-v73'));assert.equal(cache.foreign,'preserve');assert(cache.controlled);assert(!cache.urls.some(url=>url.endsWith('farm-land.js?v=3')));
+ const cache=await h.cdp.evaluate(`(async()=>{const keys=await caches.keys(),c=await caches.open('sa3d-v75'),files=['game.js?v=34','auth.js?v=21','restore-recovery.js?v=1'],sha={};for(const file of files){const r=await c.match(new URL(file,location.href));if(!r){sha[file]=null;continue;}const d=await crypto.subtle.digest('SHA-256',await r.arrayBuffer());sha[file]=Array.from(new Uint8Array(d),n=>n.toString(16).padStart(2,'0')).join('');}return {keys,urls:(await c.keys()).map(r=>r.url),sha,foreign:await(await(await caches.open('foreign-farm-cache')).match('foreign-marker')).text(),controlled:!!navigator.serviceWorker.controller};})()`);
+ assert(cache.keys.includes('sa3d-v75'));assert(!cache.keys.includes('sa3d-v73'));assert.equal(cache.foreign,'preserve');assert(cache.controlled);assert(!cache.urls.some(url=>url.endsWith('farm-land.js?v=3')));
  for(const module of ['animal-pen-validation','animal-pen-placement','animal-pen-placement-worker','animal-pen-placement-controller','animal-pen-editor-view'])assert(!cache.urls.some(url=>url.endsWith(module+'.js?v=3')),module+' stale v3 entry');
- for(const [url,file]of [['game.js?v=34','game.js'],['auth.js?v=20','auth.js'],['restore-recovery.js?v=1','restore-recovery.js']])assert.equal(cache.sha[url],digest(file),url+' exact cached bytes');
+ for(const [url,file]of [['game.js?v=34','game.js'],['auth.js?v=21','auth.js'],['restore-recovery.js?v=1','restore-recovery.js']])assert.equal(cache.sha[url],digest(file),url+' exact cached bytes');
  assert(!cache.urls.some(url=>url.endsWith('game.js?v=33')||url.endsWith('auth.js?v=19')),'old game/auth cache entries removed');
  record(stage,{keys:cache.keys,sha:cache.sha,foreign:cache.foreign});
  stage='online reload preserves custom pen';let startAt=await h.cdp.evaluate('Date.now()');await h.reload();let after=await snapshot(),endAt=await h.cdp.evaluate('Date.now()'),day=await h.cdp.evaluate(`new Date().toLocaleDateString('en-CA')`);sameFarm(before,after,{start:startAt,end:endAt,day});record(stage,{horses:after.horses,revision:after.revision});

@@ -10,9 +10,9 @@ test('A26 exact outside-function scope and corruption controls',()=>{const p=JSO
 // A36 retains the original scope hashes and rejects unapproved drift before accounting.
 const a36Source=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const a36Receipt=fs.readFileSync(new URL('./fixtures/pen-scope-history.json',import.meta.url));
-const a36FirstHunk=JSON.parse(a36Receipt).changes.A27_A28_versions.hunks[0].after;
+const a36FirstHunk=JSON.parse(a36Receipt).changes.A27_A28_versions.hunks[0].after.replace('auth.js?v=20','auth.js?v=21');
 for(const [name,mutate]of[
- ['wrong version',s=>s.replace('auth.js?v=20','auth.js?v=999')],
+ ['wrong version',s=>s.replace('auth.js?v=21','auth.js?v=999')],
  ['missing hunk',s=>s.replace(a36FirstHunk,'')],
  ['duplicate hunk',s=>s+a36FirstHunk],
  ['altered route repair',s=>s.replace('let blockedBedLeg=false;','let blockedBedLeg=true;')],

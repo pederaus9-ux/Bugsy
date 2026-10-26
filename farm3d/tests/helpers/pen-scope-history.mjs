@@ -1,3 +1,4 @@
+import {normalizeReleaseBlockerScope} from './release-blocker-scope.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -15,6 +16,7 @@ verifyPenScopeHistory(raw);
 const history = JSON.parse(raw);
 
 export function normalizePenScope(amendment, source) {
+  source=normalizeReleaseBlockerScope('index.html',source);
   assert(['A25', 'A26'].includes(amendment), 'Only the two approved historical guards');
   const target = history.targets[amendment];
   for (const key of target.reverse) {
