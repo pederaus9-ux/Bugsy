@@ -2076,3 +2076,7 @@ Owner Sentinel_5b43e6036d448191a3042ee6469feefd explicitly approves immutable0d 
 ### Rollback local source verification
 
 121 focused checks PASS, source-only package122assets/11corruptioncontrols PASS, static YAML comparison proves all12 original historical steps retained with explicit0d source identity and independent20min currentrollback job. Sixcandidate-cache files exact76to77 substitutions; predecessor inputs unchanged. Independent source review PASS. Runtime index exactac4, onlyforwardworker77, compatibilitymodule retained; auth/game/recovery/Three bytes untouched. Browser/cache and real package/hosted verification pending. No user-performance-improvement claim.
+
+### Rollback installed-cache verification complete locally
+
+At e6c2ca4, fivephase installedv76->77 journey PASS: exactcachedindex/auth/game/recovery/helper hashes, all30 baseline roots0, savedwheat/inventory and custom4horsepen/revision1 preserved online/offline, foreigncachepreserved, zeroofflineserverresponses and zero runtimeexceptions. Inspected realoffline640x360 software-rendered snapshot showsbrownfields/redbarn; not proof ownerdevice lag/blackrenderingfixed. No realsaves/cloudwrites. Fullindependent source/additiveworkflow review PASS. These two relay-only updates do not change tested runtime. DraftPR/exactheadCI/realpackagebuild/merge/Pages stillpending. Historicalfield/source failures remain separate.
