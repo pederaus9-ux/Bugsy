@@ -2100,3 +2100,11 @@ Owner Sentinel_8d67a15e5f8481918045d96b3a9b57bc approved bounded sanitized recov
 ### Bounded diagnostic source ready for isolated publication
 
 Five syntax checks,9installer/13nativeobserver/4childreceipt/9recoveryreceipt syntheticcontrolsPASS;23originalrecoveryassertionblocks and101originalworkflowcommands preserved. IndependentreviewPASS. Recovery-only recording prevents precedingflows from exhausting budget; artifactallowlist excludesrawresults/logs/traces. Original45/20/20min deadlines/runtime/auth/frozenreceipts unchanged. Only isolated manual selection; PR98 remains9bf21PASS/1FAIL/2CANCEL/3SKIP andunmerged. First recoveryattemptnotyetstarted; laterpathsheldonfailure.
+
+### Local polling observation correction approved before edits
+
+Owner Sentinel_2f0b1306cd808191bced96e49e60547c approves only requested-save polling within original40000ms and bounded fixed-field-name/auth-progress diagnostics, synthetic controls and review. Pre-edit hashes and new pure helper/unit paths recorded in state. Priorrun40442972173 remains25PASS/2FAIL; batch stopped/laterpaths NOTRUN. Both original final assertions, strictcloudbytes/runtime/auth/saves/workflows/deadlines remain unchanged. No rerun/push/dispatch/merge/deploy authorized.
+
+### Polling correction locally validated; recovery not rerun
+
+17focused synthetic/unitchecksPASS,3syntaxchecksPASS; all24originalcheckcallblocks byte-identical (27executedwithrepeat). Independent read-only reviewPASS. Requested-save predicate now awaited within40000ms total includingreads/waits,max40samples; absent/late samples cannot manufacturePASS. Fixed49schemafieldlabels/authprogressboolean only, receiptwriter independentlyrejectsunknownnames. Strictcloudbyte/revisionassertion unchanged; prior25PASS/2FAIL remains. Runtime/auth/save/workflows/frozenreceipts/settings unchanged. No recovery/emulator/browserrun,push,dispatch,merge/deploy. Nextsingleexistingmanualrecoveryattemptrequiresseparateapprovalafterpublication.

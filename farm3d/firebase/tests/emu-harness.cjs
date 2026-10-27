@@ -7,6 +7,7 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const {allowedChangedFields} = require('./recovery-observation.cjs');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const root = path.resolve(__dirname, '../../..');
@@ -17,7 +18,7 @@ fs.mkdirSync(artifacts, {recursive: true});
 // Never serialize a page, request, error, account identifier or saved farm.
 const rollbackDiagnosticEnabled = process.env.ROLLBACK_DIAGNOSTIC === '1' && !!process.env.ROLLBACK_DIAGNOSTIC_FILE && path.basename(process.argv[1] || '') === 'recovery.browser.cjs';
 const rollbackDiagnosticEvents = new Set(['cloud-read-http','document-load','document-commit','browser-ready','browser-saved','browser-uploaded','farm-commit-request','farm-commit-response','farm-commit-failed','readiness-result','recovery-establish','recovery-reload-call','recovery-at-recovery','recovery-first-revision','recovery-plus3-call','recovery-plus3-return','recovery-plus3-break','recovery-check','recovery-complete']);
-const rollbackDiagnosticKeys = new Set(['iteration','sequence','index','ok','ready','dirty','pendingRecovery','syncedRevision','savePresent','saveReadable','sameBytes','sameProgress','sentinelMatches','coinDelta','revision','baseRevision','status','pageLoads','restored','timeoutMs','passed','failed','exception']);
+const rollbackDiagnosticKeys = new Set(['iteration','sequence','index','ok','ready','dirty','pendingRecovery','syncedRevision','savePresent','saveReadable','sameBytes','sameProgress','sentinelMatches','coinDelta','revision','baseRevision','status','pageLoads','restored','timeoutMs','passed','failed','exception','authProgressEqual','fieldComparisonReadable','unclassifiedTopLevelChange','unclassifiedByteDifference']);
 const rollbackDiagnosticProducer = path.basename(process.argv[1] || '') === 'recovery.browser.cjs' ? 'recovery' : 'flow';
 let rollbackDiagnosticRows = 0, rollbackDiagnosticBytes = 0;
 if (rollbackDiagnosticEnabled) {
@@ -32,6 +33,11 @@ function rollbackDiagnostic(event, data = {}) {
   try {
     const row = {event, producer: rollbackDiagnosticProducer, economy: process.env.ECONOMY === '1', elapsedMs: Date.now() - rollbackDiagnosticStart};
     for (const [key, value] of Object.entries(data)) {
+      if (key === 'changedFields') {
+        if (allowedChangedFields(value)) row.changedFields = [...new Set(value)];
+        else row.fieldNamesRejected = true;
+        continue;
+      }
       if (rollbackDiagnosticKeys.has(key) && (value === null || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value)))) row[key] = value;
     }
     const line = JSON.stringify(row) + '\n';

@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads, rollbackDiagnostic, rollbackDiagnosticEnabled} = require('./emu-harness.cjs');
 const {startRecoveryTiming} = require('./recovery-timing.cjs');
+const {changedFieldDiagnostics,pollRequestedSave} = require('./recovery-observation.cjs');
 
 // A30 timing-only: bounded event records, no page state writes or renderer release.
 async function beginQuotaTiming(page) {
@@ -124,7 +125,7 @@ async function main() {
       const farm = JSON.parse(raw); data.saveReadable = !!farm && typeof farm === 'object';
       if (diagnosticBase) {
         const baseFarm = JSON.parse(diagnosticBase.save);
-        Object.assign(data, {baseRevision: diagnosticBase.rev, sameBytes: raw === diagnosticBase.save, sameProgress: progress(raw) === progress(diagnosticBase.save), sentinelMatches: has(raw, diagnosticBase.token), coinDelta: Number(farm.coins) - Number(baseFarm.coins)});
+        Object.assign(data, {baseRevision: diagnosticBase.rev, sameBytes: raw === diagnosticBase.save, sameProgress: progress(raw) === progress(diagnosticBase.save), sentinelMatches: has(raw, diagnosticBase.token), coinDelta: Number(farm.coins) - Number(baseFarm.coins)}, changedFieldDiagnostics(raw,diagnosticBase.save));
       }
     } catch (_) { data.saveReadable = false; }
     return data;
@@ -302,7 +303,8 @@ async function main() {
       diagnosticCloud('recovery-plus3-call', atRecovery);
       await P(g, () => { const G = window.__dbg.G; G.S.coins += 3; G.commit(); });
       diagnosticCloud('recovery-plus3-return', atRecovery);
-      let after = null; for (let i = 0; i < 40; i++) { after = await cloud(uid); if (rollbackDiagnosticEnabled) diagnosticObserve(after); if (after.rev > base.rev) { diagnosticCloud('recovery-plus3-break', after, {index: i}); break; } await g.page.waitForTimeout(1000); }
+      const after = await pollRequestedSave({read:() => cloud(uid), wait:ms => g.page.waitForTimeout(ms), base,
+        observe:(value,index,matched) => { if (rollbackDiagnosticEnabled) diagnosticObserve(value); if (matched) diagnosticCloud('recovery-plus3-break',value,{index}); }});
       check(`1.${k} a normal save after recovery uploads the restored farm`, after.rev > base.rev && has(after.save, base.token) && JSON.parse(after.save).coins === JSON.parse(base.save).coins + 3, `rev ${base.rev}->${after.rev}`);
     }
     if (rollbackDiagnosticEnabled) { diagnosticIteration = 0; diagnosticBase = null; }
