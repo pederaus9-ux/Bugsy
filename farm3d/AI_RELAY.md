@@ -2064,3 +2064,15 @@ Owner Sentinel_38e100e109b0819181fe40eee50ca435 approves immutable historical v7
 ### Field-only local release qualification complete
 
 At082669d,132focusedchecksPASS including unchanged A25/A26/A28 and new exact field controls. Independent v75-to-v76 upgrade: fivephasesPASS, exactindex/support/game/auth/recoverycachehashes,30supportedroots,plantedcrop and4horsecustompen preserved,zerooffline responses. RestrictedChromecrashpadlaunchfailedbeforegame; normalprocessaccesswithsandboxflagsunchangedpassed, originalreceiptretained. Matchedbefore/afterrendersinspectedshowexposedfrontbeds. Originalstrictnativefivephases/nineassertionsat5085remain source-equivalent; hostednative rerun configured. YAMLread-onlyworkflowvalid. RealPagesbuild andexact-headCI/independentreviewpending. Controlsremain9fcaaf2separate;no mergeyet.
+
+### Owner-approved field-only rollback: pre-edit record
+
+Owner Sentinel_056e591992808191881d9f07abb63c4d approves reverting only field rendering after severe black fields/buildings and widespread camera/control lag. Main verified 5c08fa4ab3444ef0daa6d35635490a7124af657a. Approval/pre-edit digests recorded in FIELD_ROLLBACK_APPROVAL.json before edits. Forward cache77, prior index exactac4, compatibility helper retained; save/auth/economy/security bytes unchanged. Historical failures remain; symptom cause and improvement unproven. Controls9fcaaf2 paused. No settings or user-data changes.
+
+### Additive rollback qualification approved before edits
+
+Owner Sentinel_5b43e6036d448191a3042ee6469feefd explicitly approves immutable0d historical field checks with all original steps, separate current rollback/cache qualification, six current-version-only references76to77 and unchanged deadlines. Denied step-removal patch did not execute and is not replayed. Additional pre-edit digests in FIELD_ROLLBACK_APPROVAL.json. Historical failures remain; neither source-identity nor rollback deployment proves owner-device improvement.
+
+### Rollback local source verification
+
+121 focused checks PASS, source-only package122assets/11corruptioncontrols PASS, static YAML comparison proves all12 original historical steps retained with explicit0d source identity and independent20min currentrollback job. Sixcandidate-cache files exact76to77 substitutions; predecessor inputs unchanged. Independent source review PASS. Runtime index exactac4, onlyforwardworker77, compatibilitymodule retained; auth/game/recovery/Three bytes untouched. Browser/cache and real package/hosted verification pending. No user-performance-improvement claim.

@@ -13,19 +13,23 @@ concurrency:
   cancel-in-progress: true
 jobs:
   field:
-    name: Field support, native crop saves and v75-to-v76 offline update
+    name: Historical field v76 source, native crops and preserved upgrades (0d0542b)
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: 0d0542bf93e4e010b5543e81a40fae4bca2dd5f9
+      - name: Identify immutable historical source separately from candidate
+        run: |
+          test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
+          printf '{"testedSource":"%s","candidate":"%s","coverage":"historical-field-v76"}\n' "$(git rev-parse HEAD)" "${{ github.event.pull_request.head.sha || github.sha }}" > "$RUNNER_TEMP/field-source.json"
       - name: Fetch and verify accepted v75 source without changing checkout
         run: |
           git fetch --no-tags --depth=1 origin ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b
           test "$(git rev-parse FETCH_HEAD)" = "ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b"
-          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -66,8 +70,56 @@ jobs:
         with:
           name: field-support-${{ github.run_attempt }}
           path: |
+            ${{ runner.temp }}/field-source.json
             artifacts/field/**/result.json
             artifacts/field/**/results.json
             artifacts/field/**/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+  rollback:
+    name: Current field rollback, exact saved crops and v76-to-v77 offline update
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify candidate and immutable rollback inputs without changing checkout
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git fetch --no-tags --depth=1 origin ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b
+          test "$(git rev-parse FETCH_HEAD)" = "ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b"
+          git fetch --no-tags --depth=1 origin 0d0542bf93e4e010b5543e81a40fae4bca2dd5f9
+          test "$(git rev-parse FETCH_HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Install locked browser tools
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install pinned sandboxed Chromium
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Use isolated browser executable
+        run: echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/tests/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Exact rollback, historical reconstruction, save and support contracts
+        run: node --test farm3d/tests/field-rollback-scope.test.mjs farm3d/tests/plot-support.test.mjs farm3d/tests/field-support-scope.test.mjs farm3d/tests/workshop-site.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/animal-pen-validation.test.mjs farm3d/tests/restore-recovery.test.mjs farm3d/tests/player-arm-attachment-integration.test.mjs
+      - name: Installed v76-to-v77 online and offline rollback preserves exact farm
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/rollback/cache-v76-v77
+        run: node farm3d/tests/field-rollback-cache.browser.cjs
+      - name: Preserve bounded rollback outcomes
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: field-rollback-${{ github.run_attempt }}
+          path: |
+            artifacts/rollback/**/results.json
+            artifacts/rollback/**/*.png
           if-no-files-found: error
           retention-days: 14
