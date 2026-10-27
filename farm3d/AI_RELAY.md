@@ -2080,3 +2080,11 @@ Owner Sentinel_5b43e6036d448191a3042ee6469feefd explicitly approves immutable0d 
 ### Rollback installed-cache verification complete locally
 
 At e6c2ca4, fivephase installedv76->77 journey PASS: exactcachedindex/auth/game/recovery/helper hashes, all30 baseline roots0, savedwheat/inventory and custom4horsepen/revision1 preserved online/offline, foreigncachepreserved, zeroofflineserverresponses and zero runtimeexceptions. Inspected realoffline640x360 software-rendered snapshot showsbrownfields/redbarn; not proof ownerdevice lag/blackrenderingfixed. No realsaves/cloudwrites. Fullindependent source/additiveworkflow review PASS. These two relay-only updates do not change tested runtime. DraftPR/exactheadCI/realpackagebuild/merge/Pages stillpending. Historicalfield/source failures remain separate.
+
+### Unused rollback precache entry correction approved before edits
+
+Owner Sentinel_3f2621a471fc8191ad0dbccc415a29c0 approves the exact five-file correction: remove obsolete plot-support entry from SW77 shell, retain file, preserve published47171802 receipt preimage and frozen325cd027 field receipt, update exact inverse/negative/cache controls. Unchanged versions.test requires cached modules in realbootgraph. Pre-edit hashes recorded in FIELD_ROLLBACK_APPROVAL.json before SW edits. Oldheadbfbe CI remains17PASS6FAIL3SKIP1active emulator; no publication while active, no attribution of all failures to one cause.
+
+### Unused-entry correction local source checks passed
+
+27 targetedchecksPASS includingunchangedversions.test; package122assets/86shellentries/all11controlsPASS. NarrowindependentreviewPASS: onlyunusedhelperprecacheentryremoved, file8a7790 retained; exact2hunkinverse reconstructsoldv76a58855, embeddedpublishedreceiptbytes47171802equalimmutablebfbe, frozenfield325cd027unchanged. Correctedbrowsercacheverificationpending. OldheademulatorjobcompletedSUCCESS01:29:12UTC; alloldjobsfinishedbeforeanynewpublication. Historicalunitfailuresretained, no attributionofallassertionswithoutdirectsafeoutput. Noauth/data/settings/performancescopechanges.
