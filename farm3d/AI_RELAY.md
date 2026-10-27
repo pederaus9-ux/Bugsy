@@ -2092,3 +2092,11 @@ Owner Sentinel_3f2621a471fc8191ad0dbccc415a29c0 approves the exact five-file cor
 ### Corrected rollback local preservation passed; old CI terminal
 
 At d4d755c, allfive correctedinstalledv76->77 preservationphasesPASS withobsoleteentryabsent, exactcurrentindex/auth/game/recoverycachedhashes, compatibilityfileexact, wheat/inventory/custom4horsepen/revision1 preservedonline/offline, zeroofflineserverresponses/runtimeexceptions. Originalversionsassertionsunchanged and27targetedchecksPASS; sourcepackage11controlsPASS; independentnarrowreviewPASS. Oldbfbe hostedattemptterminal18SUCCESS6FAILURE3manualSKIP0cancelled/active; emulatorSUCCESS01:29:12UTC. Sixfailuresretained; specificassertionofeachnotavailableinsafemetadata. No newpublicationbeforeoldjobsfinished. NewheadCI/actualpackage/deploymentremainpending, noownerdeviceimprovementclaim.
+
+### Rollback diagnostic-only continuation approved before edits
+
+Owner Sentinel_8d67a15e5f8481918045d96b3a9b57bc approved bounded sanitized recovery/installer/child receipts and immutable native observer with one sequential attempt per path. Pre-edit hashes and exact9bf source recorded in state. Diagnostic branch only; normal PR98 checks and21PASS/1FAIL/2CANCEL/3SKIP preserved. Runtime/assertions/sandbox/deadlines unchanged; no merge/deploy. Stop first repeated failure.
+
+### Bounded diagnostic source ready for isolated publication
+
+Five syntax checks,9installer/13nativeobserver/4childreceipt/9recoveryreceipt syntheticcontrolsPASS;23originalrecoveryassertionblocks and101originalworkflowcommands preserved. IndependentreviewPASS. Recovery-only recording prevents precedingflows from exhausting budget; artifactallowlist excludesrawresults/logs/traces. Original45/20/20min deadlines/runtime/auth/frozenreceipts unchanged. Only isolated manual selection; PR98 remains9bf21PASS/1FAIL/2CANCEL/3SKIP andunmerged. First recoveryattemptnotyetstarted; laterpathsheldonfailure.

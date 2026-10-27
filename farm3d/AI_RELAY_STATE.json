@@ -11437,5 +11437,45 @@
       },
       "failuresNotAllAttributed": true
     }
+  },
+  "rollbackDiagnostics20261027": {
+    "approval": "Sentinel_8d67a15e5f8481918045d96b3a9b57bc",
+    "recorded": "2026-10-27T03:03:58.793Z",
+    "base": "9bf4e0bf7efc51a4dc54e95a0b1ca92078cc56f7",
+    "branch": "codex/rollback-diagnostics-20261027",
+    "scope": "Diagnostic-only recovery booleans/counters; split installer and child lifecycle; external immutable historical native observer; manual sequential routing. Original assertions/runtime/workload/sandbox/deadlines remain. No merge/deploy.",
+    "preEdit": {
+      "farm3d/firebase/tests/recovery.browser.cjs": "25580566128709adcec2b758ff00b95640b9fde8418603f5f905e53361d15402",
+      "farm3d/firebase/tests/emu-harness.cjs": "e209b557a585696d3d42cdf9c747c0dc2d6b6fef767c9083a3fad11513289658",
+      "farm3d/tests/run-core-game-tests.mjs": "8e6196c07c3488d02e85fbd7c8bc8be391e18d3fe60979569222caa9d28aeb96",
+      "farm3d/tests/browser-install-diagnostic.cjs": "6f6fb2e3ef2cd5426db7756c4edb03bf450424f02aea74838f5e972e70db68e6",
+      ".github/workflows/farm3d-regression.yml": "353efdeefabb1d36a394534dfd3f5eb3fcf3c9edcec4d0c2d6cbc139f58c6922",
+      ".github/workflows/field-support-qualification.yml": "a5794a29ab77346aba35ccc5576d87f3ef9dbfde77ed6c6073876edad23973b7"
+    },
+    "newPaths": [
+      "farm3d/tests/rollback-path-observer.cjs"
+    ],
+    "historical": "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9",
+    "originalResults": {
+      "success": 21,
+      "failure": 1,
+      "cancelled": 2,
+      "skipped": 3
+    },
+    "attempts": "One recovery/emulator, then core browser, then historical native; sequential; stop first repeated failure/timeout/denial/scope or head/base drift.",
+    "status": "LOCAL_DIAGNOSTIC_REVIEW_PASS_HOSTED_NOT_RUN",
+    "validation": {
+      "syntaxFiles": 5,
+      "installerControls": 9,
+      "nativeObserverControls": 13,
+      "childReceiptControls": 4,
+      "recoveryReceiptControls": 9,
+      "originalRecoveryAssertionBlocks": 23,
+      "originalRegressionSteps": 101,
+      "independentReview": "PASS; two observation-safety issues corrected before publication",
+      "runtimeAndFrozenReceiptsUnchanged": true,
+      "manualOnlySelectedPaths": true,
+      "noBroadAutomaticPushTrigger": true
+    }
   }
 }

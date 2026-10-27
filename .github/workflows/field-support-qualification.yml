@@ -1,5 +1,15 @@
 name: Field terrain support qualification
 on:
+  workflow_call:
+    inputs:
+      diagnostic_native_only:
+        description: Observe only the unchanged immutable historical native journey
+        type: boolean
+        default: false
+      diagnostic_source:
+        description: Exact candidate commit containing the external diagnostic helpers
+        type: string
+        default: ''
   pull_request:
     branches: [main]
     paths: ['farm3d/**', '.github/workflows/field-support-qualification.yml']
@@ -25,6 +35,17 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
           printf '{"testedSource":"%s","candidate":"%s","coverage":"historical-field-v76"}\n' "$(git rev-parse HEAD)" "${{ github.event.pull_request.head.sha || github.sha }}" > "$RUNNER_TEMP/field-source.json"
+      - name: Materialize external observer without changing historical source
+        if: ${{ inputs.diagnostic_native_only }}
+        env:
+          DIAGNOSTIC_SOURCE: ${{ inputs.diagnostic_source }}
+        run: |
+          [[ "$DIAGNOSTIC_SOURCE" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$DIAGNOSTIC_SOURCE"
+          test "$(git rev-parse FETCH_HEAD)" = "$DIAGNOSTIC_SOURCE"
+          git show "$DIAGNOSTIC_SOURCE:farm3d/tests/rollback-path-observer.cjs" > "$RUNNER_TEMP/rollback-path-observer.cjs"
+          git show "$DIAGNOSTIC_SOURCE:farm3d/tests/browser-install-diagnostic.cjs" > "$RUNNER_TEMP/browser-install-diagnostic.cjs"
+          test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
       - name: Fetch and verify accepted v75 source without changing checkout
         run: |
           git fetch --no-tags --depth=1 origin ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b
@@ -39,25 +60,45 @@ jobs:
         working-directory: farm3d/tests
         run: npm ci --ignore-scripts
       - name: Install pinned sandboxed Chromium
+        if: ${{ !inputs.diagnostic_native_only }}
         working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
+      - name: Observe pinned sandboxed Chromium installation phases
+        if: ${{ inputs.diagnostic_native_only }}
+        working-directory: farm3d/tests
+        env:
+          BROWSER_INSTALL_RECEIPT: ${{ github.workspace }}/artifacts/field/diagnostic/browser-install.json
+        run: node "$RUNNER_TEMP/browser-install-diagnostic.cjs"
       - name: Use isolated browser executable
         run: echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/tests/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
       - name: Footprint, historical reconstruction, save and support contracts
         run: node --test farm3d/tests/plot-support.test.mjs farm3d/tests/field-support-scope.test.mjs farm3d/tests/workshop-site.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/animal-pen-validation.test.mjs farm3d/tests/restore-recovery.test.mjs farm3d/tests/player-arm-attachment-integration.test.mjs
       - name: Native guest selection, planting, reload, harvest and reload
+        if: ${{ !inputs.diagnostic_native_only }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/native
         run: node farm3d/tests/plot-support.browser.cjs
+      - name: Observe original immutable native journey and child exit
+        if: ${{ inputs.diagnostic_native_only }}
+        env:
+          DIAGNOSTIC_SOURCE: ${{ inputs.diagnostic_source }}
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/native
+          OBSERVER_RECEIPT: ${{ github.workspace }}/artifacts/field/diagnostic/native-observer.json
+        run: |
+          test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
+          node "$RUNNER_TEMP/rollback-path-observer.cjs"
       - name: Independent installed v75-to-v76 online and offline upgrade
+        if: ${{ !inputs.diagnostic_native_only }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v75-v76
         run: node farm3d/tests/field-support-cache.browser.cjs
       - name: Preserved historical v73-to-v75 journey
+        if: ${{ !inputs.diagnostic_native_only }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v73-v75
         run: node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs
       - name: Preserved historical v74-to-v75 journey
+        if: ${{ !inputs.diagnostic_native_only }}
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v74-v75
         run: |
@@ -65,7 +106,7 @@ jobs:
           test "$(git rev-parse FETCH_HEAD)" = "4e91a6628bb53b709b5ef643551651a44180ab94"
           node farm3d/tests/animal-pen-cache-v74-to-v75.browser.cjs
       - name: Preserve bounded field outcomes
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !inputs.diagnostic_native_only }}
         uses: actions/upload-artifact@v5
         with:
           name: field-support-${{ github.run_attempt }}
@@ -76,8 +117,21 @@ jobs:
             artifacts/field/**/*.png
           if-no-files-found: error
           retention-days: 14
+      # Best effort only: a hard job deadline can prevent even always() uploads.
+      - name: Preserve only sanitized native and installer observations
+        if: ${{ always() && inputs.diagnostic_native_only }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: field-native-diagnostic-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/field-source.json
+            artifacts/field/diagnostic/browser-install.json
+            artifacts/field/diagnostic/native-observer.json
+          if-no-files-found: error
+          retention-days: 14
 
   rollback:
+    if: ${{ !inputs.diagnostic_native_only }}
     name: Current field rollback, exact saved crops and v76-to-v77 offline update
     runs-on: ubuntu-22.04
     timeout-minutes: 20

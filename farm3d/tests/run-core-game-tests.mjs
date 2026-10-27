@@ -1,6 +1,6 @@
 // Diagnostic-preserving Farm3D core runner: every original test file and browser probe executes.
 import {spawn,execFileSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {readFileSync,appendFileSync,mkdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname} from 'node:path';
 
@@ -35,6 +35,19 @@ const group=process.env.FARM3D_CORE_GROUP||'all';
 if(!['all','node','browser'].includes(group))throw Error('Unknown core test group: '+group);
 const selectedNodes=group==='browser'?[]:nodeFiles,selectedBrowsers=group==='node'?[]:browserFiles;
 let active=null;
+// Opt-in diagnostic receipts contain only fixed test labels and lifecycle counters.
+let diagnosticRows=0;
+function diagnostic(event,name,code=null,signal=null,elapsedMs=null){
+ if(!process.env.ROLLBACK_CHILD_RECEIPT||diagnosticRows>=4096)return;
+ if(!['start','running','exit','signal'].includes(event))return;
+ if(!nodeFiles.includes(name)&&!browserFiles.includes(name)&&name!=='none'&&!/^animal-visual\.test\.mjs :: (all six have an exposed|six species keep flat feet|new rigs preserve distance cadence|actual shin geometry reaches)$/.test(name))return;
+ try{
+  const file=process.env.ROLLBACK_CHILD_RECEIPT;
+  mkdirSync(dirname(file),{recursive:true});
+  appendFileSync(file,JSON.stringify({event,name,utc:new Date().toISOString(),code:Number.isInteger(code)?code:null,signal:['SIGTERM','SIGINT','SIGKILL'].includes(signal)?signal:null,elapsedMs:Number.isFinite(elapsedMs)?elapsedMs:null})+'\n');
+  diagnosticRows++;
+ }catch{} // Observation must never change a test's result or control flow.
+}
 function memorySnapshot(){
  let cgroup='unknown';
  try{
@@ -48,14 +61,15 @@ function memorySnapshot(){
  return 'cgroup='+cgroup+'; processes='+top;
 }
 for(const signal of ['SIGINT','SIGTERM']){
- process.on(signal,()=>{console.error('[CI-ISOLATION] Received '+signal+' while executing '+(active?.name??'none'));active?.process.kill(signal);process.exitCode=1;});
+ process.on(signal,()=>{diagnostic('signal',active?.name??'none',null,signal);console.error('[CI-ISOLATION] Received '+signal+' while executing '+(active?.name??'none'));active?.process.kill(signal);process.exitCode=1;});
 }
 async function run(name,args){
  const t0=Date.now();
  console.log('[CI-ISOLATION] START '+name+' '+new Date().toISOString());
+ diagnostic('start',name);
  const child=spawn(process.execPath,args,{cwd,stdio:'inherit',env:process.env});
  active={name,process:child};
- const heartbeat=setInterval(()=>console.log('[CI-ISOLATION] RUNNING '+name+' elapsed='+((Date.now()-t0)/1000).toFixed(0)+'s '+memorySnapshot()),10000);
+ const heartbeat=setInterval(()=>{diagnostic('running',name,null,null,Date.now()-t0);console.log('[CI-ISOLATION] RUNNING '+name+' elapsed='+((Date.now()-t0)/1000).toFixed(0)+'s '+memorySnapshot());},10000);
  heartbeat.unref();
  let result;
  try{
@@ -65,6 +79,7 @@ async function run(name,args){
   });
  }finally{clearInterval(heartbeat);active=null;}
  console.log('[CI-ISOLATION] END '+name+' code='+result.code+' signal='+result.signal+' elapsed='+((Date.now()-t0)/1000).toFixed(1)+'s');
+ diagnostic('exit',name,result.code,result.signal,Date.now()-t0);
  if(result.code!==0 || result.signal)process.exit(result.code||1);
 }
 // Run each heavyweight animal-visual assertion as an isolated process. Preserve all four checks.

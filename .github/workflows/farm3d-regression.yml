@@ -9,6 +9,13 @@ on:
       - 'farm3d/**'
       - '.github/workflows/farm3d-regression.yml'
   workflow_dispatch:
+    inputs:
+      rollback_diagnostic:
+        description: Select one bounded rollback diagnostic; off preserves the original full workflow
+        type: choice
+        required: true
+        default: off
+        options: [off, recovery, browser, historical-native]
 
 permissions:
   contents: read
@@ -19,6 +26,7 @@ concurrency:
 
 jobs:
   utility-lights:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Farm Utility real lighting + native touch + offline saves
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -49,6 +57,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   market-sales:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Market Sales + six-hour quotes + offline saves
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -79,6 +88,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   decor-catalog:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: All54 decor coverage +31 solid models + native saves
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -108,6 +118,7 @@ jobs:
           path: farm3d/tests/artifacts/decor-*
           retention-days: 14
   holiday-decor:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Solid holiday decorations + orientation + saves
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -137,13 +148,14 @@ jobs:
           path: farm3d/tests/artifacts/holiday*
           retention-days: 14
   regression:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' || inputs.rollback_diagnostic == 'browser' }}
     name: Farm3D regression (${{ matrix.group }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        group: [node, browser]
+        group: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.rollback_diagnostic == 'browser' && '["browser"]' || '["node","browser"]') }}
     env:
       FARM3D_CORE_GROUP: ${{ matrix.group }}
     steps:
@@ -159,13 +171,22 @@ jobs:
         working-directory: farm3d/tests
         run: npm ci --ignore-scripts
       - name: Install Chromium and system dependencies
+        if: ${{ inputs.rollback_diagnostic != 'browser' }}
         working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
+      - name: Diagnose original pinned browser installation phases
+        if: ${{ inputs.rollback_diagnostic == 'browser' }}
+        working-directory: farm3d/tests
+        env:
+          BROWSER_INSTALL_RECEIPT: ${{ github.workspace }}/artifacts/rollback-diagnostic/browser-install.json
+        run: node browser-install-diagnostic.cjs
       - name: Run regression suite
+        env:
+          ROLLBACK_CHILD_RECEIPT: ${{ inputs.rollback_diagnostic == 'browser' && format('{0}/artifacts/rollback-diagnostic/browser-children.jsonl', github.workspace) || '' }}
         working-directory: farm3d/tests
         run: npm run test:core:game
       - name: Save screenshots, failure traces and results
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.rollback_diagnostic != 'browser' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-regression-${{ matrix.group }}-${{ github.run_attempt }}
@@ -173,7 +194,17 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Preserve bounded diagnostic lifecycle receipts
+        if: ${{ always() && inputs.rollback_diagnostic == 'browser' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: rollback-core-diagnostic-${{ github.run_attempt }}
+          path: artifacts/rollback-diagnostic/
+          if-no-files-found: error
+          retention-days: 14
+
   characters-polish:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Farmer + first-person + visual polish
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -205,6 +236,7 @@ jobs:
           retention-days: 7
 
   animal-visuals:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Six-species animal visual review
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -236,6 +268,7 @@ jobs:
           retention-days: 7
 
   saves:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Old saves + save measurements
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -267,6 +300,7 @@ jobs:
           retention-days: 7
 
   analytics:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Anonymous analytics + owner dashboard
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -298,6 +332,7 @@ jobs:
           retention-days: 7
 
   accessibility:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Mobile accessibility + motion + focus
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -329,6 +364,7 @@ jobs:
           retention-days: 7
 
   firebase-rules:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' || inputs.rollback_diagnostic == 'recovery' }}
     name: Firestore rules + economy functions + game flows + save recovery (emulator)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -352,10 +388,20 @@ jobs:
         working-directory: farm3d/firebase/functions
         run: npm ci --ignore-scripts
       - name: Install Chromium and system dependencies
+        if: ${{ inputs.rollback_diagnostic != 'recovery' }}
         working-directory: farm3d/firebase
         run: npx playwright install --with-deps chromium
+      - name: Diagnose original pinned browser installation phases
+        if: ${{ inputs.rollback_diagnostic == 'recovery' }}
+        working-directory: farm3d/firebase
+        env:
+          BROWSER_INSTALL_RECEIPT: ${{ github.workspace }}/artifacts/rollback-diagnostic/browser-install.json
+        run: node ../tests/browser-install-diagnostic.cjs
       - name: Rules, economy functions, real game flows and save recovery against the Firestore + Auth + Functions emulators
         working-directory: farm3d/firebase
+        env:
+          ROLLBACK_DIAGNOSTIC: ${{ inputs.rollback_diagnostic == 'recovery' && '1' || '' }}
+          ROLLBACK_DIAGNOSTIC_FILE: ${{ github.workspace }}/artifacts/rollback-diagnostic/recovery-state.jsonl
         run: npm test
       - name: Exact production SDK browser modules and blocked-storage sign-in boot
         working-directory: farm3d/tests
@@ -363,7 +409,7 @@ jobs:
           PLAYWRIGHT_MODULE: ${{ github.workspace }}/farm3d/firebase/node_modules/playwright
         run: node --test sdk.test.mjs && node sdk.browser.cjs
       - name: Save flow results and failure screenshots
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.rollback_diagnostic != 'recovery' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-firebase-${{ github.run_attempt }}
@@ -373,7 +419,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Preserve bounded recovery diagnostic results
+        if: ${{ always() && inputs.rollback_diagnostic == 'recovery' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: rollback-recovery-diagnostic-${{ github.run_attempt }}
+          path: |
+            artifacts/rollback-diagnostic/
+          if-no-files-found: error
+          retention-days: 14
+
   seed-selection:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Seed selection + repeated walking planting
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -408,6 +465,7 @@ jobs:
           retention-days: 14
 
   chicken-pen:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Chicken pen + care + native touch
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -450,6 +508,7 @@ jobs:
           retention-days: 14
 
   chicken-update:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Chicken installed update +30-bird offline save
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -487,6 +546,7 @@ jobs:
           retention-days: 14
 
   chicken-flock30:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.rollback_diagnostic == 'off' || inputs.rollback_diagnostic == '' }}
     name: Thirty-chicken full-flock touch (${{ matrix.width }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -531,3 +591,10 @@ jobs:
             farm3d/tests/artifacts/chicken-*.zip
           if-no-files-found: error
           retention-days: 14
+
+  historical-native-diagnostic:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_diagnostic == 'historical-native' }}
+    uses: ./.github/workflows/field-support-qualification.yml
+    with:
+      diagnostic_native_only: true
+      diagnostic_source: ${{ github.sha }}

@@ -12,7 +12,7 @@
 // Every page's console goes to artifacts/console-<phone>.log with timestamps. REPEAT=n repeats scenario 1 n times.
 const fs = require('fs');
 const path = require('path');
-const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
+const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads, rollbackDiagnostic, rollbackDiagnosticEnabled} = require('./emu-harness.cjs');
 const {startRecoveryTiming} = require('./recovery-timing.cjs');
 
 // A30 timing-only: bounded event records, no page state writes or renderer release.
@@ -101,7 +101,7 @@ async function beginQuotaTiming(page) {
 
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
-const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
+const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); rollbackDiagnostic('recovery-check', {index: results.length - 1, ok: !!cond}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
 const cloud = async (uid) => { const d = await readDoc('farms/' + uid); return d ? {save: d.save, rev: d.rev} : null; };
 const restWrite = (uid, save, rev) => fetch(fsUrl('farms/' + uid), {method: 'PATCH', headers: {Authorization: 'Bearer owner', 'Content-Type': 'application/json'},
   body: JSON.stringify({fields: {save: {stringValue: save}, level: {integerValue: '3'}, coins: {integerValue: '1'}, rev: {integerValue: String(rev)}, updatedAt: {integerValue: String(Date.now())}}})});
@@ -117,10 +117,32 @@ async function main() {
   await resetEmulators();
   const E = await startEmu(), {P} = E;
   const g = await E.phone('grandma');
+  let diagnosticBase = null, diagnosticIteration = 0, diagnosticFirstRevision = false;
+  const diagnosticSave = raw => {
+    const data = {iteration: diagnosticIteration, savePresent: typeof raw === 'string'};
+    try {
+      const farm = JSON.parse(raw); data.saveReadable = !!farm && typeof farm === 'object';
+      if (diagnosticBase) {
+        const baseFarm = JSON.parse(diagnosticBase.save);
+        Object.assign(data, {baseRevision: diagnosticBase.rev, sameBytes: raw === diagnosticBase.save, sameProgress: progress(raw) === progress(diagnosticBase.save), sentinelMatches: has(raw, diagnosticBase.token), coinDelta: Number(farm.coins) - Number(baseFarm.coins)});
+      }
+    } catch (_) { data.saveReadable = false; }
+    return data;
+  };
+  const diagnosticCloud = (event, value, extra = {}) => {
+    if (!rollbackDiagnosticEnabled || !diagnosticIteration || !diagnosticBase) return;
+    rollbackDiagnostic(event, {...diagnosticSave(value?.save), revision: typeof value?.rev === 'number' ? value.rev : null, ...extra});
+  };
+  const diagnosticObserve = value => {
+    if (diagnosticBase && !diagnosticFirstRevision && value?.rev !== diagnosticBase.rev) {
+      diagnosticFirstRevision = true; diagnosticCloud('recovery-first-revision', value);
+    }
+  };
+  if (rollbackDiagnosticEnabled) { g.recoveryDiagnosticSave = diagnosticSave; g.recoveryDiagnosticMeta = () => ({iteration: diagnosticIteration}); }
   const st = () => P(g, (k) => ({sentinel: window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel, level: window.__dbg && window.__dbg.G.S.level,
     coins: window.__dbg && window.__dbg.G.S.coins, recover: localStorage.getItem('sa3d-recover'), sync: localStorage.getItem('sa3d-sync-rev'),
     boot:localStorage.getItem('sa3d-boot'),ready:!!window.__ready,navigation:performance.getEntriesByType('navigation').map(n=>({duration:n.duration,dom:n.domContentLoadedEventEnd,load:n.loadEventEnd})),kept: localStorage.getItem(k + '-unreadable'), raw: localStorage.getItem(k), user: window.saAuth && window.saAuth.user && window.saAuth.user.email}), SAVE_KEY);
-  const loaded = (pred, arg, timeout = 180000) => g.page.waitForFunction(pred, arg, {timeout, polling: 250}).then(() => true, () => false);
+  const loaded = (pred, arg, timeout = 180000) => g.page.waitForFunction(pred, arg, {timeout, polling: 250}).then(() => { rollbackDiagnostic('readiness-result', {iteration: diagnosticIteration, ready: true, timeoutMs: timeout}); return true; }, () => { rollbackDiagnostic('readiness-result', {iteration: diagnosticIteration, ready: false, timeoutMs: timeout}); return false; });
   const gameUp = () => loaded(() => window.__ready && window.__dbg && window.__dbg.G.S && window.saAuth && window.saAuth.user);
   // give the farm a fresh sentinel and wait until the cloud holds exactly this phone's save, with nothing pending
   async function establish(uid, tag) {
@@ -128,13 +150,17 @@ async function main() {
     await P(g, (t) => { const G = window.__dbg.G; G.S.__sentinel = t; G.S.xp += 1; G.commit(); }, token);
     for (let i = 0; i < 60; i++) {
       const c = await cloud(uid), s = await st();
-      if (c && has(c.save, token) && c.save === s.raw && !(await P(g, () => localStorage.getItem('sa3d-dirty')))) return {token, save: c.save, rev: c.rev};
+      if (c && has(c.save, token) && c.save === s.raw && !(await P(g, () => localStorage.getItem('sa3d-dirty')))) {
+        const settled = {token, save: c.save, rev: c.rev};
+        if (rollbackDiagnosticEnabled && diagnosticIteration) { diagnosticBase = settled; diagnosticFirstRevision = false; diagnosticCloud('recovery-establish', c, {ready: s.ready, dirty: false, pendingRecovery: !!s.recover}); }
+        return settled;
+      }
       await g.page.waitForTimeout(1000);
     }
     throw new Error('the cloud never settled on the sentinel save ' + token);
   }
   // sample the cloud doc every second for ms: every sample must satisfy ok(sample)
-  async function watch(uid, ms, ok) { const bad = [], t0 = Date.now(); while (Date.now() - t0 < ms) { const c = await cloud(uid); if (!ok(c)) bad.push({t: ((Date.now() - t0) / 1000).toFixed(0) + 's', rev: c && c.rev, save: c && c.save.slice(0, 50)}); await new Promise(r => setTimeout(r, 1000)); } return bad; }
+  async function watch(uid, ms, ok) { const bad = [], t0 = Date.now(); while (Date.now() - t0 < ms) { const c = await cloud(uid); if (rollbackDiagnosticEnabled) diagnosticObserve(c); if (!ok(c)) bad.push({t: ((Date.now() - t0) / 1000).toFixed(0) + 's', rev: c && c.rev, save: c && c.save.slice(0, 50)}); await new Promise(r => setTimeout(r, 1000)); } return bad; }
   const standInWrites = (token) => (g.farmWrites || []).filter(w => !has(w.save, token)).length;
   // the next load finds this text as the saved farm (written before any game script runs)
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
@@ -253,14 +279,17 @@ async function main() {
 
     // ---- 1 (x REPEAT). corrupt local + good cloud -> cloud farm back, byte-identical; never a stand-in write; then 7. a normal save
     for (let k = 1; k <= (+process.env.REPEAT || 2); k++) {
+      if (rollbackDiagnosticEnabled) { diagnosticIteration = k; diagnosticBase = null; diagnosticFirstRevision = false; }
       const base = await establish(uid, 'one' + k), n0 = loads.grandma || 0; g.farmWrites = [];
       // the game keeps only the FIRST unreadable copy (scenario 3 checks that); start this scenario with the slot empty
       await P(g, (k) => localStorage.removeItem(k), SAVE_KEY + '-unreadable');
       await corruptOnNextLoad('{"v":1,"coins":12');
+      diagnosticCloud('recovery-reload-call', base);
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
       const sampling = watch(uid, 40000, (c) => c && has(c.save, base.token));
       const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token);
       const atRecovery = await cloud(uid), s = await st(), took = ((Date.now() - t0) / 1000).toFixed(1);
+      if (rollbackDiagnosticEnabled) { diagnosticObserve(atRecovery); diagnosticCloud('recovery-at-recovery', atRecovery, {restored: back, ready: s.ready, pendingRecovery: !!s.recover, pageLoads: (loads.grandma || 0) - n0, syncedRevision: Number(s.sync)}); }
       const bad = await sampling;
       check(`1.${k} corrupt local + good cloud: the cloud farm is restored (same progress + sentinel), exactly one recovery reload`,
         back && progress(s.raw) === progress(base.save) && (loads.grandma || 0) - n0 === 2 && s.recover === null && s.kept === '{"v":1,"coins":12',
@@ -270,10 +299,13 @@ async function main() {
         `rev ${base.rev}->${atRecovery.rev}, bad samples ${bad.length}, stand-in writes sent ${standInWrites(base.token)}`);
       if (!back) { console.log('STATE', JSON.stringify(await st())); break; }
       // 7. recovery followed by a normal save: it uploads the restored farm (sentinel kept) one revision on
+      diagnosticCloud('recovery-plus3-call', atRecovery);
       await P(g, () => { const G = window.__dbg.G; G.S.coins += 3; G.commit(); });
-      let after = null; for (let i = 0; i < 40; i++) { after = await cloud(uid); if (after.rev > base.rev) break; await g.page.waitForTimeout(1000); }
+      diagnosticCloud('recovery-plus3-return', atRecovery);
+      let after = null; for (let i = 0; i < 40; i++) { after = await cloud(uid); if (rollbackDiagnosticEnabled) diagnosticObserve(after); if (after.rev > base.rev) { diagnosticCloud('recovery-plus3-break', after, {index: i}); break; } await g.page.waitForTimeout(1000); }
       check(`1.${k} a normal save after recovery uploads the restored farm`, after.rev > base.rev && has(after.save, base.token) && JSON.parse(after.save).coins === JSON.parse(base.save).coins + 3, `rev ${base.rev}->${after.rev}`);
     }
+    if (rollbackDiagnosticEnabled) { diagnosticIteration = 0; diagnosticBase = null; }
 
     // ---- 2. good local + corrupt cloud -> no reload loop, phone farm kept, cloud repaired from the phone
     {
@@ -431,6 +463,7 @@ async function main() {
   quotaTiming?.mark('emulator-browser-close-return');
   if (quotaTiming) await quotaTiming.finish();
   const bad = results.filter(r => !r.ok);
+  rollbackDiagnostic('recovery-complete', {passed: results.length - bad.length, failed: bad.length, exception: failed});
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);
   fs.writeFileSync(path.join(artifacts, 'recovery.json'), JSON.stringify(results, null, 1));
   process.exit(bad.length || failed ? 1 : 0);

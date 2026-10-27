@@ -13,6 +13,34 @@ const root = path.resolve(__dirname, '../../..');
 const sdk = path.resolve(__dirname, '../node_modules/firebase-browser');
 const artifacts = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(artifacts, {recursive: true});
+// Opt-in rollback diagnostics: finite labels and primitive measurements only.
+// Never serialize a page, request, error, account identifier or saved farm.
+const rollbackDiagnosticEnabled = process.env.ROLLBACK_DIAGNOSTIC === '1' && !!process.env.ROLLBACK_DIAGNOSTIC_FILE && path.basename(process.argv[1] || '') === 'recovery.browser.cjs';
+const rollbackDiagnosticEvents = new Set(['cloud-read-http','document-load','document-commit','browser-ready','browser-saved','browser-uploaded','farm-commit-request','farm-commit-response','farm-commit-failed','readiness-result','recovery-establish','recovery-reload-call','recovery-at-recovery','recovery-first-revision','recovery-plus3-call','recovery-plus3-return','recovery-plus3-break','recovery-check','recovery-complete']);
+const rollbackDiagnosticKeys = new Set(['iteration','sequence','index','ok','ready','dirty','pendingRecovery','syncedRevision','savePresent','saveReadable','sameBytes','sameProgress','sentinelMatches','coinDelta','revision','baseRevision','status','pageLoads','restored','timeoutMs','passed','failed','exception']);
+const rollbackDiagnosticProducer = path.basename(process.argv[1] || '') === 'recovery.browser.cjs' ? 'recovery' : 'flow';
+let rollbackDiagnosticRows = 0, rollbackDiagnosticBytes = 0;
+if (rollbackDiagnosticEnabled) {
+  try {
+    rollbackDiagnosticBytes = fs.statSync(process.env.ROLLBACK_DIAGNOSTIC_FILE).size;
+    rollbackDiagnosticRows = rollbackDiagnosticBytes <= 524288 ? fs.readFileSync(process.env.ROLLBACK_DIAGNOSTIC_FILE, 'utf8').split('\n').length - 1 : 2048;
+  } catch (_) {}
+}
+const rollbackDiagnosticStart = Date.now();
+function rollbackDiagnostic(event, data = {}) {
+  if (!rollbackDiagnosticEnabled || !rollbackDiagnosticEvents.has(event) || rollbackDiagnosticRows >= 2048) return;
+  try {
+    const row = {event, producer: rollbackDiagnosticProducer, economy: process.env.ECONOMY === '1', elapsedMs: Date.now() - rollbackDiagnosticStart};
+    for (const [key, value] of Object.entries(data)) {
+      if (rollbackDiagnosticKeys.has(key) && (value === null || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value)))) row[key] = value;
+    }
+    const line = JSON.stringify(row) + '\n';
+    if (rollbackDiagnosticBytes + Buffer.byteLength(line) > 524288) return;
+    fs.mkdirSync(path.dirname(path.resolve(process.env.ROLLBACK_DIAGNOSTIC_FILE)), {recursive: true});
+    fs.appendFileSync(process.env.ROLLBACK_DIAGNOSTIC_FILE, line);
+    rollbackDiagnosticRows++; rollbackDiagnosticBytes += Buffer.byteLength(line);
+  } catch (_) { /* Diagnostics must not change the original test outcome. */ }
+}
 const PROJECT = 'demo-sunny-acres', FS = '127.0.0.1:8085', AUTH = '127.0.0.1:9099', FN = '127.0.0.1:5001';
 const CDN = 'https://www.gstatic.com/firebasejs/12.19.0/';
 const sdkVersion=JSON.parse(fs.readFileSync(path.join(sdk,'package.json'),'utf8')).version;
@@ -54,6 +82,7 @@ function cdnFile(name) {
 const fsUrl = (p) => `http://${FS}/v1/projects/${PROJECT}/databases/default/documents/${p}`;
 async function readDoc(p) {
   const r = await fetch(fsUrl(p), {headers: {Authorization: 'Bearer owner'}});
+  rollbackDiagnostic('cloud-read-http', {status: r.status});
   if (r.status === 404) return null;
   const j = await r.json(); const out = {};
   for (const [k, v] of Object.entries(j.fields || {})) out[k] = v.stringValue ?? (v.integerValue != null ? +v.integerValue : v.doubleValue ?? v.booleanValue ?? (v.nullValue !== undefined ? null : v));
@@ -109,13 +138,25 @@ async function startEmu(opts = {}) {
   // one game page at a time (software WebGL is heavy): a "phone" keeps its storage and sign-in between pages
   async function newPage(p) {
     const page = await p.context.newPage(), name = p.name;
+    const diagnosticCommits = new WeakMap(); let diagnosticCommitSequence = 0;
+    if (rollbackDiagnosticEnabled) {
+      page.on('framenavigated', frame => { if (frame === page.mainFrame()) rollbackDiagnostic('document-commit'); });
+      page.on('response', response => {
+        const sequence = diagnosticCommits.get(response.request());
+        if (sequence != null) rollbackDiagnostic('farm-commit-response', {sequence, status: response.status()});
+      });
+      page.on('requestfailed', request => {
+        const sequence = diagnosticCommits.get(request);
+        if (sequence != null) rollbackDiagnostic('farm-commit-failed', {sequence});
+      });
+    }
     const stamp = () => ((Date.now() - T0) / 1000).toFixed(1).padStart(7) + 's ';
     const logf = path.join(artifacts, 'console-' + name + '.log');
     const write = (line) => { fs.appendFileSync(logf, stamp() + line + '\n'); if (process.env.FLOW_DEBUG) console.log('[' + name + '] ' + line.slice(0, 300)); };
     page.on('console', m => { const t = m.text(); if (!/WebGL|GPU stall|GL Driver/.test(t)) write(m.type() + ': ' + t); if (/permission|insufficient/i.test(t)) denials.push(name + ': ' + t); });
     page.on('pageerror', e => { write('pageerror: ' + e.message); if (/permission|insufficient/i.test(e.message)) denials.push(name + ': ' + e.message); });
     page.on('framenavigated',frame=>{if(frame===page.mainFrame()&&p.delayGame)write('delayed-start navigation committed '+frame.url());});
-    page.on('load', () => { loads[name] = (loads[name] || 0) + 1; write('--- page load #' + loads[name] + ' ' + page.url()); });
+    page.on('load', () => { loads[name] = (loads[name] || 0) + 1; rollbackDiagnostic('document-load', {pageLoads: loads[name]}); write('--- page load #' + loads[name] + ' ' + page.url()); });
     // every economy call (Phase 7I) and its answer
     page.on('request', r => { if (r.url().startsWith('http://' + FN)) { economyCalls.push({page: name, method: r.method(), url: r.url()}); if (r.method() === 'POST') write('economy call ' + (r.postData() || '').slice(0, 200)); } });
     page.on('response', async r => { if (!r.url().startsWith('http://' + FN) || r.request().method() !== 'POST') return; let t = ''; try { t = await r.text(); } catch (e) {} write('economy answer ' + r.status() + ' ' + t.slice(0, 300)); });
@@ -126,6 +167,13 @@ async function startEmu(opts = {}) {
       if (/:commit/.test(r.url())) { try { const body = JSON.parse(r.postData() || '{}');
         for (const w of body.writes || []) { const name = (w.update && w.update.name) || ''; if (!/\/farms\//.test(name)) continue;
           const save = w.update.fields && w.update.fields.save && w.update.fields.save.stringValue;
+          if (rollbackDiagnosticEnabled) {
+            const sequence = ++diagnosticCommitSequence; diagnosticCommits.set(r, sequence);
+            const revision = Number(w.update.fields?.rev?.integerValue);
+            let measurement = {};
+            try { measurement = p.recoveryDiagnosticSave?.(save) || {}; } catch (_) {}
+            rollbackDiagnostic('farm-commit-request', {sequence, revision: Number.isFinite(revision) ? revision : null, ...measurement});
+          }
           (p.farmWrites = p.farmWrites || []).push({t: Date.now(), save}); write('FARM WRITE sent: ' + (save || '').slice(0, 60)); } } catch (e) {} }
     });
     page.on('requestfailed', r => { if (r.url().startsWith('http://' + FS) || r.url().startsWith('http://' + AUTH)) write('request FAILED ' + r.url().slice(0, 120) + ' ' + (r.failure() && r.failure().errorText)); });
@@ -150,6 +198,25 @@ async function startEmu(opts = {}) {
   }
   async function phone(name) {
     const context = await browser.newContext({viewport: {width: 640, height: 360}, deviceScaleFactor: .25, serviceWorkers: 'block'});
+    if (rollbackDiagnosticEnabled) {
+      await context.exposeBinding('__rollbackRecoveryReceipt', (_source, event, data) => {
+        let measurement = {}; try { measurement = p.recoveryDiagnosticMeta?.() || {}; } catch (_) {}
+        rollbackDiagnostic(event, {...data, ...measurement});
+      });
+      await context.addInitScript(() => {
+        let sent = 0;
+        const emit = event => {
+          if (sent++ >= 512) return;
+          try {
+            const revision = Number(localStorage.getItem('sa3d-sync-rev'));
+            void window.__rollbackRecoveryReceipt(event, {ready: !!window.__ready, dirty: localStorage.getItem('sa3d-dirty') === '1', pendingRecovery: !!localStorage.getItem('sa3d-recover'), syncedRevision: Number.isFinite(revision) ? revision : null, savePresent: localStorage.getItem('sunny-acres-3d-v1') !== null}).catch(() => {});
+          } catch (_) {}
+        };
+        addEventListener('sa3d:saved', () => queueMicrotask(() => emit('browser-saved')));
+        addEventListener('sa3d:uploaded', () => emit('browser-uploaded'));
+        addEventListener('DOMContentLoaded', () => emit('browser-ready'), {once: true});
+      });
+    }
     // a damaged save written "at rest": on the next page load, before any game script runs (see corruptOnNextLoad)
     await context.addInitScript(() => { try { const t = localStorage.getItem('__corrupt_once'); if (t !== null) { localStorage.setItem('sunny-acres-3d-v1', t); localStorage.removeItem('__corrupt_once'); } } catch (e) {} });
     // a slow cloud answer on the next load: auth.js delays its first farm read's answer by this many ms (see readCloud)
@@ -193,4 +260,4 @@ async function startEmu(opts = {}) {
   const close = async () => { await browser.close(); await new Promise(r => server.close(r)); };
   return {base, browser, denials, loads, newPage, phone, sleep, wake, P, until, register, friends, claimName, give, barn, coins, bodyText, close};
 }
-module.exports = {startEmu, economyCalls, readDoc, listDocs, signUp, createUser, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl, loads};
+module.exports = {startEmu, economyCalls, readDoc, listDocs, signUp, createUser, resetEmulators, cdnFile, PROJECT, FS, AUTH, CDN, OWNER_EMAIL, OWNER_UID, artifacts, fsUrl, loads, rollbackDiagnostic, rollbackDiagnosticEnabled};
