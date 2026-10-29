@@ -1,3 +1,0 @@
-# Task 8 bounded 60 Hz case
-
-Qualify the same saved sheep whole-pen Apply with all 46 animals, actual gameplay seed 1, three consecutive nights at 60 Hz. Every simulated frame must run with `dt=1/60`; nighttime bed and physical departure limits remain 500 seconds (30,000 frames at this rate) and each animal needs its own continuous 40-second wake (2,400 frames). Keep stable identities, distinct installed bed reservations, paid state, revision, containment and zero browser errors. Save per-cycle progress and retain any exact failure. Rate conversion must reject a 500-second violation, a 39.9-second wake, and the old 30 Hz frame counts at 60 Hz. This is one care/wake combination, not full physical/contact/pose or matrix clearance.

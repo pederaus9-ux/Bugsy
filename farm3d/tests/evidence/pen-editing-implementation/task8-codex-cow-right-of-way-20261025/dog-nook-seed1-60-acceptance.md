@@ -1,3 +1,0 @@
-# Dog-nook assembly seed 1/60 Hz three-night case
-
-Run the existing real browser `moveStructure` dog-nook Apply with all 46 owned animals, deterministic seed 1 and actual 60 Hz `dt`. Keep the original 500-second bedtime and physical-departure deadlines and each animal’s uninterrupted 40-second wake requirement for all three consecutive nights. Require unchanged unique identities/installed beds, paid state, revision, containment, no browser errors and valid saved edit. This is one additional care/wake combination, not proof of full speed/contact/pose breadth or physical-device behavior. Retain any failure and investigate before a targeted correction; no changed seeds, limits or assertions.

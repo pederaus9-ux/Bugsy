@@ -1,79 +1,33 @@
-# Bugsy Brain (standalone)
+# Isolated manual phone preview — local preparation only
 
-Your self-training AI buddy with its own website. It runs on Google Gemini with your own API key, searches Google when it needs current info, learns about you, studies topics, and reacts to screenshots. No Claude sign-in needed.
+This is corrected **V2**. The prior prepared directory and ZIP remain preserved as `phone-preview-historical-v1/` and `SunnyAcres-isolated-phone-preview-20261029-historical-v1.zip`; they are not the current candidate.
 
-## Put it online for free (GitHub Pages, about 10 minutes)
+Source: `a5c0033a08280fd455d615bb802c03ba694325f9`; qualified runtime bytes: `722a4b252500ba1d83e57f81ac4a2d28d7e3db3d`. Source cache identity is v79. This preview contains no service-worker file; the original registration attempt remains in the game and is blocked by `worker-src 'none'`. No installed/offline-cache coverage is claimed.
 
-1. Go to **github.com** and sign in (or make a free account).
-2. Click the **+** at the top right, then **New repository**.
-   - Name it `bugsy`.
-   - Choose **Public**. (Free GitHub Pages needs a public repo. That's fine: your API key and your buddy's memory are never in these files. They stay on your own phone.)
-   - Click **Create repository**.
-3. On the new page, click **uploading an existing file**.
-4. Unzip `bugsy.zip` on your PC. Open the `bugsy` folder, select **all the files inside it**, and drag them onto the GitHub page. Click **Commit changes**.
-5. In your repo, click **Settings** (top), then **Pages** (left side).
-   - Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-   - Set **Branch** to **main** and the folder to **/ (root)**, then click **Save**.
-6. Wait a minute or two, then refresh that Pages screen. It shows your link, like:
-   `https://YOUR-GITHUB-NAME.github.io/bugsy/`
+This is **not published, browser tested, phone tested, or a release/package qualification**. Actual package construction remains separately blocked. No live game or real farm is changed.
 
-That's Bugsy's website. It works in any browser.
+## Hosting prerequisite
 
-## Put it on your home screen
+Use a brand-new HTTPS origin, separately approved by the owner. Admission is pinned to the **proposed, unreserved** `https://sunny-cow-picking-preview-20261029.onrender.com`; all other origins (including GitHub Pages) are refused. This is a proposed address, not an existing preview link. If the provider assigns a different origin, stop for a reviewed rebuild. Never publish under the production GitHub Pages origin, an existing account origin, or a shared origin containing private storage. Publish only `dist/`; run `node verify-dist.cjs` first. Configure every HTTP response with the exact `requiredHeaders` in `dist/source-manifest.json`, before opening the preview. The CSP meta tags provide the same content restrictions; the HTTP `frame-ancestors 'none'` header is additionally required. Do not relax CSP to repair a failed load.
 
-1. Open your link in **Chrome** on your phone.
-2. Tap the **three dots**, then **Add to Home screen** or **Install app**.
-3. It opens full screen like a real app.
+The landing page supplies the exact required game path/query: `/farm3d/index.html?testfarm&debug&artHands&perf&weather=clear&night=0&season=summer&theme=&preset=noon&yaw=0`. A direct game URL missing this query is refused. After startup, original preference code may write preferences on this isolated origin; fictional farm persistence remains disabled. A later reload can therefore refuse the now-nonempty origin. Do not clear production or preview storage to get around that refusal; report it.
 
-## First time you open it
+The game document independently checks local/session storage **counts**, database/cache/worker list lengths, cookie emptiness and existing SW controller before any auth/game import. It never reads stored values or clears storage. Unsupported APIs, a nonempty origin, unexpected query or framing cause refusal. The original auth, game and restore modules remain byte-exact. `testfarm` uses the game's fictional farm and existing no-save/no-account paths; self-only CSP prevents external Firebase, analytics and error-reporting requests. No backend, report upload or automatic controller is present.
 
-1. It asks for your Gemini API key. Get one at **aistudio.google.com/apikey** (make a fresh one if the old one was shared anywhere).
-2. Paste it in and tap **Connect**. The key is saved only in that browser on that device.
+## Owner-operated comparison, after hosting approval and review
 
-## Good to know
+1. Open the new preview address in a normal browser tab. Read the admission message and tap **Open fictional farm**. If it refuses, stop and report the message; do not clear storage.
+2. Keep graphics **Auto**. Use the game's normal **Walk**, movement, view and dialog controls. Walk near the cows. Normal authored hands must be loaded; no shot mode or hidden overlay shortcut is used.
+3. Open the small **Fictional preview · local measurements** panel. Start **Native picking** (30 seconds), then **Optimized picking** (30 seconds). Normal walking is permitted and retained as descriptive movement measurements. For a matched picking comparison, stand still in the same position/view for both samples. The order is explicit and cows continue animating normally. Movement or adaptive quality changes prevent a matched claim; they do not discard descriptive samples.
+4. Tap the game's native **× Stop walking**, then select **Overhead** (20 seconds). A stop is always available. Four samples maximum; **120 seconds cumulative requested collection budget per page load**. JavaScript timers enforce these limits cooperatively: a stalled event loop cannot be interrupted by this page, so actual elapsed time can overrun. The report retains actual `durationMs`, per-sample `deadlineOverrunMs`, actual cumulative `totalMs` and `totalOverrunMs`; it never clamps elapsed time. Further collection is refused once the cumulative limit is reached. A failure stops further collection. No retries are automated.
+5. Use **Select summary to copy** and the phone's normal Copy action. It contains bounded counters/state and generic renderer classification, no save payload, account information, raw errors, user agent or screenshot. Nothing is sent automatically.
 
-- **Each device has its own brain.** To use the same buddy on your PC, go to Brain > **Download backup** on your phone, send the file to your PC, then open Bugsy there and use **Import backup**.
-- **Screenshots:** tap the picture button next to the message box to send a screenshot and get a reaction.
-- **Free limits:** Gemini's free tier has daily limits. "Think harder" uses the Pro model, which has much lower free limits. If it says a model wasn't found, change it under Brain > AI settings.
-- **Clearing Chrome's site data erases the brain**, so download a backup now and then.
-- **Optional extra safety:** in Google Cloud Console, you can restrict your API key to your `github.io` address so it only works from your Bugsy site.
+`hitAtMs` is the ray-picking part of aiming, not complete input latency or full aim/update cost. Native-vs-optimized switches the actual cow raycast only while collecting; hooks restore on stop/failure. Both use identical geometry/picking semantics and normal simulation. A sample with no cow-body hits or too few frames is inconclusive. An unrecognized renderer is labeled unknown; no hardware capability is assumed. These sequential samples do not hold identical cow animation poses. A walking sample ending at X is retained as `WALKING_ENDED`, explicitly partial. Owner observations and actual measurements remain necessary to establish whether the original phone symptom reproduced.
 
-## Updating it later
+`matchedPair` requires native and optimized samples that both ended normally at `TIME_LIMIT`, received the full requested 30-second budget, are nonpartial and valid, and remained camera-settled at every recorded observation with unchanged matching pose/quality. Manual Stop and walking-end partials never qualify. Descriptive walking and unsettled-camera measurements remain available but cannot establish a matched pair. This sampled-state qualification cannot observe changes during an event-loop stall; overrun fields must be considered separately and no preemptive wall-clock guarantee is claimed.
 
-When Claude sends you a new `index.html`, open your `bugsy` repo on GitHub, click **Add file > Upload files**, drop the new file in, and **Commit changes**. Your site updates in a minute, and your buddy's memory stays put.
+## Exact differences from source
 
----
+The original main module is extracted into `farm3d/preview-game-entry.js`, retaining its original directory and relative import URLs. Its only body change is one reversible manual diagnostic hook. Original auth loading is deferred until admission. The early telemetry/error-overlay script is omitted and its hash retained. Every other copied asset is byte-exact. The manifest lists source/served hashes; local tests reconstruct the original main module and HTML transform boundaries.
 
-# Sunny Acres (farm game)
-
-A cozy Hay Day–style farm game in the `farm/` folder. **No real money, ever.** There is no store. Coins and 💎 gems are only earned by playing.
-
-Once the repo is on GitHub Pages, the game is at:
-`https://YOUR-GITHUB-NAME.github.io/bugsy/farm/`
-
-Open that link in Chrome on your phone and use **Add to Home screen** to get it as its own app.
-
-## How to play
-
-- **Look around:** drag the farm to move, pinch (or use + / −) to zoom.
-- **Plant:** tap an empty field, then drag a seed across your fields. Crops go from seeds to sprouts to full plants. Every harvest gives 2.
-- **Harvest:** tap a ripe field and swipe the sickle over the crops.
-- **Orders 🚚:** tap the truck or the order board. Orders pay better than selling in the barn.
-- **Animals:** chickens 🥚 (level 2), cows 🥛 (level 4), sheep 🧶 (level 7). Tap a pen and drag feed onto hungry animals. Tap to collect what they make.
-- **Buildings:** tap the Feed Mill, Bakery, Sugar Mill, Dairy, Kitchen or Loom to make goods. Empty lots show what unlocks next.
-- **Roadside shop:** the striped stall by the road. Put items out at your own price. People walking by buy them over time, and cheaper items sell faster.
-- **Move things:** press and hold a building, pen, field or the stall, then drag it. Green means it fits; red means something's in the way.
-- **Real weather:** tap the weather button (top left) and use your location or type your town. Rain, snow, fog, storms and night show up on the farm, and rain makes crops grow 10% faster. The weather comes from Open-Meteo, a free service, and your location stays on your phone.
-- **Special events 🎪:** from level 2, a random challenge (like Harvest Festival or Egg Hunt) runs for a day. Hit the 3 goals to win decorations you can't buy.
-- **Decor 🌷:** buy flowers, trees, benches, lanterns and fountains, or place prizes from events. Tap one to put it away; press and hold to move it.
-- **Bigger land:** buy more land east or south from the Shop, or tap the "Expand" signs past the edge of the island.
-- **Seasons & holidays:** the farm changes with the seasons and dresses up for Halloween, Thanksgiving, Christmas, New Year, Valentine's Day, Easter and St. Patrick's Day, each with its own holiday event and prizes.
-- **Animals & pets:** tap any animal to see its name (tap ✏️ to rename), its happiness hearts, and to pet, brush or feed it. Happy animals (4+ hearts) sometimes make double. **Horses** (level 5) eat carrots and give pony rides for coins; tap 🏇 Ride to take one for a gallop. Buy a **dog** or **cat** in the Shop: they roam the farm, love being petted, played with and given treats, and bring you gifts (coins, gems, sometimes a decoration).
-- **Backup ⚙️:** tap the ⚙️ button (bottom left) → **Save backup file** or **Backup code**. To move a farm to a new phone, use **Restore from file** or **Restore from code** there. The game reminds you once a week if you haven't backed up.
-- **Sound:** 🔊 turns sound on or off. Tap the farmhouse to switch the music on or off.
-- **Barn 📦 and Shop 🛒:** sell extras, upgrade storage, buy fields, animals and buildings.
-- **Gems 💎:** earned from leveling up (+2), the daily gift 🎁 by the farmhouse (+1), every 10th order, and some orders. Use them to finish things right away.
-
-The buildings and scenery are drawn in code. The animal and crop pictures in `farm/art/` were made with Canva's AI image generator for this game. No Hay Day artwork or names are used.
-
-Crops keep growing while the game is closed. Progress is saved in that browser on that device.
+Preparation: `node build.cjs` reads the pinned local repository and refuses to overwrite an existing `dist/`. Verification requires only Node built-ins, no package installation or network. The old IAB controller/server is not included.

@@ -1,3 +1,0 @@
-# Directly affected prior sheep case recheck
-
-After the A18 cow bedtime right-of-way change, rerun the previously passing real sheep `movePen [-1,0]`, seed-1, 30 Hz, three consecutive nights. The previous result remains preserved as historical. Require all original 46 identities, installed distinct beds, unchanged paid state and layout revision, containment and zero browser errors. Bed and physical departure deadlines stay 500 seconds (15,000 frames); individual wake stays 40 seconds (1,200 frames). Save to a fresh artifact; a failure remains RED and is researched before any new fix. This recheck is still care/wake only, not all speed/contact/pose qualification.

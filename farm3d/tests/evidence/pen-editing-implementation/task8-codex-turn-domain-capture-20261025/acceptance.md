@@ -1,8 +1,0 @@
-# Exact failed-turn diagnostic only
-
-Source clean3bd7a07. Preserve original frame166 failure,41rejections and performance RED. No fixes, bound/tolerance/deadline changes, runtime edits, new architecture or remote writes.
-
-1. Run only the existing deterministic reference trace through the first frame166 failure, with read-only test-served instrumentation at pre-query, native leg evaluation, domain construction and the original assertion. Retain state/request/history and exact offending interval. Original disk sources remain unchanged. Confirm the same41 rejection signatures and827 completed queries; if not reproduced, report uncertainty and stop without retry loops.
-2. Compare the fixture's evaluated recovery phase with the actually evaluated phase and capture native poseCowLeg parameters. On detached copies of captured states only, evaluate bounded native fractions and original triangle/solid predicates. Verify endpoint shadow matches the actual recorded next displayed pose and capture full intersection witnesses. No mutation of original scene/state/RNG or adjustment of rig/geometry.
-3. Classify actual displayed/interior sampled intersections separately from conservative endpoint rejection and unresolved temporal rejection. Absence at finite samples is not continuous clearance. Check all41 retained queries; report any coverage gap honestly rather than inventing a proof.
-4. Source-derived analysis distinguishes unsupported actual native input from interval inflation or wrong history. Stop with exact evidence and one finite recommended next action; do not repair the provider or restart a benchmark. No cost claims from instrumented execution. Update both relays and commit only local diagnostic/evidence files.

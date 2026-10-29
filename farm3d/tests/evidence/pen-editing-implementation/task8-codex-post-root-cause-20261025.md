@@ -1,3 +1,0 @@
-# Bounded post-entry diagnosis before runtime edits
-
-Start from clean A20 3954a08. Preserve the original care/wake case and limits; use a separate observer to stop at the first Cow 3/4 entry into installed post 4 at full 0.42 m route padding. Record pre/post positions, route and task handoff, recent frames, actual installed obstacle, yaw and deformed vertex measurements without changing RNG or animation. This is a diagnostic, not a matrix pass. Determine whether entry is caused by path planning, sidestep, ordinary steering or rebuilt geometry before selecting a fix. Keep existing 0.4 m side-step collision check, 0.85 m cow separation, speed/support and 500s/40s limits intact.

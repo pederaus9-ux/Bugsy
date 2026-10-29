@@ -1,0 +1,4099 @@
+
+import * as THREE from "./lib/three.module.min.js";
+import { EffectComposer } from "./lib/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
+import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
+import * as G from "./game.js?v=34"; window.__gameVer = 34; // bump this version whenever game.js changes
+import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
+import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=5';
+import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
+import {remainingCareLayouts,remainingCareConflicts} from './remaining-care-layout.js?v=3';
+import {createRemainingCareController} from './remaining-care-controller.js?v=4';
+import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.js?v=2';
+import {createDairyPath} from './farm-path.js?v=2';
+import {NORTH_EXTENSION,WEST_CLEARING,MAP_EDGE,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=5';
+import {TERRAIN_SPAN,TERRAIN_SEGMENTS,terrainMeshY,assessWorkshopSite} from './workshop-site.js?v=1';
+import {plotSupport} from './plot-support.js?v=1';
+import {REMOVABLE_TREE_IDS,decodeRemovedTrees,addRemovedTree} from './tree-removal.js?v=1';
+import {FAR_TREE_SITES} from './far-tree-sites.js?v=1';
+import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
+let CHICKEN_YARD_LAYOUT=DEFAULT_CHICKEN_YARD_LAYOUT,COW_YARD_LAYOUT=cowYardLayout(NORTH_EXTENSION);
+import {createStationScheduler} from './animal-stations.js?v=1';
+import {pointInPolygon,segmentInPolygon,nearestLegalPoint,nearestExteriorPoint} from './animal-pen-geometry.js?v=1';
+import {cowPenSupportHeight,cowPenStep,applyCowPenSupport} from './animal-pen-cow-support.js?v=2';
+import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=2';
+import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
+import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=2';
+import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=4';
+import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
+import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=4';
+import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
+import {createPenPlacementPreview} from './animal-pen-placement-preview.js?v=1';
+import {createEditableGroundGrid} from './edit-ground-grid.js?v=2';
+import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
+import {createChickenStationController} from './chicken-stations.js?v=8';
+import {getAnimalCarePose} from './animal-care-poses.js?v=3';
+import {createCowDockGate} from './cow-stations.js?v=1';
+import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
+import {createFarmDecoration} from './decor-models.js?v=1';
+import {createUtilityLamp,installUtilityLights} from './utility-lights.js?v=1';
+import {ANALYTICS_RELEASE} from './analytics.js?v=3'; window.__saRelease = ANALYTICS_RELEASE;
+import {initFriends} from "./friends.js?v=7";
+import {initVerified} from "./verified.js?v=1";
+import {FEATURES} from "./features.js?v=1";
+import {soilCanvas, createHands, poseHands, fitMarker} from "./scene-polish.js?v=2";
+import {installPlayerMotion} from "./player-motion.js?v=1";
+import {installArmAttachment} from "./player-arm-attachment.js?v=1";
+import {installWorld, visualExposure, visualFog} from "./phase7m.js?v=4";
+const GV = G.view; // what the game rules (game.js) use to show things in the 3D world
+
+const qs = new URLSearchParams(location.search);
+const Cow3D = qs.has("characters2d") ? null : await import("./cow3d.js?v=6"); // 3D cows on the regular link; optional artwork fallback for comparisons
+const Live3D = qs.has("characters2d") ? null : await import("./live3d.js?v=3");
+const bootStep = (name) => { try { localStorage.setItem("sa3d-boot", name); } catch (e) {} };
+bootStep("loading the 3D engine");
+// animal pictures live next to the 2D game in the repo, or beside the page when published on its own
+const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/";
+
+// ---------------- renderer ----------------
+bootStep("starting the graphics");
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+renderer.domElement.tabIndex = 0; renderer.domElement.setAttribute("aria-label", "Farm view");
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
+
+bootStep("setting up the scene");
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 50 : 38, innerWidth / innerHeight, 0.1, 600);
+
+// ---------------- shared "weather" uniforms every material listens to ----------------
+// Snow settles on upward-facing surfaces; rain darkens things and makes them glossy.
+const WX = {uSnow:{value:0}, uWet:{value:0}};
+function weatherShader(sh) {
+  sh.uniforms.uSnow = WX.uSnow; sh.uniforms.uWet = WX.uWet;
+  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWN; varying vec3 vWP;")
+    .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
+      #ifdef USE_INSTANCING
+        vWN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+      #else
+        vWN = normalize(mat3(modelMatrix) * objectNormal);
+      #endif`)
+    .replace("#include <worldpos_vertex>", `#include <worldpos_vertex>
+      #ifdef USE_INSTANCING
+        vWP = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+      #else
+        vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      #endif`);
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
+    varying vec3 vWN; varying vec3 vWP; uniform float uSnow; uniform float uWet;
+    float hsh(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+    float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+      return mix(mix(hsh(i), hsh(i+vec2(1,0)), f.x), mix(hsh(i+vec2(0,1)), hsh(i+vec2(1,1)), f.x), f.y); }`)
+    .replace("#include <map_fragment>", `#include <map_fragment>
+    float snowAmt = uSnow * smoothstep(0.3, 0.6, vWN.y + (vnoise(vWP.xz * 6.0) - 0.5) * 0.12 + (vnoise(vWP.xz * .8) - 0.5) * 0.08);
+    diffuseColor.rgb *= mix(1.0, 0.62, uWet * (1.0 - snowAmt));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.96, 1.0), snowAmt);`)
+    .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    roughnessFactor = mix(roughnessFactor, 0.18, uWet * 0.85 * (1.0 - snowAmt));
+    roughnessFactor = mix(roughnessFactor, 0.7, snowAmt);`);
+}
+function weatherize(mat) { mat.onBeforeCompile = weatherShader; return mat; }
+
+// Leaves and grass: light shines through them when the sun is behind (like real foliage),
+// and their normals point outward from the plant instead of flipping per card, so a tree reads as one soft volume.
+const LIT = {uSunDir:{value:new THREE.Vector3(0, 1, 0)}, uSunCol:{value:new THREE.Color()}};
+function foliageShader(sh, trans = 1) {
+  weatherShader(sh);
+  Object.assign(sh.uniforms, LIT, {uTrans:{value:trans}});
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTrans;")
+    .replace("#include <normal_fragment_begin>", "float faceDirection = gl_FrontFacing ? 1.0 : -1.0;\nvec3 normal = normalize(vNormal);\nvec3 nonPerturbedNormal = normal;")
+    .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
+      vec3 Vw = normalize(vWP - cameraPosition);
+      float back = pow(max(dot(Vw, normalize(uSunDir)), 0.0), 4.0);
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * uSunCol * (back * 0.9 + 0.1) * uTrans;`);
+}
+function foliage(mat, trans = 1, extra) { mat.onBeforeCompile = (sh) => { foliageShader(sh, trans); if (extra) extra(sh); }; return mat; }
+let texturesReady = false; THREE.DefaultLoadingManager.onLoad = () => { texturesReady = true; };
+const TL = new THREE.TextureLoader();
+function photo(path, rep, color = true) {
+  const t = TL.load(path); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(...rep);
+  if (color) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const TEX = document.querySelector('meta[name="tex-path"]')?.content || "tex/";
+const leafTex = photo(TEX + "leaves.webp"), barkTex = photo(TEX + "bark.jpg", [1, 3]);
+
+// ---------------- procedural textures (drawn once, tiled) ----------------
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function canvas(n) { const c = document.createElement("canvas"); c.width = c.height = n; return [c, c.getContext("2d")]; }
+function tex(c, color, rep = [1, 1]) {
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  if (color) t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// turns a grayscale height canvas into a normal map
+function normalFrom(hc, strength = 2) {
+  const n = hc.width, src = hc.getContext("2d").getImageData(0, 0, n, n).data;
+  const [c, x] = canvas(n), out = x.createImageData(n, n), H = (i, j) => src[(((j + n) % n) * n + ((i + n) % n)) * 4] / 255;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const dx = (H(i + 1, j) - H(i - 1, j)) * strength, dy = (H(i, j + 1) - H(i, j - 1)) * strength;
+    const l = Math.hypot(dx, dy, 1), k = (j * n + i) * 4;
+    out.data[k] = (-dx / l * .5 + .5) * 255; out.data[k + 1] = (dy / l * .5 + .5) * 255; out.data[k + 2] = (1 / l * .5 + .5) * 255; out.data[k + 3] = 255;
+  }
+  x.putImageData(out, 0, 0);
+  return c;
+}
+function planks(base, seed, worn = .5) { // vertical painted barn boards
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), w = 64;
+  hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let p = 0; p < n / w; p++) {
+    const l = (R() - .5) * 18;
+    x.fillStyle = `hsl(${base[0]},${base[1]}%,${base[2] + l * .35}%)`; x.fillRect(p * w, 0, w, n);
+    for (let g = 0; g < 26; g++) { // wood grain
+      const gx = p * w + R() * w; x.strokeStyle = `rgba(0,0,0,${.03 + R() * .06})`; x.lineWidth = .6 + R() * 1.4;
+      x.beginPath(); x.moveTo(gx, 0); for (let y = 0; y <= n; y += 32) x.lineTo(gx + Math.sin(y * .02 + g) * 2.5, y); x.stroke();
+      hx.strokeStyle = `rgba(0,0,0,${.05 + R() * .08})`; hx.lineWidth = x.lineWidth; hx.beginPath(); hx.moveTo(gx, 0); hx.lineTo(gx, n); hx.stroke();
+    }
+    if (R() < .45) { const ky = R() * n, kx = p * w + 10 + R() * (w - 20); x.fillStyle = "rgba(40,20,5,.35)"; x.beginPath(); x.ellipse(kx, ky, 4, 7, 0, 0, 7); x.fill(); }
+    x.fillStyle = "rgba(20,10,5,.75)"; x.fillRect(p * w, 0, 3, n); hx.fillStyle = "#1a1a1a"; hx.fillRect(p * w, 0, 3, n);
+    x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(p * w + 3, 0, 2, n);
+  }
+  for (let i = 0; i < 900 * worn; i++) { x.fillStyle = `rgba(${R() < .5 ? "235,225,205" : "60,40,25"},${R() * .18})`; x.fillRect(R() * n, R() * n, 1 + R() * 4, 1 + R() * 10); }
+  return [c, normalFrom(h, 3)];
+}
+function shingles(seed, base = [30, 12, 28]) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed), rh = 32, tw = 44;
+  for (let r = 0; r < n / rh; r++) for (let t = -1; t < n / tw + 1; t++) {
+    const ox = t * tw + (r % 2) * tw / 2 + (R() - .5) * 4, y = r * rh, v = R();
+    x.fillStyle = `hsl(${base[0] - 5 + v * 12},${base[1] - 4 + v * 8}%,${base[2] - 6 + v * 14}%)`; x.fillRect(ox, y, tw - 2, rh);
+    const g = hx.createLinearGradient(0, y, 0, y + rh); g.addColorStop(0, "#303030"); g.addColorStop(1, "#d0d0d0");
+    hx.fillStyle = g; hx.fillRect(ox, y, tw - 2, rh);
+    x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(ox, y + rh - 3, tw - 2, 3);
+    for (let s = 0; s < 30; s++) { x.fillStyle = `rgba(${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},${R() < .5 ? 255 : 0},.06)`; x.fillRect(ox + R() * tw, y + R() * rh, 2, 2); }
+  }
+  return [c, normalFrom(h, 4)];
+}
+function stones(seed) {
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#6f675c"; x.fillRect(0, 0, n, n); hx.fillStyle = "#202020"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 190; i++) {
+    const cx = R() * n, cy = R() * n, rx = 18 + R() * 26, ry = 12 + R() * 16, l = 48 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox - rx * .3, cy + oy - ry * .4, 2, cx + ox, cy + oy, rx);
+      g.addColorStop(0, `hsl(35,${8 + R() * 10}%,${l + 10}%)`); g.addColorStop(1, `hsl(30,8%,${l - 12}%)`);
+      x.fillStyle = g; x.beginPath(); x.ellipse(cx + ox, cy + oy, rx, ry, R(), 0, 7); x.fill();
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 1, cx + ox, cy + oy, rx); hg.addColorStop(0, "#fff"); hg.addColorStop(1, "#555");
+      hx.fillStyle = hg; hx.beginPath(); hx.ellipse(cx + ox, cy + oy, rx, ry, 0, 0, 7); hx.fill();
+    }
+  }
+  return [c, normalFrom(h, 3)];
+}
+function grass(seed) {
+  const n = 1024, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#5d8c32"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 60; i++) { // soft color patches
+    const cx = R() * n, cy = R() * n, r = 60 + R() * 160, hue = 75 + R() * 25;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {
+      const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${hue},${40 + R() * 20}%,${30 + R() * 14}%,.35)`); g.addColorStop(1, "hsla(90,40%,35%,0)");
+      x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+    }
+  }
+  x.lineCap = "round";
+  for (let i = 0; i < 26000; i++) { // blades
+    const px = R() * n, py = R() * n, len = 4 + R() * 9, a = -Math.PI / 2 + (R() - .5) * .9;
+    x.strokeStyle = `hsl(${70 + R() * 35},${35 + R() * 35}%,${22 + R() * 30}%)`; x.lineWidth = .8 + R() * 1.1;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len); x.stroke();
+  }
+  return c;
+}
+function dirt(seed) {
+  const n = 512, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#b59568"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++) { x.fillStyle = `hsla(${28 + R() * 12},${18 + R() * 18}%,${38 + R() * 32}%,${.3 + R() * .5})`; x.beginPath(); x.arc(R() * n, R() * n, .5 + R() * 2.2, 0, 7); x.fill(); }
+  return c;
+}
+function leafCard(seed) { // a clump of leaves with transparent gaps, used on many small cards per tree
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  for (let i = 0; i < 70; i++) {
+    const a = R() * 7, r = R() * 100, cx = 128 + Math.cos(a) * r, cy = 128 + Math.sin(a) * r, s = 10 + R() * 12;
+    x.save(); x.translate(cx, cy); x.rotate(R() * 7);
+    x.fillStyle = `hsl(${85 + R() * 30},${45 + R() * 25}%,${25 + R() * 25}%)`;
+    x.beginPath(); x.ellipse(0, 0, s * .45, s, 0, 0, 7); x.fill();
+    x.strokeStyle = "rgba(0,0,0,.25)"; x.lineWidth = 1; x.beginPath(); x.moveTo(0, -s); x.lineTo(0, s); x.stroke();
+    x.restore();
+  }
+  return c;
+}
+function radial(inner = "rgba(0,0,0,1)") {
+  const [c, x] = canvas(128), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, inner); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+// ---------------- materials ----------------
+const std = (o) => weatherize(new THREE.MeshStandardMaterial(o));
+const [redC, redN] = planks([4, 62, 36], 11), [trimC, trimN] = planks([40, 25, 88], 5, .25), [fenceC, fenceN] = planks([30, 25, 42], 17, .8);
+const [shC, shN] = shingles(3), [stC, stN] = stones(9);
+const M = {
+  red: std({map:tex(redC, 1), normalMap:tex(redN), roughness:.82}),
+  trim: std({color:0xf2eadc, roughness:.6}),
+  roof: std({map:tex(shC, 1), normalMap:tex(shN), roughness:.9}),
+  stone: std({map:tex(stC, 1), normalMap:tex(stN), roughness:.95}),
+  fence: std({map:tex(fenceC, 1), normalMap:tex(fenceN), roughness:.9}),
+  glass: std({color:0x223344, roughness:.08, metalness:.3, emissive:0xffb050, emissiveIntensity:0}),
+  metal: std({color:0x8a8f96, roughness:.35, metalness:.8}),
+  bark: std({color:0x5b4029, roughness:.95}),
+};
+// every box face gets texture coordinates in meters, so textures keep the same scale on any size
+function boxUV(g, scale = .25) {
+  const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i));
+    const u = ax > .5 ? p.getZ(i) : p.getX(i), v = ay > .5 ? p.getZ(i) : p.getY(i);
+    uv.setXY(i, u * scale, v * scale);
+  }
+  return g;
+}
+function box(w, h, d, mat, x = 0, y = 0, z = 0, scale = .25) {
+  const m = new THREE.Mesh(boxUV(new THREE.BoxGeometry(w, h, d), scale), mat);
+  m.position.set(x, y, z); m.castShadow = m.receiveShadow = true;
+  return m;
+}
+// a thin box stretched between two points in the XY plane (trim, braces, roof panels)
+function beam(p, q, thick, depth, mat, z = 0, scale = .25) {
+  const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy);
+  const m = box(L, thick, depth, mat, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2, z, scale);
+  m.rotation.z = Math.atan2(dy, dx);
+  return m;
+}
+
+// ---------------- the barn ----------------
+function makeBarn() {
+  const g = new THREE.Group(), W = 8, D = 11, HW = 4.2, base = .7;
+  const prof = [[-W / 2, 0], [W / 2, 0], [W / 2, HW], [2.75, 6.4], [0, 7.5], [-2.75, 6.4], [-W / 2, HW]];
+  const shape = new THREE.Shape(prof.map(([x, y]) => new THREE.Vector2(x, y)));
+  const gable = new THREE.ShapeGeometry(shape); // front/back walls with planks
+  const uv = gable.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .25, uv.getY(i) * .25);
+  for (const s of [1, -1]) { const m = new THREE.Mesh(gable, M.red); m.position.z = s * D / 2; if (s < 0) m.rotation.y = Math.PI; m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const s of [1, -1]) g.add(box(.12, HW, D, M.red, s * (W / 2 - .06), HW / 2, 0));
+  // stone foundation
+  g.add(box(W + .3, base, D + .3, M.stone, 0, base / 2 - .05, 0, .5));
+  // roof panels: steep lower slope and gentle upper slope on each side, with overhang
+  const up = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy); return [dy / L * .09, -dx / L * .09]; };
+  for (const [p, q] of [[[W / 2 + .35, HW - .45], [2.75, 6.4]], [[2.75, 6.4], [0, 7.5]]]) {
+    const o = up(p, q); // outward offset, worked out on the right side and mirrored
+    for (const s of [1, -1]) g.add(beam([(p[0] + o[0]) * s, p[1] + o[1]], [(q[0] + o[0]) * s, q[1] + o[1]], .16, D + .9, M.roof, 0, .3));
+  }
+  g.add(box(.3, .22, D + .95, M.roof, 0, 7.6, 0)); // ridge cap
+  // white trim: corners, rake edges on both gables, eaves
+  for (const sx of [1, -1]) for (const sz of [1, -1]) g.add(box(.26, HW, .26, M.trim, sx * W / 2, HW / 2 + .02, sz * D / 2));
+  for (const sz of [1, -1]) {
+    const z = sz * (D / 2 + .08);
+    for (let i = 2; i < prof.length; i++) { const a = prof[i], b = prof[(i + 1) % prof.length]; if (b[1] === 0) continue; g.add(beam(a, b, .22, .12, M.trim, z)); }
+    g.add(beam([-W / 2, HW], [W / 2, HW], .18, .1, M.trim, z));
+  }
+  // big front doors with X braces and a hayloft door
+  const z = D / 2 + .09;
+  const doorFrame = (x0, x1, y0, y1) => { g.add(beam([x0, y0], [x0, y1], .2, .1, M.trim, z)); g.add(beam([x1, y0], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y1], [x1, y1], .2, .1, M.trim, z)); g.add(beam([x0, y0], [x1, y0], .2, .1, M.trim, z)); };
+  doorFrame(-1.9, 1.9, base, 3.8);
+  // inside: plank walls, a floor, hay bales and a warm lantern glow (seen when you step in through the doors)
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(W - .4, HW - .1, D - .4), std({map:M.fence.map || null, color:0x6b4a2e, roughness:.95, side:THREE.BackSide, emissive:0x2a1608, emissiveIntensity:.6}));
+  inner.position.set(0, base + (HW - .1) / 2 - .05, 0); g.add(inner);
+  const hay = std({color:0xd9b24c, roughness:1, emissive:0x3a2a08, emissiveIntensity:.5});
+  for (const [x, y, zz, r] of [[-2.6, base + .35, -3.4, 0], [-2.6, base + 1.05, -3.4, .1], [-1.3, base + .35, -3.6, -.1], [2.7, base + .35, -2.2, .2], [2.6, base + .35, 1.2, 0]]) { const b = box(1.1, .7, .75, hay, x, y, zz, .5); b.rotation.y = r; g.add(b); }
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(.14, 12, 10), new THREE.MeshBasicMaterial({color:0xffd27a})); glow.position.set(0, HW - .4, -1); g.add(glow);
+  // the two big doors swing open (first-person walk: Open), showing the dark barn behind
+  g.add(box(3.7, 3.05, .04, std({color:0x1c120b, roughness:1}), 0, base + 1.53, D / 2 + .01));
+  g.userData.doors = [-1, 1].map(sd => { const leaf = new THREE.Group(); leaf.position.set(sd * 1.9, base, z - .03); leaf.userData.door = true; leaf.userData.side = sd;
+    const w = 1.88, h = 3.08, lb = (a, b, t) => { const m = beam(a, b, t, .1, M.trim, .05); leaf.add(m); };
+    leaf.add(box(w, h, .08, M.red, -sd * w / 2, h / 2, 0));
+    lb([0, 0], [0, h], .16); lb([-sd * w, 0], [-sd * w, h], .14); lb([0, h], [-sd * w, h], .16); lb([0, 0], [-sd * w, 0], .16);
+    lb([0, 0], [-sd * w, h], .16); lb([0, h], [-sd * w, 0], .16);
+    leaf.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); g.add(leaf); return leaf; });
+  doorFrame(-.8, .8, 4.7, 6.1); g.add(beam([-.8, 4.7], [.8, 6.1], .12, .1, M.trim, z)); g.add(beam([-.8, 6.1], [.8, 4.7], .12, .1, M.trim, z));
+  // side windows (they glow at night)
+  for (const s of [1, -1]) for (const wz of [-2.6, 2.6]) {
+    const wx = s * (W / 2 + .07);
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), M.glass); glass.position.set(wx, 2.5, wz); glass.rotation.y = s * Math.PI / 2; g.add(glass);
+    for (const [dy, dz, hgt, dep] of [[.62, 0, .14, 1.4], [-.62, 0, .14, 1.4], [0, .62, 1.3, .14], [0, -.62, 1.3, .14], [0, 0, 1.1, .06], [0, 0, .06, 1.1]]) g.add(box(.1, hgt, dep, M.trim, wx, 2.5 + dy, wz + dz));
+  }
+  // weather vane on a cupola
+  g.add(box(1.1, .9, 1.1, M.red, 0, 7.9, 0)); g.add(box(1.4, .15, 1.4, M.roof, 0, 8.4, 0));
+  const vane = box(.05, .9, .05, M.metal, 0, 8.9, 0); g.add(vane); g.add(box(.7, .05, .12, M.metal, 0, 9.2, 0));
+  return g;
+}
+
+// ---------------- tree with real leaf cards ----------------
+// builds one mesh of many leaf cards around a set of cluster centers
+function canopyGeometry(R, centers, cardsPer, spread, size, center, radius) {
+  const pos = [], nor = [], uv = [], col = [], idx = [], q = new THREE.Quaternion(), e = new THREE.Euler();
+  const C = [[-.5, -.5, 0, 0], [.5, -.5, 1, 0], [.5, .5, 1, 1], [-.5, .5, 0, 1]];
+  let v = 0;
+  for (const c of centers) for (let i = 0; i < cardsPer; i++) {
+    const p = new THREE.Vector3(c.x + (R() - .5) * spread, c.y + (R() - .5) * spread * .8, c.z + (R() - .5) * spread);
+    e.set(R() * 7, R() * 7, R() * 7); q.setFromEuler(e);
+    const sz = size * (.75 + R() * .5), out = p.clone().sub(center).normalize(), d = Math.min(1, p.distanceTo(center) / radius);
+    const ao = .42 + .58 * d * d, tint = .85 + R() * .3; // darker deep inside the crown
+    const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q).multiplyScalar(.25).add(out).normalize();
+    for (const [cx, cy, u, w] of C) {
+      const vt = new THREE.Vector3(cx * sz, cy * sz, 0).applyQuaternion(q).add(p);
+      pos.push(vt.x, vt.y, vt.z); nor.push(n.x, n.y, n.z); uv.push(u, w); col.push(ao * tint * .95, ao * tint, ao * tint * .9);
+    }
+    idx.push(v, v + 1, v + 2, v, v + 2, v + 3); v += 4;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
+  return g;
+}
+const leafMat = foliage(new THREE.MeshStandardMaterial({map:leafTex, alphaTest:.42, side:THREE.DoubleSide, vertexColors:true, roughness:.72}),1,seasonalLeafShader);
+leafMat.customProgramCacheKey=()=>'seasonal-leaves-v1';
+const bushLeafMat=foliage(new THREE.MeshStandardMaterial({map:leafTex,alphaTest:.42,side:THREE.DoubleSide,vertexColors:true,roughness:.72}));
+const seasonalLeaves=createSeasonalLeaves();
+const leafDepth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.42});
+M.bark = std({map:barkTex, roughness:.95, color:0xb8b0a4});
+function limb(from, dir, len, r0, r1, parent) {
+  const geo = new THREE.CylinderGeometry(r1, r0, len, 8, 1); geo.translate(0, len / 2, 0);
+  const m = new THREE.Mesh(geo, M.bark); m.position.copy(from);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+  m.castShadow = m.receiveShadow = true; parent.add(m);
+  return from.clone().addScaledVector(dir.clone().normalize(), len);
+}
+function makeTree(seed) {
+  const g = new THREE.Group(), R = rng(seed), H = 3.3 + R() * .6;
+  const top = limb(new THREE.Vector3(0, -.2, 0), new THREE.Vector3((R() - .5) * .15, 1, (R() - .5) * .15), H, .34, .2, g);
+  const tips = [top.clone().add(new THREE.Vector3(0, 1.1, 0))];
+  const nb = 5 + Math.floor(R() * 3);
+  for (let i = 0; i < nb; i++) { // main branches spreading up and out
+    const a = i / nb * Math.PI * 2 + R() * .6, rise = .55 + R() * .6, y = H * (.55 + R() * .4);
+    const tip = limb(new THREE.Vector3(0, y, 0), new THREE.Vector3(Math.cos(a), rise, Math.sin(a)), 1.5 + R() * 1.1, .15, .05, g);
+    tips.push(tip); if (R() < .6) tips.push(tip.clone().lerp(new THREE.Vector3(0, y, 0), .45).add(new THREE.Vector3(0, .5, 0)));
+  }
+  const center = new THREE.Vector3(0, H + .6, 0);
+  const canopy = new THREE.Mesh(canopyGeometry(R, tips, 24, 1.9, 1.55, center, 3.2), leafMat);
+  seasonalLeaves.register(canopy.geometry,seed);
+  canopy.customDepthMaterial = leafDepth; canopy.castShadow = canopy.receiveShadow = true;
+  const sway = new THREE.Group(); sway.position.copy(center); canopy.position.sub(center); sway.add(canopy); g.add(sway);
+  g.userData.canopy = sway;
+  return g;
+}
+
+// ---------------- fence ----------------
+function makeFence(len, posts) {
+  const g = new THREE.Group();
+  for (let i = 0; i <= posts; i++) { const x = -len / 2 + i * len / posts; g.add(box(.18, 1.25, .18, M.fence, x, .62, 0)); g.add(box(.24, .06, .24, M.fence, x, 1.27, 0)); }
+  for (const y of [.45, .95]) g.add(box(len + .2, .14, .07, M.fence, 0, y, .1));
+  return g;
+}
+
+// ---------------- animals: the approved renders, standing in the world ----------------
+// They turn to face the camera; a separate invisible card faces the sun so their shadow keeps its shape.
+function makeAnimal(src, h, x, z, rig) {
+  const t = new THREE.TextureLoader().load(src, (tx) => {
+    const a = tx.image.width / tx.image.height; card.scale.set(h * a, h, 1); shadowCard.scale.set(h * a, h, 1);
+    if (pup) pupLoad(pup, rig, tx.image.width, tx.image.height);
+  });
+  t.colorSpace = THREE.SRGBColorSpace;
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, .5, 0);
+  const card = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:t, alphaTest:.4, roughness:.85, side:THREE.DoubleSide, emissive:0xffffff, emissiveMap:t, emissiveIntensity:.5}));
+  card.receiveShadow = true; g.add(card);
+  const shadowCard = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({colorWrite:false, depthWrite:false}));
+  shadowCard.castShadow = true; shadowCard.customDepthMaterial = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:t, alphaTest:.4});
+  g.add(shadowCard);
+  card.rotation.order = "YXZ";
+  const pup = rig ? pupRig(rig, card.material, shadowCard.customDepthMaterial) : null;
+  return {g, card, shadowCard, h, pup};
+}
+
+// ---------------- walking legs for the painted animals (Phase 7E prototype, rolled out to every animal in 7F) ----------------
+// The painted legs are cut out of the same picture and stepped in its shader: each leg is a strip of the image
+// that shears about its hip (top fixed, hoof swinging) and lifts during its swing; far legs draw behind the body,
+// near legs in front. Two soft patches bend the picture without cutting it: one round the head (nod, thrust, a
+// look about) and one round the tail (swish, wag). Still one card, one draw call, and one texture read per leg
+// plus one for the body: the patches only move where the body is read from.
+// Pixel coordinates in the source art (y down). leg: r = [x0, x1, hipY, footY], ph = phase offset in the stride
+// (phRun: where it moves to at a run, so a walk can turn into a trot or a bound). A pixel belongs to the first leg
+// whose rectangle holds it (after any leg's "claim" rectangle), so overlapping toes stay with the right foot.
+// L/Lrun: stride in metres; beta: share of the stride a foot is planted; lift: foot lift (m); bob: body rise (share
+// of height); rock: body pitch (rad) at a walk / extra at a run; squash: springy landing; head/tail: [x, y, r0, r1] px;
+// nod/thrust/look (m); tail: swing (m) per stride, tailIdle/tailHz: idle swish or wag; tailDir: which way it swings.
+const RIGS = {
+  cow:{L:.8, Lrun:1.45, beta:.62, betaRun:.45, lift:.05, bob:.012, rock:.012, rockRun:.02, squash:0, maxShear:.42,
+    head:[110, 105, 70, 125], nod:.012, thrust:0, look:.018, tail:[497, 300, 18, 62], tailAmp:.035, tailIdle:.03, tailHz:.9, tailDir:[1, .15],
+    legs:[{r:[100, 182, 322, 505], near:0, ph:.5}, {r:[182, 262, 322, 505], near:1, ph:0},     // far front, near front
+          {r:[340, 420, 322, 458], near:0, ph:.08}, {r:[420, 487, 322, 458], near:1, ph:.58}]}, // far hind, near hind (the tail stays out)
+  chicken:{L:.26, Lrun:.42, beta:.56, betaRun:.45, lift:.035, bob:.02, rock:0, rockRun:.03, squash:.015, maxShear:.62,
+    head:[56, 80, 52, 96], nod:.006, thrust:.03, look:.008, tail:null,
+    legs:[{r:[60, 182, 396, 490], near:0, ph:.5}, {r:[60, 270, 398, 512], claim:[150, 270, 476, 512], near:1, ph:0}]}, // the near foot's back toe reaches under the far foot
+  // sheep: light and a little springy, a shorter, livelier stride than the cow
+  sheep:{L:.5, Lrun:.95, beta:.58, betaRun:.42, lift:.045, bob:.03, rock:.02, rockRun:.05, squash:.03, maxShear:.5,
+    head:[78, 112, 62, 112], nod:.012, thrust:0, look:.02, tail:null,
+    legs:[{r:[115, 186, 356, 500], near:1, ph:0}, {r:[365, 412, 322, 448], near:0, ph:.06},     // near front, far hind
+          {r:[222, 279, 356, 512], near:1, ph:.5}, {r:[279, 330, 352, 448], near:0, ph:.56}]},  // near hind, far front
+  // horse: the longest stride; a four-beat walk (hind, fore, hind, fore down one side then the other) that becomes a
+  // diagonal trot, with little vertical bounce; its long tail swings on its own
+  horse:{L:1.25, Lrun:2.8, beta:.6, betaRun:.4, lift:.07, bob:.008, rock:.01, rockRun:.025, squash:0, maxShear:.45,
+    head:[105, 110, 55, 115], nod:.02, thrust:.012, look:.025, tail:[335, 330, 30, 110], tailAmp:.05, tailIdle:.04, tailHz:.7, tailDir:[1, .1],
+    legs:[{r:[284, 345, 405, 505], near:1, ph:0, phRun:0}, {r:[88, 136, 310, 512], claim:[80, 136, 501, 512], near:1, ph:.25, phRun:.5},   // near hind, near fore
+          {r:[225, 288, 305, 490], near:0, ph:.5, phRun:.5}, {r:[26, 88, 310, 512], near:0, ph:.75, phRun:1}]},  // far hind, far fore
+  // dog: quick and bouncy; a diagonal trot that gathers into a bounding run (fore feet together, hind feet together)
+  dog:{L:.5, Lrun:1.1, beta:.55, betaRun:.38, lift:.05, bob:.022, rock:.025, rockRun:.09, squash:.012, maxShear:.55,
+    head:[96, 76, 58, 108], nod:.012, thrust:0, look:.03, tail:[372, 118, 40, 92], tailAmp:.04, tailIdle:.035, tailHz:3.2, tailDir:[.45, 1],
+    legs:[{r:[125, 215, 372, 512], near:1, ph:0, phRun:0}, {r:[240, 302, 322, 404], near:0, ph:.1, phRun:.55},  // near fore, far hind
+          {r:[330, 402, 322, 418], near:1, ph:.5, phRun:.45}, {r:[38, 125, 372, 488], near:0, ph:.6, phRun:.1}]}, // near hind, far fore
+  // cat: smooth and quiet, low steps and almost no bounce; a soft bound at a run; the tail sways slowly
+  cat:{L:.3, Lrun:.7, beta:.62, betaRun:.4, lift:.022, bob:.005, rock:.008, rockRun:.04, squash:0, maxShear:.48,
+    head:[92, 140, 80, 130], nod:.006, thrust:0, look:.02, tail:[432, 112, 45, 115], tailAmp:.025, tailIdle:.03, tailHz:.45, tailDir:[1, .25],
+    legs:[{r:[352, 452, 370, 460], near:1, ph:0, phRun:.5}, {r:[165, 258, 374, 512], claim:[150, 260, 480, 512], near:1, ph:.22, phRun:0}, // near hind, near fore
+          {r:[248, 345, 370, 448], near:0, ph:.5, phRun:.6}, {r:[55, 165, 374, 492], near:0, ph:.72, phRun:.1}]},                        // far hind, far fore
+};
+const PUP_GLSL = `
+#ifdef USE_MAP
+uniform vec4 pupRect[PUP_LEGS]; uniform vec4 pupClaim[PUP_LEGS]; uniform vec4 pupMove[PUP_LEGS];
+uniform vec4 pupHead; uniform vec4 pupTail; uniform vec4 pupOff; uniform vec2 pupSize;
+bool pupIn(vec2 q, vec4 r) { return q.x >= r.x && q.x <= r.y && q.y <= r.z && q.y >= r.w; }
+bool pupOut(vec2 q) { return q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0; } // past the picture's edge: nothing (not a smear of the edge pixels)
+int pupOwner(vec2 q) {
+  for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupClaim[i])) return i;
+  for (int i = 0; i < PUP_LEGS; i++) if (pupIn(q, pupRect[i])) return i;
+  return -1;
+}
+vec4 pupOver(vec4 dst, vec4 src) { float a = src.a + dst.a * (1.0 - src.a);
+  return a < 1e-4 ? vec4(0.0) : vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / a, a); }
+float pupPatch(vec2 p, vec4 c) { return 1.0 - smoothstep(c.z, c.w, length((p - c.xy) * pupSize)); }
+vec4 pupSample(vec2 p) {
+  vec2 dx = dFdx(p), dy = dFdy(p); // one gradient for every layer, so cut edges don't pick a blurry mip level
+  vec4 col = vec4(0.0), nearCol = vec4(0.0);
+  for (int i = 0; i < PUP_LEGS; i++) {
+    vec4 r = pupRect[i], m = pupMove[i];
+    if (p.y > r.z || r.z <= r.w) continue;
+    float d = clamp((r.z - p.y) / (r.z - r.w), 0.0, 1.0);
+    vec2 q = vec2(p.x + m.x * d, p.y - m.y * d);
+    if (pupOut(q) || pupOwner(q) != i) continue;
+    vec4 c = textureGrad(map, q, dx, dy);
+    if (m.z > 0.5) nearCol = pupOver(nearCol, c); else col = pupOver(col, c);
+  }
+  // the body: never where a leg is cut out, and a head or tail bend never borrows a leg's pixels (it keeps its own instead)
+  vec2 q = p - pupOff.xy * pupPatch(p, pupHead) - pupOff.zw * pupPatch(p, pupTail);
+  if (pupOwner(q) >= 0) q = p;
+  vec4 body = !pupOut(q) && pupOwner(q) < 0 ? textureGrad(map, q, dx, dy) : vec4(0.0);
+  return pupOver(pupOver(col, body), nearCol);
+}
+#endif
+`;
+function pupRig(rig, mat, depth) {
+  const n = rig.legs.length, V4 = () => new THREE.Vector4();
+  // patches start empty (r0 > distance everywhere) until the picture's size is known
+  const U = {pupRect:{value:rig.legs.map(V4)}, pupClaim:{value:rig.legs.map(V4)}, pupMove:{value:rig.legs.map(V4)},
+    pupHead:{value:new THREE.Vector4(0, 0, -2, -1)}, pupTail:{value:new THREE.Vector4(0, 0, -2, -1)}, pupOff:{value:V4()}, pupSize:{value:new THREE.Vector2(1, 1)}};
+  for (const m of [mat, depth]) {
+    m.defines = {...(m.defines || {}), PUP_LEGS:n};
+    m.customProgramCacheKey = () => "pup" + n;
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, U);
+      sh.fragmentShader = sh.fragmentShader
+        .replace("#include <map_pars_fragment>", "#include <map_pars_fragment>\n" + PUP_GLSL)
+        .replace("#include <map_fragment>", "#ifdef USE_MAP\nvec4 pupCol = pupSample(vMapUv);\ndiffuseColor *= pupCol;\n#endif")
+        .replace("#include <emissivemap_fragment>", "#if defined( USE_EMISSIVEMAP ) && defined( USE_MAP )\ntotalEmissiveRadiance *= pupCol.rgb;\n#endif");
+    };
+  }
+  return {U, n, gait:Math.random(), env:0, spd:0, run:0, px:null, pz:0, ready:false, W:1, H:1, seed:Math.random() * 50, rock:0, sq:1};
+}
+// art size known: pixel rectangles become texture coordinates (v up)
+function pupLoad(P, rig, W, H) {
+  P.W = W; P.H = H;
+  rig.legs.forEach((l, i) => { const [x0, x1, y0, y1] = l.r; P.U.pupRect.value[i].set(x0 / W, x1 / W, 1 - y0 / H, 1 - y1 / H); P.U.pupMove.value[i].z = l.near;
+    if (l.claim) { const [a0, a1, b0, b1] = l.claim; P.U.pupClaim.value[i].set(a0 / W, a1 / W, 1 - b0 / H, 1 - b1 / H); } });
+  const [hx, hy, r0, r1] = rig.head; P.U.pupHead.value.set(hx / W, 1 - hy / H, r0, r1);
+  if (rig.tail) { const [tx, ty, t0, t1] = rig.tail; P.U.pupTail.value.set(tx / W, 1 - ty / H, t0, t1); }
+  P.U.pupSize.value.set(W, H);
+  P.ready = true;
+}
+// Step the legs from the distance this animal really covered this frame (fences and shoves included), not the clock:
+// standing still means no stepping, and the cadence follows the speed. Also sets the body's pitch rock (P.rock) and
+// springy squash (P.sq) for the pose, and moves the head and tail patches. Returns the body's bob in metres.
+function pupStep(b, dt, t) {
+  const P = b.pup, R = RIGS[b.kind], S = b.S, x = b.g.position.x, z = b.g.position.z, lerp = THREE.MathUtils.lerp;
+  let d = P.px === null ? 0 : Math.hypot(x - P.px, z - P.pz); P.px = x; P.pz = z;
+  if (d > 1.5) d = 0; // a spawn or a jump, not a step
+  const spd = d / Math.max(dt, 1e-3); P.spd += (spd - P.spd) * Math.min(1, dt * 8);
+  const run = P.run = THREE.MathUtils.clamp((P.spd - S.walk * 1.3) / (S.run - S.walk * 1.3), 0, 1);
+  const L = lerp(R.L, R.Lrun, run), beta = lerp(R.beta, R.betaRun, run);
+  P.gait = (P.gait + d / L) % 1;
+  const envTo = THREE.MathUtils.smoothstep(P.spd, S.walk * .08, S.walk * .45);
+  P.env += (envTo - P.env) * Math.min(1, dt * (envTo > P.env ? 9 : 6));
+  if (!P.ready) return 0;
+  const env = P.env, h = S.h, wm = h * P.W / P.H, TAU = Math.PI * 2;
+  // feet only slide across the picture as far as the walk runs across the screen; walking at you, they mostly lift
+  const right = _pupV.setFromMatrixColumn(camera.matrixWorld, 0), vl = Math.hypot(b.vel.x, b.vel.y);
+  const lateral = vl > 1e-3 ? Math.abs((b.vel.x * right.x + b.vel.y * right.z) / vl) : 1;
+  const A = env * beta * L / 2 * Math.max(lateral, .35); // planted feet move back exactly as far as the body goes forward
+  const lift = env * R.lift * (1 + run * .6);
+  for (let i = 0; i < P.n; i++) {
+    const leg = R.legs[i], ph = leg.phRun === undefined ? leg.ph : lerp(leg.ph, leg.phRun, run);
+    const c = ((P.gait + ph) % 1 + 1) % 1, rect = P.U.pupRect.value[i], len = (rect.z - rect.w) * h;
+    let f, up = 0;
+    if (c < beta) f = A * (1 - 2 * c / beta);
+    else { const s = (c - beta) / (1 - beta), e = s * s * (3 - 2 * s); f = -A + 2 * A * e; up = Math.sin(s * Math.PI) * lift; }
+    f = THREE.MathUtils.clamp(f, -R.maxShear * len, R.maxShear * len);
+    P.U.pupMove.value[i].x = f / wm; P.U.pupMove.value[i].y = up / h;
+  }
+  const off = P.U.pupOff.value, still = 1 - env, sd = P.seed;
+  // head: a hen holds her head still and then thrusts it forward each step; the big ones nod into their footfalls;
+  // standing about, every animal looks around a little (slow and different for each one)
+  const st = (P.gait * 2) % 1, hold = .72, th = R.thrust * env, hf = st < hold ? th * (1 - 2 * st / hold) : th * (-1 + 2 * (st - hold) / (1 - hold));
+  const lookX = Math.sin(t * .31 + sd) * Math.sin(t * .17 + sd * 2) * R.look * still, lookY = Math.sin(t * .23 + sd * 3) * R.look * .5 * still;
+  off.x = (-hf + lookX) / wm; // forward is -u: the art faces left
+  off.y = (-R.nod * env * (.5 + .5 * Math.cos(P.gait * TAU * 2)) + lookY) / h;
+  // tail: swings once a stride while walking; standing, a slow swish (cow, horse, cat) or a wag (dog)
+  if (R.tail) { const sw = Math.sin(P.gait * TAU) * R.tailAmp * env + Math.sin(t * TAU * R.tailHz + sd) * R.tailIdle * (b.kind === "dog" ? 1 : still);
+    off.z = sw * R.tailDir[0] / wm; off.w = sw * R.tailDir[1] / h; }
+  // the body rocks fore and aft with the legs, more at a run; springy species squash a touch as feet land
+  P.rock = env * (R.rock + R.rockRun * run) * Math.sin(P.gait * TAU * 2);
+  P.sq = 1 - env * R.squash * (.5 - .5 * Math.cos(P.gait * TAU * 2));
+  // the body rides up as the legs pass under it, twice a stride
+  return env * R.bob * h * (.5 + .5 * Math.cos(P.gait * TAU * 2)) * (1 + run);
+}
+const _pupV = new THREE.Vector3();
+
+bootStep("making the ground");
+// ---------------- ground ----------------
+const KEEP_CLEAR = [[6.2, -3.5, 1.9, 1.9], [-10, 12, 3.8, 2.9], [8, 6.2, 1.3, .6], [-6.4, -2.8, 1.4, 1.6]]; // silo, crop field, trough, hay
+const groundGeo = new THREE.PlaneGeometry(TERRAIN_SPAN, TERRAIN_SPAN, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS); groundGeo.rotateX(-Math.PI / 2);
+{ const p = groundGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), d = Math.hypot(x, z);
+  p.setY(i,farmGroundY(x,z)); }
+  groundGeo.computeVertexNormals();
+  // big soft patches of lighter, yellower and darker grass so the field never looks tiled
+  const col = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i);
+    const n = Math.sin(x * .11 + Math.sin(z * .07) * 2) * .5 + Math.sin(z * .13 - x * .05) * .35 + Math.sin((x + z) * .31) * .15;
+    col.set([.9 + n * .14, .92 + n * .1, .82 + n * .06], i * 3); }
+  groundGeo.setAttribute("color", new THREE.BufferAttribute(col, 3)); }
+const groundTex = photo(TEX + "grass.jpg", [40, 40]);
+const ground = new THREE.Mesh(groundGeo, std({map:groundTex, roughness:.95, vertexColors:true, color:0xd4dcc4}));
+ground.receiveShadow = true; scene.add(ground);
+// dirt path to the barn doors, with soft edges
+{ const pathCanvas = soilCanvas(4, true), dt = tex(pathCanvas, 1, [1, 6]), pathNormal = tex(normalFrom(pathCanvas, 1.5), 0, [1, 6]);
+  const [ac, ax] = canvas(256), R = rng(8); // soft ragged edges along the sides and the far end
+  const g = ax.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, "#000"); g.addColorStop(.22, "#fff"); g.addColorStop(.78, "#fff"); g.addColorStop(1, "#000");
+  ax.fillStyle = g; ax.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 160; i++) { ax.fillStyle = R() < .5 ? "rgba(0,0,0,.35)" : "rgba(255,255,255,.3)"; ax.beginPath(); ax.arc(R() < .5 ? R() * 60 : 196 + R() * 60, R() * 256, 4 + R() * 10, 0, 7); ax.fill(); }
+  const fadeEnd = ax.createLinearGradient(0, 0, 0, 256); fadeEnd.addColorStop(0, "rgba(0,0,0,1)"); fadeEnd.addColorStop(.25, "rgba(0,0,0,0)"); ax.fillStyle = fadeEnd; ax.fillRect(0, 0, 256, 256);
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 18), std({map:dt, normalMap:pathNormal, normalScale:new THREE.Vector2(.13,.13), alphaMap:new THREE.CanvasTexture(ac), transparent:true, roughness:1, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, color:0xffffff}));
+  pm.rotation.x = -Math.PI / 2; pm.position.set(0, .01, 14.5); pm.receiveShadow = true; scene.add(pm); }
+
+const dairyPath=createDairyPath({layout:COW_YARD_LAYOUT,groundY:farmGroundY,material:M.stone});scene.add(dairyPath.group);
+
+bootStep("growing the grass");
+// ---------------- grass blades: thousands of little clumps that bend in the wind ----------------
+const windU = {uTime:{value:0}, uWind:{value:.3}};
+// where every grass tuft and wildflower grows, so they can be cleared from under new fields and buildings
+const GRASS = {grass:null, gpos:[], flowers:null, fpos:[]}, CLEARS = new Map();
+function clearGrass(x, z, r, key) {
+  if (key) CLEARS.set(key, [x, z, r]);
+  if (GRASS.grass && !GRASS.g0) { GRASS.g0 = GRASS.grass.instanceMatrix.array.slice(); if (GRASS.flowers) GRASS.f0 = GRASS.flowers.instanceMatrix.array.slice(); }
+  const m4 = new THREE.Matrix4().makeScale(0, 0, 0);
+  for (const [mesh, pos] of [[GRASS.grass, GRASS.gpos], [GRASS.flowers, GRASS.fpos]]) {
+    if (!mesh) continue; let n = 0;
+    for (let k = 0; k < pos.length; k += 2) if (Math.abs(pos[k] - x) < r && Math.abs(pos[k + 1] - z) < r) { m4.setPosition(pos[k], 0, pos[k + 1]); mesh.setMatrixAt(k / 2, m4); n++; }
+    if (n) mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+// move a cleared patch: grow the grass back on the old spot (keeping other clearings), then clear the new one
+function moveClear(key, x, z, r) {
+  const old = CLEARS.get(key); CLEARS.set(key, [x, z, r]);
+  if (old && GRASS.g0) {
+    const [ox, oz, or] = old;
+    for (const [mesh, pos, orig] of [[GRASS.grass, GRASS.gpos, GRASS.g0], [GRASS.flowers, GRASS.fpos, GRASS.f0]]) {
+      if (!mesh || !orig) continue;
+      for (let k = 0; k < pos.length; k += 2) if (Math.abs(pos[k] - ox) < or && Math.abs(pos[k + 1] - oz) < or) mesh.instanceMatrix.array.set(orig.subarray(k * 8, k * 8 + 16), k * 8);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    for (const [k2, [cx, cz, cr]] of CLEARS) if (k2 !== key && Math.abs(cx - ox) < cr + or && Math.abs(cz - oz) < cr + or) clearGrass(cx, cz, cr);
+  }
+  clearGrass(x, z, r);
+}
+{
+  // one clump = 8 thin curved blades fanning out from a tuft, each a little different in height, lean and shade.
+  // 22,000 clumps give ~176,000 blades that grow in natural tufts, with far fewer instances to set up and cull.
+  const BLADES = 8, CR = rng(11), pos = [], hgt = [], col = [], idx = [];
+  const b0 = [[-.018,0,0], [.018,0,0], [-.015,.11,.012], [.015,.11,.012], [-.009,.21,.035], [.009,.21,.035], [0,.31,.07]];
+  for (let b = 0; b < BLADES; b++) {
+    const ang = b / BLADES * Math.PI * 2 + CR() * .8, rad = b === 0 ? 0 : .04 + Math.sqrt(CR()) * .13, ox = Math.cos(ang) * rad, oz = Math.sin(ang) * rad;
+    const hs = .65 + CR() * .6, lean = .5 + CR() * .9, yaw = ang + (CR() - .5) * 1.2, cy = Math.cos(yaw), sy = Math.sin(yaw), tint = .82 + CR() * .3, base = pos.length / 3;
+    for (const [x, y, z] of b0) { const lz = z * lean + y * rad * 1.4; pos.push(ox + x * cy + lz * sy, y * hs, oz - x * sy + lz * cy); hgt.push(y / .31); col.push(tint, tint * (.97 + CR() * .06), tint * (.9 + CR() * .12)); }
+    for (const t of [0,1,2, 1,3,2, 2,3,4, 3,5,4, 4,5,6]) idx.push(base + t);
+  }
+  const blade = new THREE.BufferGeometry();
+  blade.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  blade.setAttribute("bladeH", new THREE.Float32BufferAttribute(hgt, 1));
+  blade.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  blade.setIndex(idx); blade.computeVertexNormals();
+  const n = 22000, R = rng(5);
+  const mat = foliage(new THREE.MeshStandardMaterial({color:0xffffff, roughness:.7, side:THREE.DoubleSide, vertexColors:true}), .8, (sh) => {
+    Object.assign(sh.uniforms, windU);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; attribute float bladeH; varying float vH;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(objectNormal * .35 + vec3(0., 1., 0.));")
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vH = bladeH;
+        vec4 wp = instanceMatrix * vec4(0., 0., 0., 1.);
+        float gust = sin(uTime * .6 + wp.x * .05 + wp.z * .03) * .5 + .5;
+        float bend = (sin(uTime * 1.7 + wp.x * .35 + wp.z * .22) * .6 + sin(uTime * 3.1 + wp.x * .9) * .25) * (0.2 + uWind * (.6 + gust));
+        transformed.x += bend * position.y * position.y * 2.4; transformed.z += bend * position.y * position.y * .9;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;")
+      .replace("#include <color_fragment>", `#include <color_fragment>
+        diffuseColor.rgb *= mix(.32, 1.15, smoothstep(0., 1., vH));                         // shaded roots, bright tips
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.1, .62), vH * vH * .45); // tips dry to gold`);
+  });
+  const grassMesh = new THREE.InstancedMesh(blade, mat, n);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
+  let k = 0;
+  for (let i = 0; k < n && i < n * 3; i++) {
+    const r = Math.sqrt(R()) * 44, a = R() * Math.PI * 2, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
+    if (Math.abs(x) < 4.4 && Math.abs(z) < 5.9) continue;           // not inside the barn
+    if (KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
+    if (Math.abs(x) < 3 && z > 5.5 && z < 22) continue;              // not on the dirt path
+    e.set((R() - .5) * .35, R() * 7, (R() - .5) * .35); q.setFromEuler(e);
+    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
+    grassMesh.setMatrixAt(k, m4); GRASS.gpos.push(x, z);
+    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12); grassMesh.setColorAt(k, c); k++;
+  }
+  grassMesh.count = k; grassMesh.receiveShadow = true; scene.add(grassMesh); GRASS.grass = grassMesh;
+  // a sprinkle of wildflowers: daisies, buttercups and clover
+  const [fc, fx] = canvas(128);
+  const petals = (cx, cy, col, center, n, r, pr) => { fx.fillStyle = col; for (let i = 0; i < n; i++) { const a = i / n * 7; fx.beginPath(); fx.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, pr, pr * .5, a, 0, 7); fx.fill(); } fx.fillStyle = center; fx.beginPath(); fx.arc(cx, cy, r * .6, 0, 7); fx.fill(); };
+  petals(32, 32, "#fbfbf6", "#f2c12e", 12, 13, 11); petals(96, 32, "#f7d23a", "#e0a61a", 5, 11, 12); petals(32, 96, "#c98ad8", "#a45cc0", 10, 9, 9); petals(96, 96, "#ffffff", "#f5d24a", 8, 10, 10);
+  const flTex = new THREE.CanvasTexture(fc); flTex.colorSpace = THREE.SRGBColorSpace;
+  const fg = new THREE.PlaneGeometry(.16, .16); fg.rotateX(-Math.PI / 2 + .35); fg.translate(0, .2, 0);
+  const fm = foliage(new THREE.MeshStandardMaterial({map:flTex, alphaTest:.5, side:THREE.DoubleSide, roughness:.6}), .5);
+  const nf = 3500, flowers = new THREE.InstancedMesh(fg, fm, nf); let f = 0;
+  const uvOff = new Float32Array(nf * 2);
+  for (let i = 0; f < nf && i < nf * 4; i++) {
+    const r = Math.sqrt(R()) * 38, a = R() * 7, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
+    if ((Math.abs(x) < 4.6 && Math.abs(z) < 6.1) || (Math.abs(x) < 3 && z > 5.5) || KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
+    if (Math.sin(x * .3) * Math.cos(z * .25) < .2) continue; // flowers grow in patches
+    m4.compose(new THREE.Vector3(x, 0, z), q.setFromEuler(e.set(0, R() * 7, 0)), new THREE.Vector3(1, 1, 1).multiplyScalar(.8 + R() * .5));
+    flowers.setMatrixAt(f, m4); GRASS.fpos.push(x, z); uvOff[f * 2] = R() < .5 ? 0 : .5; uvOff[f * 2 + 1] = R() < .5 ? 0 : .5; f++;
+  }
+  flowers.count = f; GRASS.flowers = flowers;
+  fg.setAttribute("uvOff", new THREE.InstancedBufferAttribute(uvOff, 2));
+  const fmPrev = fm.onBeforeCompile;
+  fm.onBeforeCompile = (sh) => { fmPrev(sh); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 uvOff;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvMapUv = vMapUv * .5 + uvOff;"); };
+  flowers.receiveShadow = true; scene.add(flowers);
+}
+
+// Keep paving readable; register clearings so moved objects cannot regrow grass on it.
+for(const[i,[x,z]]of dairyPath.samples.entries())clearGrass(x,z,1.02,'dairy-path:'+i);
+
+// soft dark "contact shadow" right under each object, so nothing looks like it floats
+const contactTex = radial("rgba(0,0,0,.55)");
+const contactMat = new THREE.MeshBasicMaterial({map:contactTex, transparent:true, depthWrite:false, color:0x000000, opacity:1});
+const decals = new THREE.Group(); scene.add(decals); // soft shadows on the ground under things, merged into one piece once the farm is built
+function contact(x, z, w, d, parent = decals) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), contactMat);
+  m.rotation.x = -Math.PI / 2; m.position.set(x, .02, z); parent.add(m); return m;
+}
+// Many small still pieces that share a material draw much faster as one piece (one draw call instead of dozens), so merge them.
+// It happens inside `root`, so the thing still moves, squashes and can be tapped as a whole. `keep` marks parts that must stay
+// separate: swaying canopies, and things that hide and show on their own.
+function mergeStatic(root, keep = () => false) {
+  const t0 = performance.now(); try { return mergeStaticNow(root, keep); } finally { window.__mergeMs = (window.__mergeMs || 0) + performance.now() - t0; }
+}
+function mergeStaticNow(root, keep) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert(), buckets = new Map(), rel = new THREE.Matrix4();
+  const walk = (o) => {
+    if (o !== root && keep(o)) return;
+    if (o.isMesh && !o.isInstancedMesh && !Array.isArray(o.material) && o.visible) {
+      const k = o.material.uuid + "|" + o.castShadow + o.receiveShadow; if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(o);
+    }
+    for (const c of [...o.children]) walk(c);
+  };
+  walk(root);
+  for (const list of buckets.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map(m => { const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(rel.multiplyMatrices(inv, m.matrixWorld)); if (!g.attributes.normal) g.computeVertexNormals(); return g; });
+    const names = ["position", "normal", "uv", "color"].filter(n => geos.every(g => g.attributes[n]));
+    if (list[0].material.map && !names.includes("uv")) { geos.forEach(g => g.dispose()); continue; }
+    const merged = new THREE.BufferGeometry();
+    for (const n of names) {
+      const size = geos[0].attributes[n].itemSize, arr = new Float32Array(geos.reduce((a, g) => a + g.attributes[n].count, 0) * size); let off = 0;
+      for (const g of geos) { const a = g.attributes[n]; for (let i = 0; i < a.count; i++) for (let c = 0; c < size; c++) arr[off++] = a.getComponent(i, c); }
+      merged.setAttribute(n, new THREE.BufferAttribute(arr, size));
+    }
+    merged.computeBoundingSphere();
+    const m0 = list[0], mesh = new THREE.Mesh(merged, m0.material);
+    mesh.castShadow = m0.castShadow; mesh.receiveShadow = m0.receiveShadow; if (m0.customDepthMaterial) mesh.customDepthMaterial = m0.customDepthMaterial;
+    for (const m of list) m.parent.remove(m);
+    geos.forEach(g => g.dispose());
+    root.add(mesh);
+  }
+  return root;
+}
+const keepCanopy = (t) => (o) => o === t.userData.canopy;
+
+bootStep("placing the barn and trees");
+// ---------------- place things ----------------
+const barn = mergeStatic(makeBarn(), (o) => o.userData.door); scene.add(barn); contact(0, 0, 11, 14);
+const tree = makeTree(7); tree.position.set(-9, 0, 4); scene.add(tree); mergeStatic(tree, keepCanopy(tree)); tree.userData.decal = contact(-9, 4, 3, 3); tree.userData.edit = "t:tree";
+const tree2 = makeTree(13); tree2.position.set(10, 0, -7); tree2.scale.setScalar(1.2); scene.add(tree2); mergeStatic(tree2, keepCanopy(tree2)); tree2.userData.decal = contact(10, -7, 3.5, 3.5); tree2.userData.edit = "t:tree2";
+const groundY=farmGroundY;
+const workshopGroundY=(x,z)=>terrainMeshY(x,z,farmGroundY);
+const hills = []; { const R = rng(31); for (let i = 0; i < 14; i++) { const a = R() * Math.PI * 2, r = 36 + R() * 30, t = makeTree(40 + i);
+  t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if(t.position.z< -21&&t.position.z> -50&&(t.position.x<1?1-t.position.x<28+WEST_CLEARING:t.position.x-1<28))t.position.x=t.position.x<1?-30-WEST_CLEARING:32;
+  t.position.y = groundY(t.position.x, t.position.z) - .1; t.scale.setScalar(.9 + R() * .5); t.rotation.y = R() * 7; t.userData.edit=`clear:hill:seed-${40+i}`;scene.add(t); mergeStatic(t, keepCanopy(t)); hills.push(t); } }
+bootStep("planting the woods");
+// Distant woods retain the exact authored positions, but small merged chunks
+// can be rebuilt independently after one stable-ID tree is cleared.
+const far=FAR_TREE_SITES.map(site=>({position:new THREE.Vector3(site.x,groundY(site.x,site.z)-.2,site.z),visible:true,userData:{edit:'clear:'+site.id}}));
+const woods=new THREE.Group(),woodChunks=[],WOOD_CHUNK_SIZE=8,woodKinds=[makeTree(201),makeTree(202),makeTree(203),makeTree(204)];woods.name='Distant woods';scene.add(woods);
+function rebuildWoodChunk(chunkIndex){
+ const old=woodChunks[chunkIndex];if(old){woods.remove(old);for(const c of old.children)if(c.isMesh)c.geometry.dispose();}
+ const chunk=new THREE.Group();for(let i=chunkIndex*WOOD_CHUNK_SIZE;i<Math.min((chunkIndex+1)*WOOD_CHUNK_SIZE,FAR_TREE_SITES.length);i++){
+  const site=FAR_TREE_SITES[i];if(!far[i].visible)continue;
+  const t=woodKinds[site.kind].clone();t.position.copy(far[i].position);t.rotation.y=site.rotation;t.scale.setScalar(site.scale);
+  t.traverse(o=>{o.castShadow=false;});chunk.add(t);
+ }
+ if(chunk.children.length){mergeStatic(chunk);chunk.traverse(o=>{if(o.isMesh&&o.material===leafMat)seasonalLeaves.register(o.geometry,91);});}
+ woods.add(chunk);woodChunks[chunkIndex]=chunk;
+}
+for(let i=0;i<Math.ceil(far.length/WOOD_CHUNK_SIZE);i++)rebuildWoodChunk(i);
+// fence runs, corner to corner: the path fence, the paddock (the barn's east wall is its fourth side) and the chicken yard
+const FENCE_RUNS = [
+  [[-.81, 7.52], [10.81, 10.48]],                                               // along the path (also the paddock's front)
+  [[10.81, 10.48], [12.6, -1.2], [12.8, -8.4], [4.5, -8.4], [4.5, -5.95]],        // paddock: east, north and back to the barn
+  [[4.5, 5.95], [4.5, 8.87]],                                                   // paddock: from the barn's front corner to the path fence
+];
+const fenceSegs = [], fences = [];
+for (const run of FENCE_RUNS) for (let i = 1; i < run.length; i++) {
+  const [ax, az] = run[i - 1], [bx, bz] = run[i], len = Math.hypot(bx - ax, bz - az);
+  const f = makeFence(len, Math.max(1, Math.round(len / 2))); f.position.set((ax + bx) / 2, 0, (az + bz) / 2); f.rotation.y = Math.atan2(-(bz - az), bx - ax);
+  scene.add(f); mergeStatic(f); fences.push(f); fenceSegs.push([ax, az, bx, bz]);
+}
+let chickenYard=createChickenYard();scene.add(chickenYard.group);
+let cowYard=createCowYard({north:NORTH_EXTENSION});cowYard.group.visible=false;scene.add(cowYard.group);
+const remainingYards=createRemainingCareYards(),remainingLayouts=remainingCareLayouts(),remainingSites={};let remainingPlantClearing=null;
+for(const [kind,yard]of Object.entries(remainingYards)){yard.group.visible=false;scene.add(yard.group);const fences=yard.fences.map((f,i)=>{const placeholder=[1100+i,1100,1101+i,1100];fenceSegs.push(placeholder);return placeholder;});remainingSites[kind]={active:false,checked:false,needsReload:false,issues:[],fences};}
+let cowYardActive=false,cowYardNeedsReload=false,cowYardChecked=false,cowYardIssues=[],cowStatus=null,cowAudioAt=0,cowPlantClearing=null;
+const cowStations=createStationScheduler(cowYard.stations),cowStationById=new Map(cowYard.stations.map(s=>[s.id,s]));
+const cowSurfaces=(()=>{cowYard.group.updateMatrixWorld(true);const centers=new Map(cowYard.targets.filter(t=>t.kind==='feed'||t.kind==='water').map(t=>[t.kind,new THREE.Box3().setFromObject(t.object).getCenter(new THREE.Vector3())]));return new Map(cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink').map(s=>[s.id,new THREE.Vector3(s.kind==='feed'?s.dock[0]:centers.get('water').x,s.surface,s.kind==='feed'?centers.get('feed').z:s.dock[2])]));})();
+CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
+fenceSegs.push(...CHICKEN_YARD_LAYOUT.fenceSegments);
+// water for the animals that can't reach the trough: a pan in the chicken yard and a bowl by the barn door for the dog and cat
+function makeWaterPan(r) {
+  const g = new THREE.Group(), rim = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, .14, 24, 1, true), M.metal || M.fence);
+  rim.position.y = .07; rim.castShadow = true; g.add(rim);
+  const w = new THREE.Mesh(new THREE.CircleGeometry(r * .96, 24), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .11; g.add(w);
+  return g;
+}
+
+bootStep("building the farm pieces");
+// ---------------- more farm pieces ----------------
+function ribbedMetal(seed) { // corrugated galvanized steel
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  for (let i = 0; i < n; i++) { const w = Math.sin(i / n * Math.PI * 2 * 24) * .5 + .5;
+    x.fillStyle = `hsl(210,5%,${56 + w * 18}%)`; x.fillRect(i, 0, 1, n); hx.fillStyle = `rgb(${w * 255},${w * 255},${w * 255})`; hx.fillRect(i, 0, 1, n); }
+  for (let i = 0; i < 70; i++) { const px = R() * n; x.fillStyle = `rgba(120,80,50,${R() * .12})`; x.fillRect(px, R() * n, 2 + R() * 5, 20 + R() * 120); } // rust streaks
+  for (const y of [n * .25, n * .5, n * .75]) { x.fillStyle = "rgba(0,0,0,.25)"; x.fillRect(0, y, n, 3); hx.fillStyle = "#000"; hx.fillRect(0, y, n, 3); }
+  return [c, normalFrom(h, 3)];
+}
+function straw(seed, rings) { // hay: long strands on the side, a spiral on the ends
+  const n = 256, [c, x] = canvas(n), R = rng(seed);
+  x.fillStyle = "#c9a45a"; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 2600; i++) {
+    x.strokeStyle = `hsl(${38 + R() * 12},${45 + R() * 25}%,${45 + R() * 30}%)`; x.lineWidth = .6 + R();
+    x.beginPath();
+    if (rings) { const a = R() * 7, r = R() * 128; x.arc(128, 128, r, a, a + .4 + R() * .6); }
+    else { const px = R() * n, py = R() * n; x.moveTo(px, py); x.lineTo(px + (R() - .5) * 6, py + 14 + R() * 20); }
+    x.stroke();
+  }
+  return c;
+}
+function rockSurface(seed) { // weathered granite: mottled grays, specks and cracks
+  const n = 512, [c, x] = canvas(n), [h, hx] = canvas(n), R = rng(seed);
+  x.fillStyle = "#77736b"; x.fillRect(0, 0, n, n); hx.fillStyle = "#808080"; hx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 120; i++) { const cx = R() * n, cy = R() * n, r = 20 + R() * 70, l = 36 + R() * 22;
+    for (const [ox, oy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) { const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, `hsla(${30 + R() * 20},${6 + R() * 8}%,${l}%,.5)`); g.addColorStop(1, "hsla(30,5%,45%,0)"); x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2);
+      const hg = hx.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r); hg.addColorStop(0, `rgba(${R() < .5 ? "255,255,255" : "0,0,0"},.25)`); hg.addColorStop(1, "rgba(128,128,128,0)"); hx.fillStyle = hg; hx.fillRect(cx + ox - r, cy + oy - r, r * 2, r * 2); } }
+  for (let i = 0; i < 5000; i++) { x.fillStyle = `rgba(${R() < .5 ? "230,225,215" : "30,28,25"},${R() * .35})`; x.fillRect(R() * n, R() * n, 1 + R() * 2, 1 + R() * 2); }
+  x.lineWidth = 1.2; hx.lineWidth = 2;
+  for (let i = 0; i < 18; i++) { let px = R() * n, py = R() * n; x.strokeStyle = "rgba(20,18,15,.45)"; hx.strokeStyle = "#000"; x.beginPath(); hx.beginPath(); x.moveTo(px, py); hx.moveTo(px, py);
+    for (let k = 0; k < 8; k++) { px += (R() - .5) * 40; py += (R() - .3) * 30; x.lineTo(px, py); hx.lineTo(px, py); } x.stroke(); hx.stroke(); }
+  // a little moss on top
+  for (let i = 0; i < 40; i++) { x.fillStyle = `hsla(${80 + R() * 20},35%,${28 + R() * 12}%,.35)`; x.beginPath(); x.arc(R() * n, R() * n * .4, 6 + R() * 18, 0, 7); x.fill(); }
+  return [c, normalFrom(h, 5)];
+}
+const [rkC, rkN] = rockSurface(14); M.rock = std({map:tex(rkC, 1), normalMap:tex(rkN), roughness:.92});
+const [metC, metN] = ribbedMetal(2);
+M.silo = std({map:tex(metC, 1, [1, 1]), normalMap:tex(metN, 0, [1, 1]), metalness:.75, roughness:.38});
+M.hay = std({map:tex(straw(3), 1, [2, 1]), roughness:.95}); M.hayEnd = std({map:tex(straw(4, true), 1), roughness:.95});
+M.water = new THREE.MeshStandardMaterial({color:0x1e4a5c, roughness:.04, metalness:.1, transparent:true, opacity:.9});
+M.soil = std({map:tex(dirt(12), 1, [3, 3]), roughness:1, color:0x8a6a4a});
+
+function makeSilo() {
+  const g = new THREE.Group(), r = 1.55, h = 8.5;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 40, 1, true), M.silo); body.position.y = h / 2;
+  body.geometry.attributes.uv.array.forEach((v, i, a) => { if (i % 2 === 0) a[i] = v * 3; }); // three wraps of the ribs
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(r * 1.02, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.silo); dome.position.y = h;
+  for (const m of [body, dome]) { m.castShadow = m.receiveShadow = true; g.add(m); }
+  for (const y of [.02, h * .33, h * .66, h]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r + .03, .05, 6, 48), M.metal); ring.rotation.x = Math.PI / 2; ring.position.y = y; ring.castShadow = true; g.add(ring); }
+  g.add(box(.08, h + .8, .08, M.metal, -.25, (h + .8) / 2, r + .12), box(.08, h + .8, .08, M.metal, .25, (h + .8) / 2, r + .12)); // ladder
+  for (let y = .4; y < h + .6; y += .45) g.add(box(.5, .05, .05, M.metal, 0, y, r + .12));
+  g.add(box(.5, .35, .5, M.metal, 0, h + r * .95, 0)); // cap
+  return g;
+}
+function makeBale() {
+  const g = new THREE.Mesh(new THREE.CylinderGeometry(.72, .72, 1.25, 28), [M.hay, M.hayEnd, M.hayEnd]);
+  g.rotation.z = Math.PI / 2; g.castShadow = g.receiveShadow = true; return g;
+}
+function makeTrough() {
+  const g = new THREE.Group();
+  g.add(box(2.2, .12, .9, M.fence, 0, .38, 0), box(2.2, .5, .1, M.fence, 0, .65, .42), box(2.2, .5, .1, M.fence, 0, .65, -.42), box(.1, .5, .9, M.fence, 1.05, .65, 0), box(.1, .5, .9, M.fence, -1.05, .65, 0));
+  for (const x of [-.9, .9]) g.add(box(.12, .4, .7, M.fence, x, .2, 0));
+  const w = new THREE.Mesh(new THREE.PlaneGeometry(2, .74), M.water); w.rotation.x = -Math.PI / 2; w.position.y = .82; w.receiveShadow = true; g.add(w);
+  return g;
+}
+function makeRock(seed, s) {
+  const geo = new THREE.IcosahedronGeometry(1, 3), p = geo.attributes.position, R = rng(seed);
+  const bumps = [...Array(6)].map(() => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, R() * .35]);
+  for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)); let k = 1;
+    for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.dot(new THREE.Vector3(bx, by, bz).normalize()));
+    v.multiplyScalar(k); v.y = v.y * .6; if (v.y < -.15) v.y = -.15; p.setXYZ(i, v.x, v.y, v.z); }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, M.rock); m.scale.setScalar(s); m.castShadow = m.receiveShadow = true; return m;
+}
+function makeBush(seed, s = 1) {
+  const g = new THREE.Group(), R = rng(seed), centers = [];
+  for (let i = 0; i < 5; i++) centers.push(new THREE.Vector3((R() - .5) * 1.1, .45 + R() * .45, (R() - .5) * 1.1));
+  const m = new THREE.Mesh(canopyGeometry(R, centers, 12, .8, .8, new THREE.Vector3(0, .5, 0), 1.1), bushLeafMat);
+  m.customDepthMaterial = leafDepth; m.castShadow = m.receiveShadow = true; g.add(m);
+  g.scale.setScalar(s); g.userData.canopy = g; return g;
+}
+// crop plants: thin blades (wheat, corn, sugarcane) or broad leaves (everything else), swaying in the wind; each field
+// gets its own material so its colour can ripen from green to its harvest colour
+const CROP_SHAPES = {blade:[[-.03,0,0, .03,0,0, -.02,.4,0, .02,.4,0, 0,.75,.05], .75], leaf:[[-.07,0,0, .07,0,0, -.1,.22,.03, .1,.22,.03, 0,.45,.1], .45]};
+const cropGeo = {};
+for (const [k, [v]] of Object.entries(CROP_SHAPES)) { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setIndex([0,1,2, 1,3,2, 2,3,4]); g.computeVertexNormals(); cropGeo[k] = g; }
+function cropMaterial() {
+  const mat = new THREE.MeshStandardMaterial({color:0x7fa04a, roughness:.75, side:THREE.DoubleSide});
+  mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, windU);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; varying float vH;")
+      .replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(objectNormal * .5 + vec3(0., 1., 0.));") // soft, grass-like light
+      .replace("#include <begin_vertex>", `#include <begin_vertex>
+        vH = clamp(position.y / .6, 0., 1.);
+        vec4 wp = instanceMatrix * vec4(0.,0.,0.,1.); float b = sin(uTime * 1.5 + wp.x * .6 + wp.z * .3) * (.12 + uWind * .3);
+        transformed.x += b * position.y * position.y;`);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH;")
+      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= mix(.42, 1.12, smoothstep(0., 1., vH)); // shaded at the soil, bright at the tips"); };
+  return mat;
+}
+function makeLampPost() {
+  const g = new THREE.Group();
+  g.add(box(.14, 3, .14, M.metal, 0, 1.5, 0), box(.5, .08, .08, M.metal, .22, 2.95, 0));
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(.32, .42, .32), std({color:0xfff2d0, roughness:.2, emissive:0xffb050, emissiveIntensity:0, transparent:true, opacity:.85}));
+  glass.position.set(.42, 2.7, 0); g.add(glass); g.add(box(.42, .08, .42, M.metal, .42, 2.95, 0));
+  const light = new THREE.PointLight(0xffb45a, 0, 12, 2); light.position.set(.42, 2.6, 0); g.add(light);
+  g.userData = {glass, light};
+  return g;
+}
+const silo = mergeStatic(makeSilo()); silo.position.set(6.2, 0, -3.5); scene.add(silo); contact(6.2, -3.5, 4.2, 4.2);
+for (const [x, z, y, ry] of [[-6.2, -2.2, .72, .2], [-6.6, -3.6, .72, -.3], [-6.4, -2.9, 2.0, .05]]) { const b = mergeStatic(makeBale()); b.userData.squishy = true; b.position.set(x, y, z); b.rotation.y = ry; scene.add(b); }
+contact(-6.4, -2.9, 3, 3.6);
+const trough = mergeStatic(makeTrough()); trough.position.set(8, 0, 6.2); trough.rotation.y = -.25; scene.add(trough); contact(8, 6.2, 2.8, 1.4);
+const petBowl = makeWaterPan(.22); petBowl.position.set(-3.1, 0, 7.1); scene.add(petBowl); contact(-3.1, 7.1, .7, .7);
+for (const [x, z, s, sd] of [[-3.0, 9.3, .5, 1], [3.0, 16.9, .7, 2], [-12.4, -6.5, 1.1, 3], [-11.2, -5.8, .5, 4], [12.5, 11, .8, 5]]) { const r = makeRock(sd, s); r.userData.squishy = true; r.position.set(x, s * .1, z); r.rotation.y = sd; scene.add(r); }
+const bushes = [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9]].map(([x, z, s], i) => { const b = makeBush(60 + i, s); b.position.set(x, 0, z); scene.add(b); contact(x, z, 2.2 * s, 2.2 * s); return b; });
+// bushes and rocks are solid: animals walk round them and decorations don't go on them
+const BLOCKS_EXTRA = [];
+for (const [x, z, r] of [[-4.9, 6.2, 1], [5.7, 7.1, .8], [-5.3, -6.5, 1.1], [-13.7, 3, 1.3], [2.8, -7.2, .9], [-3.0, 9.3, .5], [3.0, 16.9, .7], [-12.4, -6.5, 1.1], [-11.2, -5.8, .5], [12.5, 11, .8]]) BLOCKS_EXTRA.push([x, z, r * .8, r * .8]);
+const lampPost = makeLampPost(); lampPost.position.set(2.7, 0, 7.4); scene.add(lampPost); contact(2.7, 7.4, .8, .8);
+for (const o of [barn, tree, tree2, silo, trough, lampPost, petBowl, ...fences, ...bushes]) o.userData.squishy = true;
+
+bootStep("getting the animals ready");
+// ---------------- the herd: every animal has a name, a personality and needs of its own ----------------
+const PERSONALITY = {
+  Lazy:{energy:.25, social:.5, curious:.3, brave:.6, hunger:.5, blurb:"Loves a long nap in the sun"},
+  Curious:{energy:.7, social:.5, curious:1, brave:.7, hunger:.5, blurb:"Comes over to see anything new"},
+  Shy:{energy:.5, social:.35, curious:.15, brave:.05, hunger:.5, blurb:"Startles easily and keeps its distance"},
+  Playful:{energy:1, social:.8, curious:.7, brave:.8, hunger:.6, blurb:"Always zooming around"},
+  Grumpy:{energy:.4, social:.05, curious:.2, brave:1, hunger:.5, blurb:"Prefers to be left alone"},
+  Friendly:{energy:.6, social:1, curious:.6, brave:.7, hunger:.5, blurb:"Sticks close to its friends"},
+  Greedy:{energy:.5, social:.5, curious:.4, brave:.6, hunger:1, blurb:"Never far from the trough"},
+};
+const SPECIES = {
+  cow:{n:"Cow", h:1.7, walk:.8, run:2.6, eat:"graze", step:3, r:.9},
+  horse:{n:"Horse", h:2.3, walk:1.2, run:5, eat:"graze", step:3.2, r:1},
+  sheep:{n:"Sheep", h:1.2, walk:.75, run:2.6, eat:"graze", step:4.5, r:.6},
+  chicken:{n:"Chicken", h:.72, walk:.8, run:2.4, eat:"peck", step:9, r:.3},
+  dog:{n:"Dog", h:1.15, walk:1.5, run:4.6, eat:"sniff", step:5, r:.5},
+  cat:{n:"Cat", h:.85, walk:.9, run:3.6, eat:"sniff", step:5, r:.4},
+};
+// an animal's personality comes from its name, so Bessie is always Bessie
+const persOf = (name) => { const K = Object.keys(PERSONALITY); let h = 7; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return K[h % K.length]; };
+// where each kind lives: cows, horses and sheep share the paddock, hens have their yard, the dog and cat go anywhere outside the pens.
+// Pens are convex outlines, counter-clockwise, matching the fence runs (the paddock's west side is the barn wall).
+const PENS = {
+  courtyard:{poly:COW_YARD_LAYOUT.polygon,kinds:[],bed:COW_YARD_LAYOUT.bed,shelter:COW_YARD_LAYOUT.shelter,water:COW_YARD_LAYOUT.water,name:"the dairy courtyard"},
+  paddock:{poly:[[4.5, -8.4], [12.8, -8.4], [12.6, -1.2], [10.81, 10.48], [4.5, 8.87]], kinds:["cow", "horse", "sheep"],
+    bed:[6.6, 1.5, 2.6], shelter:{x:[5.1, 5.6], z:[-4.8, 4.8]}, water:[8, 6.2, 1.7, 1.2], name:"the paddock"},
+  yard:{poly:CHICKEN_YARD_LAYOUT.polygon, kinds:["chicken"],
+    bed:CHICKEN_YARD_LAYOUT.bed, shelter:CHICKEN_YARD_LAYOUT.shelter, water:CHICKEN_YARD_LAYOUT.water, name:"the chicken yard"},
+};
+const remainingPens=Object.fromEntries(['horse','sheep'].map(kind=>{const l=remainingLayouts[kind];return[kind,{poly:l.polygon,kinds:[kind],bed:[l.turnouts[0][0],l.turnouts[0][2],2],shelter:{x:[l.shelter.x-1,l.shelter.x+1],z:[l.shelter.z-1,l.shelter.z+1]},water:[l.stations[2].dock[0],l.stations[2].dock[2],.3,.3],name:kind==='horse'?'the horse paddock':'the sheep meadow',care:kind}];}));
+const PEN_LIST = Object.values(PENS).filter(p=>p!==PENS.courtyard);
+const penOf = (kind) => remainingSites[kind]?.active&&remainingPens[kind]?remainingPens[kind]:kind==='cow'&&cowYardActive?PENS.courtyard:PEN_LIST.find(p => p.kinds.includes(kind)) || null;
+// signed distance from each edge (positive = inside); a point is inside when every edge is at least `margin` away
+function edgeDepths(poly, x, z) {
+  return poly.map(([ax, az], i) => { const [bx, bz] = poly[(i + 1) % poly.length], ex = bx - ax, ez = bz - az, l = Math.hypot(ex, ez);
+    return {d:(ex * (z - az) - ez * (x - ax)) / l, nx:-ez / l, nz:ex / l}; });
+}
+const inPen = (pen, x, z, margin = 0) => pen.custom ? pointInPolygon([x,z],pen.poly,margin) : edgeDepths(pen.poly, x, z).every(e => e.d >= margin);
+// pull a point back inside a pen (for penned animals), or push it out of every pen (for the dog and cat)
+function intoPen(pen, v, margin) {
+  if(pen.custom){const p=nearestLegalPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);return v;}
+  for (let k = 0; k < 3; k++) for (const e of edgeDepths(pen.poly, v.x, v.y)) if (e.d < margin) { v.x += e.nx * (margin - e.d); v.y += e.nz * (margin - e.d); }
+  return v;
+}
+function outOfPens(v, margin) {
+  for (const pen of PEN_LIST) { if(pen.custom){const p=nearestExteriorPoint([v.x,v.y],pen.poly,margin);if(p)v.set(...p);continue;} const es = edgeDepths(pen.poly, v.x, v.y); if (es.every(e => e.d > -margin)) {
+    const e = es.reduce((a, b) => (b.d < a.d ? b : a)); v.x -= e.nx * (e.d + margin); v.y -= e.nz * (e.d + margin); } }
+  return v;
+}
+
+// where the animals may not walk: [x, z, halfWidth, halfDepth]
+const BLOCKS = [...BLOCKS_EXTRA, ...CHICKEN_YARD_LAYOUT.obstacles, [0, 0, 4.4, 5.9], [6.2, -3.5, 1.8, 1.8], [8, 6.2, 1.2, .55], [-10, 12, 3.7, 2.8], [-6.4, -2.8, 1.3, 1.5], [-9, 4, .45, .45], [10, -7, .5, .5], [2.7, 7.4, .25, .25]];
+// Individually rendered hill trees have matching physical obstacles. The IDs
+// are authored seeds and remain stable if their display order later changes.
+const HILL_TREE_BLOCKS=hills.map(t=>[t.position.x,t.position.z,.45,.45]);BLOCKS.push(...HILL_TREE_BLOCKS);
+const FAR_TREE_BLOCKS=far.map(t=>[t.position.x,t.position.z,.48,.48]);BLOCKS.push(...FAR_TREE_BLOCKS);
+const cowBlockBounds=[...COW_YARD_LAYOUT.obstacles,...COW_YARD_LAYOUT.fenceSegments.map(([ax,az,bx,bz])=>[(ax+bx)/2,(az+bz)/2,Math.abs(bx-ax)/2+.05,Math.abs(bz-az)/2+.05]),...cowYard.gateObstacleBounds()];
+function syncCowGateBlocks(){
+  // These final two entries belong to the same scene revision as the yard.
+  // Keep their identities when a leaf rotates; replace them with the yard.
+  cowYard.gateObstacleBounds().forEach((bounds,i)=>{
+    const j=cowBlocks.length-2+i,b=cowBlocks[j],o=OBST.find(o=>o.c===1&&o.s===0&&o.x===b[0]&&o.z===b[1]&&o.hw===b[2]&&o.hd===b[3]);
+    cowBlockBounds[j].splice(0,4,...bounds);const next=cowYardActive?bounds:[b[0],b[1],bounds[2],bounds[3]];
+    if(!o)throw Error('Missing cow gate obstacle binding');
+    Object.assign(o,{x:next[0],z:next[1],hw:next[2],hd:next[3]});b.splice(0,4,...next);
+  });
+}
+const cowBlocks=cowBlockBounds.map((b,i)=>[1000+i,1000,b[2],b[3]]);BLOCKS.push(...cowBlocks);
+const remainingBlocks=[];for(const [kind,yard]of Object.entries(remainingYards)){remainingSites[kind].blocks=yard.obstacles.map((b,i)=>{const p=[1200+remainingBlocks.length,1200,b[2],b[3]];remainingBlocks.push(p);BLOCKS.push(p);return p;});}
+const HOME = new THREE.Vector2(1, 3), ROAM = 19;
+const legacyPetBowlBlock=[-3.1,7.1,.25,.25],legacyHenPanBlock=[-9.6,-2.4,.4,.4];BLOCKS.push(legacyHenPanBlock, legacyPetBowlBlock); // hen water pan (mesh long retired; collision kept for the accepted chicken yard), pet bowl
+// plan a way around buildings and fences: if the straight line hits one, go by the best free corner first
+const OBST = [...BLOCKS.map(([x, z, hw, hd]) => ({x, z, hw, hd, c:1, s:0})),
+  ...fenceSegs.map(([ax, az, bx, bz]) => { const a = Math.atan2(bz - az, bx - ax); return {x:(ax + bx) / 2, z:(az + bz) / 2, hw:Math.hypot(bx - ax, bz - az) / 2, hd:.1, c:Math.cos(a), s:Math.sin(a)}; })];
+const fenceRouteObstacles=new WeakMap(fenceSegs.map((f,i)=>[f,OBST[BLOCKS.length+i]]));
+const initialPenBlocks=[...CHICKEN_YARD_LAYOUT.obstacles,...cowBlocks,...remainingBlocks];
+const initialPenFences=[...CHICKEN_YARD_LAYOUT.fenceSegments,...Object.values(remainingSites).flatMap(s=>s.fences)];
+const penSceneRegistry=createAnimalPenSceneRegistry({scene,blocks:BLOCKS,obstacles:OBST,fences:fenceSegs,
+ initial:{yards:{chicken:chickenYard,cow:cowYard,...remainingYards},blocks:initialPenBlocks,fences:initialPenFences,obstacles:[...initialPenBlocks.map(b=>OBST[BLOCKS.indexOf(b)]),...initialPenFences.map(f=>fenceRouteObstacles.get(f))]},onPublish:installAnimalPenScene});
+let installedAnimalPens=resolveAnimalPens(),penSceneBindings=null;
+const OBST_BLOCKS = new Set(BLOCKS); // obstacles added later (buildings, fields, the board…) join the route planner at start-up
+const toLocal = (o, p) => { const dx = p.x - o.x, dz = p.y - o.z; return new THREE.Vector2(dx * o.c + dz * o.s, -dx * o.s + dz * o.c); };
+const toWorld = (o, lx, lz) => new THREE.Vector2(o.x + lx * o.c - lz * o.s, o.z + lx * o.s + lz * o.c);
+const insideObst = (o, p, pad) => { const L = toLocal(o, p); return o.radius!==undefined ? Math.hypot(L.x,L.y)<o.radius+pad-1e-8 : Math.abs(L.x) < o.hw + pad && Math.abs(L.y) < o.hd + pad; };
+function hitsBlock(a, b, pad, skip, obstacles = OBST) {
+  for (const k of obstacles.keys()) { if (skip && skip.has(k)) continue; const o = obstacles[k], w = o.hw + pad - .05, h = o.hd + pad - .05, A = toLocal(o, a), B = toLocal(o, b);
+    if(o.radius!==undefined){const dx=B.x-A.x,dz=B.y-A.y,u=THREE.MathUtils.clamp(-(A.x*dx+A.y*dz)/(dx*dx+dz*dz||1),0,1);if(Math.hypot(A.x+dx*u,A.y+dz*u)<o.radius+pad-1e-8)return k;continue;}
+    let t0 = 0, t1 = 1; const dx = B.x - A.x, dz = B.y - A.y;
+    const clip = (p, q) => { if (Math.abs(p) < 1e-9) return q >= 0; const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
+    if (clip(-dx, A.x + w) && clip(dx, w - A.x) && clip(-dz, A.y + h) && clip(dz, h - A.y) && t0 < t1) return k; }
+  return -1;
+}
+// shortest way from -> to through the free corners of buildings and fences (a tiny visibility-graph search)
+function route(from, to, pad, pen, avoid = [], traverse = null) {
+  const obstacles = avoid.length ? [...OBST, ...avoid] : OBST;
+  const skipA = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], from, pad))), skipB = new Set([...obstacles.keys()].filter(k => insideObst(obstacles[k], to, pad)));
+  const both = new Set([...skipA, ...skipB]);
+  const contained=(a,b)=>(!pen?.custom||segmentInPolygon([a.x,a.y],[b.x,b.y],pen.poly,pad))&&(!traverse||traverse(a,b));
+  if (contained(from,to)&&hitsBlock(from, to, pad, both, obstacles) < 0) return [to];
+  const nodes = [from, to];
+  for (const o of obstacles) for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const c = toWorld(o, sx * (o.hw + pad + .12), sz * (o.hd + pad + .12));
+    if (!obstacles.some(q => insideObst(q, c, pad)) && (pen===PENS.courtyard||pen?.care||Math.hypot(c.x - HOME.x, c.y - HOME.y) < ROAM+2) && fitsPen(pen, c.x, c.y, .1)) nodes.push(c); }
+  if(pen?.custom)for(const [x,z]of pen.poly)for(let k=0;k<8;k++){
+    const r=(pad+.12)*Math.SQRT2,c=new THREE.Vector2(x+Math.cos(k*Math.PI/4)*r,z+Math.sin(k*Math.PI/4)*r);
+    if(pointInPolygon([c.x,c.y],pen.poly,pad)&&!obstacles.some(o=>insideObst(o,c,pad)))nodes.push(c);
+  }
+  const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = new Array(n).fill(false); dist[0] = 0;
+  const see = (i, j) => contained(nodes[i],nodes[j])&&hitsBlock(nodes[i], nodes[j], pad, i === 0 || j === 0 ? (i === 1 || j === 1 ? both : skipA) : i === 1 || j === 1 ? skipB : null, obstacles) < 0;
+  for (;;) { let u = -1; for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || dist[u] >= 1e9 || u === 1) break; done[u] = true;
+    for (let v = 0; v < n; v++) if (!done[v]) { const d = dist[u] + nodes[u].distanceTo(nodes[v]); if (d < dist[v] && see(u, v)) { dist[v] = d; prev[v] = u; } } }
+  if (prev[1] < 0) return pen?.custom||traverse?[]:[to]; // Custom pens and guarded pets require an executable route.
+  const path = []; for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v].clone()); return path;
+}
+const blocked = (x, z, pad = .5) => BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + pad && Math.abs(z - bz) < hd + pad) || Math.hypot(x - HOME.x, z - HOME.y) > ROAM;
+// a penned animal's spots must be inside its pen; the dog's and cat's must be outside every pen
+const fitsPen = (pen, x, z, margin) => pen ? inPen(pen, x, z, margin) : !PEN_LIST.some(p => inPen(p, x, z, -margin));
+function petSegmentClear(a,from,to){
+  const start=[from.x,0,from.y],end=[to.x,0,to.y],pad=a.S.r,polygons=PEN_LIST.map(p=>p.poly);
+  const circles=animals.filter(b=>b!==a&&!b.gone).map(b=>({x:b.g.position.x,z:b.g.position.z,r:pad+b.S.r}));
+  return careSegmentClear(start,end,{pad,rectangles:BLOCKS,segments:fenceSegs,circles,polygons,escape:true})&&
+    carePointRuleClear(start,end,{pad:pad+.15,polygons,clearPoint:(x,z)=>fitsPen(null,x,z,pad+.15)});
+}
+function freePoint(R, cx = HOME.x, cz = HOME.y, rad = ROAM, pen = null, clearance = .5) {
+  if(pen===PENS.courtyard||pen?.care){
+    const x0=Math.min(...pen.poly.map(p=>p[0])),z0=Math.min(...pen.poly.map(p=>p[1])),x1=Math.max(...pen.poly.map(p=>p[0])),z1=Math.max(...pen.poly.map(p=>p[1]));
+    for(let i=0;i<60;i++){const x=x0+.7+R()*(x1-x0-1.4),z=z0+.7+R()*(z1-z0-1.4);if(!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+clearance&&Math.abs(z-bz)<hd+clearance)&&fitsPen(pen,x,z,Math.max(.7,clearance)))return new THREE.Vector2(x,z);}
+    return new THREE.Vector2(pen.bed[0],pen.bed[1]);
+  }
+  for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if ((pen===PENS.courtyard?!BLOCKS.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.5&&Math.abs(z-bz)<hd+.5):!blocked(x,z)) && fitsPen(pen, x, z, .7)) return new THREE.Vector2(x, z); }
+  if (pen) return new THREE.Vector2(pen.bed[0], pen.bed[1]);
+  return new THREE.Vector2(HOME.x, HOME.y + 8);
+}
+// little mood bubbles that float over an animal's head
+const emoteMats = {};
+function emoteMat(e) {
+  if (!emoteMats[e]) {
+    const [c, x] = canvas(128);
+    x.fillStyle = "rgba(255,255,255,.92)"; x.beginPath(); x.arc(64, 58, 50, 0, 7); x.fill(); x.beginPath(); x.moveTo(52, 100); x.lineTo(64, 124); x.lineTo(76, 100); x.fill();
+    x.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 62);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    emoteMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}); emoteMats[e].color.setScalar(PRESET.night ? .55 : 1);
+  }
+  return emoteMats[e];
+}
+const rnd = rng(4242);
+function ordinaryDayTarget(to,stations,margin){
+  // Beast.arrive can stop up to .35 m before its target. Keep that full
+  // arrival region outside a real occupied-bed core, then use the authored
+  // approach instead; care trips and night beds still keep their own docks.
+  const bed=stations.find(s=>s.kind==='bed'&&Math.hypot(to.x-s.dock[0],to.y-s.dock[2])<=margin+.35);
+  return bed?new THREE.Vector2(bed.approach[0],bed.approach[2]):to;
+}
+class Beast {
+  constructor(kind, name, pers, x, z, ref) {
+    const S = SPECIES[kind], live = Live3D && Live3D.createLiveAnimal(kind, S.h, x, z);
+    const A = live || (Cow3D && kind === "cow" ? Cow3D.createCow3D(S.h, x, z, name) : makeAnimal(ART + kind + ".webp", S.h, x, z, RIGS[kind]));
+    Object.assign(this, A, {kind, S, name, pers, P:PERSONALITY[pers], act:"idle", until:0, target:null, running:false, doing:null,
+      vel:new THREE.Vector2(), phase:rnd() * 10, facing:1, hop:0, lastPos:new THREE.Vector2(x, z), stuckT:0,
+      need:{hunger:rnd() * .5, tired:rnd() * .5, lonely:rnd() * .6}, emoteT:0, label:"Looking around"});
+    this.rig3d = live || (Cow3D && kind === "cow" ? A : null);
+    this.pen = penOf(kind); this.face = 1; this.lean = 0; this.lastSpd = 0; this.ref = ref;
+    // a steady bubble for "I have something for you" (eggs ready, a gift…), separate from passing moods
+    this.status = new THREE.Sprite(emoteMat("🥚")); this.status.scale.setScalar(.7); this.status.position.y = S.h + .5; this.status.visible = false; this.g.add(this.status);
+    contact(0, 0, S.h * 1.1, S.h * .45, this.g);
+    this.bubble = new THREE.Sprite(emoteMat("❤️")); this.bubble.scale.setScalar(.55); this.bubble.position.y = S.h + .35; this.bubble.visible = false; this.g.add(this.bubble);
+    scene.add(this.g);
+  }
+  get pos() { return new THREE.Vector2(this.g.position.x, this.g.position.z); }
+  emote(e, dur = 2.4) { this.bubble.material = emoteMat(e); this.bubble.visible = true; this.emoteT = dur; }
+  // keep a spot where this animal is allowed to be: inside its pen, or (dog and cat) outside every pen
+  fit(v, extra = .35) { return this.pen ? intoPen(this.pen, v, this.S.r + extra) : outOfPens(v, this.S.r + extra + .1); }
+  go(x, z, running, label, doing) {
+    let to=this.fit(new THREE.Vector2(x,z));const pet=this.kind==='dog'||this.kind==='cat';
+    const dayBeds=this.kind==='cow'?(cowYardActive?{stations:cowYard.stations,margin:.65}:null):
+      ['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active?remainingLayouts[this.kind]:null;
+    if(dayBeds&&!PRESET.night)to=ordinaryDayTarget(to,dayBeds.stations,dayBeds.margin);
+    // A bed dock is an intentional occupied support point. The visibility
+    // planner skips an obstacle containing its start, so ordinary cow travel
+    // must use the same physical bed exit as the accepted care adapter first.
+    const fromBed=this.kind==='cow'&&cowYardActive?cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.95):null;
+    const exit=fromBed?new THREE.Vector2(fromBed.approach[0],fromBed.approach[2]):null;
+    this.path=route(exit||this.pos,to,this.S.r+.7,this.pen,[],pet?(a,b)=>petSegmentClear(this,a,b):null);
+    if(exit)this.path.unshift(exit);
+    this.target=this.path.shift();this.running=running;this.label=label;this.doing=doing||null;
+    this.act=(pet||this.pen?.custom)&&!this.target?'idle':'moving';this.stuckT=0;
+  }
+  stay(label, secs, pose) { this.target = null; this.act = pose || "idle"; this.label = label; this.until = clockT + secs; }
+  // decide what to do next, from needs, personality, weather and time of day
+  think() {
+    if(this.kind==='cow'&&chooseCowTask(this))return;
+    const P = this.P, N = this.need, weather = PRESET.rain || PRESET.snowing ? "wet" : PRESET.night ? "night" : "fair";
+    const pen = this.pen, lerp = THREE.MathUtils.lerp, roamClearance=this.kind==='cow'?this.S.r+.6:.5;
+    // bed: penned animals sleep together in their pen; the dog and cat curl up by the barn door
+    if (weather === "night") { const sp = this.nightSpot || (this.nightSpot = pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2], pen) : freePoint(rnd, 0, 7.4, 1.8));
+      return this.go(sp.x, sp.y, false, "Heading to bed", "sleep"); }
+    // shelter: tucked against the barn wall on their side, or under the door's overhang
+    if (weather === "wet" && rnd() > P.brave * .5) { const s = pen ? pen.shelter : {x:[-1.6, 1.6], z:[6.3, 6.8]};
+      return this.go(lerp(s.x[0], s.x[1], rnd()), lerp(s.z[0], s.z[1], rnd()), true, "Running for shelter", "shelter"); }
+    const opts = [
+      ["wander", .35 + P.energy * .4], ["eat", .3 + N.hunger * 1.2 * P.hunger], ["drink", N.hunger * .8 * P.hunger * (this.kind === "cat" ? .3 : 1)],
+      ["rest", N.tired * 1.3 * (1.25 - P.energy)], ["social", N.lonely * P.social * 1.4], ["play", P.energy * P.energy * .6 * (this.kind === "dog" ? 2 : 1)],
+      ["curious", tapPoint && clockT - tapPoint.t < 25 ? P.curious * 1.5 : 0], ["idle", .2],
+    ];
+    let sum = 0; for (const o of opts) sum += o[1] * o[1]; let r = rnd() * sum, pick = "idle";
+    for (const [k, w] of opts) { r -= w * w; if (r <= 0) { pick = k; break; } }
+    if (this.kind === 'cow' && pick === 'rest') pick = 'idle';
+    if (this.kind === 'chicken' && pick === 'rest' && clockT < (this.postNightAwakeUntil??0)) pick = 'idle';
+    if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active&&(pick==='rest'||pick==='drink')){
+      const kind=pick==='rest'?'bed':'drink',after=kind==='bed'?(this.remainingNapAt??0):(this.remainingDrinkAt??0);if(clockT<after){this.stay('Taking in the view',2);return;}if(remainingCare.request(this,kind)){if(kind==='bed')this.remainingTask.nap=true;return;}this.stay('Making room at the care stations',.5);return;
+    }
+    switch (pick) {
+      case "wander": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 7, pen, roamClearance); return this.go(p.x, p.y, false, "Going for a stroll"); }
+      case "eat": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 5, pen, roamClearance); return this.go(p.x, p.y, false, this.S.eat === "peck" ? "Looking for seeds" : this.S.eat === "graze" ? "Off to graze" : "Sniffing around", "eat"); }
+      case "drink": { const [wx, wz, rx, rz] = pen ? pen.water : [-3.1, 7.1, .65, .65], a = rnd() * 7;
+        return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
+      case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
+      case "social": {
+        const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];
+        if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social"); }
+        break;
+      }
+      case "play":
+        if (this.kind === "dog") { const hen = animals.filter(b => b.kind === "chicken")[Math.floor(rnd() * 5)]; if (hen) { this.chasing = hen; this.emote("🎾"); return this.go(hen.g.position.x, hen.g.position.z, true, hen.pen ? "Running along the fence after " + hen.name + "!" : "Chasing " + hen.name + "!", "chase"); } }
+        { const p = freePoint(rnd, HOME.x, HOME.y, ROAM, pen, roamClearance); this.emote("🎵"); return this.go(p.x, p.y, true, this.kind === "horse" ? "Galloping for fun" : "Zooming around", "play"); }
+      case "curious": { const p = tapPoint.v; this.emote("👀"); return this.go(p.x + rnd() - .5, p.y + rnd() - .5, false, "Checking something out", "look"); }
+    }
+    this.stay("Taking in the view", 2 + rnd() * 4);
+  }
+  // what happens on arrival
+  arrive() {
+    const d = this.doing, N = this.need; this.doing = null;
+    if (d === "eat") { N.hunger = Math.max(0, N.hunger - .5); return this.stay(this.S.eat === "graze" ? "Grazing" : this.S.eat === "peck" ? "Pecking at seeds" : "Sniffing the grass", 6 + rnd() * 8, "eating"); }
+    if (d === "drink") { N.hunger = 0; this.emote("💧"); return this.stay(this.pen === PENS.paddock ? "Drinking at the trough" : "Having a drink", 5, "eating"); }
+    if (d === "rest") { N.tired = 0; return this.stay("Napping", 10 + rnd() * 15 * (1.3 - this.P.energy), "resting"); }
+    if (d === "sleep") { return this.stay("Fast asleep", 9999, "sleeping"); }
+    if (d === "shelter") { return this.stay("Keeping dry by the barn", 9999, "idle"); }
+    if (d === "social") { N.lonely = 0; if (this.friend) { this.emote(this.P.social > .8 ? "❤️" : "🎵"); this.friend.need.lonely *= .5; } return this.stay("Hanging out with " + (this.friend ? this.friend.name : "friends"), 4 + rnd() * 5); }
+    if (d === "look") { this.emote("❔"); return this.stay("Curious about something", 3); }
+    if (d === "bait") { const b = this.bait; this.bait = null;
+      if (b && baits.includes(b) && this.pos.distanceTo(b.v) < 1.8) { b.bites++; N.hunger = Math.max(0, N.hunger - .6); this.emote("😋"); return this.stay("Munching the snack", 5 + rnd() * 4, "eating"); }
+      this.emote("🥺"); return this.stay("Begging at the fence", 4); }
+    if (d === "follow") return this.stay("Right behind you", .6);
+    if (d === "chase") { return this.stay("Proud of himself", 2); }
+    this.stay(this.label.replace("Going for a stroll", "Looking around"), 1 + rnd() * 3);
+  }
+  update(dt, t) {
+    if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,feedStamp:this.ref.type==='pen'&&G.S?.pens[this.kind]?.list[this.ref.i]}))return;
+    if(this.kind==='chicken'){
+      const departingNightBed=this.chickenTask?.kind==='bed'&&!this.chickenTask.nap&&this.chickenTask.stage==='exit';
+      const cared=chickenCare.update(this,dt,t,{night:PRESET.night,wet:PRESET.rain||PRESET.snowing,supplies:chickenSupplies});
+      if(departingNightBed&&!this.chickenTask)this.postNightAwakeUntil=t+40;
+      if(cared)return;
+    }
+    if(this.kind==='cow'&&cowYardActive&&!this.cowTask&&cowStatus?.job?.cowId===cowIdOf(this))chooseCowTask(this);
+    if(this.kind==='cow'&&cowYardActive&&this.cowTask){updateCowTask(this,dt,t);return;}
+    const ox = this.g.position.x, oz = this.g.position.z;
+    const N = this.need, P = this.P;
+    N.hunger = Math.min(1, N.hunger + dt * .012 * (.5 + P.hunger)); N.tired = Math.min(1, N.tired + dt * .01 * (1.5 - P.energy)); N.lonely = Math.min(1, N.lonely + dt * .01 * (.3 + P.social));
+    if (this.emoteT > 0) { this.emoteT -= dt; this.bubble.visible = this.emoteT > 0; this.bubble.material.opacity = Math.min(1, this.emoteT * 2); this.bubble.position.y = this.S.h + .35 + Math.sin(t * 3) * .04; }
+    // the weather changed: sleep, shelter and wake-ups happen straight away
+    const mode = PRESET.night ? "night" : PRESET.rain || PRESET.snowing ? "wet" : "fair";
+    if (mode !== this.mode) { this.mode = mode; this.until = 0; this.target = null; this.act = "idle"; if (mode === "fair") this.emote("☀️", 1.5); }
+    if (this.act === "sleeping" && Math.floor(t) % 4 === 0 && this.emoteT <= 0) this.emote("💤", 2);
+    sensePlayer(this, t);
+    // chickens scatter when the dog runs at them
+    if (this.kind === "chicken" && this.act !== "fleeing") { const dog = animals.find(b => b.kind === "dog"); if (dog && dog.doing === "chase" && dog.pos.distanceTo(this.pos) < 2.6) this.flee(dog.pos, "Running from Buddy!"); }
+    if (this.act === "fleeing" && t > this.until) { this.act = "idle"; this.until = 0; }
+    if (this.doing === "chase" && this.chasing && this.target) { this.path = null; this.target.copy(this.fit(this.chasing.pos)); }
+    if (!this.target && (this.act === "idle" || this.act === "eating" || this.act === "resting") && t > this.until) this.think();
+    if (this.act === "sleeping" && !PRESET.night) this.act = "idle";
+    // walk toward the target, steering around buildings, fences and other animals
+    let moving = false;
+    if (this.target) {
+      const pos = this.pos, to = this.target.clone().sub(pos), dist = to.length();
+      if (dist < .6 && this.path && this.path.length) this.target = this.path.shift();
+      else if (dist < .35 || (this.doing === "chase" && dist < 1)) { this.target = null; this.arrive(); }
+      else {
+        const spd = (this.running ? this.S.run : this.S.walk) * (.8 + P.energy * .4) * (this.act === "fleeing" ? 1.3 : 1);
+        const want = to.normalize().multiplyScalar(spd);
+        for (const [bx, bz, hw, hd] of BLOCKS) { const cx = THREE.MathUtils.clamp(pos.x, bx - hw, bx + hw), cz = THREE.MathUtils.clamp(pos.y, bz - hd, bz + hd), dx = pos.x - cx, dz = pos.y - cz, d = Math.hypot(dx, dz);
+          if (d < this.S.r + .6 && d > 1e-4) want.add(new THREE.Vector2(dx / d, dz / d).multiplyScalar((this.S.r + .6 - d) * 6));
+          else if (d <= 1e-4) want.add(new THREE.Vector2(pos.x - bx, pos.y - bz).normalize().multiplyScalar(4)); }
+        for (const [ax, az, bx, bz] of fenceSegs) { const ab = new THREE.Vector2(bx - ax, bz - az), k = THREE.MathUtils.clamp(new THREE.Vector2(pos.x - ax, pos.y - az).dot(ab) / ab.lengthSq(), 0, 1);
+          const c = new THREE.Vector2(ax + ab.x * k, az + ab.y * k), off = pos.clone().sub(c), d = off.length(); if (d < this.S.r + .35 && d > 1e-4) want.add(off.multiplyScalar((this.S.r + .35 - d) * 8 / d)); }
+        for (const b of animals) if (b !== this) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
+        this.vel.lerp(want, Math.min(1, dt * 4));
+        this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
+        // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
+        const held = this.fit(this.pos, .05);
+        if(this.kind==='dog'||this.kind==='cat'){
+          // Steering and pen projection alone can place a pet inside a neighbouring
+          // building. Sweep the proposed displacement; a slide never increases it.
+          const from=new THREE.Vector2(ox,oz),proposed=this.pos;
+          if(petSegmentClear(this,from,proposed))held.copy(proposed);
+          else held.copy([new THREE.Vector2(proposed.x,oz),new THREE.Vector2(ox,proposed.y)]
+            .filter(p=>petSegmentClear(this,from,p)).sort((a,b)=>a.distanceToSquared(this.target)-b.distanceToSquared(this.target))[0]||from);
+          if(dt>0)this.vel.set((held.x-ox)/dt,(held.y-oz)/dt);
+        }else if(this.pen?.custom&&!segmentInPolygon([ox,oz],[held.x,held.y],this.pen.poly,this.S.r+.05)){held.set(ox,oz);this.vel.set(0,0);}
+        this.g.position.x = held.x; this.g.position.z = held.y;
+        this.phase += this.vel.length() * dt * this.S.step;
+        // give up on a target it can't reach
+        this.stuckT += dt; if (this.stuckT > 2.5) { if (this.lastPos.distanceTo(this.pos) < .4) { const near = dist < 2.5 && !(this.path && this.path.length);
+          const bedCore=this.kind==='cow'&&!PRESET.night&&cowYardActive&&!this.cowTask&&cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(this.g.position.x-s.dock[0],this.g.position.z-s.dock[2])<.65);
+          this.target = null; this.path = null;
+          if (bedCore) this.go(bedCore.approach[0],bedCore.approach[2],false,"Leaving the straw beds");
+          else if (near) this.arrive(); else { this.nightSpot = null; this.act = "idle"; this.until = 0; } } this.lastPos.copy(this.pos); this.stuckT = 0; }
+      }
+    } else this.vel.multiplyScalar(Math.max(0, 1 - dt * 6));
+    if (this.rig3d) {
+      if(this.kind==='cow'&&this.pen?.custom){
+        const budget=(this.running?this.S.run:this.S.walk)*(.8+P.energy*.4)*(this.act==='fleeing'?1.3:1)*Math.max(0,dt);
+        const from=[ox,this.g.position.y,oz],next=cowPenStep(from,this.g.position.toArray(),budget,cowSupportY);
+        // Ordinary steering must respect the same cow clearance as care trips.
+        // Check the actual supported segment; stopping never adds displacement.
+        const dx=next[0]-ox,dz=next[2]-oz,clear=animals.every(b=>{
+          if(b===this||b.kind!=='cow')return true;
+          const x=ox-b.g.position.x,z=oz-b.g.position.z,u=THREE.MathUtils.clamp(-(x*dx+z*dz)/(dx*dx+dz*dz||1),0,1);
+          return Math.hypot(x+dx*u,z+dz*u)>=Math.min(.85,Math.hypot(x,z));
+        });
+        this.g.position.fromArray(clear?next:from);
+        if(dt>0)this.vel.set((this.g.position.x-ox)/dt,(this.g.position.z-oz)/dt);
+      }
+      if(['horse','sheep','dog','cat'].includes(this.kind)&&remainingSites[this.kind]?.active)this.g.position.y=groundY(this.g.position.x,this.g.position.z);
+      if (this.hop > 0) this.hop = Math.max(0, this.hop - dt * 2);
+      if (this.kind === "cow") {Cow3D.updateCow3D(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, t, this.act, this.hop);if(this.pen?.custom)applyCowPenSupport(this.rig3d,cowSupportY);}
+      else Live3D.updateLiveAnimal(this.rig3d, this.g.position.x - ox, this.g.position.z - oz, dt, this.act, this.running);
+      return;
+    }
+    // face the way it walks (the pictures face left), and animate the pose
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), v3 = new THREE.Vector3(this.vel.x, 0, this.vel.y);
+    if (v3.lengthSq() > .02) { const d = v3.dot(right); if (Math.abs(d) > .05) this.facing = d > 0 ? -1 : 1; }
+    const h = this.S.h, card = this.card, aspect = card.scale.x ? Math.abs(card.scale.x) : h;
+    card.rotation.y = Math.atan2(camera.position.x - this.g.position.x, camera.position.z - this.g.position.z);
+    this.shadowCard.rotation.y = Math.atan2(sunDir.x, sunDir.z);
+    let y = 0, tilt = 0, sy = 1;
+    // lean into the direction of travel: further at speed, a little extra while speeding up, and sitting back while braking
+    const spd = moving ? this.vel.length() : 0, k = Math.min(1, spd / this.S.run), acc = (spd - this.lastSpd) / Math.max(dt, 1e-3); this.lastSpd = spd;
+    const leanTo = moving ? k * .09 + THREE.MathUtils.clamp(acc * .015, -.06, .06) : 0;
+    this.lean += (leanTo - this.lean) * Math.min(1, dt * 6);
+    const rigBob = this.pup ? pupStep(this, dt, t) : 0; // legs that step with the ground covered
+    if (moving && this.pup) { y = rigBob; tilt = this.lean + this.pup.rock; sy = this.pup.sq; }
+    else if (moving) {
+      // stride bob: two footfalls per stride; the body rides highest mid-stride and dips, with a slight squash, as each foot lands
+      const s = Math.abs(Math.sin(this.phase));
+      y = s * h * (.015 + .045 * k); sy = 1 - (1 - s) * (.01 + .03 * k); tilt = this.lean;
+    } else if (this.act === "eating") {
+      if (this.S.eat === "peck") { const p = Math.max(0, Math.sin(t * 9 + this.phase)); tilt = .35 * p; y = -.03 * p; }
+      else { tilt = .07 + Math.sin(t * 1.3 + this.phase) * .02; y = -h * .02; }
+    } else if (this.act === "resting" || this.act === "sleeping") { sy = .8 + Math.sin(t * 1.5 + this.phase) * .012; y = -h * .04; }
+    else { sy = 1 + Math.sin(t * 1.6 + this.phase) * .008; tilt = this.lean; // breathing, settling out of the last lean
+      this.fidT = (this.fidT ?? 2 + rnd() * 6) - dt; if (this.fidT < 0) { this.fid = 1; this.fidT = 4 + rnd() * 9; } }
+    // little things animals do while standing about: a hen pecks twice, a dog wiggles, a cat stretches, the big ones nod
+    if (this.fid > 0) { this.fid = moving ? 0 : Math.max(0, this.fid - dt * 1.3); const f = 1 - this.fid;
+      if (this.kind === "chicken") { const q = Math.max(0, Math.sin(f * Math.PI * 4)); tilt += .4 * q; y -= .03 * q; }
+      else if (this.kind === "dog") tilt += Math.sin(f * Math.PI * 12) * .09 * this.fid;
+      else if (this.kind === "cat") { sy *= 1 - Math.sin(f * Math.PI) * .14; tilt -= Math.sin(f * Math.PI) * .05; }
+      else tilt += Math.sin(f * Math.PI * 2) * .06; }
+    if (this.hop > 0) { this.hop = Math.max(0, this.hop - dt * 2); y += Math.sin((1 - this.hop) * Math.PI) * h * .22; }
+    // turning round: a flat picture can't rotate without showing its thin edge, so it flips at the top of a tiny hop instead
+    if (this.facing !== this.face) { this.face = this.facing; this.turnHop = 1; }
+    if (this.turnHop > 0) { this.turnHop = Math.max(0, this.turnHop - dt * 4); y += Math.sin((1 - this.turnHop) * Math.PI) * h * .06; }
+    const side = this.face, w = this.shadowCard.scale.x;
+    card.position.y = y; card.rotation.z = tilt * side; card.scale.y = w !== 1 ? h * sy : card.scale.y;
+    if (w !== 1) card.scale.x = w * side;
+  }
+  flee(from, label) { const away = this.pos.sub(from).normalize().multiplyScalar(4 + rnd() * 3), p = this.pos.add(away); this.emote("❗", 1.6);
+    this.go(THREE.MathUtils.clamp(p.x, HOME.x - ROAM, HOME.x + ROAM), THREE.MathUtils.clamp(p.y, HOME.y - ROAM, HOME.y + ROAM), true, label); this.act = "fleeing"; this.until = clockT + 2.5; }
+  pet() {
+    if (this.rig3d) this.rig3d.state.pet = 2.4;
+    this.need.lonely = 0; this.hop = 1;
+    if (this.pers === "Shy" && rnd() < .6) { this.flee(new THREE.Vector2(camera.position.x, camera.position.z), "Too shy for that!"); return "startled"; }
+    if (this.pers === "Grumpy" && rnd() < .5) { this.emote("💢"); return "grumpy"; }
+    this.emote("❤️"); return "happy";
+  }
+  mood() { const N = this.need; return N.tired > .75 ? "Sleepy" : N.hunger > .75 ? "Hungry" : N.lonely > .75 ? "Lonely" : N.hunger + N.tired + N.lonely < .9 ? "Happy" : "Content"; }
+}
+let clockT = 0, tapPoint = null, PRESET = {};
+// ?loco (for reviewing the walking animations): every few seconds the next animal sets off on a walk or a run
+// through its own pen or yard, using its normal moves; everything else about it carries on as usual
+const LOCO = qs.has("loco");
+let locoNext = 4, locoI = 0;
+function locoParade(t) {
+  if (t < locoNext || !animals.length) return; locoNext = t + 4;
+  const a = animals[locoI++ % animals.length]; if (!a || a.gone || a.act === "sleeping" || a.act === "fleeing") return;
+  const run = Math.floor(locoI / animals.length) % 2 === 1, p = freePoint(rnd, a.g.position.x, a.g.position.z, 7, a.pen, a.kind==='cow'?a.S.r+.6:.5);
+  a.go(p.x, p.y, run, run ? "Showing off a run" : "Out for a walk");
+}
+let animals = [];
+let chickenSupplies={feedMs:0,waterMs:0};
+const chickenCare=createChickenStationController({yard:chickenYard,route,neighbours:()=>animals.filter(a=>a.kind==='chicken'),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false),clearPoint:(x,z)=>chickenYard.sampleStationSupport(chickenYard.stations[0].id,x,z).inside||!BLOCKS.some(b=>!(CHICKEN_YARD_LAYOUT.obstacles.includes(b)||penSceneBindings?.chicken?.blocks.includes(b))&&Math.abs(x-b[0])<b[2]+.18&&Math.abs(z-b[1])<b[3]+.18)});
+const remainingCare=createRemainingCareController({layouts:remainingLayouts,neighbours:()=>animals,active:kind=>!!remainingSites[kind]?.active,obstacles:()=>BLOCKS,segments:()=>fenceSegs,groundY,forbiddenPolygons:a=>a.pen?[]:PEN_LIST.map(p=>p.poly),clearPoint:(a,x,z)=>fitsPen(a.pen,x,z,remainingLayouts[a.kind].margin),updateRig:(r,dx,dz,dt)=>Live3D.updateLiveAnimal(r,dx,dz,dt,'moving',false)});
+// the herd follows the saved farm: one animal per owned pen slot and per pet; new ones walk in, old ones leave
+const refKey = (r) => r.type === "pen" ? "pen:" + r.kind + ":" + r.i : "pet:" + r.j;
+// Remove an animal through its care controllers; physical state only, never paid state.
+function retireAnimal(a) { if(a.kind==='cow'){a.carePose?.reset();releaseCowTask(a);}if(a.kind==='chicken')chickenCare.release(a);if(['horse','sheep','dog','cat'].includes(a.kind))remainingCare.release(a);scene.remove(a.g); if (a.rig3d) a.rig3d.dispose(); a.gone = true; }
+function syncHerd() {
+  syncChickenYard();
+  syncCowYard();
+  syncRemainingCareYards();
+  const want = [];
+  for (const kind of Object.keys(G.ANIMALS)) if ((G.S.pens[kind] || {}).owned) G.S.pens[kind].list.forEach((_, i) => want.push({type:"pen", kind, i, name:G.meta(kind, i).name}));
+  G.S.pets.forEach((p, j) => want.push({type:"pet", kind:p.kind, j, name:p.name}));
+  const keys = new Set(want.map(refKey));
+  for (const a of animals) if (!keys.has(refKey(a.ref)) || a.kind !== (a.ref.type === "pen" ? a.ref.kind : (G.S.pets[a.ref.j] || {}).kind) || (a.kind==='cow'&&a.ref.type==='pen'&&a.farmPen!==G.S.pens.cow)||(['horse','sheep','dog','cat'].includes(a.kind)&&a.careFarm!==G.S)) retireAnimal(a);
+  animals = animals.filter(a => !a.gone);
+  const have = new Set(animals.map(a => refKey(a.ref)));
+  for (const r of want) {
+    if (have.has(refKey(r))) { const a = animals.find(b => refKey(b.ref) === refKey(r)); if (a.name !== r.name) { a.name = r.name; a.pers = persOf(r.name); a.P = PERSONALITY[a.pers]; } continue; }
+    const pen = penOf(r.kind),bed=r.kind==='cow'&&cowYardActive?cowYard.stations.filter(s=>s.kind==='bed')[r.i]:null,restoredDock=bed&&cowStatus?.job?.cowId===cowStatus?.cows[r.i]?.id&&['milking','exiting'].includes(cowStatus.job.stage),careStart=['horse','sheep','dog','cat'].includes(r.kind)&&remainingSites[r.kind]?.active?remainingLayouts[r.kind].turnouts[r.type==='pet'?0:r.i]:null,p = careStart?new THREE.Vector2(careStart[0],careStart[2]):restoredDock?new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]):bed?new THREE.Vector2(bed.dock[0],bed.dock[2]):pen ? freePoint(rnd, pen.bed[0], pen.bed[1], pen.bed[2] * 2, pen) : freePoint(rnd, 0, 8.5, 3);
+    animals.push(new Beast(r.kind, r.name, persOf(r.name), p.x, p.y, r));
+    if(r.kind==='cow')animals.at(-1).farmPen=G.S.pens.cow;
+    if(['horse','sheep','dog','cat'].includes(r.kind))animals.at(-1).careFarm=G.S;
+    if(bed)animals.at(-1).g.position.y=COW_YARD_LAYOUT.floor;
+  }
+}
+let chickenPreview=null;
+function syncRemainingCareYards(){
+ const excluded=new Set([...remainingBlocks,...cowBlocks,legacyPetBowlBlock]);
+ for(const [kind,yard]of Object.entries(remainingYards)){
+  const site=remainingSites[kind];if(site.farm!==G.S){site.checked=false;site.needsReload=false;site.farm=G.S;}const owned=remainingPens[kind]?!!G.S?.pens[kind]?.owned:G.S?.pets.some(p=>p.kind===kind);
+  site.issues=remainingCareConflicts(yard.layout,{blocks:BLOCKS.filter(b=>!excluded.has(b)),decor:(G.S?.decor.placed||[]).map(d=>({...d,r:G.DECOR[d.id]?.size===2?1.2:.6}))});
+  if(site.checked&&!site.active&&owned&&animals.some(a=>a.kind===kind))site.needsReload=true;
+  const active=owned&&!site.issues.length&&!site.needsReload;
+  if(site.active!==active){
+   site.active=active;const pen=remainingPens[kind],at=PEN_LIST.indexOf(pen);if(pen&&active&&at<0)PEN_LIST.push(pen);else if(pen&&!active&&at>=0)PEN_LIST.splice(at,1);
+   site.blocks.forEach((b,i)=>moveBlock(b,...(active?yard.obstacles[i]:[1200+remainingBlocks.indexOf(b),1200])));
+   site.fences.forEach((f,i)=>{const old=fenceSegs.indexOf(f),coords=active?yard.fences[i]:[1100+i,1100,1101+i,1100];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax),o=fenceRouteObstacles.get(f);Object.assign(o,{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.1,c:Math.cos(a),s:Math.sin(a)});});
+   // Reversible clearings own each tuft; removing a pen restores its meadow.
+   const l=yard.layout,[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;
+   for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8){const key='remaining-'+kind+':'+i++;moveClear(key,x,z,active?1.3:0);if(!active)CLEARS.delete(key);}
+   remainingPlantClearing?.setActive(kind,active);
+  }
+  site.checked=true;yard.group.visible=active;
+ }
+ const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+}
+function syncChickenYard(){
+  chickenYard.group.visible=!!G.S?.pens.chicken?.owned;
+  chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);
+  chickenSupplies=G.getChickenCareStatus();chickenYard.setStatus(chickenSupplies);
+}
+function setCowGrass(active){
+  cowPlantClearing?.setActive(active);
+  const p=COW_YARD_LAYOUT.footprint,[x0,z0]=p[0],x1=p[1][0],z1=p[2][1],cols=Math.ceil((x1-x0)/3.7),rows=Math.ceil((z1-z0)/3.7);
+  let i=0;for(let col=0;col<cols;col++)for(let row=0;row<rows;row++){const x=Math.min(x0+1.85+col*3.7,x1-1.85),z=Math.min(z0+1.85+row*3.7,z1-1.85),key='cow-yard:'+i++;moveClear(key,x,z,active?1.85:0);if(!active)CLEARS.delete(key);}
+}
+function syncCowYard(){
+  const owned=!!G.S?.pens.cow?.owned;
+  const blocks=BLOCKS.filter(b=>!cowBlocks.includes(b));
+  cowYardIssues=cowYardConflicts({layout:COW_YARD_LAYOUT,blocks,decor:(G.S?.decor.placed||[]).map(d=>({...d,r:G.DECOR[d.id]?.size===2?1.2:.6}))});
+  // A newly cleared site installs on reload, before cows spawn. Never snap an
+  // existing herd across the farm merely because a decoration was moved.
+  if(cowYardChecked&&!cowYardActive&&owned&&animals.some(a=>a.kind==='cow'))cowYardNeedsReload=true;
+  const active=owned&&!cowYardIssues.length&&!cowYardNeedsReload;
+  if(active!==cowYardActive){setCowGrass(active);cowYardActive=active;const i=PEN_LIST.indexOf(PENS.courtyard);if(active&&i<0)PEN_LIST.push(PENS.courtyard);else if(!active&&i>=0)PEN_LIST.splice(i,1);cowBlocks.forEach((b,j)=>moveBlock(b,...(active?cowBlockBounds[j]:[1000+j,1000])));}
+  if(penSceneBindings?.cow&&COW_YARD_LAYOUT.custom){const b=penSceneBindings.cow;b.fences.forEach((f,i)=>{const coords=active?b.segments[i]:[1500+i,1500,1501+i,1500];f.splice(0,4,...coords);const [ax,az,bx,bz]=f,a=Math.atan2(bz-az,bx-ax);Object.assign(b.fenceObstacles[i],{x:(ax+bx)/2,z:(az+bz)/2,hw:Math.hypot(bx-ax,bz-az)/2,hd:.05,c:Math.cos(a),s:Math.sin(a)});});}
+  cowYardChecked=true;cowYard.group.visible=active;
+  cowStatus=G.getCowCareStatus();cowYard.setStatus(cowStatus);syncCowGateBlocks();
+}
+// Called only by a prepared scene revision, after the complete save is durable.
+// Existing arrays/maps and pen objects stay stable for every live consumer.
+function installAnimalPenScene({layout,yards,bindings,active}){
+ for(const [key,[x,z]]of [...CLEARS])if(key.startsWith('chicken:')||key.startsWith('cow-yard:')||key.startsWith('remaining-')){moveClear(key,x,z,0);CLEARS.delete(key);}
+ chickenYard=yards.chicken;cowYard=yards.cow;CHICKEN_YARD_LAYOUT=chickenYard.layout;COW_YARD_LAYOUT=cowYard.layout;
+ installedAnimalPens=layout;penSceneBindings=bindings;
+ cowBlocks.splice(0,cowBlocks.length,...bindings.cow.blocks);cowBlockBounds.splice(0,cowBlockBounds.length,...bindings.cow.bounds);
+ remainingBlocks.splice(0,remainingBlocks.length,...['horse','sheep','dog','cat'].flatMap(k=>bindings[k].blocks));
+ for(const [kind,binding]of Object.entries(bindings))binding.fences.forEach((f,i)=>fenceRouteObstacles.set(f,binding.fenceObstacles[i]));
+ for(const kind of ['horse','sheep','dog','cat']){remainingYards[kind]=yards[kind];remainingLayouts[kind]=yards[kind].layout;Object.assign(remainingSites[kind],{blocks:bindings[kind].blocks,fences:bindings[kind].fences,active:!!active[kind],checked:true,needsReload:false,issues:[],farm:G.S});}
+ for(const [kind,pen]of [['chicken',PENS.yard],['cow',PENS.courtyard],...Object.entries(remainingPens)]){
+  const l=yards[kind].layout;pen.poly=l.polygon;pen.custom=!!layout.sites[kind].custom;
+  if(l.bed){pen.bed=l.bed;pen.shelter=l.shelter;pen.water=l.water;}
+  else{pen.bed=[l.turnouts[0][0],l.turnouts[0][2],2];pen.shelter={x:[l.shelter.x-1,l.shelter.x+1],z:[l.shelter.z-1,l.shelter.z+1]};pen.water=[l.stations[2].dock[0],l.stations[2].dock[2],.3,.3];}
+  const i=PEN_LIST.indexOf(pen),enabled=kind==='chicken'||!!active[kind];if(enabled&&i<0)PEN_LIST.push(pen);else if(!enabled&&i>=0)PEN_LIST.splice(i,1);
+ }
+ cowYardActive=!!active.cow;cowYardChecked=true;cowYardNeedsReload=false;cowYardIssues=[];
+ cowSurfaces.clear();cowYard.group.updateMatrixWorld(true);const centers=new Map(cowYard.targets.filter(t=>t.kind==='feed'||t.kind==='water').map(t=>[t.kind,new THREE.Box3().setFromObject(t.object).getCenter(new THREE.Vector3())]));
+ for(const station of cowYard.stations.filter(s=>s.kind==='feed'||s.kind==='drink'))cowSurfaces.set(station.id,new THREE.Vector3(station.kind==='feed'?station.dock[0]:centers.get('water').x,station.surface,station.kind==='feed'?centers.get('feed').z:station.dock[2]));
+ CHICKEN_YARD_LAYOUT.obstacles.forEach(([x,z,hw,hd],i)=>clearGrass(x,z,Math.max(hw,hd)+.05,'chicken:'+i));
+ setCowGrass(cowYardActive);
+ for(const kind of ['horse','sheep','dog','cat']){const l=remainingLayouts[kind],[x0,z0]=l.footprint[0],[x1]=l.footprint[1],z1=l.footprint[2][1];let i=0;for(let x=x0+1;x<x1;x+=1.8)for(let z=z0+1;z<z1;z+=1.8)if(active[kind])moveClear('remaining-'+kind+':'+i++,x,z,1.3);}
+ for(const a of animals)a.pen=penOf(a.kind);
+ chickenYard.applyAppearance(chickenPreview||G.S?.pens.chicken?.appearance||G.CHICKEN_DEFAULT_STYLE);chickenYard.setStatus(chickenSupplies);if(cowStatus){cowYard.setStatus(cowStatus);cowYard.setRobotPose(cowStatus.job?.stage==='milking'?(nowMs()-cowStatus.job.startedAt)/12000:0);} // a boot-time install precedes the first syncCowYard
+ const petActive=(remainingSites.dog.active||remainingSites.cat.active)&&!G.S?.pets.some(p=>!remainingSites[p.kind]?.active);petBowl.visible=!petActive;moveBlock(legacyPetBowlBlock,...(petActive?[1400,1400]:[-3.1,7.1]));
+ // The accepted chicken yard keeps its legacy collision; a customised yard must not leave it behind.
+ moveBlock(legacyHenPanBlock,...(layout.sites.chicken.custom?[1450,1450]:[-9.6,-2.4]));
+ syncCowGateBlocks();
+}
+// Saved custom pens install before herds spawn; page reloads cover account
+// switches and backup restores, and syncHerd respawns any retired herd. Unknown, future or invalid saved layouts stay
+// read-only in the save (game.js will not overwrite them) and show the default.
+let installedPenRecord='null';
+function savedPenLayout(){const raw=G.S?.layout?.animalPens,decoded=raw===undefined?null:decodeAnimalPens(structuredClone(raw));return decoded?.status==='ok'?decoded.value:undefined;}
+// Prepared yards and registries plus every care controller's rebind, using the
+// validator's placements and waiting points for each live animal.
+function penRevisionLive(validation){
+ const active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ return {prepareRegistries:(l,yards)=>penSceneRegistry.prepare(l,yards,active),
+  prepareCare:l=>[chickenCare.prepareLayoutRebind({site:l.sites.chicken,now:clockT,placements:validation.placements,waiting:validation.waiting}),cowPenCare.prepareLayoutRebind({site:l.sites.cow,now:clockT,placements:validation.placements}),
+   ...['horse','sheep','dog','cat'].map(kind=>remainingCare.prepareLayoutRebind({site:l.sites[kind],now:clockT,placements:validation.placements}))]};
+}
+function restoreSavedAnimalPens(){
+ const value=savedPenLayout(),record=JSON.stringify(value??null);
+ if(record===installedPenRecord)return;
+ // A different saved layout arriving with a live herd (visiting, going home, a new or
+ // imported farm) rebuilds the herd: no live animal is rebound without validated placements.
+ if(animals.length){for(const a of animals)retireAnimal(a);animals=animals.filter(a=>!a.gone);}
+ const layout=resolveAnimalPens(value),active={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ // The saved layout was fully validated when applied, and no animal exists yet to place.
+ const saved={ok:true,revision:layout.revision,source:'saved-layout',placements:{},waiting:{}};
+ prepareAnimalPenRevision(layout,saved,penRevisionLive(saved)).publish();
+ installedPenRecord=record;
+}
+// Apply: fresh full validation on the newest live snapshot, then game.js writes the
+// complete farm once; yards, registries and validated care rebinds publish together.
+function commitPenDraft(value,base){
+ const world=snapshotPenWorld();if(world.epoch!==base.epoch)return false;
+ const validation=validateAnimalPens(resolveAnimalPens(value),world);if(!validation.ok)return false;
+ const result=G.commitAnimalPenLayout({expectedFarm:G.S,expectedRevision:base.revision,animalPens:value,
+  canCommit:()=>{const w=snapshotPenWorld();return w.epoch===world.epoch&&w.obstacleRevision===world.obstacleRevision;},
+  prepare:candidate=>{const layout=resolveAnimalPens(candidate.layout.animalPens);return prepareAnimalPenRevision(layout,validation,penRevisionLive(validation));},
+  // The complete new save is already on disk: reload it rather than keep a mixed scene.
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ if(result.ok)installedPenRecord=JSON.stringify(savedPenLayout()??null);
+ return result.ok;
+}
+// Live preflight input for the pen editor (plan World contract): full shapes from
+// the running farm, never centre probes. The epoch follows farm identity; the
+// obstacle revision follows physical and ownership state, not paid ticks or walking.
+const penFarmEpochs=new WeakMap();let penFarmSerial=0;
+function penStateHash(value){const text=JSON.stringify(value);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function snapshotPenWorld(){
+ const S=G.S,count=k=>S.pens[k]?.owned?S.pens[k].list.length:0,pets=k=>S.pets.filter(p=>p.kind===k).length;
+ const owned={chicken:count('chicken'),cow:count('cow'),horse:count('horse'),sheep:count('sheep'),dog:pets('dog'),cat:pets('cat')};
+ if(!penFarmEpochs.has(S))penFarmEpochs.set(S,'farm-'+(++penFarmSerial));
+ // Pen-owned collision, off-farm placeholders and the legacy hen pan belong to the pens themselves.
+ const blocked=[],baselineBlocked=[];
+ BLOCKS.forEach((b,i)=>{if(b[0]>=1000||penSceneRegistry.ownsBlock(b)||b===legacyHenPanBlock)return;const shape={type:'rectangle',x:b[0],z:b[1],hw:b[2],hd:b[3],owner:'block-'+i};blocked.push(shape);if(OBST_BLOCKS.has(b))baselineBlocked.push(shape);});
+ fenceSegs.forEach((f,i)=>{if(f[0]>=1000||penSceneRegistry.ownsFence(f))return;const shape={type:'capsule',a:[f[0],f[1]],b:[f[2],f[3]],r:.1,owner:'fence-'+i};blocked.push(shape);baselineBlocked.push(shape);});
+ (S.decor?.placed||[]).forEach((d,i)=>blocked.push({type:'circle',x:d.x,z:d.z,r:G.DECOR[d.id]?.size===2?1.2:.6,owner:'decor-'+i}));
+ const path=dairyPath.points.slice(1).map((b,i)=>({type:'capsule',a:[...dairyPath.points[i]],b:[...b],r:.92,owner:'stone-path'}));
+ const installed={chicken:true,cow:cowYardActive,...Object.fromEntries(['horse','sheep','dog','cat'].map(k=>[k,!!remainingSites[k].active]))};
+ // IDs match each care controller; clearances are the accepted physical values
+ // (chicken step check, cow waiting clearance, remaining-care margins).
+ const idOf=a=>a.kind==='chicken'?'hen-'+a.ref.i:a.kind==='cow'?cowIdOf(a):a.ref.type==='pet'?'pet-'+a.kind:a.kind+'-'+a.ref.i;
+ const clearance=k=>k==='chicken'?.18:k==='cow'?.42:remainingLayouts[k].margin;
+ const actors=animals.filter(a=>!a.gone&&owned[a.kind]!==undefined).map(a=>{
+  const task=a.chickenTask||a.cowTask||a.remainingTask,stationId=task?.station?.id??null,site=installedAnimalPens.sites[a.kind],owner=stationId&&site.stationOwners?.[stationId],c=owner&&site.components[owner],p=a.g.position;
+  // update() starts an authoritative robot job before ordinary movement, even
+  // when its physical task has not yet been created. Re-read this at final Apply.
+  const careStationId=a.kind==='cow'?(a.cowTask?.station?.id??(cowStatus?.job&&cowStatus.job.cowId===idOf(a)?site.stations.find(s=>s.kind==='robot')?.id:null))??null:null;
+  return {id:idOf(a),kind:a.kind,position:[p.x,p.y,p.z],component:c&&pointInPolygon([p.x,p.z],c.footprint)?owner:null,stationId,careStationId,clearance:clearance(a.kind)};
+ });
+ return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
+}
+const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
+let animalPenEditing=null;
+function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
+function cowGateSegmentClear(from,to){
+  const leaves=cowYard.gateObstacleBounds().map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0}));
+  return hitsBlock(from,to,.42,null,leaves)<0;
+}
+function cowRobotExitWaypoints(){
+  const r=COW_YARD_LAYOUT.robot,d=Math.hypot(r.exit[0]-r.turn[0],r.exit[2]-r.turn[2]);
+  // Turn before the leading hoof reaches the final bed divider. Keep the
+  // authored exit and clear points and let the ordinary rig execute the turn.
+  const turn=[r.turn[0]+(r.exit[0]-r.turn[0])/d*.35,r.turn[1],r.turn[2]+(r.exit[2]-r.turn[2])/d*.35];
+  return[r.exit,turn,r.clear];
+}
+const cowPenCare=createCowPenCareAdapter({actors:()=>animals.filter(a=>a.kind==='cow'&&!a.gone),idOf:cowIdOf,scheduler:cowStations,stations:cowStationById,job:()=>cowStatus?.job});
+function releaseCowTask(a){if(a.cowTask?.token)cowStations.release(a.cowTask.token);a.cowTask=null;}
+function beginCowTask(a,kind){
+  const id=cowIdOf(a);if(!id)return false;
+  const preferred=kind==='bed'?cowYard.stations.filter(s=>s.kind==='bed')[a.ref.i]?.id:null;
+  const token=cowStations.request(id,kind,preferred);if(!token)return false;
+  const station=cowStationById.get(token.stationId),fromBed=cowYard.stations.find(s=>s.kind==='bed'&&Math.hypot(a.g.position.x-s.dock[0],a.g.position.z-s.dock[2])<.95);
+  const waypoints=kind!=='bed'&&fromBed&&fromBed.id!==station.id?[fromBed.approach]:[];
+  if(kind==='robot'){
+    // Start turning before the entrance post; the native rig still owns yaw,
+    // hoof release and speed. The extra point must pass the same route checks.
+    const p=station.approach,q=station.dock,d=Math.hypot(p[0]-q[0],p[2]-q[2]);
+    waypoints.push([p[0]+(p[0]-q[0])/d*.5,p[1],p[2]+(p[2]-q[2])/d*.5]);
+  }
+  waypoints.push(station.approach,station.dock);a.cowTask={kind,token,station,stage:'approach',held:0,weight:0,waypoints};a.cowTickAt=clockT;a.target=null;a.vel.set(0,0);return true;
+}
+function waitCowStation(a,label){
+  // A released dock is still physically occupied until its former visitor
+  // walks away. Waiting for a different busy station must clear that corridor.
+  const corridors=cowYard.stations.map(s=>[s.approach[0],s.approach[2],s.dock[0],s.dock[2]]);
+  for(const b of animals)if(b!==a&&b.kind==='cow'&&['approach','exit'].includes(b.cowTask?.stage)){
+    let x=b.g.position.x,z=b.g.position.z;
+    for(const p of [...(b.cowTask.path||[]).map(v=>[v.x,v.y]),...(b.cowTask.waypoints||[]).map(v=>[v[0],v[2]])]){corridors.push([x,z,p[0],p[1]]);x=p[0];z=p[1];}
+  }
+  const nearCare=(x,z)=>corridors.some(([px,pz,qx,qz])=>{const dx=qx-px,dz=qz-pz,u=THREE.MathUtils.clamp(((x-px)*dx+(z-pz)*dz)/(dx*dx+dz*dz||1),0,1);return Math.hypot(x-px-u*dx,z-pz-u*dz)<1.1;});
+  if(nearCare(a.g.position.x,a.g.position.z))for(const radius of [1.4,2.1,2.8,4.2,5.6])for(let k=0;k<24;k++){
+    const to=a.fit(new THREE.Vector2(a.g.position.x+Math.cos(k*Math.PI/12)*radius,a.g.position.z+Math.sin(k*Math.PI/12)*radius)),x=to.x,z=to.y;
+    if(!fitsPen(PENS.courtyard,x,z,.7)||nearCare(x,z)||COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.65&&Math.abs(z-bz)<hd+.65)||animals.some(b=>b!==a&&b.kind==='cow'&&Math.hypot(x-b.g.position.x,z-b.g.position.z)<1.3))continue;
+    // A fitted point can still have no ordinary route at the existing clearance.
+    a.go(x,z,false,'Making room at the care stations');if(a.target)return true;
+  }
+  a.target=null;a.act='idle';a.label=label;a.until=clockT+1;return true;
+}
+function chooseCowTask(a){
+  if(!cowYardActive)return false;
+  const job=cowStatus?.job,id=cowIdOf(a);
+  if(job?.cowId===id){if(beginCowTask(a,'robot')){a.cowTask.jobId=job.id;a.cowTask.gate=createCowDockGate();if(job.stage==='milking'&&a.pos.distanceTo(new THREE.Vector2(COW_YARD_LAYOUT.robot.dock[0],COW_YARD_LAYOUT.robot.dock[2]))<=.1){a.cowTask.waypoints=[];a.cowTask.stage='align';}return true;}return false;}
+  const paid=cowStatus?.cows[a.ref.i]?.feedCharged&&!cowStatus?.cows[a.ref.i]?.ready;
+  if((paid&&a.cowMealCycle!==cowStatus.cows[a.ref.i].cycle)||(cowStatus?.feed>0&&a.need.hunger>.35))return beginCowTask(a,'feed')||waitCowStation(a,'Waiting for a feed space');
+  if(cowStatus?.waterUntil>nowMs()&&clockT>(a.cowDrinkAt||0))return beginCowTask(a,'drink')||waitCowStation(a,'Waiting for the water trough');
+  if(PRESET.night)return beginCowTask(a,'bed')||waitCowStation(a,'Waiting for a free straw bed');
+  return false;
+}
+function updateCowTask(a,dt,t){
+  // The normal frame delta is capped for the accepted wandering AI. Directed
+  // cow trips retain wall-clock pace through slow draws, in bounded physical
+  // steps. A zero-delta return from a hidden tab discards the hidden interval.
+  const elapsed=dt>0?Math.max(dt,t-(a.cowTickAt??t-dt)):0;
+  a.cowTickAt=t;
+  for(let used=0;used<elapsed-1e-8&&a.cowTask;){const step=Math.min(1/30,elapsed-used);used+=step;updateCowTaskStep(a,step,t-elapsed+used);}
+}
+function cowSupportY(x,z){return cowPenSupportHeight(installedAnimalPens.sites.cow,x,z,groundY);}
+function cowSharedCornerDetour(a,b,task,t){
+  const other=b.cowTask,corner=task.path?.[0],otherCorner=other?.path?.[0],next=task.path?.[1];
+  if(task.kind!=='bed'||task.stage!=='approach'||other?.kind!=='bed'||other.stage!=='approach'||!corner||!otherCorner||a.ref.i>=b.ref.i)return false;
+  const intermediate=!!next,shared=intermediate&&corner.distanceTo(otherCorner)<=.08;
+  const finalDock=job=>job.waypoints.length===1&&Math.hypot(job.waypoints[0][0]-job.station.dock[0],job.waypoints[0][2]-job.station.dock[2])<.01;
+  const opposingFinal=!next&&!other.path?.[1]&&finalDock(task)&&finalDock(other)&&corner.distanceTo(otherCorner)>.08;
+  if(!intermediate&&!opposingFinal)return false;
+  const towardA=corner.clone().sub(a.pos),towardB=otherCorner.clone().sub(b.pos);
+  if(towardA.dot(towardB)>=0)return false; // A following cow keeps the ordinary corridor.
+  // New intermediate rejoins never exempt a containing static obstacle.
+  if(intermediate&&!shared&&OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,next,.42)))return false;
+  const tried=task.detourTried;if(tried?.id===b.ref.i&&(t-tried.t<2||Math.hypot(tried.x-b.g.position.x,tried.z-b.g.position.z)<1))return false;
+  task.detourTried={id:b.ref.i,x:b.g.position.x,z:b.g.position.z,t};
+  // A circle keeps the true 0.85 m body clearance. A box would classify this
+  // captured 0.853 m starting gap as inside and skip the other cow entirely.
+  const avoid={x:b.g.position.x,z:b.g.position.z,hw:.43,hd:.43,radius:.43,c:1,s:0};
+  const supported=(u,v)=>{const n=Math.max(1,Math.ceil(u.distanceTo(v)/.4));for(let k=0;k<=n;k++){const x=u.x+(v.x-u.x)*k/n,z=u.y+(v.y-u.y)*k/n;if(!fitsPen(PENS.courtyard,x,z,.42)||!Number.isFinite(cowSupportY(x,z)))return false;}return true;};
+  const detour=route(a.pos,intermediate?next:corner,.42,PENS.courtyard,[avoid],supported);
+  if(detour.length<(shared||!intermediate?2:1)||(shared&&detour[0].distanceTo(corner)<.3))return false;
+  const toward=detour[0].clone().sub(a.pos),step=Math.min(toward.length(),a.S.walk/30),first=a.pos.clone().addScaledVector(toward,step/(toward.length()||1));
+  if(first.distanceTo(b.pos)<.85-1e-9)return false;
+  task.path=intermediate?[...detour,...task.path.slice(2)]:detour;task.detourFor=b.ref.i;return true;
+}
+function updateCowTaskStep(a,dt,t){
+  const task=a.cowTask,r=a.rig3d;if(!task||!r){releaseCowTask(a);return;}
+  // A relocated occupied visit must regain real full-weight mouth contact.
+  // Read the previous applied pose before resetting it for this physical step.
+  let returnedContact=false;
+  if(task.layoutReturn&&task.stage==='hold'&&task.weight===1){const target=cowSurfaces.get(task.station.id);if(target){r.g.updateMatrixWorld(true);returnedContact=r.jaw.localToWorld(new THREE.Vector3(0,-.05,-.33)).distanceTo(target)<=.08;}}
+  a.carePose??=getAnimalCarePose('cow',r);a.carePose.reset();
+  const job=cowStatus?.job,isRobot=task.kind==='robot',currentJob=isRobot&&job?.id===task.jobId&&job.cowId===cowIdOf(a);
+  const supplies=task.kind==='feed'?(cowStatus.feed>0||!!cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready):task.kind==='drink'?cowStatus.waterUntil>nowMs():true;
+  const needsPaidVisit=cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle;
+  const waking=(task.kind==='bed'&&needsPaidVisit)||(!isRobot&&cowStatus?.job?.cowId===cowIdOf(a))||!supplies||(task.kind==='bed'&&!PRESET.night);
+  if(waking||(isRobot&&!currentJob)){task.stage='stand';delete task.layoutReturn;}
+  const ox=a.g.position.x,oz=a.g.position.z;let robotDockTarget=null;
+  if(task.stage==='stand'){task.weight=Math.max(0,task.weight-dt/.9);if(task.weight===0){if(task.layoutReturn)task.stage='approach';else{releaseCowTask(a);a.act='idle';a.until=0;}}}
+  else if(task.stage==='approach'||task.stage==='exit'){
+    // Docked jobs restored from disk resume their physical approach without a
+    // second credit. Approaching/queued jobs still require a fresh dock proof.
+    if(isRobot&&currentJob&&job.stage==='exiting'&&task.stage!=='exit'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();}
+    if(!task.path?.length&&task.waypoints.length){
+      const p=task.waypoints[0],target=new THREE.Vector2(p[0],p[2]);
+      // A failed route must retain the real visit and target, never imply arrival.
+      task.path=route(a.pos,target,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(task.path.length)task.waypoints.shift();
+    }
+    // A lateral yield changes the start of the remaining leg. Revalidate it
+    // before resuming bed travel, so an old waypoint cannot cut through a post.
+    let blockedBedLeg=false;
+    if(task.kind==='bed'&&task.stage==='approach'&&task.avoidSide&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
+      const endpoint=task.path[0],contained=OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,endpoint,.42));
+      const detour=contained?[]:route(a.pos,endpoint,.42,PENS.courtyard,[],cowGateSegmentClear);
+      if(detour.length&&detour.every((p,i)=>hitsBlock(i?detour[i-1]:a.pos,p,.42,null)<0))task.path=[...detour,...task.path.slice(1)];
+      else blockedBedLeg=true;
+    }
+    const p=blockedBedLeg?null:task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+      const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
+      if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}
+      else{
+        if(blockingCows.length&&!blockingCows.some(b=>cowSharedCornerDetour(a,b,task,t))){
+          // Keep the same body clearance while yielding around a moving or
+          // waiting neighbour. Never jump to a waypoint to break a blockage.
+          const side=task.avoidSide||1;
+          for(const sign of [side,-side]){
+            const x=ox+dz/(d||1)*step*sign,z=oz-dx/(d||1)*step*sign;
+            const clear=fitsPen(PENS.courtyard,x,z,.42)&&cowGateSegmentClear(a.pos,new THREE.Vector2(x,z))&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);
+            if(clear){a.g.position.x=x;a.g.position.z=z;task.avoidSide=sign;break;}
+          }
+        }
+      }
+      // Finish the final robot approach physically: the ordinary waypoint
+      // shortcut can leave the teat centers outside the cluster openings.
+      if(isRobot&&task.stage==='approach'&&!task.waypoints.length&&task.path.length===1)robotDockTarget=p;
+      else if(d<.035)task.path.shift();
+    }else if(!blockedBedLeg&&!task.waypoints.length){if(task.stage==='exit'){if(currentJob){G.reportCowRobotExit(job.id);syncCowYard();}releaseCowTask(a);a.act='idle';a.until=t+1;}else{task.stage='align';cowStations.arrive(task.token);}}
+    a.label=task.stage==='exit'?'Leaving the robot':isRobot?'Walking to the robot':task.kind==='bed'?'Heading to a straw bed':task.kind==='feed'?'Walking to the feed bunk':'Walking to the water trough';
+  }else if(task.stage==='align'||task.stage==='hold'){
+    const desired=task.station.facing+Math.PI,d=desired-r.model.rotation.y;r.model.rotation.y+=Math.atan2(Math.sin(d),Math.cos(d))*Math.min(1,dt*5);
+    if(task.stage==='align'&&Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<.08){task.stage='hold';if(!task.layoutReturn)task.until=t+(task.kind==='bed'?20:task.kind==='feed'?8:6);}
+    if(task.stage==='hold'){
+      if(isRobot&&currentJob){
+        if(job.stage==='approaching'&&task.gate.update({jobId:job.id,position:[ox,COW_YARD_LAYOUT.floor,oz],dock:COW_YARD_LAYOUT.robot.dock,yaw:r.model.rotation.y,facing:desired,speed:a.lastSpd||0},dt)){G.reportCowRobotDock(job.id);syncCowYard();}
+        if(job.stage==='exiting'){task.stage='exit';task.waypoints=cowRobotExitWaypoints();task.path=null;}
+        a.label=job.stage==='milking'?'Robot milking':'Waiting at the robot';
+      }else{task.weight=Math.min(1,task.weight+dt/1.1);a.label=task.kind==='bed'?'Lying on straw':task.kind==='feed'?'Eating at the bunk':'Drinking at the trough';if(returnedContact)delete task.layoutReturn;if(task.kind!=='bed'&&t>task.until&&!task.layoutReturn){if(task.kind==='feed'){a.need.hunger=0;a.cowMealCycle=cowStatus.cows[a.ref.i]?.cycle;}if(task.kind==='drink')a.cowDrinkAt=t+35;task.stage='stand';}}
+    }
+  }
+  if(COW_YARD_LAYOUT.custom)a.g.position.fromArray(cowPenStep([ox,a.g.position.y,oz],a.g.position.toArray(),a.S.walk*Math.max(0,dt),cowSupportY));
+  else a.g.position.y=COW_YARD_LAYOUT.floor;
+  if(robotDockTarget&&Math.hypot(a.g.position.x-robotDockTarget.x,a.g.position.z-robotDockTarget.y)<1e-10)task.path.shift();
+  const dx=a.g.position.x-ox,dz=a.g.position.z-oz;a.lastSpd=Math.hypot(dx,dz)/Math.max(dt,.001);a.vel.set(dx/dt,dz/dt);a.act=a.lastSpd>.01?'moving':task.kind==='bed'?'sleeping':isRobot?'idle':'eating';
+  Cow3D.updateCow3D(r,dx,dz,dt,t,a.act,0);
+  if(COW_YARD_LAYOUT.custom)applyCowPenSupport(r,cowSupportY);
+  if(task.weight>0)a.carePose.apply({mode:task.kind==='bed'?'lie':task.kind==='feed'?'feed':'drink',weight:task.weight,target:cowSurfaces.get(task.station.id)});
+  if(a.cowTask===null){a.carePose.reset();a.need.tired=0;a.act='idle';}
+}
+
+bootStep("making the sky");
+// ---------------- sky, sun and fill light ----------------
+const skyU = {top:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3()}, sunCol:{value:new THREE.Color()},
+  uTime:{value:0}, uCover:{value:.45}, cloudCol:{value:new THREE.Color(1, 1, 1)}, cloudShade:{value:new THREE.Color(.6, .65, .75)}, uNight:{value:0}};
+const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:false, fog:false, uniforms:skyU,
+  vertexShader:"varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+  fragmentShader:`uniform vec3 top, hor, sunCol, sunDir, cloudCol, cloudShade; uniform float uTime, uCover, uNight; varying vec3 vD;
+    float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f); return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
+    float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 6; i++) { v += a * n2(p); p = p * 2.03 + vec2(1.7, 9.2); a *= .5; } return v; }
+    void main(){
+      vec3 d = normalize(vD); float h = max(d.y, 0.);
+      vec3 c = mix(hor, top, pow(h, .5));
+      if (d.y < 0.) c = hor * .92;
+      vec3 sd = normalize(sunDir); float s = max(dot(d, sd), 0.);
+      c += sunCol * (pow(s, 1800.) * 10. * (1. - uNight * .6) + pow(s, 20.) * .22 + pow(s, 3.) * .06);
+      float cov = 0.;
+      if (d.y > .005) {                    // clouds painted on a high layer
+        vec2 uv = d.xz / (d.y + .12) * .55 + vec2(uTime * .0035, uTime * .0012);
+        float n = fbm(uv * 1.4);
+        cov = smoothstep(1. - uCover, 1. - uCover + .22, n) * smoothstep(.005, .16, d.y);
+        float lit = clamp((n - fbm(uv * 1.4 + sd.xz * .06)) * 5. + .55, 0., 1.);   // brighter on the sun side
+        vec3 cc = mix(cloudShade, cloudCol, lit) + sunCol * pow(s, 6.) * .5 * lit;
+        c = mix(c, cc, cov * .96);
+      }
+      if (uNight > 0.) {                   // stars and a faint moon glow
+        vec3 q = floor(d * 420.); float st = step(.9986, fract(sin(dot(q, vec3(12.9898, 78.233, 37.719))) * 43758.5453));
+        c += vec3(.9, .95, 1.) * st * uNight * (1. - cov) * smoothstep(.05, .3, d.y);
+      }
+      gl_FragColor = vec4(c, 1.);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+}));
+scene.add(sky);
+const pmrem = new THREE.PMREMGenerator(renderer); let envRT = null;
+const skyOnly = new THREE.Scene(); skyOnly.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), sky.material));
+const sun = new THREE.DirectionalLight(0xffffff, 3);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sun.shadow.radius = 3;
+Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24, near:1, far:120});
+scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x5b4a30, .8); scene.add(hemi);
+const lamp = new THREE.PointLight(0xffb45a, 0, 14, 2); lamp.position.set(0, 3.2, 6.4); scene.add(lamp);
+scene.fog = new THREE.FogExp2(0xcfe3f2, .012);
+
+// ---------------- weather particles ----------------
+function particles(n, color, size) {
+  const g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - .5) * 70; p[i * 3 + 1] = Math.random() * 30; p[i * 3 + 2] = (Math.random() - .5) * 70; }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, transparent:true, opacity:.8, depthWrite:false}));
+  m.visible = false; scene.add(m); return m;
+}
+const rain = (() => { // falling streaks
+  const n = 2500, g = new THREE.BufferGeometry(), p = new Float32Array(n * 6);
+  for (let i = 0; i < n; i++) { const x = (Math.random() - .5) * 70, y = Math.random() * 30, z = (Math.random() - .5) * 70; p.set([x, y, z, x - .08, y - .7, z], i * 6); }
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xc8d6e6, transparent:true, opacity:.45}));
+  m.visible = false; scene.add(m); return m;
+})();
+const snow = particles(3000, 0xffffff, .12);
+
+// ---------------- lighting & weather presets ----------------
+const PRESETS = {
+  morning:{cover:.52, cloud:0xfff1e4, shade:0x98a3bd, sunEl:16, sunAz:-20, sunCol:0xffd2a0, sunI:3.0, hemiSky:0xbcd4ff, hemiGnd:0x6b5634, hemiI:.75, top:0x5f96d8, hor:0xf3d2b0, fog:.0045, exp:1.0},
+  noon:{cover:.5, cloud:0xffffff, shade:0x9eabc2, sunEl:58, sunAz:-35, sunCol:0xfff4e2, sunI:3.1, hemiSky:0xc2dcff, hemiGnd:0x5f5236, hemiI:.85, top:0x3f86dc, hor:0xcbe3f5, fog:.003, exp:.95},
+  golden:{cover:.56, cloud:0xffc592, shade:0x7a6a8c, sunEl:11, sunAz:-65, sunCol:0xffa04a, sunI:4.2, hemiSky:0xc9d4ff, hemiGnd:0x6a5030, hemiI:.7, top:0x5b7fc6, hor:0xffc07a, fog:.0035, exp:1.15, bloom:.4},
+  rain:{cover:.98, cloud:0x9aa3ad, shade:0x59616c, sunEl:45, sunAz:-35, sunCol:0xd8e0ea, sunI:.55, hemiSky:0xa9b6c4, hemiGnd:0x4a4a42, hemiI:1.35, top:0x76818e, hor:0xa6b0ba, fog:.012, exp:1.0, wet:1, rain:1, wind:1},
+  snow:{cover:.92, cloud:0xe8edf2, shade:0xa7b1be, sunEl:28, sunAz:-35, sunCol:0xeef4ff, sunI:1.9, hemiSky:0xdce8ff, hemiGnd:0xb8c4d2, hemiI:1.0, top:0x8fa9c7, hor:0xe2eaf2, fog:.009, exp:.95, snow:1, snowing:1},
+  night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.8, hemiSky:0x2a3d66, hemiGnd:0x141a24, hemiI:.62, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.3, night:1, bloom:.8},
+};
+let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
+function setPreset(name) {
+  seasonalLeaves.setSeason(G.THEME.season);
+  P = PRESETS[name]; PRESET = P; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
+  const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+  sunDir.copy(dir); sun.color.set(P.sunCol); sun.intensity = P.sunI;
+  hemi.color.set(P.hemiSky); hemi.groundColor.set(P.hemiGnd); hemi.intensity = P.hemiI;
+  if (M.tilled) M.tilled.emissive.set(P.night ? 0x6a4420 : 0x000000), M.tilled.emissiveIntensity = P.night ? .5 : 1; // at night the fields glow softly, as if lit by lanterns, so you can find them
+  skyU.top.value.set(P.top); skyU.hor.value.set(P.hor); skyU.sunDir.value.copy(dir); skyU.sunCol.value.set(P.sunCol).multiplyScalar(P.night ? .15 : 1);
+  skyU.uCover.value = P.cover; skyU.cloudCol.value.set(P.cloud); skyU.cloudShade.value.set(P.shade); skyU.uNight.value = P.night ? 1 : 0;
+  LIT.uSunDir.value.copy(dir); LIT.uSunCol.value.set(P.sunCol).multiplyScalar(P.sunI * (P.night ? .15 : .32));
+  scene.fog.color.set(P.hor); scene.fog.density = visualFog(P.fog); renderer.toneMappingExposure = visualExposure(P.exp); grade.uniforms.uContrast.value = P.night ? 1.03 : P.rain || P.snow ? 1.06 : 1.08; grade.uniforms.uVig.value = P.night ? .3 : .22;
+  WX.uWet.value = P.wet || 0; WX.uSnow.value = P.snow || 0;
+  rain.visible = !!P.rain; snow.visible = !!P.snowing; wind = P.wind || .25;
+  M.glass.emissiveIntensity = P.night ? 2.2 : 0;
+  for (const m of Object.values(emoteMats)) m.color.setScalar(P.night ? .55 : 1); // bubbles don't glow like lamps after dark lamp.intensity = P.night ? 16 : 0;
+  lampPost.userData.glass.material.emissiveIntensity = P.night ? 3 : (P.rain ? .4 : 0); lampPost.userData.light.intensity = P.night ? 12 : 0;
+  M.water.color.set(P.night ? 0x0a1826 : P.snow ? 0xbfd3e0 : 0x1e4a5c); M.water.roughness = P.snow ? .6 : .04; // frozen in snow
+  for (const a of animals) if (!a.rig3d) { a.card.material.emissiveIntensity = P.animalGlow ?? .45; a.card.material.emissive.set(P.sunCol).lerp(new THREE.Color(0xffffff), .5); } // 3D coats use scene lighting; picture glow would wash out their patches
+  windU.uWind.value = wind;
+  // sky reflections for glossy paint, glass and wet surfaces
+  skyOnly.children[0].material.uniforms = skyU; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(skyOnly, .02); scene.environment = envRT.texture; scene.environmentIntensity = P.night ? .15 : .35;
+  bloom.strength = P.bloom || .18;
+  walkLook();
+}
+
+bootStep("setting up the camera effects");
+// ---------------- post-processing: bloom + tone mapping ----------------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), .2, .5, .88);
+composer.addPass(bloom);
+// tilt-shift: a sharp band across the middle of the screen, softening toward the top, bottom and corners,
+// like a macro lens on a miniature diorama. Two cheap separable blur passes in linear light (before tone mapping).
+const tiltShader = (dir) => ({
+  uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.Vector2(...dir)}, uRes:{value:renderer.getDrawingBufferSize(new THREE.Vector2())}, uFocus:{value:.5}, uBand:{value:.18}, uAmount:{value:4. * renderer.getPixelRatio()}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader:`uniform sampler2D tDiffuse; uniform vec2 uDir, uRes; uniform float uFocus, uBand, uAmount; varying vec2 vUv;
+    void main(){
+      float dy = max(0., abs(vUv.y - uFocus) - uBand) / (.5 - uBand);            // 0 in the focus band, 1 at the top and bottom edge
+      float dx = smoothstep(.3, .5, abs(vUv.x - .5)) * .45;                       // a touch of softness toward the left and right edges
+      float r = clamp(dy * dy + dx * (.4 + dy), 0., 1.) * uAmount;
+      if (r < .05) { gl_FragColor = texture2D(tDiffuse, vUv); return; }        // in focus: no blur work at all
+      vec2 st = uDir / uRes * r / 6.;                                              // 13 evenly spaced gaussian taps across +-r pixels
+      vec4 c = vec4(0.); float wsum = 0.;
+      for (int i = -6; i <= 6; i++) { float w = exp(-float(i * i) / 18.); c += texture2D(tDiffuse, vUv + st * float(i)) * w; wsum += w; }
+      gl_FragColor = c / wsum;
+    }`});
+const tiltH = new ShaderPass(tiltShader([1, 0])), tiltV = new ShaderPass(tiltShader([0, 1]));
+composer.addPass(tiltH); composer.addPass(tiltV);
+composer.addPass(new OutputPass());
+// colour grade after ACES: a gentle S-curve for richer contrast, a little extra saturation and a soft vignette
+const grade = new ShaderPass({
+  uniforms:{tDiffuse:{value:null}, uContrast:{value:1.08}, uSat:{value:1.03}, uVig:{value:.22}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader:`uniform sampler2D tDiffuse; uniform float uContrast, uSat, uVig; varying vec2 vUv;
+    void main(){
+      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      vec3 s = c * c * (3. - 2. * c);                                              // smoothstep S-curve in display space
+      c = mix(c, s, (uContrast - 1.) * 2.);
+      float l = dot(c, vec3(.2126, .7152, .0722)); c = max(vec3(0.), mix(vec3(l), c, uSat));
+      vec2 d = vUv - .5; c *= 1. - uVig * smoothstep(.25, .8, dot(d, d) * 2.2);
+      gl_FragColor = vec4(c, 1.);
+    }`});
+composer.addPass(grade);
+
+// ---------------- camera: full 360° orbit, pinch zoom, two-finger pan ----------------
+const cam = {yaw:THREE.MathUtils.degToRad(+(qs.get("yaw") || 35)), pitch:THREE.MathUtils.degToRad(+(qs.get("pitch") || 32)), dist:+(qs.get("dist") || 40), target:new THREE.Vector3(1.5, 2.5, 2)};
+// "cam" is where your fingers want the camera; "view" glides after it with an ease-out
+// (fast at first, settling softly), the same at any frame rate: 1 - e^(-speed * dt)
+const view = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+function placeCamera(dt = 1) {
+  if (walk && inBarn && inBarn.phase === "inside") return barnPose();
+  if (walk) return placeWalkCamera();
+  if (editMode) { cam.yaw = editMode.yaw; cam.pitch = 1.53; } // the layout editor looks straight down, north up
+  cam.pitch = THREE.MathUtils.clamp(cam.pitch, .12, editMode ? 1.54 : 1.25); cam.dist = THREE.MathUtils.clamp(cam.dist, wardrobeOn ? 2.8 : 10, wardrobeOn ? 9 : editMode ? 110 : 70);
+  const k = qs.has("shot") ? 1 : 1 - Math.exp(-dt * 9);
+  view.yaw += (cam.yaw - view.yaw) * k; view.pitch += (cam.pitch - view.pitch) * k; view.dist += (cam.dist - view.dist) * k; view.target.lerp(cam.target, k);
+  const v = view;
+  camera.position.set(v.target.x + Math.sin(v.yaw) * Math.cos(v.pitch) * v.dist, v.target.y + Math.sin(v.pitch) * v.dist, v.target.z + Math.cos(v.yaw) * Math.cos(v.pitch) * v.dist);
+  camera.lookAt(v.target);
+  if(editMode&&grid?.visible)grid.updateView({x:v.target.x,z:v.target.z,dist:v.dist,fov:camera.fov,aspect:camera.aspect});
+  sun.target.position.copy(v.target); sun.position.copy(v.target).addScaledVector(sunDir, 60); // shadows follow where you look
+}
+const ptr = new Map(); let last = null;
+let walk = null, editMode = null; const keys = new Set(), joy = {x:0, y:0}; // first-person walk and the layout editor (set up further down)
+renderer.domElement.addEventListener("pointerdown", (e) => { renderer.domElement.setPointerCapture(e.pointerId); if (e.isPrimary) ptr.clear(); ptr.set(e.pointerId, [e.clientX, e.clientY]); last = null;
+  if (ptr.size === 1) { if (editMode) editDown(e); else farmDown(e); }
+  else { farmDrag = null; seedTray.classList.remove("away"); if (moving) moving.id = null; if (editMode && editMode.drag) editCancel(); } }); // a second finger always means camera, never farming
+renderer.domElement.addEventListener("pointermove", (e) => {
+  if (!ptr.has(e.pointerId)) return;
+  if (editMove(e) || farmMove(e)) { ptr.set(e.pointerId, [e.clientX, e.clientY]); return; }
+  const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]);
+  if (walk) { if (ptr.size === 1) { walk.yaw -= (e.clientX - prev[0]) * .005; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - prev[1]) * .004, -PITCH_MAX, PITCH_MAX); } return; } // look around
+  if (editMode && ptr.size === 1) { const s = cam.dist * .0018; cam.target.x = THREE.MathUtils.clamp(cam.target.x - (e.clientX - prev[0]) * s, -MAP_EDGE, MAP_EDGE); cam.target.z = THREE.MathUtils.clamp(cam.target.z - (e.clientY - prev[1]) * s, -MAP_EDGE, MAP_EDGE); return; } // slide the map
+  if (ptr.size === 1 && !e.shiftKey && e.buttons !== 2) { cam.yaw -= (e.clientX - prev[0]) * .006; cam.pitch += (e.clientY - prev[1]) * .004; }
+  else if (ptr.size === 2 || e.shiftKey || e.buttons === 2) {
+    const pts = [...ptr.values()], c = pts.length === 2 ? [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2] : [e.clientX, e.clientY];
+    const d = pts.length === 2 ? Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]) : null;
+    if (last) {
+      if (d && last.d) cam.dist *= last.d / d;
+      const s = cam.dist * .0018, dx = c[0] - last.c[0], dy = c[1] - last.c[1];
+      cam.target.x -= (Math.cos(cam.yaw) * dx + Math.sin(cam.yaw) * dy) * s; cam.target.z -= (-Math.sin(cam.yaw) * dx + Math.cos(cam.yaw) * dy) * s;
+      cam.target.x = THREE.MathUtils.clamp(cam.target.x,-MAP_EDGE,MAP_EDGE); cam.target.z = THREE.MathUtils.clamp(cam.target.z,-MAP_EDGE,MAP_EDGE);
+    }
+    last = {c, d};
+  }
+});
+const endP = (e) => { ptr.delete(e.pointerId); last = null; editUp(e); farmUp(e); };
+// squash and stretch: a tapped thing squashes down and bulges out, then springs back in 250 ms.
+// The pivot is the object's base, so it squashes onto the ground; volume stays about the same (x and z grow as y shrinks).
+const squishing = new Map();
+function squish(o, strength = 1) {
+  const cur = squishing.get(o); squishing.set(o, {t0:performance.now(), base:cur ? cur.base : o.scale.clone(), amt:.22 * strength});
+}
+function updateSquish(now) {
+  for (const [o, s] of squishing) {
+    const k = (now - s.t0) / 250;
+    if (k >= 1) { o.scale.copy(s.base); squishing.delete(o); continue; }
+    const a = s.amt * Math.cos(k * Math.PI * 2.5) * (1 - k) * (1 - k);        // squash, overshoot into a stretch, settle
+    const y = 1 - a, xz = 1 / Math.sqrt(y);
+    o.scale.set(s.base.x * xz, s.base.y * y, s.base.z * xz);
+  }
+}
+// a quick tap (not a drag): use whatever was tapped; a tap on bare grass makes curious animals come and look
+let downAt = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { downAt = ptr.size <= 1 ? {x:e.clientX, y:e.clientY, t:performance.now()} : null; });
+renderer.domElement.addEventListener("pointerup", (e) => {
+  if (paintUsed) { paintUsed = false; return; } // that press already planted, harvested or moved something
+  if (editMode || animalPenEditing) return; // draft input never acts on the farm
+  if (visiting) { // a friend's farm is read-only, except that you can water their growing crops for them
+    if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
+    const h = hitAt(e.clientX, e.clientY), p = h && h.type === "plot" && GS().plots[h.i];
+    if (p && p.crop && p.end > nowMs()) {
+      if (p.water) { G.toast("💧 Already watered"); return; }
+      if (friendHooks.water && friendHooks.water(h.i)) { p.water = 1; squish(plots[h.i].g, .3); fxAt("plot:" + h.i, "💧"); G.sfx("water"); syncSoil(); }
+    } else if (p) G.toast(p.crop ? "Ripe! Only " + visiting.name + " can harvest it." : "Tap a growing crop to water it for your friend");
+    return;
+  }
+  if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || performance.now() - downAt.t > 450) return;
+  if (onTap(e)) return;
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
+  const thing = ray.intersectObjects(scene.children.filter(o => o.userData.squishy), true)[0];
+  if (thing) { let o = thing.object; while (o.parent && !o.userData.squishy) o = o.parent; squish(o, o === silo ? .5 : 1); return; }
+  const g = ray.intersectObject(ground)[0];
+  if (g) { tapPoint = {v:new THREE.Vector2(g.point.x, g.point.z), t:clockT}; for (const a of animals) if (a.P.curious > .6 && a.act !== "sleeping" && rnd() < a.P.curious) { a.target = null; a.until = 0; a.think(); } }
+});
+renderer.domElement.addEventListener("pointerup", endP); renderer.domElement.addEventListener("pointercancel", endP);
+renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
+renderer.domElement.addEventListener("wheel", (e) => { e.preventDefault(); if (!walk) cam.dist *= Math.pow(1.001, e.deltaY); }, {passive:false});
+document.getElementById("soundBtn").addEventListener("click", () => G.toggleSound());
+// accounts (auth.js): a farm from before accounts moved into a new account. That can happen before or after the game has loaded.
+const linkedToast = () => { if (window.__saLinkedShown) return; window.__saLinkedShown = true; G.toast("🌻 Your farm is now saved to your account"); };
+addEventListener("sa3d:linked", linkedToast);
+// ---------- visiting a friend's farm (read-only) ----------
+let visiting = null;
+const visitBar = document.getElementById("visitBar");
+function enterVisit(farm, name) {
+  if (walk) setWalk(false); if (editMode) setEdit(false); if (moving) endMove(true); closeTrays();
+  if (!visiting) visiting = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  visiting.name = name;
+  G.visitFarm(farm);
+  document.getElementById("visitName").textContent = "👀 " + name + "'s farm · Lv " + (G.S.level || 1);
+  document.body.classList.add("visiting"); visitBar.hidden = false;
+  Object.assign(cam, {yaw:.6, pitch:.56, dist:40}); cam.target.set(1.5, 2.5, 2); G.sfx("pop");
+}
+function leaveVisit() {
+  if (!visiting) return; const v = visiting; visiting = null;
+  G.leaveVisit(); document.body.classList.remove("visiting"); visitBar.hidden = true; dispatchEvent(new Event("sa3d:leftvisit"));
+  Object.assign(cam, {yaw:v.yaw, pitch:v.pitch, dist:v.dist}); cam.target.copy(v.target); G.sfx("pop");
+}
+visitBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) leaveVisit(); });
+if (G.SANDBOX) { const b = document.createElement("div"); b.className = "testbadge"; b.textContent = "🧪 Test farm · nothing is saved"; document.body.appendChild(b); }
+const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && visiting.name}) || {}; if (window.__saLinked) setTimeout(linkedToast, 1200);
+// Phase 7I: the server-checked field (its own six plots; the normal farm is unchanged). Off on the public game: it needs
+// server code the free Firebase plan can't run (features.js); its ✅ button stays hidden.
+const verifiedField = FEATURES.verifiedEconomy ? initVerified(G) : null;
+
+// ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
+// Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
+// one message a minute, and if the webhook is ever abused just delete it in Discord and paste a new one here.
+const FEEDBACK_WEBHOOK = window.__ERR_HOOK; // set in the safety-net script at the top (error reports go to the same channel) // Discord: channel settings › Integrations › Webhooks
+async function sendFeedback(text) {
+  const S = GS(), info = `Level ${S.level} · ${innerWidth}×${innerHeight} · ${/Android|iPhone|iPad/.exec(navigator.userAgent)?.[0] || "computer"} · ${new Date().toLocaleString()}`;
+  const res = await fetch(FEEDBACK_WEBHOOK, {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({username: "Sunny Acres feedback", content: text.slice(0, 1000) + "\n-# " + info, allowed_mentions: {parse: []}}),
+  });
+  if (!res.ok) throw new Error("Discord answered " + res.status);
+}
+const fbBox = document.getElementById("fbBox"), fbText = document.getElementById("fbText"), fbSend = document.getElementById("fbSend"), fbCount = document.getElementById("fbCount");
+const FB_KEY = "sa3d-feedback-at", FB_WAIT = 60e3;
+function openFeedback(on) { G.close(); closeTrays(); fbBox.hidden = !on; if (on) { fbCount.textContent = fbText.value.length + " / 1000"; fbText.focus(); } }
+document.getElementById("feedbackBtn").addEventListener("click", () => openFeedback(true));
+fbBox.addEventListener("click", (e) => { if (e.target.closest('[data-fb="close"]')) openFeedback(false); });
+fbText.addEventListener("input", () => { fbCount.textContent = fbText.value.length + " / 1000"; });
+fbBox.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = fbText.value.trim(); if (text.length < 3) { G.toast("Type a little more first"); return; }
+  if (!FEEDBACK_WEBHOOK) { G.toast("Feedback isn't switched on yet"); return; }
+  let last = 0; try { last = +localStorage.getItem(FB_KEY) || 0; } catch (err) {}
+  if (Date.now() - last < FB_WAIT) { G.toast("Thanks! You can send another in a minute"); return; }
+  fbSend.disabled = true; fbSend.textContent = "Sending…";
+  try {
+    await sendFeedback(text);
+    try { localStorage.setItem(FB_KEY, String(Date.now())); } catch (err) {}
+    fbText.value = ""; openFeedback(false); G.toast("Thank you! Your message was sent 💌"); G.sfx("collect");
+  } catch (err) { G.toast("Couldn't send it. Check your internet and try again."); G.sfx("error"); }
+  fbSend.disabled = false; fbSend.textContent = "Send 💌";
+});
+addEventListener("keydown", (e) => { if (e.code === "Escape" && !fbBox.hidden) openFeedback(false); });
+addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
+
+bootStep("building the fields and buildings");
+mergeStatic(decals); // every soft ground shadow of the scenery, as one piece
+// ---------------- the game on the farm: fields, buildings, order board, shop stall, decorations ----------------
+// Rules and menus live in game.js (the same as the 2D game); this part draws them in 3D and handles taps.
+const GS = () => G.S;
+const nowMs = () => Date.now();
+// how each crop grows in 3D
+const CROP_LOOK = {
+  wheat:{shape:"blade", h:.8, n:170, green:0x86a64c, ripe:0xd9b262},
+  corn:{shape:"blade", h:1.9, n:70, green:0x5f9a3a, ripe:0x93a84c, fruit:5, fy:.95, fs:.42},
+  carrot:{shape:"leaf", h:.42, n:170, green:0x4f9a38, ripe:0x5ba340, fruit:6, fy:.12, fs:.34},
+  soybean:{shape:"leaf", h:.55, n:180, green:0x5a9a3c, ripe:0x8aa54a, fruit:6, fy:.34, fs:.3},
+  sugarcane:{shape:"blade", h:2.1, n:60, green:0x6ea04a, ripe:0xa2b65c},
+  tomato:{shape:"leaf", h:.75, n:190, green:0x4c8e36, ripe:0x4f9238, fruit:8, fy:.45, fs:.24},
+  strawberry:{shape:"leaf", h:.3, n:220, green:0x4a9236, ripe:0x4f9a3a, fruit:9, fy:.16, fs:.2},
+  pumpkin:{shape:"leaf", h:.32, n:150, green:0x4f9036, ripe:0x6a9a3c, fruit:3, fy:.24, fs:.62},
+};
+
+// little painted signs on a post: a line of big text and a smaller second line
+function signTexture(lines, w = 512, h = 256) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d");
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#c89560"); g.addColorStop(1, "#a8743f"); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.strokeStyle = "rgba(60,30,10,.35)"; x.lineWidth = 3; for (let y = h / 3; y < h; y += h / 3) { x.beginPath(); x.moveTo(0, y); x.lineTo(w, y); x.stroke(); }
+  x.strokeStyle = "#6e3d18"; x.lineWidth = 14; x.strokeRect(7, 7, w - 14, h - 14);
+  x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#fff"; x.strokeStyle = "#5a3413"; x.lineJoin = "round";
+  const font = (px) => `${px}px "Lilita One","Arial Rounded MT Bold","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  lines.forEach((t, i) => { const px = i ? h * .2 : h * .28; x.font = font(px); x.lineWidth = px * .18; const y = lines.length === 1 ? h / 2 : h * (i ? .72 : .36); x.strokeText(t, w / 2, y); x.fillText(t, w / 2, y); });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function makeSign(lines, bw = 1.5, post = 1.1) {
+  const g = new THREE.Group(), mat = new THREE.MeshStandardMaterial({map:signTexture(lines), roughness:.8, emissive:0xffffff, emissiveIntensity:.12});
+  mat.emissiveMap = mat.map;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(bw, bw / 2, .08), [M.fence, M.fence, M.fence, M.fence, mat, M.fence]);
+  board.position.y = post + bw / 4; board.castShadow = true; g.add(board);
+  g.add(box(.12, post + .05, .12, M.fence, 0, (post + .05) / 2, -.07));
+  g.userData.set = (l) => { const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); mat.needsUpdate = true; old.dispose(); };
+  return g;
+}
+// a floating picture over something (ready goods, a gift): an emoji on a little white bubble
+const bubbleMats = {};
+const bubble = (e) => { const s = new THREE.Sprite(emoteMat(e)); s.scale.setScalar(.9); s.visible = false; s.renderOrder = 5; return s; };
+
+// ---------- fields: 30 spots west of the path; you start with 6 and buy more in order ----------
+const FIELD_C = new THREE.Vector2(-10, 12), FIELD_ROT = .12;
+const FIELD_SLOTS = (() => {
+  const all = [];
+  for (let row = 0; row < 6; row++) for (let col = -2; col <= 2; col++) all.push({col, row, d:Math.hypot(col, (row - .5) * 1.15) + (Math.abs(col) === 2 ? .15 : 0)});
+  all.sort((a, b) => a.d - b.d || a.row - b.row || a.col - b.col);
+  for (const col of [-3, -4, -5]) for (let row = 0; row < 6; row++) all.push({col, row}); // more land (Shop): a new column west for each deed
+  return all.map(({col, row}) => { const lx = col * 2.5, lz = (row - .5) * 2.5;
+    return new THREE.Vector2(FIELD_C.x + lx * Math.cos(FIELD_ROT) + lz * Math.sin(FIELD_ROT), FIELD_C.y - lx * Math.sin(FIELD_ROT) + lz * Math.cos(FIELD_ROT)); });
+})();
+BLOCKS.push([-10, 17.5, 6.6, 8]); // the whole field area: pets walk around it, decorations don't go on it
+const soilArt = soilCanvas(21);
+M.tilled = std({map:tex(soilArt, 1, [2, 2]), normalMap:tex(normalFrom(soilArt, 1.5), 0, [2, 2]), normalScale:new THREE.Vector2(.18,.18), roughness:.97});
+// Gently irregular earth mounds, with world-scaled grain instead of smooth tubes.
+const furrowGeo = new THREE.PlaneGeometry(2, .38, 12, 4); furrowGeo.rotateX(-Math.PI / 2);
+{ const p = furrowGeo.attributes.position, uv = furrowGeo.attributes.uv;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), ridge = Math.max(0, Math.cos(z / .19 * Math.PI / 2));
+    p.setY(i, ridge * (.078 + Math.sin(x * 29 + z * 73) * .004 + Math.sin(x * 5) * .004)); uv.setXY(i, x * .5, z * .5); }
+  furrowGeo.computeVertexNormals(); }
+const fruitMats = {};
+const fruitMat = (crop) => fruitMats[crop] || (fruitMats[crop] = new THREE.SpriteMaterial({map:photo(ART + crop + ".webp"), alphaTest:.3}));
+const plots = [];
+const soilGeo = new THREE.PlaneGeometry(2.15, 2.15), sprGeo = new THREE.CylinderGeometry(.07, .09, .5, 8);
+const WET_MAT = new THREE.MeshBasicMaterial({color:0x1d1208, transparent:true, opacity:.38, depthWrite:false});
+const DRY_MAT = new THREE.MeshBasicMaterial({color:0xd8c29a, transparent:true, opacity:.3, depthWrite:false});
+const SPR_MAT = new THREE.MeshStandardMaterial({color:0x7a8ea0, metalness:.6, roughness:.4});
+// ripe crops twinkle: a few little stars blink on and off above each ripe field
+const twinkleMat = new THREE.SpriteMaterial({map:(() => { const [c, x] = canvas(64); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,255,235,1)"); g.addColorStop(.25, "rgba(255,240,170,.9)"); g.addColorStop(1, "rgba(255,230,120,0)");
+  x.fillStyle = g; x.beginPath(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, rr = k % 2 ? 7 : 32; x.lineTo(32 + Math.cos(a) * rr, 32 + Math.sin(a) * rr); } x.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
+function twinkle(P, t, on) {
+  if (!P.stars) { if (!on) return; P.stars = [0, 1, 2].map(k => { const s = new THREE.Sprite(twinkleMat.clone()); s.position.set((k - 1) * .6 + (Math.random() - .5) * .3, 1 + Math.random() * .5, (Math.random() - .5) * 1.2); s.userData.ph = Math.random() * 6; P.g.add(s); return s; }); }
+  for (const s of P.stars) { s.visible = on; if (!on) continue; const b = Math.max(0, Math.sin(t * 2.6 + s.userData.ph)); s.material.opacity = b * .55; s.scale.setScalar(.08 + .18 * b * b); s.material.rotation = t * .8 + s.userData.ph; }
+}
+function syncSoil() { // called every second
+  plots.forEach((P, i) => { const p = GS().plots[i]; if (!p) return;
+    const wet = !!(p.crop && p.water), dry = !p.crop && G.soilNow(p) < 40;
+    P.wet.visible = wet || dry; P.wet.material = wet ? WET_MAT : DRY_MAT; P.spr.visible = G.sprinkled(i); });
+}
+function makePlot(i) {
+  const g = new THREE.Group(), p = FIELD_SLOTS[i];
+  const support = plotSupport(p.x,p.y,FIELD_ROT,farmGroundY);
+  g.position.set(p.x, support.rootY, p.y); g.rotation.y = FIELD_ROT;
+  g.add(box(2.2, support.height, 2.2, M.tilled, 0, support.centerY, 0, .5));
+  for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }
+  const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
+  g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
+  // dark wet soil after watering, pale dry soil when it's worn out, and a little sprinkler head on fields a sprinkler covers
+  const wet = new THREE.Mesh(soilGeo, WET_MAT); wet.position.y = .17; wet.rotation.x = -Math.PI / 2; wet.visible = false; wet.raycast = () => {}; g.add(wet);
+  const spr = new THREE.Mesh(sprGeo, SPR_MAT); spr.position.set(1.02, .25, 1.02); spr.visible = false; spr.raycast = () => {}; g.add(spr);
+  const P = {g, plants, mat:cropMaterial(), mesh:null, fruit:[], crop:null, decal:contact(p.x, p.y, 3.2, 3.2), wet, spr};
+  clearGrass(p.x, p.y, 1.3, "plot:" + i);
+  return P;
+}
+// a "new field for sale" marker on the next free spot
+const plotSale = makeSign(["🟫 New field", ""], 1.4, .7); scene.add(plotSale); plotSale.userData.hit = {type:"plotSale"};
+function syncPlots() {
+  const n = GS().plots.length;
+  while (plots.length < n) plots.push(makePlot(plots.length));
+  while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }
+  plots.forEach((_, i) => buildPlants(i));
+  if (n < G.maxPlots()) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, plotSupport(p.x,p.y,FIELD_ROT,farmGroundY).rootY, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
+  else plotSale.visible = false;
+}
+const plotCostTxt = () => (40 + (GS().plots.length - 6) * 35) + " 🪙";
+function buildPlants(i) {
+  const P = plots[i], crop = GS().plots[i].crop;
+  if (P.crop === crop && (P.mesh || !crop)) return;
+  if (P.mesh) { P.plants.remove(P.mesh); P.mesh.dispose(); P.mesh = null; }
+  for (const s of P.fruit) P.plants.remove(s); P.fruit = []; P.crop = crop;
+  if (!crop) return;
+  const L = CROP_LOOK[crop], [, gh] = CROP_SHAPES[L.shape], R = rng(31 + i * 7 + crop.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+  const mesh = new THREE.InstancedMesh(cropGeo[L.shape], P.mat, L.n);
+  for (let k = 0; k < L.n; k++) {
+    const z = [-.7, 0, .7][k % 3] + (R() - .5) * .16, x = (R() - .5) * 1.8, s = (.75 + R() * .45) * L.h / gh;
+    q.setFromEuler(new THREE.Euler((R() - .5) * .35, R() * 7, (R() - .5) * .35)); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s * (L.shape === "leaf" ? .8 : 1), s, s)); mesh.setMatrixAt(k, m4);
+    c.setScalar(.82 + R() * .3); mesh.setColorAt(k, c);
+  }
+  mesh.castShadow = true; mesh.receiveShadow = true; P.plants.add(mesh); P.mesh = mesh;
+  for (let k = 0; k < (L.fruit || 0); k++) {
+    const s = new THREE.Sprite(fruitMat(crop)); s.userData.base = new THREE.Vector3((k % 3 - 1) * .6 + (R() - .5) * .3, L.fy, [-.7, 0, .7][Math.floor(k / 3) % 3] + (R() - .5) * .2);
+    s.position.copy(s.userData.base); s.visible = false; P.plants.add(s); P.fruit.push(s);
+  }
+}
+const grown = (i) => { const p = GS().plots[i]; return p.crop ? THREE.MathUtils.clamp(1 - (p.end - nowMs()) / (p.dur || G.CROPS[p.crop].time * 1000), 0, 1) : 0; };
+const ready = (i) => { const p = GS().plots[i]; return !!p && !!p.crop && p.end <= nowMs(); };
+const green = new THREE.Color(), ripe = new THREE.Color();
+function updatePlots(t) {
+  plots.forEach((P, i) => {
+    if (P.crop !== GS().plots[i].crop) { buildPlants(i); P.stage = 0; }
+    if (!P.crop) { twinkle(P, t, false); return; }
+    const L = CROP_LOOK[P.crop], g = grown(i), r = THREE.MathUtils.smoothstep(g, .55, 1);
+    // growth stages: sprout, leafy, nearly there, ripe. Each new stage gives a little bounce, and ripe crops glint
+    const stage = g >= 1 ? 3 : g > .66 ? 2 : g > .33 ? 1 : 0;
+    if (stage > (P.stage || 0) && !visiting) { squish(P.g, stage === 3 ? .3 : .15); if (stage === 3) bits(P.g.position.clone().setY(.9), "rgba(255,244,170,1)", 6, 3); }
+    P.stage = stage;
+    twinkle(P, t, stage === 3 && !visiting);
+    if (stage === 3 && Math.random() < .01) bits(P.g.position.clone().add(new THREE.Vector3((Math.random() - .5) * 1.6, 1, (Math.random() - .5) * 1.6)), "rgba(255,250,210,1)", 1, 1.4);
+    P.plants.scale.set(.55 + .45 * g, .12 + .88 * g, .55 + .45 * g);
+    P.mat.color.copy(green.set(L.green)).lerp(ripe.set(L.ripe), r);
+    P.fruit.forEach((s, k) => { const f = THREE.MathUtils.smoothstep(g, .65, 1); s.visible = f > .01;
+      const a = s.material.map.image ? s.material.map.image.width / s.material.map.image.height : 1, sz = L.fs * (.35 + .65 * f);
+      s.scale.set(sz * a / (.55 + .45 * g), sz / (.12 + .88 * g), 1); // undo the plants' growth scale so the produce keeps its shape
+      s.position.y = s.userData.base.y + (g >= 1 ? Math.sin(t * 3 + k) * .02 : 0); });
+  });
+}
+
+// ---------- production buildings: east of the path, doors facing the camera ----------
+const BUILD_SPOT = {feedmill:[5.8, 14.2], bakery:[10, 14.2], sugarmill:[14.2, 14.2], dairy:[5.8, 19.4], kitchen:[10, 19.4], loom:[14.2, 19.4]};
+const BSTYLE = { // walls and roof colours (hue, saturation, lightness), like the 2D buildings
+  feedmill:{wall:[38, 55, 66], roof:[105, 38, 36], chimney:false}, bakery:{wall:[34, 70, 80], roof:[20, 66, 48], chimney:true},
+  sugarmill:{wall:[48, 25, 86], roof:[265, 34, 50], chimney:false}, dairy:{wall:[210, 12, 92], roof:[205, 58, 46], chimney:false},
+  kitchen:{wall:[28, 62, 74], roof:[5, 60, 42], chimney:true}, loom:{wall:[275, 30, 78], roof:[330, 55, 58], chimney:false},
+};
+function gable(w, h, mat) { // the triangle under the roof at each end
+  const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.lineTo(-w / 2, 0);
+  const geo = new THREE.ExtrudeGeometry(s, {depth:.12, bevelEnabled:false}); boxUV(geo, .25); const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; return m;
+}
+function makeWorkshop(bid) {
+  const st = BSTYLE[bid], b = G.BUILDINGS[bid], g = new THREE.Group(), W = 3.4, D = 2.9, H = 2.3, R = 1.25;
+  const [wc, wn] = planks(st.wall, 20 + bid.length), wall = std({map:tex(wc, 1), normalMap:tex(wn), roughness:.85});
+  const [rc, rn] = shingles(9 + bid.length, st.roof), roof = std({map:tex(rc, 1), normalMap:tex(rn), roughness:.9});
+  g.add(box(W + .2, .35, D + .2, M.stone, 0, .17, 0, .5));
+  const body = box(W, H, D, wall, 0, .35 + H / 2, 0); g.add(body);
+  for (const z of [D / 2 - .06, -D / 2 - .06]) { const gb = gable(W, R, wall); gb.position.set(0, .35 + H, z); g.add(gb); }
+  const slope = Math.hypot(W / 2 + .3, R), ang = Math.atan2(R, W / 2 + .3);
+  for (const s of [-1, 1]) { const r = box(slope, .1, D + .5, roof, s * (W / 4 + .075), .35 + H + R / 2 + .02, 0, 1); r.rotation.z = -s * ang; g.add(r); }
+  g.add(box(.16, .16, D + .55, M.trim, 0, .35 + H + R + .05, 0));
+  for (const x of [-W / 2, W / 2]) for (const z of [-D / 2, D / 2]) g.add(box(.14, H, .14, M.trim, x, .35 + H / 2, z));
+  // door, window and a sign with what the building makes
+  g.add(box(1.1, 1.75, .08, M.door || M.fence, 0, .35 + .88, D / 2 + .03), box(1.3, .12, .12, M.trim, 0, .35 + 1.8, D / 2 + .05));
+  for (const x of [-1.15, 1.15]) { const w = box(.7, .6, .06, M.glass, x, .35 + 1.4, D / 2 + .03); g.add(w); g.add(box(.82, .08, .1, M.trim, x, .35 + 1.72, D / 2 + .05), box(.82, .08, .1, M.trim, x, .35 + 1.08, D / 2 + .05)); }
+  const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.5, .75), new THREE.MeshStandardMaterial({map:signTexture([b.e + " " + b.n]), roughness:.8, emissive:0xffffff, emissiveIntensity:.1}));
+  sg.material.emissiveMap = sg.material.map; sg.position.set(0, .35 + H + .45, D / 2 + .08); g.add(sg);
+  if (st.chimney) { const ch = box(.45, 1.3, .45, M.stone, W / 4, .35 + H + R * .7, -D / 4, .5); g.add(ch); g.userData.chimney = new THREE.Vector3(W / 4, .35 + H + R * .7 + .7, -D / 4); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return mergeStatic(g);
+}
+// an invisible box that catches taps for something small or thin (it's never drawn, only hit)
+const HIT_MAT = new THREE.MeshBasicMaterial({visible:false});
+function hitProxy(w, h, d, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), HIT_MAT); m.position.set(x, y, z); return m; }
+function makeLot(bid) { // a roped-off gravel lot with a sign, before the building is bought
+  const g = new THREE.Group(), b = G.BUILDINGS[bid];
+  g.add(box(3.4, .05, 3, std({map:tex(dirt(33), 1, [2, 2]), color:0x9a8e80, roughness:1}), 0, .02, 0, .5));
+  for (const [x, z] of [[-1.7, -1.5], [1.7, -1.5], [1.7, 1.5], [-1.7, 1.5]]) g.add(box(.09, .7, .09, M.fence, x, .35, z));
+  for (const [x, z, w, d] of [[0, -1.5, 3.4, .03], [0, 1.5, 3.4, .03], [-1.7, 0, .03, 3], [1.7, 0, .03, 3]]) g.add(box(w, .03, d, std({color:0xd8c8a0}), x, .6, z));
+  mergeStatic(g);
+  // taps: only the gravel and the sign count. The posts and ropes stick up in front of the building next door (the Feed Mill,
+  // seen from the usual camera) and used to steal its taps.
+  g.traverse(o => { if (o.isMesh) o.raycast = () => {}; });
+  g.add(hitProxy(3.4, .25, 3, 0, .12, 0));
+  const s = makeSign(["", ""], 2.1, 1.05); s.position.set(0, 0, 1.1); g.add(s); g.userData.sign = s;
+  return g;
+}
+const buildings = {};
+const BLD_BLK = {}, BLD_DECAL = {}, HOME_SPOT = JSON.parse(JSON.stringify(BUILD_SPOT));
+for (const bid of Object.keys(G.BUILDINGS)) { const [x, z] = BUILD_SPOT[bid]; BLOCKS.push(BLD_BLK[bid] = [x, z, 1.9, 1.7]); clearGrass(x, z, 1.8, "b:" + bid); BLD_DECAL[bid] = contact(x, z, 5, 4.4); }
+function syncWorkshopGround(bid,x,z){
+ const B=buildings[bid];if(!B?.g)return;
+ const site=assessWorkshopSite(x,z,workshopGroundY,{floorOffset:B.owned ? .35 : .05});B.site=site;
+ B.g.position.set(x,Number.isFinite(site.y)?site.y:0,z);
+ const old=B.g.userData.foundation;if(old){B.g.remove(old);old.traverse(o=>o.geometry?.dispose());}
+ const support=new THREE.Group();support.name='Workshop foundation and entrance';B.g.userData.foundation=support;B.g.add(support);
+ if(site.ok&&site.needsRamp){
+  for(const dx of [-1.5,1.5])for(const dz of [-1.25,1.25]){
+   const gap=Math.max(0,site.y-workshopGroundY(x+dx,z+dz));if(gap>.025)support.add(box(.24,gap+.08,.24,M.stone,dx,-gap/2,dz));
+  }
+  const far=site.approachY-site.y+.02,near=site.floorOffset,len=3,ramp=new THREE.Mesh(new THREE.BoxGeometry(1.1,.08,len),M.stone);
+  ramp.position.set(0,(near+far)/2,1.7+len/2);ramp.rotation.x=Math.atan2(near-far,len);ramp.receiveShadow=ramp.castShadow=true;support.add(ramp);
+ }
+ BLD_DECAL[bid].visible=!(site.ok&&site.needsRamp);BLD_DECAL[bid].position.set(x,workshopGroundY(x,z)+.02,z);
+}
+function workshopWalkY(x,z){
+ let y=workshopGroundY(x,z);
+ for(const [bid,B] of Object.entries(buildings)){
+  const site=B.site;if(!site?.ok||!site.needsRamp)continue;
+  const [bx,bz]=BUILD_SPOT[bid],t=(z-(bz+1.7))/3;
+  if(Math.abs(x-bx)>.55||t<0||t>1)continue;
+  y=Math.max(y,site.floorY+(site.approachY-site.floorY)*t);
+ }
+ return y;
+}
+function syncBuildings() {
+  for (const bid of Object.keys(G.BUILDINGS)) {
+    const owned = GS().buildings[bid].owned, B = buildings[bid] || (buildings[bid] = {}), [x, z] = BUILD_SPOT[bid];
+    if (B.owned !== owned || !B.g) {
+      if (B.g) scene.remove(B.g);
+      B.g = owned ? makeWorkshop(bid) : makeLot(bid); B.g.userData.hit = {type:owned ? "building" : "lot", bid}; B.g.userData.edit = "b:" + bid; scene.add(B.g); B.owned = owned;syncWorkshopGround(bid,x,z);
+      if (owned) { B.bub = bubble("🍞"); B.bub.position.set(0, 4.6, 0); B.g.add(B.bub); }
+    }
+    if (!owned) { const b = G.BUILDINGS[bid], open = GS().level >= b.lvl; B.g.userData.sign.userData.set([b.e + " " + b.n, open ? b.cost + " 🪙" : "🔒 Level " + b.lvl]);
+      // a floating 🔨 over a lot you're allowed to build on, so it doesn't look like just an empty patch
+      if (!B.g.userData.buy) { const bb = bubble("🔨"); bb.position.set(0, 3.3, .6); bb.scale.setScalar(1.1); B.g.add(bb); B.g.userData.buy = bb; }
+      B.g.userData.buy.visible = open; }
+  }
+}
+// chimney smoke while a building is busy, and a bubble with the goods when something is ready
+const smokeMat = new THREE.SpriteMaterial({map:radial("rgba(235,235,235,.9)"), transparent:true, depthWrite:false, opacity:.5});
+const puffs = [];
+function updateBuildings(t, dt) {
+  for (const bid of Object.keys(buildings)) {
+    const B = buildings[bid]; if (!B.owned) continue;
+    const jobs = GS().buildings[bid].jobs, done = jobs.find(j => j.end <= nowMs()), busy = jobs.some(j => j.end > nowMs());
+    if (done) { B.bub.material = emoteMat(G.ITEMS[done.r].e); B.bub.visible = true; B.bub.position.y = 4.6 + Math.sin(t * 3) * .08; } else B.bub.visible = false;
+    if (busy && B.g.userData.chimney && Math.random() < dt * 2.5) { const s = new THREE.Sprite(smokeMat.clone()); s.position.copy(B.g.userData.chimney).add(B.g.position); s.userData.t = 0; s.scale.setScalar(.3); scene.add(s); puffs.push(s); }
+  }
+  for (let k = puffs.length - 1; k >= 0; k--) { const s = puffs[k]; s.userData.t += dt; s.position.y += dt * .7; s.position.x += dt * .25 * (1 + wind); s.scale.setScalar(.3 + s.userData.t * .55); s.material.opacity = .45 * (1 - s.userData.t / 2.4);
+    if (s.userData.t > 2.4) { scene.remove(s); s.material.dispose(); puffs.splice(k, 1); } }
+}
+
+// ---------- order board, daily gift, roadside stall ----------
+function makeBoard() {
+  const g = new THREE.Group();
+  for (const x of [-1.1, 1.1]) g.add(box(.16, 2.3, .16, M.fence, x, 1.15, 0));
+  g.add(box(2.5, 1.4, .1, std({map:tex(planks([30, 38, 46], 5)[0], 1), roughness:.85}), 0, 1.45, 0));
+  g.add(box(2.8, .1, .5, M.roof, 0, 2.35, 0));
+  const papers = [];
+  for (let k = 0; k < 6; k++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.52, .44), std({color:0xfffbee, roughness:.9})); p.position.set(-.8 + (k % 3) * .8, 1.75 - Math.floor(k / 3) * .6, .06); p.rotation.z = (k % 2 ? .06 : -.05); g.add(p); papers.push(p); }
+  const head = new THREE.Mesh(new THREE.PlaneGeometry(1.5, .5), new THREE.MeshStandardMaterial({map:signTexture(["📋 Orders"], 512, 170), roughness:.8, emissive:0xffffff, emissiveIntensity:.12}));
+  head.material.emissiveMap = head.material.map; head.position.set(0, 2.6, .05); g.add(head);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  g.userData.papers = papers;
+  return mergeStatic(g, (o) => papers.includes(o));
+}
+const board = makeBoard(); board.position.set(3.3, 0, 11.4); board.rotation.y = -.35; board.userData.hit = {type:"board"}; scene.add(board); contact(3.3, 11.4, 3.2, 1.6);
+const boardBub = bubble("🚚"); boardBub.position.set(0, 3.4, 0); board.add(boardBub);
+function makeGift() {
+  const g = new THREE.Group(), red = std({color:0xd8342c, roughness:.5}), gold = std({color:0xf5c542, roughness:.35, metalness:.3});
+  g.add(box(.6, .5, .6, red, 0, .25, 0), box(.66, .12, .66, red, 0, .53, 0), box(.1, .52, .62, gold, 0, .27, 0), box(.62, .52, .1, gold, 0, .27, 0));
+  const bow = new THREE.Mesh(new THREE.TorusGeometry(.12, .04, 8, 16), gold); bow.position.set(-.1, .66, 0); bow.rotation.y = .6; g.add(bow);
+  const bow2 = bow.clone(); bow2.position.x = .1; bow2.rotation.y = -.6; g.add(bow2);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return mergeStatic(g);
+}
+const gift = makeGift(); gift.position.set(1.9, 0, 12.3); gift.userData.hit = {type:"gift"}; gift.add(hitProxy(1.3, 1.4, 1.3, 0, .7, 0)); scene.add(gift); // a small box: a bigger area to tap
+BLOCKS.push([3.3, 11.4, 1.5, .6], [1.9, 12.3, .4, .4]); clearGrass(3.3, 11.4, 1.4, "board");
+function makeStall() {
+  const g = new THREE.Group(), wood = M.fence;
+  g.add(box(2.6, .1, 1.1, wood, 0, .9, 0), box(2.6, .8, .08, wood, 0, .45, .5));
+  for (const x of [-1.25, 1.25]) for (const z of [-.5, .5]) g.add(box(.1, 2.2, .1, wood, x, 1.1, z));
+  const [c] = canvas(256), x = c.getContext("2d"); for (let k = 0; k < 8; k++) { x.fillStyle = k % 2 ? "#fff6e6" : "#d8453a"; x.fillRect(k * 32, 0, 32, 256); }
+  const awn = new THREE.Mesh(new THREE.BoxGeometry(2.9, .06, 1.5), std({map:new THREE.CanvasTexture(c), roughness:.8})); awn.material.map.colorSpace = THREE.SRGBColorSpace;
+  awn.position.set(0, 2.2, .1); awn.rotation.x = .22; g.add(awn);
+  const head = new THREE.Mesh(new THREE.PlaneGeometry(1.6, .45), new THREE.MeshStandardMaterial({map:signTexture(["🏪 Farm Shop"], 512, 150), roughness:.8, emissive:0xffffff, emissiveIntensity:.12}));
+  head.material.emissiveMap = head.material.map; head.position.set(0, 2.55, .75); g.add(head);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  const goods = []; for (let k = 0; k < 8; k++) { const s = bubble("🌾"); s.material = emoteMat("🌾"); s.scale.setScalar(.42); s.position.set(-1 + (k % 4) * .66, 1.2, -.1 + Math.floor(k / 4) * .38); g.add(s); goods.push(s); }
+  g.userData.goods = goods;
+  return mergeStatic(g);
+}
+const stall = makeStall(); stall.position.set(3.7, 0, 22.6); stall.rotation.y = -.3; stall.userData.hit = {type:"stand"}; scene.add(stall); contact(3.7, 22.6, 3.4, 2);
+BLOCKS.push([3.7, 22.6, 1.5, .8]); clearGrass(3.7, 22.6, 1.4, "stand");
+function syncStand() {
+  const list = GS().stand.list;
+  stall.userData.goods.forEach((s, k) => { const L = list[k]; s.visible = !!L; if (L) s.material = emoteMat(L.sellAt <= nowMs() ? "💰" : G.ITEMS[L.id].e); });
+}
+
+// ---------- a villager visiting, waiting by the path with a request ----------
+const visitorCard = new THREE.Group(); visitorCard.position.set(1.3, 0, 16.2); visitorCard.visible = false; visitorCard.userData.hit = {type:"visitor"}; scene.add(visitorCard);
+const visitorFace = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.05), new THREE.MeshStandardMaterial({alphaTest:.35, side:THREE.DoubleSide, emissive:0xffffff, emissiveIntensity:.35, roughness:.8}));
+visitorFace.position.y = 1.5; visitorCard.add(visitorFace);
+// a simple coat under the face, in each villager's own colour
+const visitorBody = new THREE.Mesh(new THREE.CylinderGeometry(.24, .42, 1.05, 14), std({color:0xcc6677, roughness:.8})); visitorBody.position.y = .52; visitorBody.castShadow = true; visitorCard.add(visitorBody);
+visitorCard.add(hitProxy(1.1, 2.1, .9, 0, 1.05, 0));
+const visitorBub = bubble("❗"); visitorBub.visible = true; visitorBub.position.set(0, 2.45, 0); visitorCard.add(visitorBub);
+const VILLAGER_COAT = {rosa:0xd9788f, joe:0x8a6a48, mia:0xf2c14e, sam:0x4f8a4a, lily:0x8e6bc2};
+function syncVisitor() {
+  const v = GS().visitor, V = v && G.VILLAGERS[v.id];
+  visitorCard.visible = !!V && !visiting;
+  if (Live3D && V && visitorCard.userData.who !== v.id) {
+    if (visitorCard.userData.who !== v.id) {
+      visitorCard.userData.live = Live3D.replaceRig(visitorCard, visitorCard.userData.live, Live3D.createLiveVillager(VILLAGER_COAT[v.id] || 0xcc6677));
+      visitorCard.userData.who = v.id; visitorFace.visible = false; visitorBody.visible = false;
+    }
+  }
+  if (V && visitorFace.userData.e !== V.e) { const t = emojiTexture(V.e); visitorFace.material.map = t; visitorFace.material.emissiveMap = t; visitorFace.material.needsUpdate = true; visitorFace.userData.e = V.e; visitorBody.material.color.set(VILLAGER_COAT[v.id] || 0xcc6677); }
+  if (V) { const ok = G.hasAll ? G.hasAll(v.items) : false, e = ok ? "🎁" : "❗"; if (visitorBub.userData.e !== e) { visitorBub.material = emoteMat(e); visitorBub.userData.e = e; } }
+}
+
+// ---------- pen signs: "Chicken coop · 100 🪙" until the pen is bought ----------
+const yardSign = makeSign(["", ""], 1.6, .8); yardSign.position.set(-8.4, 0, 5.8); yardSign.userData.hit = {type:"penSign", area:"yard"}; scene.add(yardSign);
+const paddockSign = makeSign(["", ""], 1.6, .8); paddockSign.position.set(7.2, 0, 11.2); paddockSign.rotation.y = -.25; paddockSign.userData.hit = {type:"penSign", area:"paddock"}; scene.add(paddockSign);
+const nextPen = (area) => (area === "yard" ? ["chicken"] : ["cow", "horse", "sheep"]).filter(k => !(GS().pens[k] || {}).owned).sort((a, b) => G.ANIMALS[a].lvl - G.ANIMALS[b].lvl)[0];
+function syncPenSigns() {
+  for (const [sg, area] of [[yardSign, "yard"], [paddockSign, "paddock"]]) {
+    const k = nextPen(area); sg.visible = !!k; if (!k) continue;
+    const a = G.ANIMALS[k]; sg.userData.set([a.e + " " + a.pen, GS().level >= a.lvl ? a.penCost + " 🪙" : "🔒 Level " + a.lvl]);
+  }
+}
+
+// ---------- decorations: solid world props, with fixed placed orientation ----------
+const decorObjs = [];
+const utilityLights = installUtilityLights(scene);
+let moving = null; // the decoration being moved: {j, obj, x, z (last free spot), id (finger dragging it), ok}
+const emojiTex = {};
+function emojiTexture(e) {
+  if (emojiTex[e]) return emojiTex[e];
+  const [c, x] = canvas(256); x.font = '210px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 128, 140);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return (emojiTex[e] = t);
+}
+function makePine(seed) {
+  const g = new THREE.Group(), R = rng(seed), leaf = std({color:0x2f5a34, roughness:.85});
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(.12, .18, 1.2, 8), M.bark || M.fence)); g.children[0].position.y = .6;
+  for (let k = 0; k < 4; k++) { const cone = new THREE.Mesh(new THREE.ConeGeometry(1.25 - k * .25, 1.3, 9), leaf); cone.position.y = 1.2 + k * .62; cone.rotation.y = R() * 7; g.add(cone); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return g;
+}
+const decorationGroundRay = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0,-1,0));
+function decorationGroundY(x,z,footprint=1.05) {
+  let y=-Infinity; const r=footprint*.5;
+  for(const [dx,dz] of [[0,0],[-r,-r],[-r,r],[r,-r],[r,r]]) {
+    decorationGroundRay.ray.origin.set(x+dx,25,z+dz);
+    const hit=decorationGroundRay.intersectObject(ground,false)[0];
+    if(hit)y=Math.max(y,hit.point.y);
+  }
+  return Number.isFinite(y)?y:groundY(x,z);
+}
+const decorationClears = new Map();
+function syncDecorationClearings() {
+  const next=new Map();
+  GS().decor.placed.forEach((d,j)=>{if(!G.DECOR[d.id]?.tree)next.set('solid-decor:'+j,[d.x,d.z,G.DECOR[d.id].size===2?1.5:.95]);});
+  holidayObjs.forEach((o,j)=>next.set('holiday-prop:'+j,[o.position.x,o.position.z,.8]));
+  for(const [key,[x,z]] of decorationClears)if(!next.has(key)){moveClear(key,x,z,0);CLEARS.delete(key);}
+  for(const [key,value] of next){const old=decorationClears.get(key);if(!old||value.some((n,i)=>n!==old[i]))moveClear(key,...value);}
+  decorationClears.clear();for(const [key,value]of next)decorationClears.set(key,value);
+}
+function makeDecor(d) {
+  const D = G.DECOR[d.id], size = D.size || 1, g = new THREE.Group(), solid = (d.id==="utilitylamp"?createUtilityLamp():null) || createHolidayDecoration(d.id,{height:size===2?2.3:1.15,footprint:size===2?2.1:1.05}) || createFarmDecoration(d.id,{height:size===2?2.3:1.15,footprint:size===2?2.1:1.05});
+  if (solid) { g.add(solid); if(solid.userData.utilityLamp)g.userData.utilityLamp=solid.userData.utilityLamp; g.userData.solidHoliday=!!D.hol; g.userData.solidDecoration=true; }
+  else if (D.tree === "oak") { const t = makeTree(40 + (d.x * 7 | 0)); t.scale.setScalar(.55); g.add(t); mergeStatic(t, keepCanopy(t)); }
+  else if (D.tree === "pine") g.add(mergeStatic(makePine(50 + (d.x * 7 | 0))));
+  else throw Error('Missing solid decoration model: '+d.id);
+  if(solid&&(d.id==='blossom'||d.id==='maple')){
+    const leafColours=new Set(d.id==='maple'?[0xdb812f,0xe5b04c,0xb94c43]:[0x669345,0xd987a4,0xf1e3bb]);
+    solid.traverse(o=>{if(o.isMesh&&leafColours.has(o.material.color.getHex())){o.material.color.set(0xffffff);o.material.vertexColors=true;seasonalLeaves.register(o.geometry,40+(d.x*7|0));}});
+  }
+  const shadow=contact(0, 0, size * 1.3, size * 1.3, g);
+  if(D.tree==="oak")g.userData.dispose=()=>g.traverse(o=>{if(o.geometry)o.geometry.dispose();});
+  if(solid){let disposed=false;g.userData.dispose=()=>{if(disposed)return;disposed=true;solid.userData.dispose();shadow.geometry.dispose();};}
+  g.position.set(d.x, solid?decorationGroundY(d.x,d.z,size===2?2.1:1.05):0, d.z);
+  if(solid)g.rotation.y=Number.isFinite(d.rotation)?d.rotation:0;
+  g.userData.hit = {type:"decor"};
+  return g;
+}
+function syncDecor() {
+  for (const o of decorObjs) { scene.remove(o); o.userData.dispose?.(); } decorObjs.length = 0;
+  GS().decor.placed.forEach((d, j) => { const o = makeDecor(d); o.userData.hit.j = j; o.userData.edit = "d:" + j; scene.add(o); o.updateMatrixWorld(true); decorObjs.push(o); });
+  syncDecorationClearings();
+  utilityLights.setLamps(decorObjs);
+  if (moving) { const o = decorObjs[moving.j]; if (o) { moving.obj = o; o.position.set(moving.x, (o.userData.solidDecoration?decorationGroundY(moving.x,moving.z):0)+.3, moving.z); } else endMove(false); } // the farm changed mid-move
+}
+// is this spot free for a decoration of this size (not on buildings, fields, pens, the path or other decorations)?
+function spotFree(x, z, size, skip = -1) {
+  const r = size === 2 ? 1.2 : .6;
+  if (!onFarm(x,z,24)||dairyPath.contains(x,z,r)) return false;
+  if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,decor:[{x,z,r}]}).length)return false;
+  if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{decor:[{x,z,r}]}).length))return false;
+  if (BLOCKS.some(([bx, bz, hw, hd]) => Math.abs(x - bx) < hw + r && Math.abs(z - bz) < hd + r)) return false;
+  if (PEN_LIST.some(p => inPen(p, x, z, -r - .3))) return false;
+  if (Math.abs(x) < 2.3 + r && z > 5.5 && z < 24) return false; // the path
+  return !GS().decor.placed.some((d, j) => j !== skip && Math.hypot(d.x - x, d.z - z) < r + ((G.DECOR[d.id].size || 1) === 2 ? 1.2 : .6));
+}
+
+// ================= walk around in first person, and rearrange the farm =================
+// Walk: the camera drops to eye height (1.8 m). A thumbstick (or WASD / arrow keys) walks, dragging the screen looks around.
+// You bump into buildings, fences, bushes and decorations but can walk across the fields. Taps still harvest, plant and pet.
+const EYE = 1.6, WALK_R = .35, FIELD_BLOCKS = new Set(BLOCKS.filter(b => b[0] === -10 && (b[1] === 12 || b[1] === 17.5)));
+const throwBtn = document.getElementById("throwBtn"), walkBar = document.getElementById("walkBar"), editBar = document.getElementById("editBar"), stick = document.getElementById("stick"), knob = stick.querySelector("i");
+function setWalk(on, startAt, fp) {
+  if (!!walk === on) return;
+  if (on) {
+    if (editMode) setEdit(false);
+    closeTrays(); G.close(); if (moving) endMove(true);
+    // start under where the camera was looking; if that's inside a building or a pen, start on the path facing the barn
+    const want = startAt ? startAt.clone() : new THREE.Vector2(cam.target.x, cam.target.z), p = collideWalker(outOfPens(want.clone(), .8));
+    const onPath = p.distanceTo(want) > 1.5 || PEN_LIST.some(pen => inPen(pen, p.x, p.y, -.4));
+    walk = {pos:onPath && !startAt ? collideWalker(new THREE.Vector2(-1.4, 11)) : p, yaw:onPath && !startAt ? 0 : cam.yaw, pitch:-.1, vel:new THREE.Vector2(), walked:0, bob:0, fp:!!fp};
+    farmer.rotation.y = walk.yaw; if (fp) thirdPerson = false; else { try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {} }
+    pad.hidden = false; document.body.classList.toggle("fp", !!fp);
+    { const hn = document.getElementById("walkHint"); hn.classList.remove("fade"); hn.hidden = false; clearTimeout(hn.t1); clearTimeout(hn.t2);
+      hn.t1 = setTimeout(() => hn.classList.add("fade"), 3500); hn.t2 = setTimeout(() => { hn.hidden = true; }, 4400); }
+    document.body.classList.add("walking"); walkBar.hidden = stick.hidden = throwBtn.hidden = false;
+    renderer.domElement.focus({preventScroll:true});
+    ultra(true);
+  } else {
+    const w = walk; walk = null;
+    cam.target.set(w.pos.x, 2.5, w.pos.y); cam.yaw = w.yaw; // the farm view comes back over the spot you walked to, facing the same way
+    Object.assign(view, {yaw:w.yaw, pitch:.15, dist:10}); view.target.set(w.pos.x, EYE, w.pos.y);
+    joy.x = joy.y = 0; knob.style.transform = ""; keys.clear();
+    document.body.classList.remove("walking", "fp"); walkBar.hidden = stick.hidden = throwBtn.hidden = true; pad.hidden = true; document.getElementById("walkHint").hidden = true;
+    farmer.position.set(w.pos.x, 0, w.pos.y); farmer.rotation.y = w.yaw; // the farmer stays where you stopped walking
+    joyF = lookF = null; joy.run = false; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = ""; G.windRush(0);
+    if (inBarn) { inBarn = null; barnFade.classList.remove("on"); doorWant = 0; }
+    ultra(false);
+  }
+  G.sfx("pop");
+}
+function updateWalk(dt) {
+  const w = walk; let ix = joy.x, iy = joy.y;
+  if (keys.has("KeyW") || keys.has("ArrowUp")) iy += 1;
+  if (keys.has("KeyS") || keys.has("ArrowDown")) iy -= 1;
+  if (keys.has("KeyA")) ix -= 1;
+  if (keys.has("KeyD")) ix += 1;
+  if (keys.has("ArrowLeft") || keys.has("KeyQ")) w.yaw += dt * 1.8;
+  if (keys.has("ArrowRight")) w.yaw -= dt * 1.8;
+  const n = Math.hypot(ix, iy); if (n > 1) { ix /= n; iy /= n; }
+  const running = keys.has("ShiftLeft") || keys.has("ShiftRight") || joy.run, sp = running ? 6 : 3.4;
+  const sp_ = sp, s = Math.sin(w.yaw), c = Math.cos(w.yaw), k = Math.min(1, dt * 10);
+  w.vel.x += ((-s * iy + c * ix) * sp - w.vel.x) * k; w.vel.y += ((-c * iy - s * ix) * sp - w.vel.y) * k; // ease into and out of a walk
+  const ox = w.pos.x, oz = w.pos.y;
+  w.pos.x += w.vel.x * dt; w.pos.y += w.vel.y * dt; collideWalker(w.pos);
+  const moved = Math.hypot(w.pos.x - ox, w.pos.y - oz); w.walked += moved;
+  w.bob += ((G.PREFS.bob === false || G.reducedMotion() ? 0 : Math.sin(w.walked * 4.4) * .045) * Math.min(1, moved / Math.max(dt, 1e-3) / 3) - w.bob) * Math.min(1, dt * 12); // Settings or device reduced motion can turn it off
+  // footsteps: grass, dirt (fields and the path) or wood (the stall and the order board), faster when running
+  // The stride is driven by the ground really covered (walls stop it), and lengthens from a .72 m walking step to a
+  // 1.05 m running step; each footstep sound lands as a foot does.
+  const speed = moved / Math.max(dt, 1e-3); w.gspd = (w.gspd || 0) + (speed - (w.gspd || 0)) * Math.min(1, dt * 10); w.gdt = dt;
+  w.grun = THREE.MathUtils.clamp((w.gspd - 3.6) / 1.8, 0, 1);
+  const stepLen = THREE.MathUtils.lerp(.72, 1.05, w.grun), half = Math.floor((w.gait || 0) * 2);
+  w.gait = (w.gait || 0) + moved / (2 * stepLen);
+  if (Math.floor(w.gait * 2) !== half) G.step(surfaceAt(w.pos.x, w.pos.y), speed > 4.5);
+  w.gait %= 1;
+  G.windRush(!thirdPerson && speed > 4.5 ? Math.min(1, (speed - 4.5) / 1.5) : 0); // air rushing past when you run
+}
+// push a walker (a circle on the ground) out of buildings, bushes, fences and decorations, and keep it on the farm
+function collideWalker(p, r = WALK_R) {
+  for (let it = 0; it < 3; it++) {
+    for (const b of BLOCKS) {
+      if (FIELD_BLOCKS.has(b)) continue;
+      const [bx, bz, hw, hd] = b, dx = p.x - THREE.MathUtils.clamp(p.x, bx - hw, bx + hw), dz = p.y - THREE.MathUtils.clamp(p.y, bz - hd, bz + hd), d = Math.hypot(dx, dz);
+      if (d >= r) continue;
+      if (d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); continue; }
+      const ox = hw + r - Math.abs(p.x - bx), oz = hd + r - Math.abs(p.y - bz); // inside the box: out the nearest side
+      if (ox < oz) p.x += (p.x >= bx ? 1 : -1) * ox; else p.y += (p.y >= bz ? 1 : -1) * oz;
+    }
+    for (const [ax, az, bx, bz] of fenceSegs) {
+      const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((p.x - ax) * ex + (p.y - az) * ez) / (ex * ex + ez * ez || 1), 0, 1);
+      const dx = p.x - (ax + ex * u), dz = p.y - (az + ez * u), d = Math.hypot(dx, dz);
+      if (d < r && d > 1e-5) { p.x += dx / d * (r - d); p.y += dz / d * (r - d); }
+    }
+    for (const q of GS().decor.placed) {
+      const rr = ((G.DECOR[q.id] || {}).size === 2 ? .9 : .3) + r, dx = p.x - q.x, dz = p.y - q.z, d = Math.hypot(dx, dz);
+      if (d < rr && d > 1e-5) { p.x += dx / d * (rr - d); p.y += dz / d * (rr - d); }
+    }
+  }
+  [p.x,p.y]=clampToFarm(p.x,p.y,40);
+  return p;
+}
+// ---------- the farmer: you, in walk mode, seen from just behind (👁️ switches to your own eyes) ----------
+// Built from the player's wardrobe choices (game.js WARDROBE); rebuilt whenever they change something.
+let hands = null; // first-person mitten hands (made further down)
+const farmer = new THREE.Group(); farmer.visible = false; scene.add(farmer);
+farmer.userData.hit = {type:"farmer"};
+function buildFarmer(L = G.lookOf(GS())) {
+  if (Live3D) {
+    const previous = farmer.userData.live;
+    if (previous) { farmer.remove(previous.g); previous.dispose(); }
+    for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+    const lookState = L || G.lookOf(GS()), opt = (cat) => G.WARDROBE[cat].opts[lookState[cat]] || G.WARDROBE[cat].opts[0];
+    const rig = Live3D.createLiveFarmer({skin:opt('skin')[1], hair:opt('hair')[1], hairColor:opt('hairColor')[1], shirt:opt('shirt')[1], hat:opt('hat')[1], overalls:opt('overalls')[1], overallColor:opt('overallColor')[1], boots:opt('boots')[1]}); farmer.add(rig.g); farmer.add(hitProxy(.8, 2.1, .8, 0, 1.05, 0));
+    farmer.userData.live = rig; farmer.userData.legs = rig.legs; farmer.userData.body = rig.g;
+    rig.setWardrobe(!!wardrobeOn);
+    if (hands) { hands.userData.sleeve.color.set(opt('shirt')[1]); hands.userData.skin.color.set(opt('skin')[1]); }
+    return;
+  }
+  const W = G.WARDROBE, pick = (cat) => W[cat].opts[L[cat]] || W[cat].opts[0];
+  for (const c of [...farmer.children]) { farmer.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  const g = new THREE.Group(); farmer.add(g);
+  const col = (c) => std({color:c, roughness:.82});
+  const skin = col(pick("skin")[1]), shirt = col(pick("shirt")[1]), hairC = col(pick("hairColor")[1]), boot = col(pick("boots")[1]);
+  const over = pick("overalls")[1], denim = col(over ? pick("overallColor")[1] : 0x8b7355), dark = std({color:0x2a1c12, roughness:.6});
+  const part = (geo, mat, x, y, z, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; };
+  // legs bend at the knee (each leg: hip pivot › thigh, knee pivot › shin and boot)
+  const knees = [], legs = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .11, .8, 0); g.add(p);
+    part(new THREE.CylinderGeometry(.085, .08, .38, 10), denim, 0, -.19, 0, p);
+    const kn = new THREE.Group(); kn.position.y = -.36; p.add(kn); knees.push(kn);
+    part(new THREE.CylinderGeometry(.08, .075, .36, 10), denim, 0, -.17, 0, kn); part(new THREE.BoxGeometry(.16, .11, .28), boot, 0, -.38, -.05, kn); return p; });
+  // everything above the belt twists and leans as one, against the hips
+  const torso = new THREE.Group(); torso.position.y = .8; g.add(torso);
+  part(new THREE.CylinderGeometry(.2, .19, .5, 14), over ? denim : shirt, 0, .23, 0, torso);   // overalls (or the shirt tucked into trousers)
+  part(new THREE.CylinderGeometry(.2, .2, .3, 14), shirt, 0, .6, 0, torso);                   // shirt
+  if (over) { part(new THREE.BoxGeometry(.3, .22, .05), denim, 0, .53, -.19, torso); for (const sd of [-1, 1]) part(new THREE.BoxGeometry(.05, .3, .42), denim, sd * .1, .62, 0, torso); }
+  else part(new THREE.CylinderGeometry(.205, .205, .06, 14), dark, 0, .8, 0);            // belt
+  const arms = [-1, 1].map(sd => { const p = new THREE.Group(); p.position.set(sd * .26, .7, 0); torso.add(p);
+    part(new THREE.CylinderGeometry(.062, .056, .56, 8), shirt, 0, -.28, 0, p); part(new THREE.SphereGeometry(.068, 10, 8), skin, 0, -.58, 0, p); return p; });
+  part(new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, .8, 0, torso);                  // neck
+  const head = new THREE.Group(); head.position.set(0, .98, 0); torso.add(head);
+  part(new THREE.SphereGeometry(.19, 18, 14), skin, 0, 0, 0, head);
+  for (const sd of [-1, 1]) part(new THREE.SphereGeometry(.025, 8, 6), dark, sd * .07, .02, -.175, head); // eyes (the farmer faces -z)
+  const smile = part(new THREE.TorusGeometry(.05, .01, 5, 12, Math.PI), dark, 0, -.06, -.178, head); smile.rotation.z = Math.PI;
+  // hair
+  const hs = pick("hair")[1], cap = (r, y, sy, back = 0) => { const m = part(new THREE.SphereGeometry(r, 16, 12, 0, Math.PI * 2, 0, Math.PI * .56), hairC, 0, y, back, head); m.scale.y = sy; return m; };
+  if (hs === "buzz") cap(.196, .005, 1);
+  else if (hs === "curly") { for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = .16; part(new THREE.SphereGeometry(.07, 8, 6), hairC, Math.cos(a) * r, .1 + (k % 2) * .04, Math.sin(a) * r * .9 + .02, head); } part(new THREE.SphereGeometry(.1, 10, 8), hairC, 0, .17, .02, head); }
+  else {
+    cap(.205, .01, 1.05, .01);
+    if (hs === "long") part(new THREE.BoxGeometry(.36, .42, .1), hairC, 0, -.16, .12, head);
+    if (hs === "bob") { const b2 = part(new THREE.CylinderGeometry(.215, .22, .2, 16, 1, true), hairC, 0, -.04, .01, head); b2.material = hairC; }
+    if (hs === "pony") { const t = part(new THREE.CylinderGeometry(.05, .03, .36, 8), hairC, 0, -.1, .23, head); t.rotation.x = -.35; }
+    if (hs === "bun") part(new THREE.SphereGeometry(.09, 10, 8), hairC, 0, .14, .17, head);
+    if (hs === "braids") for (const sd of [-1, 1]) { const t = part(new THREE.CylinderGeometry(.035, .025, .4, 8), hairC, sd * .16, -.24, -.02, head); t.rotation.z = sd * .12; }
+  }
+  // hat
+  const ht = pick("hat")[1], straw = std({color:0xe8c86a, roughness:.9});
+  if (ht === "straw") { part(new THREE.CylinderGeometry(.37, .39, .03, 22), straw, 0, .12, 0, head); part(new THREE.CylinderGeometry(.17, .2, .17, 16), straw, 0, .21, 0, head);
+    const band = part(new THREE.TorusGeometry(.195, .02, 6, 20), shirt, 0, .16, 0, head); band.rotation.x = Math.PI / 2; }
+  if (ht === "cap") { part(new THREE.SphereGeometry(.21, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), shirt, 0, .06, 0, head); const br = part(new THREE.CylinderGeometry(.16, .16, .02, 16, 1, false, 0, Math.PI), shirt, 0, .07, -.12, head); br.rotation.y = Math.PI / 2; br.scale.set(1, 1, 1.2); }
+  if (ht === "beanie") { part(new THREE.SphereGeometry(.215, 16, 10, 0, Math.PI * 2, 0, Math.PI * .55), shirt, 0, .04, 0, head); part(new THREE.CylinderGeometry(.215, .215, .07, 16), col(0xf1e6cf), 0, .03, 0, head); part(new THREE.SphereGeometry(.05, 8, 6), col(0xf1e6cf), 0, .26, 0, head); }
+  if (ht === "cowboy") { const leather = col(0x7a4b28); const br = part(new THREE.CylinderGeometry(.42, .42, .03, 24), leather, 0, .1, 0, head); br.scale.set(1, 1, .85);
+    for (const sd of [-1, 1]) { const e = part(new THREE.BoxGeometry(.12, .03, .5), leather, sd * .38, .15, 0, head); e.rotation.z = sd * -.5; }
+    part(new THREE.CylinderGeometry(.16, .2, .22, 16), leather, 0, .22, 0, head); part(new THREE.TorusGeometry(.19, .018, 6, 20), dark, 0, .13, 0, head).rotation.x = Math.PI / 2; }
+  if (ht === "flowers") { const fc = [0xf28bb5, 0xffe066, 0xffffff, 0xb48cf2, 0xff9a5a]; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; part(new THREE.SphereGeometry(.045, 8, 6), col(fc[k % fc.length]), Math.cos(a) * .19, .1, Math.sin(a) * .19, head); }
+    const vine = part(new THREE.TorusGeometry(.19, .015, 6, 24), col(0x5ea64a), 0, .09, 0, head); vine.rotation.x = Math.PI / 2; }
+  // an invisible box to tap (the classic view: tap the farmer to open the wardrobe)
+  const hb = hitProxy(.8, 2.1, .8, 0, 1.05, 0); g.add(hb);
+  g.traverse(o => { if (o.isMesh && o !== hb) o.receiveShadow = true; });
+  farmer.userData.legs = legs; farmer.userData.knees = knees; farmer.userData.torso = torso; farmer.userData.arms = arms; farmer.userData.head = head; farmer.userData.body = g;
+  if (hands) hands.userData.sleeve.color.set(pick("shirt")[1]), hands.userData.skin.color.set(pick("skin")[1]);
+}
+let thirdPerson = true; try { thirdPerson = localStorage.getItem("sa3d-pov") !== "eyes"; } catch (e) {}
+document.getElementById("povBtn").addEventListener("click", () => { thirdPerson = !thirdPerson; try { localStorage.setItem("sa3d-pov", thirdPerson ? "farmer" : "eyes"); } catch (e) {} G.sfx("pop"); });
+// Walking and running poses from the stride (walk.gait, 0..1 per two steps): legs swing opposite the arms, the
+// swinging leg bends at the knee, the shoulders twist against the hips, and running leans in with bigger, bent strides.
+// Starts and stops ease through an envelope from the real speed, so nothing snaps or slides on the spot.
+function poseFarmerGait(w) {
+  const U = farmer.userData; if (U.live) { Live3D.updateLiveFarmer(U.live, 0, -(w.gspd || 0) * (w.gdt || .016), w.gdt || .016, punch ? 'interact' : (w.gspd || 0) > .2 ? 'walk' : 'idle', {phase:w.gait, run:w.grun, reach:punch ? Math.sin(punch.t / .45 * Math.PI) : 0}); return 0; }
+  if (!U.legs) return 0;
+  const env = w.genv = (w.genv || 0) + (THREE.MathUtils.smoothstep(w.gspd || 0, .15, 1.6) - (w.genv || 0)) * Math.min(1, (w.gdt || .016) * 12);
+  const run = w.grun || 0, c = (w.gait || 0) * Math.PI * 2, sn = Math.sin(c), cs = Math.cos(c);
+  const hip = THREE.MathUtils.lerp(.42, .72, run) * env, kneeBend = THREE.MathUtils.lerp(.55, 1.25, run) * env;
+  for (let i = 0; i < 2; i++) {
+    const sd = i ? -1 : 1, swing = sn * sd, fwd = cs * sd; // fwd > 0 while this leg travels forward (in the air)
+    U.legs[i].rotation.x = swing * hip + run * .12 * env;
+    U.knees[i].rotation.x = -(Math.max(0, fwd) * kneeBend + (.08 + .25 * run) * env);
+    U.arms[i].rotation.x = -swing * THREE.MathUtils.lerp(.5, .85, run) * env + run * .35 * env; // runners carry their arms forward
+    U.arms[i].rotation.z = (i ? 1 : -1) * run * .12 * env;
+  }
+  U.torso.rotation.y = sn * THREE.MathUtils.lerp(.1, .16, run) * env;
+  U.torso.rotation.x = -THREE.MathUtils.lerp(.04, .2, run) * env;
+  U.torso.rotation.z = sn * .025 * env * (1 - run);
+  U.head.rotation.y = -U.torso.rotation.y * .8; // eyes stay on the road
+  // weight shifts over the planted foot (hips sway, the head tips a little against it) and the head settles on each footfall
+  U.body.position.x = sn * THREE.MathUtils.lerp(.024, .01, run) * env;
+  U.head.rotation.z = -sn * .035 * env * (1 - run * .5);
+  U.head.rotation.x = -U.torso.rotation.x * .6 + (Math.abs(cs) - .5) * .05 * env;
+  // the body rises as each leg passes under it (twice a stride) and sits a touch lower when running
+  return (Math.abs(cs) * THREE.MathUtils.lerp(.035, .08, run) - run * .05) * env;
+}
+function placeWalkCamera() {
+  const w = walk, gy = workshopWalkY(w.pos.x, w.pos.y), cp = Math.cos(w.pitch), fx = -Math.sin(w.yaw), fz = -Math.cos(w.yaw);
+  farmer.visible = thirdPerson;
+  if (thirdPerson) {
+    // turn the farmer toward where they're walking, and swing arms and legs with each step
+    const sp = w.vel.length();
+    if (sp > .3) { const want = Math.atan2(-w.vel.x, -w.vel.y); let d = want - farmer.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); farmer.rotation.y += d * .2; }
+    farmer.position.set(w.pos.x, gy + poseFarmerGait(w), w.pos.y);
+    const back = 4.3, up = 2.6 - w.pitch * 2.2; // tilting the view up or down swings the camera round the farmer's head
+    camera.position.set(w.pos.x - fx * back * cp, gy + up, w.pos.y - fz * back * cp);
+    camera.lookAt(w.pos.x + fx * 2, gy + 1.5 + w.pitch * 2, w.pos.y + fz * 2);
+  } else {
+    const y = gy + EYE + w.bob;
+    camera.position.set(w.pos.x, y, w.pos.y);
+    camera.lookAt(w.pos.x + fx * cp, y + Math.sin(w.pitch), w.pos.y + fz * cp);
+  }
+  sun.target.position.set(w.pos.x + fx * 9, 0, w.pos.y + fz * 9); // a tight shadow box around you, reaching ahead where you look
+  sun.position.copy(sun.target.position).addScaledVector(sunDir, 60);
+}
+// Ultra graphics while walking: full screen resolution, sharp shadows close by, crisp textures at glancing angles,
+// real distance haze instead of the miniature tilt-shift, and deeper surface detail on wood, stone and ground
+const ULTRA = {aniso:false, groundNormal:null};
+function ultra(on) {
+  if (on) {
+    // walking stays on dynamic resolution when the player picked Auto, so first person holds its frame rate on mid-range phones
+    const auto = (G.PREFS.quality || "auto") === "auto"; QUALITY.fps30 = false; QUALITY.cut = 0;
+    if (auto) { QUALITY.auto = true; QUALITY.pr = Math.min(DPR, 1.5); watchFrames(); } else { QUALITY.auto = false; QUALITY.pr = window.devicePixelRatio || 1; }
+    setShadow(2048); bloom.enabled = true; tiltH.enabled = tiltV.enabled = false;
+    Object.assign(sun.shadow.camera, {left:-14, right:14, top:14, bottom:-14}); sun.shadow.camera.updateProjectionMatrix();
+    if (!ULTRA.aniso) { maxAnisotropy(); ULTRA.aniso = true; }
+    boostNormals(true); walkLook();
+    camera.fov = 70; camera.near = .1; // eye level: a natural field of view, and crops can be seen up close
+    applySize();
+  } else {
+    Object.assign(sun.shadow.camera, {left:-24, right:24, top:24, bottom:-24}); sun.shadow.camera.updateProjectionMatrix();
+    boostNormals(false); walkLook();
+    camera.fov = innerWidth < innerHeight ? 50 : 38; camera.near = .1;
+    setQuality(G.PREFS.quality || "auto"); // also resizes the screen buffers
+  }
+}
+function walkLook() { if (scene.fog && P) scene.fog.density = visualFog(walk ? Math.max(P.fog * 2.2, .007) : P.fog); }
+function maxAnisotropy() {
+  const a = renderer.capabilities.getMaxAnisotropy();
+  scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k of ["map", "normalMap", "roughnessMap", "emissiveMap", "alphaMap"]) {
+    const t = m[k]; if (t && t.isTexture && t.anisotropy < a && t.image && t.image.width) { t.anisotropy = a; t.needsUpdate = true; } } });
+}
+function boostNormals(on) {
+  scene.traverse(o => { for (const m of [].concat(o.material || [])) if (m.normalMap && m.normalScale && m !== ground.material) {
+    if (!m.userData.ns0) m.userData.ns0 = m.normalScale.clone();
+    m.normalScale.copy(m.userData.ns0).multiplyScalar(on ? 2.6 : 1); } });
+  // the grass ground has no bump map of its own: the first time, make one from the grass photo
+  if (on && !ULTRA.groundNormal && groundTex.image && groundTex.image.width) {
+    const n = 512, [c, x] = canvas(n); x.drawImage(groundTex.image, 0, 0, n, n);
+    const d = x.getImageData(0, 0, n, n); for (let i = 0; i < d.data.length; i += 4) d.data[i] = d.data[i] * .3 + d.data[i + 1] * .59 + d.data[i + 2] * .11;
+    x.putImageData(d, 0, 0); ULTRA.groundNormal = tex(normalFrom(c, 3), 0, [40, 40]);
+  }
+  const gm = ground.material;
+  if (ULTRA.groundNormal && !!gm.normalMap !== on) { gm.normalMap = on ? ULTRA.groundNormal : null; gm.normalScale.set(1.8, 1.8); gm.needsUpdate = true; }
+}
+// the thumbstick
+let joyId = null;
+function moveJoy(e) {
+  const r = stick.getBoundingClientRect(), R = r.width / 2 - 10; let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; }
+  const m = Math.hypot(dx, dy) / R < .12 ? 0 : 1; joy.x = dx / R * m; joy.y = -dy / R * m; knob.style.transform = `translate(${dx}px,${dy}px)`;
+}
+stick.addEventListener("pointerdown", (e) => { joyId = e.pointerId; stick.setPointerCapture(e.pointerId); moveJoy(e); e.preventDefault(); });
+stick.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) moveJoy(e); });
+const endJoy = (e) => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ""; };
+stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
+addEventListener("keydown", (e) => {
+  if (animalPenEditing) return;
+  if (G.panel || (e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (["Enter","Space"].includes(e.code) && e.target.closest("button"))))) return;
+  if (e.code === "Escape") { setWalk(false); setEdit(false); }
+  if (walk) { keys.add(e.code); if (e.code.startsWith("Arrow") || e.code === "Space") e.preventDefault(); if ((e.code === "Space" || e.code === "KeyF") && !e.repeat) throwBait(); }
+});
+addEventListener("keyup", (e) => keys.delete(e.code));
+addEventListener("blur", () => keys.clear());
+
+// ================= Phase 6: walk your farm (phone sideways), the wardrobe =================
+const PITCH_MAX = THREE.MathUtils.degToRad(80);
+// what's underfoot, for footstep sounds
+function surfaceAt(x, z) {
+  if (Math.hypot(x - stall.position.x, z - stall.position.z) < 1.8 || Math.hypot(x - board.position.x, z - board.position.z) < 1.5) return "wood";
+  if (Math.abs(x) < 2.3 && z > 5 && z < 22) return "dirt";
+  if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return "dirt";
+  return "grass";
+}
+
+// ---------- a smooth camera swoop between any two views (classic ↔ eye level, into the barn and out) ----------
+let camTween = null;
+function startTween(dur = 1.2) { camTween = {t0:null, dur:dur * 1000, p:camera.position.clone(), q:camera.quaternion.clone(), fov:camera.fov}; }
+function applyTween() { // after the new view has placed the camera: blend from where it was
+  if (G.reducedMotion()) { camTween = null; return 1; }
+  if (!camTween) return 1;
+  if (camTween.t0 == null) camTween.t0 = performance.now(); // the clock starts on the first frame drawn (switching modes can take a moment)
+  const k = Math.min(1, (performance.now() - camTween.t0) / camTween.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const fov = camera.fov; camera.position.lerpVectors(camTween.p, camera.position.clone(), e); camera.quaternion.slerpQuaternions(camTween.q, camera.quaternion.clone(), e);
+  camera.fov = camTween.fov + (fov - camTween.fov) * e; camera.updateProjectionMatrix(); camera.fov = fov;
+  if (k >= 1) { camTween = null; camera.updateProjectionMatrix(); }
+  return e;
+}
+
+// ---------- walking in first person (the 🚶 button): swoop down to eye level, and back up when you're done ----------
+let classicSaved = null;
+function canWalkNow() { return !G.tutActive() && !visiting && !photoMode && !editMode && !wardrobeOn && GS(); }
+function enterFP() {
+  if (walk || !canWalkNow()) return;
+  classicSaved = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  startTween(1.2);
+  const f = farmer.visible ? new THREE.Vector2(farmer.position.x, farmer.position.z) : null; // you start where your farmer is standing
+  setWalk(true, f, true);
+}
+function exitFP() {
+  if (!walk) return;
+  startTween(1.2);
+  const back = classicSaved; setWalk(false);
+  if (back) { Object.assign(cam, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); cam.target.copy(back.target); Object.assign(view, {yaw:back.yaw, pitch:back.pitch, dist:back.dist}); view.target.copy(back.target); }
+  classicSaved = null;
+}
+
+const isLand = () => innerWidth > innerHeight;
+// ---------- landscape only: in portrait, a "rotate your phone" screen covers the game and the farm pauses ----------
+const rotateEl = document.getElementById("rotate");
+let rotatePaused = false;
+function checkRotate() {
+  const port = innerWidth < innerHeight && !qs.has("portrait"); // (?portrait: for testing on a tall window)
+  if (port === rotatePaused) return;
+  rotatePaused = port; rotateEl.hidden = !port;
+  if (port) { joyF = lookF = null; joy.x = joy.y = 0; joy.run = false; keys.clear(); ptr.clear(); farmDrag = null; }
+}
+addEventListener("resize", checkRotate); addEventListener("orientationchange", () => setTimeout(checkRotate, 200));
+setInterval(checkRotate, 500); // phones sometimes report the new size a moment late
+
+// ---------- fullscreen for the whole session ----------
+// The first tap asks for fullscreen (and to lock landscape, where the phone allows it). If the player leaves fullscreen
+// (a swipe, the back gesture, locking the phone), the next tap asks again. iPhone Safari has no fullscreen for pages:
+// there, "Add to Home Screen" opens the game fullscreen (the manifest says display: fullscreen).
+const FS_OFF = qs.has("portrait") || qs.has("shot");
+let fsAsking = false;
+function goFullscreen() {
+  if (FS_OFF || fsAsking || document.fullscreenElement || document.webkitFullscreenElement) return;
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen; if (!req) return;
+  try {
+    fsAsking = true; setTimeout(() => { fsAsking = false; }, 600); // one tap = one request (pointerup and click both fire)
+    const p = req.call(el, {navigationUI:"hide"});
+    const lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock("landscape").catch(() => {}); } catch (e) {} };
+    if (p && p.then) p.then(lock, () => {}); else lock();
+  } catch (e) {}
+}
+addEventListener("touchend", goFullscreen, true); addEventListener("click", goFullscreen, true); // (both count as a real tap for the browser; pointerup doesn't always)
+document.addEventListener("fullscreenchange", () => { document.body.classList.toggle("fullscreen", !!document.fullscreenElement); });
+{ // the iPhone tip, once
+  const ios = /iPhone|iPod/.test(navigator.userAgent), standalone = navigator.standalone || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches;
+  let seen = false; try { seen = !!localStorage.getItem("sa3d-iostip"); } catch (e) {}
+  const tip = document.getElementById("iosTip");
+  if (ios && !standalone && !seen && !FS_OFF) { setTimeout(() => { tip.hidden = false; }, 4000); }
+  tip.addEventListener("click", () => { tip.hidden = true; try { localStorage.setItem("sa3d-iostip", "1"); } catch (e) {} });
+}
+
+// ---------- touch controls while walking: left thumb moves (the stick appears where it lands), right thumb looks ----------
+const pad = document.getElementById("fpsPad"), xhair = document.getElementById("xhair"), actBtn = document.getElementById("actBtn");
+const JOY_R = 58; let joyF = null, lookF = null;
+joy.run = false;
+pad.addEventListener("pointerdown", (e) => {
+  pad.setPointerCapture(e.pointerId);
+  if (e.clientX < innerWidth / 2 && joyF == null) {
+    joyF = {id:e.pointerId, x:e.clientX, y:e.clientY};
+    stick.style.left = e.clientX - 58 + "px"; stick.style.top = e.clientY - 58 + "px"; stick.style.bottom = "auto"; stick.classList.add("live");
+  } else if (lookF == null) lookF = {id:e.pointerId, x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, t:performance.now()};
+  e.preventDefault();
+});
+pad.addEventListener("pointermove", (e) => {
+  if (joyF && e.pointerId === joyF.id) {
+    let dx = e.clientX - joyF.x, dy = e.clientY - joyF.y; const d = Math.hypot(dx, dy); if (d > JOY_R) { dx *= JOY_R / d; dy *= JOY_R / d; }
+    const m = Math.hypot(dx, dy) / JOY_R; joy.x = m < .12 ? 0 : dx / JOY_R; joy.y = m < .12 ? 0 : -dy / JOY_R; joy.run = m > .93; // push to the edge: run
+    knob.style.transform = `translate(${dx}px,${dy}px)`; stick.classList.toggle("run", joy.run);
+  } else if (lookF && e.pointerId === lookF.id && walk) {
+    // 1:1: dragging across the screen's height turns the view by one screen's worth (no smoothing, no lag)
+    const k = THREE.MathUtils.degToRad(camera.fov) / innerHeight;
+    walk.yaw += (e.clientX - lookF.x) * k * -1; walk.pitch = THREE.MathUtils.clamp(walk.pitch - (e.clientY - lookF.y) * k, -PITCH_MAX, PITCH_MAX);
+    lookF.x = e.clientX; lookF.y = e.clientY;
+  }
+});
+function padUp(e) {
+  if (joyF && e.pointerId === joyF.id) { joyF = null; joy.x = joy.y = 0; joy.run = false; knob.style.transform = ""; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = ""; }
+  else if (lookF && e.pointerId === lookF.id) {
+    const tap = Math.hypot(e.clientX - lookF.x0, e.clientY - lookF.y0) < 8 && performance.now() - lookF.t < 350; lookF = null;
+    if (tap && e.type === "pointerup") { if (!onTap(e)) interact(); } // a quick tap: use what was tapped, or what the crosshair is on
+  }
+}
+pad.addEventListener("pointerup", padUp); pad.addEventListener("pointercancel", padUp);
+
+// ---------- what you're looking at: the crosshair lights up and the interact button says what it will do ----------
+let aim = null, aimT = 0;
+function aimScan() {
+  aim = null;
+  if (!walk || inBarn || G.panel) return;
+  const h = hitAt(innerWidth / 2, innerHeight / 2); if (!h || h.type === "farmer") return;
+  const reach = (thirdPerson ? 8.5 : 5) + (h.type === "barn" ? 3 : h.type === "animal" ? 1 : 0);
+  if ((h.dist ?? 99) > reach) return;
+  const S = GS(); let label = null, icon = "✋";
+  switch (h.type) {
+    case "plot": { const p = S.plots[h.i];
+      if (!p.crop) { label = "Plant"; icon = "🌱"; } else if (ready(h.i)) { label = "Harvest"; icon = G.ITEMS[p.crop].e; } else if (!p.water) { label = "Water"; icon = "💧"; } break; }
+    case "animal": { const an = h.an;
+      if (an.ref.type === "pen") { const end = S.pens[an.kind].list[an.ref.i]; if(an.kind==="cow"&&cowStatus?.cows[an.ref.i]?.ready){label="Ready cow";icon="🥛";}else if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { label = "Collect"; icon = G.outE(G.ANIMALS[an.kind]); } else { label = "Pet"; icon = "🤚"; } }
+      else { const pt = S.pets[an.ref.j]; if (pt && G.giftReady(pt)) { label = "Gift"; icon = "🎁"; } else { label = "Pet"; icon = "🤚"; } } break; }
+    case "barn": label = "Open"; icon = "🚪"; break;
+    case "building": label = "Open"; icon = G.BUILDINGS[h.bid].e; break;
+    case "lot": label = "Look"; icon = "🔨"; break;
+    case "board": label = "Orders"; icon = "📋"; break;
+    case "stand": label = "Shop"; icon = "🏪"; break;
+    case "gift": label = "Open"; icon = "🎁"; break;
+    case "visitor": label = "Talk"; icon = "💬"; break;
+    case "plotSale": label = "Buy"; icon = "🟫"; break;
+    case "penSign": label = "Look"; icon = "🪧"; break;
+    case 'cowStation': label={feed:'Fill feed',water:'Fill water',robot:'Robot',tank:'Bulk tank'}[h.station];icon={feed:'🌾',water:'💧',robot:'⚙️',tank:'🥛'}[h.station];break;
+    case 'chickenStation': label={coop:'Customize',feed:'Fill feed',water:'Fill water',eggs:'Collect eggs'}[h.station];icon={coop:'🏠',feed:'🌾',water:'💧',eggs:'🥚'}[h.station];break;
+  }
+  if (label) aim = Object.assign(h, {label, icon});
+}
+function updateAim(t) {
+  updateSeedTool();
+  if (!walk) { xhair.hidden = actBtn.hidden = true; return; }
+  if (t - aimT > .12) { aimT = t; aimScan(); }
+  xhair.hidden = inBarn || !!G.panel; xhair.classList.toggle("on", !!aim);
+  actBtn.hidden = !aim;
+  if (aim) { const planting = aim.label === "Plant" && armed, label = planting ? "Plant " + G.ITEMS[armed].n : aim.label, icon = planting ? G.ITEMS[armed].e : aim.icon;
+    const h = `<span class="ai">${icon}</span><span class="al">${label}</span>`; if (actBtn.dataset.h !== h) { actBtn.innerHTML = h; actBtn.dataset.h = h; actBtn.setAttribute("aria-label", label); } }
+}
+function openReadyCow(an) {
+  // The HUD names this cow. Natural movement during a tap must not retarget
+  // another animal or require the old crosshair to hit the same moving mesh.
+  if(!an||an.kind!=='cow'||an.gone||!an.g.visible||!animals.includes(an)||an.farmPen!==GS().pens.cow||!cowStatus?.cows[an.ref.i]?.ready)return false;
+  const reach=(thirdPerson?8.5:5)+1;
+  for(const node of [an.rig3d?.body,an.status.visible?an.status:null]){
+    if(!node)continue;
+    const point=toScreen(node.getWorldPosition(new THREE.Vector3()));
+    if(!point||point.x<0||point.x>innerWidth||point.y<0||point.y>innerHeight)continue;
+    const current=hitAt(point.x,point.y);
+    if(current?.type==='animal'&&current.an===an&&current.dist<=reach){G.sfx('cow');openInfo({type:'animal',an});return true;}
+  }
+  return false;
+}
+function interact() {
+  if (visiting || editMode || photoMode || wardrobeOn || inBarn || G.panel || !seedTray.hidden) return false;
+  const h = aim; if (!h) return false;
+  handPunch(h.label === "Pet" ? "pat" : "reach", {Harvest:'harvest',Plant:'plant',Water:'water',Pet:'pet'}[h.label] || 'harvest');
+  if (h.type === "plot" && h.label === "Harvest") { const crop = GS().plots[h.i].crop; if (harvestAt(h.i) === true) fpBurst(h.i, crop); return true; }
+  if (h.type === "plot" && h.label === "Water") { if (G.waterPlot(h.i)) { squish(plots[h.i].g, .25); syncSoil(); } return true; }
+  if (h.type === "plot" && h.label === "Plant" && armed) { closeTrays(); plantAt(h.i); return true; }
+  if (h.type === "animal" && h.label === "Ready cow" && h.an?.kind === "cow") return openReadyCow(h.an);
+  if (h.type === "animal" && h.label === "Pet") { petFacing(h.an); return true; }
+  if (h.type === "barn") { enterBarn(); return true; }
+  return onTap({clientX:innerWidth / 2, clientY:innerHeight / 2}); // everything else does exactly what tapping it does in the classic view
+}
+actBtn.addEventListener("click", (e) => { e.stopPropagation(); interact(); });
+addEventListener("keydown", (e) => { if (!rotatePaused && !G.panel && walk && (e.code === "KeyE" || e.code === "Enter") && !e.repeat && !(e.target.closest && (e.target.closest("input,textarea,[contenteditable=true]") || (e.code === "Enter" && e.target.closest("button"))))) interact(); });
+// the harvest, up close: juice and leaves fly past your face
+function fpBurst(i, crop) {
+  const at = plots[i].g.position.clone().setY(.9), cp = camera.position;
+  const juice = bitTex[JUICE[crop]] || (bitTex[JUICE[crop]] = new THREE.SpriteMaterial({map:radial(JUICE[crop] || "rgba(240,200,90,.95)"), transparent:true, depthWrite:false}));
+  const leaf = bitTex["rgba(90,170,60,.95)"] || (bitTex["rgba(90,170,60,.95)"] = new THREE.SpriteMaterial({map:radial("rgba(90,170,60,.95)"), transparent:true, depthWrite:false}));
+  for (let k = 0; k < 22; k++) {
+    const toCam = cp.clone().sub(at).normalize(), side = new THREE.Vector3(-toCam.z, 0, toCam.x);
+    const v = toCam.multiplyScalar(5 + rnd() * 4).addScaledVector(side, (rnd() - .5) * 5).add(new THREE.Vector3(0, 2 + rnd() * 3, 0));
+    spawnDrop(at, (k % 3 ? juice : leaf).clone(), v, {kind:"bit", size:.08 + rnd() * .1, life:.6 + rnd() * .4, spin:0});
+  }
+  const sp = GV.screenPos("plot:" + i) || {x:innerWidth / 2, y:innerHeight / 2}; flyTo("xp", 1, sp);
+}
+// petting in first person: the animal stops, turns to you, a heart, +15 happiness (the same as the classic view's Pet)
+function petFacing(an) {
+  const S = GS(), key = an.ref.type === "pen" ? "animal:" + an.kind + ":" + an.ref.i : "pet:" + an.ref.j;
+  const m = an.ref.type === "pen" ? G.meta(an.kind, an.ref.i) : S.pets[an.ref.j];
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), rel = camera.position.clone().sub(an.g.position);
+  an.target = null; an.path = null; an.facing = rel.dot(right) > 0 ? -1 : 1; an.stay("Loves the attention", 4, "idle"); an.hop = 1; an.calmUntil = clockT + 4;
+  if (G.interact(m, an.kind, "pet", key)) { an.emote("❤️", 2.2); an.need.lonely = 0; }
+  else { an.emote("💕", 1.4); G.toast(esc(m.name) + " was just petted. Try again in " + G.fmt(G.cdLeft(m.petAt || 0, PET_CD)).split(" ")[0]); }
+}
+
+// ---------- going into the barn: the doors swing open, you step inside, the barn opens; close it and you step back out ----------
+let inBarn = null, doorOpen = 0, doorWant = 0;
+const barnFade = document.getElementById("barnFade");
+function enterBarn() {
+  if (inBarn) return;
+  doorWant = 1; G.sfx("build");
+  inBarn = {phase:"in", t:performance.now()};
+  setTimeout(() => { startTween(1.1); inBarn.phase = "inside"; barnFade.classList.add("on"); setTimeout(() => { if (inBarn) G.openPanel("barn"); }, 900); }, 450);
+}
+function leaveBarn() {
+  barnFade.classList.remove("on"); startTween(1); inBarn = null; setTimeout(() => { doorWant = 0; }, 900);
+}
+function barnPose() { // standing just inside the doors, looking around the dim barn
+  camera.position.set(0, EYE + .1, 3.4); camera.lookAt(0, EYE, -2);
+}
+function updateDoors(dt) {
+  doorOpen += (doorWant - doorOpen) * Math.min(1, dt * 4);
+  for (const d of barn.userData.doors || []) d.rotation.y = d.userData.side * doorOpen * 1.75;
+  if (inBarn && inBarn.phase === "inside" && !G.panel && performance.now() - inBarn.t > 2500) leaveBarn();
+}
+
+// ---------- sculpted first-person hands, sharing the farmer's skin/shirt colours ----------
+scene.add(camera);
+hands = createHands(std({color:0xd24d3f, roughness:.8}), std({color:0xf0c6a0, roughness:.7})); camera.add(hands);
+// Player farms load the authored rig with procedural hands during load/failure.
+// Keep the isolated control farm and visuallegacy comparison procedural unless
+// the explicit artHands review is selected.
+let authoredHands = null;
+const handParams = new URLSearchParams(location.search);
+if (!handParams.has('visuallegacy') && (!handParams.has('testfarm') || handParams.has('artHands'))) {
+  import('./art/authored-hands.js?v=2').then(m => { authoredHands = m.installAuthoredHands(camera, hands); })
+    .catch(error => { hands.userData.authoredLoadError = String(error.message || error); });
+}
+let punch = null;
+function handPunch(kind, authoredKind) { punch = {kind, authoredKind, t:0}; }
+function updateHands(dt, t, tweenK) {
+  if (punch) { punch.t += dt; if (punch.t > .45) punch = null; }
+  const on = !!walk && !thirdPerson && !inBarn && tweenK > .75 && !photoMode;
+  hands.visible = on;
+  if (!on) { authoredHands?.update({visible:false}); return; }
+  const w = walk, sp = w.vel.length(), sway = G.reducedMotion() ? 0 : Math.sin(w.walked * 2.2) * .012 * Math.min(1, sp / 3);
+  if (authoredHands?.update({visible:on, kind:punch?.authoredKind, phase:punch ? punch.t/.45 : 0,
+    time:t, sway, bob:w.bob*.6, reducedMotion:G.reducedMotion()})) { hands.visible=false; return; }
+  const pk = punch ? Math.sin(Math.min(1, punch.t / .45) * Math.PI) : 0;
+  poseHands(hands, pk, punch?.kind);
+  for (const h of hands.children) {
+    const b = h.userData.base, sd = h.userData.side;
+    h.position.set(b.x + sd * sway, b.y + w.bob * .6 + (G.reducedMotion() ? 0 : Math.sin(t * 1.6 + sd) * .004) + Math.abs(sway) * .5, b.z);
+    if (punch && sd === 1) { if (punch.kind === "pat") { h.position.y += pk * .12; h.position.z -= pk * .12; h.rotation.x = -.2 - pk * .6; } else { h.position.z -= pk * .22; h.position.y += pk * .06; } }
+    else h.rotation.x = -.2;
+  }
+}
+
+// ---------- the farmer, standing about in the classic view (tap them to open the wardrobe) ----------
+const FARMER_HOME = new THREE.Vector3(-1.8, 0, 8.4);
+farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI * .85;
+function updateFarmerIdle(t, dt) {
+  if (walk) return;
+  farmer.visible = !!GS() && !editMode;
+  const U = farmer.userData;
+  if (U.live) { Live3D.updateLiveFarmer(U.live, 0, 0, dt, 'idle'); return; }
+  const { legs, knees, torso, arms, head, body } = U; if (!legs) return;
+  legs[0].rotation.x = legs[1].rotation.x = 0; knees[0].rotation.x = knees[1].rotation.x = 0; torso.rotation.set(0, 0, 0); head.rotation.x = head.rotation.z = 0; body.position.x = 0; arms[0].rotation.z = 0;
+  const wave = Math.max(0, Math.sin(t * .35)) > .985 ? Math.sin(t * 14) * .5 : 0; // now and then a little wave
+  arms[0].rotation.x = Math.sin(t * 1.3) * .04; arms[1].rotation.x = Math.sin(t * 1.3 + 1) * .04; arms[1].rotation.z = wave ? -2.3 + wave : 0;
+  head.rotation.y = Math.sin(t * .4) * .5; body.scale.y = 1 + Math.sin(t * 1.8) * .006;
+}
+
+// ---------- the wardrobe: a close-up of your farmer and the closet ----------
+let wardrobeOn = null, wardCat = "hair";
+const wardUI = document.getElementById("wardrobe");
+function setWardrobe(on) {
+  if (!!wardrobeOn === on) return;
+  if (on) {
+    if (walk) exitFP(); if (editMode) setEdit(false); if (photoMode) setPhoto(false);
+    closeTrays(); G.close();
+    wardrobeOn = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone(), tilt:tiltH.enabled, fpos:farmer.position.clone(), frot:farmer.rotation.y};
+    farmer.userData.live?.setWardrobe(true);
+    farmer.position.copy(FARMER_HOME); farmer.rotation.y = Math.PI; tiltH.enabled = tiltV.enabled = false; // facing out, away from the barn
+    if (isLand()) { // the closet is on the right: aim to the right of the farmer, so they stand in the left half
+      cam.yaw = .15; cam.pitch = .1; cam.dist = 5.6; cam.target.set(FARMER_HOME.x + Math.cos(cam.yaw) * 1.5, 1.0, FARMER_HOME.z - Math.sin(cam.yaw) * 1.5);
+    } else { cam.target.set(FARMER_HOME.x, .15, FARMER_HOME.z); cam.yaw = .15; cam.pitch = .1; cam.dist = 6.2; } // aim low, so the farmer stands above the closet sheet
+    document.body.classList.add("dressing"); wardUI.hidden = false; renderWardrobe(); G.sfx("pop");
+  } else {
+    const W = wardrobeOn; wardrobeOn = null;
+    farmer.userData.live?.setWardrobe(false);
+    Object.assign(cam, {yaw:W.yaw, pitch:W.pitch, dist:W.dist}); cam.target.copy(W.target); tiltH.enabled = tiltV.enabled = W.tilt;
+    farmer.position.copy(W.fpos); farmer.rotation.y = W.frot;
+    document.body.classList.remove("dressing"); wardUI.hidden = true; G.sfx("pop");
+  }
+}
+function renderWardrobe() {
+  const W = G.WARDROBE, L = G.lookOf(GS()), cats = Object.keys(W).filter(c => c !== "overallColor" || W.overalls.opts[L.overalls][1]);
+  if (!cats.includes(wardCat)) wardCat = "hair";
+  const hex = (v) => "#" + v.toString(16).padStart(6, "0"), ICON = {short:"💇", long:"👩", pony:"🎀", bun:"🍩", curly:"🌀", buzz:"🪒", bob:"💁", braids:"🪢", straw:"👒", none:"🚫", cap:"🧢", beanie:"🧶", cowboy:"🤠", flowers:"🌸"};
+  document.getElementById("wardTabs").innerHTML = cats.map(c => `<button class="${c === wardCat ? "on" : ""}" data-wc="${c}">${W[c].n}</button>`).join("");
+  document.getElementById("wardOpts").innerHTML = W[wardCat].opts.map(([n, v], i) => {
+    const u = G.lookUnlocked(wardCat, i), sel = L[wardCat] === i;
+    const face = typeof v === "number" ? `<i class="sw" style="background:${hex(v)}"></i>` : typeof v === "boolean" ? `<i class="ic">${v ? "👖" : "🚫"}</i>` : `<i class="ic">${ICON[v] || "✨"}</i>`;
+    return `<button class="wopt ${sel ? "sel" : ""} ${u.ok ? "" : "lock"}" data-wi="${i}" ${u.ok ? "" : "aria-disabled=true"}>${face}<b>${n}</b>${u.ok ? "" : `<small>${u.why}</small>`}</button>`;
+  }).join("");
+}
+wardUI.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-wc]"), o = e.target.closest("[data-wi]"), done = e.target.closest("[data-wd]");
+  if (done) return setWardrobe(false);
+  if (t) { wardCat = t.dataset.wc; G.sfx("tick"); renderWardrobe(); }
+  if (o) { const i = +o.dataset.wi, u = G.lookUnlocked(wardCat, i); if (!u.ok) { G.toast(u.why.replace("💎 Coming soon", "💎 Gem items arrive with the gem shop soon")); G.sfx("error"); return; }
+    G.wear(wardCat, i); squish(farmer, .5); renderWardrobe(); }
+});
+GV.wardrobe = setWardrobe;
+buildFarmer();
+
+
+// Edit: the camera looks straight down over a 1 m grid. Drag a building, one of the big trees or a decoration and it snaps
+// to the grid; green means it fits, red means something is in the way. New spots are saved with the farm (localStorage).
+const grid = createEditableGroundGrid(farmGroundY); scene.add(grid);
+function editGridMask(pens=false){const world=snapshotPenWorld();if(!pens)world.land=buildableLandShapes(23);return world;}
+const shadeGeo=new THREE.BufferGeometry();shadeGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(18),3));
+const editShade = new THREE.Mesh(shadeGeo, new THREE.MeshBasicMaterial({color:0x6cc04a, transparent:true, opacity:.4, depthWrite:false,side:THREE.DoubleSide}));
+editShade.visible = false; scene.add(editShade);
+const TREES = {tree, tree2}, TREE_HOME = {tree:[-9, 4], tree2:[10, -7]};
+const TREE_BLK = {tree:BLOCKS.find(b => b[0] === -9 && b[1] === 4), tree2:BLOCKS.find(b => b[0] === 10 && b[1] === -7)};
+const TREE_CATALOGUE=new Map([
+ ['courtyard:tree',{object:tree,block:TREE_BLK.tree,decal:tree.userData.decal}],
+ ['courtyard:tree2',{object:tree2,block:TREE_BLK.tree2,decal:tree2.userData.decal}],
+ ...hills.map((object,i)=>[`hill:seed-${40+i}`,{object,block:HILL_TREE_BLOCKS[i]}]),
+ ...FAR_TREE_SITES.map((site,i)=>[site.id,{object:far[i],block:FAR_TREE_BLOCKS[i],chunk:Math.floor(i/WOOD_CHUNK_SIZE)}])
+]);
+let selectedClearTree=null;
+function syncRemovedTrees(){
+ const parsed=decodeRemovedTrees(GS().layout?.removedTrees);if(!parsed.ok)return false;
+ const removed=new Set(parsed.ids),changedChunks=new Set();
+ for(const [id,entry] of TREE_CATALOGUE){
+  const present=!removed.has(id),{object,block,decal}=entry;if(object.visible!==present&&entry.chunk!==undefined)changedChunks.add(entry.chunk);object.visible=present;if(decal)decal.visible=present;
+  const x=object.position.x,z=object.position.z;
+  if(block)moveBlock(block,present?x:2000+REMOVABLE_TREE_IDS.indexOf(id),present?z:2000);
+ }
+ for(const chunk of changedChunks)rebuildWoodChunk(chunk);
+ if(selectedClearTree&&removed.has(selectedClearTree))selectedClearTree=null;
+ if(clearTreeButton)clearTreeButton.disabled=!selectedClearTree;
+ return true;
+}
+function clearTreeCandidate(id){
+ const entry=TREE_CATALOGUE.get(id),farm=GS();if(!entry||!entry.object.visible||!onBuildableLand(entry.object.position.x,entry.object.position.z))return null;
+ return addRemovedTree(farm.layout?.removedTrees,id);
+}
+function setEdit(on) {
+  if (!on && animalPenEditing) { penEditor.cancel(); setAnimalPenEditing(false); }
+  if (!!editMode === on) return;
+  if (on) {
+    if (walk) setWalk(false);
+    closeTrays(); G.close(); if (moving) endMove(true);
+    const yaw = Math.round(view.yaw / (Math.PI * 2)) * Math.PI * 2; // north up, turning the short way round
+    editMode = {yaw, drag:null, tilt:tiltH.enabled, saved:{yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, ty:cam.target.y}};
+    cam.dist = Math.max(cam.dist, 34); cam.target.y = 0;
+    grid.updateMask(editGridMask());grid.visible = true; tiltH.enabled = tiltV.enabled = false;
+    document.body.classList.add("editing"); editBar.hidden = false;
+  } else {
+    const E = editMode; if (E.drag) editCancel(); editMode = null;
+    Object.assign(cam, {yaw:E.saved.yaw, pitch:E.saved.pitch, dist:E.saved.dist}); cam.target.y = E.saved.ty;
+    grid.visible = editShade.visible = false; tiltH.enabled = tiltV.enabled = E.tilt;
+    document.body.classList.remove("editing"); editBar.hidden = true;
+  }
+  G.sfx("pop");
+}
+function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
+function groundAt(x, y) { return rayAt(x, y).intersectObject(ground, false)[0]?.point??null; }
+function editHit(x, y) {
+  const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), ...Object.values(TREES).filter(t=>t.visible), ...hills.filter(t=>t.visible), ...decorObjs];
+  const h = rayAt(x, y).intersectObjects(objs, true)[0]; if (!h){const ground=groundAt(x,y),nearest=ground&&far.filter(t=>t.visible&&onBuildableLand(t.position.x,t.position.z)).map(t=>({tree:t,d:Math.hypot(ground.x-t.position.x,ground.z-t.position.z)})).sort((a,b)=>a.d-b.d)[0];return nearest?.d<2.5?{key:nearest.tree.userData.edit,obj:nearest.tree}:null;}
+  let o = h.object; while (o && !o.userData.edit) o = o.parent;
+  return o ? {key:o.userData.edit, obj:o} : null;
+}
+function footprint(key) {
+  const [t, id] = key.split(":");
+  if (t === "b") return {hw:1.9, hd:1.7};
+  if (t === "t") return {hw:1.1, hd:1.1};
+  const d = GS().decor.placed[+id], r = d && G.DECOR[d.id].size === 2 ? 1.2 : .6; return {hw:r, hd:r};
+}
+const segDist = (x, z, ax, az, bx, bz) => { const ex = bx - ax, ez = bz - az, u = THREE.MathUtils.clamp(((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez || 1), 0, 1); return Math.hypot(x - ax - ex * u, z - az - ez * u); };
+function workshopSite(id,x,z){
+ const own=BLD_BLK[id];
+ return assessWorkshopSite(x,z,workshopGroundY,{landContains:onBuildableLand,floorOffset:GS().buildings[id]?.owned ? .35 : .05,entranceClear:(door,approach,needsRamp)=>{
+  if(!needsRamp)return true;
+  const bz=(door[1]+approach[1])/2,hd=(approach[1]-door[1])/2,block=[x,bz,.65,hd];
+  if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[block]}).length)return false;
+  if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[block]}).length))return false;
+  if(BLOCKS.some(b=>b!==own&&Math.abs(x-b[0])<.65+b[2]&&Math.abs(bz-b[1])<hd+b[3]))return false;
+  if([...Object.values(TREES),...hills,...far].some(t=>t.visible&&Math.abs(x-t.position.x)<2.05&&Math.abs(bz-t.position.z)<hd+1.4))return false;
+  if(GS().decor.placed.some(d=>Math.abs(x-d.x)<.65+1.2&&Math.abs(bz-d.z)<hd+1.2))return false;
+  if(plots.some(P=>P.g.visible&&Math.abs(x-P.g.position.x)<.65+1.2&&Math.abs(bz-P.g.position.z)<hd+1.2))return false;
+  for(let i=0;i<=12;i++){const zz=door[1]+(approach[1]-door[1])*i/12;if(dairyPath.contains(x,zz,.65)||PEN_LIST.some(p=>inPen(p,x,zz,-.8)))return false;}
+  return true;
+ }});
+}
+function editValid(key, x, z) {
+  const [t, id] = key.split(":");
+  if (t === "d") { const d = GS().decor.placed[+id]; return !!d && spotFree(x, z, G.DECOR[d.id].size || 1, +id); }
+  const {hw, hd} = footprint(key), own = t === "b" ? BLD_BLK[id] : TREE_BLK[id];
+  if(cowYardActive&&cowYardConflicts({layout:COW_YARD_LAYOUT,blocks:[[x,z,hw,hd]]}).length)return false;
+  if(Object.entries(remainingSites).some(([kind,site])=>site.active&&remainingCareConflicts(remainingLayouts[kind],{blocks:[[x,z,hw,hd]]}).length))return false;
+  if (!(t==='b'?onBuildableLand(x,z,hw,hd):onFarm(x,z,23))||dairyPath.contains(x,z,Math.hypot(hw,hd))) return false;
+  if (Math.abs(x) < 2.3 + hw && z > 5.5 - hd && z < 24 + hd) return false;                     // off the path
+  for (const b of BLOCKS) if (b !== own && Math.abs(x - b[0]) < hw + b[2] && Math.abs(z - b[1]) < hd + b[3]) return false;
+  if (t === "b") {
+    for (const pen of PEN_LIST) for (const [cx, cz] of [[x, z], [x - hw, z - hd], [x + hw, z - hd], [x + hw, z + hd], [x - hw, z + hd]]) if (inPen(pen, cx, cz, -.3)) return false;
+    for (const tree of [...Object.values(TREES),...hills,...far]) if (tree.visible&&Math.hypot(tree.position.x - x, tree.position.z - z) < hw + 1.4) return false; // not under a tree
+  } else if (fenceSegs.some(([ax, az, bx, bz]) => segDist(x, z, ax, az, bx, bz) < .8)) return false; // trees may stand in a pen, not on its fence
+  if (GS().decor.placed.some(d => Math.abs(d.x - x) < hw + .5 && Math.abs(d.z - z) < hd + .5)) return false;
+  if (plots.some(P => P.g.visible && Math.abs(P.g.position.x - x) < hw + 1.2 && Math.abs(P.g.position.z - z) < hd + 1.2)) return false;
+  if(t==='b'&&!workshopSite(id,x,z).ok)return false;
+  return true;
+}
+function moveBlock(b, x, z) { // keep the pets' route planner in step with the block
+  const o = OBST.find(o => o.c === 1 && o.s === 0 && o.x === b[0] && o.z === b[1] && o.hw === b[2] && o.hd === b[3]); if (o) { o.x = x; o.z = z; }
+  b[0] = x; b[1] = z;
+}
+function commitEdit(key, x, z, save = true) {
+  if (save && !G.SANDBOX) {
+    const farm=GS(),expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout || {b:{},t:{}}),nextDecor=structuredClone(farm.decor),[type,id]=key.split(':');
+    if(type==='b')(nextLayout.b||(nextLayout.b={}))[id]=[x,z];
+    else if(type==='t')(nextLayout.t||(nextLayout.t={}))[id]=[x,z];
+    else if(type==='d'&&nextDecor.placed[+id]){nextDecor.placed[+id].x=x;nextDecor.placed[+id].z=z;}
+    else return false;
+    const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,nextDecor,
+      canCommit:()=>GS()===farm&&editValid(key,x,z),
+      prepare:()=>({publish(){commitEdit(key,x,z,false);if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());},dispose(){}}),
+      onFatal:()=>setTimeout(()=>location.reload(),0)});
+    if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the move was cancelled.':'This move could not be applied.');
+    return result.ok;
+  }
+  const [t, id] = key.split(":"), L = GS().layout || (GS().layout = {b:{}, t:{}});
+  if (t === "b") {
+    moveBlock(BLD_BLK[id], x, z); BUILD_SPOT[id] = [x, z]; moveClear("b:" + id, x, z, 1.8);
+    syncWorkshopGround(id,x,z);
+    if (save) (L.b || (L.b = {}))[id] = [x, z];
+  } else if (t === "t") {
+    moveBlock(TREE_BLK[id], x, z); TREES[id].position.set(x, 0, z); TREES[id].userData.decal.position.set(x, .02, z);
+    if (save) (L.t || (L.t = {}))[id] = [x, z];
+  } else { const d = GS().decor.placed[+id]; if (d) { d.x = x; d.z = z; } syncDecor(); }
+  if (save) {G.save();if(editMode&&!animalPenEditing)grid.updateMask(editGridMask());}
+  return true;
+}
+// put buildings and trees where the saved farm has them (or back home when it doesn't say)
+function applyLayout() {
+  const L = GS().layout || {};
+  for (const bid of Object.keys(BLD_BLK)) { const [x, z] = (L.b || {})[bid] || HOME_SPOT[bid]; if (x !== BLD_BLK[bid][0] || z !== BLD_BLK[bid][1]) commitEdit("b:" + bid, x, z, false); }
+  for (const k of Object.keys(TREES)) { const [x, z] = (L.t || {})[k] || TREE_HOME[k]; if (x !== TREE_BLK[k][0] || z !== TREE_BLK[k][1]) commitEdit("t:" + k, x, z, false); }
+  syncRemovedTrees();
+}
+function showShade(d) {
+  const f=footprint(d.key),corners=[[d.x-f.hw,d.z-f.hd],[d.x+f.hw,d.z-f.hd],[d.x+f.hw,d.z+f.hd],[d.x-f.hw,d.z+f.hd]],a=shadeGeo.attributes.position;
+  [0,1,2,0,2,3].forEach((j,i)=>{const [x,z]=corners[j],y=workshopGroundY(x,z);a.setXYZ(i,x,Number.isFinite(y)?y+.07:.07,z);});a.needsUpdate=true;shadeGeo.computeBoundingSphere();
+  editShade.material.color.set(d.ok ? 0x6cc04a : 0xe0463a); editShade.visible = true;
+}
+function editDown(e) {
+  if (animalPenEditing) return false;
+  const h = editHit(e.clientX, e.clientY); if (!h) return false;
+  const clearId=h.key.startsWith('clear:')?h.key.slice(6):h.key.startsWith('t:')?'courtyard:'+h.key.slice(2):null;
+  selectedClearTree=clearId&&clearTreeCandidate(clearId)?clearId:null;clearTreeButton.disabled=!selectedClearTree;
+  if(h.key.startsWith('clear:')){editMode.treePointerId=e.pointerId;paintUsed=true;return true;}
+  const g = groundAt(e.clientX, e.clientY) || h.obj.position, p = h.obj.position;
+  editMode.drag = {id:e.pointerId, key:h.key, obj:h.obj, from:p.clone(), off:[p.x - g.x, p.z - g.z], x:p.x, z:p.z, ok:true, moved:false};
+  p.y += .25; showShade(editMode.drag); squish(h.obj, .6); G.sfx("pickup"); paintUsed = true;
+  return true;
+}
+function editMove(e) {
+  if (animalPenEditing) return false;
+  if(editMode?.treePointerId===e.pointerId)return true;
+  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return false;
+  const g = groundAt(e.clientX, e.clientY); if (!g) return true;
+  const x = Math.round(g.x + d.off[0]), z = Math.round(g.z + d.off[1]); // snap to the 1 m grid
+  if (x !== d.x || z !== d.z) { d.x = x; d.z = z; d.moved = true; d.ok = editValid(d.key, x, z); d.obj.position.set(x, d.key.startsWith('b:')?(workshopSite(d.key.slice(2),x,z).y??0)+.25:.25, z); showShade(d); G.sfx("tick"); }
+  return true;
+}
+function editUp(e) {
+  if (animalPenEditing) return;
+  if(editMode?.treePointerId===e.pointerId){editMode.treePointerId=null;return;}
+  const d = editMode && editMode.drag; if (!d || d.id !== e.pointerId) return;
+  editMode.drag = null; editShade.visible = false;
+  if (d.moved && d.ok && commitEdit(d.key, d.x, d.z)) { squish(d.obj, .6); G.sfx("place"); }
+  else { d.obj.position.copy(d.from); if (d.moved) { G.toast("Something's in the way there"); G.sfx("error"); } }
+}
+function editCancel() { const d = editMode.drag; editMode.drag = null; editShade.visible = false; d.obj.position.copy(d.from); }
+// The pen draft owns input and physical pause, never the paid game clock.
+function animalPenEditingAllowed(){
+ return !visiting&&!G.isVisiting()&&!window.__saHold&&!G.SANDBOX&&G.S.v<=G.SAVE_VERSION&&decodeAnimalPens(G.S.layout?.animalPens).status==='ok';
+}
+function setAnimalPenEditing(active){
+ if(active){
+  if(animalPenEditing||!animalPenEditingAllowed())return false;
+  const owned=snapshotPenWorld().owned,kind=Object.keys(owned).find(k=>owned[k]>0);
+  if(!kind||!penEditor.begin(kind))return false;
+  if(!editMode)setEdit(true);
+  if(editMode.drag)editCancel();if(moving)endMove(true);closeTrays();G.close();
+  clearTimeout(pressTimer);pressTimer=0;farmDrag=null;downAt=null;ptr.clear();keys.clear();joy.x=joy.y=0;
+  const host=document.createElement('div');host.dataset.penEditorHost='';document.body.append(host);
+  const preview=createAnimalPenPreview(scene),placementPreview=createPenPlacementPreview(scene,farmGroundY),session={farm:G.S,host,preview,placementPreview,view:null,kind:null,pointers:new Map(),pan:false,last:null,
+   camera:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,target:cam.target.clone()}};
+  animalPenEditing=session;grid.updateMask(editGridMask(true));editBar.hidden=true;document.body.classList.add('pen-editing');
+  session.view=createAnimalPenEditorView({editor:penEditor,host,canvas:renderer.domElement,
+   readWorld:snapshotPenWorld,placementPreview:placementPreview.update,clearPlacementPreview:placementPreview.clear,
+   onPlacementFocus:(at,screen)=>{cam.target.set(at[0],farmGroundY(...at),at[1]);cam.dist=22;placeCamera(1);camera.updateMatrixWorld(true);const hit=groundAt(...screen);if(hit){cam.target.x+=at[0]-hit.x;cam.target.z+=at[1]-hit.z;}},
+   ownedKinds:()=>Object.keys(owned).filter(k=>owned[k]>0),
+   project:p=>{const s=toScreen(new THREE.Vector3(...p));return s?[s.x,s.y]:[-100,-100];},
+   unproject:p=>groundAt(...p)?.toArray()??null,preview:preview.update,clearPreview:preview.clear,
+   onSelection:selection=>{if(!selection||session.kind===selection.kind)return;session.kind=selection.kind;const site=installedAnimalPens.sites[selection.kind],p=site.footprint;
+    cam.target.set(p.reduce((n,v)=>n+v[0],0)/p.length,0,p.reduce((n,v)=>n+v[1],0)/p.length);cam.dist=Math.max(24,Math.max(...p.map(v=>v[0]))-Math.min(...p.map(v=>v[0]))+14);},
+   panZoom:()=>{session.pan=true;session.last=null;},onClose:()=>setAnimalPenEditing(false)});
+  return true;
+ }
+ const session=animalPenEditing;if(!session)return false;
+ animalPenEditing=null;session.view?.dispose();session.preview.dispose();session.placementPreview.dispose();session.host.remove();
+ Object.assign(cam,{yaw:session.camera.yaw,pitch:session.camera.pitch,dist:session.camera.dist});cam.target.copy(session.camera.target);
+ ptr.clear();keys.clear();farmDrag=null;downAt=null;frame.lastT=undefined;
+ if(editMode)grid.updateMask(editGridMask());document.body.classList.remove('pen-editing');editBar.hidden=!editMode;document.getElementById('animalPensBtn').focus();return true;
+}
+const animalPensButton=document.createElement('button');animalPensButton.id='animalPensBtn';animalPensButton.type='button';animalPensButton.textContent='Animal pens';animalPensButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(animalPensButton,editBar.querySelector('[data-mode]'));
+animalPensButton.addEventListener('click',()=>{if(!setAnimalPenEditing(true))G.toast('Animal pens are unavailable on this farm.');});
+const clearTreeButton=document.createElement('button');clearTreeButton.type='button';clearTreeButton.textContent='Clear selected tree';clearTreeButton.disabled=true;clearTreeButton.style.cssText='min-width:44px;min-height:44px';editBar.insertBefore(clearTreeButton,editBar.querySelector('[data-mode]'));
+const clearTreeDialog=document.createElement('dialog');clearTreeDialog.setAttribute('aria-label','Confirm tree clearing');clearTreeDialog.style.cssText='max-width:min(340px,calc(100vw - 32px));border:2px solid #6b8548;border-radius:14px;padding:18px;background:#fff9e9;color:#302c20;font:16px system-ui;';
+clearTreeDialog.innerHTML='<strong>Clear this tree?</strong><p data-tree-message></p><div style="display:flex;gap:8px"><button type="button" data-tree-cancel>Keep tree</button><button type="button" data-tree-confirm>Remove free</button></div>';
+for(const button of clearTreeDialog.querySelectorAll('button'))button.style.cssText='min-width:44px;min-height:44px;font:inherit;';document.body.append(clearTreeDialog);
+let pendingClearTree=null;
+clearTreeButton.addEventListener('click',()=>{if(!editMode||animalPenEditing||!selectedClearTree||!clearTreeCandidate(selectedClearTree))return;pendingClearTree=selectedClearTree;clearTreeDialog.querySelector('[data-tree-message]').textContent=`${pendingClearTree} at ${TREE_CATALOGUE.get(pendingClearTree).object.position.x.toFixed(1)}, ${TREE_CATALOGUE.get(pendingClearTree).object.position.z.toFixed(1)}. This is free and cannot be undone.`;clearTreeDialog.showModal();});
+clearTreeDialog.querySelector('[data-tree-cancel]').addEventListener('click',()=>clearTreeDialog.close());
+clearTreeDialog.addEventListener('close',()=>{pendingClearTree=null;});
+clearTreeDialog.querySelector('[data-tree-confirm]').addEventListener('click',()=>{
+ const id=pendingClearTree,farm=GS(),nextIds=id&&clearTreeCandidate(id);if(!nextIds){clearTreeDialog.close();return;}
+ const expectedLayout=JSON.stringify(farm.layout),nextLayout=structuredClone(farm.layout||{b:{},t:{}});nextLayout.removedTrees=nextIds;
+ const result=G.commitOrdinaryLayout({expectedFarm:farm,expectedLayout,nextLayout,
+  canCommit:()=>!!editMode&&!animalPenEditing&&GS()===farm&&!!clearTreeCandidate(id),
+  prepare:()=>({publish(){syncRemovedTrees();grid.updateMask(editGridMask());},dispose(){}}),
+  onFatal:()=>setTimeout(()=>location.reload(),0)});
+ clearTreeDialog.close();if(!result.ok)G.toast(result.code==='STORAGE'?'Your farm did not save; the tree remains.':'The tree could not be cleared.');
+});
+// Keep paid/care/purchase buttons behind the draft inert, without changing their
+// handlers or the existing account/restore guards in game.js.
+document.addEventListener('click',event=>{const s=animalPenEditing;if(s&&!s.host.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
+addEventListener('pointerdown',event=>{animalPenEditing?.pointers.set(event.pointerId,[event.clientX,event.clientY]);},true);
+addEventListener('pointermove',event=>{
+ const s=animalPenEditing;if(!s||!s.pointers.has(event.pointerId))return;s.pointers.set(event.pointerId,[event.clientX,event.clientY]);if(!s.pan)return;
+ const points=[...s.pointers.values()],c=[points.reduce((n,p)=>n+p[0],0)/points.length,points.reduce((n,p)=>n+p[1],0)/points.length],d=points.length>1?Math.hypot(points[0][0]-points[1][0],points[0][1]-points[1][1]):null;
+ if(s.last){if(d&&s.last.d)cam.dist*=s.last.d/d;const scale=cam.dist*.0018;cam.target.x=THREE.MathUtils.clamp(cam.target.x-(c[0]-s.last.c[0])*scale,-MAP_EDGE,MAP_EDGE);cam.target.z=THREE.MathUtils.clamp(cam.target.z-(c[1]-s.last.c[1])*scale,-MAP_EDGE,MAP_EDGE);}
+ s.last={c,d};event.preventDefault();event.stopImmediatePropagation();
+},true);
+for(const type of ['pointerup','pointercancel'])addEventListener(type,event=>{const s=animalPenEditing;if(s){s.pointers.delete(event.pointerId);s.last=null;if(!s.pointers.size)s.pan=false;}},true);
+addEventListener('blur',()=>{if(animalPenEditing){animalPenEditing.pointers.clear();animalPenEditing.pan=false;animalPenEditing.last=null;}});
+document.getElementById("walkBtn").addEventListener("click", () => enterFP());
+throwBtn.addEventListener("click", throwBait);
+document.getElementById("editBtn").addEventListener("click", () => setEdit(true));
+walkBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) { if (classicSaved) exitFP(); else setWalk(false); } });
+editBar.addEventListener("click", (e) => { if (e.target.closest("[data-mode]")) setEdit(false); });
+
+// ================= tactile physics: slicing, bouncing drops, bait and herding =================
+// Everything you collect now exists for a moment as a real object: sliced crops split in two and fly apart,
+// goods pop out of a building's door and bounce, eggs and milk tumble off the animals. After they settle they
+// zip into the Barn button (coins into the coin counter). While walking they wait on the ground until you come close.
+const drops = [], GRAV = 18, artTex = {}, emojiMats = {};
+function emojiMat(e) { // a plain emoji picture (no speech bubble), for things lying on the ground
+  if (!emojiMats[e]) { const [c, x] = canvas(128); x.font = '100px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 64, 70);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; emojiMats[e] = new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}); }
+  return emojiMats[e];
+}
+let lastBounce = 0, shake = 0;
+function artTexture(id) { return artTex[id] || (artTex[id] = (() => { const t = new THREE.TextureLoader().load(ART + id + ".webp"); t.colorSpace = THREE.SRGBColorSpace; return t; })()); }
+function itemMat(id) { // crops use their painted picture, everything else its emoji
+  if (G.CROPS[id]) return new THREE.SpriteMaterial({map:artTexture(id), transparent:true, depthWrite:false});
+  return emojiMat(G.ITEMS[id] ? G.ITEMS[id].e : id).clone();
+}
+function halfMat(id, side) { // one half of a sliced crop picture
+  const t = artTexture(id).clone(); t.repeat.set(.5, 1); t.offset.set(side < 0 ? 0 : .5, 0); t.needsUpdate = true;
+  return new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false});
+}
+function spawnDrop(pos, mat, vel, o = {}) {
+  const s = new THREE.Sprite(mat); const w = o.size || .55; s.scale.set(w * (o.half ? .5 : 1), w, 1); s.position.copy(pos); s.visible = !o.delay; scene.add(s);
+  drops.push({s, v:vel.clone(), spin:(rnd() - .5) * (o.spin ?? 9), t:0, rest:0, w, half:o.half, kind:o.kind || "item", to:o.to || "barn", life:o.life || 0, delay:o.delay || 0, onLand:o.onLand});
+}
+function pocketPoint(to) { // just in front of the camera, on the line through the Barn button (or the coin counter)
+  const el = document.querySelector(to === "coin" ? ".money .cnt" : '.dock [data-p="barn"]');
+  const r = el && el.offsetParent ? el.getBoundingClientRect() : {x:innerWidth / 2, y:innerHeight, width:0, height:0};
+  return rayAt(r.x + r.width / 2, r.y + r.height / 2).ray.at(walk ? 1.6 : 3, new THREE.Vector3());
+}
+function updateDrops(dt) {
+  for (let k = drops.length - 1; k >= 0; k--) {
+    const d = drops[k], s = d.s;
+    if (d.delay > 0) { d.delay -= dt; if (d.delay <= 0) { s.visible = true; G.sfx("pop"); } continue; }
+    d.t += dt;
+    if (d.state === "pocket") { // fly into the Barn button, speeding up and shrinking
+      const to = pocketPoint(d.to), dir = to.sub(s.position), L = dir.length(); d.speed = Math.min(40, (d.speed || 3) + dt * 60);
+      if (L < .15 || d.t > 6) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); if (rnd() < .5) G.sfx("tick"); continue; }
+      s.position.addScaledVector(dir.normalize(), Math.min(L, d.speed * dt));
+      const k2 = THREE.MathUtils.clamp(L / 5, .22, 1); s.scale.set(d.w * k2 * (d.half ? .5 : 1), d.w * k2, 1); continue;
+    }
+    d.v.y -= GRAV * dt; s.position.addScaledVector(d.v, dt); s.material.rotation += d.spin * dt;
+    // bounce off buildings and the barn
+    for (const b of BLOCKS) { const [bx, bz, hw, hd] = b; if (FIELD_BLOCKS.has(b) || hw < .5 || s.position.y > 3.2) continue;
+      const dx = s.position.x - bx, dz = s.position.z - bz; if (Math.abs(dx) < hw && Math.abs(dz) < hd) {
+        if (hw - Math.abs(dx) < hd - Math.abs(dz)) { s.position.x = bx + Math.sign(dx) * hw; d.v.x = -d.v.x * .5; } else { s.position.z = bz + Math.sign(dz) * hd; d.v.z = -d.v.z * .5; } } }
+    const floor = groundY(s.position.x, s.position.z) + d.w * .42;
+    if (s.position.y <= floor) {
+      s.position.y = floor;
+      if (d.onLand) { d.onLand(d); d.onLand = null; if (d.gone) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); continue; } }
+      if (d.v.y < -2) { // bounce, losing energy, and spin less
+        d.v.y *= -.42; d.v.x *= .72; d.v.z *= .72; d.spin *= .55;
+        if (-d.v.y > 1.5 && performance.now() - lastBounce > 70) { lastBounce = performance.now(); G.sfx("bounce"); }
+      } else { d.v.y = 0; const f = Math.max(0, 1 - dt * 5); d.v.x *= f; d.v.z *= f; d.spin *= f; s.material.rotation *= Math.max(0, 1 - dt * 4); }
+    }
+    const still = s.position.y <= floor + .01 && Math.hypot(d.v.x, d.v.z) < .35; d.rest = still ? d.rest + dt : 0;
+    if (d.kind === "bit") { // leaves and juice: fade away
+      s.material.opacity = Math.max(0, 1 - d.t / d.life); if (d.t > d.life) { scene.remove(s); s.material.dispose(); drops.splice(k, 1); } continue; }
+    if (d.kind === "bait") continue; // feed in the air is on its way to the ground, not to your pocket
+    if (walk) { const near = Math.hypot(s.position.x - walk.pos.x, s.position.z - walk.pos.y) < 2.4; if ((near && d.t > .5) || d.t > 12) d.state = "pocket"; }
+    else if (d.rest > .6 || d.t > 3.5) d.state = "pocket";
+    if (d.state === "pocket") d.t = 0;
+  }
+}
+// a burst of little bits (leaves, juice) that fall and fade
+const bitTex = {};
+function bits(pos, color, n, up = 3.5, sz = 1) {
+  const mat = bitTex[color] || (bitTex[color] = new THREE.SpriteMaterial({map:radial(color), transparent:true, depthWrite:false}));
+  for (let i = 0; i < n; i++) { const a = rnd() * Math.PI * 2, sp = 1 + rnd() * 2.2;
+    spawnDrop(pos, mat.clone(), new THREE.Vector3(Math.cos(a) * sp, up * (.6 + rnd() * .6), Math.sin(a) * sp), {kind:"bit", size:(.12 + rnd() * .12) * sz, life:.7 + rnd() * .5, spin:0}); }
+}
+// a puff of soil dust that swells and fades where a crop was pulled up
+const dustMat = new THREE.SpriteMaterial({map:radial("rgba(150,110,70,.75)"), transparent:true, depthWrite:false});
+function dust(pos, n = 7) {
+  for (let i = 0; i < n; i++) { const a = rnd() * Math.PI * 2, sp = .6 + rnd() * 1.2;
+    spawnDrop(pos.clone().add(new THREE.Vector3(Math.cos(a) * .5, 0, Math.sin(a) * .5)), dustMat.clone(), new THREE.Vector3(Math.cos(a) * sp, 1.6 + rnd() * 1.4, Math.sin(a) * sp), {kind:"bit", size:.55 + rnd() * .45, life:.6 + rnd() * .4, spin:0}); }
+}
+const JUICE = {wheat:"rgba(240,200,90,.95)", corn:"rgba(250,215,60,.95)", carrot:"rgba(255,140,40,.95)", soybean:"rgba(150,190,80,.95)", sugarcane:"rgba(170,220,120,.95)",
+  tomato:"rgba(230,50,40,.95)", strawberry:"rgba(235,40,70,.95)", pumpkin:"rgba(250,140,30,.95)"};
+
+// ---------- Fruit Ninja harvesting: a glowing blade trail, and every ripe crop it crosses is sliced in two ----------
+const swipeCv = document.getElementById("swipe"), swipeCx = swipeCv.getContext("2d"), trail = [];
+let swipeDir = new THREE.Vector2(1, 0), trailDirty = false;
+function sizeSwipe() { const r = Math.min(devicePixelRatio || 1, 2); swipeCv.width = innerWidth * r; swipeCv.height = innerHeight * r; swipeCx.setTransform(r, 0, 0, r, 0, 0); }
+sizeSwipe(); addEventListener("resize", sizeSwipe);
+function trailPoint(x, y) {
+  const p = trail[trail.length - 1];
+  if (p) { const dx = x - p.x, dy = y - p.y, l = Math.hypot(dx, dy); if (l < 3) return; swipeDir.set(dx / l, dy / l); }
+  trail.push({x, y, t:performance.now()}); trailDirty = true;
+}
+function drawTrail() {
+  if (!trailDirty) return;
+  const now = performance.now(); while (trail.length && now - trail[0].t > 180) trail.shift();
+  swipeCx.clearRect(0, 0, innerWidth, innerHeight);
+  if (trail.length < 2) { trailDirty = trail.length > 0; return; }
+  // a tapered blade: thin at the tail, wide and bright at the tip, with a soft glow
+  for (const [w, col, blur] of [[16, "rgba(255,236,160,.35)", 18], [7, "rgba(255,255,255,.95)", 6]]) {
+    swipeCx.shadowColor = "rgba(255,220,120,.9)"; swipeCx.shadowBlur = blur; swipeCx.strokeStyle = col; swipeCx.lineCap = "round";
+    for (let i = 1; i < trail.length; i++) { const k = i / (trail.length - 1), age = 1 - (now - trail[i].t) / 180;
+      swipeCx.lineWidth = Math.max(.5, w * k * age); swipeCx.beginPath(); swipeCx.moveTo(trail[i - 1].x, trail[i - 1].y); swipeCx.lineTo(trail[i].x, trail[i].y); swipeCx.stroke(); }
+  }
+  swipeCx.shadowBlur = 0;
+}
+function combo(n, x, y) { // three or more in one swipe
+  G.noteCombo(n);
+  const d = document.createElement("div"); d.className = "fx out combo"; d.textContent = "×" + n + " combo!"; d.style.left = x + "px"; d.style.top = (y - 50) + "px";
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150); G.sfx("magic");
+}
+// split the crop: two halves fly apart across the cut, spinning, then bounce and head for the barn
+function sliceFx(i, crop) {
+  const c = plots[i].g.position, right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).setY(0).normalize();
+  const fwd = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).setY(0); if (fwd.lengthSq() < 1e-4) fwd.set(0, 0, -1); fwd.normalize();
+  const cut = right.clone().multiplyScalar(swipeDir.x).addScaledVector(fwd, swipeDir.y).normalize(), across = new THREE.Vector3(-cut.z, 0, cut.x);
+  const at = new THREE.Vector3(c.x, .8, c.z);
+  for (const side of [-1, 1]) spawnDrop(at, G.CROPS[crop] ? halfMat(crop, side) : itemMat(crop),
+    across.clone().multiplyScalar(side * (2 + rnd())).addScaledVector(cut, 1.2).setY(5.5 + rnd() * 1.5), {size:walk ? .6 : 1, half:!!G.CROPS[crop], spin:side * 10});
+  const big = walk ? 1 : 1.8; // bigger from the farm view, so the burst reads from far away
+  bits(at, JUICE[crop] || "rgba(240,200,90,.95)", 14, 4.5, big); bits(at, "rgba(90,170,60,.95)", 10, 3.5, big); dust(new THREE.Vector3(c.x, .3, c.z));
+  shake = Math.max(shake, .05); G.sfx("slice");
+}
+// goods pop out of a building's door one after another
+function machineDrop(bid, items) {
+  const B = buildings[bid]; if (!B || !B.g) return;
+  const door = B.g.position.clone().add(new THREE.Vector3(0, 1, 1.7));
+  items.slice(0, 6).forEach((id, n) => spawnDrop(door, itemMat(id), new THREE.Vector3((rnd() - .5) * 2.4, 5 + rnd() * 1.5, 2.2 + rnd() * 1.4), {delay:n * .14, size:walk ? .5 : .8}));
+}
+function animalDrop(a, id) {
+  const from = a.g.position.clone().setY(a.S.h * .7);
+  spawnDrop(from, id ? itemMat(id) : emojiMat("🪙").clone(), new THREE.Vector3((rnd() - .5) * 1.6, 4.5 + rnd(), (rnd() - .5) * 1.6), {size:.5, to:id ? "barn" : "coin", delay:rnd() * .15});
+}
+
+// ---------- bait and herding ----------
+// Throw a handful of feed (walk mode button, or press and hold on the grass): hungry and greedy animals race over to eat it.
+// Penned animals can't get out, so they crowd the fence nearest the snack and beg. While you walk around,
+// timid animals move out of your way (so you can herd them into a corner), curious ones come to have a look,
+// and the dog trots along behind you.
+const baits = [];
+let baitAt = 0;
+const baitMat = emojiMat("🌾");
+function throwBait() {
+  if (!walk || clockT - baitAt < 1.2) return; baitAt = clockT;
+  if (authoredHands?.state.status === 'ready') handPunch('reach', 'feed');
+  const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw), y = workshopWalkY(walk.pos.x, walk.pos.y) + EYE - .35;
+  const v = new THREE.Vector3(fx, 0, fz).multiplyScalar(6.5).setY(3.2 + Math.sin(walk.pitch) * 5);
+  spawnDrop(new THREE.Vector3(walk.pos.x + fx * .6, y, walk.pos.y + fz * .6), baitMat.clone(), v, {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
+  G.sfx("throw");
+}
+function dropBaitAt(x, z) { // from the farm view: it falls from above
+  spawnDrop(new THREE.Vector3(x, 5, z), baitMat.clone(), new THREE.Vector3(0, -2, 0), {size:.45, kind:"bait", onLand:(d) => { layBait(d.s.position.x, d.s.position.z); d.gone = true; }});
+  G.sfx("throw");
+}
+function layBait(x, z) {
+  const pile = new THREE.Sprite(baitMat.clone()); pile.scale.setScalar(.5); pile.position.set(x, groundY(x, z) + .2, z); scene.add(pile);
+  const b = {x, z, v:new THREE.Vector2(x, z), until:clockT + 18, pile, bites:0};
+  baits.push(b); bits(pile.position, "rgba(235,205,120,.95)", 6, 2.5);
+  for (const a of animals) {
+    if (a.act === "sleeping") continue;
+    const d = a.pos.distanceTo(b.v); if (d > 18) continue;
+    const keen = .25 + a.P.hunger * .5 + a.need.hunger * .5; if (rnd() > keen) continue;
+    const reach = a.pen ? inPen(a.pen, x, z, -.2) : !PEN_LIST.some(p => inPen(p, x, z)), ang = rnd() * Math.PI * 2, r = .6 + rnd() * .5;
+    a.bait = b; a.until = 0; a.path = null; a.emote(a.P.hunger > .8 ? "🤩" : "😋", 1.4);
+    a.go(x + Math.cos(ang) * r, z + Math.sin(ang) * r, a.P.hunger > .8 || d > 7, reach ? "Racing to the snack" : "Wants that snack!", "bait");
+  }
+}
+function updateBaits() {
+  for (let k = baits.length - 1; k >= 0; k--) { const b = baits[k];
+    if (clockT > b.until || b.bites > 10) { scene.remove(b.pile); b.pile.material.dispose(); baits.splice(k, 1); continue; }
+    b.pile.scale.setScalar(.5 * Math.max(.35, 1 - b.bites / 12)); }
+}
+// what an animal does about you while you walk around (checked a few times a second)
+function sensePlayer(a, t) {
+  if (!walk || a.act === "sleeping" || t < (a.senseAt || 0) || t < (a.calmUntil || 0)) return; a.senseAt = t + .25; // (just petted: happy to stay close)
+  const pp = walk.pos, d = a.pos.distanceTo(pp), P = a.P;
+  if (a.kind === "dog") { // follows you around, a couple of steps behind
+    if (d > 3.4 && d < 30 && !(a.doing === "follow" && a.target)) { const fx = -Math.sin(walk.yaw), fz = -Math.cos(walk.yaw);
+      a.go(pp.x - fx * 1.8 + (rnd() - .5), pp.y - fz * 1.8 + (rnd() - .5), d > 7, "Following you", "follow"); }
+    return;
+  }
+  if (a.kind === "cat") return; // cats do what cats want
+  if (a.doing === "bait" && d > 1.3) return; // busy with the snack
+  const nerve = 2.1 + (1 - P.brave) * 2.8; // how close you can get
+  if (aim && aim.an === a && d > 1.2) return; // an animal you're looking at (to pet it) stays put
+  if (d < nerve && a.act !== "fleeing" && !(P.curious >= .9 && d > 1.4)) { a.flee(pp, P.brave < .3 ? "Scared of you!" : "Moving out of your way"); return; }
+  if (P.curious >= .7 && d < 9 && d > nerve + .6 && !a.target && t > (a.lookedAt || 0)) {
+    a.lookedAt = t + 9; const q = a.pos.lerp(pp, 1 - (nerve + .4) / d); a.emote("👀", 1.6); a.go(q.x, q.y, false, "Coming to see you", "look");
+  }
+}
+
+// ---------- the view that game.js talks to ----------
+function keyPos(key) {
+  const [type, a, b] = key.split(":");
+  if(type==='cow'){const target=cowYard.targets.find(t=>t.kind===a);if(!target)return null;cowYard.group.updateMatrixWorld(true);const pos=a==='robot'?new THREE.Vector3(...cowYard.layout.robot.dock):new THREE.Box3().setFromObject(target.object).getCenter(new THREE.Vector3());return pos.setY({feed:.7,water:.7,robot:1.3,tank:1.5}[a]);}
+  if(type==='chicken'){const target=chickenYard.targets.find(t=>t.kind===a);return target?.object.position.clone().setY(a==='coop'?1.7:a==='eggs'?.2:.6);}
+  if (type === "plot") { const P = plots[+a]; return P && P.g.position.clone().setY(.8); }
+  if (type === "animal") { const an = animals.find(x => x.ref.type === "pen" && x.ref.kind === a && x.ref.i === +b); return an && an.g.position.clone().setY(an.S.h + .3); }
+  if (type === "pet") { const an = animals.find(x => x.ref.type === "pet" && x.ref.j === +a); return an && an.g.position.clone().setY(an.S.h + .3); }
+  if (type === "building") return new THREE.Vector3(BUILD_SPOT[a][0], 3.2, BUILD_SPOT[a][1]);
+  if (type === "board") return board.position.clone().setY(2.8);
+  if (type === "gift") return gift.position.clone().setY(1);
+  if (type === "stand") return stall.position.clone().setY(2);
+  if (type === "visitor") return visitorCard.position.clone().setY(2);
+  if (type === "decor") { const d = GS().decor.placed[+a]; return d && new THREE.Vector3(d.x, 1.2, d.z); }
+  if (type === "pen") { const pen = penOf(a); return pen && new THREE.Vector3(pen.bed[0], 1, pen.bed[1]); }
+  return null;
+}
+function toScreen(v) { const p = v.clone().project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
+function fxAt(key, text) {
+  const v = keyPos(key), s = v && toScreen(v); if (!s) return;
+  const d = document.createElement("div"); d.className = "fx out"; d.textContent = text; d.style.left = s.x + "px"; d.style.top = s.y + "px";
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150);
+}
+function focusOn(key) { const v = keyPos(key); if (v) { cam.target.set(v.x, 2, v.z); cam.dist = Math.min(cam.dist, 30); } }
+// coins and gems fly from where you tapped into their counters
+let lastTap = {x:innerWidth / 2, y:innerHeight / 2, t:0};
+addEventListener("pointerdown", (e) => { lastTap = {x:e.clientX, y:e.clientY, t:performance.now()}; if (e.target.closest && e.target.closest("button")) G.buzz(6); }, true);
+function flyTo(kind, n, at) {
+  if (G.reducedMotion()) return; // counters and reward text still update
+  const target = document.getElementById(kind === "coin" ? "coins" : kind === "xp" ? "lvl" : "gems"); if (!target || document.hidden || visiting) return;
+  const r = target.closest(".cnt, .star").getBoundingClientRect(), tx = r.left + (kind === "xp" ? r.width / 2 : 18), ty = r.top + r.height / 2;
+  const from = at || (performance.now() - lastTap.t < 4000 ? lastTap : {x:innerWidth / 2, y:innerHeight * .55});
+  const count = Math.min(7, 1 + Math.floor(Math.log2(n + 1)));
+  for (let k = 0; k < count; k++) {
+    const el = document.createElement("div"); el.className = "flyer"; el.textContent = kind === "coin" ? "🪙" : kind === "xp" ? "⭐" : "💎"; document.body.appendChild(el);
+    const sx = from.x + (Math.random() - .5) * 60, sy = from.y + (Math.random() - .5) * 40, mx = (sx + tx) / 2 + (Math.random() - .5) * 120, my = Math.min(sy, ty) - 40 - Math.random() * 60;
+    const a = el.animate([{transform:`translate(${sx - 13}px,${sy - 13}px) scale(.6)`, opacity:0}, {transform:`translate(${mx - 13}px,${my - 13}px) scale(1.15)`, opacity:1, offset:.45},
+      {transform:`translate(${tx - 13}px,${ty - 13}px) scale(.7)`, opacity:1}], {duration:650 + k * 70, delay:k * 60, easing:"cubic-bezier(.5,0,.6,1)", fill:"both"});
+    a.onfinish = () => { el.remove(); if (k === count - 1) { G.sfx("tick"); } };
+  }
+}
+Object.assign(GV, {
+  sparkle(key) { const v = keyPos(key); if (v) { bits(v.clone().setY(1), "rgba(255,210,60,1)", 16, 5.5); bits(v.clone().setY(1.2), "rgba(255,255,230,1)", 8, 6.5); } },
+  fly:flyTo,
+  fx:fxAt, focus:focusOn, closeTrays, busy:() => !!animalPenEditing || !!farmDrag || !!moving || !!(editMode && editMode.drag), moveDecor:(j) => startMove(j),
+  openBuildingAt(x, y) {
+    if (visiting || editMode || photoMode || wardrobeOn || inBarn) return false;
+    const h = hitAt(x, y);
+    if (h?.type !== "building") return false;
+    // A touch's generated click may land on the newly opened backdrop. The
+    // current shed is already selected; consuming it keeps that menu open.
+    if (G.panel?.arg !== h.bid) G.openPanel("building", h.bid);
+    return true;
+  },
+  refresh(what) {
+    if (what === "all") applyLayout(); // Saved objects define whether the courtyard can be installed before cows spawn.
+    if (what === "all") restoreSavedAnimalPens(); // saved custom pens, before herds spawn
+    if (what === "plots" || what === "all") syncPlots();
+    if (what === "herd" || what === "all") { syncHerd(); syncPenSigns(); }
+    if (what === "buildings" || what === "all") syncBuildings();
+    if (what === "decor" || what === "all") syncDecor();
+    if (what === "stand" || what === "all") syncStand();
+    if (what === "visitor" || what === "all") syncVisitor();
+    if (what === "look" || what === "all") buildFarmer();
+    if (what === "style" || what === "all") applyStyle();
+    if (what === "all") { syncPenSigns(); syncBuildings();syncCowYard(); }
+  },
+  freeDecorSpot(size) {
+    const c = cam.target;
+    for (let r = 0; r < 26; r += .8) for (let a = 0; a < 6.283; a += r ? .9 / r + .1 : 7) { const x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r; if (spotFree(x, z, size)) return {x:+x.toFixed(2), z:+z.toFixed(2)}; }
+    return null;
+  },
+  screenPos(key) { const v = keyPos(key); return v && toScreen(v); },
+  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has("preset")) setPreset(G.lookNow()); },
+  setQuality,
+});
+
+// ---------- trays: seeds, a growing field, an animal or pet, a decoration ----------
+let armed = null, trayFor = null, pendingPlot = -1;
+const seedTray = document.getElementById("seedTray"), infoTray = document.getElementById("infoTray");
+const seedTool = document.getElementById("seedTool"), seedChoice = document.getElementById("seedChoice"), seedIcon = document.getElementById("seedIcon"), seedName = document.getElementById("seedName");
+function closeTrays() { if(chickenPreview){chickenPreview=null;syncChickenYard();} seedTray.classList.remove("away"); seedTray.hidden = true; infoTray.hidden = true; trayFor = null; pendingPlot = -1; updateSeedTool(); }
+function updateSeedTool() {
+  // Equipment belongs to this play session, not to a particular tray or save.
+  if (!visiting && armed && (!G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level)) armed = null;
+  seedTool.hidden = !armed || !seedTray.hidden || !infoTray.hidden || !!visiting || !!editMode || photoMode || wardrobeOn || !!inBarn || !!G.panel || rotatePaused;
+  seedChoice.setAttribute("aria-expanded", String(!seedTray.hidden));
+  if (armed && seedTool.dataset.equippedCrop !== armed) {
+    seedTool.dataset.equippedCrop = armed; seedIcon.textContent = G.ITEMS[armed].e; seedName.textContent = G.ITEMS[armed].n;
+    seedChoice.setAttribute("aria-label", "Change selected seed: " + G.ITEMS[armed].n);
+  }
+}
+function putAwaySeeds() { armed = null; closeTrays(); }
+function renderSeeds() {
+  if (seedTray.hidden) return;
+  const pp = pendingPlot >= 0 && GS().plots[pendingPlot], soil = pp ? G.soilNow(pp) : 100;
+  document.getElementById("seedHelp").textContent = armed ? "Slide one finger over the fields to plant " + G.ITEMS[armed].n.toLowerCase() + " · two fingers move the camera"
+    : pp && soil < 70 ? G.soilWord(soil) + ": last grew " + (pp.last ? G.ITEMS[pp.last].n.toLowerCase() : "something") + ". Plant something different to freshen it up."
+    : G.SEASON_E[G.THEME.season] + " Tap a seed, or drag one onto the fields";
+  document.getElementById("seedList").innerHTML = Object.entries(G.CROPS).map(([id, c]) => G.ITEMS[id].lvl > GS().level
+    ? `<button class="seed locked" disabled><img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b><small>🔒 Lv ${G.ITEMS[id].lvl}</small></button>`
+    : `<button class="seed${armed === id ? " on" : ""}${G.inSeason(id) ? "" : " off"}" data-crop="${id}" ${G.inSeason(id) ? "" : `title="Out of season: grows at half speed. Best in ${G.CROP_SEASONS[id].join(", ")}"`}>${G.inSeason(id) ? "" : `<i class="szn">${G.CROP_SEASONS[id].map(x => G.SEASON_E[x]).join("")}</i>`}<img src="${ART + id}.webp" alt=""><b>${G.ITEMS[id].n}</b>${G.have(id) // seeds you have show how many; the rest show what one costs
+      ? `<span class="tag own">×${G.have(id)}</span>` : `<span class="tag buy">🛒 ${c.seed} 🪙</span>`}<small>${G.inSeason(id) ? "⏱ " + G.fmt(c.time * 1000) : "🐢 ½ speed · " + G.fmt(c.time * 2000)}</small></button>`).join("");
+}
+// tapping an empty field only opens the seeds; the field is planted with whichever seed you pick
+function openSeeds(i) {
+  closeTrays(); G.close(); infoTray.hidden = true; seedTray.classList.remove("away"); seedTray.hidden = false; trayFor = {type:"seeds"};
+  pendingPlot = i; renderSeeds(); updateSeedTool();
+}
+// while a finger is dragging to plant, the tray steps out of the way so you can see the fields under it.
+// Let go after planting and it closes (like Hay Day); let go without planting anything and it comes back.
+function endPlantDrag() {
+  const away = seedTray.classList.contains("away"); seedTray.classList.remove("away");
+  if (away && farmDrag && farmDrag.n > 0) closeTrays();
+}
+function pickSeed(id) {
+  if (!G.CROPS[id] || !G.ITEMS[id] || G.ITEMS[id].lvl > GS().level) return false;
+  armed = id; G.sfx("tick");
+  if (pendingPlot >= 0 && GS().plots[pendingPlot] && !GS().plots[pendingPlot].crop) plantAt(pendingPlot);
+  closeTrays(); return true;
+}
+// or drag a seed out of the tray and across the fields, like the 2D game
+let seedDrag = null, seedDragEnd = 0;
+const ghost = document.getElementById("ghost");
+document.getElementById("seedList").addEventListener("click", (e) => { const b = e.target.closest("[data-crop]"); if (b && performance.now() - seedDragEnd > 400) pickSeed(b.dataset.crop); });
+document.getElementById("seedList").addEventListener("dragstart", (e) => e.preventDefault()); // no browser picture-dragging; we drag the seed ourselves
+document.getElementById("seedList").addEventListener("pointerdown", (e) => { const b = e.target.closest("[data-crop]"); seedDrag = b ? {id:e.pointerId, crop:b.dataset.crop, x:e.clientX, y:e.clientY, on:false} : null; });
+addEventListener("pointermove", (e) => {
+  const s = seedDrag; if (!s || s.id !== e.pointerId) return;
+  if (!s.on) {
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) < 12) return;
+    s.on = true; armed = s.crop; pendingPlot = -1; farmDrag = {id:e.pointerId, mode:"plant", n:0}; ghost.src = ART + s.crop + ".webp"; ghost.hidden = false; G.sfx("pickup"); renderSeeds();
+    seedTray.classList.add("away");
+  }
+  if (!farmDrag) { seedDrag = null; ghost.hidden = true; seedTray.classList.remove("away"); return; } // the drag was called off: drop the seed
+  ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
+  paintAlong(e.clientX, e.clientY);
+});
+const endSeedDrag = (e) => { const s = seedDrag; if (!s || s.id !== e.pointerId) return; seedDrag = null; if (!s.on) return; seedDragEnd = performance.now(); ghost.hidden = true; endPlantDrag(); farmDrag = null; };
+addEventListener("pointerup", endSeedDrag); addEventListener("pointercancel", endSeedDrag);
+seedTray.addEventListener("click", (e) => { if (e.target.closest('[data-tray="close"]')) closeTrays(); });
+seedChoice.addEventListener("click", () => openSeeds(-1));
+document.getElementById("seedPutAway").addEventListener("click", putAwaySeeds);
+function showInfo(html, forWhat) { G.close(); seedTray.hidden = true; pendingPlot = -1; infoTray.dataset.kind=forWhat.type; infoTray.innerHTML = html; infoTray.hidden = false; trayFor = forWhat; updateSeedTool(); }
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
+const cdBtn = (act, label, at, cd, data) => { const l = G.cdLeft(at || 0, cd); return `<button class="btn plain sm" data-w="${act}" ${data} ${l ? "disabled" : ""}>${label}${l ? " · " + G.fmt(l).split(" ")[0] : ""}</button>`; };
+const PET_CD = 20 * 60e3, BRUSH_CD = 2 * 3600e3, PLAY_CD = 3600e3, TREAT_CD = 4 * 3600e3, GIFT_CD = 6 * 3600e3;
+function trayHtml() {
+  const f = trayFor; if (!f) return "";
+  const x = `<button class="x" data-w="close" aria-label="Close">✕</button>`;
+  if(f.type==='cowStation'){
+    const s=cowStatus||G.getCowCareStatus(),total=s.tank.normal+s.tank.gold,job=s.job;
+    const summary=`<div class="tray-sub">Feed: ${s.feed}/30 · Water: ${G.fmt(Math.max(0,s.waterUntil-nowMs()))}</div><div class="tray-sub">Bulk tank: ${total}/50 gallons · ${s.tank.gold} gold</div>`;
+    if(!cowYardActive)return `<h3><span>Dairy courtyard</span>${x}</h3><p>${cowYardIssues.length?'Make space in the northern farm extension. Move the objects shown there, then reload to install the courtyard.':'Reload to install the cleared courtyard before using its stations.'}</p>`;
+    if(f.station==='feed')return `<h3><span>🌾 Cow feed bunk</span>${x}</h3>${summary}<p>One cow feed starts one cow cycle. Production pauses when water runs out.</p><button id="cow-fill-feed" class="btn" data-w="cowFeed" ${s.feed>=30||!G.have('cow_feed')?'disabled':''}>Stock feed · up to ${Math.min(30-s.feed,G.have('cow_feed'))} (${G.have('cow_feed')} in barn)</button>`;
+    if(f.station==='water')return `<h3><span>💧 Cow water trough</span>${x}</h3>${summary}<button id="cow-fill-water" class="btn" data-w="cowWater">Refill water · 12 hours · free</button>`;
+    if(f.station==='tank')return `<h3><span>🥛 Bulk milk tank</span>${x}</h3>${summary}<p>Collect into your barn to use recipes or sell at the market. Barn room: ${Math.max(0,G.space())}.</p><div class="row"><button id="cow-pickup-one" class="btn plain" data-w="cowTank" data-n="1" ${total?'':'disabled'}>Collect 1 gallon</button><button id="cow-pickup-all" class="btn" data-w="cowTank" data-n="50" ${total?'':'disabled'}>Collect all that fits</button></div>`;
+    const name=job?G.meta('cow',s.cows.findIndex(c=>c.id===job.cowId)).name:'';
+    return `<h3><span>⚙️ Robot milker</span>${x}</h3>${summary}<p>${job?esc(name)+' · '+({approaching:'Walking to robot',milking:'Milking · '+Math.round(Math.min(100,(nowMs()-job.startedAt)/120))+'%',exiting:'Leaving robot'}[job.stage]):'Select a ready cow, then press Milk.'}</p><p>${s.queue.length} waiting · ${total>=50?'Empty the bulk tank first':'12 seconds per docked cow'}</p>`;
+  }
+  if(f.type==='chickenStation'){
+    const s=G.getChickenCareStatus(),why={full:'Egg pallet full',feed:'Feed bin empty',water:'Waterer empty','feed-water':'Fill feed and water','no-chickens':'Add a chicken',unavailable:'Update required for this chicken save',unowned:'Buy the chicken coop first'}[s.reason]||'Producing eggs';
+    const summary=`<div class="tray-sub">${s.total}/${G.CHICKEN_CARE.capacity} eggs · ${why}</div><div class="tray-sub">Feed: ${G.fmt(s.feedMs)} · Water: ${G.fmt(s.waterMs)}</div>`;
+    if(f.station==='feed'||f.station==='water'){const q=G.chickenRefillQuote(f.station),isFeed=f.station==='feed';return `<h3><span>${isFeed?'🌾 Feed bin':'💧 Waterer'}</span>${x}</h3>${summary}<p>Full supplies last 12 real hours, including while you are away.</p><div class="row"><button id="chicken-fill" class="btn" data-w="chickenFill" data-resource="${f.station}" data-rev="${q.revision}" data-cost="${q.cost}" ${q.full||q.reason||!GS().pens.chicken.owned?'disabled':''}>${q.full?'Already full':isFeed?'Fill · '+q.cost+' chicken feed':'Fill water · free'}</button></div>`;}
+    if(f.station==='eggs')return `<h3><span>🥚 Egg pallet</span>${x}</h3>${summary}<p>Your barn has room for ${Math.max(0,G.space())}. Tap the pallet to pick up all that fits; remaining eggs stay here.</p>`;
+    const draft=chickenPreview||GS().pens.chicken.appearance||G.CHICKEN_DEFAULT_STYLE;
+    let options='';for(const [part,colors]of Object.entries(G.CHICKEN_PAINT)){options+=`<fieldset><legend>${part[0].toUpperCase()+part.slice(1)}</legend><div class="row">${Object.entries(colors).map(([id,[name,color]])=>`<button id="chicken-${part}-${id}" class="btn plain sm chicken-swatch" data-w="chickenPaint" data-part="${part}" data-value="${id}" aria-pressed="${draft[part]===id}" style="border-bottom:5px solid #${color.toString(16).padStart(6,'0')}">${name}</button>`).join('')}</div></fieldset>`;}
+    return `<h3><span>🏠 Customize coop</span>${x}</h3><p>Free appearance choices · space for ${G.ANIMALS.chicken.max} chickens</p>${options}<fieldset><legend>Roof appearance</legend><div class="row">${[['metal','Metal'],['shingles','Shingles']].map(([id,name])=>`<button id="chicken-roofType-${id}" class="btn plain sm" data-w="chickenPaint" data-part="roofType" data-value="${id}" aria-pressed="${draft.roofType===id}">${name}</button>`).join('')}</div></fieldset><div class="row"><button id="chicken-apply" class="btn" data-w="chickenApply">Apply</button><button id="chicken-cancel" class="btn plain" data-w="chickenCancel">Cancel</button></div>`;
+  }
+  if (f.type === "plot") {
+    const p = GS().plots[f.i]; if (!p.crop) return ""; const it = G.ITEMS[p.crop], left = p.end - nowMs(), n = G.thirsty();
+    const tags = [p.water ? "💧 Watered" : G.heatwave() ? "🥵 Thirsty in the heat" : "Not watered yet", p.fert ? "🧪 Fertilized" : "", G.soilWord(p.soil),
+      G.inSeason(p.crop) ? "" : "🍂 Out of season (grows slower)"].filter(Boolean).join(" · ");
+    return `<h3><span>${it.e} ${it.n}</span>${x}</h3><div class="tray-sub">Ready in ${G.fmt(left)} · 🥇 chance ${Math.round(G.goldChance(p) * 100)}%</div><div class="tray-sub">${tags}</div>
+      <div class="row">${p.water ? "" : `<button class="btn sm" data-w="water" data-i="${f.i}">💧 Water</button>`}${n > 1 ? `<button class="btn sm" data-w="waterAll">💧 Water all ${n}</button>` : ""}
+      ${p.fert ? "" : `<button class="btn plain sm" data-w="fert" data-i="${f.i}" ${G.have("fertilizer") ? "" : "disabled"}>🧪 Fertilize (${G.have("fertilizer")})</button>`}
+      <button class="btn blue sm" data-w="speedPlot" data-i="${f.i}">Finish now · ${G.gemCost(left)} 💎</button></div>`;
+  }
+  if (f.type === "plotSale") return `<h3><span>🟫 New field</span>${x}</h3><div class="tray-sub">More fields, bigger harvests (${GS().plots.length}/${G.maxPlots()})</div>
+      <div class="row"><button class="btn gold" data-act="plot+">Buy · ${plotCostTxt()}</button></div>`;
+  if (f.type === "animal") {
+    const an = f.an, k = an.kind, i = an.ref.i, a = G.ANIMALS[k], pen = GS().pens[k], m = G.meta(k, i), end = pen.list[i], t = nowMs();
+    const cs=k==='cow'?(cowStatus||G.getCowCareStatus()):null,cow=cs?.cows[i],cj=cs?.job&&cs.job.cowId===cow?.id?cs.job:null,cqueued=cs?.queue.includes(cow?.id);
+    const cowText=cs?(!cowYardActive?'Make space for the dairy courtyard':cj?({approaching:'Walking to robot',milking:'Robot milking',exiting:'Leaving robot'}[cj.stage]):cqueued?'Queued for robot':cow?.ready?'Ready to milk':cow?.feedCharged?'Making milk · '+G.fmt(Math.max(0,cow.duration-cow.progress)):'Stock the feed bunk and water trough'):'';
+    const status = k==='cow'?cowText:k==="chicken"?"Feed and water at the stations · eggs on the outside pallet":end === 0 ? `Hungry: wants ${G.ITEMS[a.feed].e} ${G.ITEMS[a.feed].n.toLowerCase()}` : end <= t ? "Ready!" : (a.out ? "Making " + G.outE(a) : "Giving pony rides 🪙") + " · " + G.fmt(end - t);
+    const hungry = pen.list.filter(e => e === 0).length, d = `data-k="${k}" data-i="${i}"`;
+    return `<div class="acard"><img src="${ART + k}.webp" alt=""><div class="who"><b class="nm">${esc(m.name)}</b><button class="rn" data-w="rename" aria-label="Rename">✏️</button>
+      <div class="hearts">${G.hearts(m)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div><div class="tray-sub">${status}</div></div>${x}</div>
+      <div class="row">${k!=="chicken" && k!=="cow" && end === 0 ? `<button class="btn sm" data-w="feed" ${d}>Feed ${G.ITEMS[a.feed].e} (${G.have(a.feed)})</button>${hungry > 1 ? `<button class="btn sm" data-w="feedAll" ${d}>Feed all ${hungry}</button>` : ""}` : ""}
+      ${k==='cow'?`<button id="cow-milk" class="btn" data-w="cowMilk" data-id="${cow?.id||''}" ${!cowYardActive||!cow?.ready||cj||cqueued?'disabled':''}>🥛 Milk</button><button class="btn plain sm" data-w="cowStation" data-station="feed">Feed bunk</button><button class="btn plain sm" data-w="cowStation" data-station="tank">Bulk tank</button>`:''}
+      ${cdBtn("petA", "🤚 Pet", m.petAt, PET_CD, d)}${cdBtn("brushA", "✨ Brush", m.brushAt, BRUSH_CD, d)}${k === "horse" ? cdBtn("rideA", "🏇 Ride", m.playAt, PLAY_CD, d) : ""}
+      ${pen.list.length < a.max ? `<button class="btn gold sm" data-act="animal" data-k="${k}">+ ${a.e} ${a.cost} 🪙</button>` : ""}</div>
+      <div class="tray-sub center" style="margin-top:6px">${G.loveOf(m) >= 70 ? (a.out ? "💖 Very happy! Sometimes makes double." : "💖 Very happy! Earns 25% more from rides.") : "Pet and brush to make them happy"}</div>`;
+  }
+  if (f.type === "pet") {
+    const an = f.an, j = an.ref.j, p = GS().pets[j], P = G.PETS[p.kind], next = GIFT_CD - (nowMs() - p.giftAt), d = `data-i="${j}"`;
+    return `<div class="acard"><img src="${ART + p.kind}.webp" alt=""><div class="who"><b class="nm">${esc(p.name)}</b><button class="rn" data-w="renamePet" aria-label="Rename">✏️</button>
+      <div class="hearts">${G.hearts(p)}</div><div class="tray-sub">${an.pers} · ${esc(an.label)}</div>
+      <div class="tray-sub">${G.loveOf(p) < 40 ? "Wants some love before bringing gifts" : next > 0 ? "Next gift in about " + G.fmt(next).split(" ")[0] : "Has a gift for you!"}</div></div>${x}</div>
+      <div class="row">${cdBtn("petP", "🤚 Pet", p.petAt, PET_CD, d)}${cdBtn("playP", P.toy + " Play", p.playAt, PLAY_CD, d)}${cdBtn("treatP", "🍖 Treat · 10🪙", p.treatAt, TREAT_CD, d)}<button class="btn plain sm" data-w="call">📣 Call over</button></div>
+      <div class="tray-sub center" style="margin-top:6px">Happy pets bring you coins, gems and sometimes a decoration</div>`;
+  }
+  if (f.type === "decor") { const d = GS().decor.placed[f.j]; if (!d) return ""; const D = G.DECOR[d.id];
+    return `<h3><span>${G.decorIcon(d.id)} ${D.n}</span>${x}</h3><div class="tray-sub">Tap Move, then drag it with one finger</div><div class="row"><button class="btn plain sm" data-w="store" data-i="${f.j}">Put away</button><button class="btn sm" data-w="move" data-i="${f.j}">✋ Move</button></div>`; }
+  return "";
+}
+function patchAnimalInfo(tray, html) {
+  const template=tray.ownerDocument.createElement('template');template.innerHTML=html;
+  const before=[...tray.childNodes],after=[...template.content.childNodes];
+  const controls=[...tray.querySelectorAll('button')],incoming=[...template.content.querySelectorAll('button')];
+  const key=n=>['id','data-w','data-act','data-id','data-k','data-i','data-station'].map(k=>n.getAttribute(k)||'').join('|');
+  if(before.length!==after.length||controls.length!==incoming.length||controls.some((n,i)=>key(n)!==key(incoming[i])))return false;
+  // Plan before changing anything. A changed control identity or structure uses
+  // the original rebuild; live labels retain buttons and their attached parents.
+  const changes=[],hasControl=n=>n.nodeType===1&&(n.tagName==='BUTTON'||!!n.querySelector('button'));
+  function plan(node,fresh){
+    if(node.nodeType!==fresh.nodeType||node.nodeName!==fresh.nodeName||node.childNodes.length!==fresh.childNodes.length){
+      if(hasControl(node)||hasControl(fresh))return false;
+      changes.push(()=>node.replaceWith(fresh));return true;
+    }
+    if(node.nodeType!==1){if(node.nodeValue!==fresh.nodeValue)changes.push(()=>{node.nodeValue=fresh.nodeValue;});return true;}
+    changes.push(()=>{
+      for(const name of node.getAttributeNames())if(!fresh.hasAttribute(name))node.removeAttribute(name);
+      for(const name of fresh.getAttributeNames())if(node.getAttribute(name)!==fresh.getAttribute(name))node.setAttribute(name,fresh.getAttribute(name));
+    });
+    return [...node.childNodes].every((child,i)=>plan(child,fresh.childNodes[i]));
+  }
+  if(!before.every((node,i)=>plan(node,after[i])))return false;
+  changes.forEach(change=>change());return true;
+}
+function refreshInfo() { if (!infoTray.hidden && trayFor) { const h = trayHtml(); if (!h) return closeTrays(); if (h !== infoTray.dataset.h) { if(['animal','cowStation','chickenStation'].includes(trayFor.type)&&patchAnimalInfo(infoTray,h)){infoTray.dataset.h=h;return;}const focus=document.activeElement?.id;infoTray.innerHTML = h; infoTray.dataset.h = h;if(focus?.startsWith('chicken-')||focus?.startsWith('cow-'))document.getElementById(focus)?.focus({preventScroll:true}); } } }
+function openInfo(forWhat) { if(chickenPreview && forWhat.type!=='chickenStation'){chickenPreview=null;syncChickenYard();} trayFor = forWhat; const h = trayHtml(); if (!h) return; showInfo(h, forWhat); infoTray.dataset.h = h; }
+infoTray.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-w]"); if (!b) return;
+  const d = b.dataset, f = trayFor, i = +d.i;
+  switch (d.w) {
+    case "close": closeTrays(); return;
+    case 'cowStation':openInfo({type:'cowStation',station:d.station});return;
+    case 'cowFeed':if(cowYardActive)G.fillCowFeed(30);syncCowYard();refreshInfo();return;
+    case 'cowWater':if(cowYardActive)G.fillCowWater();syncCowYard();refreshInfo();return;
+    case 'cowMilk':if(cowYardActive)G.milkCow(d.id);syncCowYard();refreshInfo();return;
+    case 'cowTank':if(cowYardActive)G.collectCowTank(+d.n);syncCowYard();refreshInfo();return;
+    case 'chickenFill': if(G.refillChickens(d.resource,+d.rev,+d.cost))closeTrays();else refreshInfo();return;
+    case 'chickenPaint': if(chickenPreview){chickenPreview[d.part]=d.value;syncChickenYard();refreshInfo();}return;
+    case 'chickenApply': if(chickenPreview&&G.setChickenAppearance(chickenPreview)){chickenPreview=null;closeTrays();}return;
+    case 'chickenCancel': closeTrays();return;
+    case "speedPlot": G.speedPlot(i); return;
+    case "water": if (G.waterPlot(i)) squish(plots[i].g, .25); break;
+    case "waterAll": G.waterAll(); break;
+    case "fert": G.fertilize(i); break;
+    case "feed": if (!G.feedOne(d.k, i)) G.toast("You need " + G.ITEMS[G.ANIMALS[d.k].feed].n.toLowerCase() + ". " + (G.ANIMALS[d.k].feed === "carrot" ? "Grow some in your fields." : "Make it at the Feed Mill.")); else { f.an.emote("😋"); G.commit(); } break;
+    case "feedAll": G.feedAll(d.k); break;
+    case "petA": case "brushA": case "rideA": { const act = {petA:"pet", brushA:"brush", rideA:"play"}[d.w];
+      if (G.interact(G.meta(d.k, i), d.k, act, "animal:" + d.k + ":" + i)) { f.an.pet(); if (act === "play") f.an.go(...freePoint(rnd, f.an.g.position.x, f.an.g.position.z, 8, f.an.pen).toArray(), true, "Galloping for joy", "play"); } break; }
+    case "petP": case "playP": case "treatP": { const act = {petP:"pet", playP:"play", treatP:"treat"}[d.w];
+      if (G.interact(GS().pets[i], GS().pets[i].kind, act, "pet:" + i)) { f.an.pet(); if (act === "play") f.an.emote(G.PETS[GS().pets[i].kind].toy, 3); } break; }
+    case "rename": { const k = f.an.kind, j = f.an.ref.i; G.askName(G.ANIMALS[k].n.toLowerCase(), G.meta(k, j).name, (v) => { G.meta(k, j).name = v; syncHerd(); }); return; }
+    case "renamePet": { const j = f.an.ref.j; G.askName(G.PETS[GS().pets[j].kind].n.toLowerCase(), GS().pets[j].name, (v) => { GS().pets[j].name = v; syncHerd(); }); return; }
+    case "call": { const a = f.an; if (a.act === "sleeping") G.toast(a.name + " is fast asleep."); else { a.emote("❗", 1.2); a.go(cam.target.x + (rnd() - .5) * 2, cam.target.z + 2, true, "Coming over to you", "look"); } break; }
+    case "store": closeTrays(); G.storeDecor(i); return;
+    case "move": startMove(i); return;
+  }
+  refreshInfo();
+});
+
+// ---------- touching the farm ----------
+let farmDrag = null, paintUsed = false, pressTimer = 0;
+function hitAt(x, y) {
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const an = ray.intersectObjects(animals.flatMap(a=>a.kind==='cow'&&a.status.visible?[a.card,a.status]:[a.card]))[0];
+  const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]),...(cowYardActive?cowYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
+  const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
+  let hit = hits[0];
+  // an empty lot is flat: when the same tap also touches a building standing behind it, the building is what was meant
+  if (hit && (owner(hit).userData.hit || {}).type === "lot") { const b = hits.find(h => (owner(h).userData.hit || {}).type === "building"); if (b) hit = b; }
+  if (an && (!hit || an.distance < hit.distance + .5)) return {type:"animal", an:animals.find(a => a.card === an.object || a.status === an.object), dist:an.distance};
+  // animals are small from the usual camera: a tap close to one counts, unless something is clearly in front of it
+  if (!an) {
+    let best = null, bd = 34;
+    for (const a of animals) { if (!a.g.visible) continue; const p = a.g.position.clone().setY(a.S.h * .45), s = toScreen(p); if (!s) continue;
+      const d = Math.hypot(s.x - x, s.y - y); if (d < bd && (!hit || camera.position.distanceTo(p) < hit.distance + 1)) { bd = d; best = a; } }
+    if (best) return {type:"animal", an:best, dist:camera.position.distanceTo(best.g.position)};
+  }
+  if (!hit) return null;
+  let o = owner(hit);
+  if (o === barn) return {type:"barn", dist:hit.distance};
+  return o ? Object.assign({obj:o, dist:hit.distance}, o.userData.hit) : null;
+}
+const plotAt = (x, y) => { const h = hitAt(x, y); return h && h.type === "plot" ? h.i : -1; };
+function plantAt(i) {
+  if (visiting || editMode || photoMode || wardrobeOn || inBarn || !armed || !G.CROPS[armed] || !G.ITEMS[armed] || G.ITEMS[armed].lvl > GS().level) return false;
+  const p = GS().plots[i];
+  if (p && !p.crop && G.plant(i, armed, farmDrag && farmDrag.n > 0)) { if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.tutEvent("plant"); G.commit(); renderSeeds(); return true; } return false;
+}
+function harvestAt(i) { const crop = GS().plots[i].crop, r = G.harvest(i, farmDrag && farmDrag.n > 0); if (r === true) { sliceFx(i, crop); const sp = GV.screenPos("plot:" + i); if (sp) flyTo("xp", 1, sp); if (farmDrag) farmDrag.n++; squish(plots[i].g, .35); buildPlants(i); G.commit(); renderSeeds(); } return r; }
+function farmDown(e) {
+  if (animalPenEditing) return false;
+  if (visiting || photoMode || wardrobeOn) return false; // a friend's farm: look, don't touch
+  paintUsed = false;
+  if (moving) { moving.id = e.pointerId; moving.moved = false; paintUsed = true; return true; } // in Move mode every one-finger touch moves the decoration
+  const h = hitAt(e.clientX, e.clientY);
+  // Fruit Ninja: a swipe that starts on a ripe crop slices every ripe crop it crosses
+  if (h && h.type === "plot" && ready(h.i)) { closeTrays(); farmDrag = {id:e.pointerId, mode:"harvest", n:0}; trail.length = 0; trailPoint(e.clientX, e.clientY); harvestAt(h.i); paintUsed = true; return true; }
+  // with a seed picked, one finger plants: it can start anywhere, and every empty field it slides over gets that seed (two fingers still move the camera)
+  if (armed && !seedTray.hidden) { farmDrag = {id:e.pointerId, mode:"plant", n:0}; if (h && h.type === "plot" && !GS().plots[h.i].crop && plantAt(h.i)) paintUsed = true; return true; }
+  // a drag that starts anywhere else (a growing or empty field included) turns the camera; only one that starts on a ripe crop harvests
+  if (!h) { // press and hold on the grass: drop some feed there
+    const g = groundAt(e.clientX, e.clientY); clearTimeout(pressTimer);
+    if (g) pressTimer = setTimeout(() => { pressTimer = 0; if (ptr.size === 1 && !walk) { dropBaitAt(g.x, g.z); paintUsed = true; } }, 500);
+    return false;
+  }
+  if (h.type === "decor") { // press and hold also starts moving it
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => { pressTimer = 0; startMove(h.j); if (moving && ptr.has(e.pointerId)) { moving.id = e.pointerId; moving.moved = true; paintUsed = true; } }, 450);
+  }
+  return false;
+}
+// check a few points along the finger's path so fast swipes don't skip fields
+function paintAlong(x, y) {
+  if (!farmDrag) return; // the drag was called off (a second finger, the phone turned…)
+  const lastP = farmDrag.last || [x, y];
+  for (let k = 1; k <= 3; k++) { const px = lastP[0] + (x - lastP[0]) * k / 3, py = lastP[1] + (y - lastP[1]) * k / 3;
+    if (document.elementFromPoint(px, py) !== renderer.domElement) continue; // over the seed tray or a button, not a field you can see
+    const i = plotAt(px, py);
+    if (i >= 0) { if (farmDrag.mode === "harvest") { if (ready(i)) harvestAt(i); } else if (!GS().plots[i].crop) plantAt(i); }
+    if (!farmDrag) return; } // (a level-up or a full barn can end the drag part-way)
+  farmDrag.last = [x, y];
+}
+function farmMove(e) {
+  if (animalPenEditing) return false;
+  if (moving && moving.id === e.pointerId) { moving.moved = true; moveTo(e.clientX, e.clientY); return true; }
+  if (pressTimer && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 && !farmDrag) { clearTimeout(pressTimer); pressTimer = 0; }
+  if (!farmDrag || farmDrag.id !== e.pointerId) return false;
+  if (farmDrag.mode === "plant" && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) seedTray.classList.add("away");
+  if (farmDrag.mode === "harvest") trailPoint(e.clientX, e.clientY);
+  paintAlong(e.clientX, e.clientY);
+  return true;
+}
+function farmUp(e) {
+  clearTimeout(pressTimer); pressTimer = 0;
+  if (moving && moving.id === e.pointerId) { if (!moving.moved && e.type === "pointerup") moveTo(e.clientX, e.clientY); dropMove(); }
+  if (!farmDrag || farmDrag.id !== e.pointerId) return;
+  if (farmDrag.mode === "plant") endPlantDrag();
+  if (farmDrag.mode === "harvest" && farmDrag.n >= 3) combo(farmDrag.n, e.clientX, e.clientY);
+  farmDrag = null;
+}
+
+// ---------- moving a decoration ----------
+// Move mode stays on until Done, so a phone cancelling the touch (long presses often do) never loses the move.
+// Any one-finger drag slides the decoration; two fingers still turn and zoom the camera.
+const moveBar = document.getElementById("moveBar"), moveHint = document.getElementById("moveHint");
+function startMove(j) {
+  if (moving) endMove(true);
+  const d = GS().decor.placed[j], o = decorObjs[j]; if (!d || !o) return;
+  closeTrays(); G.close(); clearTimeout(pressTimer); pressTimer = 0;
+  moving = {j, obj:o, x:d.x, z:d.z, id:null, ok:true, moved:false};
+  o.position.y = (o.userData.solidDecoration?decorationGroundY(d.x,d.z):0)+.3; squish(o, .8); G.sfx("pickup"); focusOn("decor:" + j);
+  document.getElementById("moveTitle").textContent = G.decorIcon(d.id) + " Move " + G.DECOR[d.id].n; moveBar.hidden = false;
+}
+function moveTo(x, y) {
+  const m = moving, ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const g = ray.intersectObject(ground)[0]; if (!g) return;
+  const px = g.point.x, pz = g.point.z, ok = spotFree(px, pz, G.DECOR[GS().decor.placed[m.j].id].size || 1, m.j);
+  m.obj.position.set(px, (m.obj.userData.solidDecoration?decorationGroundY(px,pz):0)+.3, pz); m.ok = ok; if (ok) { m.x = px; m.z = pz; }
+  moveHint.textContent = ok ? "Looks good here" : "Can't go here"; moveHint.hidden = false;
+}
+function dropMove() { // finger lifted: a blocked spot springs back to the last free one
+  const m = moving; m.id = null; m.moved = false; moveHint.hidden = true;
+  if (!m.ok) { m.obj.position.set(m.x, (m.obj.userData.solidDecoration?decorationGroundY(m.x,m.z):0)+.3, m.z); m.ok = true; G.toast("That spot is taken, so it went back"); G.sfx("error"); }
+  squish(m.obj, .5);
+}
+function endMove(save) {
+  const m = moving; if (!m) return; moving = null; moveBar.hidden = true; moveHint.hidden = true;
+  const d = GS().decor.placed[m.j];
+  if (save && d) { d.x = +m.x.toFixed(2); d.z = +m.z.toFixed(2); G.sfx("place"); G.save(); }
+  syncDecor();
+}
+moveBar.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-m]"); if (!b || !moving) return;
+  if (b.dataset.m === "done") endMove(true); else { const j = moving.j; endMove(false); G.storeDecor(j); }
+});
+function onTap(e) {
+  if (photoMode) return false;
+  if (wardrobeOn) return true; // (drag to turn around your farmer; taps do nothing here)
+  const h = hitAt(e.clientX, e.clientY);
+  if (!h) { closeTrays(); return false; }
+  if((h.type==='chickenStation'||h.type==='cowStation')&&walk&&(h.dist??Infinity)>(thirdPerson?8.5:5))return false;
+  switch (h.type) {
+    case "animal": {
+      const an = h.an;if(an.kind!=="cow")squish(an.g, 1.3);
+      if (an.ref.type === "pen") {
+        const end = GS().pens[an.kind].list[an.ref.i];
+        if (an.kind!=="chicken" && an.kind!=="cow" && end && end <= nowMs()) { // everyone ready drops what they made
+          const k = an.kind, before = GS().pens[k].list.slice(); G.collectAll(k); an.emote("✨", 1.5); closeTrays();
+          for (const a of animals) if (a.ref.type === "pen" && a.kind === k && before[a.ref.i] !== GS().pens[k].list[a.ref.i]) animalDrop(a, G.ANIMALS[k].out);
+          return true; }
+        G.sfx(an.kind); openInfo({type:"animal", an});
+      } else { if (G.petGift(an.ref.j)) { an.emote("🎁", 2); spawnDrop(an.g.position.clone().setY(1), emojiMat("🎁").clone(), new THREE.Vector3(0, 5, 0), {size:.6, to:"coin"}); return true; } G.sfx(an.kind); openInfo({type:"pet", an}); }
+      return true;
+    }
+    case "plot": {
+      const p = GS().plots[h.i]; squish(h.obj, .3);
+      if (!p.crop) { if (walk && armed && seedTray.hidden) { closeTrays(); plantAt(h.i); } else openSeeds(h.i); } else if (!ready(h.i)) openInfo({type:"plot", i:h.i});
+      return true;
+    }
+    case "plotSale": squish(h.obj, .6); openInfo({type:"plotSale"}); return true;
+    case "building": { squish(h.obj, .45); const jobs = GS().buildings[h.bid].jobs.slice(), n = G.collectJobs(h.bid);
+      if (n) machineDrop(h.bid, jobs.slice(0, n).flatMap(j => Array(Math.min(3, (G.RECIPES[j.r] || {}).out || 1)).fill(j.r))); else G.openPanel("building", h.bid); return true; }
+    case "lot": squish(h.obj, .45); G.openPanel("lot", h.bid); return true;
+    case "board": squish(h.obj, .6); G.sfx("truck"); G.openPanel("orders"); return true;
+    case "visitor": squish(h.obj, .8); G.sfx("pop"); G.openPanel("visitor"); return true;
+    case "farmer": squish(farmer, .6); setWardrobe(true); return true;
+    case "gift": if (G.claimDaily()) { squish(h.obj, 1.2); gift.visible = false; } return true;
+    case "stand": squish(h.obj, .5); if (!G.standCollectAll()) G.openPanel("stand"); return true;
+    case "penSign": { squish(h.obj, .8); const k = nextPen(h.area); if (k) G.openPanel("penLot", k); return true; }
+    case 'cowStation':closeTrays();openInfo({type:'cowStation',station:h.station});return true;
+    case 'chickenStation': {
+      if(h.station==='eggs'){const n=G.collectChickenEggs();syncChickenYard();if(n){G.toast('Picked up '+n+' eggs. '+G.getChickenCareStatus().total+' remain on the pallet.');closeTrays();return true;}}
+      closeTrays();if(h.station==='coop')chickenPreview={...G.CHICKEN_DEFAULT_STYLE,...GS().pens.chicken.appearance};openInfo({type:'chickenStation',station:h.station});return true;
+    }
+    case "decor": squish(h.obj, 1); openInfo({type:"decor", j:h.j}); return true;
+    case "barn": squish(barn, .5); G.openPanel("barn"); return true;
+  }
+  return false;
+}
+
+// ---------- barn colours (saved with the farm) ----------
+const PAINT = {
+  Walls:[["Barn red", [4, 62, 36]], ["Sky blue", [208, 42, 42]], ["Sage", [100, 18, 40]], ["Buttercream", [42, 55, 70]], ["Charcoal", [220, 6, 22]], ["Lavender", [268, 26, 52]], ["Natural wood", [30, 45, 40]], ["White", [40, 12, 86]]],
+  Trim:[["White", 0xf2eadc], ["Black", 0x2a2a2a], ["Wood", 0x9a6a40], ["Cream", 0xe8d7b0], ["Red", 0x9c2a22]],
+  Roof:[["Charcoal", [30, 8, 26]], ["Brown", [25, 30, 30]], ["Forest green", [130, 25, 26]], ["Barn red", [4, 45, 30]], ["Slate blue", [212, 22, 32]]],
+};
+const hsl = (h) => `hsl(${h[0]},${h[1]}%,${h[2]}%)`;
+GV.paintOptions = Object.fromEntries(Object.entries(PAINT).map(([k, list]) => [k, list.map(([n, v]) => [n, typeof v === "number" ? "#" + v.toString(16).padStart(6, "0") : hsl(v)])]));
+const applied = {};
+function applyStyle() {
+  for (const part of Object.keys(PAINT)) {
+    const i = GS().style[part] || 0; if (applied[part] === i) continue; applied[part] = i;
+    const [, v] = PAINT[part][i];
+    if (part === "Walls") { const [c, n] = planks(v, 11); M.red.map.dispose(); M.red.map = tex(c, 1); M.red.normalMap = tex(n); M.red.needsUpdate = true; }
+    if (part === "Trim") M.trim.color.set(v);
+    if (part === "Roof") { const [c, n] = shingles(3, v); M.roof.map.dispose(); M.roof.map = tex(c, 1); M.roof.normalMap = tex(n); M.roof.needsUpdate = true; }
+  }
+}
+
+// ---------- holiday touches: a few themed pieces around the farm ----------
+const holidayObjs = [];
+function syncHoliday() {
+  for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;
+  const id = HOLIDAY_AMBIENT[G.THEME.holiday]; if (!id) { syncDecorationClearings(); return; }
+  for (const [x, z, yaw] of [[-2.9,6.6,.6],[2.9,13.6,-.8],[-2.8,17.8,.3],[2.8,20.2,-.45],[-5.6,8.6,.9]]) {
+    const o=createHolidayDecoration(id,{height:.8,footprint:.75});
+    o.position.set(x,decorationGroundY(x,z,.75),z);o.rotation.y=yaw;
+    scene.add(o);holidayObjs.push(o);
+  }
+  syncDecorationClearings();
+}
+
+// ---------- photo mode: frame the farm, take a picture, share it ----------
+let photoMode = false, photoWant = false, photoFilter = "none", lastPhoto = null;
+const FILTERS = {none:"none", warm:"sepia(.28) saturate(1.3) brightness(1.05)", dreamy:"saturate(1.35) contrast(.88) brightness(1.1)", bw:"grayscale(1) contrast(1.12)"};
+const photoBar = document.getElementById("photoBar"), photoShot = document.getElementById("photoShot");
+function setPhoto(on) {
+  if (on) { if (walk) setWalk(false); if (editMode) setEdit(false); closeTrays(); G.close(); if (moving) endMove(true); }
+  photoMode = on; document.body.classList.toggle("photo", on); photoBar.hidden = !on; photoShot.hidden = true;
+  renderer.domElement.style.filter = on && photoFilter !== "none" ? FILTERS[photoFilter] : "";
+}
+document.getElementById("photoBtn").addEventListener("click", () => setPhoto(true));
+photoBar.addEventListener("click", (e) => {
+  const f = e.target.closest("[data-f]"), b = e.target.closest("[data-p]");
+  if (f) { photoFilter = f.dataset.f; for (const x of photoBar.querySelectorAll("[data-f]")) x.classList.toggle("on", x === f); renderer.domElement.style.filter = photoFilter !== "none" ? FILTERS[photoFilter] : ""; G.sfx("tick"); }
+  if (b && b.dataset.p === "close") setPhoto(false);
+  if (b && b.dataset.p === "snap") photoWant = true; // taken right after the next frame is drawn
+});
+photoShot.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-p]"); if (!b) return;
+  if (b.dataset.p === "again") { photoShot.hidden = true; photoBar.hidden = false; return; }
+  if (b.dataset.p === "share" && lastPhoto) {
+    const name = "sunny-acres-" + new Date().toISOString().slice(0, 10) + ".jpg";
+    try { const file = new File([lastPhoto], name, {type:"image/jpeg"});
+      if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"My farm in Sunny Acres"}); return; } } catch (err) { if (err && err.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(lastPhoto); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000); G.toast("📷 Photo saved");
+  }
+});
+function takePhoto() { // called straight after drawing, while the picture is still in the canvas
+  photoWant = false;
+  const src = renderer.domElement, W = src.width, H = src.height, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"), f = FILTERS[photoFilter];
+  if (f !== "none" && "filter" in x) x.filter = f;
+  x.drawImage(src, 0, 0);
+  if (f !== "none" && !("filter" in x)) { // phones without canvas filters: do it by hand
+    const d = x.getImageData(0, 0, W, H), a = d.data;
+    for (let i = 0; i < a.length; i += 4) { let r = a[i], g = a[i + 1], b = a[i + 2];
+      if (photoFilter === "bw") { const l = Math.min(255, (r * .3 + g * .59 + b * .11 - 128) * 1.12 + 128); r = g = b = l; }
+      else if (photoFilter === "warm") { r = Math.min(255, r * 1.1 + 12); g = Math.min(255, g * 1.03 + 4); b = b * .88; }
+      else { r = Math.min(255, (r - 128) * .88 + 140); g = Math.min(255, (g - 128) * .88 + 140); b = Math.min(255, (b - 128) * .88 + 136); }
+      a[i] = r; a[i + 1] = g; a[i + 2] = b; }
+    x.putImageData(d, 0, 0);
+  }
+  x.filter = "none";
+  // a little caption in the corner
+  const s = H / 900, lvl = GS().level;
+  x.font = `400 ${Math.round(44 * s)}px "Lilita One",sans-serif`; x.textAlign = "right"; x.textBaseline = "bottom";
+  x.lineWidth = 8 * s; x.strokeStyle = "rgba(110,61,24,.9)"; x.fillStyle = "#fff";
+  const label = "🌻 Sunny Acres", sub = "Level " + lvl + " · " + new Date().toLocaleDateString();
+  x.strokeText(label, W - 24 * s, H - 52 * s); x.fillText(label, W - 24 * s, H - 52 * s);
+  x.font = `800 ${Math.round(22 * s)}px Nunito,sans-serif`; x.lineWidth = 5 * s; x.strokeText(sub, W - 26 * s, H - 22 * s); x.fillText(sub, W - 26 * s, H - 22 * s);
+  const fl = document.getElementById("flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); G.sfx("shutter"); G.buzz(20);
+  c.toBlob((blob) => { lastPhoto = blob; const img = document.getElementById("photoImg"); if (img.src) URL.revokeObjectURL(img.src); img.src = URL.createObjectURL(blob); photoBar.hidden = true; photoShot.hidden = false; }, "image/jpeg", .92);
+}
+addEventListener("keydown", (e) => { if (e.key === "Escape" && photoMode) setPhoto(false); });
+
+// ---------- the first time the game opens: a title card while the camera sweeps down onto the farm ----------
+let intro = null;
+function playIntro() {
+  let seen = false; try { seen = !!localStorage.getItem("sa3d-intro"); localStorage.setItem("sa3d-intro", "1"); } catch (e) {}
+  if (seen || G.reducedMotion() || (qs.has("debug") && !qs.has("intro")) || qs.has("shot")) return;
+  const el = document.getElementById("intro"); el.hidden = false; document.body.classList.add("introing");
+  const to = {yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, target:cam.target.clone()};
+  const done = () => { if (el.hidden) return; el.classList.add("out-go"); setTimeout(() => { el.hidden = true; el.classList.remove("out-go"); document.body.classList.remove("introing"); }, 800); };
+  intro = {t0:null, dur:5200, done, to, from:{yaw:to.yaw + 2.4, pitch:1.1, dist:68, target:to.target.clone().add(new THREE.Vector3(-8, 0, -6))}};
+  Object.assign(view, {yaw:intro.from.yaw, pitch:intro.from.pitch, dist:intro.from.dist}); view.target.copy(intro.from.target);
+  el.addEventListener("pointerdown", done);
+}
+function updateIntro() {
+  if (!intro) return;
+  if (G.reducedMotion()) { const b = intro.to; Object.assign(cam, {yaw:b.yaw, pitch:b.pitch, dist:b.dist}); cam.target.copy(b.target); Object.assign(view, {yaw:b.yaw, pitch:b.pitch, dist:b.dist}); view.target.copy(b.target); intro.done(); intro = null; return; }
+  if (intro.t0 == null) { intro.t0 = performance.now(); setTimeout(intro.done, intro.dur); } // the clock starts once the farm is actually on screen
+  const k = Math.min(1, (performance.now() - intro.t0) / intro.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, a = intro.from, b = intro.to;
+  cam.yaw = a.yaw + (b.yaw - a.yaw) * e; cam.pitch = a.pitch + (b.pitch - a.pitch) * e; cam.dist = a.dist + (b.dist - a.dist) * e; cam.target.lerpVectors(a.target, b.target, e);
+  if (k >= 1) intro = null;
+}
+
+// ---------- tutorial pointer ----------
+const pointer = document.getElementById("pointer"); let tutLooked = null;
+function updatePointer() {
+  const t = G.tutTarget(); let s = null, key = null;
+  if (t && !G.panel && document.getElementById("tut").hidden === false) {
+    if (t === "plot:ready") { const i = GS().plots.findIndex((p, k) => ready(k)); if (i >= 0) key = "plot:" + i; }
+    else if (t.startsWith("btn:")) { const b = document.querySelector(`.dock [data-p="${t.slice(4)}"]`); if (b) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }
+    else if (t === "plot:0") { const i = GS().plots.findIndex(p => !p.crop); key = "plot:" + Math.max(0, i); }
+    else key = t;
+    if (key) {
+      s = GV.screenPos(key);
+      // what the tutorial points at is off the screen (on a tall phone the fields start out of view): bring the camera round to it, once per step
+      const off = !s || s.x < 30 || s.x > innerWidth - 30 || s.y < 150 || s.y > innerHeight - 110;
+      if (off && tutLooked !== GS().tut + key && !walk && !editMode && !visiting) { tutLooked = GS().tut + key; focusOn(key); if (key === "board") cam.yaw = -.35; } // the board, from the front (the Feed Mill hides it from the side)
+    }
+  }
+  pointer.hidden = !s; if (s) { pointer.style.left = s.x + "px"; pointer.style.top = s.y - 10 + "px"; }
+}
+
+// ---------- every frame: crops grow, bubbles show what's ready ----------
+function updateGame(t, dt) {
+  updatePlots(t); updateBuildings(t, dt);
+  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(new THREE.Vector3(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}
+  const T = nowMs();
+  if (walk && !thirdPerson) camera.updateMatrixWorld();
+  for (const a of animals) {
+    let e = null;
+    if (a.ref.type === "pen") { const end = GS().pens[a.kind].list[a.ref.i]; if (end && end <= T) e = G.ANIMALS[a.kind].out ? G.ITEMS[G.ANIMALS[a.kind].out].e : "🪙"; }
+    else { const p = GS().pets[a.ref.j]; if (p && G.giftReady(p)) e = "🎁"; }
+    if(a.kind==='cow'){const c=cowStatus?.cows[a.ref.i];e=c?.ready?'🥛':null;}
+    a.status.visible = !!e && (a.kind==='cow'||a.act !== "sleeping"); if (e && a.status.userData.e !== e) { a.status.material = emoteMat(e); a.status.userData.e = e; }
+    if (e) a.status.position.y = a.S.h + .5 + Math.sin(t * 3 + a.phase) * .06;
+    fitMarker(a.status, .7, camera, innerHeight, !!walk && !thirdPerson); fitMarker(a.bubble, .55, camera, innerHeight, !!walk && !thirdPerson);
+  }
+  const n = G.readyOrders(), rush = GS().rush && GS().rush.end > T, be = rush ? "⏰" : "🚚";
+  boardBub.visible = n > 0 || rush; boardBub.position.y = 3.4 + Math.sin(t * (rush ? 5 : 2.5)) * .08;
+  if (boardBub.userData.e !== be) { boardBub.material = emoteMat(be); boardBub.userData.e = be; }
+  if (visitorCard.visible) { visitorCard.rotation.y = Math.atan2(camera.position.x - visitorCard.position.x, camera.position.z - visitorCard.position.z) + (visitorCard.userData.live ? Math.PI : 0); visitorBub.position.y = 2.45 + Math.sin(t * 3) * .07; visitorCard.position.y = Math.abs(Math.sin(t * 2.2)) * .06;
+    if (visitorCard.userData.live) Live3D.updateLiveFarmer(visitorCard.userData.live, 0, 0, dt, 'idle');
+    // idle life while they wait: weight shifting foot to foot, breathing, a tilt and a glance of the head, and now and then a happy wiggle
+    const wig = Math.max(0, Math.sin(t * .8)) > .97 ? Math.sin(t * 16) * .14 : 0;
+    visitorBody.rotation.z = Math.sin(t * .9) * .045; visitorBody.scale.y = 1 + Math.sin(t * 1.7) * .018;
+    visitorFace.position.x = Math.sin(t * .9) * .05; visitorFace.rotation.z = Math.sin(t * .6 + 1) * .06 + wig; visitorFace.rotation.y = Math.sin(t * .27) * Math.sin(t * .13) * .3; }
+  board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
+  gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
+  updatePointer();
+}
+setInterval(() => { if (document.hidden) return; syncChickenYard();syncCowYard(); syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
+setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);
+// the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
+setInterval(() => {
+  if (document.hidden) return;
+  const rainy = !!(PRESET.rain), night = !!PRESET.night;
+  G.ambience(wind, rainy);
+  if (photoMode) return;
+  if (!rainy && Math.random() < (night ? .45 : .3)) G.sfxAt(night ? "cricket" : "bird", Math.random() * 2 - 1, .4 + Math.random() * .6);
+  if (animals.length && Math.random() < .1) { const a = animals[Math.floor(Math.random() * animals.length)], sc = toScreen(a.g.position);
+    if (sc && a.act !== "sleeping") G.sfxAt(a.kind, THREE.MathUtils.clamp(sc.x / innerWidth * 2 - 1, -1, 1), Math.min(1, 12 / camera.position.distanceTo(a.g.position)) * .7); }
+}, 1000);
+
+bootStep("loading your farm");
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) return;
+  keys.clear(); joyF = lookF = joyId = null; joy.x = joy.y = 0; joy.run = false; if (walk) walk.vel.set(0,0);
+  knob.style.transform = ""; stick.classList.remove("live", "run"); stick.style.left = stick.style.top = stick.style.bottom = "";
+  ptr.clear(); clearTimeout(pressTimer); pressTimer = 0; farmDrag = null; seedTray.classList.remove("away");
+});
+// ---------------- start the game ----------------
+G.ART_PATH.p = ART;
+if (qs.has("shot") && !qs.has("loud")) G.opts.quiet = true;
+const started = G.start();
+if (qs.has("shot") && !qs.has("loud")) { G.close(); for (const id of ["hint", "tut", "pointer"]) document.getElementById(id).hidden = true; }
+// test pictures: ?demo fills a farm in the middle of a game (not for real players: it only lives in this browser)
+if (qs.has("demo")) {
+  const S = G.S; Object.assign(S, {level:9, coins:2400, gems:30, tut:99});
+  for (const k of ["chicken", "cow", "sheep", "horse"]) { S.pens[k].owned = true; S.pens[k].list = Array.from({length:{chicken:5, cow:2, sheep:2, horse:2}[k]}, (_, i) => i % 2 ? Date.now() - 1 : 0); }
+  if (!S.pets.length) S.pets.push({kind:"dog", name:"Buddy", love:80, loveAt:Date.now(), petAt:0, playAt:0, treatAt:0, giftAt:0}, {kind:"cat", name:"Whiskers", love:60, loveAt:Date.now(), petAt:0, playAt:0, treatAt:0, giftAt:Date.now()});
+  for (const b of ["bakery", "dairy", "kitchen"]) S.buildings[b].owned = true;
+  S.buildings.feedmill.jobs = [{r:"chicken_feed", end:Date.now() - 1, dur:30000}]; S.buildings.bakery.jobs = [{r:"bread", end:Date.now() + 50000, dur:60000}];
+  while (S.plots.length < 9) S.plots.push({crop:null, end:0});
+  [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4], ["carrot", .9], ["wheat", .5], [null]].forEach(([c, g], i) => {
+    S.plots[i].crop = c; S.plots[i].end = c ? Date.now() + (1 - g) * G.CROPS[c].time * 1000 : 0; });
+  S.decor.placed = [{id:"fountain", x:-3.6, z:2.4}, {id:"tulips", x:-5.4, z:9.2}, {id:"pine", x:17, z:4}, {id:"bench", x:-3.4, z:14.5}];
+  S.stand.list = [{id:"egg", qty:2, price:24, sellAt:Date.now() + 60000}, {id:"bread", qty:1, price:14, sellAt:Date.now() - 1}, null, null];
+}
+bootStep("putting your farm in place");
+GV.refresh("all");
+for (const b of BLOCKS) if (!OBST_BLOCKS.has(b) && !penSceneRegistry.ownsBlock(b)) { const [x, z, hw, hd] = b; OBST.push({x, z, hw, hd, c:1, s:0}); } // by identity: a restored pen layout reorders BLOCKS
+if (qs.has("farmdemo")) [["wheat", 1], ["corn", 1], ["tomato", .7], ["pumpkin", 1], ["strawberry", 1], ["sugarcane", .4]].forEach(([c, g], i) => {
+  G.S.plots[i].crop = c; G.S.plots[i].end = Date.now() + (1 - g) * G.CROPS[c].time * 1000; buildPlants(i); });
+updatePlots(0);
+bootStep("setting the weather and time of day");
+installWorld(scene, renderer);
+// The later meadow owns separate instances; clear only those over the stone path.
+for(const name of ['Phase7M flower stems','Phase7M flower heads']){
+ const mesh=scene.getObjectByName(name);if(!mesh?.isInstancedMesh)continue;
+ const a=mesh.instanceMatrix.array;for(let i=0;i<mesh.count;i++){const o=i*16;if(dairyPath.contains(a[o+12],a[o+14],.2))for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;
+}
+cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")],COW_YARD_LAYOUT);cowPlantClearing.setActive(cowYardActive);
+remainingPlantClearing=createRemainingCarePlantClearing([scene.getObjectByName('Phase7M flower stems'),scene.getObjectByName('Phase7M flower heads')],remainingLayouts);for(const [kind,site]of Object.entries(remainingSites))remainingPlantClearing.setActive(kind,site.active);
+const playerMotion = installPlayerMotion({THREE,G,camera,fallback:hands,
+  getContext:()=>({walk,punch,thirdPerson,reducedMotion:G.reducedMotion(),ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
+const armAttachment = installArmAttachment({THREE,camera,fallback:hands,
+  getContext:()=>({walk,ground:walk?workshopWalkY(walk.pos.x,walk.pos.y):0})});
+setPreset(qs.get("preset") || G.lookNow());
+syncHoliday();
+if (qs.has("tx")) { cam.target.x = view.target.x = +qs.get("tx"); cam.target.z = view.target.z = +qs.get("tz"); }
+Object.defineProperty(window, "__herd", {get:() => animals});
+if (qs.has("debug")) window.__dbg = {barn, cam, view, squishing, camera, updateSquish, placeCamera, setPreset, inPen, PEN_LIST, clock:() => clockT, setClock:(t) => { clockT = t; }, G, remainingYards,remainingSites,remainingLayouts,remainingCare,syncRemainingCareYards, get chickenYard(){return chickenYard;}, chickenCare, syncChickenYard, plots, plotAt, ready, hitAt, keyPos, board, stall, gift, buildings, get moving() { return moving; }, get farmDrag() { return farmDrag; }, get armed() { return armed; }, decorObjs, holidayObjs, syncHoliday, decorationGroundY, utilityLights,seasonalLeaves,onFarm,groundY,spotFree,editValid,collideWalker,
+  get walk() { return walk; }, get editMode() { return editMode; }, BLOCKS, BUILD_SPOT, TREES, grid, sun, ground, M, tiltH, get QUALITY() { return QUALITY; }, renderer, scene, dairyPath, renderScene:()=>{scene.updateMatrixWorld(true);composer.render();}, drops, baits, throwBait, dropBaitAt, get penRuntime(){return {revision:installedAnimalPens.revision,layout:installedAnimalPens,world:snapshotPenWorld()};},penEditor,get cowYardActive(){return cowYardActive;},get cowYardIssues(){return cowYardIssues;},get cowYard(){return cowYard;},cowStations,syncCowYard,get cowStatus(){return cowStatus;},get animals() { return animals; }, get photoWant() { return photoWant; }, takePhoto};
+// snapshots skip ahead a little so the animals have spread out and are busy
+if (qs.has("shot")) { const R0 = +(qs.get("sim") || 40); for (let k = 0; k < R0 * 10; k++) { clockT += .1; for (const a of animals) a.update(.1, clockT); }
+  if (qs.get("card")) { const a = animals[+qs.get("card")]; if (a) openInfo({type:a.ref.type === "pen" ? "animal" : "pet", an:a}); } }
+{ // hide the loading screen once the textures are in
+  const L = document.getElementById("loading"); const hide = () => { if (hide.done) return; hide.done = true; L.style.opacity = 0; setTimeout(() => L.remove(), 700); playIntro(); };
+  if (texturesReady) hide(); else { THREE.DefaultLoadingManager.onLoad = () => { texturesReady = true; hide(); }; setTimeout(hide, 6000); } }
+
+// ---------------- animation ----------------
+const clock = new THREE.Timer(); let shotFrames = 0;
+frame.drawn = 0;
+function frame() {
+  if (document.hidden) { perf?.pause(); window.saMetrics?.pause(); frame.lastT = undefined; requestAnimationFrame(frame); return; }
+  if (rotatePaused && frame.okAt) { perf?.pause(); window.saMetrics?.pause(); requestAnimationFrame(frame); return; } // portrait: nothing to draw behind the rotate screen
+  if (QUALITY.fps30) { const tn = performance.now(); if (tn - (frame.lastDraw || 0) < 31) { requestAnimationFrame(frame); return; } frame.lastDraw = tn; }
+  clock.update(); const t = clock.getElapsed(); windU.uTime.value = t; skyU.uTime.value = t;
+  // the animals live their lives
+  const dt = Math.min(.1, t - (frame.lastT ?? t)); frame.lastT = t; clockT = t;
+  if (walk) updateWalk(dt);
+  updateIntro(); placeCamera(dt); const tk = applyTween(); updateHands(dt, t, tk); playerMotion.update(dt, t); updateDoors(dt); armAttachment.update(); updateSquish(performance.now());
+  updateDrops(dt); updateBaits(); drawTrail();
+  if (G.reducedMotion()) shake = 0;
+  if (shake > 0) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * .5); }
+  if (LOCO) locoParade(t);
+  if(animalPenEditing&&(!animalPenEditingAllowed()||animalPenEditing.farm!==G.S||!penEditor.snapshot().open)){penEditor.cancel();setAnimalPenEditing(false);}
+  if(!animalPenEditing)for (const a of animals) a.update(dt, t);
+  updateGame(t, dt); updateAim(t); updateFarmerIdle(t, dt);
+  // trees sway with the wind
+  for (const b of bushes) b.rotation.y = Math.sin(t * 1.1 + b.position.x) * .02 * (1 + wind * 2);
+  for (const tr of [tree, tree2, ...hills]) { const c = tr.userData.canopy; c.rotation.z = Math.sin(t * 1.3 + tr.position.x) * .025 * (1 + wind * 2); c.rotation.x = Math.sin(t * .9) * .015 * (1 + wind * 2); }
+  if (rain.visible) { rain.position.y = -((t * 22) % 30); rain.position.x = camera.position.x * 0; }
+  if (snow.visible) { snow.position.y = -((t * 1.6) % 30); snow.position.x = Math.sin(t * .4) * 1.5; }
+  utilityLights.update(walk?camera.position:cam.target,!!P.night);
+  if (perf) perf.render(); else composer.render();
+  perf?.record(performance.now());
+  try { window.saMetrics?.frame(performance.now()); } catch {}
+  perf?.update(performance.now());
+  if (photoWant) takePhoto();
+  if (!frame.okAt && ++frame.drawn >= 3) { frame.okAt = true; bootStep("ok"); }
+  if (qs.has("shot") && texturesReady && ++shotFrames >= 3) { window.__done = true; return; } // snapshot mode: draw a few frames, then hold still
+  requestAnimationFrame(frame);
+}
+// keep every buffer at the same pixel ratio: the renderer, the post-processing chain and the tilt-shift blur
+function applySize() {
+  renderer.setPixelRatio(QUALITY.pr); composer.setPixelRatio(QUALITY.pr);
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  for (const t of [tiltH, tiltV]) { renderer.getDrawingBufferSize(t.uniforms.uRes.value); t.uniforms.uAmount.value = 4 * QUALITY.pr; }
+}
+addEventListener("resize", applySize);
+// graphics quality, from Settings. Auto is dynamic resolution: it watches the real frame time and keeps the game near 50-60 fps
+// by drawing at a lower or higher resolution, a little at a time (never more often than every few seconds, so it can't flicker).
+// On a very slow phone it also turns the shadows down, then the glow and tilt-shift. Best, Balanced and Battery saver are fixed.
+const DPR = Math.min(devicePixelRatio, 2), PR_MIN = Math.max(.55, DPR * .45);
+const QUALITY = {pr:DPR, auto:true, fps30:false, steps:[], cut:0};
+function setShadow(n) { if (sun.shadow.mapSize.x !== n) { sun.shadow.mapSize.set(n, n); sun.shadow.map?.dispose(); sun.shadow.map = null; } }
+let watching = false;
+function watchFrames() {
+  if (watching || qs.has("shot")) return; watching = true;
+  let last = performance.now(), ts = [], since = last + 4000, fast = 0; // ignore the first seconds while shaders compile and textures load
+  const watch = (now) => {
+    const ft = now - last; last = now;
+    if (now > since && ft < 2000 && !document.hidden) ts.push(ft); // (a frame over 2 s is the phone waking up, not the game)
+    if (ts.length >= 40) {
+      const med = ts.sort((a, b) => a - b)[20]; ts = []; // the typical frame: one hiccup doesn't count, a slow phone does
+      if (med > 23) { // too slow: draw fewer pixels (the bigger the lag, the bigger the step)
+        fast = 0;
+        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }
+        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }                  // then softer shadows
+        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur
+      } else if (med < 15.5 && QUALITY.pr < DPR - .01) { // plenty of time to spare for a while: sharpen back up, gently
+        if (++fast >= 4) { fast = 0; QUALITY.pr = Math.min(DPR, QUALITY.pr * 1.08); applySize(); since = now + 3500; }
+      } else fast = 0;
+    }
+    if (QUALITY.auto) requestAnimationFrame(watch); else watching = false;
+  };
+  requestAnimationFrame(watch);
+}
+function setQuality(q) {
+  if (walk) return; // Walk mode runs at full quality; the chosen setting comes back when you stop walking
+  QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
+  QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
+  setShadow(q === "battery" ? 1024 : 2048);
+  bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery"; QUALITY.cut = 0;
+  applySize();
+  if (QUALITY.auto) watchFrames();
+}
+bootStep("drawing the first picture");
+setQuality(G.PREFS.quality || "auto");
+const perf = qs.has("perf") ? (await import("./perf.js?v=1")).createPerfMonitor(renderer, composer, () => ({
+  baseDPR: DPR, shadow: `${sun.shadow.mapSize.x}×${sun.shadow.mapSize.y}`,
+  bloom: bloom.enabled, tilt: tiltH.enabled && tiltV.enabled ? "on" : tiltH.enabled || tiltV.enabled ? "partial" : "off",
+  mode: [walk ? thirdPerson ? "third person" : "first person" : "classic", editMode && "edit", photoMode && "photo", wardrobeOn && "wardrobe", visiting && "visiting", inBarn && "barn"].filter(Boolean).join(" / ")
+})) : null;
+/* BEGIN ISOLATED MANUAL PREVIEW */
+{
+ const preview=await import('../measurement.js');let handRoot=null;
+ preview.install({source:'a5c0033a08280fd455d615bb802c03ba694325f9',cache:'sa3d-v79',getHitAt:()=>hitAt,setHitAt:f=>{hitAt=f;},renderFrame:()=>renderer.info.render.frame,
+ cows:()=>animals.filter(a=>a.kind==='cow').map(a=>({card:a.card,g:a.g})),nativeRaycast:THREE.SkinnedMesh.prototype.raycast,nativeBone:THREE.SkinnedMesh.prototype.applyBoneTransform,
+ state(){const w=walk;if(!handRoot)handRoot=camera.getObjectByName('Authored first-person hands');return{
+ ready:window.__ready===true&&!document.getElementById('loading')&&!intro&&!!window.saAuth&&document.getElementById('authGate')?.hidden===true,
+ sandbox:G.SANDBOX===true,workerAbsent:navigator.serviceWorker.controller===null,account:!!window.saAuth?.user,guest:window.saAuth?.guest===true,held:window.__saHold===true,hidden:document.hidden,
+ walking:!!w,firstPerson:!!w&&!thirdPerson,cameraSettled:camTween===null,auto:QUALITY.auto===true,quality:G.PREFS.quality||'auto',authoredReady:handRoot?.userData.authoredHands?.state.status==='ready',authoredVisible:handRoot?.visible===true,fallbackVisible:hands.visible,
+ panel:G.panel?(['event','perk'].includes(G.panel.type)?G.panel.type:'other'):'none',position:w?[w.pos.x,w.pos.y]:null,yaw:w?.yaw??null,pitch:w?.pitch??null,
+ pixels:[renderer.domElement.width,renderer.domElement.height],pixelRatio:renderer.getPixelRatio(),shadow:sun.shadow.mapSize.x,qualityCut:QUALITY.cut,
+ cows:animals.filter(a=>a.kind==='cow').length,closestCow:w?Math.min(...animals.filter(a=>a.kind==='cow').map(a=>Math.hypot(w.pos.x-a.g.position.x,w.pos.y-a.g.position.z))):null};},
+ hardware(){const gl=renderer.getContext(),ext=gl.getExtension('WEBGL_debug_renderer_info');if(!ext)return{classification:'unknown',vendor:'unknown'};const raw=String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)),vendor=/Adreno/i.test(raw)?'Adreno':/Mali/i.test(raw)?'Mali':/Apple/i.test(raw)?'Apple':/NVIDIA|GeForce|RTX/i.test(raw)?'NVIDIA':/AMD|Radeon/i.test(raw)?'AMD':/Intel/i.test(raw)?'Intel':'unknown';return{classification:/swiftshader|llvmpipe|software|warp|basic render/i.test(raw)?'software':vendor==='unknown'?'unknown':'hardware-reported',vendor};}
+ });
+}
+/* END ISOLATED MANUAL PREVIEW */
+
+frame();
+if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});
+if (qs.has("debug")) window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.cut, renderer.domElement.width];
+GV.resolution = () => Math.round(QUALITY.pr / DPR * 100); // shown in Settings
+window.__ready = true;

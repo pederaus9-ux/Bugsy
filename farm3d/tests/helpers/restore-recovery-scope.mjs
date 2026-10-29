@@ -1,4 +1,0 @@
-import {normalizeReleaseBlockerScope} from './release-blocker-scope.mjs';
-import fs from 'node:fs';import assert from 'node:assert/strict';import crypto from 'node:crypto';
-const scope=JSON.parse(fs.readFileSync(new URL('../evidence/pen-editing-implementation/task8-codex-restore-repair-20261025/scope.json',import.meta.url)));
-export function normalizeRestoreScope(file,source){if(file==='auth.js')source=normalizeReleaseBlockerScope(file,source);const entry=scope.entries[file];assert(entry,'A28 named file');for(const h of entry.hunks){assert.equal(source.split(h.after).length,2,'A28 chunk must match exactly once');source=source.replace(h.after,h.before);}assert.equal(crypto.createHash('sha256').update(source).digest('hex'),entry.preSha256,file==='game.js'?'A7 cannot change game economy or unrelated gameplay; A28 requires the exact preimage':'A28 cannot change any other byte');return source;}

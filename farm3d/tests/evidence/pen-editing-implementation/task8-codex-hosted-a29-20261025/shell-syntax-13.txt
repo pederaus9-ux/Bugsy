@@ -1,8 +1,0 @@
-source=farm3d/tests/evidence/pen-editing-implementation/task8-codex-restore-repair-20261025/emulator
-for file in manual-restore.json restored.png; do
-  if test -f artifacts/a29/recovery/execution-start && test "$source/$file" -nt artifacts/a29/recovery/execution-start; then
-    cp "$source/$file" "artifacts/a29/recovery/$file"
-  else
-    echo "No fresh $file receipt generated" >> artifacts/a29/recovery/missing-fresh-receipts.txt
-  fi
-done

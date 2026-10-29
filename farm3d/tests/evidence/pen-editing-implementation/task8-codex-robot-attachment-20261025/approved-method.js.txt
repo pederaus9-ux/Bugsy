@@ -1,5 +1,0 @@
-setRobotPose(progress){const w=Number.isFinite(progress)?Math.max(0,Math.min(1,progress)):0;const attach=Math.min(1,w*8,(1-w)*8);
- // Stage forward between the legs while low, then slide under the teats and
- // lift. Removal follows the same path backwards; service timing is unchanged.
- const forward=Math.min(1,attach/.2),inward=Math.max(0,Math.min(1,(attach-.2)/.45)),back=Math.max(0,Math.min(1,(attach-.65)/.2)),lift=Math.max(0,Math.min(1,(attach-.85)/.15));
- arm.position.x=-1.2-inward*1.1;arm.position.y=.25+lift*.1;arm.position.z=-11.0072222222-.3*forward*(1-back);}

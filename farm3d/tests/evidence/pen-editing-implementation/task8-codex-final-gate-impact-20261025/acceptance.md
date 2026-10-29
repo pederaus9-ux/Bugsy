@@ -1,7 +1,0 @@
-# Bounded live Cow1 impact observation
-
-Source 1d4c073dfb81204c60b7631e0f032601d144c358. Original gate1/120 third-wake RED retained. Captured JSON lacks velocity, remaining ordinary path, timers, rig and RNG state; the original browser closed. An arbitrary state reconstruction could manufacture recovery. One instrumented run of ONLY the same prerequisite case is justified to catch the target failure and then follow that actual live state. No matrix campaign or blind repeat. Fresh boot time may differ: compare exact failure position/target/frame; do not claim resumed original history.
-
-All original assertions/seeds/deadlines unchanged. Add read-only last600frame Cow1 history and bed witness. If target third-wake Cow1 failure occurs, preserve it then advance all46 natively at120Hz up to90simulated seconds (diagnostic cap, not extended passing deadline). Measure >=.025m movement, departure beyond original bed radius, actual target arrival (<.35m with native target-clearing) or occupied care hold, followed by5seconds outside. Preserve daytime non-rest, identities/containment/paid/revision/error checks. No resetting poses, timers, needs, neighbours, RNG, tasks or paths. If not reproduced, stop with uncertainty; no rerun.
-
-The result remains original FAIL regardless of recovery. No full physical/contact/performance or new matrix credit. No runtime/workflow edits, remote writes, Site, merge or deployment.

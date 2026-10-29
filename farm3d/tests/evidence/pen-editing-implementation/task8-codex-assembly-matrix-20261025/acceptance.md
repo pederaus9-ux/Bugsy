@@ -1,3 +1,0 @@
-# Task 8 individual-assembly class, bounded fixture selection
-
-The next matrix class must dispatch `moveStructure` on one named installed assembly, with no `movePen` translation, boundary change, gate change or second structure move. Find a valid meaningful position under the current authoritative validator in the real maximum-ownership farm before launching a three-night case. Preserve rejected candidate reasons and choose a site only if Apply changes its saved structure position, retains all 46 owned animals and paid state, and produces revision 1. Then test seed 1 at 30 Hz across the original three-night/500-second/40-second care-wake contract and directly affected physical controls. This does not credit the earlier sheep whole-pen cases to this class.

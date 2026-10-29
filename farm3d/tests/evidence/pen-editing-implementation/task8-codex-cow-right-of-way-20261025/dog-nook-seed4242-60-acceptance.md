@@ -1,3 +1,0 @@
-# Dog-nook assembly seed 4242/60 Hz three-night case
-
-Use the existing real browser `moveStructure` dog-nook Apply with all 46 owned animals, unmodified production seed 4242 and actual 60 Hz `dt`. Require three consecutive nights with the original 500-second bed/physical-departure deadlines and each individual's continuous 40-second wake. Preserve stable identities, distinct installed beds, paid state/revision, containment and no browser errors. Save raw result and rendered frame; do not credit a partial night or change seeds, deadlines, thresholds or assertions. Full speed/contact/pose breadth and physical-device testing remain separate.

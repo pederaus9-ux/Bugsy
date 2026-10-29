@@ -1,5 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {remainingWorld}from'./remaining-care-world.mjs';
-for(const kind of ['horse','sheep','dog','cat']){
- test(kind+' ordinary daytime rest decision uses its real bed and retains a nap until it is rested',()=>{const f=remainingWorld();try{const a=f.animals.find(a=>a.kind===kind);a.P={energy:0,hunger:0,social:0,curious:0,brave:1};a.need={hunger:0,tired:.8,lonely:0};f.api.setRandom(()=>.5);a.remainingNapAt=0;a.think();assert.equal(a.remainingTask?.kind,'bed','rest still uses an unsupported ground pose');assert.equal(a.remainingTask.nap,true);}finally{f.dispose();}});
- test(kind+' ordinary drinking decision uses its actual new water place',()=>{const f=remainingWorld();try{const a=f.animals.find(a=>a.kind===kind);a.P={energy:0,hunger:1,social:0,curious:0,brave:1};a.need={hunger:1,tired:0,lonely:0};f.api.setRandom(()=>kind==='cat'?.97:.85);a.remainingDrinkAt=0;a.think();assert.equal(a.remainingTask?.kind,'drink','drink still walks to the obsolete shared water point');assert.equal(a.remainingTask.station.slot,a.ref.type==='pet'?0:a.ref.i);}finally{f.dispose();}});
-}

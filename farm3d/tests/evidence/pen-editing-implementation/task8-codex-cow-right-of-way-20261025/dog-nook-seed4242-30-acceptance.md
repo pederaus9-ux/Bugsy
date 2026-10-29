@@ -1,3 +1,0 @@
-# Next bounded assembly-move matrix case
-
-With the right-of-way candidate unchanged, run the same real validated dog-nook `moveStructure [1.8,-10.9] → [3,-11]` Apply at unmodified gameplay seed 4242 and 30 Hz. Keep all 46 owned animals, exactly three consecutive night/day cycles, original 15,000-frame/500-second bed and physical-departure limits, each animal's 1,200-frame/40-second wake, stable identities, distinct installed bed holds, exact paid state, revision 1, containment and zero browser errors. Preserve any failure and do not rerun blindly. This is one care/wake case, separate from physical speed/contact/pose breadth.
