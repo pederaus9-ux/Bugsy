@@ -699,6 +699,7 @@ import {createCowPenCareAdapter} from './animal-pen-cow-adapter.js?v=1';
 import {createChickenStationController} from './chicken-stations.js?v=7';
 import {getAnimalCarePose} from './animal-care-poses.js?v=2';
 import {createCowDockGate} from './cow-stations.js?v=1';
+import {steerCowPersonalSpace} from './cow-personal-space.js?v=1';
 import {createHolidayDecoration, HOLIDAY_AMBIENT} from './holiday-decor.js?v=1';
 import {createFarmDecoration} from './decor-models.js?v=1';
 import {createUtilityLamp,installUtilityLights} from './utility-lights.js?v=1';
@@ -1869,7 +1870,13 @@ class Beast {
           else if (d <= 1e-4) want.add(new THREE.Vector2(pos.x - bx, pos.y - bz).normalize().multiplyScalar(4)); }
         for (const [ax, az, bx, bz] of fenceSegs) { const ab = new THREE.Vector2(bx - ax, bz - az), k = THREE.MathUtils.clamp(new THREE.Vector2(pos.x - ax, pos.y - az).dot(ab) / ab.lengthSq(), 0, 1);
           const c = new THREE.Vector2(ax + ab.x * k, az + ab.y * k), off = pos.clone().sub(c), d = off.length(); if (d < this.S.r + .35 && d > 1e-4) want.add(off.multiplyScalar((this.S.r + .35 - d) * 8 / d)); }
-        for (const b of animals) if (b !== this) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
+        for (const b of animals) if (b !== this && !(this.kind === 'cow' && b.kind === 'cow' && typeof steerCowPersonalSpace === 'function')) { const off = pos.clone().sub(b.pos), d = off.length(), m = this.S.r + b.S.r; if (d < m && d > 1e-4) want.add(off.multiplyScalar((m - d) * 3 / d)); }
+        if (this.kind === 'cow' && typeof steerCowPersonalSpace === 'function') { // personal-space cushion: turn away early and hold the chosen side (cow-personal-space.js)
+          this.cowSpace ??= {selfId:this.ref.i};
+          const others = []; for (const b of animals) if (b !== this && b.kind === 'cow' && !b.gone) others.push({id:b.ref.i, x:b.g.position.x, y:b.g.position.z});
+          const s = steerCowPersonalSpace(pos, want, others, this.cowSpace, t); want.set(s.x, s.y);
+          if (s.redirect && !this.cowTask) { this.target = null; this.path = null; this.act = "idle"; this.until = 0; this.nightSpot = null; } // pick a different direction
+        }
         this.vel.lerp(want, Math.min(1, dt * 4));
         this.g.position.x += this.vel.x * dt; this.g.position.z += this.vel.y * dt; moving = true;
         // the fences are solid: whatever the steering did, a penned animal stays in its pen and the dog and cat stay out
@@ -2263,6 +2270,11 @@ function updateCowTaskStep(a,dt,t){
       else blockedBedLeg=true;
     }
     const p=blockedBedLeg?null:task.path?.[0];if(p){const dx=p.x-ox,dz=p.y-oz,d=Math.hypot(dx,dz),step=Math.min(d,a.S.walk*dt);let nx=dx/(d||1)*step,nz=dz/(d||1)*step;
+      if(typeof steerCowPersonalSpace==='function'){ // personal-space cushion on care trips too (skipped by source-extract test sandboxes): steer around a cow ahead before reaching contact distance
+        a.cowSpace??={selfId:a.ref.i};const others=[];for(const b of animals)if(b!==a&&b.kind==='cow'&&!b.gone)others.push({id:b.ref.i,x:b.g.position.x,y:b.g.position.z});
+        const sv=steerCowPersonalSpace(a.pos,{x:nx/(dt||1),y:nz/(dt||1)},others,a.cowSpace,t),sl=Math.hypot(sv.x,sv.y);
+        if(sl>1e-6&&d>.6){nx=sv.x/sl*step;nz=sv.y/sl*step;}
+      }
       const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
       if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}
       else{
