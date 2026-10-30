@@ -6,6 +6,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import currentField from './helpers/field-support-scope.cjs';
+import cowAimCache from './helpers/cow-aim-cache-scope.cjs';
 import {normalizeReleaseBlockerScope} from './helpers/release-blocker-scope.mjs';
 const root=new URL('../../',import.meta.url);
 const fieldRef='0d0542bf93e4e010b5543e81a40fae4bca2dd5f9';
@@ -53,7 +54,7 @@ test('historical cache journeys differ only by the immutable currentRef pin',()=
 
 test('current rollback still reconstructs exact pre-field sources without unrelated edits',()=>{
  for(const file of ['index.html','sw.js']){
-  const current=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+  const current=cowAimCache.normalizeCowAimCacheScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'));
   const prior=execFileSync('git',['show',field.scope.base+':farm3d/'+file],{cwd:root,encoding:'utf8'});
   assert.equal(currentField.normalizeFieldScope(file,current),prior);
   assert.throws(()=>currentField.normalizeFieldScope(file,current+'\n/* unrelated */'));
