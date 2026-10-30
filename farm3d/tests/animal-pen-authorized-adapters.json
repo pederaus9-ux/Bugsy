@@ -61,13 +61,21 @@
     },
     "cow3d.js": {
       "previousSha256": "4d6c180cc70b8695a7e47ca792d7ddaf9311b9987b8ea34ad6a1e3821db87e44",
-      "reviewedSha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01",
+      "reviewedSha256": "bc1d6131deed57c522500e739e3b2dfcfff1e805a8c162ae1038faaab5e41367",
       "amendment": "A3",
       "scope": {
         "start": "  let yawDelta = 0;",
         "end": "  // B13: one deterministic attention",
         "prefixSha256": "a2cd3dc9014c05dd93f547e3aa80ad6a31e18ad5a3f577843b49f9e6c1a3a3ca",
         "suffixSha256": "53564e56b630655b1b7074eb06d0040b33603bdcf6951387f6157d3e531c7513"
+      },
+      "aimPick": {
+        "amendment": "A39-first-person-aim-pick",
+        "approval": "Owner (pederaus9-ux) approved 2026-10-30 12:47 CDT: first-person cow aim raycast performance fix",
+        "scope": "Only the screen-pick bounds raycast helper after the THREE import and its single card.raycast assignment; with both removed the file is byte-identical to its prior reviewed source",
+        "helper": "\n// Walk mode aims from the screen centre every 120 ms. Three.js raycasts a skinned mesh by skinning every\n// vertex on the CPU (about 10k triangles per cow), which hitched first person whenever an animal was\n// under the crosshair, e.g. walking past the cow barn. Screen picks (setFromCamera) use the posed local\n// bounds instead; geometric probes without a camera keep the exact skinned-triangle raycast.\nconst pickRay=new THREE.Ray(),pickInverse=new THREE.Matrix4(),pickPoint=new THREE.Vector3();\nfunction boundsRaycast(raycaster,hits){if(!raycaster.camera)return THREE.SkinnedMesh.prototype.raycast.call(this,raycaster,hits);const box=this.boundingBox||(this.geometry.boundingBox||(this.geometry.computeBoundingBox(),this.geometry.boundingBox));if(!this.material||!box)return;pickInverse.copy(this.matrixWorld).invert();pickRay.copy(raycaster.ray).applyMatrix4(pickInverse);if(!pickRay.intersectBox(box,pickPoint))return;pickPoint.applyMatrix4(this.matrixWorld);const distance=raycaster.ray.origin.distanceTo(pickPoint);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:pickPoint.clone(),object:this});}\n",
+        "hook": "card.raycast=boundsRaycast;",
+        "priorReviewedSha256": "2d0be792fa13d5a12eb9dd48e011d5d74557e943df580cdb70e7538eb4e3fb01"
       }
     },
     "auth.js": {
@@ -76,6 +84,19 @@
       "amendment": "A28-recovery-guards-A38-upload-bookkeeping",
       "scope": "Only unresolved/stale manual-restore handoff/write guards; exact inverse scope in restore-repair evidence; no Firebase config, permissions or account-policy edits",
       "priorReviewedSha256A38": "50a12fe3974aa00333514215bae4a2ff7061ac63b9066f6176a5c05a214d244e"
+    },
+    "quadruped3d.js": {
+      "previousSha256": "f5f714152de33bff78943600fcb1322abf06ec1da83749a715129d7a08f9970f",
+      "reviewedSha256": "6f1fdd18980e6a844d999398ba7e86fa7822a19f751beb8f0d07fa3355a8b9ba",
+      "amendment": "A39-first-person-aim-pick",
+      "aimPick": {
+        "amendment": "A39-first-person-aim-pick",
+        "approval": "Owner (pederaus9-ux) approved 2026-10-30 12:47 CDT: first-person cow aim raycast performance fix",
+        "scope": "Only the screen-pick bounds raycast helper after the THREE import and its single card.raycast assignment; with both removed the file is byte-identical to its prior reviewed source",
+        "helper": "\n// Walk mode aims from the screen centre every 120 ms. Three.js raycasts a skinned mesh by skinning every\n// vertex on the CPU (about 10k triangles per cow), which hitched first person whenever an animal was\n// under the crosshair, e.g. walking past the cow barn. Screen picks (setFromCamera) use the posed local\n// bounds instead; geometric probes without a camera keep the exact skinned-triangle raycast.\nconst pickRay=new THREE.Ray(),pickInverse=new THREE.Matrix4(),pickPoint=new THREE.Vector3();\nfunction boundsRaycast(raycaster,hits){if(!raycaster.camera)return THREE.SkinnedMesh.prototype.raycast.call(this,raycaster,hits);const box=this.boundingBox||(this.geometry.boundingBox||(this.geometry.computeBoundingBox(),this.geometry.boundingBox));if(!this.material||!box)return;pickInverse.copy(this.matrixWorld).invert();pickRay.copy(raycaster.ray).applyMatrix4(pickInverse);if(!pickRay.intersectBox(box,pickPoint))return;pickPoint.applyMatrix4(this.matrixWorld);const distance=raycaster.ray.origin.distanceTo(pickPoint);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:pickPoint.clone(),object:this});}\n",
+        "hook": "card.raycast=boundsRaycast;\n",
+        "priorReviewedSha256": "f5f714152de33bff78943600fcb1322abf06ec1da83749a715129d7a08f9970f"
+      }
     }
   }
 }

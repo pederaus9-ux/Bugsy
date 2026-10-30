@@ -104,6 +104,18 @@ function readOutput(dir) {
   visit(dir); return {files, bytes};
 }
 
+const {normalizeCowAimCacheScope}=require('./helpers/cow-aim-cache-scope.cjs');
+// A39 (owner-approved 2026-10-30): the first-person aim pick helper/hook in cow3d.js and quadruped3d.js
+// and the sa3d-v78 cache name are the only new runtime bytes; strip exactly those, then account as before.
+function normalizeCowAimScope(file,text){
+  if(file==='sw.js')return normalizeCowAimCacheScope(file,text);
+  if(file!=='cow3d.js'&&file!=='quadruped3d.js')return text;
+  const pick=JSON.parse(fs.readFileSync(path.join(__dirname,'animal-pen-authorized-adapters.json'),'utf8')).files[file].aimPick;
+  assert.equal(text.split(pick.helper).length,2,'A39 unique helper: '+file);assert.equal(text.split(pick.hook).length,2,'A39 unique hook: '+file);
+  const prior=text.replace(pick.helper,'').replace(pick.hook,'');
+  assert.equal(sha(Buffer.from(prior)),pick.priorReviewedSha256,'A39 exact reconstruction: '+file);
+  return prior;
+}
 // A39: account for only the approved A38 postimages. The original manifest stays frozen;
 // output validation below still compares the actual, current bytes without normalization.
 function historicalAccounting(source, manifest) {
@@ -115,8 +127,10 @@ function historicalAccounting(source, manifest) {
     assert(source.has(entry.path), `Missing current source: ${entry.path}`);
     const bytes = source.get(entry.path), file = entry.path.replace(/^farm3d\//, '');
     let historical = bytes;
-    const fieldNormalized=normalizeFieldScope(file,bytes.toString('utf8'));
-    const fieldBytes=fieldNormalized===bytes.toString('utf8')?bytes:Buffer.from(fieldNormalized);
+    const a39Text=normalizeCowAimScope(file,bytes.toString('utf8')),a39Bytes=a39Text===bytes.toString('utf8')?bytes:Buffer.from(a39Text);
+    const fieldNormalized=normalizeFieldScope(file,a39Bytes.toString('utf8'));
+    const fieldBytes=fieldNormalized===a39Bytes.toString('utf8')?a39Bytes:Buffer.from(fieldNormalized);
+    if (a39Bytes !== bytes && file !== 'sw.js') historical = a39Bytes;
     if (file === 'auth.js' || file === 'index.html') {
       const exact = approved[file];
       assert.equal(sha(fieldBytes), exact.afterSha256, `Unknown A38 current bytes: ${entry.path}`);
@@ -141,8 +155,8 @@ function historicalAccounting(source, manifest) {
     if (historical === bytes) unchanged.push(entry.path);
     else changes.push({path: entry.path, currentSha256: sha(bytes), originalBlob: entry.blob});
   }
-  assert.equal(unchanged.length, 118, 'All other runtime assets stay unchanged');
-  assert.deepEqual(changes.map(c => c.path).sort(), ['farm3d/auth.js', 'farm3d/index.html', 'farm3d/sw.js']);
+  assert.equal(unchanged.length, 116, 'All other runtime assets stay unchanged');
+  assert.deepEqual(changes.map(c => c.path).sort(), ['farm3d/auth.js', 'farm3d/cow3d.js', 'farm3d/index.html', 'farm3d/quadruped3d.js', 'farm3d/sw.js']);
   return {unchangedRuntimeAssets: unchanged.length, approvedRuntimeChanges: changes};
 }
 
@@ -152,7 +166,7 @@ function accountingControls(source, manifest) {
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v77', 'sa3d-v78')))],
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v78', 'sa3d-v79')))],
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}

@@ -6,7 +6,9 @@ import rollback from './helpers/field-rollback-scope.cjs';
 import field from './helpers/field-support-scope.cjs';
 import {normalizeReleaseBlockerScope} from './helpers/release-blocker-scope.mjs';
 const root=new URL('../../',import.meta.url);
-const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+import cowAimCache from './helpers/cow-aim-cache-scope.cjs';
+// A39: compare the pre-A39 worker; the cache-name hunk itself is checked in cow-aim-cache-scope.test.mjs.
+const read=file=>cowAimCache.normalizeCowAimCacheScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'));
 const prior=(ref,file)=>execFileSync('git',['show',ref+':farm3d/'+file],{cwd:root,encoding:'utf8'});
 
 test('rollback receipt keeps the frozen field receipt byte-for-byte',()=>{
