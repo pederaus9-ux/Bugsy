@@ -65,8 +65,11 @@ const errorsOf = (session) => session.errors.filter(e => !/gstatic|firebase|Fail
       }
       const first = await pick(page);
       assert.deepEqual(errorsOf(session), [], f + ' page errors');
+      // A41 bigger pastures (owner approval 2026-10-30 18:34 CDT, t43s12): an owned template cow yard is
+      // upgraded once to a ~1.5x custom pasture, which deliberately promotes the cow save to writer4.
+      if (f.startsWith('3d-v3')) await page.waitForFunction(() => __dbg.G.S.layout?.animalPens?.sites?.cow, {}, {timeout: 30000});
       const raw = await page.evaluate(() => { __dbg.G.save(); return localStorage.getItem('sunny-acres-3d-v1'); });
-      if (f.startsWith('3d-v3')) assert.ok(raw && JSON.parse(raw).v === 3, f + ' retains its cow-care minimum writer3');
+      if (f.startsWith('3d-v3')) assert.ok(raw && JSON.parse(raw).v === 4, f + ' upgrades to the A41 pasture writer4');
       else if (f.startsWith('3d-v2')) assert.ok(raw && JSON.parse(raw).v === 2, f + ' retains its paid-feature minimum writer2');
       else assert.ok(raw && JSON.parse(raw).v === 1, f + ' saves back as v1 JSON');
       await page.reload({waitUntil: 'load'});

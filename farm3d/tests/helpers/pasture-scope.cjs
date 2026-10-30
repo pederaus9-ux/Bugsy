@@ -5,7 +5,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/pasture-scope.json'));
-assert.equal(sha(raw),'cfeb15ca4b40c59cb96f77244c48ed92fc93d2e9040e9e23ab8d27d5514553b4','Exact approved A41 scope receipt');
+assert.equal(sha(raw),'c31ef93262830d79bfd87aa390126ab26b2c2935e0f93fc1778610858d6215ec','Exact approved A41 scope receipt');
 const scope=JSON.parse(raw);
 function normalizePastureScope(file,source){
  const e=scope.files[file];if(!e||sha(source)!==e.afterSha256)return source;
