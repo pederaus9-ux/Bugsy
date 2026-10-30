@@ -679,7 +679,6 @@ import {careSegmentClear,carePointRuleClear} from './remaining-care-navigation.j
 import {createDairyPath} from './farm-path.js?v=2';
 import {NORTH_EXTENSION,WEST_CLEARING,MAP_EDGE,onFarm,onBuildableLand,buildableLandShapes,clampToFarm,farmGroundY} from './farm-land.js?v=5';
 import {TERRAIN_SPAN,TERRAIN_SEGMENTS,terrainMeshY,assessWorkshopSite} from './workshop-site.js?v=1';
-import {plotSupport} from './plot-support.js?v=1';
 import {REMOVABLE_TREE_IDS,decodeRemovedTrees,addRemovedTree} from './tree-removal.js?v=1';
 import {FAR_TREE_SITES} from './far-tree-sites.js?v=1';
 import {createSeasonalLeaves,seasonalLeafShader} from './seasonal-leaves.js?v=1';
@@ -2673,9 +2672,8 @@ function syncSoil() { // called every second
 }
 function makePlot(i) {
   const g = new THREE.Group(), p = FIELD_SLOTS[i];
-  const support = plotSupport(p.x,p.y,FIELD_ROT,farmGroundY);
-  g.position.set(p.x, support.rootY, p.y); g.rotation.y = FIELD_ROT;
-  g.add(box(2.2, support.height, 2.2, M.tilled, 0, support.centerY, 0, .5));
+  g.position.set(p.x, 0, p.y); g.rotation.y = FIELD_ROT;
+  g.add(box(2.2, .12, 2.2, M.tilled, 0, .04, 0, .5));
   for (const z of [-.7, 0, .7]) { const row = new THREE.Mesh(furrowGeo, M.tilled); row.position.set(0, .1, z); row.castShadow = row.receiveShadow = true; g.add(row); }
   const plants = new THREE.Group(); plants.position.y = .2; g.add(plants);
   g.userData.hit = {type:"plot", i}; scene.add(g); mergeStatic(g, (o) => o === plants);
@@ -2693,7 +2691,7 @@ function syncPlots() {
   while (plots.length < n) plots.push(makePlot(plots.length));
   while (plots.length > n) { const P = plots.pop(); scene.remove(P.g); P.decal.parent.remove(P.decal); }
   plots.forEach((_, i) => buildPlants(i));
-  if (n < G.maxPlots()) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, plotSupport(p.x,p.y,FIELD_ROT,farmGroundY).rootY, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
+  if (n < G.maxPlots()) { const p = FIELD_SLOTS[n]; plotSale.visible = true; plotSale.position.set(p.x, 0, p.y); plotSale.rotation.y = FIELD_ROT; plotSale.userData.set(["🟫 New field", plotCostTxt()]); }
   else plotSale.visible = false;
 }
 const plotCostTxt = () => (40 + (GS().plots.length - 6) * 35) + " 🪙";

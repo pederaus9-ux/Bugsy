@@ -5,7 +5,7 @@ const {execFileSync}=require('node:child_process');
 const {start,root}=require('./qualification-cdp.cjs');
 const {readSource}=require('./qualification-source.cjs');
 const oldRef='ac4c438bc9cfe76f266e56a5687e4eb0ebc4958b';
-const currentRef=execFileSync('git',['rev-parse','HEAD'],{cwd:root}).toString().trim();
+const currentRef='0d0542bf93e4e010b5543e81a40fae4bca2dd5f9'; // Immutable accepted field v76; every original assertion/input retained.
 const out=path.resolve(process.env.TEST_ARTIFACTS||path.join(__dirname,'artifacts','field-support-cache'));
 const report={status:'RUNNING',oldRef,currentRef,steps:[]};let h,stage='launch';
 const record=(name,value)=>{report.steps.push({name,value});fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2));console.log('PASS '+name);};

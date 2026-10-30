@@ -2064,3 +2064,31 @@ Owner Sentinel_38e100e109b0819181fe40eee50ca435 approves immutable historical v7
 ### Field-only local release qualification complete
 
 At082669d,132focusedchecksPASS including unchanged A25/A26/A28 and new exact field controls. Independent v75-to-v76 upgrade: fivephasesPASS, exactindex/support/game/auth/recoverycachehashes,30supportedroots,plantedcrop and4horsecustompen preserved,zerooffline responses. RestrictedChromecrashpadlaunchfailedbeforegame; normalprocessaccesswithsandboxflagsunchangedpassed, originalreceiptretained. Matchedbefore/afterrendersinspectedshowexposedfrontbeds. Originalstrictnativefivephases/nineassertionsat5085remain source-equivalent; hostednative rerun configured. YAMLread-onlyworkflowvalid. RealPagesbuild andexact-headCI/independentreviewpending. Controlsremain9fcaaf2separate;no mergeyet.
+
+### Owner-approved field-only rollback: pre-edit record
+
+Owner Sentinel_056e591992808191881d9f07abb63c4d approves reverting only field rendering after severe black fields/buildings and widespread camera/control lag. Main verified 5c08fa4ab3444ef0daa6d35635490a7124af657a. Approval/pre-edit digests recorded in FIELD_ROLLBACK_APPROVAL.json before edits. Forward cache77, prior index exactac4, compatibility helper retained; save/auth/economy/security bytes unchanged. Historical failures remain; symptom cause and improvement unproven. Controls9fcaaf2 paused. No settings or user-data changes.
+
+### Additive rollback qualification approved before edits
+
+Owner Sentinel_5b43e6036d448191a3042ee6469feefd explicitly approves immutable0d historical field checks with all original steps, separate current rollback/cache qualification, six current-version-only references76to77 and unchanged deadlines. Denied step-removal patch did not execute and is not replayed. Additional pre-edit digests in FIELD_ROLLBACK_APPROVAL.json. Historical failures remain; neither source-identity nor rollback deployment proves owner-device improvement.
+
+### Rollback local source verification
+
+121 focused checks PASS, source-only package122assets/11corruptioncontrols PASS, static YAML comparison proves all12 original historical steps retained with explicit0d source identity and independent20min currentrollback job. Sixcandidate-cache files exact76to77 substitutions; predecessor inputs unchanged. Independent source review PASS. Runtime index exactac4, onlyforwardworker77, compatibilitymodule retained; auth/game/recovery/Three bytes untouched. Browser/cache and real package/hosted verification pending. No user-performance-improvement claim.
+
+### Rollback installed-cache verification complete locally
+
+At e6c2ca4, fivephase installedv76->77 journey PASS: exactcachedindex/auth/game/recovery/helper hashes, all30 baseline roots0, savedwheat/inventory and custom4horsepen/revision1 preserved online/offline, foreigncachepreserved, zeroofflineserverresponses and zero runtimeexceptions. Inspected realoffline640x360 software-rendered snapshot showsbrownfields/redbarn; not proof ownerdevice lag/blackrenderingfixed. No realsaves/cloudwrites. Fullindependent source/additiveworkflow review PASS. These two relay-only updates do not change tested runtime. DraftPR/exactheadCI/realpackagebuild/merge/Pages stillpending. Historicalfield/source failures remain separate.
+
+### Unused rollback precache entry correction approved before edits
+
+Owner Sentinel_3f2621a471fc8191ad0dbccc415a29c0 approves the exact five-file correction: remove obsolete plot-support entry from SW77 shell, retain file, preserve published47171802 receipt preimage and frozen325cd027 field receipt, update exact inverse/negative/cache controls. Unchanged versions.test requires cached modules in realbootgraph. Pre-edit hashes recorded in FIELD_ROLLBACK_APPROVAL.json before SW edits. Oldheadbfbe CI remains17PASS6FAIL3SKIP1active emulator; no publication while active, no attribution of all failures to one cause.
+
+### Unused-entry correction local source checks passed
+
+27 targetedchecksPASS includingunchangedversions.test; package122assets/86shellentries/all11controlsPASS. NarrowindependentreviewPASS: onlyunusedhelperprecacheentryremoved, file8a7790 retained; exact2hunkinverse reconstructsoldv76a58855, embeddedpublishedreceiptbytes47171802equalimmutablebfbe, frozenfield325cd027unchanged. Correctedbrowsercacheverificationpending. OldheademulatorjobcompletedSUCCESS01:29:12UTC; alloldjobsfinishedbeforeanynewpublication. Historicalunitfailuresretained, no attributionofallassertionswithoutdirectsafeoutput. Noauth/data/settings/performancescopechanges.
+
+### Corrected rollback local preservation passed; old CI terminal
+
+At d4d755c, allfive correctedinstalledv76->77 preservationphasesPASS withobsoleteentryabsent, exactcurrentindex/auth/game/recoverycachedhashes, compatibilityfileexact, wheat/inventory/custom4horsepen/revision1 preservedonline/offline, zeroofflineserverresponses/runtimeexceptions. Originalversionsassertionsunchanged and27targetedchecksPASS; sourcepackage11controlsPASS; independentnarrowreviewPASS. Oldbfbe hostedattemptterminal18SUCCESS6FAILURE3manualSKIP0cancelled/active; emulatorSUCCESS01:29:12UTC. Sixfailuresretained; specificassertionofeachnotavailableinsafemetadata. No newpublicationbeforeoldjobsfinished. NewheadCI/actualpackage/deploymentremainpending, noownerdeviceimprovementclaim.

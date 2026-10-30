@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const {startEmu, readDoc, resetEmulators, fsUrl, artifacts, loads} = require('./emu-harness.cjs');
 const {startRecoveryTiming} = require('./recovery-timing.cjs');
+const {pollRequestedSave} = require('./recovery-observation.cjs');
 
 // A30 timing-only: bounded event records, no page state writes or renderer release.
 async function beginQuotaTiming(page) {
@@ -271,7 +272,7 @@ async function main() {
       if (!back) { console.log('STATE', JSON.stringify(await st())); break; }
       // 7. recovery followed by a normal save: it uploads the restored farm (sentinel kept) one revision on
       await P(g, () => { const G = window.__dbg.G; G.S.coins += 3; G.commit(); });
-      let after = null; for (let i = 0; i < 40; i++) { after = await cloud(uid); if (after.rev > base.rev) break; await g.page.waitForTimeout(1000); }
+      const after = await pollRequestedSave({read:() => cloud(uid), wait:ms => g.page.waitForTimeout(ms), base});
       check(`1.${k} a normal save after recovery uploads the restored farm`, after.rev > base.rev && has(after.save, base.token) && JSON.parse(after.save).coins === JSON.parse(base.save).coins + 3, `rev ${base.rev}->${after.rev}`);
     }
 
