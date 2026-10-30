@@ -4,7 +4,9 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 const raw=fs.readFileSync(require('node:path').join(__dirname,'../fixtures/field-rollback-scope.json'));
 assert.equal(sha(raw),'b560641f89064fe1651f1d0c507c072f776f17a421d57a9a26a7f678d345792b','Exact approved field rollback receipt');
 const scope=JSON.parse(raw);
+const {normalizeCowSpaceScope}=require('./cow-space-scope.cjs');
 function normalizeRollbackScope(file,source){
+ source=normalizeCowSpaceScope(file,source); // A40 exact hunks first
  const e=scope.files[file];
  if(file!=='sw.js'||sha(source)!==e.afterSha256)return source;
  for(const h of e.hunks){

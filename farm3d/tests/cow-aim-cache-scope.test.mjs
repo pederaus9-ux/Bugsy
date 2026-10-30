@@ -1,6 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import cowAimCache from './helpers/cow-aim-cache-scope.cjs';
-const sw=fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+import cowSpace from './helpers/cow-space-scope.cjs';
+const sw=cowSpace.normalizeCowSpaceScope('sw.js',fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8'));
 test('A39 worker differs from the accepted v77 worker only by its cache name',()=>{
  assert.match(sw,/const CACHE = "sa3d-v78";/);
  assert.notEqual(cowAimCache.normalizeCowAimCacheScope('sw.js',sw),sw);
