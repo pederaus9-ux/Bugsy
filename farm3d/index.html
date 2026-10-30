@@ -690,6 +690,7 @@ import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=2';
 import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
 import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=2';
 import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=4';
+import {growPasture} from './animal-pen-pasture.js?v=1';
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=4';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
@@ -2146,6 +2147,19 @@ function snapshotPenWorld(){
   return {id:idOf(a),kind:a.kind,position:[p.x,p.y,p.z],component:c&&pointInPolygon([p.x,p.z],c.footprint)?owner:null,stationId,careStationId,clearance:clearance(a.kind)};
  });
  return {epoch:penFarmEpochs.get(S)+(visiting?':visit':''),obstacleRevision:penStateHash({blocked,owned,installed,path,revision:installedAnimalPens.revision}),owned,land:penEditableLand(),blocked,baselineBlocked,path,groundY,actors,installed,currentLayout:installedAnimalPens};
+}
+// A41 bigger pastures: once per session, a farm whose fenced pen is still template-sized grows it
+// (about 1.5x area) through the same validated commit as the pen editor. Never while visiting/editing.
+let pastureChecked=false;
+function migratePastures(){
+ if(pastureChecked||visiting||!G.S||animalPenEditing||penEditor.snapshot().open)return;pastureChecked=true;
+ for(const kind of ['cow']){
+  if(!(G.S.pens?.[kind]?.owned||G.S.pens?.[kind]?.list?.length))continue;
+  if(G.S.layout?.animalPens!==undefined&&savedPenLayout()===undefined)return; // unreadable/newer layout: never overwrite
+  const world=snapshotPenWorld(),current=savedPenLayout(),isValid=c=>{if(decodeAnimalPens(c).status!=='ok')return false;const l=resolveAnimalPens(c);return !Object.values(l.sites).some(s=>s.issues.length)&&validateAnimalPens(l,world).ok;};
+  let grown=null;try{grown=growPasture(current,kind,{isValid});}catch{grown=null;}
+  if(grown&&commitPenDraft(grown.value,{epoch:world.epoch,revision:current?.revision??0}))G.toast?.('🐄 Your cows have a bigger pasture');
+ }
 }
 const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
 let animalPenEditing=null;
@@ -4754,6 +4768,7 @@ if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("s
 if (qs.has("debug")) window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.cut, renderer.domElement.width];
 GV.resolution = () => Math.round(QUALITY.pr / DPR * 100); // shown in Settings
 window.__ready = true;
+if (!qs.has('shot') && !qs.has('testfarm')) setTimeout(() => { try { migratePastures(); } catch {} }, 4000);
 </script>
 </body>
 </html>
