@@ -1,4 +1,11 @@
 import * as THREE from './lib/three.module.min.js';
+
+// Walk mode aims from the screen centre every 120 ms. Three.js raycasts a skinned mesh by skinning every
+// vertex on the CPU (about 10k triangles per cow), which hitched first person whenever an animal was
+// under the crosshair, e.g. walking past the cow barn. Screen picks (setFromCamera) use the posed local
+// bounds instead; geometric probes without a camera keep the exact skinned-triangle raycast.
+const pickRay=new THREE.Ray(),pickInverse=new THREE.Matrix4(),pickPoint=new THREE.Vector3();
+function boundsRaycast(raycaster,hits){if(!raycaster.camera)return THREE.SkinnedMesh.prototype.raycast.call(this,raycaster,hits);const box=this.boundingBox||(this.geometry.boundingBox||(this.geometry.computeBoundingBox(),this.geometry.boundingBox));if(!this.material||!box)return;pickInverse.copy(this.matrixWorld).invert();pickRay.copy(raycaster.ray).applyMatrix4(pickInverse);if(!pickRay.intersectBox(box,pickPoint))return;pickPoint.applyMatrix4(this.matrixWorld);const distance=raycaster.ray.origin.distanceTo(pickPoint);if(distance>=raycaster.near&&distance<=raycaster.far)hits.push({distance,point:pickPoint.clone(),object:this});}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const templates=new Map();
 function build(spec){
@@ -138,6 +145,7 @@ export function createQuadruped(spec,height,x=0,z=0){
   const bones=t.defs.map(d=>{const b=new THREE.Bone();b.name=d.name;b.position.set(...d.p);return b;});
   for(let i=1;i<bones.length;i++)bones[t.defs[i].parent].add(bones[i]);
   const card=new THREE.SkinnedMesh(t.geometry,t.material);card.add(bones[0]);card.bind(new THREE.Skeleton(bones));
+card.raycast=boundsRaycast;
   const g=new THREE.Group(),model=new THREE.Group();g.position.set(x,0,z);g.add(model);model.add(card);model.scale.setScalar(height/spec.height);
   const legs=t.slots.legs.map(l=>({...l,hip:bones[l.hip],knee:bones[l.knee],foot:bones[l.foot],planted:false,ax:0,az:0,ayaw:0}));
   for(const l of legs)l.hip.rotation.order='YXZ';
