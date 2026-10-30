@@ -106,10 +106,11 @@ function readOutput(dir) {
 
 const {normalizeCowAimCacheScope}=require('./helpers/cow-aim-cache-scope.cjs');
 const {normalizeCowSpaceScope}=require('./helpers/cow-space-scope.cjs'); // A40
+const {normalizePastureScope}=require('./helpers/pasture-scope.cjs'); // A41
 // A39 (owner-approved 2026-10-30): the first-person aim pick helper/hook in cow3d.js and quadruped3d.js
 // and the sa3d-v78 cache name are the only new runtime bytes; strip exactly those, then account as before.
 function normalizeCowAimScope(file,text){
-  if(file==='sw.js')return normalizeCowAimCacheScope(file,normalizeCowSpaceScope(file,text));
+  if(file==='sw.js')return normalizeCowAimCacheScope(file,normalizeCowSpaceScope(file,normalizePastureScope(file,text)));
   if(file!=='cow3d.js'&&file!=='quadruped3d.js')return text;
   const pick=JSON.parse(fs.readFileSync(path.join(__dirname,'animal-pen-authorized-adapters.json'),'utf8')).files[file].aimPick;
   assert.equal(text.split(pick.helper).length,2,'A39 unique helper: '+file);assert.equal(text.split(pick.hook).length,2,'A39 unique hook: '+file);
@@ -167,7 +168,7 @@ function accountingControls(source, manifest) {
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v79', 'sa3d-v80')))],
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v80', 'sa3d-v81')))],
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}
