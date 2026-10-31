@@ -6,43 +6,89 @@ baseline_commit: bb367d13f8496c02d3f394cd525a46ed2ea51de5
 
 rules:
   - no real money
-  - bots never merge; Robin merges only with Austin's explicit approval per PR
+  - bots never merge; Robin merges only with Austin's explicit approval for each PR
   - closing PRs or deleting branches needs Austin's OK
-  - runtime/save/protected-system changes need an owner-approved lock amendment (latest: A41)
+  - editing a protected file needs an owner-approved numbered amendment (A-number) plus matching scope receipt/test
+  - amendment numbers and cache versions are handed out uniquely from the registries below; never reuse or self-assign; a PR that lands out of order rebases and keeps its assigned number
+
+protected_files:  # from the 2026-10-02 locks and the lock tests (remaining-care-integration guard, A3/A6/A28 scope tests, animal-pen-authorized-adapters.json)
+  - farm3d/game.js
+  - farm3d/index.html
+  - farm3d/sw.js
+  - farm3d/cow3d.js
+  - farm3d/lib/**
+  - farm3d/auth.js
+  - farm3d/friends.js
+  - farm3d/manifest.webmanifest
+  - farm3d/canon.js
+  - farm3d/farm-land.js
+  - farm3d/farm-path.js
+  - farm3d/horse3d.js
+  - farm3d/horse-stance3d.js
+  - farm3d/horse-ik3d.js
+  - farm3d/sheep3d.js
+  - farm3d/dog3d.js
+  - farm3d/cat3d.js
+  - farm3d/quadruped3d.js
+  - farm3d/live3d.js
+  - farm3d/cow-care.js
+  - farm3d/cow-yard.js
+  - farm3d/chicken-care.js
+  - farm3d/chicken-yard.js
+  - farm3d/chicken-stations.js
+  - farm3d/animal-care-poses.js
+  - farm3d/tests/animal-pen-authorized-adapters.json (reviewed-bytes registry)
+  - farm3d/tests/fixtures/*-scope.json and evidence receipts (frozen)
+  - farm/** (older 2D game)
+  - root Bugsy app files
+
+protected_behaviour:
+  - save ownership semantics, cloud-save revision/conflict behavior, guest migration
+  - 3D cow rendering and behavior (A3)
+  - older /farm game, root Bugsy app, GitHub Pages hosting structure
+
+amendments:  # latest merged: A41 (PR #101, sa3d-v80)
+  - {id: A42, owner: Fence & Pasture, item: fence repair, cache: sa3d-v81, status: reserved}
+  - {id: A43, owner: QA/Fence & Pasture, item: "PR #105 clock-only cow settle (currently labelled A42; rebase after fence repair merges)", cache: sa3d-v82, status: reserved}
+  - {id: A44, owner: Sound, item: "sound polish (PR #103)", cache: sa3d-v83, status: reserved}
+  - {id: A45, owner: Art, item: "animal art (PR #104)", cache: sa3d-v84, status: reserved}
+  - {id: null, owner: Performance, item: next perf change, cache: sa3d-v85, status: "reserved; request an A-number if protected files change"}
+
+cache_order: ["fence sa3d-v81", "#105 sa3d-v82", "Sound sa3d-v83", "Art sa3d-v84", "Performance sa3d-v85"]
 
 locks:
   - scope: SunnyAcres/Robin
     owner: Robin
-    purpose: Coordinator; assigns work, reviews, and is the only bot that handles merges (only with owner approval)
-    area: "*"
+    purpose: Coordinator; assigns work, reviews, merges
+    area: "*; only bot that merges, with Austin's explicit approval for each PR"
   - scope: SunnyAcres/Pens
-    owner: Sunny Acres: Pens
-    purpose: Animal pens (layout, editing, care routing)
-    area: "farm3d/animal-pen*, pen modules/tests"
+    owner: "Sunny Acres: Pens"
+    purpose: Animal pens
+    area: "animal-pen-*.js, pen tests; game.js/index.html/sw.js only under a numbered amendment"
   - scope: SunnyAcres/Performance
     owner: Performance
     purpose: Lag and frame-time work
-    area: "render/raycast/hot paths, perf tests"
+    area: "perf.js, render/raycast hot paths, index.html (protected: needs a numbered amendment)"
   - scope: SunnyAcres/QA
     owner: QA
     purpose: Testing, regressions, bug reports
-    area: "farm3d/tests/**, CI workflows (with Robin)"
+    area: "farm3d/tests/**, CI workflows (coordinate with Robin)"
   - scope: SunnyAcres/FenceAndPasture
     owner: Fence & Pasture
     purpose: Cow fence and pasture
-    area: "cow yard/pasture modules and tests"
+    area: "animal-pen-pasture.js, cow yard/pasture modules, index.html and sw.js (protected: need a numbered amendment)"
   - scope: SunnyAcres/Sound
     owner: Sound
     purpose: SFX and music
-    area: "audio modules and assets"
+    area: "audio code in game.js and index.html (both protected: need a numbered amendment)"
   - scope: SunnyAcres/Art
     owner: Art
     purpose: Models and visuals
-    area: "3D models/characters, art candidates"
+    area: "3D models/characters; cow3d.js is locked under A3 and the reviewed-bytes registries (animal-pen-authorized-adapters.json, remaining-care-integration guard), so any edit needs a numbered amendment and registry update"
   - scope: SunnyAcres/Features
     owner: Features
     purpose: New features and content
-    area: "new gameplay modules (scoped per PR)"
+    area: "new gameplay modules (scoped per PR); protected files only under a numbered amendment"
   - scope: SunnyAcres/DocsAndCleanup
     owner: Docs & Cleanup
     purpose: Docs, coordination files, stale PR cleanup

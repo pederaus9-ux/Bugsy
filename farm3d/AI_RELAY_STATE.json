@@ -11450,42 +11450,42 @@
     {
       "name": "Robin",
       "role": "Coordinator; assigns work, reviews, and is the only bot that handles merges (only with owner approval)",
-      "area": "*"
+      "area": "*; only bot that merges, with Austin's explicit approval for each PR"
     },
     {
       "name": "Sunny Acres: Pens",
       "role": "Animal pens (layout, editing, care routing)",
-      "area": "farm3d/animal-pen*, pen modules/tests"
+      "area": "animal-pen-*.js, pen tests; game.js/index.html/sw.js only under a numbered amendment"
     },
     {
       "name": "Performance",
       "role": "Lag and frame-time work",
-      "area": "render/raycast/hot paths, perf tests"
+      "area": "perf.js, render/raycast hot paths, index.html (protected: needs a numbered amendment)"
     },
     {
       "name": "QA",
       "role": "Testing, regressions, bug reports",
-      "area": "farm3d/tests/**, CI workflows (with Robin)"
+      "area": "farm3d/tests/**, CI workflows (coordinate with Robin)"
     },
     {
       "name": "Fence & Pasture",
       "role": "Cow fence and pasture",
-      "area": "cow yard/pasture modules and tests"
+      "area": "animal-pen-pasture.js, cow yard/pasture modules, index.html and sw.js (protected: need a numbered amendment)"
     },
     {
       "name": "Sound",
       "role": "SFX and music",
-      "area": "audio modules and assets"
+      "area": "audio code in game.js and index.html (both protected: need a numbered amendment)"
     },
     {
       "name": "Art",
       "role": "Models and visuals",
-      "area": "3D models/characters, art candidates"
+      "area": "3D models/characters; cow3d.js is locked under A3 and the reviewed-bytes registries (animal-pen-authorized-adapters.json, remaining-care-integration guard), so any edit needs a numbered amendment and registry update"
     },
     {
       "name": "Features",
       "role": "New features and content",
-      "area": "new gameplay modules (scoped per PR)"
+      "area": "new gameplay modules (scoped per PR); protected files only under a numbered amendment"
     },
     {
       "name": "Docs & Cleanup",
@@ -11537,5 +11537,53 @@
       "aheadMain": 12,
       "recommendation": "salvage selectively, then delete"
     }
+  ],
+  "protectedFiles": [
+    "farm3d/game.js",
+    "farm3d/index.html",
+    "farm3d/sw.js",
+    "farm3d/cow3d.js",
+    "farm3d/lib/**",
+    "farm3d/auth.js",
+    "farm3d/friends.js",
+    "farm3d/manifest.webmanifest",
+    "farm3d/canon.js",
+    "farm3d/farm-land.js",
+    "farm3d/farm-path.js",
+    "farm3d/horse3d.js",
+    "farm3d/horse-stance3d.js",
+    "farm3d/horse-ik3d.js",
+    "farm3d/sheep3d.js",
+    "farm3d/dog3d.js",
+    "farm3d/cat3d.js",
+    "farm3d/quadruped3d.js",
+    "farm3d/live3d.js",
+    "farm3d/cow-care.js",
+    "farm3d/cow-yard.js",
+    "farm3d/chicken-care.js",
+    "farm3d/chicken-yard.js",
+    "farm3d/chicken-stations.js",
+    "farm3d/animal-care-poses.js",
+    "farm3d/tests/animal-pen-authorized-adapters.json (reviewed-bytes registry)",
+    "farm3d/tests/fixtures/*-scope.json and evidence receipts (frozen)",
+    "farm/** (older 2D game)",
+    "root Bugsy app files"
+  ],
+  "amendmentRegistry": {
+    "lastMerged": "A41",
+    "reserved": {
+      "A42": "Fence & Pasture fence repair (sa3d-v81)",
+      "A43": "PR #105 cow settle (sa3d-v82)",
+      "A44": "Sound (sa3d-v83)",
+      "A45": "Art (sa3d-v84)"
+    },
+    "rule": "numbers handed out uniquely; never reuse"
+  },
+  "cacheOrder": [
+    "fence sa3d-v81",
+    "#105 sa3d-v82",
+    "Sound sa3d-v83",
+    "Art sa3d-v84",
+    "Performance sa3d-v85"
   ]
 }
