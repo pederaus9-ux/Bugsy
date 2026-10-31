@@ -1,6 +1,17 @@
 // Sheep volume. Hips stay children of the body so the legs do not detach.
 import * as THREE from './lib/three.module.min.js';
 import {updateQuadruped} from './quadruped3d.js';
+// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and
+// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).
+function bakeShade(pos,norm,color){
+  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}
+  const span=Math.max(hi-lo,1e-6);
+  for(let i=0;i<pos.length;i+=3){
+    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);
+    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);
+    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);
+  }
+}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const SHEEP_GAIT=Object.freeze({upper:.22,lower:.23,hip:.52,hoof:.04,stride:.62,stance:.58});
 let template;
@@ -29,27 +40,28 @@ function buildTemplate(){
     for(let i=0;i<a.count;i++){pos.push(a.getX(i),a.getY(i),a.getZ(i));norm.push(n.getX(i),n.getY(i),n.getZ(i));color.push(c.r,c.g,c.b);skin.push(b,0,0,0);weight.push(1,0,0,0);}
     g.dispose();
   }
-  const oval=(col,p,scale,b,detail=12)=>add(new THREE.SphereGeometry(1,detail,8),col,p,scale,b);
+  const oval=(col,p,scale,b,detail=12,rows=8)=>add(new THREE.SphereGeometry(1,detail,rows),col,p,scale,b);
   const rod=(col,p,r1,r2,len,b)=>add(new THREE.CylinderGeometry(r1,r2,len,8),col,p,[1,1,1],b);
-  oval(wool,[0,0,0],[.34,.28,.46],slots.body,16);
+  oval(wool,[0,0,0],[.34,.28,.46],slots.body,24,14);
   oval(wool,[0,-.04,.04],[.15,.20,.16],slots.neck,12);
-  oval(face,[0,.02,-.08],[.12,.1,.14],slots.head,12);
+  oval(face,[0,.02,-.08],[.12,.1,.14],slots.head,16,10);
   oval(face,[0,-.015,-.19],[.10,.065,.08],slots.head,12);
   for(const side of [-1,1]){
     const ear=slots.ears[side===-1?0:1];
     oval(face,[side*.07,0,0],[.11,.035,.06],ear,10);
-    oval(0xb89189,[side*.085,.01,-.035],[.065,.018,.024],ear,8);
-    oval(0xf6f0e5,[side*.106,.045,-.15],[.028,.03,.025],slots.head,10);
-    oval(0x171818,[side*.121,.045,-.164],[.015,.022,.014],slots.head,8);
+    oval(0xb89189,[side*.085,.01,-.035],[.065,.018,.024],ear,8,5);
+    oval(0xf6f0e5,[side*.106,.045,-.15],[.028,.03,.025],slots.head,8,6);
+    oval(0x171818,[side*.121,.045,-.164],[.015,.022,.014],slots.head,6,4);
   }
   oval(wool,[0,-.03,.03],[.09,.10,.10],slots.tail,10);
   for(const l of slots.legs){
     oval(wool,[0,.06,0],[.1,.08,.1],l.hip,8);
     rod(wool,[0,-SHEEP_GAIT.upper/2,0],.05,.04,SHEEP_GAIT.upper,l.hip);
-    oval(wool,[0,0,0],[.045,.045,.045],l.knee,10);
+    oval(wool,[0,0,0],[.045,.045,.045],l.knee,8,6);
     rod(face,[0,-SHEEP_GAIT.lower/2,0],.035,.028,SHEEP_GAIT.lower,l.knee);
-    oval(face,[0,-.016,-.02],[.045,.024,.063],l.foot,10);
+    oval(face,[0,-.016,-.02],[.045,.024,.063],l.foot,8,6);
   }
+  bakeShade(pos,norm,color);
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   geometry.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));

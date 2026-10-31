@@ -1,0 +1,223 @@
+{
+ "amendment": "A45-animal-art",
+ "approval": "Owner Austin (pederaus9-ux) approved 2026-10-30 (art audit improvement #2 approved 20:47 CDT; frozen-baseline update approved 21:09 CDT): smoother animal silhouettes, leaner cow small parts and baked vertex-colour AO at lower total triangles (23,688 -> 22,128); lock exceptions for cow3d.js, quadruped3d.js and sheep3d.js approved 21:52 CDT 2026-10-30 (relayed by Audit bot) and directly confirmed by Austin at 22:01 CDT 2026-10-30: 'I approve the lock exception for cow3d.js, quadruped3d.js and sheep3d.js'; cache bump approved directly by Austin 21:09 CDT 2026-10-30 ('Yes, update the test baselines and bump the cache'); version order approved 21:52 CDT (art v84 after sound v83); rebased 2026-10-31 onto main 567d9ce (after PR #103 sound polish A44, sa3d-v83, game.js?v=36): animal-art hunks unchanged, cache hunks' prior bytes are main plus A44",
+ "scope": "Only animal mesh builders (segment counts plus the bakeShade vertex-colour helper and its single call) in cow3d.js, quadruped3d.js, sheep3d.js and chicken3d.js. Bone names, rig hierarchy, rest poses, gait/pose code and exported APIs are unchanged. cacheFiles: only the sa3d-v83 -> sa3d-v84 cache name in sw.js and the module versions cow3d.js?v=5 -> 6 and chicken3d.js?v=1 -> 2 wherever imported or precached.",
+ "files": {
+  "cow3d.js": {
+   "beforeSha256": "bc1d6131deed57c522500e739e3b2dfcfff1e805a8c162ae1038faaab5e41367",
+   "afterSha256": "3e4a2a6dcc9e7b8fdf2ddf0976bd1f6fae7bd522f154c7b3eaf5b8522ac14829",
+   "hunks": [
+    {
+     "before": "import * as THREE from './lib/three.module.min.js';\n",
+     "after": "import * as THREE from './lib/three.module.min.js';\n// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and\n// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).\nfunction bakeShade(pos,norm,color){\n  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}\n  const span=Math.max(hi-lo,1e-6);\n  for(let i=0;i<pos.length;i+=3){\n    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);\n    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);\n    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);\n  }\n}\n"
+    },
+    {
+     "before": "  for(const side of [-1,1]){\n    oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,12);\n",
+     "after": "  for(const side of [-1,1]){\n    oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,8);\n"
+    },
+    {
+     "before": "    if(side<0)leaf.reverse();\n    loft(cream,'x',leaf,ear,null,16);\n",
+     "after": "    if(side<0)leaf.reverse();\n    loft(cream,'x',leaf,ear,null,12);\n"
+    },
+    {
+     "before": "    // The inset follows the ear bone and sits on its forward-facing cup.\n    oval(pink,[side*.115,.028,-.050],[.072,.019,.009],ear,0,side*.10,12);\n    loft(horn,'y',[[.20,side*.14,.012,.032,.029],[.265,side*.145,.022,.025,.023],[.325,side*.17,.040,.014,.013],[.365,side*.19,.052,.002,.002]],slots.head,null,10);\n",
+     "after": "    // The inset follows the ear bone and sits on its forward-facing cup.\n    oval(pink,[side*.115,.028,-.050],[.072,.019,.009],ear,0,side*.10,8);\n    loft(horn,'y',[[.20,side*.14,.012,.032,.029],[.265,side*.145,.022,.025,.023],[.325,side*.17,.040,.014,.013],[.365,side*.19,.052,.002,.002]],slots.head,null,8);\n"
+    },
+    {
+     "before": "    const eye=slots.eyes[side===-1?0:1];\n    oval(ink,[0,0,.004],[.038,.040,.026],eye,0,0,12);\n    oval(0x60442a,[side*.006,0,-.012],[.027,.030,.017],eye,0,0,12);\n    oval(0x101816,[side*.009,0,-.025],[.018,.025,.009],eye,0,0,12);\n    oval(0xffffff,[-.005,.009,-.032],[.005,.006,.004],eye,0,0,8);\n    oval(ink,[side*.145,.081,-.121],[.04,.012,.023],slots.head,0,0,12);\n",
+     "after": "    const eye=slots.eyes[side===-1?0:1];\n    oval(ink,[0,0,.004],[.038,.040,.026],eye,0,0,10);\n    oval(0x60442a,[side*.006,0,-.012],[.027,.030,.017],eye,0,0,8);\n    oval(0x101816,[side*.009,0,-.025],[.018,.025,.009],eye,0,0,8);\n    oval(0xffffff,[-.005,.009,-.032],[.005,.006,.004],eye,0,0,6);\n    oval(ink,[side*.145,.081,-.121],[.04,.012,.023],slots.head,0,0,8);\n"
+    },
+    {
+     "before": "    [-.235,0,.024,.011,.012],[-.14,0,.015,.014,.016],[-.04,0,.005,.018,.020],[i===0?.135:.02,0,i===0?-.028:0,i===0?.020:.019,i===0?.021:.020]\n  ],b,i===0?(x,y,z)=>[[b,1-clamp((y-1.18)/.15,0,1)*.3],[slots.body,clamp((y-1.18)/.15,0,1)*.3]]:null,12);\n  loft(ink,'y',[[-.285,0,.02,.009,.011],[-.245,0,.018,.030,.036],[-.19,0,.015,.038,.043],[-.12,0,.01,.020,.025]],slots.tail[2],null,14);\n",
+     "after": "    [-.235,0,.024,.011,.012],[-.14,0,.015,.014,.016],[-.04,0,.005,.018,.020],[i===0?.135:.02,0,i===0?-.028:0,i===0?.020:.019,i===0?.021:.020]\n  ],b,i===0?(x,y,z)=>[[b,1-clamp((y-1.18)/.15,0,1)*.3],[slots.body,clamp((y-1.18)/.15,0,1)*.3]]:null,10);\n  loft(ink,'y',[[-.285,0,.02,.009,.011],[-.245,0,.018,.030,.036],[-.19,0,.015,.038,.043],[-.12,0,.01,.020,.025]],slots.tail[2],null,10);\n  bakeShade(pos,norm,color);\n"
+    }
+   ]
+  },
+  "quadruped3d.js": {
+   "beforeSha256": "6f1fdd18980e6a844d999398ba7e86fa7822a19f751beb8f0d07fa3355a8b9ba",
+   "afterSha256": "fa899447d1e2750a2b049b5ba2a3d48644c07828e7dab80e0aad4e70bd8d6a3e",
+   "hunks": [
+    {
+     "before": "import * as THREE from './lib/three.module.min.js';\n",
+     "after": "import * as THREE from './lib/three.module.min.js';\n// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and\n// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).\n// Vertices on bones in 'skip' (head, ears, upper legs) keep their exact authored colours, which tests key on.\nfunction bakeShade(pos,norm,color,skin=null,skip=null){\n  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}\n  const span=Math.max(hi-lo,1e-6);\n  for(let i=0;i<pos.length;i+=3){\n    if(skip&&skip.has(skin[i/3*4]))continue;\n    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);\n    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);\n    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);\n  }\n}\n"
+    },
+    {
+     "before": "    add(new THREE.CylinderGeometry(r*.85,r,delta.length(),10),col,a.add(end).multiplyScalar(.5).toArray(),[1,1,1],b,q);\n    oval(col,from,[r,r,r],b);oval(col,to,[r*.85,r*.85,r*.85],b);\n",
+     "after": "    add(new THREE.CylinderGeometry(r*.85,r,delta.length(),10),col,a.add(end).multiplyScalar(.5).toArray(),[1,1,1],b,q);\n    oval(col,from,[r,r,r],b,6,4);oval(col,to,[r*.85,r*.85,r*.85],b,6,4);\n"
+    },
+    {
+     "before": "  }\n  oval(spec.coat,[0,0,0],spec.body,slots.body,16,10);\n",
+     "after": "  }\n  oval(spec.coat,[0,0,0],spec.body,slots.body,24,14);\n"
+    },
+    {
+     "before": "  link(spec.coat,[0,-spec.neck[1]*.8,-spec.neck[2]*.22],spec.head,spec.headSize[0]*.8,slots.neck);\n  oval(spec.coat,[0,0,0],spec.name==='cat'?[spec.headSize[0]*.94,spec.headSize[1]*.85,spec.headSize[2]*.78]:spec.headSize,slots.head,16,10);\n",
+     "after": "  link(spec.coat,[0,-spec.neck[1]*.8,-spec.neck[2]*.22],spec.head,spec.headSize[0]*.8,slots.neck);\n  oval(spec.coat,[0,0,0],spec.name==='cat'?[spec.headSize[0]*.94,spec.headSize[1]*.85,spec.headSize[2]*.78]:spec.headSize,slots.head,20,12);\n"
+    },
+    {
+     "before": "      add(new THREE.SphereGeometry(1,8,6),0x1d2417,[side*.045,.014,-.0483],[.003,.009,.003],slots.head,q);\n      oval(0xffffff,[side*.044,.018,-.051],[.002,.002,.0015],slots.head);\n",
+     "after": "      add(new THREE.SphereGeometry(1,8,6),0x1d2417,[side*.045,.014,-.0483],[.003,.009,.003],slots.head,q);\n      oval(0xffffff,[side*.044,.018,-.051],[.002,.002,.0015],slots.head,6,4);\n"
+    },
+    {
+     "before": "      oval(0x211f1b,[side*hx*1.01,hy*.24,-hz*.39],[hx*.095,hy*.12,hz*.09],slots.head);\n      oval(0xffffff,[side*hx*1.05,hy*.28,-hz*.45],[hx*.04,hy*.045,hz*.035],slots.head);\n",
+     "after": "      oval(0x211f1b,[side*hx*1.01,hy*.24,-hz*.39],[hx*.095,hy*.12,hz*.09],slots.head);\n      oval(0xffffff,[side*hx*1.05,hy*.28,-hz*.45],[hx*.04,hy*.045,hz*.035],slots.head,6,4);\n"
+    },
+    {
+     "before": "  }\n",
+     "after": "  }\n  bakeShade(pos,norm,color,skin,new Set([slots.head,...(slots.ears||[]),...slots.legs.map(l=>l.hip)]));\n"
+    }
+   ]
+  },
+  "sheep3d.js": {
+   "beforeSha256": "ee9ef1e3f9c2ff8f69e14f2da0267faa256522b027c33cf773ee3780bc4ec54d",
+   "afterSha256": "caa329c04b451b4eb12e07327467d40d10f8e90e091794b40944d6505475fa3f",
+   "hunks": [
+    {
+     "before": "import {updateQuadruped} from './quadruped3d.js';\n",
+     "after": "import {updateQuadruped} from './quadruped3d.js';\n// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and\n// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).\nfunction bakeShade(pos,norm,color){\n  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}\n  const span=Math.max(hi-lo,1e-6);\n  for(let i=0;i<pos.length;i+=3){\n    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);\n    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);\n    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);\n  }\n}\n"
+    },
+    {
+     "before": "  }\n  const oval=(col,p,scale,b,detail=12)=>add(new THREE.SphereGeometry(1,detail,8),col,p,scale,b);\n",
+     "after": "  }\n  const oval=(col,p,scale,b,detail=12,rows=8)=>add(new THREE.SphereGeometry(1,detail,rows),col,p,scale,b);\n"
+    },
+    {
+     "before": "  const rod=(col,p,r1,r2,len,b)=>add(new THREE.CylinderGeometry(r1,r2,len,8),col,p,[1,1,1],b);\n  oval(wool,[0,0,0],[.34,.28,.46],slots.body,16);\n",
+     "after": "  const rod=(col,p,r1,r2,len,b)=>add(new THREE.CylinderGeometry(r1,r2,len,8),col,p,[1,1,1],b);\n  oval(wool,[0,0,0],[.34,.28,.46],slots.body,24,14);\n"
+    },
+    {
+     "before": "  oval(wool,[0,-.04,.04],[.15,.20,.16],slots.neck,12);\n  oval(face,[0,.02,-.08],[.12,.1,.14],slots.head,12);\n",
+     "after": "  oval(wool,[0,-.04,.04],[.15,.20,.16],slots.neck,12);\n  oval(face,[0,.02,-.08],[.12,.1,.14],slots.head,16,10);\n"
+    },
+    {
+     "before": "    oval(face,[side*.07,0,0],[.11,.035,.06],ear,10);\n    oval(0xb89189,[side*.085,.01,-.035],[.065,.018,.024],ear,8);\n    oval(0xf6f0e5,[side*.106,.045,-.15],[.028,.03,.025],slots.head,10);\n    oval(0x171818,[side*.121,.045,-.164],[.015,.022,.014],slots.head,8);\n",
+     "after": "    oval(face,[side*.07,0,0],[.11,.035,.06],ear,10);\n    oval(0xb89189,[side*.085,.01,-.035],[.065,.018,.024],ear,8,5);\n    oval(0xf6f0e5,[side*.106,.045,-.15],[.028,.03,.025],slots.head,8,6);\n    oval(0x171818,[side*.121,.045,-.164],[.015,.022,.014],slots.head,6,4);\n"
+    },
+    {
+     "before": "    rod(wool,[0,-SHEEP_GAIT.upper/2,0],.05,.04,SHEEP_GAIT.upper,l.hip);\n    oval(wool,[0,0,0],[.045,.045,.045],l.knee,10);\n",
+     "after": "    rod(wool,[0,-SHEEP_GAIT.upper/2,0],.05,.04,SHEEP_GAIT.upper,l.hip);\n    oval(wool,[0,0,0],[.045,.045,.045],l.knee,8,6);\n"
+    },
+    {
+     "before": "    rod(face,[0,-SHEEP_GAIT.lower/2,0],.035,.028,SHEEP_GAIT.lower,l.knee);\n    oval(face,[0,-.016,-.02],[.045,.024,.063],l.foot,10);\n",
+     "after": "    rod(face,[0,-SHEEP_GAIT.lower/2,0],.035,.028,SHEEP_GAIT.lower,l.knee);\n    oval(face,[0,-.016,-.02],[.045,.024,.063],l.foot,8,6);\n"
+    },
+    {
+     "before": "  }\n",
+     "after": "  }\n  bakeShade(pos,norm,color);\n"
+    }
+   ]
+  },
+  "chicken3d.js": {
+   "beforeSha256": "db7b5b2c2cecf3d18d5f5d5a674ac00c303e2c35aa2a94cbcbe6c5f50f5ea79e",
+   "afterSha256": "830e4362facf1e60eafb5ad7b775cc95376967f6287fb40598678ab04ab0d4b5",
+   "hunks": [
+    {
+     "before": "import * as THREE from './lib/three.module.min.js';\n",
+     "after": "import * as THREE from './lib/three.module.min.js';\n// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and\n// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).\nfunction bakeShade(pos,norm,color){\n  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}\n  const span=Math.max(hi-lo,1e-6);\n  for(let i=0;i<pos.length;i+=3){\n    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);\n    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);\n    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);\n  }\n}\n"
+    },
+    {
+     "before": "  function add(geo,col,p,scale,b,rx=0){const g=geo.toNonIndexed();geo.dispose();const o=rest[b];g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(p[0]+o.x,p[1]+o.y,p[2]+o.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,0,0)),new THREE.Vector3(...scale)));const a=g.attributes.position,n=g.attributes.normal,c=new THREE.Color(col);for(let i=0;i<a.count;i++){pos.push(a.getX(i),a.getY(i),a.getZ(i));norm.push(n.getX(i),n.getY(i),n.getZ(i));color.push(c.r,c.g,c.b);skin.push(b,0,0,0);weight.push(1,0,0,0);}g.dispose();}\n  add(new THREE.SphereGeometry(1,10,8),0xf2efe4,[0,0,0],[.12,.1,.16],slots.body);\n",
+     "after": "  function add(geo,col,p,scale,b,rx=0){const g=geo.toNonIndexed();geo.dispose();const o=rest[b];g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(p[0]+o.x,p[1]+o.y,p[2]+o.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,0,0)),new THREE.Vector3(...scale)));const a=g.attributes.position,n=g.attributes.normal,c=new THREE.Color(col);for(let i=0;i<a.count;i++){pos.push(a.getX(i),a.getY(i),a.getZ(i));norm.push(n.getX(i),n.getY(i),n.getZ(i));color.push(c.r,c.g,c.b);skin.push(b,0,0,0);weight.push(1,0,0,0);}g.dispose();}\n  add(new THREE.SphereGeometry(1,16,12),0xf2efe4,[0,0,0],[.12,.1,.16],slots.body);\n"
+    },
+    {
+     "before": "  add(new THREE.SphereGeometry(1,10,8),0xf2efe4,[0,-.01,0],[.055,.095,.06],slots.neck);\n  add(new THREE.SphereGeometry(1,10,8),0xf7f4ee,[0,0,0],[.065,.06,.07],slots.head);\n",
+     "after": "  add(new THREE.SphereGeometry(1,10,8),0xf2efe4,[0,-.01,0],[.055,.095,.06],slots.neck);\n  add(new THREE.SphereGeometry(1,14,10),0xf7f4ee,[0,0,0],[.065,.06,.07],slots.head);\n"
+    },
+    {
+     "before": "  add(new THREE.SphereGeometry(1,8,6),0xbf3435,[0,-.05,-.05],[.025,.03,.02],slots.head);\n  for(let i=0;i<3;i++)add(new THREE.SphereGeometry(1,8,6),0xcd3e3b,[0,.058,-.04+i*.035],[.016,.027,.023],slots.head);\n",
+     "after": "  add(new THREE.SphereGeometry(1,8,6),0xbf3435,[0,-.05,-.05],[.025,.03,.02],slots.head);\n  for(let i=0;i<3;i++)add(new THREE.SphereGeometry(1,6,4),0xcd3e3b,[0,.058,-.04+i*.035],[.016,.027,.023],slots.head);\n"
+    },
+    {
+     "before": "    add(new THREE.SphereGeometry(1,8,6),0x1e2422,[side*.059,.015,-.033],[.013,.014,.012],slots.head);\n    add(new THREE.SphereGeometry(1,6,4),0xffffff,[side*.067,.02,-.038],[.004,.005,.004],slots.head);\n",
+     "after": "    add(new THREE.SphereGeometry(1,8,6),0x1e2422,[side*.059,.015,-.033],[.013,.014,.012],slots.head);\n    add(new THREE.SphereGeometry(1,4,3),0xffffff,[side*.067,.02,-.038],[.004,.005,.004],slots.head);\n"
+    },
+    {
+     "before": "  for(const l of slots.legs){\n    add(new THREE.SphereGeometry(1,8,6),0xf2efe4,[0,0,0],[.02,.023,.025],l.hip);\n",
+     "after": "  for(const l of slots.legs){\n    add(new THREE.SphereGeometry(1,6,4),0xf2efe4,[0,0,0],[.02,.023,.025],l.hip);\n"
+    },
+    {
+     "before": "    add(new THREE.CylinderGeometry(.01,.008,.08,6),0xd8a24a,[0,-.04,0],[1,1,1],l.knee);\n    for(let toe=-1;toe<=1;toe++)add(new THREE.SphereGeometry(1,6,4),0xd8a24a,[toe*.014,-.018,-.023],[.007,.022,.033],l.foot);\n",
+     "after": "    add(new THREE.CylinderGeometry(.01,.008,.08,6),0xd8a24a,[0,-.04,0],[1,1,1],l.knee);\n    for(let toe=-1;toe<=1;toe++)add(new THREE.SphereGeometry(1,5,3),0xd8a24a,[toe*.014,-.018,-.023],[.007,.022,.033],l.foot);\n"
+    },
+    {
+     "before": "  }\n",
+     "after": "  }\n  bakeShade(pos,norm,color);\n"
+    }
+   ]
+  }
+ },
+ "cacheFiles": {
+  "sw.js": {
+   "beforeSha256": "e35dad1dc69d540c9c84ec46f5c8348fb8276a375c01b2aa157d882328762cd1",
+   "afterSha256": "07a5901f794e376e5445d54ab62a3a3ea0cc51244b2775d9d61be6b197b42ba8",
+   "hunks": [
+    {
+     "before": "const CACHE = \"sa3d-v83\";",
+     "after": "const CACHE = \"sa3d-v84\";"
+    },
+    {
+     "before": "const SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=36\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=5\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=1\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];",
+     "after": "const SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=36\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=6\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=2\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];"
+    }
+   ]
+  },
+  "index.html": {
+   "beforeSha256": "8799e87c758250fc57657c34087a16c05ae13676d29f30c9bdd5644e4be1df20",
+   "afterSha256": "0d27b429680e6dcb4ac85bc89ba4156b1b955fa6ec1521867a184b8146f85d1c",
+   "hunks": [
+    {
+     "before": "const Cow3D = qs.has(\"characters2d\") ? null : await import(\"./cow3d.js?v=5\"); // 3D cows on the regular link; optional artwork fallback for comparisons",
+     "after": "const Cow3D = qs.has(\"characters2d\") ? null : await import(\"./cow3d.js?v=6\"); // 3D cows on the regular link; optional artwork fallback for comparisons"
+    }
+   ]
+  },
+  "live3d.js": {
+   "beforeSha256": "198608a694860c167f2ce7f46d7402bcbefe9551c978df5bbcf1283a6b79e87a",
+   "afterSha256": "791ad82416cc0a3a48e9b2f763fa26b4214bacc3e09c128e2055c6d856552812",
+   "hunks": [
+    {
+     "before": "import {createChicken3D, updateChicken3D} from './chicken3d.js?v=1';",
+     "after": "import {createChicken3D, updateChicken3D} from './chicken3d.js?v=2';"
+    }
+   ]
+  },
+  "animal-care-poses.js": {
+   "beforeSha256": "3bcc39901cae4155d43b5d0f66c6e53b9ee599ca365bf3b4f8b4535f6cb3b858",
+   "afterSha256": "0f3f6088bc130f93dc6bc94a82cdff6573c7608386a587b47f3928f40029e98a",
+   "hunks": [
+    {
+     "before": "import {COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "animal-pen-cow-support.js": {
+   "beforeSha256": "8b28d9efc7abc54e6907f8b0305fed077b149ec438291ddd26d8b22d15565bbf",
+   "afterSha256": "626bd927b080693d487b816ff2670b5707a276bee3bff11a06072fbbaa672a70",
+   "hunks": [
+    {
+     "before": "import {poseCowLeg,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {poseCowLeg,COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "characters3d.html": {
+   "beforeSha256": "02fcee720a49bd3749eea0856e939b5ffded750d9932f20fe29361479ccbb777",
+   "afterSha256": "ac0bf383eb2d55764b7f13e982bd55311c9168809ff0e383aa3a0582d19dcdc9",
+   "hunks": [
+    {
+     "before": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "cow-transition-preview.html": {
+   "beforeSha256": "0700639cac9473ab70f2dbcf84073d36a01b43cbc0b168c73fa241d74b7e2c50",
+   "afterSha256": "e0d0e5d82e0f43c7fbd578e7612cd6aac7e982cd20492e57e56fc5b5cf0350e5",
+   "hunks": [
+    {
+     "before": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  }
+ }
+}

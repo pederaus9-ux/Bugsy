@@ -36,7 +36,8 @@ test('shadow predicts exact production state/transforms and all skin vertices at
  // Frozen current geometry census: all 31,728 vertices in each of 24 cases.
  // The first harness draft guessed >1M; the actual unchanged mesh has 761,472
  // comparisons. Keep exact coverage, not an arbitrary rounded count.
- assert.equal(checked,31728*24,'all-vertex coverage unexpectedly changed');
+ assert.equal(checked,27576*24, // A45 animal art (owner Austin 2026-10-30): 31728 -> 27576 vertices
+ 'all-vertex coverage unexpectedly changed');
 });
 test('live displayed care overlay stays untouched using its recorded pre-overlay base',()=>{
  const r=prepared(),base=captureCowPreviewBase(r,{overlayState:'reset'}),care=getAnimalCarePose('cow',r);care.apply({mode:'lie',weight:.8});r.g.updateMatrixWorld(true);const shown=snapshot(r);

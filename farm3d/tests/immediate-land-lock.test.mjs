@@ -1,9 +1,10 @@
 import settle from './helpers/cow-settle-scope.cjs';
 import {normalizeRestoreScope} from './helpers/restore-recovery-scope.mjs';
+import animalArt from './helpers/animal-art-scope.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import crypto from 'node:crypto';import vm from 'node:vm';
 const source=fs.readFileSync(new URL('./remaining-care-integration.test.mjs',import.meta.url),'utf8').match(/test\('protected implementations and approved pen adapters retain exact reviewed bytes',\(\)=>\{([\s\S]*?)\n\}\);/)[1].replaceAll('import.meta.url',JSON.stringify(new URL('./remaining-care-integration.test.mjs',import.meta.url).href));
 const readReal=fs.readFileSync.bind(fs),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
-function run(mutate=()=>{},registryEdit=()=>{}){const read=(url,encoding)=>{let raw=readReal(url),name=new URL(url).pathname.split('/').pop();if(name==='animal-pen-authorized-adapters.json'){const a=JSON.parse(raw);registryEdit(a);raw=Buffer.from(JSON.stringify(a));}else raw=mutate(name,raw)||raw;return encoding?raw.toString():raw;};return vm.runInNewContext('(function(){'+source+'})()',{fs:{readFileSync:read},crypto,assert,URL,normalizeRestoreScope,settle});}
+function run(mutate=()=>{},registryEdit=()=>{}){const read=(url,encoding)=>{let raw=readReal(url),name=new URL(url).pathname.split('/').pop();if(name==='animal-pen-authorized-adapters.json'){const a=JSON.parse(raw);registryEdit(a);raw=Buffer.from(JSON.stringify(a));}else raw=mutate(name,raw)||raw;return encoding?raw.toString():raw;};return vm.runInNewContext('(function(){'+source+'})()',{fs:{readFileSync:read},crypto,assert,URL,normalizeRestoreScope,settle,animalArt});}
 test('A6 land exception accepts exact reviewed bytes',()=>run());
 test('A7 rejects unrelated game logic even if the whole-file digest is re-registered',()=>{
  const real=readReal(new URL('../game.js',import.meta.url)),change=b=>Buffer.from(b.toString().replace('export const have = (id) => S.barn[id] || 0','export const have = (id) => 1000'));

@@ -1,5 +1,5 @@
 import * as THREE from './lib/three.module.min.js';
-import {COW_GAIT} from './cow3d.js?v=5';
+import {COW_GAIT} from './cow3d.js?v=6';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mix=(a,b,w)=>a+(b-a)*w;
 // Opt-in overlay. Reset before the next accepted ordinary rig update; neither
 // anatomy nor the gait implementation changes. No supplies/rewards live here.
