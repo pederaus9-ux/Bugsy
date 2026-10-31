@@ -26,7 +26,9 @@ function locateAnimalArtHunks(file,source){
  return source;
 }
 // A45 cache bump (top of the stack, above A44): whole-file verified reversal of only the version hunks.
+const {normalizePerfScope}=require('./perf-scope.cjs'); // A46 performance (sa3d-v85) sits on top of A45
 function normalizeAnimalArtCacheScope(file,source){
+ source=normalizePerfScope(file,source);
  const text=Buffer.isBuffer(source)?source.toString():source;
  const e=(scope.cacheFiles||{})[file];if(!e||sha(text)!==e.afterSha256)return source;
  let s=text;for(const h of e.hunks){assert.equal(s.split(h.after).length,2,'Unique A45 cache hunk');s=s.replace(h.after,h.before);}
