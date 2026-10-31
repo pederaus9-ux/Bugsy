@@ -129,8 +129,8 @@ function historicalAccounting(source, manifest) {
   for (const entry of manifest.staticSource) {
     assert(source.has(entry.path), `Missing current source: ${entry.path}`);
     const file = entry.path.replace(/^farm3d\//, ''), rawBytes = source.get(entry.path);
-    // A42: reverse only the approved cow-settle hunks (game.js, index.html, sw.js) before older receipts.
-    const a42Text = normalizeCowSettleScope(file, rawBytes.toString('utf8')), bytes = a42Text === rawBytes.toString('utf8') ? rawBytes : Buffer.from(a42Text);
+    // A43: reverse only the approved cow-settle hunks (game.js, index.html, sw.js) before older receipts.
+    const a43Text = normalizeCowSettleScope(file, rawBytes.toString('utf8')), bytes = a43Text === rawBytes.toString('utf8') ? rawBytes : Buffer.from(a43Text);
     let historical = bytes;
     const a39Text=normalizeCowAimScope(file,bytes.toString('utf8')),a39Bytes=a39Text===bytes.toString('utf8')?bytes:Buffer.from(a39Text);
     const fieldNormalized=normalizeFieldScope(file,a39Bytes.toString('utf8'));
@@ -171,7 +171,7 @@ function accountingControls(source, manifest) {
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v81', 'sa3d-v82')))], // A42: current cache is sa3d-v81
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v82', 'sa3d-v83')))], // A43: current cache is sa3d-v82
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}

@@ -8,7 +8,7 @@ const {normalizeCowSpaceScope}=require('./cow-space-scope.cjs');
 const {normalizePastureScope}=require('./pasture-scope.cjs');
 const {normalizeCowSettleScope}=require('./cow-settle-scope.cjs');
 function normalizeRollbackScope(file,source){
- source=normalizeCowSpaceScope(file,normalizePastureScope(file,normalizeCowSettleScope(file,source))); // A42, A41 then A40 exact hunks first
+ source=normalizeCowSpaceScope(file,normalizePastureScope(file,normalizeCowSettleScope(file,source))); // A43 (which sits on A42 inside pasture), A41 then A40 exact hunks first
  const e=scope.files[file];
  if(file!=='sw.js'||sha(source)!==e.afterSha256)return source;
  for(const h of e.hunks){
