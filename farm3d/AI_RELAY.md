@@ -4,6 +4,39 @@
 
 This file exists so ChatGPT, Antigravity, Claude, Grok, Codex, Copilot/Cursor-style agents, and human contributors can hand work to one another without losing project state.
 
+## 0. Current state and bot team (updated 2026-10-30)
+
+This section replaces older role text in section 3 that is no longer current ("ChatGPT/Codex sole lead", "Claude/Grok canceled"). Earlier text stays as history.
+
+- `main` = `bb367d13f8496c02d3f394cd525a46ed2ea51de5` (PR #101 bigger cow pasture, cache `sa3d-v80`). Recent: #98 field rollback (v77), #99 aim-raycast perf (v78), #100 cow personal space (v79), #101 pasture 1.5x + save migration (v80). Lock amendments A39–A41 were owner-approved.
+
+| Bot | Role | Primary area |
+|---|---|---|
+| Robin | Coordinator; assigns work, reviews, and is the only bot that handles merges (only with owner approval) | *; only bot that merges, with Austin's explicit approval for each PR |
+| Sunny Acres: Pens | Animal pens (layout, editing, care routing) | animal-pen-*.js, pen tests; game.js/index.html/sw.js only under a numbered amendment |
+| Performance | Lag and frame-time work | perf.js, render/raycast hot paths, index.html (protected: needs a numbered amendment) |
+| QA | Testing, regressions, bug reports | farm3d/tests/**, CI workflows (coordinate with Robin) |
+| Fence & Pasture | Cow fence and pasture | animal-pen-pasture.js, cow yard/pasture modules, index.html and sw.js (protected: need a numbered amendment) |
+| Sound | SFX and music | audio code in game.js and index.html (both protected: need a numbered amendment) |
+| Art | Models and visuals | 3D models/characters; cow3d.js is locked under A3 and the reviewed-bytes registries (animal-pen-authorized-adapters.json, remaining-care-integration guard), so any edit needs a numbered amendment and registry update |
+| Features | New features and content | new gameplay modules (scoped per PR); protected files only under a numbered amendment |
+| Docs & Cleanup | Docs, coordination files, stale PR cleanup | *.md, AI_RELAY*, OWNER.lock, PROGRAM_STATUS.md |
+
+Team rules:
+- Owner: Austin Pederson (final authority on visuals, product, scope, destructive ops, merges).
+- No real money: no purchases, paid plans, or paid services.
+- Bots never merge on their own. Only Robin merges, and only after Austin approves the specific PR.
+- No closing PRs or deleting branches without Austin's OK.
+- Protected files (game.js, index.html, sw.js, cow3d.js, lib/** and the rest listed in `farm3d/OWNER.lock`) need a numbered amendment. A-numbers and cache versions come from the OWNER.lock registry (reserved: A42 fence v81, A43 #105 v82, A44 Sound v83, A45 Art v84, A46 Perf v85).
+- One branch/worktree per task, starting from current `main`; bump the `sw.js` cache when runtime files change (current `sa3d-v80`).
+
+Open PRs as of 2026-10-30 (main `bb367d1`, after PR #101):
+- #60 `codex/cow-motion-ci-gates`: conflicts, 344 commits behind. Cleanup candidate.
+- #54 `chatgpt/cow-reconstruction-b1`: mergeable but 373 behind. Cleanup candidate (docs/test only).
+- #37 `claude/sunny-acres-7g-doc-reconcile`: conflicts, 457 behind. Superseded; close candidate.
+- #34 `claude/project-thread-m47o2i`: conflicts, 459 behind. Firestore rules already landed differently in main; close candidate.
+- Branch `codex/cow-save-delivery-20261027` (no PR): conflicts, 13 behind, 12 ahead. Partially landed via PR #98.
+
 ## 1. Authority and source of truth
 
 - Repository: `pederaus9-ux/Bugsy`.
