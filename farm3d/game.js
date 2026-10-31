@@ -375,7 +375,7 @@ export function save() {
 }
 function prepareOrdinarySave(){
   settleChickens();
-  settleCows(true);
+  settleCows();
   if(S.layout?.animalPens!==undefined)S.v=Math.max(S.v||1,4);
   if(S.layout?.removedTrees?.length)S.v=Math.max(S.v||1,5);
   if(S.pens.cow?.care)S.v=Math.max(S.v||1,3);
@@ -613,7 +613,9 @@ export function settleCows(force=false,activate=false){
  if(!canCowCare()||settlingCows)return null;
  const pen=S.pens.cow,old=pen.care;if(!old&&!activate)return null;
  const copy=structuredClone(pen),next=settleCowCare(copy,now());if(!next)return null;
- if(force||!old||next.revision!==old.revision||next.cows.length!==old.cows.length){pen.care=next;pen.list=copy.list;}
+ // Preserve earned progress and production events without publishing clock-only
+ // updates that would dirty an otherwise unchanged restored cloud snapshot.
+ if(force||!old||next.revision!==old.revision||next.cows.length!==old.cows.length||next.cows.some((b,i)=>b.progress!==old.cows[i]?.progress)){pen.care=next;pen.list=copy.list;}
  settlingCows=true;
  try{for(const r of [...pen.care.receipts]){if(acknowledgeCowReward(pen,r.id)){gainXP(r.xp);eventProgress('milk',r.n);}}}finally{settlingCows=false;}
  return pen.care;

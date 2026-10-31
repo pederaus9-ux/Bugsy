@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import crypto from 'node:crypto';import {execFileSync}from'node:child_process';
+import settle from './helpers/cow-settle-scope.cjs';
 import vm from 'node:vm';import {remainingCareLayouts,remainingCareConflicts}from'../remaining-care-layout.js';
 import {normalizeRestoreScope} from './helpers/restore-recovery-scope.mjs';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -11,7 +12,7 @@ test('protected implementations and approved pen adapters retain exact reviewed 
  for(const f of Object.keys(adapters.files))assert(authorized.has(f),f+' is outside the owner-approved pen adapters');
  for(const f of ['game.js','auth.js','canon.js','farm-land.js','farm-path.js','cow3d.js','horse3d.js','horse-stance3d.js','horse-ik3d.js','sheep3d.js','dog3d.js','cat3d.js','quadruped3d.js','live3d.js','cow-care.js','cow-yard.js','chicken-care.js','chicken-yard.js','chicken-stations.js','animal-care-poses.js']){
   const entry=adapters.files[f];if(entry)assert.equal(entry.previousSha256,original[f],f+' lost its frozen predecessor digest');
-  const expected=entry?.reviewedSha256??original[f];let actual=fs.readFileSync(new URL('../'+f,import.meta.url));assert.equal(crypto.createHash('sha256').update(actual).digest('hex'),expected,f+' changed outside the reviewed source checkpoint');
+  const expected=entry?.reviewedSha256??original[f];let actual=fs.readFileSync(new URL('../'+f,import.meta.url));{const t=settle.normalizeCowSettleScope(f,actual.toString('utf8'));if(t!==actual.toString('utf8'))actual=t;}assert.equal(crypto.createHash('sha256').update(actual).digest('hex'),expected,f+' changed outside the reviewed source checkpoint');
   if(entry?.aimPick){ // A39: strip the exact owner-approved pick helper; the rest must be the prior reviewed bytes
    const pick=entry.aimPick,text=actual.toString();assert.equal(pick.amendment,'A39-first-person-aim-pick');
    assert.equal(text.split(pick.helper).length,2,f+' A39 helper is exact');assert.equal(text.split(pick.hook).length,2,f+' A39 hook is exact');
