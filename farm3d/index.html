@@ -690,7 +690,7 @@ import {createAnimalPenSceneRegistry} from './animal-pen-scene.js?v=2';
 import {resolveAnimalPens,animalPenYardLayout,decodeAnimalPens} from './animal-pen-layout.js?v=1';
 import {prepareAnimalPenRevision} from './animal-pen-runtime.js?v=2';
 import {penEditableLand,validateAnimalPens} from './animal-pen-validation.js?v=4';
-import {growPasture} from './animal-pen-pasture.js?v=1';
+import {growPastureSteps,wallBoundPasture} from './animal-pen-pasture.js?v=2';
 import {createAnimalPenEditor} from './animal-pen-editor.js?v=1';
 import {createAnimalPenEditorView} from './animal-pen-editor-view.js?v=4';
 import {createAnimalPenPreview} from './animal-pen-preview.js?v=1';
@@ -2151,14 +2151,22 @@ function snapshotPenWorld(){
 // A41 bigger pastures: once per session, a farm whose fenced pen is still template-sized grows it
 // (about 1.5x area) through the same validated commit as the pen editor. Never while visiting/editing.
 let pastureChecked=false;
-function migratePastures(){
+// Growth never moves an edge that sits against the barn's own walls (that only adds a hidden strip behind
+// them), and a pen grown that way by the first A41 release is reset and regrown in the open. Validation is
+// spread over frames (one candidate per frame) so the check never freezes the game.
+async function migratePastures(){
  if(pastureChecked||visiting||!G.S||animalPenEditing||penEditor.snapshot().open)return;pastureChecked=true;
  for(const kind of ['cow']){
   if(!(G.S.pens?.[kind]?.owned||G.S.pens?.[kind]?.list?.length))continue;
   if(G.S.layout?.animalPens!==undefined&&savedPenLayout()===undefined)return; // unreadable/newer layout: never overwrite
-  const world=snapshotPenWorld(),current=savedPenLayout(),isValid=c=>{if(decodeAnimalPens(c).status!=='ok')return false;const l=resolveAnimalPens(c);return !Object.values(l.sites).some(s=>s.issues.length)&&validateAnimalPens(l,world).ok;};
-  let grown=null;try{grown=growPasture(current,kind,{isValid});}catch{grown=null;}
-  if(grown&&commitPenDraft(grown.value,{epoch:world.epoch,revision:current?.revision??0}))G.toast?.('🐄 Your cows have a bigger pasture');
+  const farm=G.S,world=snapshotPenWorld(),current=savedPenLayout(),walls=cowBlocks.map(b=>b.slice(0,4)),isValid=c=>{if(decodeAnimalPens(c).status!=='ok')return false;const l=resolveAnimalPens(c);return !Object.values(l.sites).some(s=>s.issues.length)&&validateAnimalPens(l,world).ok;};
+  const reset=wallBoundPasture(current,kind,walls),start=reset??current,seen='sa3d-pasture-checked:'+kind;
+  // A boxed-in yard (no valid open edge) is remembered per obstacle layout, so it is not re-validated every session.
+  if(!reset&&localStorage.getItem(seen)===String(world.obstacleRevision))continue;
+  let grown=null;try{const it=growPastureSteps(start,kind,{isValid,walls});let r=it.next();while(!r.done){await new Promise(res=>requestAnimationFrame(()=>res()));if(G.S!==farm||visiting||animalPenEditing)return;r=it.next();}grown=r.value;}catch{grown=null;}
+  const value=grown?.value??(reset?{...reset,revision:(reset.revision|0)+1}:null);
+  if(!grown)try{localStorage.setItem(seen,String(world.obstacleRevision));}catch{}
+  if(value&&commitPenDraft(value,{epoch:world.epoch,revision:current?.revision??0})&&grown)G.toast?.('🐄 Your cows have a bigger pasture');
  }
 }
 const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
@@ -4768,7 +4776,7 @@ if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("s
 if (qs.has("debug")) window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.cut, renderer.domElement.width];
 GV.resolution = () => Math.round(QUALITY.pr / DPR * 100); // shown in Settings
 window.__ready = true;
-if (!qs.has('shot') && !qs.has('testfarm')) setTimeout(() => { try { migratePastures(); } catch {} }, 4000);
+if (!qs.has('shot') && !qs.has('testfarm')) setTimeout(() => { migratePastures().catch(() => {}); }, 4000);
 </script>
 </body>
 </html>
