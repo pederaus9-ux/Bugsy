@@ -1,61 +1,52 @@
-version: 1
+version: 2
 project: Sunny Acres 3D
-updated: 2026-10-02
+owner: Austin Pederson
+updated: 2026-10-30
+baseline_commit: bb367d13f8496c02d3f394cd525a46ed2ea51de5
+
+rules:
+  - no real money
+  - bots never merge; Robin merges only with Austin's explicit approval per PR
+  - closing PRs or deleting branches needs Austin's OK
+  - runtime/save/protected-system changes need an owner-approved lock amendment (latest: A41)
 
 locks:
-  - scope: SunnyAcres/ArchitecturePhaseGates
-    owner: ChatGPT
-    branch: chatgpt/sunny-acres-phase7g-entry
-    baseline_commit: 97cb54055e3284d5ec2a063a48d7991658075c73
-    purpose: Phase-gate design, review, regression acceptance, and Claude handoff
-    allowed_paths:
-      - farm3d/PHASE7*_*.md
-      - farm3d/PHASE7_PLAN.md
-      - farm3d/CLAUDE_HANDOFF_*.md
-      - farm3d/OWNER.lock
-    protected_without_handoff:
-      - farm3d/game.js
-      - farm3d/auth.js
-      - farm3d/friends.js
-      - farm3d/index.html
-      - farm3d/cow3d.js
-      - farm3d/sw.js
-      - farm3d/manifest.webmanifest
-      - farm3d/lib/**
-      - farm/**
-      - root Bugsy app files
+  - scope: SunnyAcres/Robin
+    owner: Robin
+    purpose: Coordinator; assigns work, reviews, and is the only bot that handles merges (only with owner approval)
+    area: "*"
+  - scope: SunnyAcres/Pens
+    owner: Sunny Acres: Pens
+    purpose: Animal pens (layout, editing, care routing)
+    area: "farm3d/animal-pen*, pen modules/tests"
+  - scope: SunnyAcres/Performance
+    owner: Performance
+    purpose: Lag and frame-time work
+    area: "render/raycast/hot paths, perf tests"
+  - scope: SunnyAcres/QA
+    owner: QA
+    purpose: Testing, regressions, bug reports
+    area: "farm3d/tests/**, CI workflows (with Robin)"
+  - scope: SunnyAcres/FenceAndPasture
+    owner: Fence & Pasture
+    purpose: Cow fence and pasture
+    area: "cow yard/pasture modules and tests"
+  - scope: SunnyAcres/Sound
+    owner: Sound
+    purpose: SFX and music
+    area: "audio modules and assets"
+  - scope: SunnyAcres/Art
+    owner: Art
+    purpose: Models and visuals
+    area: "3D models/characters, art candidates"
+  - scope: SunnyAcres/Features
+    owner: Features
+    purpose: New features and content
+    area: "new gameplay modules (scoped per PR)"
+  - scope: SunnyAcres/DocsAndCleanup
+    owner: Docs & Cleanup
+    purpose: Docs, coordination files, stale PR cleanup
+    area: "*.md, AI_RELAY*, OWNER.lock, PROGRAM_STATUS.md"
 
-  - scope: SunnyAcres/FirebaseHardening
-    owner: Claude
-    branch: claude/sunny-acres-phase7g-firebase
-    status: rules + emulator tests green; production publish pending owner (Firebase console)
-    baseline_commit: 97cb54055e3284d5ec2a063a48d7991658075c73
-    activation: after Phase 7G entry documentation is merged
-    purpose: Firestore rules inventory, emulator/rules tests, market/shared-write hardening, App Check evaluation, and full regressions
-    required_read_first:
-      - farm3d/CLAUDE_HANDOFF_PHASE7G.md
-      - farm3d/PHASE7G_FIREBASE.md
-      - farm3d/PHASE7_PLAN.md
-      - farm3d/HANDOFF.md
-    protected_without_handoff:
-      - save ownership semantics
-      - cloud-save revision/conflict behavior
-      - guest migration semantics
-      - Phase 7E/7F locomotion
-      - 3D cow rendering and behavior
-      - older /farm game
-      - unrelated root Bugsy app
-      - GitHub Pages hosting structure
-
-handoff_required_when:
-  - a protected system must change
-  - save compatibility or ownership semantics would change
-  - production Firebase rules cannot be inspected before deployment
-  - a security rule cannot preserve an existing required game flow
-  - a major product/architecture choice has multiple materially different safe options
-
-completion_rule:
-  - Claude returns the Phase 7G evidence packet to ChatGPT for audit
-  - routine failures are fixed without Austin
-  - clean Phase 7G merges under standing authorization
-  - then advance automatically to Phase 7H
+# Historical (2026-10-02) locks: ChatGPT ArchitecturePhaseGates and Claude FirebaseHardening.
+# Both are inactive; the Firebase rules landed in main. Full text is in git history.
