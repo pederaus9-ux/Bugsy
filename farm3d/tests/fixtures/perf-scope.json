@@ -1,0 +1,103 @@
+{
+ "amendment": "A46-performance",
+ "approval": "Owner Austin (pederaus9-ux) approved 2026-10-31 (relayed to Performance): record lock amendment A46 for the mobile-stutter performance change to protected index.html and bump the cache to sa3d-v85 (after Art A45 sa3d-v84, PR #104 merged as 0c1d1fe). Prior bytes are main 0c1d1fe (main plus A45).",
+ "scope": "index.html only in render/raycast hot paths: sign texture redraw on text change, 60 s weather/holiday rebuild skipped when unchanged (module-level weatherSeason), PHONE flag (antialias off and Balanced 1024 shadows on phone-sized touch screens), earlier Auto shadow/tilt-shift steps, no wildflower shadows, reused raycaster/vectors in hitAt/rayAt/toScreen, 4x4 frustum-culled grass tiles sharing one instance array (fewer tufts on phones). sw.js: only sa3d-v84 -> sa3d-v85.",
+ "files": {
+  "index.html": {
+   "beforeSha256": "0d27b429680e6dcb4ac85bc89ba4156b1b955fa6ec1521867a184b8146f85d1c",
+   "afterSha256": "fe9871d6f1d0ec16cb9518ab0321e8e8a70dad87eaa31598c626e952c64e9fb2",
+   "hunks": [
+    {
+     "before": "const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:\"high-performance\", preserveDrawingBuffer:qs.has(\"shot\")});\n",
+     "after": "// a phone-sized touch screen: these get a lighter meadow, no canvas antialiasing and softer Balanced shadows; desktop keeps the full look\nconst PHONE = matchMedia(\"(pointer: coarse)\").matches && Math.min(screen.width, screen.height) < 600;\nconst renderer = new THREE.WebGLRenderer({antialias:!PHONE, powerPreference:\"high-performance\", preserveDrawingBuffer:qs.has(\"shot\")});\n"
+    },
+    {
+     "before": "  const n = 22000, R = rng(5);\n",
+     "after": "  // phones draw fewer, slightly fuller tufts: the same meadow at about 60% of the triangles\n  const lowGrass = PHONE;\n  const n = lowGrass ? 13000 : 22000, R = rng(5), tuftScale = lowGrass ? 1.18 : 1;\n"
+    },
+    {
+     "before": "  let k = 0;\n  for (let i = 0; k < n && i < n * 3; i++) {\n",
+     "after": "  // 4x4 tiles, so the camera only draws the patches it can see. Instances are stored tile by tile in one\n  // shared array: grassMesh keeps owning the data (clearings write into it) and each tile renders a slice of it.\n  const TILES = 4, T0 = -43, TW = 88 / TILES, tileOf = (x, z) => Math.min(TILES - 1, Math.max(0, Math.floor((x - T0) / TW))) * TILES + Math.min(TILES - 1, Math.max(0, Math.floor((z - T0) / TW)));\n  const tufts = [];\n  for (let i = 0; tufts.length < n && i < n * 3; i++) {\n"
+    },
+    {
+     "before": "    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));\n    grassMesh.setMatrixAt(k, m4); GRASS.gpos.push(x, z);\n    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12); grassMesh.setColorAt(k, c); k++;\n",
+     "after": "    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade) * tuftScale; m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));\n    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12);\n    tufts.push({tile:tileOf(x, z), x, z, m:m4.clone(), c:c.clone()});\n"
+    },
+    {
+     "before": "  grassMesh.count = k; grassMesh.receiveShadow = true; scene.add(grassMesh); GRASS.grass = grassMesh;\n",
+     "after": "  tufts.sort((u, v) => u.tile - v.tile);\n  let k = 0;\n  for (const t of tufts) { grassMesh.setMatrixAt(k, t.m); grassMesh.setColorAt(k, t.c); GRASS.gpos.push(t.x, t.z); k++; }\n  grassMesh.count = k; grassMesh.receiveShadow = true; GRASS.grass = grassMesh;\n  const tiles = [];\n  for (let start = 0; start < k;) {\n    let end = start; while (end < k && tufts[end].tile === tufts[start].tile) end++;\n    const tile = new THREE.InstancedMesh(blade, mat, end - start);\n    tile.instanceMatrix = new THREE.InstancedBufferAttribute(grassMesh.instanceMatrix.array.subarray(start * 16, end * 16), 16);\n    tile.instanceColor = new THREE.InstancedBufferAttribute(grassMesh.instanceColor.array.subarray(start * 3, end * 3), 3);\n    tile.receiveShadow = true; tile.computeBoundingSphere(); tile.boundingSphere.radius += 1; // room for the blades bending in the wind\n    tile.name = \"grass tile\"; scene.add(tile); tiles.push(tile); start = end;\n  }\n  // clearings write into grassMesh's array (shared with the tiles) and flag it: pass the flag on to every tile\n  Object.defineProperty(grassMesh.instanceMatrix, \"needsUpdate\", {set(v) { if (v) for (const t of tiles) t.instanceMatrix.needsUpdate = true; }});\n"
+    },
+    {
+     "before": "let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();\nfunction setPreset(name) {\n",
+     "after": "let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();\nlet weatherSeason = null; // the season the current look was built for (see applyWeather)\nfunction setPreset(name) {\n"
+    },
+    {
+     "before": "function setPreset(name) {\n  seasonalLeaves.setSeason(G.THEME.season);\n",
+     "after": "function setPreset(name) {\n  weatherSeason = G.THEME.season;\n  seasonalLeaves.setSeason(G.THEME.season);\n"
+    },
+    {
+     "before": "  g.userData.set = (l) => { const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); mat.needsUpdate = true; old.dispose(); };\n",
+     "after": "  g.userData.set = (l) => { const key = l.join(\"\\n\"); if (g.userData.text === key) return; g.userData.text = key; const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); old.dispose(); }; // same material: swapping the map needs no shader rebuild\n"
+    },
+    {
+     "before": "function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }\n",
+     "after": "const _ray = new THREE.Raycaster(), _rayNdc = new THREE.Vector2();\nfunction rayAt(x, y) { _ray.setFromCamera(_rayNdc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return _ray; } // one shared raycaster: callers use the hits right away\n"
+    },
+    {
+     "before": "function toScreen(v) { const p = v.clone().project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }\n",
+     "after": "function toScreen(v) { const p = (toScreen.v ??= new THREE.Vector3()).copy(v).project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }\n"
+    },
+    {
+     "before": "  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has(\"preset\")) setPreset(G.lookNow()); },\n",
+     "after": "  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has(\"preset\")) { const want = G.lookNow(); if (PRESETS[want] !== P || G.THEME.season !== weatherSeason) setPreset(want); weatherSeason = G.THEME.season; } },\n"
+    },
+    {
+     "before": "  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);\n",
+     "after": "  const ray = hitAt.ray ??= new THREE.Raycaster(); ray.setFromCamera((hitAt.ndc ??= new THREE.Vector2()).set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); // reused: called ~8x a second in Walk mode\n"
+    },
+    {
+     "before": "function syncHoliday() {\n  for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;\n",
+     "after": "function syncHoliday() {\n  syncHoliday.last = G.THEME.holiday;\n  for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;\n"
+    },
+    {
+     "before": "// ---------- every frame: crops grow, bubbles show what's ready ----------\nfunction updateGame(t, dt) {\n",
+     "after": "// ---------- every frame: crops grow, bubbles show what's ready ----------\nconst _robotDock = new THREE.Vector3();\nfunction updateGame(t, dt) {\n"
+    },
+    {
+     "before": "  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(new THREE.Vector3(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}\n",
+     "after": "  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(_robotDock.set(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}\n"
+    },
+    {
+     "before": "  board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });\n",
+     "after": "  let open = 0; for (const o of GS().orders) if (!o.wait) open++;\n  board.userData.papers.forEach((p, k) => { p.visible = k < open; });\n"
+    },
+    {
+     "before": "setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);\n",
+     "after": "setInterval(() => { if (!document.hidden) { GV.applyWeather(); if (G.THEME.holiday !== syncHoliday.last) syncHoliday(); } }, 60000); // rebuild only when the day's look or holiday changes\n"
+    },
+    {
+     "before": " const mesh=scene.getObjectByName(name);if(!mesh?.isInstancedMesh)continue;\n const a=mesh.instanceMatrix.array;for(let i=0;i<mesh.count;i++){const o=i*16;if(dairyPath.contains(a[o+12],a[o+14],.2))for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;\n",
+     "after": " const mesh=scene.getObjectByName(name);if(!mesh?.isInstancedMesh)continue;\n mesh.castShadow=false; // ankle-high flowers: their shadows are invisible from the farm camera but cost a full shadow-pass draw\n const a=mesh.instanceMatrix.array;for(let i=0;i<mesh.count;i++){const o=i*16;if(dairyPath.contains(a[o+12],a[o+14],.2))for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;\n"
+    },
+    {
+     "before": "        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }\n        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }                  // then softer shadows\n        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur\n",
+     "after": "        if (QUALITY.cut === 0 && QUALITY.pr < DPR * .8) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; } // softer shadows once resolution has started to drop\n        else if (QUALITY.cut === 1 && QUALITY.pr < DPR * .65) { QUALITY.cut = 2; tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no tilt-shift blur\n        else if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }\n        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }\n        else if (QUALITY.cut === 1) { QUALITY.cut = 2; tiltH.enabled = tiltV.enabled = false; since = now + 1500; }                  // then softer shadows\n        else if (QUALITY.cut === 2) { QUALITY.cut = 3; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur\n"
+    },
+    {
+     "before": "  setShadow(q === \"battery\" ? 1024 : 2048);\n",
+     "after": "  setShadow(q === \"battery\" || (PHONE && q !== \"best\") ? 1024 : 2048); // phones: Balanced uses softer shadows too\n"
+    }
+   ]
+  },
+  "sw.js": {
+   "beforeSha256": "07a5901f794e376e5445d54ab62a3a3ea0cc51244b2775d9d61be6b197b42ba8",
+   "afterSha256": "aad58c7e86bee59ae0423a85d1d1cacac9eaa8f55f6bdfb769ff4a6f2945a8d7",
+   "hunks": [
+    {
+     "before": "const CACHE = \"sa3d-v84\";\n",
+     "after": "const CACHE = \"sa3d-v85\";\n"
+    }
+   ]
+  }
+ }
+}

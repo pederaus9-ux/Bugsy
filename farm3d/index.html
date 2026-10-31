@@ -724,7 +724,9 @@ const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/"
 
 // ---------------- renderer ----------------
 bootStep("starting the graphics");
-const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+// a phone-sized touch screen: these get a lighter meadow, no canvas antialiasing and softer Balanced shadows; desktop keeps the full look
+const PHONE = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
+const renderer = new THREE.WebGLRenderer({antialias:!PHONE, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
 renderer.domElement.tabIndex = 0; renderer.domElement.setAttribute("aria-label", "Farm view");
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -1304,7 +1306,9 @@ function moveClear(key, x, z, r) {
   blade.setAttribute("bladeH", new THREE.Float32BufferAttribute(hgt, 1));
   blade.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   blade.setIndex(idx); blade.computeVertexNormals();
-  const n = 22000, R = rng(5);
+  // phones draw fewer, slightly fuller tufts: the same meadow at about 60% of the triangles
+  const lowGrass = PHONE;
+  const n = lowGrass ? 13000 : 22000, R = rng(5), tuftScale = lowGrass ? 1.18 : 1;
   const mat = foliage(new THREE.MeshStandardMaterial({color:0xffffff, roughness:.7, side:THREE.DoubleSide, vertexColors:true}), .8, (sh) => {
     Object.assign(sh.uniforms, windU);
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime; uniform float uWind; attribute float bladeH; varying float vH;")
@@ -1322,18 +1326,35 @@ function moveClear(key, x, z, r) {
   });
   const grassMesh = new THREE.InstancedMesh(blade, mat, n);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
-  let k = 0;
-  for (let i = 0; k < n && i < n * 3; i++) {
+  // 4x4 tiles, so the camera only draws the patches it can see. Instances are stored tile by tile in one
+  // shared array: grassMesh keeps owning the data (clearings write into it) and each tile renders a slice of it.
+  const TILES = 4, T0 = -43, TW = 88 / TILES, tileOf = (x, z) => Math.min(TILES - 1, Math.max(0, Math.floor((x - T0) / TW))) * TILES + Math.min(TILES - 1, Math.max(0, Math.floor((z - T0) / TW)));
+  const tufts = [];
+  for (let i = 0; tufts.length < n && i < n * 3; i++) {
     const r = Math.sqrt(R()) * 44, a = R() * Math.PI * 2, x = Math.cos(a) * r + 1, z = Math.sin(a) * r + 2;
     if (Math.abs(x) < 4.4 && Math.abs(z) < 5.9) continue;           // not inside the barn
     if (KEEP_CLEAR.some(([cx, cz, hw, hd]) => Math.abs(x - cx) < hw && Math.abs(z - cz) < hd)) continue;
     if (Math.abs(x) < 3 && z > 5.5 && z < 22) continue;              // not on the dirt path
     e.set((R() - .5) * .35, R() * 7, (R() - .5) * .35); q.setFromEuler(e);
-    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade); m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
-    grassMesh.setMatrixAt(k, m4); GRASS.gpos.push(x, z);
-    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12); grassMesh.setColorAt(k, c); k++;
+    const fade = Math.min(1, (44 - r) / 14), s = (.75 + R() * .7) * (.25 + .75 * fade) * tuftScale; m4.compose(new THREE.Vector3(x, 0, z), q, new THREE.Vector3(s, s * (.7 + R() * .8), s));
+    c.setHSL(.2 + R() * .08, .38 + R() * .25, .26 + R() * .12);
+    tufts.push({tile:tileOf(x, z), x, z, m:m4.clone(), c:c.clone()});
   }
-  grassMesh.count = k; grassMesh.receiveShadow = true; scene.add(grassMesh); GRASS.grass = grassMesh;
+  tufts.sort((u, v) => u.tile - v.tile);
+  let k = 0;
+  for (const t of tufts) { grassMesh.setMatrixAt(k, t.m); grassMesh.setColorAt(k, t.c); GRASS.gpos.push(t.x, t.z); k++; }
+  grassMesh.count = k; grassMesh.receiveShadow = true; GRASS.grass = grassMesh;
+  const tiles = [];
+  for (let start = 0; start < k;) {
+    let end = start; while (end < k && tufts[end].tile === tufts[start].tile) end++;
+    const tile = new THREE.InstancedMesh(blade, mat, end - start);
+    tile.instanceMatrix = new THREE.InstancedBufferAttribute(grassMesh.instanceMatrix.array.subarray(start * 16, end * 16), 16);
+    tile.instanceColor = new THREE.InstancedBufferAttribute(grassMesh.instanceColor.array.subarray(start * 3, end * 3), 3);
+    tile.receiveShadow = true; tile.computeBoundingSphere(); tile.boundingSphere.radius += 1; // room for the blades bending in the wind
+    tile.name = "grass tile"; scene.add(tile); tiles.push(tile); start = end;
+  }
+  // clearings write into grassMesh's array (shared with the tiles) and flag it: pass the flag on to every tile
+  Object.defineProperty(grassMesh.instanceMatrix, "needsUpdate", {set(v) { if (v) for (const t of tiles) t.instanceMatrix.needsUpdate = true; }});
   // a sprinkle of wildflowers: daisies, buttercups and clover
   const [fc, fx] = canvas(128);
   const petals = (cx, cy, col, center, n, r, pr) => { fx.fillStyle = col; for (let i = 0; i < n; i++) { const a = i / n * 7; fx.beginPath(); fx.ellipse(cx + Math.cos(a) * r, cy + Math.sin(a) * r, pr, pr * .5, a, 0, 7); fx.fill(); } fx.fillStyle = center; fx.beginPath(); fx.arc(cx, cy, r * .6, 0, 7); fx.fill(); };
@@ -2430,7 +2451,9 @@ const PRESETS = {
   night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.8, hemiSky:0x2a3d66, hemiGnd:0x141a24, hemiI:.62, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.3, night:1, bloom:.8},
 };
 let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
+let weatherSeason = null; // the season the current look was built for (see applyWeather)
 function setPreset(name) {
+  weatherSeason = G.THEME.season;
   seasonalLeaves.setSeason(G.THEME.season);
   P = PRESETS[name]; PRESET = P; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
   const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
@@ -2677,7 +2700,7 @@ function makeSign(lines, bw = 1.5, post = 1.1) {
   const board = new THREE.Mesh(new THREE.BoxGeometry(bw, bw / 2, .08), [M.fence, M.fence, M.fence, M.fence, mat, M.fence]);
   board.position.y = post + bw / 4; board.castShadow = true; g.add(board);
   g.add(box(.12, post + .05, .12, M.fence, 0, (post + .05) / 2, -.07));
-  g.userData.set = (l) => { const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); mat.needsUpdate = true; old.dispose(); };
+  g.userData.set = (l) => { const key = l.join("\n"); if (g.userData.text === key) return; g.userData.text = key; const old = mat.map; mat.map = mat.emissiveMap = signTexture(l); old.dispose(); }; // same material: swapping the map needs no shader rebuild
   return g;
 }
 // a floating picture over something (ready goods, a gift): an emoji on a little white bubble
@@ -3678,7 +3701,8 @@ function setEdit(on) {
   }
   G.sfx("pop");
 }
-function rayAt(x, y) { const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return ray; }
+const _ray = new THREE.Raycaster(), _rayNdc = new THREE.Vector2();
+function rayAt(x, y) { _ray.setFromCamera(_rayNdc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return _ray; } // one shared raycaster: callers use the hits right away
 function groundAt(x, y) { return rayAt(x, y).intersectObject(ground, false)[0]?.point??null; }
 function editHit(x, y) {
   const objs = [...Object.values(buildings).map(B => B.g).filter(Boolean), ...Object.values(TREES).filter(t=>t.visible), ...hills.filter(t=>t.visible), ...decorObjs];
@@ -4071,7 +4095,7 @@ function keyPos(key) {
   if (type === "pen") { const pen = penOf(a); return pen && new THREE.Vector3(pen.bed[0], 1, pen.bed[1]); }
   return null;
 }
-function toScreen(v) { const p = v.clone().project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
+function toScreen(v) { const p = (toScreen.v ??= new THREE.Vector3()).copy(v).project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
 function fxAt(key, text) {
   const v = keyPos(key), s = v && toScreen(v); if (!s) return;
   const d = document.createElement("div"); d.className = "fx out"; d.textContent = text; d.style.left = s.x + "px"; d.style.top = s.y + "px";
@@ -4127,7 +4151,7 @@ Object.assign(GV, {
     return null;
   },
   screenPos(key) { const v = keyPos(key); return v && toScreen(v); },
-  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has("preset")) setPreset(G.lookNow()); },
+  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has("preset")) { const want = G.lookNow(); if (PRESETS[want] !== P || G.THEME.season !== weatherSeason) setPreset(want); weatherSeason = G.THEME.season; } },
   setQuality,
 });
 
@@ -4322,7 +4346,7 @@ infoTray.addEventListener("click", (e) => {
 // ---------- touching the farm ----------
 let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
-  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const ray = hitAt.ray ??= new THREE.Raycaster(); ray.setFromCamera((hitAt.ndc ??= new THREE.Vector2()).set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); // reused: called ~8x a second in Walk mode
   const an = ray.intersectObjects(animals.flatMap(a=>a.kind==='cow'&&a.status.visible?[a.card,a.status]:[a.card]))[0];
   const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]),...(cowYardActive?cowYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
@@ -4502,6 +4526,7 @@ function applyStyle() {
 // ---------- holiday touches: a few themed pieces around the farm ----------
 const holidayObjs = [];
 function syncHoliday() {
+  syncHoliday.last = G.THEME.holiday;
   for (const o of holidayObjs) { scene.remove(o); o.userData.dispose(); } holidayObjs.length = 0;
   const id = HOLIDAY_AMBIENT[G.THEME.holiday]; if (!id) { syncDecorationClearings(); return; }
   for (const [x, z, yaw] of [[-2.9,6.6,.6],[2.9,13.6,-.8],[-2.8,17.8,.3],[2.8,20.2,-.45],[-5.6,8.6,.9]]) {
@@ -4608,9 +4633,10 @@ function updatePointer() {
 }
 
 // ---------- every frame: crops grow, bubbles show what's ready ----------
+const _robotDock = new THREE.Vector3();
 function updateGame(t, dt) {
   updatePlots(t); updateBuildings(t, dt);
-  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(new THREE.Vector3(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}
+  if(cowYardActive){const j=cowStatus?.job;cowYard.setRobotPose(j?.stage==='milking'?(nowMs()-j.startedAt)/12000:0);if(j?.stage==='milking'&&t>cowAudioAt){cowAudioAt=t+1.5;const distance=camera.position.distanceTo(_robotDock.set(...COW_YARD_LAYOUT.robot.dock));if(distance<18)G.sfxAt('robot',0,.4*(1-distance/18));}}
   const T = nowMs();
   if (walk && !thirdPerson) camera.updateMatrixWorld();
   for (const a of animals) {
@@ -4631,12 +4657,13 @@ function updateGame(t, dt) {
     const wig = Math.max(0, Math.sin(t * .8)) > .97 ? Math.sin(t * 16) * .14 : 0;
     visitorBody.rotation.z = Math.sin(t * .9) * .045; visitorBody.scale.y = 1 + Math.sin(t * 1.7) * .018;
     visitorFace.position.x = Math.sin(t * .9) * .05; visitorFace.rotation.z = Math.sin(t * .6 + 1) * .06 + wig; visitorFace.rotation.y = Math.sin(t * .27) * Math.sin(t * .13) * .3; }
-  board.userData.papers.forEach((p, k) => { p.visible = k < GS().orders.filter(o => !o.wait).length; });
+  let open = 0; for (const o of GS().orders) if (!o.wait) open++;
+  board.userData.papers.forEach((p, k) => { p.visible = k < open; });
   gift.visible = G.dailyReady(); if (gift.visible) { gift.rotation.y = Math.sin(t * 1.5) * .25; gift.position.y = Math.abs(Math.sin(t * 2.4)) * .12; }
   updatePointer();
 }
 setInterval(() => { if (document.hidden) return; syncChickenYard();syncCowYard(); syncStand(); syncPenSigns(); refreshInfo(); syncSoil(); syncVisitor(); if (GS().level !== syncBuildings.lvl) { syncBuildings.lvl = GS().level; syncBuildings(); syncPlots(); } }, 1000);
-setInterval(() => { if (!document.hidden) { GV.applyWeather(); syncHoliday(); } }, 60000);
+setInterval(() => { if (!document.hidden) { GV.applyWeather(); if (G.THEME.holiday !== syncHoliday.last) syncHoliday(); } }, 60000); // rebuild only when the day's look or holiday changes
 // the farm's own sounds: wind and rain all around, birds by day and crickets at night, and now and then an animal (from where it stands)
 setInterval(() => {
   if (document.hidden) return;
@@ -4684,6 +4711,7 @@ installWorld(scene, renderer);
 // The later meadow owns separate instances; clear only those over the stone path.
 for(const name of ['Phase7M flower stems','Phase7M flower heads']){
  const mesh=scene.getObjectByName(name);if(!mesh?.isInstancedMesh)continue;
+ mesh.castShadow=false; // ankle-high flowers: their shadows are invisible from the farm camera but cost a full shadow-pass draw
  const a=mesh.instanceMatrix.array;for(let i=0;i<mesh.count;i++){const o=i*16;if(dairyPath.contains(a[o+12],a[o+14],.2))for(const j of [0,1,2,4,5,6,8,9,10])a[o+j]=0;}mesh.instanceMatrix.needsUpdate=true;
 }
 cowPlantClearing=createCowYardPlantClearing([scene.getObjectByName("Phase7M flower stems"),scene.getObjectByName("Phase7M flower heads")],COW_YARD_LAYOUT);cowPlantClearing.setActive(cowYardActive);
@@ -4764,9 +4792,12 @@ function watchFrames() {
       const med = ts.sort((a, b) => a - b)[20]; ts = []; // the typical frame: one hiccup doesn't count, a slow phone does
       if (med > 23) { // too slow: draw fewer pixels (the bigger the lag, the bigger the step)
         fast = 0;
-        if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }
-        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }                  // then softer shadows
-        else if (QUALITY.cut === 1) { QUALITY.cut = 2; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur
+        if (QUALITY.cut === 0 && QUALITY.pr < DPR * .8) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; } // softer shadows once resolution has started to drop
+        else if (QUALITY.cut === 1 && QUALITY.pr < DPR * .65) { QUALITY.cut = 2; tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no tilt-shift blur
+        else if (QUALITY.pr > PR_MIN + .01) { QUALITY.pr = Math.max(PR_MIN, QUALITY.pr * (med > 60 ? .7 : med > 40 ? .8 : .9)); applySize(); since = now + 1500; }
+        else if (QUALITY.cut === 0) { QUALITY.cut = 1; setShadow(1024); since = now + 1500; }
+        else if (QUALITY.cut === 1) { QUALITY.cut = 2; tiltH.enabled = tiltV.enabled = false; since = now + 1500; }                  // then softer shadows
+        else if (QUALITY.cut === 2) { QUALITY.cut = 3; bloom.enabled = tiltH.enabled = tiltV.enabled = false; since = now + 1500; } // then no glow or blur
       } else if (med < 15.5 && QUALITY.pr < DPR - .01) { // plenty of time to spare for a while: sharpen back up, gently
         if (++fast >= 4) { fast = 0; QUALITY.pr = Math.min(DPR, QUALITY.pr * 1.08); applySize(); since = now + 3500; }
       } else fast = 0;
@@ -4779,7 +4810,7 @@ function setQuality(q) {
   if (walk) return; // Walk mode runs at full quality; the chosen setting comes back when you stop walking
   QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
   QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
-  setShadow(q === "battery" ? 1024 : 2048);
+  setShadow(q === "battery" || (PHONE && q !== "best") ? 1024 : 2048); // phones: Balanced uses softer shadows too
   bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery"; QUALITY.cut = 0;
   applySize();
   if (QUALITY.auto) watchFrames();
