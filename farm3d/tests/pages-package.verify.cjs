@@ -108,10 +108,12 @@ function readOutput(dir) {
 const {normalizeCowAimCacheScope}=require('./helpers/cow-aim-cache-scope.cjs');
 const {normalizeCowSpaceScope}=require('./helpers/cow-space-scope.cjs'); // A40
 const {normalizePastureScope}=require('./helpers/pasture-scope.cjs'); // A41
+const {normalizeAnimalArtScope}=require('./helpers/animal-art-scope.cjs'); // A45 animal art
 // A39 (owner-approved 2026-10-30): the first-person aim pick helper/hook in cow3d.js and quadruped3d.js
 // and the sa3d-v78 cache name are the only new runtime bytes; strip exactly those, then account as before.
 function normalizeCowAimScope(file,text){
   if(file==='sw.js')return normalizeCowAimCacheScope(file,normalizeCowSpaceScope(file,normalizePastureScope(file,text)));
+  text=normalizeAnimalArtScope(file,text); // A45 exact hunks first
   if(file!=='cow3d.js'&&file!=='quadruped3d.js')return text;
   const pick=JSON.parse(fs.readFileSync(path.join(__dirname,'animal-pen-authorized-adapters.json'),'utf8')).files[file].aimPick;
   assert.equal(text.split(pick.helper).length,2,'A39 unique helper: '+file);assert.equal(text.split(pick.hook).length,2,'A39 unique hook: '+file);

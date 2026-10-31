@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
@@ -108,7 +109,14 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  ray.set(tail.clone().add(new T.Vector3(3,0,0)),new T.Vector3(-1,0,0));
  const attachment=ray.intersectObject(r.card).find(torsoHit);
  assert.ok(attachment&&attachment.point.x>=Math.abs(tail.x),'tail root lies inside the actual rump surface');
- const baseline=JSON.parse(readFileSync(new URL('../evidence/cow-b9/pre-b9-baseline.json',import.meta.url),'utf8')).staticAnatomyHashes;
+ // A45 (owner Austin approved 2026-10-30 21:09 CDT): the animal art pass re-baselines the static cow mesh;
+ // the pre-B9 evidence file stays frozen (hash-checked) and tests/baselines/cow-a45-anatomy.json records only the delta.
+ const evidenceRaw=readFileSync(new URL('../evidence/cow-b9/pre-b9-baseline.json',import.meta.url));
+ const a45=JSON.parse(readFileSync(new URL('./baselines/cow-a45-anatomy.json',import.meta.url),'utf8'));
+ assert.equal(createHash('sha256').update(evidenceRaw).digest('hex'),a45.evidence.sha256,'pre-B9 evidence stays frozen');
+ const evidence=JSON.parse(evidenceRaw.toString()).staticAnatomyHashes;
+ for(const k of ['triangles','positionHash','normalHash','colorHash'])assert.equal(evidence[k],a45.evidence.from[k],'A45 delta starts from frozen evidence: '+k);
+ const baseline={...evidence,...a45.to}; // A45 replaces only these static mesh values; boneInfo stays from evidence
  function hashBuffer(attr) {
   let hash = 0; if (!attr) return hash;
   for (let i = 0; i < attr.count * attr.itemSize; i++) hash = Math.imul(31, hash) + Math.round(attr.array[i] * 1e5) | 0;
@@ -121,8 +129,9 @@ test('udder attachment, four teats and tail root overlap the actual torso; refin
  assert.equal(baseline.colorHash, hashBuffer(geo.attributes.color), 'color hash');
  
  // B9 intentionally mutates skin weights to fix proximal clipping (continuous anatomical deformation)
- const b9SkinIndexHash = 801445376;
- const b9SkinWeightHash = -1735604992;
+ assert.equal(801445376,a45.evidence.from.skinIndexHash);assert.equal(-1735604992,a45.evidence.from.skinWeightHash); // prior B9 constants
+ const b9SkinIndexHash = a45.to.skinIndexHash; // A45 re-baseline (B9 skin-weight logic unchanged)
+ const b9SkinWeightHash = a45.to.skinWeightHash;
  assert.equal(b9SkinIndexHash, hashBuffer(geo.attributes.skinIndex), 'b9 skinIndex hash');
  assert.equal(b9SkinWeightHash, hashBuffer(geo.attributes.skinWeight), 'b9 skinWeight hash');
  

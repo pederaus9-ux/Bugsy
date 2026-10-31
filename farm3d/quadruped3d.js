@@ -1,10 +1,12 @@
 import * as THREE from './lib/three.module.min.js';
 // Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and
 // belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).
-function bakeShade(pos,norm,color){
+// Vertices on bones in 'skip' (head, ears, upper legs) keep their exact authored colours, which tests key on.
+function bakeShade(pos,norm,color,skin=null,skip=null){
   let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}
   const span=Math.max(hi-lo,1e-6);
   for(let i=0;i<pos.length;i+=3){
+    if(skip&&skip.has(skin[i/3*4]))continue;
     const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);
     const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);
     for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);
@@ -147,7 +149,7 @@ function build(spec){
     link(spec.face,[0,0,0],end,spec.name==='horse'?.032:spec.headSize[0]*.24,b);
     if(spec.name==='horse'&&i===slots.tail.length-1)oval(spec.face,[0,-spec.tailDrop,.08],[.06,.14,.055],b);
   }
-  bakeShade(pos,norm,color);
+  bakeShade(pos,norm,color,skin,new Set([slots.head,...(slots.ears||[]),...slots.legs.map(l=>l.hip)]));
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(color,3));geometry.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(skin,4));geometry.setAttribute('skinWeight',new THREE.Float32BufferAttribute(weight,4));
   return {defs,slots,geometry,material:new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9})};

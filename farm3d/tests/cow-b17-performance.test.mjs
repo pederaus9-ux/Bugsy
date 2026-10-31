@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 import {createCow3D,updateCow3D} from '../cow3d.js';
 
-const TRIS=10576, BUDGET=10592;
+const TRIS=9192, BUDGET=10592; // A45 animal art (owner Austin 2026-10-30): 10576 -> 9192, budget unchanged
 const triCount=g=>{const p=g.index?g.index.count:g.attributes.position.count;return p/3;};
 
 test('B17 production topology stays inside the frozen cow envelope',()=>{
