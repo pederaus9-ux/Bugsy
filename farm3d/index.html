@@ -724,7 +724,9 @@ const ART = document.querySelector('meta[name="art-path"]')?.content || "./art/"
 
 // ---------------- renderer ----------------
 bootStep("starting the graphics");
-const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
+// a phone-sized touch screen: these get a lighter meadow, no canvas antialiasing and softer Balanced shadows; desktop keeps the full look
+const PHONE = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
+const renderer = new THREE.WebGLRenderer({antialias:!PHONE, powerPreference:"high-performance", preserveDrawingBuffer:qs.has("shot")});
 renderer.domElement.tabIndex = 0; renderer.domElement.setAttribute("aria-label", "Farm view");
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -1305,7 +1307,7 @@ function moveClear(key, x, z, r) {
   blade.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   blade.setIndex(idx); blade.computeVertexNormals();
   // phones draw fewer, slightly fuller tufts: the same meadow at about 60% of the triangles
-  const lowGrass = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
+  const lowGrass = PHONE;
   const n = lowGrass ? 13000 : 22000, R = rng(5), tuftScale = lowGrass ? 1.18 : 1;
   const mat = foliage(new THREE.MeshStandardMaterial({color:0xffffff, roughness:.7, side:THREE.DoubleSide, vertexColors:true}), .8, (sh) => {
     Object.assign(sh.uniforms, windU);
@@ -2449,7 +2451,9 @@ const PRESETS = {
   night:{cover:.3, cloud:0x2c3552, shade:0x0e1426, animalGlow:.06, sunEl:40, sunAz:-50, sunCol:0x8fa8ff, sunI:.8, hemiSky:0x2a3d66, hemiGnd:0x141a24, hemiI:.62, top:0x050a1c, hor:0x1c2a4c, fog:.006, exp:1.3, night:1, bloom:.8},
 };
 let P = PRESETS.golden, wind = 0; const sunDir = new THREE.Vector3();
+let weatherSeason = null; // the season the current look was built for (see applyWeather)
 function setPreset(name) {
+  weatherSeason = G.THEME.season;
   seasonalLeaves.setSeason(G.THEME.season);
   P = PRESETS[name]; PRESET = P; const el = THREE.MathUtils.degToRad(P.sunEl), az = THREE.MathUtils.degToRad(P.sunAz);
   const dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
@@ -4091,8 +4095,7 @@ function keyPos(key) {
   if (type === "pen") { const pen = penOf(a); return pen && new THREE.Vector3(pen.bed[0], 1, pen.bed[1]); }
   return null;
 }
-const _toScreenV = new THREE.Vector3();
-function toScreen(v) { const p = _toScreenV.copy(v).project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
+function toScreen(v) { const p = (toScreen.v ??= new THREE.Vector3()).copy(v).project(camera); return p.z > 1 ? null : {x:(p.x + 1) / 2 * innerWidth, y:(1 - p.y) / 2 * innerHeight}; }
 function fxAt(key, text) {
   const v = keyPos(key), s = v && toScreen(v); if (!s) return;
   const d = document.createElement("div"); d.className = "fx out"; d.textContent = text; d.style.left = s.x + "px"; d.style.top = s.y + "px";
@@ -4148,7 +4151,7 @@ Object.assign(GV, {
     return null;
   },
   screenPos(key) { const v = keyPos(key); return v && toScreen(v); },
-  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has("preset")) { const want = G.lookNow(); if (PRESETS[want] !== P || G.THEME.season !== applyWeather.season) setPreset(want); applyWeather.season = G.THEME.season; } },
+  applyWeather() { seasonalLeaves.setSeason(G.THEME.season);if (!qs.has("preset")) { const want = G.lookNow(); if (PRESETS[want] !== P || G.THEME.season !== weatherSeason) setPreset(want); weatherSeason = G.THEME.season; } },
   setQuality,
 });
 
@@ -4343,7 +4346,7 @@ infoTray.addEventListener("click", (e) => {
 // ---------- touching the farm ----------
 let farmDrag = null, paintUsed = false, pressTimer = 0;
 function hitAt(x, y) {
-  const ray = rayAt(x, y);
+  const ray = hitAt.ray ??= new THREE.Raycaster(); ray.setFromCamera((hitAt.ndc ??= new THREE.Vector2()).set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); // reused: called ~8x a second in Walk mode
   const an = ray.intersectObjects(animals.flatMap(a=>a.kind==='cow'&&a.status.visible?[a.card,a.status]:[a.card]))[0];
   const targets = [...plots.map(P => P.g), ...Object.values(buildings).map(B => B.g), ...(chickenYard.group.visible?chickenYard.targets.map(t=>t.object):[]),...(cowYardActive?cowYard.targets.map(t=>t.object):[]), board, gift, stall, plotSale, yardSign, paddockSign, visitorCard, ...decorObjs, barn, ...(walk ? [] : [farmer])].filter(o => o.visible);
   const hits = ray.intersectObjects(targets, true), owner = (h) => { let o = h.object; while (o && !o.userData.hit && o !== barn) o = o.parent; return o; };
@@ -4807,7 +4810,7 @@ function setQuality(q) {
   if (walk) return; // Walk mode runs at full quality; the chosen setting comes back when you stop walking
   QUALITY.auto = q === "auto"; QUALITY.fps30 = q === "battery";
   QUALITY.pr = q === "battery" ? Math.min(DPR, 1) : q === "balanced" ? Math.min(DPR, 1.5) : DPR;
-  setShadow(q === "best" ? 2048 : 1024);
+  setShadow(q === "battery" || (PHONE && q !== "best") ? 1024 : 2048); // phones: Balanced uses softer shadows too
   bloom.enabled = tiltH.enabled = tiltV.enabled = q !== "battery"; QUALITY.cut = 0;
   applySize();
   if (QUALITY.auto) watchFrames();
