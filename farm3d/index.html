@@ -2169,6 +2169,15 @@ async function migratePastures(){
   if(value&&commitPenDraft(value,{epoch:world.epoch,revision:current?.revision??0})&&grown)G.toast?.('🐄 Your cows have a bigger pasture');
  }
 }
+// A42: a cow left outside its pen's fence (e.g. in the hidden strip behind the barn walls that the first A41
+// release grew into) is walked back in: placed on a free spot inside its own pen. Checked once after the
+// pasture migration and then every few seconds, one cow per check, so it never costs a frame.
+let strayCowCursor=0;
+function returnStrayCow(){
+ if(visiting||animalPenEditing||!G.S)return;const cows=animals.filter(a=>a.kind==='cow'&&!a.gone&&a.pen&&!a.cowTask);if(!cows.length)return;
+ for(let n=0;n<cows.length;n++){const a=cows[(strayCowCursor++)%cows.length],x=a.g.position.x,z=a.g.position.z;if(fitsPen(a.pen,x,z,0))continue;
+  const p=freePoint(rnd,a.pen.bed?.[0],a.pen.bed?.[1],a.pen.bed?.[2],a.pen,a.S.r+.6);a.g.position.set(p.x,a.g.position.y,p.y);a.target=null;a.nightSpot=null;a.vel?.set?.(0,0,0);a.rig3d&&Cow3D.teleportCow3D?.(a.rig3d);return true;}
+}
 const penEditor=createAnimalPenEditor({readWorld:snapshotPenWorld,readLayout:()=>G.S?.layout?.animalPens,validate:(layout,world)=>validateAnimalPens(layout,world),commit:commitPenDraft});
 let animalPenEditing=null;
 function cowIdOf(a){return cowStatus?.cows[a.ref.i]?.id;}
@@ -4776,7 +4785,7 @@ if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("s
 if (qs.has("debug")) window.__quality = () => [QUALITY.pr, renderer.getPixelRatio(), sun.shadow.mapSize.x, QUALITY.cut, renderer.domElement.width];
 GV.resolution = () => Math.round(QUALITY.pr / DPR * 100); // shown in Settings
 window.__ready = true;
-if (!qs.has('shot') && !qs.has('testfarm')) setTimeout(() => { migratePastures().catch(() => {}); }, 4000);
+if (!qs.has('shot') && !qs.has('testfarm')) setTimeout(() => { migratePastures().catch(() => {}).finally(() => { returnStrayCow(); setInterval(() => { try { returnStrayCow(); } catch {} }, 3000); }); }, 4000);
 </script>
 </body>
 </html>
