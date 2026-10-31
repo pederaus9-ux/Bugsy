@@ -2108,9 +2108,10 @@ function restoreSavedAnimalPens(){
 }
 // Apply: fresh full validation on the newest live snapshot, then game.js writes the
 // complete farm once; yards, registries and validated care rebinds publish together.
-function commitPenDraft(value,base){
+function commitPenDraft(value,base,checked=null){
  const world=snapshotPenWorld();if(world.epoch!==base.epoch)return false;
- const validation=validateAnimalPens(resolveAnimalPens(value),world);if(!validation.ok)return false;
+ // A42: the pasture worker hands over its validation of this exact value for this exact world, skipping a ~1 s repeat.
+ const validation=checked&&checked.worldEpoch===world.epoch&&checked.obstacleRevision===world.obstacleRevision&&checked.revision===value.revision?checked:validateAnimalPens(resolveAnimalPens(value),world);if(!validation.ok)return false;
  const result=G.commitAnimalPenLayout({expectedFarm:G.S,expectedRevision:base.revision,animalPens:value,
   canCommit:()=>{const w=snapshotPenWorld();return w.epoch===world.epoch&&w.obstacleRevision===world.obstacleRevision;},
   prepare:candidate=>{const layout=resolveAnimalPens(candidate.layout.animalPens);return prepareAnimalPenRevision(layout,validation,penRevisionLive(validation));},
@@ -2152,8 +2153,16 @@ function snapshotPenWorld(){
 // (about 1.5x area) through the same validated commit as the pen editor. Never while visiting/editing.
 let pastureChecked=false;
 // Growth never moves an edge that sits against the barn's own walls (that only adds a hidden strip behind
-// them), and a pen grown that way by the first A41 release is reset and regrown in the open. Validation is
-// spread over frames (one candidate per frame) so the check never freezes the game.
+// them), and a pen grown that way by the first A41 release is reset and regrown in the open. Validation runs
+// in a worker (animal-pen-pasture-worker.js) so the check never freezes the game.
+// Each candidate validation costs ~1 s, so the search runs in a module worker; the in-page frame-by-frame
+// generator is only a fallback when workers are unavailable.
+function growPastureOffThread(start,kind,walls,world,reset=false){return new Promise((resolve,reject)=>{
+ let w;try{w=new Worker(new URL('./animal-pen-pasture-worker.js?v=1',location.href),{type:'module'});}catch(e){reject(e);return;}
+ const {groundY:_g,...plain}=world,done=f=>v=>{w.terminate();f(v);};
+ w.onmessage=done(({data})=>data.error?reject(new Error(data.error)):resolve(data.result));w.onerror=done(e=>reject(e));
+ try{w.postMessage({type:'grow',id:1,start,kind,walls,world:plain,reset});}catch(e){w.terminate();reject(e);}
+});}
 async function migratePastures(){
  if(pastureChecked||visiting||!G.S||animalPenEditing||penEditor.snapshot().open)return;pastureChecked=true;
  for(const kind of ['cow']){
@@ -2163,10 +2172,11 @@ async function migratePastures(){
   const reset=wallBoundPasture(current,kind,walls),start=reset??current,seen='sa3d-pasture-checked:'+kind;
   // A boxed-in yard (no valid open edge) is remembered per obstacle layout, so it is not re-validated every session.
   if(!reset&&localStorage.getItem(seen)===String(world.obstacleRevision))continue;
-  let grown=null;try{const it=growPastureSteps(start,kind,{isValid,walls});let r=it.next();while(!r.done){await new Promise(res=>requestAnimationFrame(()=>res()));if(G.S!==farm||visiting||animalPenEditing)return;r=it.next();}grown=r.value;}catch{grown=null;}
-  const value=grown?.value??(reset?{...reset,revision:(reset.revision|0)+1}:null);
+  let grown=null,checked=null,offValue;try{({grown,value:offValue,validation:checked}=await growPastureOffThread(start,kind,walls,world,!!reset));}catch{checked=null;offValue=undefined;try{const it=growPastureSteps(start,kind,{isValid,walls});let r=it.next();while(!r.done){await new Promise(res=>requestAnimationFrame(()=>res()));if(G.S!==farm||visiting||animalPenEditing)return;r=it.next();}grown=r.value;}catch{grown=null;}}
+  if(G.S!==farm||visiting||animalPenEditing||penEditor.snapshot().open)return;
+  const value=offValue!==undefined?offValue:grown?.value??(reset?{...reset,revision:(reset.revision|0)+1}:null);
   if(!grown)try{localStorage.setItem(seen,String(world.obstacleRevision));}catch{}
-  if(value&&commitPenDraft(value,{epoch:world.epoch,revision:current?.revision??0})&&grown)G.toast?.('🐄 Your cows have a bigger pasture');
+  if(value&&commitPenDraft(value,{epoch:world.epoch,revision:current?.revision??0},checked)&&grown)G.toast?.('🐄 Your cows have a bigger pasture');
  }
 }
 // A42: a cow left outside its pen's fence (e.g. in the hidden strip behind the barn walls that the first A41
