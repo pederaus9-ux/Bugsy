@@ -600,7 +600,7 @@ export function collectChickenEggs() {
   const got=takeChickenEggs(S.pens.chicken,space(),now()),n=got.normal+got.gold;
   if(!n){toast('No eggs on the pallet yet. Keep feed and water filled.');return 0;}
   add('egg',n);if(got.gold)addGold('egg',got.gold);gainXP(got.xp);eventProgress('egg',n);
-  view.fx('chicken:eggs','+'+n+' 🥚');sfx('chicken');view.refresh('herd');commit();return n;
+  view.fx('chicken:eggs','+'+n+' 🥚');sfx('egg');sfx('chicken');view.refresh('herd');commit();return n;
 }
 export function setChickenAppearance(appearance) {
   if(!canCare()||!ensureChickenCare(S.pens.chicken,now()))return false;
@@ -640,7 +640,7 @@ export function reportCowRobotExit(jobId){if(!canCowCare())return false;settleCo
 export function collectCowTank(units){
  if(!canCowCare()||!Number.isSafeInteger(units)||units<1)return 0;settleCows(true);if(space()<1){barnFull();return 0;}
  const got=takeCowMilk(S.pens.cow,Math.min(units,space()),now()),n=got.normal+got.gold;if(!n)return 0;
- add('milk',n);if(got.gold)addGold('milk',got.gold);view.fx('cow:tank','+'+n+' 🥛');sfx('cow');view.refresh('herd');commit();return n;
+ add('milk',n);if(got.gold)addGold('milk',got.gold);view.fx('cow:tank','+'+n+' 🥛');sfx('milk');sfx('cow');view.refresh('herd');commit();return n;
 }
 export function feedOne(kind, i) {
   if(kind==='chicken'){toast('Fill the feed bin and waterer in the chicken run.');return false;}
@@ -679,7 +679,7 @@ export function collectAnimal(kind, i) {
   if (space() < 1) { barnFull(); return false; }
   const gold = happy && Math.random() < .3; // and very happy ones sometimes make gold-quality goods
   add(a.out, n); if (gold) addGold(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);
-  view.fx("animal:" + kind + ":" + i, (gold ? "🥇 " : "") + (n > 1 ? "×2! " : "+1 ") + ITEMS[a.out].e); sfx(kind);
+  view.fx("animal:" + kind + ":" + i, (gold ? "🥇 " : "") + (n > 1 ? "×2! " : "+1 ") + ITEMS[a.out].e); if (kind === "sheep") sfx("shear"); sfx(kind);
   return true;
 }
 export function collectAll(kind) {
@@ -716,7 +716,7 @@ export function interact(m, sound, act, key) {
   addLove(m, {pet:15, brush:25, play:20, treat:30}[act]);
   gainXP(act === "pet" ? 1 : 2);
   eventProgress("love", 1);
-  view.fx(key, "+ 💖"); sfx(sound);
+  view.fx(key, "+ 💖"); if (act === "brush") sfx("brush"); sfx(sound);
   commit();
   return true;
 }
@@ -1784,6 +1784,9 @@ function panelSettings() {
       <button class="btn ${snd.on ? "" : "plain"} sm" data-act="sound">${snd.on ? "🔊 Sounds on" : "🔇 Sounds off"}</button>
       <button class="btn ${snd.music ? "" : "plain"} sm" data-act="music">${snd.music ? "🎵 Music on" : "🎵 Music off"}</button>
       <button class="btn ${snd.amb ? "" : "plain"} sm" data-act="amb">${snd.amb ? "🐦 Farm sounds on" : "🐦 Farm sounds off"}</button>
+      <label class="vol">🔊 Volume <input type="range" min="0" max="100" step="5" data-vol="vol" value="${Math.round(snd.vol * 100)}" aria-label="Sound volume"></label>
+      <label class="vol">🎵 Music <input type="range" min="0" max="100" step="5" data-vol="musicVol" value="${Math.round(snd.musicVol * 100)}" aria-label="Music volume"></label>
+      <label class="vol">🐦 Farm <input type="range" min="0" max="100" step="5" data-vol="ambVol" value="${Math.round(snd.ambVol * 100)}" aria-label="Farm sounds volume"></label>
       <button class="btn ${snd.buzz ? "" : "plain"} sm" data-act="buzz">${snd.buzz ? "📳 Vibration on" : "📳 Vibration off"}</button>
       ${"Notification" in window ? `<button class="btn ${PREFS.notify ? "" : "plain"} sm" data-act="notify">${PREFS.notify ? "🔔 Reminders on" : "🔕 Reminders off"}</button>` : ""}</div>
     ${"Notification" in window ? `<p class="muted center" style="font-weight:700;font-size:13px;margin:6px 0 0">Reminders tell you when crops, animals or goods are ready, while the game is still open in the background.</p>` : ""}
@@ -2061,9 +2064,11 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) save(
 /* ============================================================
    SOUND: little effects and a gentle tune, all made on the fly (no sound files to download)
    ============================================================ */
-export const snd = {on:true, music:true, amb:true, buzz:true}; // amb: birds, wind and rain around the farm; buzz: the phone vibrates a little
+export const snd = {on:true, music:true, amb:true, buzz:true, vol:1, musicVol:1, ambVol:1}; // amb: birds, wind and rain around the farm; buzz: the phone vibrates a little
 try { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + "-sound") || "{}")); } catch (e) {}
-let AC = null, master = null, musicBus = null, noiseBuf = null;
+// volume sliders (0…1); older saves without them keep the original loudness
+for (const k of ["vol", "musicVol", "ambVol"]) { const v = Number(snd[k]); snd[k] = Number.isFinite(v) ? clamp(v, 0, 1) : 1; }
+let AC = null, master = null, musicBus = null, ambBus = null, noiseBuf = null;
 function audio() {
   if (!AC) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -2071,6 +2076,7 @@ function audio() {
     try { AC = new Ctx(); } catch (e) { return null; }
     master = AC.createGain(); master.connect(AC.destination);
     musicBus = AC.createGain(); musicBus.connect(master);
+    ambBus = AC.createGain(); ambBus.connect(master); // farm sounds: wind, rain, birds and far-off animals
     noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     applySound();
@@ -2081,8 +2087,9 @@ function audio() {
 export function applySound() {
   const b = $("#soundBtn"); if (b) b.textContent = snd.on ? "🔊" : "🔇";
   if (!AC) return;
-  master.gain.value = snd.on && !document.hidden ? 0.55 : 0;
-  musicBus.gain.value = snd.music ? 0.22 : 0;
+  master.gain.value = snd.on && !document.hidden ? 0.55 * snd.vol : 0;
+  musicBus.gain.value = snd.music ? 0.22 * snd.musicVol : 0;
+  ambBus.gain.value = snd.ambVol;
 }
 document.addEventListener("visibilitychange", applySound);
 function saveSound() { try { localStorage.setItem(SAVE_KEY + "-sound", JSON.stringify(snd)); } catch (e) {} applySound(); }
@@ -2140,6 +2147,13 @@ const SOUNDS = {
     for (let i = 0; i < n; i++) tone(f * (1 + (Math.random() - .5) * .25), .07 + Math.random() * .05, {type:"sine", vol:.05, at:i * (.1 + Math.random() * .06), to:f * (Math.random() < .5 ? 1.3 : .8)}); },
   cricket:() => { for (let i = 0; i < 3; i++) tone(4300, .035, {type:"square", vol:.012, at:i * .06, lp:6000}); },
   shutter:() => { noise(.05, {vol:.25, freq:3500, q:.8}); noise(.07, {vol:.2, freq:1800, q:.8, at:.09}); },
+  milk:() => { for (let i = 0; i < 3; i++) noise(.09, {vol:.1, freq:2200 + i * 300, q:2.5, at:i * .17}); tone(260, .3, {type:"sine", vol:.04, at:.05, to:200}); },
+  shear:() => { for (let i = 0; i < 2; i++) { noise(.05, {vol:.16, freq:5200, q:3, at:i * .16}); tone(2100, .04, {type:"square", vol:.025, at:i * .16 + .02, lp:5000}); } },
+  brush:() => { for (let i = 0; i < 3; i++) noise(.14, {vol:.07, freq:1800 + i * 500, q:.6, at:i * .13}); },
+  egg:() => { tone(1800, .03, {type:"triangle", vol:.06}); tone(620, .1, {type:"triangle", vol:.1, at:.03, to:900}); },
+  gate:() => { tone(300, .55, {type:"sawtooth", vol:.03, to:520, lp:1800, vib:22, attack:.05}); noise(.08, {vol:.14, freq:420, at:.55}); },
+  rooster:() => { tone(620, .14, {type:"sawtooth", vol:.035, to:880, lp:2600}); tone(900, .16, {type:"sawtooth", vol:.035, at:.16, lp:2600}); tone(940, .55, {type:"sawtooth", vol:.035, at:.34, to:560, lp:2600, vib:8}); },
+  owl:() => { tone(420, .28, {type:"sine", vol:.06, to:380, attack:.05}); tone(400, .5, {type:"sine", vol:.06, at:.42, to:340, attack:.06, vib:5}); },
   throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:"triangle", vol:.06, to:520}); },
 };
 const BUZZ = {harvest:8, collect:12, level:[30, 40, 60], error:[25, 30, 25], build:[20, 30, 20], coin:6, magic:[10, 20, 10], thunder:[60, 40, 80]};
@@ -2152,7 +2166,7 @@ let BUS = null;
 export function sfxAt(name, pan, vol) {
   if (!snd.on || !snd.amb || !AC || AC.state !== "running" || !SOUNDS[name] || document.hidden) return;
   const g = AC.createGain(), p = AC.createStereoPanner ? AC.createStereoPanner() : null;
-  g.gain.value = clamp(vol, 0, 1); if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(master); } else g.connect(master);
+  g.gain.value = clamp(vol, 0, 1); if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(ambBus); } else g.connect(ambBus);
   BUS = g; try { SOUNDS[name](); } catch (e) {} BUS = null;
 }
 // the steady sounds of the farm: wind in the grass and rain on the roof
@@ -2161,7 +2175,7 @@ function loop(name, freq, type, q) {
   if (loops[name]) return loops[name];
   const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
   src.buffer = noiseBuf; src.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = 0;
-  src.connect(f); f.connect(g); g.connect(master); src.start();
+  src.connect(f); f.connect(g); g.connect(ambBus); src.start();
   return (loops[name] = {g, f});
 }
 // footsteps in first person: soft swish on grass, a crunch on dirt, a hollow knock on wood
@@ -2169,6 +2183,9 @@ let stepAlt = 0;
 export function step(surface, run) {
   if (!snd.on || !AC || AC.state !== "running") return;
   const v = run ? 1.25 : 1, p = (stepAlt ^= 1) ? 1 : .9; // left and right feet sound a little different
+  if (surface !== "wood" && weatherWet()) surface = "puddle"; // wet ground splashes while it rains
+  if (surface === "stone") { tone(420 * p, .04, {type:"triangle", vol:.06 * v, to:260}); noise(.04, {vol:.08 * v, freq:3000 * p, q:1.5}); return; }
+  if (surface === "puddle") { noise(.14, {vol:.09 * v, freq:1400 * p, q:.6}); tone(700 * p, .07, {type:"sine", vol:.04 * v, at:.03, to:380}); return; }
   if (surface === "wood") { tone(190 * p, .08, {type:"triangle", vol:.09 * v, to:120}); noise(.05, {vol:.05 * v, freq:900, q:1.2}); }
   else if (surface === "dirt") { noise(.09, {vol:.1 * v, freq:700 * p, q:.7}); noise(.05, {vol:.05 * v, freq:2600, q:1, at:.02}); }
   else noise(.12, {vol:.07 * v, freq:3800 * p, q:.5}); // grass
@@ -2184,7 +2201,15 @@ export function ambience(wind, rain) {
   const w = loop("wind", 420, "lowpass", .7), r = loop("rain", 2600, "bandpass", .5);
   w.g.gain.setTargetAtTime(on * (.012 + wind * .05), t, 1.5); w.f.frequency.setTargetAtTime(300 + wind * 500 + Math.random() * 200, t, 2);
   r.g.gain.setTargetAtTime(on * (rain ? .09 : 0), t, 1.2);
+  ambWet = !!rain;
+  if (!on || rain) return;
+  const look = lookNow(), h = new Date().getHours(), pan = Math.random() * 2 - 1;
+  if (look === "night" && Math.random() < .08) sfxAt("owl", pan, .35 + Math.random() * .3);
+  else if (look === "night" && Math.random() < .12) sfxAt("cricket", pan, .5); // extra crickets on top of the ones the scene asks for
+  if (look === "morning" && h >= 5 && h < 9 && Math.random() < .06 && performance.now() - roosterAt > 45000) { roosterAt = performance.now(); sfxAt("rooster", pan, .55); }
 }
+let ambWet = false, roosterAt = -1e9;
+function weatherWet() { return ambWet; }
 // A soft, wandering tune in C major pentatonic over a I–V–vi–IV bass line.
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 const SCALE = [60, 62, 64, 67, 69, 72, 74, 76, 79], ROOTS = [48, 43, 45, 41];
@@ -2205,6 +2230,9 @@ function musicTick() {
   }
 }
 setInterval(musicTick, 120);
+// volume sliders in Settings: live while dragging, saved when let go
+document.addEventListener("input", (e) => { const k = e.target?.dataset?.vol; if (!k || !(k in snd)) return; snd[k] = clamp(Number(e.target.value) / 100, 0, 1); applySound(); });
+document.addEventListener("change", (e) => { const k = e.target?.dataset?.vol; if (!k || !(k in snd)) return; saveSound(); if (snd.on) sfx("tick"); });
 document.addEventListener("pointerdown", () => { if (snd.on) audio(); }, true); // browsers only allow sound after a touch
 
 /* ============================================================
