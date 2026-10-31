@@ -1,6 +1,7 @@
 'use strict';
 // Verifies a real Jekyll output. --source-only never claims a built package pass.
 const fs = require('node:fs');
+const {normalizeCowSettleScope} = require('./helpers/cow-settle-scope.cjs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
@@ -127,7 +128,9 @@ function historicalAccounting(source, manifest) {
   const changes = [], unchanged = [];
   for (const entry of manifest.staticSource) {
     assert(source.has(entry.path), `Missing current source: ${entry.path}`);
-    const bytes = source.get(entry.path), file = entry.path.replace(/^farm3d\//, '');
+    const file = entry.path.replace(/^farm3d\//, ''), rawBytes = source.get(entry.path);
+    // A42: reverse only the approved cow-settle hunks (game.js, index.html, sw.js) before older receipts.
+    const a42Text = normalizeCowSettleScope(file, rawBytes.toString('utf8')), bytes = a42Text === rawBytes.toString('utf8') ? rawBytes : Buffer.from(a42Text);
     let historical = bytes;
     const a39Text=normalizeCowAimScope(file,bytes.toString('utf8')),a39Bytes=a39Text===bytes.toString('utf8')?bytes:Buffer.from(a39Text);
     const fieldNormalized=normalizeFieldScope(file,a39Bytes.toString('utf8'));

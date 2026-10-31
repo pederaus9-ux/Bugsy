@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import settle from './helpers/cow-settle-scope.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -10,7 +11,7 @@ import cowAimCache from './helpers/cow-aim-cache-scope.cjs';
 // A39: compare the pre-A39 worker; the cache-name hunk itself is checked in cow-aim-cache-scope.test.mjs.
 import cowSpace from './helpers/cow-space-scope.cjs';
 import pasture from './helpers/pasture-scope.cjs';
-const read=file=>cowAimCache.normalizeCowAimCacheScope(file,cowSpace.normalizeCowSpaceScope(file,pasture.normalizePastureScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'))));
+const read=file=>cowAimCache.normalizeCowAimCacheScope(file,cowSpace.normalizeCowSpaceScope(file,pasture.normalizePastureScope(file,settle.normalizeCowSettleScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8')))));
 const prior=(ref,file)=>execFileSync('git',['show',ref+':farm3d/'+file],{cwd:root,encoding:'utf8'});
 
 test('rollback receipt keeps the frozen field receipt byte-for-byte',()=>{

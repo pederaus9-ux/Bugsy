@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import settle from './helpers/cow-settle-scope.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -56,7 +57,7 @@ test('historical cache journeys differ only by the immutable currentRef pin',()=
 
 test('current rollback still reconstructs exact pre-field sources without unrelated edits',()=>{
  for(const file of ['index.html','sw.js']){
-  const current=cowAimCache.normalizeCowAimCacheScope(file,cowSpace.normalizeCowSpaceScope(file,pasture.normalizePastureScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'))));
+  const current=cowAimCache.normalizeCowAimCacheScope(file,cowSpace.normalizeCowSpaceScope(file,pasture.normalizePastureScope(file,settle.normalizeCowSettleScope(file,fs.readFileSync(new URL('../'+file,import.meta.url),'utf8')))));
   const prior=execFileSync('git',['show',field.scope.base+':farm3d/'+file],{cwd:root,encoding:'utf8'});
   assert.equal(currentField.normalizeFieldScope(file,current),prior);
   assert.throws(()=>currentField.normalizeFieldScope(file,current+'\n/* unrelated */'));

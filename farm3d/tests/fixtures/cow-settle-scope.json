@@ -1,0 +1,46 @@
+{
+ "amendment": "A42",
+ "approval": "Austin Pederson 2026-10-30 20:46 CDT (t0u) - port settleCows clock-only fix from codex/cow-save-delivery-20261027",
+ "base": "bb367d13f8496c02d3f394cd525a46ed2ea51de5",
+ "scope": "game.js settleCows/prepareOrdinarySave only; game.js?v=35 import in index.html; sa3d-v81 cache and game.js?v=35 shell entry in sw.js",
+ "files": {
+  "game.js": {
+   "beforeSha256": "71e01b55262d573bb2e03d9cc54be85b11fa85bbbcb3a458fa7cc7d6e19d2ffd",
+   "afterSha256": "b7723af6d45ec4ddec9561f4790ab48abfe94cff468f777777da147bb0d9a605",
+   "hunks": [
+    {
+     "before": "function prepareOrdinarySave(){\n  settleChickens();\n  settleCows(true);\n",
+     "after": "function prepareOrdinarySave(){\n  settleChickens();\n  settleCows();\n"
+    },
+    {
+     "before": " if(force||!old||next.revision!==old.revision||next.cows.length!==old.cows.length){pen.care=next;pen.list=copy.list;}",
+     "after": " // Preserve earned progress and production events without publishing clock-only\n // updates that would dirty an otherwise unchanged restored cloud snapshot.\n if(force||!old||next.revision!==old.revision||next.cows.length!==old.cows.length||next.cows.some((b,i)=>b.progress!==old.cows[i]?.progress)){pen.care=next;pen.list=copy.list;}"
+    }
+   ]
+  },
+  "index.html": {
+   "beforeSha256": "83de44c67c42c0f93e722df28172136d69d9d228e13255b45249692a9405b842",
+   "afterSha256": "c0663a73606cb8823ccb86f8b1602f833986714bbfb460d936fc5cf4fafa5686",
+   "hunks": [
+    {
+     "before": "import * as G from \"./game.js?v=34\"; window.__gameVer = 34;",
+     "after": "import * as G from \"./game.js?v=35\"; window.__gameVer = 35;"
+    }
+   ]
+  },
+  "sw.js": {
+   "beforeSha256": "89ebf4045d666484a47c2a213f5f346f9109dd7dcba0590549760d7f8aa4eedf",
+   "afterSha256": "536804a9b8c218a81cf5650edd0ecdf695f5735b991e02619654c63ee3730477",
+   "hunks": [
+    {
+     "before": "const CACHE = \"sa3d-v80\";",
+     "after": "const CACHE = \"sa3d-v81\";"
+    },
+    {
+     "before": "\"game.js?v=34\"",
+     "after": "\"game.js?v=35\""
+    }
+   ]
+  }
+ }
+}
