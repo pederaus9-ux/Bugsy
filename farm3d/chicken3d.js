@@ -1,4 +1,15 @@
 import * as THREE from './lib/three.module.min.js';
+// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and
+// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).
+function bakeShade(pos,norm,color){
+  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}
+  const span=Math.max(hi-lo,1e-6);
+  for(let i=0;i<pos.length;i+=3){
+    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);
+    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);
+    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);
+  }
+}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 let template;
 function build(){
@@ -11,25 +22,26 @@ function build(){
   const rest=defs.map((b,i)=>{const p=new THREE.Vector3(...b.p);let j=defs[i].parent;while(j>=0){p.add(new THREE.Vector3(...defs[j].p));j=defs[j].parent;}return p;});
   const pos=[],norm=[],color=[],skin=[],weight=[];
   function add(geo,col,p,scale,b,rx=0){const g=geo.toNonIndexed();geo.dispose();const o=rest[b];g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(p[0]+o.x,p[1]+o.y,p[2]+o.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,0,0)),new THREE.Vector3(...scale)));const a=g.attributes.position,n=g.attributes.normal,c=new THREE.Color(col);for(let i=0;i<a.count;i++){pos.push(a.getX(i),a.getY(i),a.getZ(i));norm.push(n.getX(i),n.getY(i),n.getZ(i));color.push(c.r,c.g,c.b);skin.push(b,0,0,0);weight.push(1,0,0,0);}g.dispose();}
-  add(new THREE.SphereGeometry(1,10,8),0xf2efe4,[0,0,0],[.12,.1,.16],slots.body);
+  add(new THREE.SphereGeometry(1,16,12),0xf2efe4,[0,0,0],[.12,.1,.16],slots.body);
   add(new THREE.SphereGeometry(1,10,8),0xf2efe4,[0,-.01,0],[.055,.095,.06],slots.neck);
-  add(new THREE.SphereGeometry(1,10,8),0xf7f4ee,[0,0,0],[.065,.06,.07],slots.head);
+  add(new THREE.SphereGeometry(1,14,10),0xf7f4ee,[0,0,0],[.065,.06,.07],slots.head);
   add(new THREE.ConeGeometry(.027,.075,8),0xe9ab36,[0,-.012,-.085],[1,1,1],slots.head,-Math.PI/2);
   add(new THREE.SphereGeometry(1,8,6),0xbf3435,[0,-.05,-.05],[.025,.03,.02],slots.head);
-  for(let i=0;i<3;i++)add(new THREE.SphereGeometry(1,8,6),0xcd3e3b,[0,.058,-.04+i*.035],[.016,.027,.023],slots.head);
+  for(let i=0;i<3;i++)add(new THREE.SphereGeometry(1,6,4),0xcd3e3b,[0,.058,-.04+i*.035],[.016,.027,.023],slots.head);
   for(const side of [-1,1]){
     add(new THREE.SphereGeometry(1,8,6),0x1e2422,[side*.059,.015,-.033],[.013,.014,.012],slots.head);
-    add(new THREE.SphereGeometry(1,6,4),0xffffff,[side*.067,.02,-.038],[.004,.005,.004],slots.head);
+    add(new THREE.SphereGeometry(1,4,3),0xffffff,[side*.067,.02,-.038],[.004,.005,.004],slots.head);
   }
   for(let i=-1;i<=1;i++)add(new THREE.SphereGeometry(1,8,6),0xd7cec1,[i*.025,.075,.145],[.03,.095,.06],slots.body,.6+i*.15);
   for(const w of slots.wings)add(new THREE.SphereGeometry(1,8,6),0xf7f4ee,[0,-.025,0],[.025,.07,.095],w);
   for(const l of slots.legs){
-    add(new THREE.SphereGeometry(1,8,6),0xf2efe4,[0,0,0],[.02,.023,.025],l.hip);
+    add(new THREE.SphereGeometry(1,6,4),0xf2efe4,[0,0,0],[.02,.023,.025],l.hip);
     add(new THREE.CylinderGeometry(.012,.01,.08,6),0xd8a24a,[0,-.04,0],[1,1,1],l.hip);
     add(new THREE.CylinderGeometry(.01,.008,.08,6),0xd8a24a,[0,-.04,0],[1,1,1],l.knee);
-    for(let toe=-1;toe<=1;toe++)add(new THREE.SphereGeometry(1,6,4),0xd8a24a,[toe*.014,-.018,-.023],[.007,.022,.033],l.foot);
+    for(let toe=-1;toe<=1;toe++)add(new THREE.SphereGeometry(1,5,3),0xd8a24a,[toe*.014,-.018,-.023],[.007,.022,.033],l.foot);
     add(new THREE.SphereGeometry(1,6,4),0xd8a24a,[0,-.018,.01],[.01,.022,.025],l.foot);
   }
+  bakeShade(pos,norm,color);
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(color,3));geometry.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(skin,4));geometry.setAttribute('skinWeight',new THREE.Float32BufferAttribute(weight,4));
   return {defs,slots,geometry,material:new THREE.MeshStandardMaterial({vertexColors:true,roughness:.88})};

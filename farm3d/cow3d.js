@@ -1,5 +1,16 @@
 // Owner-requested 3D character prototype. The farm's AI/saves are kept outside this module.
 import * as THREE from './lib/three.module.min.js';
+// Baked shading (vertex colours only, no extra draw/texture): darker toward the hooves and
+// belly (cheap ambient occlusion) and a slight sky-lit lift on upward faces (soft rim/top light).
+function bakeShade(pos,norm,color){
+  let lo=Infinity,hi=-Infinity;for(let i=1;i<pos.length;i+=3){lo=Math.min(lo,pos[i]);hi=Math.max(hi,pos[i]);}
+  const span=Math.max(hi-lo,1e-6);
+  for(let i=0;i<pos.length;i+=3){
+    const h=(pos[i+1]-lo)/span,ny=norm[i+1],t=Math.min(1,h/.55);
+    const ao=(.74+.26*t*t*(3-2*t))*(ny<0?1-.2*-ny:1),sky=1+.07*Math.max(ny,0);
+    for(let k=0;k<3;k++)color[i+k]=Math.min(1,color[i+k]*ao*sky);
+  }
+}
 
 // Walk mode aims from the screen centre every 120 ms. Three.js raycasts a skinned mesh by skinning every
 // vertex on the CPU (about 10k triangles per cow), which hitched first person whenever an animal was
@@ -119,20 +130,20 @@ function buildTemplate(){
   // Wider, flatter bovine muzzle plane; fuller below the lip than above it.
   loft(pink,'z',[[-.20,0,-.045,.138,.076,.098],[-.26,0,-.055,.168,.073,.098],[-.30,0,-.055,.172,.068,.09],[-.33,0,-.05,.148,.055,.068]],slots.jaw,null,24);
   for(const side of [-1,1]){
-    oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,12);
+    oval(ink,[side*.088,-.023,-.328],[.034,.017,.009],slots.jaw,0,0,8);
     const ear=slots.ears[side===-1?0:1];
     const leaf=[[0,0,0,.037,.020],[side*.045,0,.01,.055,.030],[side*.115,0,.028,.074,.034],[side*.185,0,.034,.046,.023],[side*.23,0,.027,.008,.006]];
     if(side<0)leaf.reverse();
-    loft(cream,'x',leaf,ear,null,16);
+    loft(cream,'x',leaf,ear,null,12);
     // The inset follows the ear bone and sits on its forward-facing cup.
-    oval(pink,[side*.115,.028,-.050],[.072,.019,.009],ear,0,side*.10,12);
-    loft(horn,'y',[[.20,side*.14,.012,.032,.029],[.265,side*.145,.022,.025,.023],[.325,side*.17,.040,.014,.013],[.365,side*.19,.052,.002,.002]],slots.head,null,10);
+    oval(pink,[side*.115,.028,-.050],[.072,.019,.009],ear,0,side*.10,8);
+    loft(horn,'y',[[.20,side*.14,.012,.032,.029],[.265,side*.145,.022,.025,.023],[.325,side*.17,.040,.014,.013],[.365,side*.19,.052,.002,.002]],slots.head,null,8);
     const eye=slots.eyes[side===-1?0:1];
-    oval(ink,[0,0,.004],[.038,.040,.026],eye,0,0,12);
-    oval(0x60442a,[side*.006,0,-.012],[.027,.030,.017],eye,0,0,12);
-    oval(0x101816,[side*.009,0,-.025],[.018,.025,.009],eye,0,0,12);
-    oval(0xffffff,[-.005,.009,-.032],[.005,.006,.004],eye,0,0,8);
-    oval(ink,[side*.145,.081,-.121],[.04,.012,.023],slots.head,0,0,12);
+    oval(ink,[0,0,.004],[.038,.040,.026],eye,0,0,10);
+    oval(0x60442a,[side*.006,0,-.012],[.027,.030,.017],eye,0,0,8);
+    oval(0x101816,[side*.009,0,-.025],[.018,.025,.009],eye,0,0,8);
+    oval(0xffffff,[-.005,.009,-.032],[.005,.006,.004],eye,0,0,6);
+    oval(ink,[side*.145,.081,-.121],[.04,.012,.023],slots.head,0,0,8);
   }
   // A small forelock follows the refined poll rather than a round hair helmet.
   for(let i=0;i<3;i++)oval(0xe7dfc8,[(i-1)*.035,.251,-.085],[.030,.026,.035],slots.head,0,0,8);
@@ -175,8 +186,9 @@ function buildTemplate(){
   }
   for(const [i,b]of slots.tail.entries())loft(cream,'y',[
     [-.235,0,.024,.011,.012],[-.14,0,.015,.014,.016],[-.04,0,.005,.018,.020],[i===0?.135:.02,0,i===0?-.028:0,i===0?.020:.019,i===0?.021:.020]
-  ],b,i===0?(x,y,z)=>[[b,1-clamp((y-1.18)/.15,0,1)*.3],[slots.body,clamp((y-1.18)/.15,0,1)*.3]]:null,12);
-  loft(ink,'y',[[-.285,0,.02,.009,.011],[-.245,0,.018,.030,.036],[-.19,0,.015,.038,.043],[-.12,0,.01,.020,.025]],slots.tail[2],null,14);
+  ],b,i===0?(x,y,z)=>[[b,1-clamp((y-1.18)/.15,0,1)*.3],[slots.body,clamp((y-1.18)/.15,0,1)*.3]]:null,10);
+  loft(ink,'y',[[-.285,0,.02,.009,.011],[-.245,0,.018,.030,.036],[-.19,0,.015,.038,.043],[-.12,0,.01,.020,.025]],slots.tail[2],null,10);
+  bakeShade(pos,norm,color);
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(color,3));
   geometry.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(skin,4));geometry.setAttribute('skinWeight',new THREE.Float32BufferAttribute(weight,4));
