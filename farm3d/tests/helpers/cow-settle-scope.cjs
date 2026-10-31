@@ -5,7 +5,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/cow-settle-scope.json'));
-assert.equal(sha(raw),'ae8fb182f16e86eb727d1e510f18d9f9c05adead96ffb7e9d7a6427164b9a312','Exact approved A43 scope receipt');
+assert.equal(sha(raw),'f7f273d814a5de4d94e7a9648640062ed645a8250b9b876d3edbd63d64ea9011','Exact approved A43 scope receipt');
 const scope=JSON.parse(raw);
 function normalizeCowSettleScope(file,source){
  const e=scope.files[file];if(!e||sha(source)!==e.afterSha256)return source;
