@@ -33,5 +33,8 @@
     const gains=r.nodes.filter(n=>n.type==='gain');
     return {rms:Math.sqrt(sum/data.length),peak:max,state:r.context.state,audioTime:r.context.currentTime,sampleRate:r.context.sampleRate,masterGain:gains[0]?.node.gain.value,musicGain:gains[1]?.node.gain.value,hidden:document.hidden,visibility:document.visibilityState,activation:navigator.userActivation.hasBeenActive};
   };
+  // sound-polish: three gains in creation order are master, music and farm-sounds buses
+  probe.buses=()=>{const r=probe.contexts[0];if(!r)return null;const g=r.nodes.filter(n=>n.type==='gain');return {master:g[0]?.node.gain.value,music:g[1]?.node.gain.value,amb:g[2]?.node.gain.value};};
+  probe.savedSound=()=>{const k=Object.keys(localStorage).find(k=>k.endsWith('-sound'));try{return k?JSON.parse(localStorage.getItem(k)):null;}catch(e){return null;}};
   probe.snapshot=()=>({contexts:probe.contexts.map(r=>({id:r.id,state:r.context.state,audioTime:r.context.currentTime,sampleRate:r.context.sampleRate,nodes:r.nodes.map(n=>({id:n.id,type:n.type,loop:!!n.node.loop,gain:n.type==='gain'?n.node.gain.value:undefined})),edges:r.edges})),events:probe.events,lifecycle:probe.lifecycle,gestures:probe.gestures,unavailable:probe.unavailable});
 })();
