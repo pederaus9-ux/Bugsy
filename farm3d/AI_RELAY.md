@@ -28,7 +28,7 @@ Team rules:
 - Bots never merge on their own. Only Robin merges, and only after Austin approves the specific PR.
 - No closing PRs or deleting branches without Austin's OK.
 - Protected files (game.js, index.html, sw.js, cow3d.js, lib/** and the rest listed in `farm3d/OWNER.lock`) need a numbered amendment. A-numbers and cache versions come from the OWNER.lock registry (reserved: A42 fence v81, A43 #105 v82, A44 Sound v83, A45 Art v84, A46 Perf v85, A47 Features v86, A48 Pens v87 pending Austin, A49 Art world v88).
-- One branch/worktree per task, starting from current `main`; bump the `sw.js` cache when runtime files change (current `sa3d-v80`).
+- One branch/worktree per task, starting from current `main`; bump the `sw.js` cache when runtime files change (current `sa3d-v81`).
 
 Open PRs as of 2026-10-30 (main `bb367d1`, after PR #101):
 - #60 `codex/cow-motion-ci-gates`: conflicts, 344 commits behind. Cleanup candidate.
