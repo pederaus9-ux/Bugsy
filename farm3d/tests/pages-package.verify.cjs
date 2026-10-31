@@ -1,6 +1,7 @@
 'use strict';
 // Verifies a real Jekyll output. --source-only never claims a built package pass.
 const fs = require('node:fs');
+const {normalizeCowSettleScope} = require('./helpers/cow-settle-scope.cjs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
@@ -127,7 +128,9 @@ function historicalAccounting(source, manifest) {
   const changes = [], unchanged = [];
   for (const entry of manifest.staticSource) {
     assert(source.has(entry.path), `Missing current source: ${entry.path}`);
-    const bytes = source.get(entry.path), file = entry.path.replace(/^farm3d\//, '');
+    const file = entry.path.replace(/^farm3d\//, ''), rawBytes = source.get(entry.path);
+    // A43: reverse only the approved cow-settle hunks (game.js, index.html, sw.js) before older receipts.
+    const a43Text = normalizeCowSettleScope(file, rawBytes.toString('utf8')), bytes = a43Text === rawBytes.toString('utf8') ? rawBytes : Buffer.from(a43Text);
     let historical = bytes;
     const a39Text=normalizeCowAimScope(file,bytes.toString('utf8')),a39Bytes=a39Text===bytes.toString('utf8')?bytes:Buffer.from(a39Text);
     const fieldNormalized=normalizeFieldScope(file,a39Bytes.toString('utf8'));
@@ -166,9 +169,10 @@ function accountingControls(source, manifest) {
   historicalAccounting(source, manifest);
   const controls = [
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
+    ['unrelated game change', m => m.set('farm3d/game.js', Buffer.concat([m.get('farm3d/game.js'), Buffer.from('\n/* unrelated */')]))], // A44/A43 strip only their exact hunks
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v80', 'sa3d-v81')))],
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v83', 'sa3d-v84')))], // A44: current cache is sa3d-v83
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}

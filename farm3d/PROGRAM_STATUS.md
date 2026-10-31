@@ -1,3 +1,13 @@
+# Sunny Acres current production status - 2026-10-30
+
+Live `main` is `bb367d1` (PR #101: cow pasture ~1.5x with one-time save migration, cache `sa3d-v80`). Also merged today: #98 field renderer rollback (v77), #99 first-person lag fix near cows (v78), #100 cow personal space (v79). The 2026-10-14 entries below are history.
+
+Bot team: Robin (coordinator, merges with owner approval), Pens, Performance, QA, Fence & Pasture, Sound, Art, Features, Docs & Cleanup. See `farm3d/AI_RELAY.md` section 0.
+
+Stale-PR cleanup (#60, #54, #37, #34, branch `codex/cow-save-delivery-20261027`) is waiting on Austin's OK.
+
+## Previous checkpoints
+
 # Sunny Acres current production status - 2026-10-14 (visitor fix candidate)
 
 Owner-approved one-condition visitor expiry guard passes9/9 focused native/boundary/reload checks on committed `1877fcb94b84eee5f0bc7e9af3f867a8a7b37951`. Existing tests/failure receipts, published audio fix and accepted animals remain frozen. See [the candidate report](PHASE7N_VISITOR_EXPIRY_FIX.md). Exact-head hosted checks and draft review are next; separate owner merge decision remains. No merge/deploy/release, installations/settings/production writes, FS25 or phone work authorized.

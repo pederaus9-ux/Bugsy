@@ -1,0 +1,110 @@
+{
+ "amendment": "A44-sound-polish",
+ "approval": "Owner (pederaus9-ux / Austin) approved 2026-10-30 21:06 CDT via relayed card answers: record the sound-polish game.js as reviewed with lock exceptions, wire gate creak and stone ground in index.html, bump game.js and the cache; version order approved 21:52 CDT (fence v81, #105 v82, sound v83, art v84, perf v85); rebased 2026-10-31 onto main 0b41242 (after PR #109 cow settle, sa3d-v82, game.js?v=35): same sound hunks, prior bytes now main's A43 bytes",
+ "scope": "Only the sound-polish hunks: game.js procedural sounds, volume sliders and their hooks; index.html gate creak on the barn door, stone dairy-path footsteps and game.js?v=36; sw.js sa3d-v83 and game.js?v=36",
+ "files": {
+  "game.js": {
+   "beforeSha256": "b7723af6d45ec4ddec9561f4790ab48abfe94cff468f777777da147bb0d9a605",
+   "afterSha256": "5c094f49a6e68681d48d2dba84e1135cd4af159a8bf5b7dfe353872cee0dcff9",
+   "hunks": [
+    {
+     "before": "  add('egg',n);if(got.gold)addGold('egg',got.gold);gainXP(got.xp);eventProgress('egg',n);\n  view.fx('chicken:eggs','+'+n+' \ud83e\udd5a');sfx('chicken');view.refresh('herd');commit();return n;\n}\n",
+     "after": "  add('egg',n);if(got.gold)addGold('egg',got.gold);gainXP(got.xp);eventProgress('egg',n);\n  view.fx('chicken:eggs','+'+n+' \ud83e\udd5a');sfx('egg');sfx('chicken');view.refresh('herd');commit();return n;\n}\n"
+    },
+    {
+     "before": " const got=takeCowMilk(S.pens.cow,Math.min(units,space()),now()),n=got.normal+got.gold;if(!n)return 0;\n add('milk',n);if(got.gold)addGold('milk',got.gold);view.fx('cow:tank','+'+n+' \ud83e\udd5b');sfx('cow');view.refresh('herd');commit();return n;\n}\n",
+     "after": " const got=takeCowMilk(S.pens.cow,Math.min(units,space()),now()),n=got.normal+got.gold;if(!n)return 0;\n add('milk',n);if(got.gold)addGold('milk',got.gold);view.fx('cow:tank','+'+n+' \ud83e\udd5b');sfx('milk');sfx('cow');view.refresh('herd');commit();return n;\n}\n"
+    },
+    {
+     "before": "  add(a.out, n); if (gold) addGold(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);\n  view.fx(\"animal:\" + kind + \":\" + i, (gold ? \"\ud83e\udd47 \" : \"\") + (n > 1 ? \"\u00d72! \" : \"+1 \") + ITEMS[a.out].e); sfx(kind);\n  return true;\n",
+     "after": "  add(a.out, n); if (gold) addGold(a.out, n); gainXP(a.xp); pen.list[i] = 0; eventProgress(a.out, n);\n  view.fx(\"animal:\" + kind + \":\" + i, (gold ? \"\ud83e\udd47 \" : \"\") + (n > 1 ? \"\u00d72! \" : \"+1 \") + ITEMS[a.out].e); if (kind === \"sheep\") sfx(\"shear\"); sfx(kind);\n  return true;\n"
+    },
+    {
+     "before": "  eventProgress(\"love\", 1);\n  view.fx(key, \"+ \ud83d\udc96\"); sfx(sound);\n  commit();\n",
+     "after": "  eventProgress(\"love\", 1);\n  view.fx(key, \"+ \ud83d\udc96\"); if (act === \"brush\") sfx(\"brush\"); sfx(sound);\n  commit();\n"
+    },
+    {
+     "before": "      <button class=\"btn ${snd.amb ? \"\" : \"plain\"} sm\" data-act=\"amb\">${snd.amb ? \"\ud83d\udc26 Farm sounds on\" : \"\ud83d\udc26 Farm sounds off\"}</button>\n      <button class=\"btn ${snd.buzz ? \"\" : \"plain\"} sm\" data-act=\"buzz\">${snd.buzz ? \"\ud83d\udcf3 Vibration on\" : \"\ud83d\udcf3 Vibration off\"}</button>\n",
+     "after": "      <button class=\"btn ${snd.amb ? \"\" : \"plain\"} sm\" data-act=\"amb\">${snd.amb ? \"\ud83d\udc26 Farm sounds on\" : \"\ud83d\udc26 Farm sounds off\"}</button>\n      <label class=\"vol\">\ud83d\udd0a Volume <input type=\"range\" min=\"0\" max=\"100\" step=\"5\" data-vol=\"vol\" value=\"${Math.round(snd.vol * 100)}\" aria-label=\"Sound volume\"></label>\n      <label class=\"vol\">\ud83c\udfb5 Music <input type=\"range\" min=\"0\" max=\"100\" step=\"5\" data-vol=\"musicVol\" value=\"${Math.round(snd.musicVol * 100)}\" aria-label=\"Music volume\"></label>\n      <label class=\"vol\">\ud83d\udc26 Farm <input type=\"range\" min=\"0\" max=\"100\" step=\"5\" data-vol=\"ambVol\" value=\"${Math.round(snd.ambVol * 100)}\" aria-label=\"Farm sounds volume\"></label>\n      <button class=\"btn ${snd.buzz ? \"\" : \"plain\"} sm\" data-act=\"buzz\">${snd.buzz ? \"\ud83d\udcf3 Vibration on\" : \"\ud83d\udcf3 Vibration off\"}</button>\n"
+    },
+    {
+     "before": "   ============================================================ */\nexport const snd = {on:true, music:true, amb:true, buzz:true}; // amb: birds, wind and rain around the farm; buzz: the phone vibrates a little\ntry { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + \"-sound\") || \"{}\")); } catch (e) {}\n",
+     "after": "   ============================================================ */\nexport const snd = {on:true, music:true, amb:true, buzz:true, vol:1, musicVol:1, ambVol:1}; // amb: birds, wind and rain around the farm; buzz: the phone vibrates a little\ntry { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + \"-sound\") || \"{}\")); } catch (e) {}\n"
+    },
+    {
+     "before": "try { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + \"-sound\") || \"{}\")); } catch (e) {}\nlet AC = null, master = null, musicBus = null, noiseBuf = null;\nfunction audio() {\n",
+     "after": "try { Object.assign(snd, JSON.parse(localStorage.getItem(SAVE_KEY + \"-sound\") || \"{}\")); } catch (e) {}\n// volume sliders (0\u20261); older saves without them keep the original loudness\nfor (const k of [\"vol\", \"musicVol\", \"ambVol\"]) { const v = Number(snd[k]); snd[k] = Number.isFinite(v) ? clamp(v, 0, 1) : 1; }\nlet AC = null, master = null, musicBus = null, ambBus = null, noiseBuf = null;\nfunction audio() {\n"
+    },
+    {
+     "before": "    musicBus = AC.createGain(); musicBus.connect(master);\n    noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);\n",
+     "after": "    musicBus = AC.createGain(); musicBus.connect(master);\n    ambBus = AC.createGain(); ambBus.connect(master); // farm sounds: wind, rain, birds and far-off animals\n    noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);\n"
+    },
+    {
+     "before": "  if (!AC) return;\n  master.gain.value = snd.on && !document.hidden ? 0.55 : 0;\n  musicBus.gain.value = snd.music ? 0.22 : 0;\n}\n",
+     "after": "  if (!AC) return;\n  master.gain.value = snd.on && !document.hidden ? 0.55 * snd.vol : 0;\n  musicBus.gain.value = snd.music ? 0.22 * snd.musicVol : 0;\n  ambBus.gain.value = snd.ambVol;\n}\n"
+    },
+    {
+     "before": "  shutter:() => { noise(.05, {vol:.25, freq:3500, q:.8}); noise(.07, {vol:.2, freq:1800, q:.8, at:.09}); },\n  throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:\"triangle\", vol:.06, to:520}); },\n",
+     "after": "  shutter:() => { noise(.05, {vol:.25, freq:3500, q:.8}); noise(.07, {vol:.2, freq:1800, q:.8, at:.09}); },\n  milk:() => { for (let i = 0; i < 3; i++) noise(.09, {vol:.1, freq:2200 + i * 300, q:2.5, at:i * .17}); tone(260, .3, {type:\"sine\", vol:.04, at:.05, to:200}); },\n  shear:() => { for (let i = 0; i < 2; i++) { noise(.05, {vol:.16, freq:5200, q:3, at:i * .16}); tone(2100, .04, {type:\"square\", vol:.025, at:i * .16 + .02, lp:5000}); } },\n  brush:() => { for (let i = 0; i < 3; i++) noise(.14, {vol:.07, freq:1800 + i * 500, q:.6, at:i * .13}); },\n  egg:() => { tone(1800, .03, {type:\"triangle\", vol:.06}); tone(620, .1, {type:\"triangle\", vol:.1, at:.03, to:900}); },\n  gate:() => { tone(300, .55, {type:\"sawtooth\", vol:.03, to:520, lp:1800, vib:22, attack:.05}); noise(.08, {vol:.14, freq:420, at:.55}); },\n  rooster:() => { tone(620, .14, {type:\"sawtooth\", vol:.035, to:880, lp:2600}); tone(900, .16, {type:\"sawtooth\", vol:.035, at:.16, lp:2600}); tone(940, .55, {type:\"sawtooth\", vol:.035, at:.34, to:560, lp:2600, vib:8}); },\n  owl:() => { tone(420, .28, {type:\"sine\", vol:.06, to:380, attack:.05}); tone(400, .5, {type:\"sine\", vol:.06, at:.42, to:340, attack:.06, vib:5}); },\n  throw:() => { noise(.2, {vol:.09, freq:1100, q:.6}); tone(300, .16, {type:\"triangle\", vol:.06, to:520}); },\n"
+    },
+    {
+     "before": "  const g = AC.createGain(), p = AC.createStereoPanner ? AC.createStereoPanner() : null;\n  g.gain.value = clamp(vol, 0, 1); if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(master); } else g.connect(master);\n  BUS = g; try { SOUNDS[name](); } catch (e) {} BUS = null;\n",
+     "after": "  const g = AC.createGain(), p = AC.createStereoPanner ? AC.createStereoPanner() : null;\n  g.gain.value = clamp(vol, 0, 1); if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(ambBus); } else g.connect(ambBus);\n  BUS = g; try { SOUNDS[name](); } catch (e) {} BUS = null;\n"
+    },
+    {
+     "before": "  src.buffer = noiseBuf; src.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = 0;\n  src.connect(f); f.connect(g); g.connect(master); src.start();\n  return (loops[name] = {g, f});\n",
+     "after": "  src.buffer = noiseBuf; src.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = 0;\n  src.connect(f); f.connect(g); g.connect(ambBus); src.start();\n  return (loops[name] = {g, f});\n"
+    },
+    {
+     "before": "  const v = run ? 1.25 : 1, p = (stepAlt ^= 1) ? 1 : .9; // left and right feet sound a little different\n  if (surface === \"wood\") { tone(190 * p, .08, {type:\"triangle\", vol:.09 * v, to:120}); noise(.05, {vol:.05 * v, freq:900, q:1.2}); }\n",
+     "after": "  const v = run ? 1.25 : 1, p = (stepAlt ^= 1) ? 1 : .9; // left and right feet sound a little different\n  if (surface !== \"wood\" && weatherWet()) surface = \"puddle\"; // wet ground splashes while it rains\n  if (surface === \"stone\") { tone(420 * p, .04, {type:\"triangle\", vol:.06 * v, to:260}); noise(.04, {vol:.08 * v, freq:3000 * p, q:1.5}); return; }\n  if (surface === \"puddle\") { noise(.14, {vol:.09 * v, freq:1400 * p, q:.6}); tone(700 * p, .07, {type:\"sine\", vol:.04 * v, at:.03, to:380}); return; }\n  if (surface === \"wood\") { tone(190 * p, .08, {type:\"triangle\", vol:.09 * v, to:120}); noise(.05, {vol:.05 * v, freq:900, q:1.2}); }\n"
+    },
+    {
+     "before": "  r.g.gain.setTargetAtTime(on * (rain ? .09 : 0), t, 1.2);\n}\n",
+     "after": "  r.g.gain.setTargetAtTime(on * (rain ? .09 : 0), t, 1.2);\n  ambWet = !!rain;\n  if (!on || rain) return;\n  const look = lookNow(), h = new Date().getHours(), pan = Math.random() * 2 - 1;\n  if (look === \"night\" && Math.random() < .08) sfxAt(\"owl\", pan, .35 + Math.random() * .3);\n  else if (look === \"night\" && Math.random() < .12) sfxAt(\"cricket\", pan, .5); // extra crickets on top of the ones the scene asks for\n  if (look === \"morning\" && h >= 5 && h < 9 && Math.random() < .06 && performance.now() - roosterAt > 45000) { roosterAt = performance.now(); sfxAt(\"rooster\", pan, .55); }\n}\n"
+    },
+    {
+     "before": "}\n// A soft, wandering tune in C major pentatonic over a I\u2013V\u2013vi\u2013IV bass line.\n",
+     "after": "}\nlet ambWet = false, roosterAt = -1e9;\nfunction weatherWet() { return ambWet; }\n// A soft, wandering tune in C major pentatonic over a I\u2013V\u2013vi\u2013IV bass line.\n"
+    },
+    {
+     "before": "setInterval(musicTick, 120);\ndocument.addEventListener(\"pointerdown\", () => { if (snd.on) audio(); }, true); // browsers only allow sound after a touch\n",
+     "after": "setInterval(musicTick, 120);\n// volume sliders in Settings: live while dragging, saved when let go\ndocument.addEventListener(\"input\", (e) => { const k = e.target?.dataset?.vol; if (!k || !(k in snd)) return; snd[k] = clamp(Number(e.target.value) / 100, 0, 1); applySound(); });\ndocument.addEventListener(\"change\", (e) => { const k = e.target?.dataset?.vol; if (!k || !(k in snd)) return; saveSound(); if (snd.on) sfx(\"tick\"); });\ndocument.addEventListener(\"pointerdown\", () => { if (snd.on) audio(); }, true); // browsers only allow sound after a touch\n"
+    }
+   ]
+  },
+  "index.html": {
+   "beforeSha256": "89c0f3c778cb82f5c43d847c5f07ee6a4818e0cfe4505cc408448619532e96dc",
+   "afterSha256": "8799e87c758250fc57657c34087a16c05ae13676d29f30c9bdd5644e4be1df20",
+   "hunks": [
+    {
+     "before": "import { ShaderPass } from \"./lib/addons/postprocessing/ShaderPass.js\";\nimport * as G from \"./game.js?v=35\"; window.__gameVer = 35; // bump this version whenever game.js changes\nimport {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';\n",
+     "after": "import { ShaderPass } from \"./lib/addons/postprocessing/ShaderPass.js\";\nimport * as G from \"./game.js?v=36\"; window.__gameVer = 36; // bump this version whenever game.js changes\nimport {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';\n"
+    },
+    {
+     "before": "  if (Math.abs(x) < 2.3 && z > 5 && z < 22) return \"dirt\";\n  if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return \"dirt\";\n",
+     "after": "  if (Math.abs(x) < 2.3 && z > 5 && z < 22) return \"dirt\";\n  if (dairyPath.samples.some(([sx, sz]) => Math.hypot(sx - x, sz - z) < .95)) return \"stone\"; // the stone dairy path\n  if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return \"dirt\";\n"
+    },
+    {
+     "before": "  if (inBarn) return;\n  doorWant = 1; G.sfx(\"build\");\n  inBarn = {phase:\"in\", t:performance.now()};\n",
+     "after": "  if (inBarn) return;\n  doorWant = 1; G.sfx(\"build\"); G.sfx(\"gate\");\n  inBarn = {phase:\"in\", t:performance.now()};\n"
+    },
+    {
+     "before": "function leaveBarn() {\n  barnFade.classList.remove(\"on\"); startTween(1); inBarn = null; setTimeout(() => { doorWant = 0; }, 900);\n}\n",
+     "after": "function leaveBarn() {\n  barnFade.classList.remove(\"on\"); startTween(1); inBarn = null; G.sfx(\"gate\"); setTimeout(() => { doorWant = 0; }, 900);\n}\n"
+    }
+   ]
+  },
+  "sw.js": {
+   "beforeSha256": "4856f3ff41f62a511cbaaf57d76e577678da37b611a8dc5aff5163e59485d928",
+   "afterSha256": "e35dad1dc69d540c9c84ec46f5c8348fb8276a375c01b2aa157d882328762cd1",
+   "hunks": [
+    {
+     "before": "// (Named \"sa3d-\" so the 2D game's own clean-up never touches it.)\nconst CACHE = \"sa3d-v82\";\nconst SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=35\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=5\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=1\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];\n",
+     "after": "// (Named \"sa3d-\" so the 2D game's own clean-up never touches it.)\nconst CACHE = \"sa3d-v83\";\nconst SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=36\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=5\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=1\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];\n"
+    }
+   ]
+  }
+ },
+ "cacheNote": "Approved order: fence v81, #105 v82, sound polish sa3d-v83 / game.js?v=36. Rebase onto fence and #105 when they merge."
+}

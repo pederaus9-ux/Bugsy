@@ -1,8 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import settle from './helpers/cow-settle-scope.cjs';
 import cowAimCache from './helpers/cow-aim-cache-scope.cjs';
 import cowSpace from './helpers/cow-space-scope.cjs';
 import pasture from './helpers/pasture-scope.cjs';
-const sw=cowSpace.normalizeCowSpaceScope('sw.js',pasture.normalizePastureScope('sw.js',fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8')));
+const sw=cowSpace.normalizeCowSpaceScope('sw.js',pasture.normalizePastureScope('sw.js',settle.normalizeCowSettleScope('sw.js',fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8'))));
 test('A39 worker differs from the accepted v77 worker only by its cache name',()=>{
  assert.match(sw,/const CACHE = "sa3d-v78";/);
  assert.notEqual(cowAimCache.normalizeCowAimCacheScope('sw.js',sw),sw);

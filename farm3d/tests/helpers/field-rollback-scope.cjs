@@ -6,8 +6,9 @@ assert.equal(sha(raw),'b560641f89064fe1651f1d0c507c072f776f17a421d57a9a26a7f678d
 const scope=JSON.parse(raw);
 const {normalizeCowSpaceScope}=require('./cow-space-scope.cjs');
 const {normalizePastureScope}=require('./pasture-scope.cjs');
+const {normalizeCowSettleScope}=require('./cow-settle-scope.cjs');
 function normalizeRollbackScope(file,source){
- source=normalizeCowSpaceScope(file,normalizePastureScope(file,source)); // A41 then A40 exact hunks first
+ source=normalizeCowSpaceScope(file,normalizePastureScope(file,normalizeCowSettleScope(file,source))); // A43 (which sits on A42 inside pasture), A41 then A40 exact hunks first
  const e=scope.files[file];
  if(file!=='sw.js'||sha(source)!==e.afterSha256)return source;
  for(const h of e.hunks){
