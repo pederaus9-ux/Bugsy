@@ -669,7 +669,7 @@ import { RenderPass } from "./lib/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "./lib/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "./lib/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "./lib/addons/postprocessing/ShaderPass.js";
-import * as G from "./game.js?v=35"; window.__gameVer = 35; // bump this version whenever game.js changes
+import * as G from "./game.js?v=36"; window.__gameVer = 36; // bump this version whenever game.js changes
 import {createChickenYard, CHICKEN_YARD_LAYOUT as DEFAULT_CHICKEN_YARD_LAYOUT} from './chicken-yard.js?v=5';
 import {createCowYard,cowYardLayout,cowYardConflicts,createCowYardPlantClearing} from './cow-yard.js?v=5';
 import {createRemainingCareYards,createRemainingCarePlantClearing} from './remaining-care-yard.js?v=3';
@@ -3316,6 +3316,7 @@ const PITCH_MAX = THREE.MathUtils.degToRad(80);
 function surfaceAt(x, z) {
   if (Math.hypot(x - stall.position.x, z - stall.position.z) < 1.8 || Math.hypot(x - board.position.x, z - board.position.z) < 1.5) return "wood";
   if (Math.abs(x) < 2.3 && z > 5 && z < 22) return "dirt";
+  if (dairyPath.samples.some(([sx, sz]) => Math.hypot(sx - x, sz - z) < .95)) return "stone"; // the stone dairy path
   if (plots.some(P => Math.abs(P.g.position.x - x) < 1.15 && Math.abs(P.g.position.z - z) < 1.15)) return "dirt";
   return "grass";
 }
@@ -3517,12 +3518,12 @@ let inBarn = null, doorOpen = 0, doorWant = 0;
 const barnFade = document.getElementById("barnFade");
 function enterBarn() {
   if (inBarn) return;
-  doorWant = 1; G.sfx("build");
+  doorWant = 1; G.sfx("build"); G.sfx("gate");
   inBarn = {phase:"in", t:performance.now()};
   setTimeout(() => { startTween(1.1); inBarn.phase = "inside"; barnFade.classList.add("on"); setTimeout(() => { if (inBarn) G.openPanel("barn"); }, 900); }, 450);
 }
 function leaveBarn() {
-  barnFade.classList.remove("on"); startTween(1); inBarn = null; setTimeout(() => { doorWant = 0; }, 900);
+  barnFade.classList.remove("on"); startTween(1); inBarn = null; G.sfx("gate"); setTimeout(() => { doorWant = 0; }, 900);
 }
 function barnPose() { // standing just inside the doors, looking around the dim barn
   camera.position.set(0, EYE + .1, 3.4); camera.lookAt(0, EYE, -2);
