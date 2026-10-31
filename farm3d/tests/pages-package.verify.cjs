@@ -108,12 +108,15 @@ function readOutput(dir) {
 const {normalizeCowAimCacheScope}=require('./helpers/cow-aim-cache-scope.cjs');
 const {normalizeCowSpaceScope}=require('./helpers/cow-space-scope.cjs'); // A40
 const {normalizePastureScope}=require('./helpers/pasture-scope.cjs'); // A41
-const {normalizeAnimalArtScope}=require('./helpers/animal-art-scope.cjs'); // A45 animal art
+const {normalizeAnimalArtScope,scope:animalArtScope}=require('./helpers/animal-art-scope.cjs'); // A45 animal art
 // A39 (owner-approved 2026-10-30): the first-person aim pick helper/hook in cow3d.js and quadruped3d.js
 // and the sa3d-v78 cache name are the only new runtime bytes; strip exactly those, then account as before.
 function normalizeCowAimScope(file,text){
   if(file==='sw.js')return normalizeCowAimCacheScope(file,normalizeCowSpaceScope(file,normalizePastureScope(file,text)));
-  text=normalizeAnimalArtScope(file,text); // A45 exact hunks first
+  if(animalArtScope.files[file]){ // A45 animal art (Austin 21:09/21:52/22:01 CDT 2026-10-30): whole-file pin, then strip exactly its hunks
+    assert.equal(sha(Buffer.from(text)),animalArtScope.files[file].afterSha256,'A45 exact current bytes: '+file);
+    text=normalizeAnimalArtScope(file,text);
+  }
   if(file!=='cow3d.js'&&file!=='quadruped3d.js')return text;
   const pick=JSON.parse(fs.readFileSync(path.join(__dirname,'animal-pen-authorized-adapters.json'),'utf8')).files[file].aimPick;
   assert.equal(text.split(pick.helper).length,2,'A39 unique helper: '+file);assert.equal(text.split(pick.hook).length,2,'A39 unique hook: '+file);
@@ -162,8 +165,8 @@ function historicalAccounting(source, manifest) {
     if (historical === bytes) unchanged.push(entry.path);
     else changes.push({path: entry.path, currentSha256: sha(bytes), originalBlob: entry.blob});
   }
-  assert.equal(unchanged.length, 116, 'All other runtime assets stay unchanged');
-  assert.deepEqual(changes.map(c => c.path).sort(), ['farm3d/auth.js', 'farm3d/cow3d.js', 'farm3d/index.html', 'farm3d/quadruped3d.js', 'farm3d/sw.js']);
+  assert.equal(unchanged.length, 114, 'All other runtime assets stay unchanged'); // A45: sheep3d.js and chicken3d.js join the accounted changes
+  assert.deepEqual(changes.map(c => c.path).sort(), ['farm3d/auth.js', 'farm3d/chicken3d.js', 'farm3d/cow3d.js', 'farm3d/index.html', 'farm3d/quadruped3d.js', 'farm3d/sheep3d.js', 'farm3d/sw.js']);
   return {unchangedRuntimeAssets: unchanged.length, approvedRuntimeChanges: changes};
 }
 
@@ -172,9 +175,11 @@ function accountingControls(source, manifest) {
   const controls = [
     ['wrong auth', m => m.set('farm3d/auth.js', Buffer.concat([m.get('farm3d/auth.js'), Buffer.from('\n/* unrelated */')]))],
     ['unrelated game change', m => m.set('farm3d/game.js', Buffer.concat([m.get('farm3d/game.js'), Buffer.from('\n/* unrelated */')]))], // A44/A43 strip only their exact hunks
+    ['unrelated sheep change', m => m.set('farm3d/sheep3d.js', Buffer.concat([m.get('farm3d/sheep3d.js'), Buffer.from('\n/* unrelated */')]))], // A45 whole-file pin
+    ['unrelated chicken change', m => m.set('farm3d/chicken3d.js', Buffer.concat([m.get('farm3d/chicken3d.js'), Buffer.from('\n/* unrelated */')]))], // A45 whole-file pin
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v83', 'sa3d-v84')))], // A44: current cache is sa3d-v83
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v84', 'sa3d-v85')))], // A45: current cache is sa3d-v84
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}
