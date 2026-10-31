@@ -1,5 +1,5 @@
 import * as T from './lib/three.module.min.js';
-import {poseCowLeg,COW_GAIT} from './cow3d.js?v=5';
+import {poseCowLeg,COW_GAIT} from './cow3d.js?v=6';
 import {PEN_TEMPLATES} from './animal-pen-templates.js?v=1';
 import {pointInPolygon} from './animal-pen-geometry.js?v=1';
 // The shelter owns the accepted slab; expanding the fence adds soil, not

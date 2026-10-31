@@ -1,7 +1,7 @@
 {
  "amendment": "A45-animal-art",
- "approval": "Owner Austin (pederaus9-ux) approved 2026-10-30 (art audit improvement #2 approved 20:47 CDT; frozen-baseline update approved 21:09 CDT): smoother animal silhouettes, leaner cow small parts and baked vertex-colour AO at lower total triangles (23,688 -> 22,128); lock exceptions for cow3d.js, quadruped3d.js and sheep3d.js approved 21:52 CDT 2026-10-30 (relayed by Audit bot) and directly confirmed by Austin at 22:01 CDT 2026-10-30: 'I approve the lock exception for cow3d.js, quadruped3d.js and sheep3d.js'",
- "scope": "Only animal mesh builders (segment counts plus the bakeShade vertex-colour helper and its single call) in cow3d.js, quadruped3d.js, sheep3d.js and chicken3d.js. Bone names, rig hierarchy, rest poses, gait/pose code and exported APIs are unchanged. sw.js and the cache name are not part of A45.",
+ "approval": "Owner Austin (pederaus9-ux) approved 2026-10-30 (art audit improvement #2 approved 20:47 CDT; frozen-baseline update approved 21:09 CDT): smoother animal silhouettes, leaner cow small parts and baked vertex-colour AO at lower total triangles (23,688 -> 22,128); lock exceptions for cow3d.js, quadruped3d.js and sheep3d.js approved 21:52 CDT 2026-10-30 (relayed by Audit bot) and directly confirmed by Austin at 22:01 CDT 2026-10-30: 'I approve the lock exception for cow3d.js, quadruped3d.js and sheep3d.js'; cache bump approved directly by Austin 21:09 CDT 2026-10-30 ('Yes, update the test baselines and bump the cache'); version order approved 21:52 CDT (art v84 after sound v83); rebased 2026-10-31 onto main 567d9ce (after PR #103 sound polish A44, sa3d-v83, game.js?v=36): animal-art hunks unchanged, cache hunks' prior bytes are main plus A44",
+ "scope": "Only animal mesh builders (segment counts plus the bakeShade vertex-colour helper and its single call) in cow3d.js, quadruped3d.js, sheep3d.js and chicken3d.js. Bone names, rig hierarchy, rest poses, gait/pose code and exported APIs are unchanged. cacheFiles: only the sa3d-v83 -> sa3d-v84 cache name in sw.js and the module versions cow3d.js?v=5 -> 6 and chicken3d.js?v=1 -> 2 wherever imported or precached.",
  "files": {
   "cow3d.js": {
    "beforeSha256": "bc1d6131deed57c522500e739e3b2dfcfff1e805a8c162ae1038faaab5e41367",
@@ -140,6 +140,82 @@
     {
      "before": "  }\n",
      "after": "  }\n  bakeShade(pos,norm,color);\n"
+    }
+   ]
+  }
+ },
+ "cacheFiles": {
+  "sw.js": {
+   "beforeSha256": "e35dad1dc69d540c9c84ec46f5c8348fb8276a375c01b2aa157d882328762cd1",
+   "afterSha256": "07a5901f794e376e5445d54ab62a3a3ea0cc51244b2775d9d61be6b197b42ba8",
+   "hunks": [
+    {
+     "before": "const CACHE = \"sa3d-v83\";",
+     "after": "const CACHE = \"sa3d-v84\";"
+    },
+    {
+     "before": "const SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=36\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=5\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=1\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];",
+     "after": "const SHELL = [\"animal-pen-placement.js?v=4\",\"animal-pen-placement-controller.js?v=4\",\"animal-pen-placement-worker.js?v=4\",\"animal-pen-placement-preview.js?v=1\",\"animal-pen-editor-view.js?v=4\",\"animal-pen-preview.js?v=1\",\"animal-pen-cow-support.js?v=1\",\"animal-pen-scene.js?v=2\",\"animal-pen-runtime.js?v=2\",\"animal-pen-validation.js?v=4\",\"animal-pen-editor.js?v=1\",\"animal-pen-cow-adapter.js?v=1\",\"animal-pen-layout.js?v=1\",\"animal-pen-templates.js?v=1\",\"animal-pen-geometry.js?v=1\",\"animal-pen-model.js?v=1\",\"animal-pen-pasture.js?v=2\",\"animal-pen-pasture-worker.js?v=1\",\"animal-pen-scenery.js?v=1\",\"./\",\"index.html\",\"remaining-care-navigation.js?v=2\",\"remaining-care-layout.js?v=3\",\"remaining-care-yard.js?v=3\",\"remaining-care-controller.js?v=4\",\"quadruped-care-poses.js?v=1\",\"farm-land.js?v=5\",\"farm-path.js?v=2\",\"seasonal-leaves.js?v=1\",\"holiday-decor.js?v=1\",\"decor-models.js?v=1\",\"utility-lights.js?v=1\",\"market-sales.js?v=1\",\"cow-care.js?v=1\",\"cow-yard.js?v=5\",\"cow-stations.js?v=1\",\"cow-personal-space.js?v=1\",\"animal-stations.js?v=1\",\"chicken-stations.js?v=7\",\"animal-care-poses.js?v=2\",\"chicken-care.js?v=2\",\"chicken-yard.js?v=5\",\"player-motion.js?v=1\",\"player-arm-attachment.js?v=1\",\"scene-polish.js?v=2\",\"features.js?v=1\",\"phase7m.js?v=4\",\"game.js?v=36\",\"restore-recovery.js?v=1\",\"far-tree-sites.js?v=1\",\"tree-removal.js?v=1\",\"workshop-site.js?v=1\",\"edit-ground-grid.js?v=2\",\"analytics.js?v=3\",\"perf.js?v=1\",\"cow3d.js?v=6\",\"live3d.js?v=3\",\"sheep3d.js\",\"horse3d.js\",\"dog3d.js\",\"cat3d.js\",\"chicken3d.js?v=2\",\"farmer3d.js\",\"quadruped3d.js\",\"characters3d.html\",\"manifest.webmanifest\",\"lib/three.module.min.js\",\"lib/three.core.min.js\",\"art/authored-hands.js?v=2\",\"assets/hands/hands-candidate.glb?v=2\",\"lib/addons/loaders/GLTFLoader.js\",\"lib/addons/utils/BufferGeometryUtils.js\",\"lib/addons/utils/SkeletonUtils.js\",\"auth.js?v=21\",\"canon.js?v=1\",\"friends.js?v=7\",\"horse-ik3d.js\",\"horse-stance3d.js\",\"lib/addons/postprocessing/EffectComposer.js\",\"lib/addons/postprocessing/MaskPass.js\",\"lib/addons/postprocessing/OutputPass.js\",\"lib/addons/postprocessing/Pass.js\",\"lib/addons/postprocessing/RenderPass.js\",\"lib/addons/postprocessing/ShaderPass.js\",\"lib/addons/postprocessing/UnrealBloomPass.js\",\"lib/addons/shaders/CopyShader.js\",\"lib/addons/shaders/LuminosityHighPassShader.js\",\"lib/addons/shaders/OutputShader.js\",\"verified.js?v=1\"];"
+    }
+   ]
+  },
+  "index.html": {
+   "beforeSha256": "8799e87c758250fc57657c34087a16c05ae13676d29f30c9bdd5644e4be1df20",
+   "afterSha256": "0d27b429680e6dcb4ac85bc89ba4156b1b955fa6ec1521867a184b8146f85d1c",
+   "hunks": [
+    {
+     "before": "const Cow3D = qs.has(\"characters2d\") ? null : await import(\"./cow3d.js?v=5\"); // 3D cows on the regular link; optional artwork fallback for comparisons",
+     "after": "const Cow3D = qs.has(\"characters2d\") ? null : await import(\"./cow3d.js?v=6\"); // 3D cows on the regular link; optional artwork fallback for comparisons"
+    }
+   ]
+  },
+  "live3d.js": {
+   "beforeSha256": "198608a694860c167f2ce7f46d7402bcbefe9551c978df5bbcf1283a6b79e87a",
+   "afterSha256": "791ad82416cc0a3a48e9b2f763fa26b4214bacc3e09c128e2055c6d856552812",
+   "hunks": [
+    {
+     "before": "import {createChicken3D, updateChicken3D} from './chicken3d.js?v=1';",
+     "after": "import {createChicken3D, updateChicken3D} from './chicken3d.js?v=2';"
+    }
+   ]
+  },
+  "animal-care-poses.js": {
+   "beforeSha256": "3bcc39901cae4155d43b5d0f66c6e53b9ee599ca365bf3b4f8b4535f6cb3b858",
+   "afterSha256": "0f3f6088bc130f93dc6bc94a82cdff6573c7608386a587b47f3928f40029e98a",
+   "hunks": [
+    {
+     "before": "import {COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "animal-pen-cow-support.js": {
+   "beforeSha256": "8b28d9efc7abc54e6907f8b0305fed077b149ec438291ddd26d8b22d15565bbf",
+   "afterSha256": "626bd927b080693d487b816ff2670b5707a276bee3bff11a06072fbbaa672a70",
+   "hunks": [
+    {
+     "before": "import {poseCowLeg,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {poseCowLeg,COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "characters3d.html": {
+   "beforeSha256": "02fcee720a49bd3749eea0856e939b5ffded750d9932f20fe29361479ccbb777",
+   "afterSha256": "ac0bf383eb2d55764b7f13e982bd55311c9168809ff0e383aa3a0582d19dcdc9",
+   "hunks": [
+    {
+     "before": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=6';"
+    }
+   ]
+  },
+  "cow-transition-preview.html": {
+   "beforeSha256": "0700639cac9473ab70f2dbcf84073d36a01b43cbc0b168c73fa241d74b7e2c50",
+   "afterSha256": "e0d0e5d82e0f43c7fbd578e7612cd6aac7e982cd20492e57e56fc5b5cf0350e5",
+   "hunks": [
+    {
+     "before": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=5';",
+     "after": "import {createCow3D,updateCow3D,COW_GAIT} from './cow3d.js?v=6';"
     }
    ]
   }
