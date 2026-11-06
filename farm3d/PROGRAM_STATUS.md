@@ -1,3 +1,16 @@
+# Sunny Acres coordination status - 2026-11-06
+
+Austin approved dot taking over Sunny Acres coordination and the version registry, while retaining explicit owner approval before every PR merge. This supersedes Robin's current coordination role; references to prior approvals remain historical evidence. No new amendment/cache number, merge, publication, runtime change or destructive cleanup is authorized by this preparation.
+
+- Integrated GitHub main: `1d427a91f99804ca91b6cfa5d592f360430313bd` (PR #110); source cache `sa3d-v85`. This records repository source, not a fresh device or deployment qualification.
+- PR inventory checked 2026-11-06: 110 total, 104 merged, 6 closed without merge (#34, #37, #54, #60, #68, #105), 0 open. Closed work is not merge ancestry; the audit distinguishes superseded changes from useful unique tests.
+- B11 correction `dec9275b983155c442ac939fdee0e03f867443c2` is local and unmerged. It is separate from this documentation correction and from pasture work; no release or owner visual acceptance is implied.
+- Historical failures, evidence and ownership/amendment reservations remain in force. This snapshot grants no merge, deletion, workflow-disable or publication authority.
+- Local pasture test-first checkpoint `b3bea12377b577655be9ff2128380a7755546695` remains unmerged with protected runtime unchanged. Isolated checks do not replace runtime integration or release qualification; no pasture amendment/cache number is allocated here.
+- See `AI_RELAY.md`, `AI_RELAY_STATE.json` and `CI_WORKFLOW_CATALOG.md`. All status text below is a dated historical snapshot, including old open-PR lists and pending-release statements.
+
+## Historical coordination snapshots (preserved)
+
 # Sunny Acres current production status - 2026-10-30
 
 Live `main` is `bb367d1` (PR #101: cow pasture ~1.5x with one-time save migration, cache `sa3d-v80`). Also merged today: #98 field renderer rollback (v77), #99 first-person lag fix near cows (v78), #100 cow personal space (v79). The 2026-10-14 entries below are history.
