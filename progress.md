@@ -1,3 +1,5 @@
+> **Historical progress log.** The complete original text below is retained as dated evidence, including obsolete launch plans, configuration notes and pending approvals. For the 2026-11-06 coordination snapshot, read [PROGRAM_STATUS.md](farm3d/PROGRAM_STATUS.md), [AI_RELAY.md](farm3d/AI_RELAY.md) and [AI_RELAY_STATE.json](farm3d/AI_RELAY_STATE.json). This log is not the current work queue or release authority.
+
 # Sunny Acres: progress
 
 Last updated: 2026-10-02

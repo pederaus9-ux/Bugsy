@@ -1,15 +1,15 @@
 version: 2
 project: Sunny Acres 3D
 owner: Austin Pederson
-updated: 2026-10-30
-baseline_commit: bb367d13f8496c02d3f394cd525a46ed2ea51de5
+updated: 2026-11-06
+baseline_commit: 1d427a91f99804ca91b6cfa5d592f360430313bd
 
 rules:
   - no real money
-  - bots never merge; Robin merges only with Austin's explicit approval for each PR
+  - no autonomous merges; dot requires Austin's explicit approval before every specific PR merge
   - closing PRs or deleting branches needs Austin's OK
   - editing a protected file needs an owner-approved numbered amendment (A-number) plus matching scope receipt/test
-  - amendment numbers and cache versions are handed out uniquely from the registries below; never reuse or self-assign; a PR that lands out of order rebases and keeps its assigned number
+  - dot maintains unique amendment/cache assignments in this registry for owner-approved scope; implementers must not self-assign or reuse numbers; a PR that lands out of order rebases and keeps its assigned number
 
 protected_files:  # from the 2026-10-02 locks and the lock tests (remaining-care-integration guard, A3/A6/A28 scope tests, animal-pen-authorized-adapters.json)
   - farm3d/game.js
@@ -47,23 +47,23 @@ protected_behaviour:
   - 3D cow rendering and behavior (A3)
   - older /farm game, root Bugsy app, GitHub Pages hosting structure
 
-amendments:  # latest merged: A42 (PR #107, sa3d-v81)
+amendments:  # latest merged: A46 (PR #110, sa3d-v85); this reconciliation allocates nothing
   - {id: A42, owner: Fence & Pasture, item: fence repair, cache: sa3d-v81, status: merged}
-  - {id: A43, owner: Docs & Cleanup, item: "PR #105 clock-only cow settle (currently labelled A42; rebase after fence repair merges)", cache: sa3d-v82, status: reserved}
-  - {id: A44, owner: Sound, item: "sound polish (PR #103)", cache: sa3d-v83, status: reserved}
-  - {id: A45, owner: Art, item: "animal art (PR #104)", cache: sa3d-v84, status: reserved}
-  - {id: A46, owner: Performance, item: "mobile stutter perf (index.html render/raycast hot paths; receipt tests/fixtures/perf-scope.json)", cache: sa3d-v85, status: "recorded; owner Austin approved 2026-10-31 (relayed to Performance)"}
+  - {id: A43, owner: Docs & Cleanup, item: "clock-only cow settle (merged PR #109; supersedes closed-unmerged #105)", cache: sa3d-v82, status: merged}
+  - {id: A44, owner: Sound, item: "sound polish (PR #103)", cache: sa3d-v83, status: merged}
+  - {id: A45, owner: Art, item: "animal art (PR #104)", cache: sa3d-v84, status: merged}
+  - {id: A46, owner: Performance, item: "mobile stutter perf (index.html render/raycast hot paths; receipt tests/fixtures/perf-scope.json)", cache: sa3d-v85, status: merged}
   - {id: A47, owner: Features, item: "UI redesign (index.html, sunny-ui.css, 2 woff2 fonts)", cache: sa3d-v86, status: reserved}
   - {id: A48, owner: Pens, item: "bigger pens", cache: sa3d-v87, status: "reserved; Robin approved 00:00 CDT under Austin's 22:53 delegation; Austin's own confirmation pending"}
   - {id: A49, owner: Art, item: "world graphics", cache: sa3d-v88, status: reserved}
 
-cache_order: ["fence sa3d-v81", "#105 sa3d-v82", "Sound sa3d-v83", "Art sa3d-v84", "Performance sa3d-v85", "Features sa3d-v86", "Pens sa3d-v87 (pending Austin)", "Art world sa3d-v88"]
+cache_order: ["fence sa3d-v81", "#109 sa3d-v82", "Sound sa3d-v83", "Art sa3d-v84", "Performance sa3d-v85", "Features sa3d-v86", "Pens sa3d-v87 (pending Austin)", "Art world sa3d-v88"]
 
 locks:
-  - scope: SunnyAcres/Robin
-    owner: Robin
-    purpose: Coordinator; assigns work, reviews, merges
-    area: "*; only bot that merges, with Austin's explicit approval for each PR"
+  - scope: SunnyAcres/dot
+    owner: dot
+    purpose: Coordinator; assigns work, reviews, maintains the version registry
+    area: "*; merges only after Austin explicitly approves the specific PR"
   - scope: SunnyAcres/Pens
     owner: "Sunny Acres: Pens"
     purpose: Animal pens
@@ -75,7 +75,7 @@ locks:
   - scope: SunnyAcres/QA
     owner: QA
     purpose: Testing, regressions, bug reports
-    area: "farm3d/tests/**, CI workflows (coordinate with Robin)"
+    area: "farm3d/tests/**, CI workflows (coordinate with dot)"
   - scope: SunnyAcres/FenceAndPasture
     owner: Fence & Pasture
     purpose: Cow fence and pasture
@@ -99,3 +99,22 @@ locks:
 
 # Historical (2026-10-02) locks: ChatGPT ArchitecturePhaseGates and Claude FirebaseHardening.
 # Both are inactive; the Firebase rules landed in main. Full text is in git history.
+
+# Coordination takeover recorded 2026-11-06: Austin approved dot coordination/registry stewardship.
+# Every PR merge still needs Austin's explicit approval. No allocation, runtime change or publication here.
+# Superseded registry/coordination wording retained as history:
+# updated: 2026-10-30
+# baseline_commit: bb367d13f8496c02d3f394cd525a46ed2ea51de5
+#   - bots never merge; Robin merges only with Austin's explicit approval for each PR
+#   - amendment numbers and cache versions are handed out uniquely from the registries below; never reuse or self-assign; a PR that lands out of order rebases and keeps its assigned number
+# amendments:  # latest merged: A42 (PR #107, sa3d-v81)
+#   - {id: A43, owner: Docs & Cleanup, item: "PR #105 clock-only cow settle (currently labelled A42; rebase after fence repair merges)", cache: sa3d-v82, status: reserved}
+#   - {id: A44, owner: Sound, item: "sound polish (PR #103)", cache: sa3d-v83, status: reserved}
+#   - {id: A45, owner: Art, item: "animal art (PR #104)", cache: sa3d-v84, status: reserved}
+#   - {id: A46, owner: Performance, item: "mobile stutter perf (index.html render/raycast hot paths; receipt tests/fixtures/perf-scope.json)", cache: sa3d-v85, status: "recorded; owner Austin approved 2026-10-31 (relayed to Performance)"}
+# cache_order: ["fence sa3d-v81", "#105 sa3d-v82", "Sound sa3d-v83", "Art sa3d-v84", "Performance sa3d-v85", "Features sa3d-v86", "Pens sa3d-v87 (pending Austin)", "Art world sa3d-v88"]
+#   - scope: SunnyAcres/Robin
+#     owner: Robin
+#     purpose: Coordinator; assigns work, reviews, merges
+#     area: "*; only bot that merges, with Austin's explicit approval for each PR"
+#     area: "farm3d/tests/**, CI workflows (coordinate with Robin)"
