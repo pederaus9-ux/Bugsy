@@ -1,5 +1,25 @@
 # Sunny Acres AI Relay Protocol
 
+## Authorized horse timeout draft candidate - 2026-11-08
+
+Current base main: `15e2325fe90fc8ac332460ef60d3dca33ef050d8`, merged PR #112.
+Tests-only draft branch: `codex/quality-horse-case-isolation-20261108`.
+Draft publication and hosted checks are authorized and pending; no PR number yet.
+Quality-loop run 42457026835 timed out the whole horse contact file at 180.106 s;
+the independent same-main regression run 42457027307 passed all nine original
+cases in about 240.5 s. The draft candidate partitions only orchestration into
+nine exact-name processes, each still bounded to 180 s, with source coverage
+pins, nonzero matched-test receipts and per-case preservation of the original
+hardcoded after-hook JSON. No original assertion/scenario/runtime/frozen receipt
+changed. Private partial-source validation is not full-tree or hosted qualification.
+Private cloud validation: 51 tooling controls and all nine original cases pass,
+with all 745 rows preserved. Cross-Node/CPU aggregate comparison differs only in
+two floating-point fields; exact numeric/byte equality is not claimed. All
+original expectations remain unchanged; hosted/full-suite checks remain pending.
+See `QUALITY_LOOPS.md`. Authorized draft publication and fresh exact-head hosted
+checks are the next steps. No merge, deployment or new amendment is performed
+by this patch; A47 and private horse-support work stay separate.
+
 ## Quality-loop draft candidate - 2026-11-08
 
 Tests-only branch `codex/game-quality-loops-20261108`, from current main
