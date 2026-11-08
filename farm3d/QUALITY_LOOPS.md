@@ -1,5 +1,85 @@
 # Whole-game quality loops
 
+## Authorized horse timeout draft candidate - 2026-11-08
+
+Base main is `15e2325fe90fc8ac332460ef60d3dca33ef050d8` (PR #112 merged).
+The authorized tests-only draft branch is
+`codex/quality-horse-case-isolation-20261108`; no PR number is assigned yet.
+Draft publication and hosted checks are authorized and pending.
+The new quality-loop run [42457026835](https://github.com/pederaus9-ux/Bugsy/actions/runs/42457026835)
+passed 130 of 131 executions but killed the whole horse contact file at
+180.106 seconds without assertion output. Independently, the existing main
+regression [42457027307](https://github.com/pederaus9-ux/Bugsy/actions/runs/42457027307),
+job 128658126349, passed all nine original tests in about 240.5 seconds on the
+same source. This establishes a process-packaging timeout, not a failed horse
+invariant or a game-performance improvement.
+
+The draft candidate runs each of those nine original top-level cases once,
+using anchored exact names. The two height cases retain all 104 scenarios at
+30/60/120 Hz each; all 56 roaming sessions, seven pinned fuzz cases and every
+remaining original case remain intact. Original source and scenario SHA-256
+pins fail closed when coverage changes. A registration-only control checks the
+manifest against the original file without executing its callbacks. Original
+assertions, scenario values, runtime and frozen evidence are unchanged.
+
+Each process retains the **same 180-second limit**, 2 GiB heap bound, sequential
+execution, total campaign budget and no-retry policy. The manifest still has
+128 Node files, now 139 isolated executions (the horse lane has 18). A selected
+case only passes when TAP proves exactly one passing, non-skipped original test
+and its fresh JSON has the expected measurement count with zero violations.
+The scorecard rejects missing/duplicate case receipts and missing evidence.
+
+The original after-hook writes one hardcoded JSON path. Before each case the
+runner temporarily preserves any previous generated file; afterward it moves
+the fresh exact bytes into that case's immutable artifact folder, hashes them,
+and restores the previous file. It does not let the ninth case overwrite the
+first eight. Two original assertion-only cases correctly produce empty arrays;
+the other seven produce 745 measurement rows in total. A failed, timed-out or
+missing-artifact case remains failed/unqualified, with available evidence kept.
+Run tests against a stable source tree and do not concurrently run another
+command that writes the same hardcoded generated artifact.
+
+Private validation uses an explicitly partial, exact-blob public-source snapshot
+on cloud Node 24.22.1. Its local synthetic Git baseline is not upstream main and
+must not be used as a full-tree or exact-head qualification. Final focused
+results are recorded below. Authorized draft publication and fresh hosted
+Node22 checks are pending; all game lanes and applicable required CI remain
+necessary before merge review. This patch changes no workflow, runtime,
+protected receipt, cache or amendment. No PR publication, merge or deployment
+has yet occurred for this candidate. A47, private horse-support work, physical-device and
+owner visual gates remain separate. The tooling/manifest changes intentionally
+make earlier loop reports incomparable rather than claiming a game fix.
+
+### Private candidate validation results
+
+- All **51 tooling controls** pass on Node 24.22.1 Linux, including the unchanged
+  baseline/dashboard controls and new exact coverage, stale/missing artifacts,
+  zero-match/skipped/TODO/TAP and scorecard negative controls. The unchanged
+  hosted control command includes the new tests through `quality-loops.test.mjs`.
+- All **nine original horse cases pass**, each exactly once, with one matched
+  non-skipped passing test receipt. Longest process: 52.414 seconds; summed
+  process time: 182.748 seconds. These are test-process times on an AMD EPYC
+  9V74, not gameplay performance results or hosted Node22 qualification.
+- Captured row counts in original case order: **312, 312, 56, 7, 0, 8, 32, 18, 0**.
+  The 745-row aggregate preserves every scenario/height/Hz/frame/violation field
+  from the original main-regression artifact. 743 rows are exactly equal.
+- **Exact JSON/byte equality was not achieved.** Compared with hosted Node22.23.4,
+  two fields differ (zero-based row indexes): row 676 `restDrop`, `1.473426380687109e-16` versus
+  `1.473426380687135e-16`; row 695 `minSoleMM`, `0.49999980024367385` versus
+  `0.499999800243666`. The strict comparison command exited 1 and is retained.
+  No assertion or tolerance was changed to conceal these differences. Source
+  coverage equivalence and passing original invariants are distinct from exact
+  cross-environment numeric equivalence, which is not claimed.
+- Original regression artifact 13607444603 aggregate SHA-256:
+  `9389c4b3e1259bc845532fc28721e9c980f06d371cce351fd5ca2e5a8c002386`.
+  Private candidate aggregate SHA-256:
+  `08e0661ad055e4b3d569f90958f786c0b085b90c57da089020510feb50530e5c`.
+- The initial new coverage control failed against the unpartitioned runner;
+  expanded negative controls likewise failed before implementation. Those
+  failures, original main timeout, independent full-file success and all raw
+  per-case logs remain retained. Full game/browser suites and new exact-head
+  hosted CI have not run for this private candidate.
+
 ## What is prepared
 
 This tests-only candidate is based on main

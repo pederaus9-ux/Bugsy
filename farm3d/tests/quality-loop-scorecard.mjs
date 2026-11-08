@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {HORSE_CONTACT_FILE,expandFileSteps} from './quality-loop-cases.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const NODE_LANES = Object.freeze(['scope', 'gameplay', 'saves', 'pens', 'routing', 'cow-care', 'cow-motion', 'horse', 'chickens', 'pets', 'remaining-care', 'player', 'world', 'performance', 'services', 'visual-contracts']);
@@ -20,8 +21,9 @@ function laneStatus(lane, definition, manifest) {
   if (lane.status !== 'passed') return lane.status;
   if (!Array.isArray(lane.steps) || !lane.steps.length || lane.steps.some(step => !step || step.status !== 'passed')) return 'incomplete';
   if (definition?.files) {
-    const expected = definition.files.flatMap(file => file === 'animal-visual.test.mjs' ? (manifest.visualPatterns || []).map(pattern => ({file, pattern})) : [{file}]);
-    if (!expected.length || expected.length !== lane.steps.length || expected.some(step => lane.steps.filter(actual => actual.file === step.file && actual.pattern === step.pattern).length !== 1)) return 'incomplete';
+    if(definition.files.includes(HORSE_CONTACT_FILE) && (!Array.isArray(manifest.horseContactCases) || manifest.horseContactCases.length!==9 || new Set(manifest.horseContactCases.map(c=>c?.name)).size!==9))return 'incomplete';
+    const expected = definition.files.flatMap(file => expandFileSteps(manifest,file));
+    if (!expected.length || expected.length !== lane.steps.length || expected.some(step => lane.steps.filter(actual => actual.file === step.file && actual.pattern === step.pattern && actual.caseName === step.caseName && (!step.caseName || actual.matchedTests === 1 && actual.measurements === step.expectedMeasurements && /^[a-f0-9]{64}$/.test(actual.evidenceSha256 || ''))).length !== 1)) return 'incomplete';
   }
   return 'passed';
 }
@@ -45,7 +47,7 @@ export function renderScorecard(report, {manifest, env = {}, readError} = {}) {
   for (const row of rows) {
     const steps = row.lane?.steps;
     const receipts = Array.isArray(steps) ? steps : [];
-    const expected = Array.isArray(row.definition?.files) ? row.definition.files.reduce((count, file) => count + (file === 'animal-visual.test.mjs' ? (manifest?.visualPatterns?.length || 0) : 1), 0) : null;
+    const expected = Array.isArray(row.definition?.files) ? row.definition.files.reduce((count, file) => count + expandFileSteps(manifest,file).length, 0) : null;
     const passedSteps = receipts.filter(step => step?.status === 'passed').length;
     const failedSteps = receipts.filter(step => ['failed', 'timed_out'].includes(step?.status)).length;
     const pendingSteps = Math.max(expected || 0, receipts.length) - passedSteps - failedSteps;

@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {HORSE_CONTACT_FILE,expandFileSteps,validateHorseCases,prepareCaseArtifacts,validateCaseEvidence} from './quality-loop-cases.mjs';
+export {expandFileSteps,validateHorseCases,inspectCaseTap} from './quality-loop-cases.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -99,6 +101,7 @@ function git(args) {
 }
 export function validateManifest(manifest, testRoot = here) {
   if (!Array.isArray(manifest.visualPatterns) || manifest.visualPatterns.length !== 4 || new Set(manifest.visualPatterns).size !== 4 || manifest.visualPatterns.some(p=>typeof p!=='string' || !p)) throw Error('Exactly four unique visual patterns required');
+  if(manifest.lanes.some(lane=>lane.files.includes(HORSE_CONTACT_FILE)))validateHorseCases(manifest,testRoot);
   const ids = new Set();
   for (const lane of manifest.lanes) {
     if (!/^[a-z0-9-]+$/.test(lane.id) || ids.has(lane.id)) throw Error('Invalid/duplicate lane id');
@@ -132,14 +135,15 @@ function stopChild(child) {
     try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
   }
 }
-export async function runCommand(args, {cwd, log, artifacts, timeoutMs, onChild = () => {}}) {
+export async function runCommand(args, {cwd, log, artifacts, timeoutMs, caseDefinition, onChild = () => {}}) {
   const started = Date.now();
   fs.mkdirSync(path.dirname(log), {recursive:true});
   fs.mkdirSync(artifacts, {recursive:true});
   const fd = fs.openSync(log, 'wx');
   fs.writeSync(fd, 'COMMAND: node ' + args.join(' ') + '\nSTART: ' + new Date().toISOString() + '\n');
-  let child, timedOut = false;
+  let child, timedOut = false, capture;
   try {
+    if(caseDefinition)capture=prepareCaseArtifacts(cwd,artifacts);
     child = spawn(process.execPath, args, {cwd, shell:false, windowsHide:true, detached:process.platform !== 'win32', stdio:['ignore',fd,fd], env:{...process.env,TEST_ARTIFACTS:artifacts,PERF_ARTIFACTS:artifacts}});
     onChild(child);
     const timer = setTimeout(() => {timedOut = true; stopChild(child);}, timeoutMs);
@@ -149,8 +153,18 @@ export async function runCommand(args, {cwd, log, artifacts, timeoutMs, onChild 
     });
     clearTimeout(timer);
     const status = timedOut ? 'timed_out' : outcome.error ? 'blocked' : outcome.code === 0 ? 'passed' : 'failed';
-    return {...outcome,status,durationMs:Date.now()-started};
-  } finally { onChild(null); fs.closeSync(fd); }
+    const result={...outcome,status,durationMs:Date.now()-started};
+    if(capture){
+      try{
+        const evidence=capture();
+        Object.assign(result,{evidenceFile:evidence.evidenceFile,evidenceSha256:evidence.evidenceSha256,measurements:evidence.measurements});
+        if(result.status==='passed')Object.assign(result,validateCaseEvidence(fs.readFileSync(log,'utf8'),caseDefinition,evidence));
+      }catch(error){result.evidenceError=error.message;if(result.status==='passed')result.status='failed';}
+    }
+    return result;
+  } finally {
+    try{capture?.();}finally{onChild(null);fs.closeSync(fd);}
+  }
 }
 export async function main(args = process.argv.slice(2)) {
   const opts = parseOptions(args);
@@ -185,7 +199,7 @@ export async function main(args = process.argv.slice(2)) {
       report.baseline={...baselineInput,report:undefined};
       currentReport=report;campaign.runIds.push(id);
       for(const lane of manifest.lanes.filter(l=>selected.includes(l.id))) {
-        report.lanes.push({...lane,status:'pending',steps:lane.files.flatMap(file=>file==='animal-visual.test.mjs'?manifest.visualPatterns.map(pattern=>({file,pattern,status:'pending'})):[{file,status:'pending'}])});
+        report.lanes.push({...lane,status:'pending',steps:lane.files.flatMap(file=>expandFileSteps(manifest,file).map(step=>({...step,status:'pending'})))});
       }
       const save=()=>{atomicJson(path.join(folder,'report.json'),report);atomicJson(path.join(opts.output,'latest.json'),{id});}; saveCurrent=save;save();
       console.log('RUN '+id+' | '+folder);
@@ -203,8 +217,8 @@ export async function main(args = process.argv.slice(2)) {
           step.artifacts=[id,lane.id,leaf+'-artifacts'].join('/');
           step.status='running'; step.startedAt=new Date().toISOString(); save();
           console.log('START '+lane.id+' / '+step.file+(step.pattern?' / '+step.pattern:''));
-          const nodeArgs=lane.kind==='node'?['--max-old-space-size=2048','--test','--test-concurrency=1',...(step.pattern?['--test-name-pattern='+step.pattern]:[]),step.file]:[...(step.file==='regression.browser.cjs'?['--experimental-vm-modules']:[]),step.file];
-          Object.assign(step,await runCommand(nodeArgs,{cwd:here,log:path.join(opts.output,step.log),artifacts:path.join(opts.output,step.artifacts),timeoutMs:Math.min(lane.timeoutSeconds*1000,Math.max(1,deadline-Date.now())),onChild:child=>{active=child;}}));
+          const nodeArgs=lane.kind==='node'?['--max-old-space-size=2048','--test','--test-concurrency=1',...(step.caseName?['--test-reporter=tap']:[]),...(step.pattern?['--test-name-pattern='+step.pattern]:[]),step.file]:[...(step.file==='regression.browser.cjs'?['--experimental-vm-modules']:[]),step.file];
+          Object.assign(step,await runCommand(nodeArgs,{cwd:here,log:path.join(opts.output,step.log),artifacts:path.join(opts.output,step.artifacts),caseDefinition:step.caseName?{name:step.caseName,measurements:step.expectedMeasurements}:undefined,timeoutMs:Math.min(lane.timeoutSeconds*1000,Math.max(1,deadline-Date.now())),onChild:child=>{active=child;}}));
           if(interrupted) step.status='interrupted';
           step.finishedAt=new Date().toISOString(); save();
           console.log(step.status.toUpperCase()+' '+step.file+' '+(step.durationMs/1000).toFixed(1)+'s');

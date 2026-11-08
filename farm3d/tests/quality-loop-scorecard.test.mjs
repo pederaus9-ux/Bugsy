@@ -163,3 +163,25 @@ test('baseline source-run and artifact provenance is shown as escaped data', () 
   assert.ok(text.includes(`source Actions run: ${escapeText(hostile)}; artifact ID: ${escapeText(hostile)}`));
   assert.ok(!text.includes(hostile));
 });
+
+test('horse lane cannot pass without all nine case receipts and nonzero matched checks',()=>{
+  const value=report();
+  const horse=value.lanes.find(l=>l.id==='horse');
+  const cases=Array.from({length:9},(_,i)=>({name:'case '+i,measurements:i}));
+  const manifest={horseContactCases:cases,lanes:[{id:'horse',files:['horse-contact-feasibility.test.mjs']}]};
+  horse.steps=cases.map(c=>({file:'horse-contact-feasibility.test.mjs',caseName:c.name,pattern:'^'+c.name+'$',status:'passed',matchedTests:1,measurements:c.measurements,evidenceSha256:'a'.repeat(64)}));
+  assert.match(renderScorecard(value,{manifest}),/Recorded Node suite passed/);
+  assert.match(renderScorecard(value,{manifest}),/9 recorded; 9 expected/);
+  for(const mutate of [s=>s.pop(),s=>s[1]=s[0],s=>delete s[0].matchedTests,s=>s[0].matchedTests=0,s=>delete s[0].evidenceSha256,s=>s[0].measurements=999]){
+    const copy=structuredClone(value);mutate(copy.lanes.find(l=>l.id==='horse').steps);
+    assert.match(renderScorecard(copy,{manifest}),/UNQUALIFIED/);
+  }
+});
+
+test('missing horse partition manifest cannot erase that required file from a passing scorecard',()=>{
+  const value=report();
+  const horse=value.lanes.find(l=>l.id==='horse');
+  horse.steps=[{file:'other.test.mjs',status:'passed'}];
+  const manifest={lanes:[{id:'horse',files:['other.test.mjs','horse-contact-feasibility.test.mjs']}]};
+  assert.match(renderScorecard(value,{manifest}),/UNQUALIFIED/);
+});
