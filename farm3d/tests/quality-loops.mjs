@@ -26,7 +26,7 @@ export function summarize(steps) {
   return steps.length && steps.every(s => s.status === 'passed') ? 'passed' : 'pending';
 }
 export function compareReports(previous, current) {
-  const result = {regressions: [], fixes: [], notComparable: [], durationIsGamePerformance: false};
+  const result = {regressions: [], fixes: [], unchanged: [], notComparable: [], durationIsGamePerformance: false};
   if (!previous) { result.notComparable.push('No baseline selected'); return result; }
   if (previous.manifestHash !== current.manifestHash) {
     result.notComparable.push('Test manifest changed; refusing pass/fail comparison'); return result;
@@ -44,28 +44,55 @@ export function compareReports(previous, current) {
     }
     if (before.status === 'passed' && lane.status === 'failed') result.regressions.push(lane.id);
     if (before.status === 'failed' && lane.status === 'passed') result.fixes.push(lane.id);
+    if (before.status === lane.status) result.unchanged.push(lane.id);
   }
   return result;
 }
 export function parseOptions(args) {
-  const opts = {lanes: null, repeat: 1, budgetMinutes: 30, includeBrowser: false, baseline: null, output: path.join(here, 'artifacts/quality-loops'), list: false};
+  const opts = {lanes: null, repeat: 1, budgetMinutes: 30, includeBrowser: false, baseline: null, baselineDirectory: null, output: path.join(here, 'artifacts/quality-loops'), list: false};
   for (let i = 0; i < args.length; i++) {
     const key = args[i];
     if (key === '--list') opts.list = true;
     else if (key === '--include-browser') opts.includeBrowser = true;
-    else if (['--lanes','--repeat','--budget-minutes','--baseline','--output'].includes(key)) {
+    else if (['--lanes','--repeat','--budget-minutes','--baseline','--baseline-directory','--output'].includes(key)) {
       const value = args[++i];
       if (!value || value.startsWith('--')) throw Error('Missing value for ' + key);
       if (key === '--lanes') opts.lanes = value.split(',');
       if (key === '--repeat') opts.repeat = Number(value);
       if (key === '--budget-minutes') opts.budgetMinutes = Number(value);
       if (key === '--baseline') opts.baseline = path.resolve(value);
+      if (key === '--baseline-directory') opts.baselineDirectory = path.resolve(value);
       if (key === '--output') opts.output = path.resolve(value);
     } else throw Error('Unknown option ' + key);
   }
   if (!Number.isInteger(opts.repeat) || opts.repeat < 1 || opts.repeat > 3) throw Error('Repeat must be 1..3');
+  if (opts.baseline && opts.baselineDirectory) throw Error('Select baseline file or directory, not both');
   if (!Number.isFinite(opts.budgetMinutes) || opts.budgetMinutes <= 0 || opts.budgetMinutes > 60) throw Error('Budget must be >0 and <=60 minutes');
   return opts;
+}
+export function loadBaselineDirectory(directory, expected = {}) {
+  if(!directory)return {report:null,status:'not_selected',reason:'No baseline directory selected'};
+  try{
+    const root=path.resolve(directory);
+    const safeRead=relative=>{
+      let current=root;
+      if(fs.lstatSync(current).isSymbolicLink())throw Error('Linked baseline root');
+      for(const part of relative.split('/')){if(!/^[A-Za-z0-9_.-]+$/.test(part) || part==='.' || part==='..')throw Error('Unsafe baseline path');current=path.join(current,part);if(fs.lstatSync(current).isSymbolicLink())throw Error('Linked baseline path');}
+      const real=fs.realpathSync(current),realRoot=fs.realpathSync(root);
+      if(!real.startsWith(realRoot+path.sep))throw Error('Baseline path escapes root');
+      const stat=fs.statSync(real);if(!stat.isFile() || stat.size>8*1024*1024)throw Error('Invalid baseline file');
+      return JSON.parse(fs.readFileSync(real,'utf8'));
+    };
+    const latest=safeRead('latest.json');
+    if(typeof latest.id!=='string' || !/^[A-Za-z0-9_-]+$/.test(latest.id))throw Error('Invalid baseline run id');
+    const report=safeRead(latest.id+'/report.json');
+    if(report.id!==latest.id || !Array.isArray(report.lanes) || !['passed','failed'].includes(report.status))throw Error('Incomplete or invalid baseline report');
+    const ids=new Set();for(const lane of report.lanes){if(!lane || typeof lane.id!=='string' || ids.has(lane.id))throw Error('Invalid baseline lanes');ids.add(lane.id);}
+    const hasExpected=Object.values(expected).some(Boolean);
+    if(hasExpected && (!/^[a-f0-9]{40}$/.test(expected.headSha || '') || !/^[1-9]\d*$/.test(expected.runId || '') || !/^[1-9]\d*$/.test(expected.artifactId || '')))throw Error('Invalid expected baseline provenance');
+    if(hasExpected && report.head!==expected.headSha)throw Error('Baseline head does not match selected artifact source');
+    return {report,status:'loaded',id:report.id,head:report.head,...(hasExpected?{sourceRunId:expected.runId,artifactId:expected.artifactId}:{})};
+  }catch(error){return {report:null,status:'unavailable',reason:error.code==='ENOENT'?'No downloaded baseline available':'Baseline rejected: '+error.message};}
 }
 function git(args) {
   return execFileSync('git', args, {cwd:repo, encoding:'utf8', maxBuffer:16*1024*1024, windowsHide:true}).trim();
@@ -132,7 +159,8 @@ export async function main(args = process.argv.slice(2)) {
   if (opts.list) { console.log(manifest.coverage); for (const l of manifest.lanes) console.log(l.id + ': ' + l.files.length + ' ' + l.kind + ' files' + (l.kind === 'browser' ? ' [opt-in]' : '')); return 0; }
   const selected = opts.lanes || manifest.lanes.filter(l=>l.kind==='node').map(l=>l.id);
   for (const id of selected) if (!manifest.lanes.some(l=>l.id===id)) throw Error('Unknown lane ' + id);
-  const baseline = opts.baseline ? JSON.parse(fs.readFileSync(opts.baseline,'utf8')) : null;
+  const baselineInput=opts.baseline?{report:JSON.parse(fs.readFileSync(opts.baseline,'utf8')),status:'explicit_file'}:loadBaselineDirectory(opts.baselineDirectory,{headSha:process.env.QUALITY_BASELINE_HEAD,runId:process.env.QUALITY_BASELINE_RUN,artifactId:process.env.QUALITY_BASELINE_ARTIFACT});
+  const baseline=baselineInput.report;
   fs.mkdirSync(opts.output,{recursive:true});
   const lockPath=path.join(opts.output,'.run.lock');
   let lock;
@@ -154,6 +182,7 @@ export async function main(args = process.argv.slice(2)) {
       const folder=path.join(opts.output,id); fs.mkdirSync(folder);
       const sourceStatus=git(['status','--porcelain']);
       const report={schemaVersion:1,id,status:'running',startedAt:new Date().toISOString(),finishedAt:null,head,branch,dirty:!!sourceStatus,sourceStatus,manifestHash:hash(raw),testFingerprint:testFingerprint(manifest),runnerFingerprint:hash(fs.readFileSync(fileURLToPath(import.meta.url))),runtimeTree:git(['rev-parse','HEAD:farm3d']),node:process.version,platform:process.platform,hardware:os.cpus()[0]?.model,executionContext:process.env.GITHUB_ACTIONS==='true'?'GitHub Actions':'local',iteration,budgetMinutes:opts.budgetMinutes,scope:manifest.coverage,notQualification:['No autonomous code changes or merges','Does not replace existing required hosted CI gates','Not owner visual acceptance','Not physical phone performance','No recurring schedule installed'],lanes:[],comparison:null};
+      report.baseline={...baselineInput,report:undefined};
       currentReport=report;campaign.runIds.push(id);
       for(const lane of manifest.lanes.filter(l=>selected.includes(l.id))) {
         report.lanes.push({...lane,status:'pending',steps:lane.files.flatMap(file=>file==='animal-visual.test.mjs'?manifest.visualPatterns.map(pattern=>({file,pattern,status:'pending'})):[{file,status:'pending'}])});

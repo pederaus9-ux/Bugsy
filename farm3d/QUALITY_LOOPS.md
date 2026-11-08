@@ -34,6 +34,7 @@ node farm3d/tests/quality-loops.mjs --budget-minutes 30
 node farm3d/tests/quality-loops.mjs --lanes gameplay,player --budget-minutes 10
 node farm3d/tests/quality-loops.mjs --lanes gameplay --repeat 3 --budget-minutes 10
 node farm3d/tests/quality-loops.mjs --lanes gameplay --baseline path/to/prior/report.json
+node farm3d/tests/quality-loops.mjs --baseline-directory path/to/downloaded-artifact
 ```
 
 - One child process runs at a time. No shell evaluates test commands.
@@ -70,6 +71,21 @@ unrun, blocked and timed-out lanes are not compared as passes. Browser measureme
 comparability requires separate review. Changed test status identifies candidate regressions/fixes
 for investigation. Test wall-clock time is not game frame time or phone FPS.
 
+The hosted job automatically searches up to 20 prior successful runs of this
+workflow on the **same branch**. It selects a non-expired matching evidence
+artifact using read-only GitHub APIs, downloads it with the official artifact
+action, and reads its confined latest report, checking its head against the
+selected source and retaining the selected run/artifact IDs. Discovery has
+a 30-second total request deadline. It never downloads executable
+code from an artifact. Missing, expired, inaccessible or incompatible evidence
+is explicitly shown as no comparison, while current assertions still run.
+The first run of a new branch may have no baseline. A tooling, test, Node or
+hardware change can invalidate an otherwise available baseline; this is not
+reported as a game fix or regression. No prior failed evidence is overwritten.
+Automatic retrieval is a **last-green regression baseline**. To verify a fix,
+explicitly compare against the compatible failing report with `--baseline`;
+a previously green baseline alone cannot establish that a failure was repaired.
+
 ## Where to watch
 
 For an authorized published draft PR, open its **Checks** tab, then the
@@ -77,6 +93,9 @@ For an authorized published draft PR, open its **Checks** tab, then the
 the run's JSON evidence and per-step logs as downloadable artifacts for 14 days.
 This is accessible on desktop or phone; no local PC connection is needed.
 The run must actually exist before it is described as active or complete.
+The GitHub job summary provides a 16-lane scorecard, per-lane execution counts,
+source identity, baseline compatibility and remaining qualification limits.
+Logs remain the source for live in-progress steps, and artifacts retain details.
 
 For an optional local evidence viewer:
 
@@ -126,13 +145,35 @@ generic recurring loops. This manifest does not replace existing CI gates.
 
 ## Scheduling and publication
 
-`farm3d-quality-loops.yml` runs on matching PR changes and supports manual
+`farm3d-quality-loops.yml` runs for **any farm3d change** in PRs targeting main
+and pushes to main, and supports manual
 dispatch after GitHub registers it on the default branch. Austin explicitly
 approved publishing the tests-only draft PR and running GitHub checks. The job
 checks out the exact PR head, uses read-only repository permissions, Node 22,
-a 35-minute job bound and 14-day artifact retention. Existing CI gates remain
+a 35-minute job bound and 14-day artifact retention. It also has read-only
+Actions access to retrieve same-branch evidence. Existing CI gates remain
 unchanged. No timer, Windows task, service, automatic code change, auto-merge
 or deployment is configured. Every merge still needs separate approval.
+The workflow is still a draft candidate until its PR is merged; other branches
+must contain the workflow before GitHub can apply these triggers to them.
+
+## Preserved first hosted baseline
+
+Head `4fb5f9b5c077802d3043526386a4f1b32561d7f5` passed all four triggered
+workflows and all 21 jobs: the new loop, existing regression, field qualification
+and real Pages package validation. One field job deliberately tested immutable
+historical source, separately from candidate coverage. The new Node22.23.4 loop
+passed all 16 lanes, 128 files / 131 isolated executions, and 15 tooling controls.
+The Firebase emulator's recovery suite passed 27/27 scenarios.
+
+- Loop run: https://github.com/pederaus9-ux/Bugsy/actions/runs/42448457926
+- Evidence: https://github.com/pederaus9-ux/Bugsy/actions/runs/42448457926/artifacts/13604227971
+- Draft PR: https://github.com/pederaus9-ux/Bugsy/pull/112
+
+Those results belong to that exact first head. The broader triggers, automatic
+baseline retrieval and scorecard are a subsequent test-only change and need
+their own exact-head validation. An older report may be incomparable because
+the tooling fingerprint changed; that is expected and is shown honestly.
 
 ## Local validation and unresolved blocker
 

@@ -13,6 +13,15 @@ draft PR and running GitHub checks. No recurring scheduler, local dashboard
 launch, merge or deployment is included.
 Austin's explicit approval is still required before each specific PR merge.
 
+First published head `4fb5f9b5c077802d3043526386a4f1b32561d7f5`, draft PR112,
+passed all 21 triggered jobs across four workflows. The Node22 loop passed all
+16 lanes / 128 files (131 isolated executions), with evidence retained in run
+42448457926. A follow-up candidate broadens test-only triggers to farm3d changes,
+adds read-only same-branch baseline retrieval and a GitHub evidence scorecard.
+The follow-up needs fresh exact-head checks. It adds no autonomous code fixes,
+timer, merge or deployment. Physical-device and owner visual acceptance remain
+separate from automated checks.
+
 **Canonical coordination document for all coding agents.**
 
 This file exists so ChatGPT, Antigravity, Claude, Grok, Codex, Copilot/Cursor-style agents, and human contributors can hand work to one another without losing project state.

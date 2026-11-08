@@ -4,12 +4,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {compareReports,parseOptions,summarize,validateManifest,runCommand,finalizeRunnerError,campaignStatus} from './quality-loops.mjs';
+import {compareReports,parseOptions,summarize,validateManifest,runCommand,finalizeRunnerError,campaignStatus,loadBaselineDirectory} from './quality-loops.mjs';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 test('bounded CLI rejects unbounded work and arbitrary options',()=>{
   assert.equal(parseOptions([]).repeat,1);
   for(const args of [['--repeat','0'],['--repeat','4'],['--repeat','1.5'],['--budget-minutes','61'],['--budget-minutes','NaN'],['--lanes'],['--command','rm']]) assert.throws(()=>parseOptions(args));
+  assert.throws(()=>parseOptions(['--baseline','a','--baseline-directory','b']));
 });
 test('status never treats empty, blocked, timed-out or incomplete work as passed',()=>{
   assert.equal(summarize([]),'pending');
@@ -20,13 +21,34 @@ test('comparison preserves regressions and fixes, rejects changed manifest and u
   const identity={manifestHash:'a',testFingerprint:'t',runnerFingerprint:'r',node:'v22',platform:'linux',hardware:'same-host'};
   const before={...identity,lanes:[{id:'x',status:'passed'},{id:'y',status:'failed'},{id:'z',status:'blocked'}]};
   const after={...identity,lanes:[{id:'x',status:'failed'},{id:'y',status:'passed'},{id:'z',status:'passed'}]};
-  assert.deepEqual(compareReports(before,after),{regressions:['x'],fixes:['y'],notComparable:['z'],durationIsGamePerformance:false});
+  assert.deepEqual(compareReports(before,after),{regressions:['x'],fixes:['y'],unchanged:[],notComparable:['z'],durationIsGamePerformance:false});
   assert.deepEqual(compareReports({...before,manifestHash:'b'},after).regressions,[]);
   assert.ok(compareReports(null,after).notComparable.length);
   assert.deepEqual(compareReports({...before,node:'v24'},after).fixes,[]);
   assert.deepEqual(compareReports({...before,testFingerprint:'changed'},after).fixes,[]);
   const browser=compareReports({...identity,lanes:[{id:'b',kind:'browser',status:'failed'}]},{...identity,lanes:[{id:'b',kind:'browser',status:'passed'}]});
   assert.deepEqual(browser.fixes,[]);assert.ok(browser.notComparable.length);
+  assert.deepEqual(compareReports(before,before).unchanged,['x','y']);
+});
+test('downloaded baseline loads only a complete confined report and rejects traversal',()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'sunny-baseline-read-'));
+  try{
+    assert.equal(loadBaselineDirectory(root).status,'unavailable');
+    const id='prior-run';fs.mkdirSync(path.join(root,id));
+    fs.writeFileSync(path.join(root,'latest.json'),JSON.stringify({id}));
+    const report={id,status:'passed',head:'a'.repeat(40),lanes:[{id:'scope',status:'passed'}]};
+    fs.writeFileSync(path.join(root,id,'report.json'),JSON.stringify(report));
+    assert.deepEqual(loadBaselineDirectory(root).report,report);
+    const expected={headSha:report.head,runId:'123',artifactId:'456'};
+    assert.equal(loadBaselineDirectory(root,expected).sourceRunId,'123');
+    assert.equal(loadBaselineDirectory(root,expected).artifactId,'456');
+    assert.equal(loadBaselineDirectory(root,{...expected,headSha:'b'.repeat(40)}).status,'unavailable');
+    assert.equal(loadBaselineDirectory(root,{headSha:report.head}).status,'unavailable');
+    fs.writeFileSync(path.join(root,id,'report.json'),JSON.stringify({...report,status:'running'}));
+    assert.equal(loadBaselineDirectory(root).status,'unavailable');
+    fs.writeFileSync(path.join(root,'latest.json'),JSON.stringify({id:'../outside'}));
+    assert.equal(loadBaselineDirectory(root).status,'unavailable');
+  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 test('runner exception finalization retains failures and blocks unfinished work',()=>{
   const report={status:'running',lanes:[{status:'running',steps:[{status:'passed'},{status:'failed'},{status:'running'},{status:'pending'}]}]};
