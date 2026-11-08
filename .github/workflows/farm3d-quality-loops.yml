@@ -1,0 +1,56 @@
+name: Sunny Acres bounded quality loops
+
+# Owner-approved draft-PR validation. No timer, auto-fix, merge or deployment.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'farm3d/tests/quality-loop*'
+      - '.github/workflows/farm3d-quality-loops.yml'
+  workflow_dispatch:
+    inputs:
+      lanes:
+        description: Comma-separated Node lane IDs, or all
+        default: all
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: farm3d-quality-loops-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  node-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify orchestration controls
+        run: node --test farm3d/tests/quality-loops.test.mjs farm3d/tests/quality-loop-dashboard.test.mjs
+      - name: Run bounded Node lanes
+        env:
+          QUALITY_LANES: ${{ inputs.lanes || 'all' }}
+        run: |
+          if [ "$QUALITY_LANES" = "all" ]; then
+            node farm3d/tests/quality-loops.mjs --budget-minutes 30
+          else
+            node farm3d/tests/quality-loops.mjs --budget-minutes 30 --lanes "$QUALITY_LANES"
+          fi
+      - name: Preserve all results, including failures
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: game-quality-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/quality-loops/
+          if-no-files-found: warn
+          retention-days: 14
