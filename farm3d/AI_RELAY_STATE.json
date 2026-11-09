@@ -1,4 +1,51 @@
 {
+  "earlyRecoveryFixtureCandidate20261109": {
+    "status": "AUTHORIZED_EARLY_FIXTURE_PUBLICATION_HOSTED_PENDING",
+    "baseMain": "38fa4706e41c40197b7afc32de693cb3901a80fb",
+    "publicDraftHead": "03bd1bafcebd452ebec037f14f2a510d3b724255",
+    "pullRequest": "https://github.com/pederaus9-ux/Bugsy/pull/114",
+    "retainedFailure": "https://github.com/pederaus9-ux/Bugsy/actions/runs/42706418607/job/129464287037",
+    "latestPublicResults": {
+      "successfulWorkflows": 4,
+      "regressionJobsPassed": 16,
+      "regressionJobsTotal": 17,
+      "recoveryAssertionsPassed": 26,
+      "recoveryAssertionsTotal": 27,
+      "scenario2": "Passed; baseline12, corrupt13, repaired14"
+    },
+    "diagnosis": "Scenario1.1 generated a due rush during restored startup. Revision7 to8 changes only rush and lastSeen; sentinel, coins, XP and all other serialized fields remain intact.",
+    "scope": "Additive once-only rush deadline preparation at the existing quiescent boundary; read-only persisted rush/visitor guards and receipts before edited-quota, race and each scenario1 corruption. Published scenario2 preparation unchanged.",
+    "headroomMs": {
+      "editedQuota": 355000,
+      "race": 495000,
+      "scenario1": 350000,
+      "rushPreparationHorizon": 3600000
+    },
+    "timingLimit": "Configured-wait headroom, not an unlimited guarantee for arbitrary REPEAT, network latency or existing unbounded diagnostic trace draining. Unsafe fixtures fail before corruption.",
+    "privateValidation": {
+      "node": "24.22.1",
+      "fixtureGuards": 77,
+      "toolingControls": 69,
+      "unchangedSaveGameplayContracts": 59,
+      "unchangedRecoveryObservationControls": 16,
+      "passed": 221,
+      "failed": 0,
+      "partialSource": true,
+      "independentReview": "No remaining actionable finding; independent 77-control rerun passed",
+      "actualGameSaveLoad": "Node VM with existing boundary shims, not browser/cloud"
+    },
+    "runtimeChanged": false,
+    "workflowChanged": false,
+    "frozenEvidenceChanged": false,
+    "originalAssertionsChanged": false,
+    "timeoutsChanged": false,
+    "published": false,
+    "hostedFollowupRun": false,
+    "merged": false,
+    "deployed": false,
+    "nextGate": "Publish the approved test-only fixture extension to existing draft PR114, then require all 27 original recovery assertions and prepared-timer receipts in fresh hosted validation. Preserve failed evidence and prior denied-operation restrictions. No merge or deployment.",
+    "ownerApproval": "Austin approved the test-only correction to draft PR114 and running its GitHub checks again. This narrowly scoped timer-fixture extension continues that correction; no runtime change, merge or deployment."
+  },
   "recoveryFixtureCandidate20261109": {
     "status": "AUTHORIZED_FIXTURE_PUBLICATION_HOSTED_PENDING",
     "baseMain": "38fa4706e41c40197b7afc32de693cb3901a80fb",

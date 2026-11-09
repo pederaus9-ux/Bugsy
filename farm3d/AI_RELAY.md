@@ -1,5 +1,28 @@
 # Sunny Acres AI Relay Protocol
 
+## Authorized early recovery fixture extension - 2026-11-09
+
+PR #114 remains draft at `03bd1bafcebd452ebec037f14f2a510d3b724255`, based on
+main `38fa4706e41c40197b7afc32de693cb3901a80fb`. Its fresh checks passed four
+workflows and 16/17 regression jobs. Recovery passed 26/27: the approved scenario-2
+fixture passed, while scenario 1.1 generated a due rush order during restored
+startup and advanced rev7 to rev8. Only rush and lastSeen changed; the sentinel,
+coins, XP and all other fields were preserved. Original failed evidence remains.
+This approved additive extension prepares rush deadlines once at the existing
+quiescent-fixture boundary, then checks persisted rush/visitor headroom before
+edited-quota, race and each scenario-1 corruption. Existing order contents and
+rewards are preserved; visitors are read-only. Unsafe timing fails explicitly.
+All original test lines and the published scenario-2 preparation are unchanged.
+221 focused Node controls pass: 77 private fixture guards, 69 tooling, 59 unchanged
+save/gameplay contracts and 16 recovery-observation controls. This is partial-source
+Node24 validation, not fresh browser/emulator qualification. Independent review
+found no remaining actionable issue. The finite horizon does not guarantee
+arbitrary REPEAT or unbounded network/trace overhead. No runtime, workflow, cache,
+amendment or frozen-evidence change. Austin approved adding this test-only timer
+fixture correction to draft PR114 and running its GitHub checks again. Publication
+and fresh hosted checks are pending at this preparation checkpoint; all 27 recovery
+assertions remain required. No merge or deployment is authorized.
+
 ## Authorized recovery fixture correction - 2026-11-09
 
 PR #114 was reverified draft at `12053c611fbf6105df02825be970d22a261d0c27`, based on
