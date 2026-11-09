@@ -1,5 +1,47 @@
 # Sunny Acres AI Relay Protocol
 
+## Authorized hosted visual/gameplay candidate - 2026-11-09
+
+Austin approved publishing this tests-only visual/gameplay candidate as a public
+**draft PR** and running bounded GitHub checks. Branch:
+`codex/visual-gameplay-hosted-validation-20261109`; base main remains
+`38fa4706e41c40197b7afc32de693cb3901a80fb`. Publication and hosted results are pending.
+The new workflow is opt-in for that exact same-repository candidate branch or a
+manual invocation. Three isolated jobs cover the 12-image gallery, earned levels
+9-20, and 17 boundary groups. Each checks out the exact candidate head, uses locked
+browser dependencies, bounds its browser process to 20 minutes, preserves failures,
+and verifies complete receipt/source/image hashes rather than trusting exit alone.
+All 62 local tooling controls pass on cloud Node24; the unchanged four gameplay
+files pass 27 controls and four save/performance-contract files pass 26 on both
+baseline and candidate. These are partial-source Node checks, not hosted Node22 or
+new browser qualification. Earlier cloud startup failures remain retained.
+No runtime, approved art/style, cache, amendment, original progression assertion
+or frozen-evidence change. No merge or deployment is authorized. Performance/device
+qualification and actual gallery pixel review remain separate. See
+`VISUAL_GAMEPLAY_QUALITY_REVIEW.md` for the exact scope and limits.
+
+## Visual/gameplay evidence review candidate - 2026-11-08
+
+Verified current main is `38fa4706e41c40197b7afc32de693cb3901a80fb`, after PR #113.
+Main regression run 42487054995 passed all 17 jobs; quality-loop run 42487054756
+passed 16 Node lanes / 139 executions. Existing browser jobs are distinct from
+the loop's unrun opt-in browser lanes. See `VISUAL_GAMEPLAY_QUALITY_REVIEW.md`.
+Current scene screenshots reveal a review-evidence gap: reduced-resolution or
+obscured fixture captures cannot qualify visual quality or owner acceptance.
+A private tests-only scorecard candidate validates exact browser file coverage,
+duplicates and missing receipts. Follow-up adds an opt-in 12-capture full-resolution
+gallery and three capture-integrity controls; 58/58 tooling controls pass on cloud
+Node24 and independent code review found no actionable issue. Current-source
+progression and gallery attempts failed before Chromium startup (local socket/
+Crashpad restrictions), including a scoped elevated progression retry. Zero
+gameplay assertions/new screenshots ran; all failures remain retained. Exact
+commit/tree objects and 297 source files were imported/verified, still partial.
+This partial exact-blob source validation is not a full-tree or hosted candidate
+qualification. No runtime/style/workflow/cache/amendment/frozen-evidence change,
+publication, merge or deployment. Gallery pixel inspection, longer-play and
+performance qualification require a browser-capable executor or authorized hosted
+run. Keep A47 and private horse-support candidates separate.
+
 ## Authorized horse timeout draft candidate - 2026-11-08
 
 Current base main: `15e2325fe90fc8ac332460ef60d3dca33ef050d8`, merged PR #112.

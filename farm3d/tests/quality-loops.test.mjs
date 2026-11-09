@@ -6,6 +6,10 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import * as runner from './quality-loops.mjs';
 import {compareReports,parseOptions,summarize,validateManifest,runCommand,finalizeRunnerError,campaignStatus,loadBaselineDirectory} from './quality-loops.mjs';
+// Keep capture-integrity controls in the existing hosted tooling command. The
+// actual rendered gallery remains explicit opt-in and needs a browser executor.
+import './visual-review-capture.test.cjs';
+import './hosted-browser-receipts.test.mjs';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 test('bounded CLI rejects unbounded work and arbitrary options',()=>{

@@ -185,3 +185,55 @@ test('missing horse partition manifest cannot erase that required file from a pa
   const manifest={lanes:[{id:'horse',files:['other.test.mjs','horse-contact-feasibility.test.mjs']}]};
   assert.match(renderScorecard(value,{manifest}),/UNQUALIFIED/);
 });
+
+function browserFixture() {
+  const value = report();
+  const definition = {id: 'browser-gameplay', kind: 'browser', files: ['regression.browser.cjs', 'shed-switch.browser.cjs', 'seed-selection.browser.cjs']};
+  const lane = {id: definition.id, kind: 'browser', status: 'passed', steps: definition.files.map(file => ({file, status: 'passed'}))};
+  value.lanes.push(lane);
+  return {value, lane, manifest: {lanes: [definition]}};
+}
+function browserReceipt(value, manifest) {
+  return renderScorecard(value, {manifest}).split('\n').find(line => line.startsWith('- Browser lane receipts:'));
+}
+test('browser receipts require every exact manifest file, not only a passing lane label', () => {
+  const {value, manifest} = browserFixture();
+  assert.ok(browserReceipt(value, manifest).includes(`${escapeText('browser-gameplay')}: passed`));
+  for (const mutate of [s => s.pop(), s => s[1] = s[0], s => s[0].file = 'other.browser.cjs', s => s.push({file: 'extra.browser.cjs', status: 'passed'}), s => s[0].pattern = 'filtered subset', s => s[0].caseName = 'filtered case']) {
+    const copy = structuredClone(value);
+    mutate(copy.lanes.at(-1).steps);
+    assert.ok(browserReceipt(copy, manifest).includes(`${escapeText('browser-gameplay')}: incomplete`));
+    assert.ok(!browserReceipt(copy, manifest).includes(': passed'));
+  }
+});
+test('browser duplicate lanes, wrong kinds and absent definitions cannot manufacture a pass', () => {
+  for (const mutate of [
+    f => f.value.lanes.push(structuredClone(f.lane)),
+    f => f.value.lanes.push({...f.lane, kind: 'node'}),
+    f => f.lane.kind = 'node',
+    f => f.manifest.lanes = [],
+    f => f.manifest.lanes.push(structuredClone(f.manifest.lanes[0])),
+    f => f.manifest.lanes[0].files = [],
+    f => delete f.manifest.lanes[0].files,
+    f => f.manifest.lanes[0].files[0] = 'fixture.test.mjs',
+    f => f.manifest.lanes[0].files[1] = f.manifest.lanes[0].files[0]
+  ]) {
+    const fixture = browserFixture(); mutate(fixture);
+    assert.ok(!browserReceipt(fixture.value, fixture.manifest).includes(': passed'));
+  }
+});
+test('browser lanes without receipts stay missing and failures keep their actual status', () => {
+  const {value, manifest} = browserFixture();
+  for (const status of ['blocked', 'failed', 'timed_out', 'running', 'pending', 'interrupted']) {
+    value.lanes.at(-1).status = status;
+    assert.ok(browserReceipt(value, manifest).includes(`${escapeText('browser-gameplay')}: ${escapeText(status)}`));
+  }
+  value.lanes.pop();
+  assert.ok(browserReceipt(value, manifest).includes(`${escapeText('browser-gameplay')}: missing`));
+  assert.match(renderScorecard(value, {manifest}), /Recorded Node suite passed/);
+});
+test('browser receipts still separate execution coverage from visual or device acceptance', () => {
+  const {value, manifest} = browserFixture();
+  const text = renderScorecard(value, {manifest});
+  assert.match(text, /Passing browser command receipts do not establish screenshot quality, owner visual acceptance or physical-device performance/);
+});
