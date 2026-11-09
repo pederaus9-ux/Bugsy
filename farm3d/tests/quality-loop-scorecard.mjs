@@ -70,8 +70,23 @@ export function renderScorecard(report, {manifest, env = {}, readError} = {}) {
     lines.push(`- ${key}: ${values ? `${values.length}${values.length ? ' (' + values.map(escapeText).join(', ') + ')' : ' recorded'}` : 'unavailable'}`);
   }
   lines.push('', 'Zero recorded regressions is not a clean-baseline claim when any lanes are notComparable or evidence is incomplete.', '', '### Qualification limits', '- No autonomous fixes, code changes, or merges are performed by this scorecard.', '- Not owner visual acceptance or physical-device qualification.', '- Browser rendering, installed-cache, Firebase emulator and existing required CI gates remain separate.', '- Passing Node contracts does not qualify the whole game or authorize deployment.');
-  const browser = lanes.filter(lane => lane?.kind === 'browser');
-  lines.push(`- Browser lane receipts: ${browser.length ? browser.map(lane => `${escapeText(lane.id)}: ${escapeText(laneStatus(lane))}`).join('; ') : 'not recorded; unqualified'}.`);
+  // Browser execution claims need the same exact-file coverage checks as Node
+  // lanes. Include expected-but-unrun lanes and detect duplicate/kind-spoofed
+  // receipts before trusting a reported lane status.
+  const browserIds = [...new Set([...definitions.filter(lane => lane?.kind === 'browser'), ...lanes.filter(lane => lane?.kind === 'browser')].map(lane => lane.id))];
+  const browser = browserIds.map(id => {
+    const expected = definitions.filter(lane => lane?.id === id);
+    const actual = lanes.filter(lane => lane?.id === id);
+    let status;
+    if (expected.length > 1 || actual.length > 1) status = 'duplicate';
+    else if (expected.length !== 1 || expected[0].kind !== 'browser' || !Array.isArray(expected[0].files) || !expected[0].files.length || new Set(expected[0].files).size !== expected[0].files.length || expected[0].files.some(file => typeof file !== 'string' || !file.endsWith('.browser.cjs'))) status = 'unknown';
+    else if (!actual.length) status = 'missing';
+    else if (actual[0].kind !== 'browser') status = 'unknown';
+    else status = laneStatus(actual[0], expected[0], manifest);
+    return `${escapeText(id)}: ${escapeText(status)}`;
+  });
+  lines.push(`- Browser lane receipts: ${browser.length ? browser.join('; ') : 'not recorded; unqualified'}.`);
+  lines.push('- Passing browser command receipts do not establish screenshot quality, owner visual acceptance or physical-device performance.');
   const link = actionsRunUrl(env);
   if (link) lines.push('', `[This Actions run and its available artifacts](${link}) (artifact upload may still be pending).`);
   return lines.join('\n') + '\n';

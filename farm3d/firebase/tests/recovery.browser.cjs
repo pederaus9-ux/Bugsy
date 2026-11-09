@@ -203,12 +203,40 @@ async function main() {
     // Pause this test fixture's supplies after proving active-state round-trip;
     // keep its already-paid egg on the pallet through subsequent recovery.
     await P(g,()=>{const G=__dbg.G;G.S.pens.chicken.care.feedUntil=0;G.S.pens.chicken.care.waterUntil=0;G.commit();});
+    // Prepare disposable rush deadlines once, only after the active round-trips.
+    // The next establish persists them; leave orders/rewards and visitors intact.
+    const earlyFixture = await P(g, () => {
+      const S = window.__dbg.G.S, preparedAt = Date.now(), quietUntil = preparedAt + 3600000;
+      if (!Number.isSafeInteger(preparedAt) || preparedAt <= 0 || !Number.isSafeInteger(quietUntil) || quietUntil > 8640000000000000)
+        throw new Error('early recovery fixture not quiescent: invalid clock');
+      if (S.rush != null && (typeof S.rush !== 'object' || Array.isArray(S.rush)))
+        throw new Error('early recovery fixture not quiescent: invalid rush');
+      const priorNextRushAt = S.nextRushAt, priorRush = JSON.stringify(S.rush);
+      S.nextRushAt = quietUntil;
+      if (S.rush) S.rush.end = quietUntil;
+      return {preparedAt, quietUntil, priorNextRushAt, priorRush, rush: JSON.stringify(S.rush)};
+    });
+    // Read-only baseline checks. Each budget covers the full bounded journey,
+    // including its later recovery/save, plus 60s headroom. Network/diagnostic
+    // overhead is not hard-bounded; a finite horizon cannot cover arbitrary REPEAT.
+    function verifyEarlyFixture(base, scenario, requiredWindowMs) {
+      const saved = JSON.parse(base.save), verifiedAt = Date.now(), requiredUntil = verifiedAt + requiredWindowMs;
+      const visitorUntil = saved.visitor ? saved.visitor.end : saved.nextVisitorAt;
+      if (!Number.isSafeInteger(verifiedAt) || verifiedAt < earlyFixture.preparedAt || !Number.isSafeInteger(requiredUntil) ||
+          saved.nextRushAt !== earlyFixture.quietUntil || JSON.stringify(saved.rush) !== earlyFixture.rush ||
+          earlyFixture.quietUntil <= requiredUntil || !Number.isFinite(visitorUntil) || visitorUntil <= requiredUntil)
+        throw new Error(scenario + ' fixture not quiescent: persisted timers');
+      fs.writeFileSync(path.join(artifacts, 'recovery-' + scenario + '-fixture.json'),
+        JSON.stringify({...earlyFixture, scenario, verifiedAt, requiredWindowMs, requiredUntil, visitorUntil, baseRevision: base.rev}, null, 2));
+    }
 
     // A27 quota negative control: damaged phone cannot replace edited cloud
     // when the cloud restore cannot persist. Retain the original 15s debounce
     // and observe 25s without changing any existing recovery deadlines.
     {
       const base=await establish(uid,'edited-quota');g.farmWrites=[];
+      // Two reloads (30s each), refusal (30s), blocked watch (25s), recovery (180s), margin (60s).
+      verifyEarlyFixture(base, 'edited-quota', 355000);
       await g.context.addInitScript(()=>{if(sessionStorage.getItem('a27-block-save')){const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='sunny-acres-3d-v1'&&v!=='{"a27 quota cut')throw new DOMException('A27 fixture quota','QuotaExceededError');return set.call(this,k,v);};}});
       await P(g,()=>sessionStorage.setItem('a27-block-save','1'));await corruptOnNextLoad('{"a27 quota cut');
       quotaTiming=await beginQuotaTiming(g.page);
@@ -235,6 +263,8 @@ async function main() {
       // Complete that fixture lifecycle before timing this25s startup race.
       // Keep the original reload deadline, import delay and recovery assertions.
       await timing.releaseRenderer();
+      // Release (30s), reload (30s), readiness (120s), watch (45s), fallback reload/readiness (30s/180s), margin (60s).
+      verifyEarlyFixture(base, 'race', 495000);
       g.delayGame = 25000; g.authFile = process.env.AUTH_FILE || null;
       await corruptOnNextLoad('{"race cut');
       timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
@@ -255,6 +285,8 @@ async function main() {
     // ---- 1 (x REPEAT). corrupt local + good cloud -> cloud farm back, byte-identical; never a stand-in write; then 7. a normal save
     for (let k = 1; k <= (+process.env.REPEAT || 2); k++) {
       const base = await establish(uid, 'one' + k), n0 = loads.grandma || 0; g.farmWrites = [];
+      // Reload (30s), readiness (180s), watch (40s), normal-save poll (40s), margin (60s).
+      verifyEarlyFixture(base, 'one' + k, 350000);
       // the game keeps only the FIRST unreadable copy (scenario 3 checks that); start this scenario with the slot empty
       await P(g, (k) => localStorage.removeItem(k), SAVE_KEY + '-unreadable');
       await corruptOnNextLoad('{"v":1,"coins":12');
@@ -278,7 +310,31 @@ async function main() {
 
     // ---- 2. good local + corrupt cloud -> no reload loop, phone farm kept, cloud repaired from the phone
     {
+      // Scenario 2 fixture preparation: keep unrelated rush saves outside this
+      // exact-revision observation. Preserve the order, rewards and live clock.
+      // The following establish() persists these timestamps before the baseline.
+      const repairFixture = await P(g, () => {
+        const S = window.__dbg.G.S, preparedAt = Date.now(), quietUntil = preparedAt + 3600000;
+        // Establishment (60s), reload (30s), readiness (180s), observation
+        // (20s), plus 60s headroom. Do not mutate the separate visitor fixture.
+        const visitorUntil = S.visitor ? S.visitor.end : S.nextVisitorAt;
+        if (!Number.isSafeInteger(quietUntil) || !Number.isFinite(visitorUntil) || visitorUntil <= preparedAt + 350000)
+          throw new Error('scenario 2 fixture not quiescent: visitor deadline');
+        if (S.rush != null && (typeof S.rush !== 'object' || Array.isArray(S.rush)))
+          throw new Error('scenario 2 fixture not quiescent: invalid rush');
+        const priorNextRushAt = S.nextRushAt, priorRush = JSON.stringify(S.rush);
+        S.nextRushAt = quietUntil;
+        if (S.rush) S.rush.end = quietUntil;
+        return {preparedAt, quietUntil, priorNextRushAt, priorRush, rush: JSON.stringify(S.rush), visitorUntil};
+      });
       const base = await establish(uid, 'two'), n0 = loads.grandma || 0; g.farmWrites = [];
+      // Receipt-only recheck after the baseline: no game/cloud mutation here.
+      const repairSaved = JSON.parse(base.save), verifiedAt = Date.now();
+      const visitorUntil = repairSaved.visitor ? repairSaved.visitor.end : repairSaved.nextVisitorAt;
+      if (repairSaved.nextRushAt !== repairFixture.quietUntil || JSON.stringify(repairSaved.rush) !== repairFixture.rush ||
+          repairFixture.quietUntil <= verifiedAt + 290000 || !Number.isFinite(visitorUntil) || visitorUntil <= verifiedAt + 290000)
+        throw new Error('scenario 2 fixture not quiescent: persisted timers');
+      fs.writeFileSync(path.join(artifacts, 'recovery-scenario2-fixture.json'), JSON.stringify({...repairFixture, verifiedAt, visitorUntil, baseRevision: base.rev}, null, 2));
       await restWrite(uid, '{"cloud cut off', base.rev + 1);
       await g.page.reload({waitUntil: 'load'}); await gameUp(); await g.page.waitForTimeout(20000);
       const s = await st(), c = await cloud(uid);

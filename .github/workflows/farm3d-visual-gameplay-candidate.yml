@@ -1,0 +1,94 @@
+name: Sunny Acres candidate browser evidence
+
+# Explicit owner-approved candidate branch or a manual invocation only.
+# No main-push, timer, auto-fix, merge, publication or deployment action.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'farm3d/**'
+      - '.github/workflows/farm3d-visual-gameplay-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sunny-candidate-browser-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  browser-evidence:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.head_ref == 'codex/visual-gameplay-hosted-validation-20261109')
+    name: Candidate ${{ matrix.suite }} evidence
+    # The raw CDP harness retains Chromium's sandbox; use the existing A30
+    # qualification runner rather than Ubuntu24's restricted user namespaces.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        suite: [gallery, earned, boundaries]
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SUITE: ${{ matrix.suite }}
+      TEST_ARTIFACTS: ${{ github.workspace }}/farm3d/tests/artifacts/hosted-candidate/${{ matrix.suite }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Verify exact head and orchestration controls
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          node --test farm3d/tests/quality-loops.test.mjs farm3d/tests/quality-loop-dashboard.test.mjs farm3d/tests/quality-loop-baseline.test.mjs farm3d/tests/quality-loop-scorecard.test.mjs
+      - name: Install locked browser dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Record exact test source and browser
+        run: |
+          test ! -e "$TEST_ARTIFACTS"
+          mkdir -p "$TEST_ARTIFACTS"
+          git rev-parse HEAD > "$TEST_ARTIFACTS/source-sha.txt"
+          node --version > "$TEST_ARTIFACTS/node-version.txt"
+          sha256sum farm3d/tests/{visual-review.browser.cjs,visual-review-capture.cjs,browser-harness.cjs,qualification-later-progression.browser.cjs,qualification-cdp.cjs,hosted-browser-receipts.mjs} > "$TEST_ARTIFACTS/test-hashes.txt"
+          CHROME_PATH=$(node -e 'console.log(require("./farm3d/tests/node_modules/playwright").chromium.executablePath())')
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+          "$CHROME_PATH" --version > "$TEST_ARTIFACTS/browser-version.txt"
+          uname -a > "$TEST_ARTIFACTS/platform.txt"
+      - name: Run one bounded original suite
+        timeout-minutes: 20
+        env:
+          VISUAL_REVIEW_REF: ${{ env.SOURCE_SHA }}
+          QUALIFICATION_REF: ${{ env.SOURCE_SHA }}
+          QUALIFICATION_MODE: ${{ matrix.suite }}
+        run: |
+          set -o pipefail
+          case "$SUITE" in
+            gallery) node farm3d/tests/visual-review.browser.cjs 2>&1 | tee "$TEST_ARTIFACTS/process.log" ;;
+            earned|boundaries) node farm3d/tests/qualification-later-progression.browser.cjs 2>&1 | tee "$TEST_ARTIFACTS/process.log" ;;
+            *) echo "Unknown suite" >&2; exit 1 ;;
+          esac
+      - name: Verify complete fresh evidence
+        run: node farm3d/tests/hosted-browser-receipts.mjs "$SUITE" "$SOURCE_SHA" "$TEST_ARTIFACTS"
+      - name: Preserve complete or partial evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: candidate-${{ matrix.suite }}-${{ env.SOURCE_SHA }}-${{ github.run_attempt }}
+          path: farm3d/tests/artifacts/hosted-candidate/${{ matrix.suite }}/
+          if-no-files-found: warn
+          retention-days: 14

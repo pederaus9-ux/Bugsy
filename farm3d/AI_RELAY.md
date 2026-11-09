@@ -1,5 +1,91 @@
 # Sunny Acres AI Relay Protocol
 
+## Authorized early recovery fixture extension - 2026-11-09
+
+PR #114 remains draft at `03bd1bafcebd452ebec037f14f2a510d3b724255`, based on
+main `38fa4706e41c40197b7afc32de693cb3901a80fb`. Its fresh checks passed four
+workflows and 16/17 regression jobs. Recovery passed 26/27: the approved scenario-2
+fixture passed, while scenario 1.1 generated a due rush order during restored
+startup and advanced rev7 to rev8. Only rush and lastSeen changed; the sentinel,
+coins, XP and all other fields were preserved. Original failed evidence remains.
+This approved additive extension prepares rush deadlines once at the existing
+quiescent-fixture boundary, then checks persisted rush/visitor headroom before
+edited-quota, race and each scenario-1 corruption. Existing order contents and
+rewards are preserved; visitors are read-only. Unsafe timing fails explicitly.
+All original test lines and the published scenario-2 preparation are unchanged.
+221 focused Node controls pass: 77 private fixture guards, 69 tooling, 59 unchanged
+save/gameplay contracts and 16 recovery-observation controls. This is partial-source
+Node24 validation, not fresh browser/emulator qualification. Independent review
+found no remaining actionable issue. The finite horizon does not guarantee
+arbitrary REPEAT or unbounded network/trace overhead. No runtime, workflow, cache,
+amendment or frozen-evidence change. Austin approved adding this test-only timer
+fixture correction to draft PR114 and running its GitHub checks again. Publication
+and fresh hosted checks are pending at this preparation checkpoint; all 27 recovery
+assertions remain required. No merge or deployment is authorized.
+
+## Authorized recovery fixture correction - 2026-11-09
+
+PR #114 was reverified draft at `12053c611fbf6105df02825be970d22a261d0c27`, based on
+main `38fa4706e41c40197b7afc32de693cb3901a80fb`. Regression attempt 2 passed
+16/17 jobs, including walking. Recovery passed 26/27: scenario 2 repaired rev13,
+then an unrelated rush timer generated a legitimate save at rev14. Both attempts
+and original assertions remain retained. The four other workflow failures overlap
+GitHub's resolved Actions/Checks incident; their failed-job reruns returned 403.
+This approved test-only correction prepares finite rush deadlines before scenario
+2's baseline, preserving existing rush contents, and rejects unsafe visitor timing
+without mutating it. Original assertions, corruption, monitoring and waits are
+byte-identical. A separate receipt verifies persisted timers before corruption.
+173 focused Node controls pass, including 29 new private guard controls and actual
+game save/load serialization. Independent code review found no remaining actionable
+issue. This is a partial-source Node24 result, not a browser/emulator or full-tree
+qualification. Fresh hosted recovery must still pass all 27 original assertions.
+No runtime, workflow, cache, frozen-evidence or amendment change. Austin approved
+adding this test-only correction to draft PR #114 and running its GitHub checks
+on 2026-11-09. Publication and fresh exact-head checks are pending at preparation.
+No merge or deployment is authorized. The earlier draft scope is otherwise unchanged.
+
+## Authorized hosted visual/gameplay candidate - 2026-11-09
+
+Austin approved publishing this tests-only visual/gameplay candidate as a public
+**draft PR** and running bounded GitHub checks. Branch:
+`codex/visual-gameplay-hosted-validation-20261109`; base main remains
+`38fa4706e41c40197b7afc32de693cb3901a80fb`. Publication and hosted results are pending.
+The new workflow is opt-in for that exact same-repository candidate branch or a
+manual invocation. Three isolated jobs cover the 12-image gallery, earned levels
+9-20, and 17 boundary groups. Each checks out the exact candidate head, uses locked
+browser dependencies, bounds its browser process to 20 minutes, preserves failures,
+and verifies complete receipt/source/image hashes rather than trusting exit alone.
+All 62 local tooling controls pass on cloud Node24; the unchanged four gameplay
+files pass 27 controls and four save/performance-contract files pass 26 on both
+baseline and candidate. These are partial-source Node checks, not hosted Node22 or
+new browser qualification. Earlier cloud startup failures remain retained.
+No runtime, approved art/style, cache, amendment, original progression assertion
+or frozen-evidence change. No merge or deployment is authorized. Performance/device
+qualification and actual gallery pixel review remain separate. See
+`VISUAL_GAMEPLAY_QUALITY_REVIEW.md` for the exact scope and limits.
+
+## Visual/gameplay evidence review candidate - 2026-11-08
+
+Verified current main is `38fa4706e41c40197b7afc32de693cb3901a80fb`, after PR #113.
+Main regression run 42487054995 passed all 17 jobs; quality-loop run 42487054756
+passed 16 Node lanes / 139 executions. Existing browser jobs are distinct from
+the loop's unrun opt-in browser lanes. See `VISUAL_GAMEPLAY_QUALITY_REVIEW.md`.
+Current scene screenshots reveal a review-evidence gap: reduced-resolution or
+obscured fixture captures cannot qualify visual quality or owner acceptance.
+A private tests-only scorecard candidate validates exact browser file coverage,
+duplicates and missing receipts. Follow-up adds an opt-in 12-capture full-resolution
+gallery and three capture-integrity controls; 58/58 tooling controls pass on cloud
+Node24 and independent code review found no actionable issue. Current-source
+progression and gallery attempts failed before Chromium startup (local socket/
+Crashpad restrictions), including a scoped elevated progression retry. Zero
+gameplay assertions/new screenshots ran; all failures remain retained. Exact
+commit/tree objects and 297 source files were imported/verified, still partial.
+This partial exact-blob source validation is not a full-tree or hosted candidate
+qualification. No runtime/style/workflow/cache/amendment/frozen-evidence change,
+publication, merge or deployment. Gallery pixel inspection, longer-play and
+performance qualification require a browser-capable executor or authorized hosted
+run. Keep A47 and private horse-support candidates separate.
+
 ## Authorized horse timeout draft candidate - 2026-11-08
 
 Current base main: `15e2325fe90fc8ac332460ef60d3dca33ef050d8`, merged PR #112.
