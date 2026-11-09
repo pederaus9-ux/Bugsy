@@ -1,5 +1,26 @@
 # Sunny Acres AI Relay Protocol
 
+## Authorized recovery fixture correction - 2026-11-09
+
+PR #114 was reverified draft at `12053c611fbf6105df02825be970d22a261d0c27`, based on
+main `38fa4706e41c40197b7afc32de693cb3901a80fb`. Regression attempt 2 passed
+16/17 jobs, including walking. Recovery passed 26/27: scenario 2 repaired rev13,
+then an unrelated rush timer generated a legitimate save at rev14. Both attempts
+and original assertions remain retained. The four other workflow failures overlap
+GitHub's resolved Actions/Checks incident; their failed-job reruns returned 403.
+This approved test-only correction prepares finite rush deadlines before scenario
+2's baseline, preserving existing rush contents, and rejects unsafe visitor timing
+without mutating it. Original assertions, corruption, monitoring and waits are
+byte-identical. A separate receipt verifies persisted timers before corruption.
+173 focused Node controls pass, including 29 new private guard controls and actual
+game save/load serialization. Independent code review found no remaining actionable
+issue. This is a partial-source Node24 result, not a browser/emulator or full-tree
+qualification. Fresh hosted recovery must still pass all 27 original assertions.
+No runtime, workflow, cache, frozen-evidence or amendment change. Austin approved
+adding this test-only correction to draft PR #114 and running its GitHub checks
+on 2026-11-09. Publication and fresh exact-head checks are pending at preparation.
+No merge or deployment is authorized. The earlier draft scope is otherwise unchanged.
+
 ## Authorized hosted visual/gameplay candidate - 2026-11-09
 
 Austin approved publishing this tests-only visual/gameplay candidate as a public

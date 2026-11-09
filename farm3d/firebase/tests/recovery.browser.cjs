@@ -278,7 +278,31 @@ async function main() {
 
     // ---- 2. good local + corrupt cloud -> no reload loop, phone farm kept, cloud repaired from the phone
     {
+      // Scenario 2 fixture preparation: keep unrelated rush saves outside this
+      // exact-revision observation. Preserve the order, rewards and live clock.
+      // The following establish() persists these timestamps before the baseline.
+      const repairFixture = await P(g, () => {
+        const S = window.__dbg.G.S, preparedAt = Date.now(), quietUntil = preparedAt + 3600000;
+        // Establishment (60s), reload (30s), readiness (180s), observation
+        // (20s), plus 60s headroom. Do not mutate the separate visitor fixture.
+        const visitorUntil = S.visitor ? S.visitor.end : S.nextVisitorAt;
+        if (!Number.isSafeInteger(quietUntil) || !Number.isFinite(visitorUntil) || visitorUntil <= preparedAt + 350000)
+          throw new Error('scenario 2 fixture not quiescent: visitor deadline');
+        if (S.rush != null && (typeof S.rush !== 'object' || Array.isArray(S.rush)))
+          throw new Error('scenario 2 fixture not quiescent: invalid rush');
+        const priorNextRushAt = S.nextRushAt, priorRush = JSON.stringify(S.rush);
+        S.nextRushAt = quietUntil;
+        if (S.rush) S.rush.end = quietUntil;
+        return {preparedAt, quietUntil, priorNextRushAt, priorRush, rush: JSON.stringify(S.rush), visitorUntil};
+      });
       const base = await establish(uid, 'two'), n0 = loads.grandma || 0; g.farmWrites = [];
+      // Receipt-only recheck after the baseline: no game/cloud mutation here.
+      const repairSaved = JSON.parse(base.save), verifiedAt = Date.now();
+      const visitorUntil = repairSaved.visitor ? repairSaved.visitor.end : repairSaved.nextVisitorAt;
+      if (repairSaved.nextRushAt !== repairFixture.quietUntil || JSON.stringify(repairSaved.rush) !== repairFixture.rush ||
+          repairFixture.quietUntil <= verifiedAt + 290000 || !Number.isFinite(visitorUntil) || visitorUntil <= verifiedAt + 290000)
+        throw new Error('scenario 2 fixture not quiescent: persisted timers');
+      fs.writeFileSync(path.join(artifacts, 'recovery-scenario2-fixture.json'), JSON.stringify({...repairFixture, verifiedAt, visitorUntil, baseRevision: base.rev}, null, 2));
       await restWrite(uid, '{"cloud cut off', base.rev + 1);
       await g.page.reload({waitUntil: 'load'}); await gameUp(); await g.page.waitForTimeout(20000);
       const s = await st(), c = await cloud(uid);
