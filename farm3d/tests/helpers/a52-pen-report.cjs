@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {validClockProof}=require('./a52-pen-high-proof.cjs');
+const {validClockProof}=require('./a52-pen-recovery-proof.cjs');
 const PHASES=Object.freeze(['launch','setup','night','wake','complete']);
 const CATEGORIES=Object.freeze(['none','night-deadline','wake-deadline','night-containment','wake-containment','duplicate-reservation','held-support','assertion','timeout','other']);
 function category(s){if(typeof s!=='string')return 'other';const first=s.split('\n',1)[0];if(/^Error: Cycle [1-3] (?:full herd )?did not settle by original 500-second deadline$/.test(first))return 'night-deadline';if(/^Error: Cycle [1-3] did not complete all physical 40-second wakes with original 500-second release deadline$/.test(first))return 'wake-deadline';if(/^(?:Error|page.evaluate: Error): Pen containment failed during night$/.test(first))return 'night-containment';if(/^(?:Error|page.evaluate: Error): Pen containment failed during wake$/.test(first))return 'wake-containment';if(/^(?:Error|page.evaluate: Error): Duplicate bed reservation during wake$/.test(first))return 'duplicate-reservation';if(/^(?:Error|page.evaluate: Error): Missing held installed bed support for /.test(first))return 'held-support';if(/^AssertionError(?: \[ERR_ASSERTION\])?:/.test(first))return 'assertion';if(/^TimeoutError:/.test(first))return 'timeout';return 'other';}

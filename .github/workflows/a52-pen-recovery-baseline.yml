@@ -1,0 +1,79 @@
+name: A52 isolated boundary-aware recovery comparison
+on:
+  push:
+    branches: [codex/a52-pen-recovery-proposal-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a52-pen-recovery-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [controlHigh1, controlHigh2, recoveryHigh1, recoveryHigh2, controlLow, recoveryLow]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Verify immutable test overlay and guard
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 271bd491cf60874766c6ac73c12ca5bd4f0df134dae4698c7983f2cc2cb859ef
+          node farm3d/tests/helpers/a52-pen-recovery.cjs verify
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-pen-recovery-controls" artifacts/a29/pen-cache
+      - name: Prove unchanged kernel isolation boundary
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-recovery-controls/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Inert source preservation and finite collector controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-recovery-controls/contracts.json" --timeout-ms 180000 -- node --test farm3d/tests/a52-pen-recovery.test.cjs
+      - name: Install locked browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Configure disposable browser paths
+        run: |
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Materialize exact runtime files and exact test-only overlay without executing application
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 271bd491cf60874766c6ac73c12ca5bd4f0df134dae4698c7983f2cc2cb859ef
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-recovery-controls/materialize.json" --timeout-ms 180000 -- node farm3d/tests/helpers/a52-pen-recovery.cjs prepare '${{ matrix.case }}'
+      - name: Original direct-file gate seed1 at120Hz three-night test
+        working-directory: ${{ runner.temp }}/pen-recovery-runtime
+        env:
+          PEN_MATRIX_EDIT_CLASS: gate
+          PEN_MATRIX_SEED: '1'
+          PEN_MATRIX_RATE_HZ: '120'
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/gate-1-120
+        run: |
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-6.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
+          node farm3d/tests/animal-pen-three-night-extra-classes.browser.cjs ${{ matrix.case }} 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/pen-cache/gate-1-120.log"
+          '
+      - name: Positively verify runtime preservation and export finite result only
+        id: projection
+        if: always()
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 271bd491cf60874766c6ac73c12ca5bd4f0df134dae4698c7983f2cc2cb859ef
+          node farm3d/tests/helpers/a52-pen-recovery.cjs collect '${{ matrix.case }}'
+      - name: Preserve positive source proofs and finite comparison outcomes only
+        if: ${{ always() && steps.projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a52-pen-recovery-${{ matrix.case }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-pen-recovery-public/
+          if-no-files-found: error
+          retention-days: 14
