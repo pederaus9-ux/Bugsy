@@ -1,10 +1,11 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');
 const {validReceipt}=require('./ci-isolated-runner.cjs'),{validReport}=require('./a53-regression-schema.cjs');
-const BASE='fa1c31320334fdff4c16030ce334472798913837',MANIFEST='4962ca8e4d6495311d3d292b5409f33b0da9e78bc9d15ce74cb749fdef589d1d';
-const added=["farm3d/tests/cow-recorded-preentry.test.cjs", "farm3d/tests/fixtures/a53-recorded-preentry.json", ".github/workflows/a53-fixture-cow-qualification.yml", "farm3d/tests/fixtures/a53-fixture-source-files.sha256", "farm3d/tests/a53-rejoin-fixture-lineage.test.cjs", "farm3d/tests/fixtures/a53-rejoin-fixture-correction.json", "farm3d/tests/fixtures/a53-rejoin-fixture-specification.md"];
-const modified=["farm3d/tests/cow-intermediate-rejoin.test.mjs", "farm3d/tests/helpers/a53-regression-schema.cjs", "farm3d/tests/helpers/a53-regression-evidence.cjs", "farm3d/tests/a53-regression-diagnostic.test.cjs"];
-const expectedChanges=[...added.map(f=>'A\t'+f),...modified.map(f=>'M\t'+f)];
+const BASE='ced176bbcdd79a884caf972371686b2c6fb50d80',MANIFEST='597258501e814e0310fb794a4d76f823ea769de2521dfa8275fd952ff7839b67';
+const added=["farm3d/tests/fixtures/a53-current-cache-scope.json", "farm3d/tests/helpers/a53-current-cache-scope.cjs", "farm3d/tests/helpers/a53-chicken-update-diagnostic.cjs", "farm3d/tests/a53-browser-cache-compatibility.test.cjs", "farm3d/tests/fixtures/a53-browser-cache-compatibility.json", "farm3d/tests/helpers/a53-legacy-evidence.cjs", "farm3d/tests/a53-legacy-evidence.test.cjs", ".github/workflows/a53-legacy-compat-qualification.yml", "farm3d/tests/fixtures/a53-legacy-source-files.sha256", "farm3d/tests/a53-installed-cow-cache.contract.test.cjs"];
+const modified=["farm3d/tests/helpers/a52-scope.cjs", "farm3d/tests/a52-scope.test.cjs", "farm3d/tests/player-arm-attachment-integration.test.mjs", "farm3d/tests/a52-cache-progress.test.cjs", "farm3d/tests/chicken-pen-update.browser.cjs", "farm3d/tests/cow-update.browser.cjs", "farm3d/tests/decor-catalog.browser.cjs", "farm3d/tests/field-rollback-cache.browser.cjs", "farm3d/tests/helpers/a52-cache-progress-scope.cjs", "farm3d/tests/helpers/a52-regression-registration.cjs", "farm3d/tests/market-sales.browser.cjs", "farm3d/tests/utility-lights.browser.cjs", "farm3d/tests/helpers/a53-regression-evidence.cjs", "farm3d/tests/a53-regression-diagnostic.test.cjs"];
+const deleted=["farm3d/tests/a52-installed-cow-cache.contract.test.cjs"];
+const expectedChanges=[...added.map(f=>'A\t'+f),...modified.map(f=>'M\t'+f),...deleted.map(f=>'D\t'+f)];
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function reject(){throw Error('Finite regression evidence rejected');}
 function dir(p){p=path.resolve(p);if(fs.realpathSync(p)!==p||!fs.lstatSync(p).isDirectory())reject();return p;}
@@ -12,9 +13,9 @@ function regular(p,max=65536){const s=fs.lstatSync(p);if(!s.isFile()||s.isSymbol
 function git(root,args){return execFileSync('git',['--no-lazy-fetch','-C',root,'-c','protocol.allow=never','-c','core.hooksPath=/dev/null',...args],{encoding:'utf8',timeout:10000,maxBuffer:65536,stdio:['ignore','pipe','pipe'],env:{PATH:process.env.PATH,HOME:process.env.HOME,GIT_ALLOW_PROTOCOL:'',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_TERMINAL_PROMPT:'0'}}).trim();}
 function verifySource(root,head,readGit=git){
  if(!/^[a-f0-9]{40}$/.test(head||'')||readGit(root,['rev-parse','HEAD'])!==head||readGit(root,['rev-parse','HEAD^'])!==BASE)reject();
- const changes=readGit(root,['diff','--name-status',BASE,'HEAD','--']).split('\n').filter(Boolean);if(changes.length!==expectedChanges.length||new Set(changes).size!==expectedChanges.length||changes.some(x=>!expectedChanges.includes(x)))reject();
+ const changes=readGit(root,['diff','--name-status','--no-renames',BASE,'HEAD','--']).split('\n').filter(Boolean);if(changes.length!==expectedChanges.length||new Set(changes).size!==expectedChanges.length||changes.some(x=>!expectedChanges.includes(x)))reject();
  readGit(root,['diff','--quiet','HEAD','--']);readGit(root,['diff','--cached','--quiet','--']);
- const raw=regular(path.join(root,'farm3d/tests/fixtures/a53-fixture-source-files.sha256'));if(sha(raw)!==MANIFEST)reject();
+ const raw=regular(path.join(root,'farm3d/tests/fixtures/a53-legacy-source-files.sha256'));if(sha(raw)!==MANIFEST)reject();
  const lines=raw.toString().trim().split('\n');for(const line of lines){const m=/^([a-f0-9]{64})  ([A-Za-z0-9_./-]+)$/.exec(line);if(!m||m[2].split('/').includes('..')||path.isAbsolute(m[2])||sha(regular(path.join(root,m[2]),2*1024*1024))!==m[1])reject();}
  return{base:BASE,releaseManifestSha256:MANIFEST,releaseFilesVerified:lines.length,trackedSourceUnchanged:true};
 }
@@ -26,4 +27,4 @@ function collect({source,output,root,head},readGit=git){source=dir(source);root=
  const out={schema:1,head,...preservation,receipts,report,rawDiagnosticsPublished:false};fs.mkdirSync(output,{mode:0o700});fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(out)+'\n',{flag:'wx',mode:0o600});return out;
 }
 function main(args){try{const o={};for(let i=0;i<args.length;i+=2){if(!['--source','--output','--root','--head'].includes(args[i])||args[i].slice(2)in o||typeof args[i+1]!=='string')reject();o[args[i].slice(2)]=args[i+1];}collect(o);return 0;}catch{process.stderr.write('Finite regression projection rejected\n');return 1;}}
-module.exports={BASE,MANIFEST,added,modified,expectedChanges,verifySource,collect,main};if(require.main===module)process.exitCode=main(process.argv.slice(2));
+module.exports={BASE,MANIFEST,added,modified,deleted,expectedChanges,verifySource,collect,main};if(require.main===module)process.exitCode=main(process.argv.slice(2));
