@@ -1,9 +1,9 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');
 const {validReceipt}=require('./ci-isolated-runner.cjs'),{validReport}=require('./a53-regression-schema.cjs');
-const BASE='eb2c8167e5e4f43d72df41ef225d5053a4ded659',MANIFEST='1694415c848c3092309f86acc43c90c3e0fce248f0a609736bca2d2ec821ee42';
-const added=['.github/workflows/a53-legal-predicate-diagnostic.yml','farm3d/tests/fixtures/a53-predicate-files.sha256'];
-const modified=['farm3d/tests/helpers/a53-regression-schema.cjs','farm3d/tests/helpers/a53-regression-evidence.cjs','farm3d/tests/a53-regression-diagnostic.test.cjs','farm3d/tests/cow-legal-opposed-rejoin.test.mjs'];
+const BASE='60a8c45e9ba9eda87fbb8be9c2ab9717952aaaf0',MANIFEST='1694415c848c3092309f86acc43c90c3e0fce248f0a609736bca2d2ec821ee42';
+const added=['.github/workflows/a53-legal-v2-diagnostic.yml','farm3d/tests/fixtures/a53-v2-diagnostic-files.sha256','farm3d/tests/cow-legal-opposed-rejoin-v2.test.mjs','farm3d/tests/fixtures/a53-legal-opposed-rejoin-v2.json'];
+const modified=['farm3d/tests/helpers/a53-regression-schema.cjs','farm3d/tests/helpers/a53-regression-evidence.cjs','farm3d/tests/a53-regression-diagnostic.test.cjs'];
 const expectedChanges=[...added.map(f=>'A\t'+f),...modified.map(f=>'M\t'+f)];
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function reject(){throw Error('Finite regression evidence rejected');}
@@ -23,7 +23,7 @@ function collect({source,output,root,head},readGit=git){source=dir(source);root=
  const file=path.join(root,'artifacts/a53-regression-diagnostic/failures.json');let report=null;if(fs.existsSync(file))report=JSON.parse(regular(file));if(report&&!validReport(report))reject();
  const r=receipts['regressions.json'];if(report){if(!r||!r.commandStarted||!r.commandResultAvailable||!r.isolationVerified||!r.cleanupVerified||r.signal!==null||!['passed','command_failed'].includes(r.status))reject();if(report.status==='PASS'){if(report.summary.counts.tests!==8||report.summary.counts.topLevel!==8||report.summary.counts.passed!==8||report.summary.counts.skipped!==0||report.summary.counts.todo!==0||report.summary.counts.suites!==0)reject();if(r.status!=='passed'||r.exitCode!==0)reject();}else if(report.status==='FAIL'){if(r.status!=='command_failed'||r.exitCode===null||r.exitCode===0)reject();}else if(r.status==='passed')reject();}
  if(r?.status==='passed'&&report?.status!=='PASS')reject();
- const out={schema:1,scope:"legal-start-eight-predicate-diagnostic",original158Qualified:false,head,...preservation,receipts,report,rawDiagnosticsPublished:false};fs.mkdirSync(output,{mode:0o700});fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(out)+'\n',{flag:'wx',mode:0o600});return out;
+ const out={schema:1,scope:"legal-v2-eight-predicate-diagnostic",original158Qualified:false,head,...preservation,receipts,report,rawDiagnosticsPublished:false};fs.mkdirSync(output,{mode:0o700});fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(out)+'\n',{flag:'wx',mode:0o600});return out;
 }
 function main(args){try{const o={};for(let i=0;i<args.length;i+=2){if(!['--source','--output','--root','--head'].includes(args[i])||args[i].slice(2)in o||typeof args[i+1]!=='string')reject();o[args[i].slice(2)]=args[i+1];}collect(o);return 0;}catch{process.stderr.write('Finite regression projection rejected\n');return 1;}}
 module.exports={BASE,MANIFEST,added,modified,expectedChanges,verifySource,collect,main};if(require.main===module)process.exitCode=main(process.argv.slice(2));

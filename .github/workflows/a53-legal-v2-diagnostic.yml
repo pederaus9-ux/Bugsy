@@ -1,0 +1,59 @@
+name: A53 separate authored v2 movement predicate diagnostics
+on:
+  push:
+    branches: [codex/a53-legal-v2-diagnostic-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a53-legal-v2-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  legal_start:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch immutable historical package baseline
+        run: git fetch --no-tags --depth=1 origin 2f9a8241b8230938dd816e1c0fac52551a263f69
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Verify reviewed bytes and unchanged protection
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = 60a8c45e9ba9eda87fbb8be9c2ab9717952aaaf0
+          sha256sum -c farm3d/tests/fixtures/a53-release-files.sha256
+          sha256sum -c farm3d/tests/fixtures/a53-v2-diagnostic-files.sha256
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          mkdir -p "$RUNNER_TEMP/a53-diagnostic-receipts" artifacts/a53-regression-diagnostic
+      - name: Prove kernel isolation
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-diagnostic-receipts/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Finite diagnostic reporter and collector controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-diagnostic-receipts/controls.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-regression-diagnostic.test.cjs
+      - name: Separate authored legal-start eight cases, not original baseline qualification
+        run: >-
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-diagnostic-receipts/regressions.json" --timeout-ms 360000 --max-output-bytes 4194304 -- node --test --test-reporter=./farm3d/tests/helpers/a53-regression-reporter.cjs
+          farm3d/tests/cow-legal-opposed-rejoin-v2.test.mjs
+      - name: Verify preservation and export bounded failure witnesses
+        id: projection
+        if: always()
+        run: |
+          sha256sum -c farm3d/tests/fixtures/a53-release-files.sha256
+          sha256sum -c farm3d/tests/fixtures/a53-v2-diagnostic-files.sha256
+          git diff --quiet HEAD --
+          git diff --cached --quiet --
+          node farm3d/tests/helpers/a53-regression-evidence.cjs --source "$RUNNER_TEMP/a53-diagnostic-receipts" --output "$RUNNER_TEMP/a53-diagnostic-public" --root "$GITHUB_WORKSPACE" --head "$GITHUB_SHA"
+      - name: Retain finite failure witnesses only
+        if: ${{ always() && steps.projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-legal-v2-diagnostic-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a53-diagnostic-public/
+          if-no-files-found: error
+          retention-days: 14
