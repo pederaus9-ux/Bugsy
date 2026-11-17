@@ -257,7 +257,7 @@
   "overlayPins": {
     "farm3d/tests/browser-harness.cjs": "05c23b1857bc70ee15e2fa92f9ce49abc14bcf3e7d177bef6a62dba4887a8fa2",
     "farm3d/tests/animal-pen-wake-oracle.cjs": "768c2db597a07380cb703a7c01fa2e8553941481e9e090e62eb6581dced6f4d9",
-    "farm3d/tests/helpers/a52-pen-report.cjs": "ebf4af8dc1dca3138517ead42c9dc40e025aff090d97fd9dbacbd69a61e7936d",
+    "farm3d/tests/helpers/a52-pen-report.cjs": "111e46f584e9d8c0ffb3fd08e353aad96c225440d5c0e9f8d4216beccc4edd3e",
     "farm3d/tests/helpers/ci-isolated-runner.cjs": "cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a",
     "farm3d/tests/helpers/playwright-diagnostics.cjs": "43b1b24e085f01230f1f9b7276091eaa51d43372426d9dff975f25ec59dd382e",
     "farm3d/tests/helpers/a52-offline-observation.cjs": "280ded18c14e47fedf60f3ddff0d7c0e43a2cae8a43b53575986aefe1188e69a",
@@ -268,7 +268,7 @@
     "farm3d/tests/fixtures/a52-offline-transport-scope.json": "5866184ffac9cae3c09690e3998668adb51948e60859314aded8fc1300cb2d34"
   },
   "originalTestSha256": "65e44d782b0559ef9f8724edaf049f7b02afd71049d74b9ef92e7a4da046b2ea",
-  "directTestSha256": "4d841a2948901df36dc38c9bef368649f62dc4a14e9af04862743faec5ab1e7f",
+  "directTestSha256": "2553b0bdf21b87f1ffc1313a4d422305275de8095ca3b9218feec39bea98563b",
   "patch": {
     "path": "farm3d/index.html",
     "preimageSha256": "fe9871d6f1d0ec16cb9518ab0321e8e8a70dad87eaa31598c626e952c64e9fb2",
@@ -276,5 +276,8 @@
     "postimageBlob": "bdf74eea1544ae2d5333e1f812d7fdbd5634b269",
     "old": "if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}",
     "new": "if(!blockingCows.length&&fitsPen(PENS.courtyard,next.x,next.y,.42)&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}"
-  }
+  },
+  "failureCaptureInsertion": "settling:(()=>{const d=__dbg,task=a=>a.kind==='chicken'?a.chickenTask:a.kind==='cow'?a.cowTask:a.remainingTask,bad=d.animals.filter(a=>{const t=task(a);return !(t?.kind==='bed'&&t.stage==='hold'&&t.weight>.99);}),kinds=['chicken','cow','horse','sheep','dog','cat'],tasks=['bed','eat','drink','feed','water','milk','none'],stages=['approach','approaching','align','settle','hold','stand','exit','exiting','milking','none'],num=x=>Number.isFinite(x)?x:null,xz=p=>p?.toArray?(()=>{const v=p.toArray();return v.length===3?[v[0],v[2]]:v;})():Array.isArray(p)?(p.length===3?[p[0],p[2]]:p):null;return{clock:d.clock(),total:bad.length,truncated:bad.length>4,animals:bad.slice(0,4).map(a=>{const t=task(a),tk=t?.kind??'none',ts=t?.stage??'none',route=t?.path??a.path??[];return{kind:kinds.includes(a.kind)?a.kind:'other',index:a.ref.i??a.ref.j??0,position:[a.g.position.x,a.g.position.z],task:tasks.includes(tk)?tk:'other',stage:stages.includes(ts)?ts:'other',weight:num(t?.weight),routeCount:route.length,route:route.slice(0,4).map(xz),waypointCount:t?.waypoints?.length??0,stuckTime:num(a.stuckT),progressAt:num(t?.progressAt),replanAt:num(t?.replanAt),avoidSide:[-1,1].includes(t?.avoidSide)?t.avoidSide:0,spaceUntil:num(a.cowSpace?.until)};})};})(),",
+  "setupCaptureInsertion": "setupBefore,setupAfter:setupSnapshot(),setupCounts:setupKinds.map(kind=>{const before=setupBefore.state.filter(a=>a.kind===kind).length,after=d.animals.filter(a=>a.kind===kind),retained=after.filter(a=>setupRefs.has(a)).length;return{kind,before,after:after.length,retained,new:after.length-retained};}),",
+  "setupBeforeInsertion": "const setupKinds=['chicken','cow','horse','sheep','dog','cat'],setupTasks=['bed','eat','drink','feed','water','milk','robot','none'],setupStages=['approach','approaching','align','settle','hold','stand','exit','exiting','milking','none'],setupSnapshot=()=>{const clock=d.clock(),num=x=>Number.isFinite(x)?x:null,rel=x=>Number.isFinite(x)?x-clock:null;return{clock,rngCalls:window.__testGameplaySeed?.calls??0,state:d.animals.map(a=>{const task=a.kind==='chicken'?a.chickenTask:a.kind==='cow'?a.cowTask:a.remainingTask,tk=task?.kind??'none',ts=task?.stage??'none';return{kind:a.kind,index:a.ref.i??a.ref.j??0,position:[a.g.position.x,a.g.position.z],velocity:[num(a.vel?.x),num(a.vel?.y)],until:rel(a.until),spaceUntil:rel(a.cowSpace?.until),spaceSince:rel(a.cowSpace?.since),progressAt:rel(task?.progressAt),replanAt:rel(task?.replanAt),hunger:num(a.need?.hunger),tired:num(a.need?.tired),lonely:num(a.need?.lonely),task:setupTasks.includes(tk)?tk:'other',stage:setupStages.includes(ts)?ts:'other',weight:num(task?.weight)};})};},setupBefore=setupSnapshot(),setupRefs=new Set(d.animals);"
 }
