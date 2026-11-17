@@ -1,0 +1,101 @@
+name: A52 isolated Jekyll probe
+on:
+  push:
+    branches: ['codex/a52-jekyll-probe-20261117']
+permissions:
+  contents: read
+concurrency:
+  group: a52-jekyll-probe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  jekyll:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify exact probe parent and three-file-only delta
+        id: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = 13fff2cb5a74822b5b1252d474d25e799cbc382d
+          test ! -e _site
+          node <<'NODE'
+          const cp=require('node:child_process'),assert=require('node:assert/strict');
+          const changed=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','diff','--name-status','13fff2cb5a74822b5b1252d474d25e799cbc382d','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim().split('\n').sort();
+          assert.deepEqual(changed,['A\t.github/workflows/a52-jekyll-probe.yml','A\tfarm3d/tests/a52-jekyll-build.test.cjs','A\tfarm3d/tests/helpers/a52-jekyll-build.cjs'].sort());
+          NODE
+          git --no-lazy-fetch -c protocol.allow=never cat-file -e 38fa4706e41c40197b7afc32de693cb3901a80fb^{commit}
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          test -f farm3d/tests/a52-jekyll-build.test.cjs && test ! -L farm3d/tests/a52-jekyll-build.test.cjs
+          test "$(sha256sum farm3d/tests/a52-jekyll-build.test.cjs | cut -d ' ' -f1)" = 352b7693c9bbd42ba94c03da5552f275d5d1c514e53be9ffd80106307c66bce2
+          mkdir -p "$RUNNER_TEMP/a52-jekyll-receipts"
+      - name: Protected inert helper contracts
+        id: contracts
+        run: |
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-jekyll-receipts/contracts.json" --timeout-ms 180000 --max-output-bytes 16777216 -- node --test farm3d/tests/a52-jekyll-build.test.cjs
+      - name: Protected original source assertions
+        id: source
+        run: |
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-jekyll-receipts/source.json" --timeout-ms 180000 --max-output-bytes 16777216 -- node farm3d/tests/pages-package.verify.cjs --source-only
+      - name: Actual official Jekyll entrypoint in verified isolated container
+        id: build
+        run: |
+          test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          node farm3d/tests/helpers/a52-jekyll-build.cjs "$GITHUB_WORKSPACE" "$GITHUB_SHA" "$RUNNER_TEMP/a52-jekyll-receipts/build.json"
+      - name: Protected original actual-output assertions
+        id: output
+        run: |
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-jekyll-receipts/output.json" --timeout-ms 180000 --max-output-bytes 16777216 -- node farm3d/tests/pages-package.verify.cjs --output _site
+      - name: Export finite validated receipts only
+        id: evidence
+        if: always()
+        run: |
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs'),{finiteReceipt}=require('./farm3d/tests/helpers/a52-jekyll-build.cjs');
+          const head=process.env.GITHUB_SHA;assert(/^[a-f0-9]{40}$/.test(head));
+          const source=path.join(process.env.RUNNER_TEMP,'a52-jekyll-receipts'),out=path.join(process.env.RUNNER_TEMP,'a52-jekyll-public');
+          const names=['contracts.json','source.json','build.json','output.json'],missing=[],entries=[];
+          assert(fs.realpathSync(path.dirname(source))===path.dirname(source));
+          if(fs.existsSync(source)){assert(fs.realpathSync(source)===source&&fs.lstatSync(source).isDirectory());assert(fs.readdirSync(source).every(n=>names.includes(n)));}
+          for(const name of names){
+            const file=path.join(source,name);if(!fs.existsSync(file)){missing.push(name);continue;}
+            const stat=fs.lstatSync(file);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=16384);
+            const v=JSON.parse(fs.readFileSync(file,'utf8'));assert(name==='build.json'?finiteReceipt(v):validReceipt(v));
+            if(v.status==='passed')assert(v.cleanupVerified===true);
+            entries.push([name,JSON.stringify(v)+'\n']);
+          }
+          assert(!fs.existsSync(out));fs.mkdirSync(out,{mode:0o700});for(const [name,data]of entries)fs.writeFileSync(path.join(out,name),data,{flag:'wx',mode:0o600});
+          fs.writeFileSync(path.join(out,'identity.json'),JSON.stringify({schema:1,head,base:'13fff2cb5a74822b5b1252d474d25e799cbc382d',missing})+'\n',{flag:'wx',mode:0o600});
+          NODE
+      - name: Preserve finite receipts, never build files or raw diagnostics
+        if: ${{ always() && steps.evidence.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a52-jekyll-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-jekyll-public/
+          if-no-files-found: error
+          retention-days: 14
