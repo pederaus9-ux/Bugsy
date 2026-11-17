@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {execFileSync}=require('node:child_process');
 const {start,artifacts,root}=require('./browser-harness.cjs');
-const clockCase=process.argv[2],clockTargets=require('./helpers/a52-pen-clock-proof.cjs').TARGETS;if(!Object.hasOwn(clockTargets,clockCase))throw Error('Unknown controlled clock case');const clockTarget=clockTargets[clockCase];
+const clockCase=process.argv[2],clockTargets=require('./helpers/a52-pen-high-proof.cjs').TARGETS;if(!Object.hasOwn(clockTargets,clockCase))throw Error('Unknown controlled clock case');const clockTarget=clockTargets[clockCase];
 const seed=Number(process.env.PEN_MATRIX_SEED??4242);if(![1,4242].includes(seed))throw Error('Unsupported three-night test seed');
 const rateHz=Number(process.env.PEN_MATRIX_RATE_HZ??30);if(![30,60,120].includes(rateHz))throw Error('Unsupported three-night test rate');
 const editClass=process.env.PEN_MATRIX_EDIT_CLASS??'wholePen';if(!['boundary','interior','gate'].includes(editClass))throw Error('Unsupported three-night edit class');
@@ -40,7 +40,7 @@ const identity=a=>a.kind+':'+(a.ref.i??a.ref.j??0);
   window.__penClockProof.observedAfter=d.clock();window.__penClockProof.retained=d.clock()===clockTarget;if(!window.__penClockProof.retained)throw Error('Controlled clock drifted during Apply');return{clockExperiment:window.__penClockProof,setupClock:d.clock(),setupBefore,setupAfter:setupSnapshot(),setupCounts:setupKinds.map(kind=>{const before=setupBefore.state.filter(a=>a.kind===kind).length,after=d.animals.filter(a=>a.kind===kind),retained=after.filter(a=>setupRefs.has(a)).length;return{kind,before,after:after.length,retained,new:after.length-retained};}),action:{type:edit,commands},seedWitness:window.__testGameplaySeed??null,ids:d.animals.map(a=>a.kind+':'+(a.ref.i??a.ref.j??0)).sort(),revision:d.penRuntime.revision,savedRevision:G.S.layout.animalPens.revision,paid:{coins:G.S.coins,pens:JSON.stringify(G.S.pens),pets:JSON.stringify(G.S.pets)}};
  },{edit:editClass,clockCase,clockTarget});
  if(seed===1){assert.equal(setup.seedWitness?.value,1);assert.equal(setup.seedWitness.firstCall,16807/2147483647);assert(setup.seedWitness.calls>=46*4,'requested seed must feed the owned 46-animal constructor stream');}else assert.equal(setup.seedWitness,null,'default game must keep its unmodified RNG declaration');
- assert.equal(setup.ids.length,46);assert.equal(new Set(setup.ids).size,46);assert.equal(setup.revision,1);assert.equal(setup.savedRevision,1);report.setup={ids:setup.ids,revision:1,action:setup.action,seedWitness:setup.seedWitness};require('./helpers/a52-pen-clock.cjs').writeSetup(setup);save();
+ assert.equal(setup.ids.length,46);assert.equal(new Set(setup.ids).size,46);assert.equal(setup.revision,1);assert.equal(setup.savedRevision,1);report.setup={ids:setup.ids,revision:1,action:setup.action,seedWitness:setup.seedWitness};require('./helpers/a52-pen-high.cjs').writeSetup(setup);save();
  await p.addScriptTag({path:path.join(__dirname,'animal-pen-wake-oracle.cjs')});
  for(let cycle=1;cycle<=3;cycle++){
   report.stage='cycle '+cycle+' night';report.progress={cycle,phase:'night',frames:0};save();
