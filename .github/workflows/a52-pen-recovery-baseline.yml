@@ -1,7 +1,7 @@
-name: A52 isolated monotonic overlap egress comparison
+name: A52 isolated final egress decision diagnostic
 on:
   push:
-    branches: [codex/a52-pen-egress-proposal-20261117]
+    branches: [codex/a52-pen-egress-decision-20261117]
 permissions:
   contents: read
 concurrency:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [controlHigh1, controlHigh2, recoveryHigh1, recoveryHigh2, controlLow, recoveryLow]
+        case: [recoveryHigh1]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -30,7 +30,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = daee5eb27b041c581667cad0b08b3e6133fe79db226b4511e5f7ceea26ef2bac
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 8b7f64b8ae3e3e6b4b591c6cd226aa6bf0d0ccf9576fa2185aba48e613869043
           node farm3d/tests/helpers/a52-pen-recovery.cjs verify
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-pen-recovery-controls" artifacts/a29/pen-cache
       - name: Prove unchanged kernel isolation boundary
@@ -49,7 +49,7 @@ jobs:
           echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
       - name: Materialize exact runtime files and exact test-only overlay without executing application
         run: |
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = daee5eb27b041c581667cad0b08b3e6133fe79db226b4511e5f7ceea26ef2bac
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 8b7f64b8ae3e3e6b4b591c6cd226aa6bf0d0ccf9576fa2185aba48e613869043
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-recovery-controls/materialize.json" --timeout-ms 180000 -- node farm3d/tests/helpers/a52-pen-recovery.cjs prepare '${{ matrix.case }}'
       - name: Original direct-file gate seed1 at120Hz three-night test
         working-directory: ${{ runner.temp }}/pen-recovery-runtime
@@ -67,7 +67,7 @@ jobs:
         id: projection
         if: always()
         run: |
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = daee5eb27b041c581667cad0b08b3e6133fe79db226b4511e5f7ceea26ef2bac
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-recovery.cjs | cut -d ' ' -f1)" = 8b7f64b8ae3e3e6b4b591c6cd226aa6bf0d0ccf9576fa2185aba48e613869043
           node farm3d/tests/helpers/a52-pen-recovery.cjs collect '${{ matrix.case }}'
       - name: Preserve positive source proofs and finite comparison outcomes only
         if: ${{ always() && steps.projection.outcome == 'success' }}
