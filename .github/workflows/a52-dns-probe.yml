@@ -1,0 +1,65 @@
+name: A52 primitive DNS isolation diagnostic
+on:
+  push:
+    branches: ['codex/a52-dns-probe-20261117']
+permissions:
+  contents: read
+concurrency:
+  group: a52-dns-probe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  dns:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Exact reviewed three-file diagnostic delta
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = bb3d645598807edb6078cc8463f1d025f3265313
+          node <<'NODE'
+          const cp=require('child_process'),assert=require('assert/strict');
+          const a=cp.execFileSync('git',['diff','--name-status','bb3d645598807edb6078cc8463f1d025f3265313','HEAD'],{encoding:'utf8'}).trim().split('\n').sort();
+          assert.deepEqual(a,['A\t.github/workflows/a52-dns-probe.yml','A\tfarm3d/tests/a52-dns-probe.test.cjs','A\tfarm3d/tests/helpers/a52-dns-probe.cjs'].sort());
+          NODE
+          test "$(sha256sum _config.yml | cut -d ' ' -f1)" = 8929ab042f6bf7c51b439f124fc6f0b2c718e63b77d69d6c5abbb33acd7a288c
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(sha256sum farm3d/tests/helpers/a52-dns-probe.cjs | cut -d ' ' -f1)" = 2e98bdac57c37e9c685572d67d1d3ba04e33724cfc3a2e1e52c5cd19448fd4ce
+          test "$(sha256sum farm3d/tests/a52-dns-probe.test.cjs | cut -d ' ' -f1)" = fd628c8ffe19061315c66e5614e8be78dbcd8462dc1a8b566f0e3b3cbe291cde
+          mkdir -p "$RUNNER_TEMP/a52-dns-receipts"
+      - name: Protected inert contracts
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-dns-receipts/contracts.json" --timeout-ms 60000 --max-output-bytes 1048576 -- node --test farm3d/tests/a52-dns-probe.test.cjs
+      - name: Two contained primitive DNS observations, no repository mount
+        run: |
+          node farm3d/tests/helpers/a52-dns-probe.cjs "$RUNNER_TEMP/a52-dns-receipts/dns.json"
+      - name: Export finite verified primitive receipts only
+        id: evidence
+        if: ${{ always() }}
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-dns-probe.cjs | cut -d ' ' -f1)" = 2e98bdac57c37e9c685572d67d1d3ba04e33724cfc3a2e1e52c5cd19448fd4ce
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node <<'NODE'
+          const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{validReport,CLASS}=require('./farm3d/tests/helpers/a52-dns-probe.cjs'),{validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const src=path.join(process.env.RUNNER_TEMP,'a52-dns-receipts'),out=path.join(process.env.RUNNER_TEMP,'a52-dns-public'),head=process.env.GITHUB_SHA;assert(/^[a-f0-9]{40}$/.test(head));
+          const names=['contracts.json','dns.json'],entries=[],missing=[];assert(fs.realpathSync(path.dirname(src))===path.dirname(src));
+          if(fs.existsSync(src)){assert(fs.realpathSync(src)===src&&fs.lstatSync(src).isDirectory());assert(fs.readdirSync(src).every(x=>names.includes(x)));}
+          for(const n of names){const p=path.join(src,n);if(!fs.existsSync(p)){missing.push(n);continue;}const st=fs.lstatSync(p);assert(st.isFile()&&!st.isSymbolicLink()&&st.size<=8192);const v=JSON.parse(fs.readFileSync(p,'utf8'));assert(n==='dns.json'?validReport(v):validReceipt(v));if(n==='contracts.json'&&v.status==='passed')assert(v.cleanupVerified);entries.push([n,JSON.stringify(v)+'\n']);}
+          assert(!fs.existsSync(out));fs.mkdirSync(out,{mode:0o700});for(const [n,v]of entries)fs.writeFileSync(path.join(out,n),v,{flag:'wx',mode:0o600});
+          fs.writeFileSync(path.join(out,'identity.json'),JSON.stringify({schema:1,classification:CLASS,productionQualified:false,head,missing})+'\n',{flag:'wx',mode:0o600});
+          NODE
+      - uses: actions/upload-artifact@v5
+        if: ${{ always() && steps.evidence.outcome == 'success' }}
+        with:
+          name: a52-primitive-dns-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-dns-public/
+          if-no-files-found: error
+          retention-days: 14
