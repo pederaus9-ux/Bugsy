@@ -41,6 +41,26 @@ function observeOriginalControls(){
   });
   observer.observe(document,{childList:true,subtree:true});scan(document);publish();
 }
+function keyboardObservation(id){
+  const dialog=document.getElementById(id),active=document.activeElement;
+  return {inMenu:active?.closest('dialog')?.id===id,documentFocused:document.hasFocus(),
+    bodyActive:active===document.body,rootActive:active===document.documentElement,
+    launcherActive:active===document.getElementById(id.replace('-menu','-launch')),
+    dialogOpen:!!dialog?.open,focusableCount:[...dialog.querySelectorAll('button')].filter(b=>!b.disabled&&b.getClientRects().length).length};
+}
+function finiteKeyboard(side,phase,direction=0,iteration=0,observation=null){
+  const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete'];
+  if(![1,2].includes(side)||!phases.includes(phase)||![0,1,2].includes(direction)||!Number.isInteger(iteration)||iteration<0||iteration>14)throw Error('Invalid finite keyboard observation');
+  const out={schema:1,side,phase,direction,iteration,observed:observation!==null};
+  for(const key of ['inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen']){
+    if(observation!==null&&typeof observation[key]!=='boolean')throw Error('Invalid finite keyboard boolean');
+    out[key]=observation===null?false:observation[key];
+  }
+  out.focusableCount=observation===null?0:observation.focusableCount;
+  if(!Number.isInteger(out.focusableCount)||out.focusableCount<0||out.focusableCount>32)throw Error('Invalid finite keyboard count');
+  for(const key of ['keyDownCount','keyUpCount']){out[key]=observation?.[key]??0;if(!Number.isInteger(out[key])||out[key]<0||out[key]>32)throw Error('Invalid finite key count');}
+  return out;
+}
 async function main(){
   // This explicit opt-in is an accident guard, NOT an authorization mechanism.
   assert.equal(process.env.A52_CURRENT_BROWSER_APPROVED,'1','Obtain applicable execution approval first; then explicitly opt in');
@@ -92,17 +112,21 @@ async function main(){
         }
         for(const [side,target]of [['tools','#walkBtn'],['barn','[data-p="shop"]']]){
           const id='preview-'+side+'-menu',launch='#preview-'+side+'-launch';mark(side+'-keyboard');
-          await revealCornerAction(p,target,'keyboard');await fit(id);
+          const record=(phase,direction=0,iteration=0,observation=null)=>fs.writeFileSync(path.join(artifacts,'a52-native-keyboard.json'),JSON.stringify(finiteKeyboard(side==='tools'?1:2,phase,direction,iteration,observation))+'\n');
+          record('reveal');await revealCornerAction(p,target,'keyboard');record('fit');await fit(id);
+          record('expanded');
           assert.equal(await p.locator(launch).getAttribute('aria-expanded'),'true');
           for(const key of ['Tab','Shift+Tab'])for(let i=0;i<14;i++){
-            await p.keyboard.press(key);
+            record('tab-input',key==='Tab'?1:2,i+1);await p.keyboard.press(key);
+            record('tab-check',key==='Tab'?1:2,i+1,await p.evaluate(keyboardObservation,id));
             assert.equal(await p.evaluate(id=>document.activeElement?.closest('dialog')?.id===id,id),true,'Native tab focus stays in menu');
           }
-          const keyStart=await p.evaluate(()=>__a52Journey.keys.length);
-          await p.keyboard.down('w');await p.keyboard.up('w');
+          record('key-read');const keyStart=await p.evaluate(()=>__a52Journey.keys.length);
+          record('key-down');await p.keyboard.down('w');record('key-up');await p.keyboard.up('w');
+          record('key-check',0,0,{...await p.evaluate(keyboardObservation,id),...await p.evaluate(n=>({keyDownCount:__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'&&x[0]==='down').length,keyUpCount:__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'&&x[0]==='up').length}),keyStart)});
           assert.deepEqual(await p.evaluate(n=>__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'),keyStart),[['up','KeyW']],
             'Menu blocks command keydown but permits native key-release cleanup; not a simulation-pause assertion');
-          mark(side+'-dismiss');await p.keyboard.press('Escape');await closed();
+          record('complete');mark(side+'-dismiss');await p.keyboard.press('Escape');await closed();
           assert.equal(await p.locator(launch).evaluate(e=>e===document.activeElement),true,'Escape returns launcher focus');
           await revealCornerAction(p,target,touch?'tap':'click');
           await native('#'+id+' .preview-menu-close');await closed();

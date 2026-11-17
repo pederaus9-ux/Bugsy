@@ -21,6 +21,25 @@ test('installed progress permits only exact baseline, ordered stages and current
  const good={status:'FAIL',base:'38fa4706e41c40197b7afc32de693cb3901a80fb',physicalPhone:false,stages:['predecessor'],hashes:{},failedStage:'update'};assert.deepEqual(e.installedProgress(good),good);
  for(const bad of [{...good,error:canary},{...good,failedStage:canary},{...good,status:'PASS'},{...good,stages:['offline']},{...good,hashes:{index:canary}},{...good,base:'a'.repeat(40)}])assert.throws(()=>e.installedProgress(bad));
 });
+test('offline probe accepts finite observations and rejects raw values and invalid counters',()=>{
+ const good={step:'errors',controlled:true,farmMatches:true,cacheMatches:true,differentFields:[],serverResponses:0,nonWorkerResponses:0,errorCounts:{page:0,console:1,http:0,request:1,other:0}};
+ assert.deepEqual(e.offlineProbe(good),good);
+ for(const bad of [{...good,error:canary},{...good,step:canary},{...good,differentFields:[canary]},{...good,differentFields:['coins','coins']},{...good,serverResponses:-1},{...good,nonWorkerResponses:1.2},{...good,errorCounts:{page:canary}},{...good,farmMatches:canary}])assert.throws(()=>e.offlineProbe(bad));
+});
+test('keyboard evidence accepts exact finite primitives, never raw DOM or exception content',()=>{
+ const good={schema:1,side:1,phase:'tab-check',direction:1,iteration:8,observed:true,inMenu:false,documentFocused:false,bodyActive:true,rootActive:false,launcherActive:false,dialogOpen:true,focusableCount:8,keyDownCount:0,keyUpCount:0};
+ assert.deepEqual(e.nativeKeyboard(good),good);
+ for(const bad of [{...good,error:canary},{...good,phase:canary},{...good,side:3},{...good,direction:3},{...good,iteration:15},{...good,focusableCount:Infinity},{...good,keyDownCount:33},{...good,inMenu:canary},{...good,schema:2}])assert.throws(()=>e.nativeKeyboard(bad));
+ const missing={...good};delete missing.observed;assert.throws(()=>e.nativeKeyboard(missing));
+});
+test('failed native run still exports schema-validated finite diagnostics, not screenshots',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'a52-safe-')),source=path.join(dir,'in'),output=path.join(dir,'out'),screenshots=path.join(dir,'images');fs.mkdirSync(source);fs.mkdirSync(screenshots);
+ const keyboard={schema:1,side:1,phase:'tab-check',direction:1,iteration:8,observed:true,inMenu:false,documentFocused:false,bodyActive:true,rootActive:false,launcherActive:false,dialogOpen:true,focusableCount:8,keyDownCount:0,keyUpCount:0};
+ try{fs.writeFileSync(path.join(source,'native.json'),JSON.stringify(receipt('command_failed')));fs.writeFileSync(path.join(screenshots,'a52-native-keyboard.json'),JSON.stringify(keyboard));fs.writeFileSync(path.join(screenshots,'raw.log'),canary);
+  const result=e.collect({source,output,head:'a'.repeat(40),screenshots});assert.deepEqual(result.nativeKeyboard,keyboard);assert.deepEqual(result.screenshots,[]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(output,'native-keyboard.json'),'utf8')),keyboard);assert.equal(JSON.stringify(result).includes(canary),false);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
 test('PNG accepts only exact dimensions, validated chunks and an unchanged raster',()=>{
  const b=png();assert.equal(e.validatePng(b,1,1).bytes,b.length);assert.throws(()=>e.validatePng(b,2,1));
  const corrupt=Buffer.from(b);corrupt[20]^=1;assert.throws(()=>e.validatePng(corrupt,1,1));
@@ -53,5 +72,5 @@ test('failed native execution never authorizes copying screenshots',()=>{
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 test('public collector has no app, browser, git or network execution',()=>{
- const text=fs.readFileSync(require.resolve('./helpers/a52-ci-evidence.cjs'),'utf8');assert.equal(/child_process|https?\b|playwright|execSync|spawn\(/.test(text),false);
+ const text=fs.readFileSync(require.resolve('./helpers/a52-ci-evidence.cjs'),'utf8');assert.equal(/child_process|require\(['"](?:node:)?(?:https?|net|tls)['"]\)|\bfetch\(|playwright|execSync|spawn\(/.test(text),false);
 });

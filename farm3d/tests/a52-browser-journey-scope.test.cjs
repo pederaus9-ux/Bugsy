@@ -1,6 +1,7 @@
 'use strict';
 // Source/orchestration checks only. Never require or execute a browser journey here.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
+const {normalizeA52NativeKeyboard}=require('./helpers/a52-native-keyboard-scope.cjs');
 const root=path.resolve(__dirname,'../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const raw=read('farm3d/tests/fixtures/a52-browser-journey-scope.json'),scope=JSON.parse(raw);
@@ -92,7 +93,8 @@ test('native identity probe handles id-less Settings in its original left contai
  assert.deepEqual(JSON.parse(JSON.stringify(result)),{count:12,same:true,hidden:true});
 });
 function probeFixture(){
- const source=read('farm3d/tests/a52-corner-menus.browser.cjs');
+ const file='farm3d/tests/a52-corner-menus.browser.cjs';
+ const source=normalizeA52NativeKeyboard(file,read(file));
  const named=source.match(/function observeOriginalControls\(\)\{([\s\S]*?)\n\}\nasync function main/);
  const legacy=source.match(/await p\.addInitScript\(\(\)=>\{([\s\S]*?)\n        \}\);/);
  assert(named||legacy,'Original-node observation script found');

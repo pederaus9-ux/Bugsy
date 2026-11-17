@@ -26,6 +26,16 @@ async function farm(p){
 async function cacheHashes(p){
  return p.evaluate(async files=>{const c=await caches.open('sa3d-v93'),hashes={};for(const file of files){const r=await c.match(new URL(file,location.href));if(!r)throw Error('Required cache entry missing');hashes[file]=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),n=>n.toString(16).padStart(2,'0')).join('');}return hashes;},files);
 }
+// Finite diagnostics only; never serialize field values, error text or request URLs.
+function farmDifferenceFields(before,after){
+ const fields=['v','coins','gems','xp','level','barn','barnCap','barnUps','decor','gold','plots','pens','layout','buildings'];
+ return fields.filter(k=>!require('node:util').isDeepStrictEqual(before[k],after[k]));
+}
+function errorCategoryCounts(errors){
+ const counts={page:0,console:0,http:0,request:0,other:0};
+ for(const error of errors){const key=typeof error==='string'?(error.startsWith('pageerror: ')?'page':error.startsWith('console: ')?'console':error.startsWith('HTTP ')?'http':error.startsWith('request: ')?'request':'other'):'other';counts[key]++;}
+ return counts;
+}
 async function menus(p){
  assert.equal(await p.locator('.preview-menu[open]').count(),0);
  for(const selector of ['#walkBtn','[data-p="barn"]']){
@@ -67,13 +77,16 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  assert.deepEqual(cacheState.keys.filter(k=>k.startsWith('sa3d-')),['sa3d-v93']);assert.equal(cacheState.foreign,'preserve');
  assert.deepEqual(await cacheHashes(p),expected);result.hashes=expected;result.stages.push(stage);record();
  stage='updated-online';await p.reload();await ready(p);assert.deepEqual(await farm(p),before);await menus(p);assert.deepEqual(await cacheHashes(p),expected);result.stages.push(stage);record();
- stage='offline';await session.context.setOffline(true);
+ stage='offline';result.offlineProbe={step:'set-offline'};record();await session.context.setOffline(true);
+ const markOffline=step=>{result.offlineProbe.step=step;record();};
  let nonWorkerResponses=0;const count=r=>{if(!r.fromServiceWorker())nonWorkerResponses++;};p.on('response',count);
- const served=h.serverResponseCount();await p.reload();await ready(p);
- assert.equal(await p.evaluate(()=>!!navigator.serviceWorker.controller),true);
- assert.deepEqual(await farm(p),before);await menus(p);assert.deepEqual(await cacheHashes(p),expected);
- assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
- p.off('response',count);assert.deepEqual(session.errors,[]);result.stages.push(stage);result.status='PASS';failed=false;record();
+ const served=h.serverResponseCount();markOffline('reload');await p.reload();markOffline('ready');await ready(p);
+ markOffline('control');const controlled=await p.evaluate(()=>!!navigator.serviceWorker.controller);result.offlineProbe.controlled=controlled;record();assert.equal(controlled,true);
+ markOffline('save');const afterOffline=await farm(p);result.offlineProbe.differentFields=farmDifferenceFields(before,afterOffline);result.offlineProbe.farmMatches=result.offlineProbe.differentFields.length===0;record();assert.deepEqual(afterOffline,before);
+ markOffline('menus');await menus(p);
+ markOffline('cache');const offlineHashes=await cacheHashes(p);result.offlineProbe.cacheMatches=require('node:util').isDeepStrictEqual(offlineHashes,expected);record();assert.deepEqual(offlineHashes,expected);
+ markOffline('responses');result.offlineProbe.serverResponses=h.serverResponseCount()-served;result.offlineProbe.nonWorkerResponses=nonWorkerResponses;record();assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
+ p.off('response',count);markOffline('errors');result.offlineProbe.errorCounts=errorCategoryCounts(session.errors);record();assert.deepEqual(session.errors,[]);markOffline('complete');result.stages.push(stage);result.status='PASS';failed=false;record();
 }catch{result.status='FAIL';result.failedStage=stage;process.exitCode=1;record();console.error('A52 installed UI journey failed; stage='+stage);}
 finally{if(h)try{await h.close(failed);}catch{result.status='FAIL';result.failedStage='cleanup';process.exitCode=1;record();}}
 })();

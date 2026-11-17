@@ -38,8 +38,26 @@ function nativeProgress(value){
  if(value.completedViewports>value.viewport||(value.status==='passed'&&(value.completedViewports!==4||value.viewport!==4||value.stage!=='viewport-complete')))reject();
  return {...value};
 }
+function nativeKeyboard(value){
+ const bools=['observed','inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen'];
+ const keys=['schema','side','phase','direction','iteration','focusableCount','keyDownCount','keyUpCount',...bools];
+ const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete'];
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==keys.sort().join('|')||value.schema!==1||![1,2].includes(value.side)||!phases.includes(value.phase)||![0,1,2].includes(value.direction))reject();
+ for(const k of bools)if(typeof value[k]!=='boolean')reject();
+ for(const k of ['iteration','focusableCount','keyDownCount','keyUpCount'])if(!Number.isInteger(value[k])||value[k]<0||value[k]>(k==='iteration'?14:32))reject();
+ return {...value};
+}
+function offlineProbe(value){
+ const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts'];
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||!['set-offline','reload','ready','control','save','menus','cache','responses','errors','complete'].includes(value.step))reject();
+ for(const k of ['controlled','farmMatches','cacheMatches'])if(k in value&&typeof value[k]!=='boolean')reject();
+ for(const k of ['serverResponses','nonWorkerResponses'])if(k in value&&(!Number.isSafeInteger(value[k])||value[k]<0||value[k]>1e6))reject();
+ if('differentFields'in value){const a=value.differentFields,allowed=['v','coins','gems','xp','level','barn','barnCap','barnUps','decor','gold','plots','pens','layout','buildings'];if(!Array.isArray(a)||new Set(a).size!==a.length||a.some(k=>!allowed.includes(k)))reject();}
+ if('errorCounts'in value){const c=value.errorCounts;if(!c||Object.keys(c).sort().join('|')!=='console|http|other|page|request'||Object.values(c).some(v=>!Number.isSafeInteger(v)||v<0||v>1e6))reject();}
+ return JSON.parse(JSON.stringify(value));
+}
 function installedProgress(value){
- if(!value||Object.keys(value).some(k=>!['status','base','physicalPhone','stages','hashes','failedStage'].includes(k))||!['RUNNING','PASS','FAIL'].includes(value.status)||value.base!=='38fa4706e41c40197b7afc32de693cb3901a80fb'||value.physicalPhone!==false)reject();
+ if(!value||Object.keys(value).some(k=>!['status','base','physicalPhone','stages','hashes','failedStage','offlineProbe'].includes(k))||!['RUNNING','PASS','FAIL'].includes(value.status)||value.base!=='38fa4706e41c40197b7afc32de693cb3901a80fb'||value.physicalPhone!==false)reject();
  const stages=['predecessor','update','updated-online','offline'];
  if(!Array.isArray(value.stages)||JSON.stringify(value.stages)!==JSON.stringify(stages.slice(0,value.stages.length)))reject();
  if('failedStage'in value&&!['source',...stages,'cleanup'].includes(value.failedStage))reject();
@@ -47,6 +65,7 @@ function installedProgress(value){
  if(!hashes||typeof hashes!=='object'||Array.isArray(hashes)||![0,5].includes(Object.keys(hashes).length))reject();
  for(const [name,hash]of Object.entries(hashes))if(!files.includes(name)||typeof hash!=='string'||hash!==sha(fs.readFileSync(path.join(__dirname,'../..',name.split('?')[0]))))reject();
  if(value.status==='PASS'&&(value.stages.length!==4||Object.keys(hashes).length!==5||'failedStage'in value))reject();
+ if('offlineProbe'in value)offlineProbe(value.offlineProbe);
  return JSON.parse(JSON.stringify(value));
 }
 function collect({source,output,head,screenshots}){
@@ -58,10 +77,12 @@ function collect({source,output,head,screenshots}){
   const raw=regular(path.join(source,name),8192),value=safeReceipt(JSON.parse(raw));if(name==='native.json')native=value;
   const bytes=Buffer.from(JSON.stringify(value)+'\n');files.push([name,bytes]);receipts.push({name,...value});
  }
- if(!receipts.length)reject();const images=[];let nativeState=null,installedState=null;
+ if(!receipts.length)reject();const images=[];let nativeState=null,keyboardState=null,installedState=null;
  if(screenshots&&fs.existsSync(screenshots)){
   screenshots=directory(screenshots);const progress=path.join(screenshots,'a52-native-progress.json'),installed=path.join(screenshots,'a52-installed-ui-cache/results.json');
   if(fs.existsSync(progress)){nativeState=nativeProgress(JSON.parse(regular(progress,4096)));files.push(['native-progress.json',Buffer.from(JSON.stringify(nativeState)+'\n')]);}
+  const keyboard=path.join(screenshots,'a52-native-keyboard.json');
+  if(fs.existsSync(keyboard)){keyboardState=nativeKeyboard(JSON.parse(regular(keyboard,4096)));files.push(['native-keyboard.json',Buffer.from(JSON.stringify(keyboardState)+'\n')]);}
   if(fs.existsSync(installed)){directory(path.dirname(installed));installedState=installedProgress(JSON.parse(regular(installed,8192)));files.push(['installed-progress.json',Buffer.from(JSON.stringify(installedState)+'\n')]);}
  }
  if(screenshots&&executedPass(native)){
@@ -70,7 +91,7 @@ function collect({source,output,head,screenshots}){
    const name=stem+width+'x'+height+'.png',b=regular(path.join(screenshots,name),16*1024*1024);images.push({name,...validatePng(b,width,height)});files.push([name,b]);
   }
  }
- const summary={schema:1,head,receipts,nativeProgress:nativeState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
+ const summary={schema:1,head,receipts,nativeProgress:nativeState,nativeKeyboard:keyboardState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
  // All validation completes before the first output is created.
  fs.mkdirSync(output,{mode:0o700});for(const [name,b]of files)fs.writeFileSync(path.join(output,name),b,{flag:'wx',mode:0o600});
  fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(summary,null,2)+'\n',{flag:'wx',mode:0o600});return summary;
@@ -79,5 +100,5 @@ function main(args){
  try{const o={};for(let i=0;i<args.length;i+=2){const key=args[i];if(!['--source','--output','--head','--screenshots'].includes(key)||key.slice(2)in o||typeof args[i+1]!=='string')reject();o[key.slice(2)]=args[i+1];}collect(o);process.stdout.write('A52 finite evidence exported\n');return 0;}
  catch{process.stderr.write('A52 public evidence rejected\n');return 1;}
 }
-module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,installedProgress,collect,main,VIEWPORTS};
+module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,nativeKeyboard,offlineProbe,installedProgress,collect,main,VIEWPORTS};
 if(require.main===module)process.exitCode=main(process.argv.slice(2));
