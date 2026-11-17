@@ -6,7 +6,7 @@ const raw=fs.readFileSync(path.join(__dirname,'../fixtures/a53-cow-recovery-scop
 assert.equal(sha(raw),'880cd554a8be8b874fae3df28934fc8c069137258a56131804af8737b8b5ff89','Exact frozen A53 cow-recovery scope');
 const scope=JSON.parse(raw);
 const deltaRaw=fs.readFileSync(path.join(__dirname,'../fixtures/a53-custom-nearest-scope.json'));
-assert.equal(sha(deltaRaw),'0a238b9599176194279d94370d65f586098799d3d0ab8b7bf9171a8ad4571be1','Exact custom nearest scope');
+assert.equal(sha(deltaRaw),'7efac0f414a3c087d62fe269b86d7232e7a947faa64e767d489bfda50e80d263','Exact custom nearest scope');
 const delta=JSON.parse(deltaRaw),entry=scope.files['farm3d/index.html'];
 assert.equal(delta.schema,1);assert.equal(delta.file,'farm3d/index.html');assert.equal(delta.beforeSha256,entry.afterSha256);
 assert.equal(delta.hunks.length,1);assert(delta.hunks[0].before&&delta.hunks[0].after);

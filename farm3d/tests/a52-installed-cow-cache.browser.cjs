@@ -56,7 +56,7 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  const baselineWorker=execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',BASE+':farm3d/sw.js'],{cwd:root,maxBuffer:1024*1024,stdio:['ignore','pipe','pipe'],env:{...process.env,GIT_ALLOW_PROTOCOL:'',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1'}}).toString();
  assert.equal(baselineWorker.split('sa3d-v93').length,2);
  assert.equal(fs.readFileSync(path.join(root,'farm3d/sw.js'),'utf8'),baselineWorker.replace('sa3d-v93','sa3d-v94'),'Only cache version changes');
- assert.equal(sha(fs.readFileSync(path.join(root,'farm3d/index.html'))),'615e142ae68e60193392b1b95a2f6f225624d19aa597bbb4998f0abd57f41038','Exact uninstrumented qualified candidate');
+ assert.equal(sha(fs.readFileSync(path.join(root,'farm3d/index.html'))),'6ed974f5d0571ef070d50fa81d0f30c8b840f5f283e5a75e46fc8d424225131b','Exact uninstrumented qualified candidate');
  assert(baselineGame.equals(fs.readFileSync(path.join(root,'farm3d/game.js'))),'Original game module remains byte-exact');
  const expected=Object.fromEntries(files.map(f=>[f,sha(fs.readFileSync(path.join(root,'farm3d',f.split('?')[0])))]));
  stage='predecessor';record();h=await start({ref:BASE,serviceWorkers:'allow',deviceScaleFactor:1});
