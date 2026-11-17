@@ -7,6 +7,7 @@ if(process.env.DEBUG||process.env.PWDEBUG)throw new Error('Verbose browser diagn
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const {createBoundary,diagnosticText,localRequestLabel,failure}=require('./helpers/playwright-diagnostics.cjs');
 const {createOfflineObservation}=require('./helpers/a52-offline-observation.cjs');
+const {createOwnedServerStop,createOfflineTransport}=require('./helpers/a52-offline-transport.cjs');
 const root = path.resolve(__dirname, '../..');
 const artifacts = path.resolve(process.env.TEST_ARTIFACTS || path.join(__dirname, 'artifacts'));
 fs.mkdirSync(artifacts, {recursive:true});
@@ -45,11 +46,8 @@ async function start(options = {}) {
   const track=s=>{const active=new Set();sockets.set(s,active);s.on('connection',socket=>{active.add(socket);socket.once('close',()=>active.delete(socket));});};
   track(server);
   const listen=s=>new Promise((resolve,reject)=>{s.once('error',()=>reject(failure()));s.listen(0,'127.0.0.1',resolve);}).catch(()=>{throw failure();});
-  const stop=s=>new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(failure()),5000);
-    try{s.close(()=>{clearTimeout(timer);resolve();});for(const socket of sockets.get(s)||[])socket.destroy();s.closeAllConnections?.();}
-    catch{clearTimeout(timer);reject(failure());}
-  });
+  const stop=createOwnedServerStop(sockets,failure);
+  const offlineTransport=createOfflineTransport(server,sockets,stop);
   try{await listen(server);}catch{await stop(server);throw failure();}
   const base = `http://127.0.0.1:${server.address().port}/`;
   // Browser-wide rejecting HTTP(S) proxy also covers service-worker-owned traffic
@@ -70,6 +68,8 @@ async function start(options = {}) {
     base,
     serverResponseCount(){return servedResponses;},
     beginOfflineObservation(){offlineObservation.begin();},
+    async enforceOfflineTransport(){await offlineTransport.enter();return offlineTransport.snapshot();},
+    offlineTransportState(){return offlineTransport.snapshot();},
     offlineResponseObservation(){return offlineObservation.snapshot();},
     serveRef(ref,settings={}){servedRef=ref||null;keepCurrentWorker=!!settings.keepCurrentWorker;},
     async setup(viewport, touch, name, mobile = touch) {
@@ -82,12 +82,13 @@ async function start(options = {}) {
       page.on('pageerror', error => errors.push('pageerror: ' + diagnosticText(error.message)));
       page.on('console', message => { if (message.type() === 'error') errors.push('console: ' + diagnosticText(message.text())); });
       page.on('response', response => { if (response.url().startsWith(base) && response.status() >= 400) errors.push('HTTP ' + response.status() + ': ' + localRequestLabel(response.url(),base)); });
-      page.on('requestfailed', request => { if (request.url().startsWith(base)) errors.push('request: ' + localRequestLabel(request.url(),base) + ': ' + diagnosticText(request.failure()?.errorText)); });
+      page.on('requestfailed', request => { offlineTransport.observeFailure(request.url(),request.failure()?.errorText);if (request.url().startsWith(base)) errors.push('request: ' + localRequestLabel(request.url(),base) + ': ' + diagnosticText(request.failure()?.errorText)); });
       // Deliberately exercise offline guest fallback; never contact accounts, weather,
       // analytics or feedback endpoints from CI. This is not a cloud integration test.
       await page.route('**/*', route => {
         const url = route.request().url();
         if (url.startsWith(base)) return route.continue();
+        if(offlineTransport.active())return offlineTransport.abortExternal(route,url);
         const sdk = url.includes('gstatic.com/firebasejs/');
         offlineObservation.externalFulfill(sdk);
         return route.fulfill({contentType:sdk?'text/javascript':'application/json',body:sdk?'export {};':'{}'});

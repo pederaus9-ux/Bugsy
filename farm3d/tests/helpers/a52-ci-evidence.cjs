@@ -41,14 +41,14 @@ function nativeProgress(value){
 function nativeKeyboard(value){
  const bools=['observed','inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen'];
  const keys=['schema','side','phase','direction','iteration','focusableCount','keyDownCount','keyUpCount',...bools];
- const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'];
+ const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete','nav-input','nav-route','nav-count-host','nav-count-launcher','nav-count-dialog','nav-count-target','nav-ready','nav-controls','nav-parent','nav-open-read','nav-key-focus','nav-key-press','nav-click','nav-tap','nav-open-check','nav-expanded','nav-dialog-visible','nav-target-visible','nav-complete'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==keys.sort().join('|')||value.schema!==1||![1,2].includes(value.side)||!phases.includes(value.phase)||![0,1,2].includes(value.direction))reject();
  for(const k of bools)if(typeof value[k]!=='boolean')reject();
  for(const k of ['iteration','focusableCount','keyDownCount','keyUpCount'])if(!Number.isInteger(value[k])||value[k]<0||value[k]>(k==='iteration'?14:32))reject();
  return {...value};
 }
 function offlineProbe(value){
- const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses','responseObservation'];
+ const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses','responseObservation','transport'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||!['set-offline','reload','ready','control','save','menus','cache','responses','errors','complete'].includes(value.step))reject();
  for(const k of ['controlled','farmMatches','cacheMatches'])if(k in value&&typeof value[k]!=='boolean')reject();
  for(const k of ['serverResponses','nonWorkerResponses'])if(k in value&&(!Number.isSafeInteger(value[k])||value[k]<0||value[k]>1e6))reject();
@@ -63,6 +63,13 @@ function offlineProbe(value){
    const key=[r.protocol,r.scope,r.resourceType].join('|');if(seen.has(key))reject();seen.add(key);count+=r.count;
   }
   if(count!==value.nonWorkerResponses)reject();
+ }
+ if('transport'in value){
+  const t=value.transport;
+  if(!t||Object.keys(t).sort().join('|')!=='activeOwnedSockets|externalAborts|observedDisconnected|serverClosed'||typeof t.serverClosed!=='boolean'||!Number.isSafeInteger(t.activeOwnedSockets)||t.activeOwnedSockets<0||t.activeOwnedSockets>1e6)reject();
+  for(const key of ['externalAborts','observedDisconnected']){
+   const c=t[key];if(!c||Object.keys(c).sort().join('|')!=='firebaseApp|firebaseAuth|firebaseFirestore|other'||Object.values(c).some(n=>!Number.isSafeInteger(n)||n<0||n>1e6))reject();
+  }
  }
  if('responseObservation'in value){
   const o=value.responseObservation;

@@ -49,7 +49,7 @@ function keyboardObservation(id){
     dialogOpen:!!dialog?.open,focusableCount:[...dialog.querySelectorAll('button')].filter(b=>!b.disabled&&b.getClientRects().length).length};
 }
 function finiteKeyboard(side,phase,direction=0,iteration=0,observation=null){
-  const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'];
+  const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete','nav-input','nav-route','nav-count-host','nav-count-launcher','nav-count-dialog','nav-count-target','nav-ready','nav-controls','nav-parent','nav-open-read','nav-key-focus','nav-key-press','nav-click','nav-tap','nav-open-check','nav-expanded','nav-dialog-visible','nav-target-visible','nav-complete'];
   if(![1,2].includes(side)||!phases.includes(phase)||![0,1,2].includes(direction)||!Number.isInteger(iteration)||iteration<0||iteration>14)throw Error('Invalid finite keyboard observation');
   const out={schema:1,side,phase,direction,iteration,observed:observation!==null};
   for(const key of ['inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen']){
@@ -65,7 +65,7 @@ async function main(){
   // This explicit opt-in is an accident guard, NOT an authorization mechanism.
   assert.equal(process.env.A52_CURRENT_BROWSER_APPROVED,'1','Obtain applicable execution approval first; then explicitly opt in');
   const {start,artifacts}=require('./browser-harness.cjs');
-  const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
+  const {revealCornerAction,observeCornerNavigation}=require('./helpers/a52-browser-navigation.cjs');
   const progress={schema:1,status:'running',stage:'harness',viewport:0,completedViewports:0};
   const mark=stage=>{progress.stage=stage;fs.writeFileSync(path.join(artifacts,'a52-native-progress.json'),JSON.stringify(progress)+'\n');};
   mark('harness');let h,failed=true;
@@ -113,6 +113,7 @@ async function main(){
         for(const [side,target]of [['tools','#walkBtn'],['barn','[data-p="shop"]']]){
           const id='preview-'+side+'-menu',launch='#preview-'+side+'-launch';mark(side+'-keyboard');
           const record=(phase,direction=0,iteration=0,observation=null)=>fs.writeFileSync(path.join(artifacts,'a52-native-keyboard.json'),JSON.stringify(finiteKeyboard(side==='tools'?1:2,phase,direction,iteration,observation))+'\n');
+          const stopNavigationObservation=observeCornerNavigation(p,phase=>record(phase));
           record('reveal');await revealCornerAction(p,target,'keyboard');record('fit');await fit(id);
           record('expanded');
           assert.equal(await p.locator(launch).getAttribute('aria-expanded'),'true');
@@ -146,7 +147,7 @@ async function main(){
           record('backdrop-check',0,0,await p.evaluate(keyboardObservation,id));await closed();
           record('backdrop-focus',0,0,await p.evaluate(keyboardObservation,id));
           assert.equal(await p.locator(launch).evaluate(e=>e===document.activeElement),true,'Backdrop dismissal returns launcher focus');
-          record('dismiss-complete');
+          record('dismiss-complete');stopNavigationObservation();
         }
         async function select(selector,key){
           await revealCornerAction(p,selector,touch?'tap':'click');

@@ -1,10 +1,11 @@
 'use strict';
+const {normalizeA52OfflineTransport}=require('./helpers/a52-offline-transport.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{EventEmitter}=require('node:events');
 const {createOfflineObservation,normalizeA52OfflineObservation,scope,sha}=require('./helpers/a52-offline-observation.cjs');
 test('exact passive probe preserves all original assertions/actions/deadlines',()=>{
  assert.deepEqual(Object.keys(scope.files),['farm3d/tests/browser-harness.cjs','farm3d/tests/a52-installed-ui-cache.browser.cjs']);
  for(const [file,e] of Object.entries(scope.files)){
-  const s=fs.readFileSync(path.resolve(__dirname,'../..',file),'utf8');assert.equal(sha(s),e.afterSha256);assert.equal(sha(normalizeA52OfflineObservation(file,s)),e.beforeSha256);assert.equal(normalizeA52OfflineObservation(file,s+'\n'),s+'\n');
+  const s=normalizeA52OfflineTransport(file,fs.readFileSync(path.resolve(__dirname,'../..',file),'utf8'));assert.equal(sha(s),e.afterSha256);assert.equal(sha(normalizeA52OfflineObservation(file,s)),e.beforeSha256);assert.equal(normalizeA52OfflineObservation(file,s+'\n'),s+'\n');
   for(const regex of [/assert\.[^;]+;/g,/timeout:\d+/g,/await [^;]+/g]){
    // Remove only the explicitly additive passive observation from awaited statement text.
    const clean=s.replace('h.beginOfflineObservation();','');assert.deepEqual(clean.match(regex),e.before.match(regex));

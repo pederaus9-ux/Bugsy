@@ -14,11 +14,12 @@ test('exact delta keeps every original assertion, keyboard action and timeout',(
  const changed=s+'\n// unknown';assert.equal(normalizeA52NativeKeyboard(scope.file,changed),changed);
 });
 test('dismissal instrumentation reverses to exact prior keyboard source and preserves native action sequence',()=>{
- const {scope,sha}=require('./helpers/a52-native-keyboard-scope.cjs');const current=fs.readFileSync(file,'utf8');let prior=current;
+ const {scope,sha}=require('./helpers/a52-native-keyboard-scope.cjs');const current=fs.readFileSync(file,'utf8');let prior=scope.navigationExtension?scope.navigationExtension.before:current;
  for(const h of [...scope.diagnosticExtension].reverse()){assert.equal(prior.split(h.after).length,2);prior=prior.replace(h.after,h.before);}
  assert.equal(sha(prior),scope.previousAfterSha256);assert.equal(scope.previousReceiptSha256,'620301be0db89e9c1c62ac9f1b35266809fd4785b16a13b68bf6b0e18a344d74');
  const actions=/await (?:p\.(?:keyboard\.(?:press|down|up)|touchscreen\.tap|mouse\.click|screenshot)|revealCornerAction|native|closed)\([^;]*?\);/g;
  assert.deepEqual(current.match(actions),prior.match(actions));
+ assert.equal(sha(scope.navigationExtension.before),scope.navigationExtension.previousAfterSha256);
  assert.deepEqual(current.match(/assert\.[\s\S]*?;\n/g),prior.match(/assert\.[\s\S]*?;\n/g));
  for(const phase of ['escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'])assert.equal(load().finiteKeyboard(1,phase).phase,phase);
 });

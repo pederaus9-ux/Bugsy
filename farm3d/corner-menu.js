@@ -42,7 +42,7 @@ export function installCornerMenus(doc) {
     spec.host.append(launch,dialog);spec.host.dataset.menuReady='true';
     const shut=()=>{if(dialog.open)dialog.close();launch.setAttribute('aria-expanded','false');};
     launch.addEventListener('click',()=>{if(dialog.open){shut();return;}dialog.showModal();launch.setAttribute('aria-expanded','true');});
-    close.addEventListener('click',shut);dialog.addEventListener('close',()=>launch.setAttribute('aria-expanded','false'));
+    close.addEventListener('click',shut);dialog.addEventListener('close',()=>launch.setAttribute('aria-expanded',String(dialog.open)));
     dialog.addEventListener('click',event=>{
       if(event.target.closest?.('.preview-menu-actions button'))shut();
       else if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)shut();}

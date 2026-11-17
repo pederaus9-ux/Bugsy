@@ -78,7 +78,7 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  assert.deepEqual(cacheState.keys.filter(k=>k.startsWith('sa3d-')),['sa3d-v93']);assert.equal(cacheState.foreign,'preserve');
  assert.deepEqual(await cacheHashes(p),expected);result.hashes=expected;result.stages.push(stage);record();
  stage='updated-online';await p.reload();await ready(p);assert.deepEqual(await farm(p),before);await menus(p);assert.deepEqual(await cacheHashes(p),expected);result.stages.push(stage);record();
- stage='offline';result.offlineProbe={step:'set-offline'};record();await session.context.setOffline(true);h.beginOfflineObservation();
+ stage='offline';result.offlineProbe={step:'set-offline'};record();await session.context.setOffline(true);result.offlineProbe.transport=await h.enforceOfflineTransport();record();h.beginOfflineObservation();
  const markOffline=step=>{result.offlineProbe.step=step;record();};
  const responseClasses=[];let nonWorkerResponses=0;const count=r=>{if(!r.fromServiceWorker()){nonWorkerResponses++;countResponseClass(responseClasses,r.url(),r.request().resourceType(),h.base);}};p.on('response',count);
  const served=h.serverResponseCount();markOffline('reload');await p.reload();markOffline('ready');await ready(p);
@@ -86,7 +86,7 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  markOffline('save');const afterOffline=await farm(p);result.offlineProbe.differentFields=farmDifferenceFields(before,afterOffline);result.offlineProbe.farmMatches=result.offlineProbe.differentFields.length===0;record();assert.deepEqual(afterOffline,before);
  markOffline('menus');await menus(p);
  markOffline('cache');const offlineHashes=await cacheHashes(p);result.offlineProbe.cacheMatches=require('node:util').isDeepStrictEqual(offlineHashes,expected);record();assert.deepEqual(offlineHashes,expected);
- markOffline('responses');result.offlineProbe.responseObservation=h.offlineResponseObservation();result.offlineProbe.serverResponses=h.serverResponseCount()-served;result.offlineProbe.nonWorkerResponses=nonWorkerResponses;result.offlineProbe.responseClasses=responseClasses;record();assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
+ markOffline('responses');result.offlineProbe.transport=h.offlineTransportState();result.offlineProbe.responseObservation=h.offlineResponseObservation();result.offlineProbe.serverResponses=h.serverResponseCount()-served;result.offlineProbe.nonWorkerResponses=nonWorkerResponses;result.offlineProbe.responseClasses=responseClasses;record();assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
  p.off('response',count);markOffline('errors');result.offlineProbe.errorCounts=errorCategoryCounts(session.errors);record();assert.deepEqual(session.errors,[]);markOffline('complete');result.stages.push(stage);result.status='PASS';failed=false;record();
 }catch{result.status='FAIL';result.failedStage=stage;process.exitCode=1;record();console.error('A52 installed UI journey failed; stage='+stage);}
 finally{if(h)try{await h.close(failed);}catch{result.status='FAIL';result.failedStage='cleanup';process.exitCode=1;record();}}

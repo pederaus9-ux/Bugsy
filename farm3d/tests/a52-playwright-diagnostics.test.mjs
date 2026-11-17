@@ -133,7 +133,7 @@ test('fixture listen and route-setup failures remain sanitized and release start
 
 test('cleanup destroys fixture and proxy sockets while keeping all original assertion bounds',async()=>{
  const x=mock(),h=await x.start(),seen=[];
- for(const server of x.servers){const socket=new EventEmitter();socket.destroy=()=>seen.push(server.port);server.emit('connection',socket);}
+ for(const server of x.servers){const socket=new EventEmitter();socket.destroy=()=>{seen.push(server.port);queueMicrotask(()=>socket.emit('close'));};server.emit('connection',socket);}
  await h.close();assert.deepEqual(seen,[32100,32101]);
- const source=fs.readFileSync(new URL('./browser-harness.cjs',import.meta.url),'utf8');assert.match(source,/setTimeout\(\(\)=>reject\(failure\(\)\),5000\)/);assert.match(source,/GIT_ALLOW_PROTOCOL:''/);assert.match(source,/GIT_NO_LAZY_FETCH:'1'/);assert.match(source,/GIT_NO_REPLACE_OBJECTS:'1'/);
+ const source=fs.readFileSync(new URL('./browser-harness.cjs',import.meta.url),'utf8')+fs.readFileSync(new URL('./helpers/a52-offline-transport.cjs',import.meta.url),'utf8');assert.match(source,/setTimeout\(\(\)=>reject\(failure\(\)\),5000\)/);assert.match(source,/GIT_ALLOW_PROTOCOL:''/);assert.match(source,/GIT_NO_LAZY_FETCH:'1'/);assert.match(source,/GIT_NO_REPLACE_OBJECTS:'1'/);
 });

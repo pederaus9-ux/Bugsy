@@ -43,3 +43,22 @@ for(const [name,options] of Object.entries({missingMenu:{ready:'false'},wrongAss
 test('non-menu selectors and unsupported input modes are rejected before any action',async()=>{
  for(const [selector,input]of [['.panel [data-p="marketSales"]','click'],['#actBtn','click'],['#walkBtn','force']]){const f=fixture(selector);await assert.rejects(async()=>reveal(f.page,selector,input));assert.deepEqual(f.calls,[]);}
 });
+test('passive navigation observer identifies blocked native action and exact failed assertion',async()=>{
+ for(const [options,last] of [[{activationError:true},'nav-click'],[{wrongExpanded:'false'},'nav-expanded'],[{targetHidden:true},'nav-target-visible']]){
+  const f=fixture('#walkBtn','tools',options),steps=[];const stop=navigation.observeCornerNavigation(f.page,s=>steps.push(s));
+  await assert.rejects(()=>reveal(f.page,'#walkBtn'));assert.equal(steps.at(-1),last);stop();
+ }
+});
+test('navigation observation is page-local and removable without changing actions',async()=>{
+ const a=fixture('#walkBtn'),b=fixture('#walkBtn'),steps=[];const stop=navigation.observeCornerNavigation(a.page,s=>steps.push(s));
+ await reveal(b.page,'#walkBtn');assert.deepEqual(steps,[]);await reveal(a.page,'#walkBtn');assert.equal(steps.at(-1),'nav-complete');
+ assert.deepEqual(a.calls,b.calls);const count=steps.length;stop();await reveal(a.page,'#walkBtn');assert.equal(steps.length,count);assert.throws(()=>navigation.observeCornerNavigation(a.page,null));
+});
+test('navigation diagnostics retain exact prior assertions, native calls and no timeouts',()=>{
+ const fs=require('node:fs'),crypto=require('node:crypto'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+ const raw=fs.readFileSync(require.resolve('./fixtures/a52-navigation-diagnostics-scope.json'));assert.equal(sha(raw),'c99268c64759be33e240ed2f44acccc7da2f99e1f598e00e9b03d51b18aca5ca');const scope=JSON.parse(raw);
+ const now=fs.readFileSync(require.resolve('./helpers/a52-browser-navigation.cjs'),'utf8');assert.equal(sha(now),scope.afterSha256);assert.equal(sha(scope.before),scope.beforeSha256);
+ for(const re of [/assert\.[^;]+;/g,/await [^;]+;/g,/timeout\s*:\s*\d+/g])assert.deepEqual(now.replace(/step\([^;]*\);/g,'').match(re),scope.before.match(re));
+ const f=fixture('#walkBtn');const phases=[];navigation.observeCornerNavigation(f.page,p=>phases.push(p));
+ return reveal(f.page,'#walkBtn').then(()=>assert.deepEqual(phases,['nav-input','nav-route','nav-count-host','nav-count-launcher','nav-count-dialog','nav-count-target','nav-ready','nav-controls','nav-parent','nav-open-read','nav-click','nav-open-check','nav-expanded','nav-dialog-visible','nav-target-visible','nav-complete']));
+});

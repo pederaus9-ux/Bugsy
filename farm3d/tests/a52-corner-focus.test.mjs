@@ -24,3 +24,15 @@ test('exact focus correction inverses to accepted A52 asset without changing fro
  assert.equal(scope.normalizeA52CornerFocus('corner-menu.js',source),scope.scope.before);
  assert.equal(scope.normalizeA52CornerFocus('corner-menu.js',source+'x'),source+'x');assert.equal(scope.normalizeA52CornerFocus('unknown',source),source);
 });
+test('queued close event after reopen reflects current open state, not stale false',()=>{
+ const correction=scope.scope.queuedCloseCorrection;
+ assert.equal(scope.sha(source.replace(correction.after,correction.before)),correction.previousAfterSha256);
+ for(const side of ['tools','barn'])for(const reopen of [false,true]){
+  for(const [label,s] of [['before',source.replace(correction.after,correction.before)],['current',source]]){
+   const f=fixture();load(s,f)();const d=f.doc.getElementById('preview-'+side+'-menu'),l=f.doc.getElementById('preview-'+side+'-launch'),pending=[];
+   d.close=()=>{d.open=false;pending.push(()=>d.emit('close'));};
+   l.emit('click');d.close();if(reopen)l.emit('click');pending.shift()();
+   assert.equal(d.open,reopen);assert.equal(l.getAttribute('aria-expanded'),label==='before'?'false':String(reopen));
+  }
+ }
+});

@@ -102,3 +102,14 @@ test('offline harness attribution exports finite categories and counts only',()=
  const good={step:'responses',responseObservation:o};assert.deepEqual(e.offlineProbe(good),good);
  for(const bad of [{...o,url:canary},{...o,externalFulfillCalls:{firebaseSdk:Infinity,other:0}},{...o,externalFulfillCalls:{firebaseSdk:3,other:0,url:canary}},{...o,localResponses:[{category:canary,beganBeforeOffline:false,count:1}]},{...o,localResponses:[{category:'other',beganBeforeOffline:canary,count:1}]},{...o,localResponses:[{category:'other',beganBeforeOffline:false,count:0}]},{...o,localResponses:[...o.localResponses,...o.localResponses]}])assert.throws(()=>e.offlineProbe({...good,responseObservation:bad}));
 });
+
+test("reopen helper diagnostics retain bounded phases",()=>{
+const good={schema:1,side:1,phase:"nav-click",direction:0,iteration:0,observed:false,inMenu:false,documentFocused:false,bodyActive:false,rootActive:false,launcherActive:false,dialogOpen:false,focusableCount:0,keyDownCount:0,keyUpCount:0};
+for(const phase of ['nav-input', 'nav-route', 'nav-count-host', 'nav-count-launcher', 'nav-count-dialog', 'nav-count-target', 'nav-ready', 'nav-controls', 'nav-parent', 'nav-open-read', 'nav-key-focus', 'nav-key-press', 'nav-click', 'nav-tap', 'nav-open-check', 'nav-expanded', 'nav-dialog-visible', 'nav-target-visible', 'nav-complete'])assert.deepEqual(e.nativeKeyboard({...good,phase}),{...good,phase});
+});
+
+test('offline transport receipt accepts only fixed booleans and counters',()=>{
+ const counters={firebaseApp:1,firebaseAuth:1,firebaseFirestore:1,other:0},transport={serverClosed:true,activeOwnedSockets:0,externalAborts:counters,observedDisconnected:counters},good={step:'responses',transport};
+ assert.deepEqual(e.offlineProbe(good),good);
+ for(const t of [{...transport,url:canary},{...transport,serverClosed:canary},{...transport,activeOwnedSockets:Infinity},{...transport,externalAborts:{...counters,other:-1}},{...transport,observedDisconnected:{...counters,url:canary}}])assert.throws(()=>e.offlineProbe({...good,transport:t}));
+});
