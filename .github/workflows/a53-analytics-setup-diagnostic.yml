@@ -1,0 +1,63 @@
+name: A53 bounded analytics setup diagnostic
+on:
+  push:
+    branches: [codex/a53-analytics-setup-diagnostic-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a53-analytics-setup-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  analytics:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Verify exact reviewed parent source and unchanged kernel protection
+        run: |
+          node farm3d/tests/helpers/a53-analytics-source.cjs "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/a53-analytics-safe" "$RUNNER_TEMP/a53-analytics-public" "$RUNNER_TEMP/a52-ci-safe/analytics"
+      - name: Prove kernel isolation
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-analytics-safe/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Inert observer inverse and finite evidence controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-analytics-safe/controls.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-analytics-setup-diagnostic.test.cjs
+      - name: Install original locked test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install original pinned Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Original nine node tests and full analytics browser command
+        working-directory: farm3d/tests
+        run: |
+          (cd "$GITHUB_WORKSPACE" && node farm3d/tests/helpers/a53-analytics-source.cjs "$GITHUB_SHA")
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/analytics/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:analytics'
+      - name: Retain original finite receipt and phase evidence
+        id: original
+        if: ${{ !cancelled() }}
+        run: |
+          node farm3d/tests/helpers/a53-analytics-source.cjs "$GITHUB_SHA"
+          node farm3d/tests/helpers/a52-workflow-receipts.cjs farm3d-regression/analytics "$RUNNER_TEMP/a52-ci-safe/analytics" "$RUNNER_TEMP/a53-analytics-public/original" "$GITHUB_SHA"
+      - name: Project bounded setup and native exit evidence
+        id: setup
+        if: ${{ !cancelled() }}
+        run: |
+          node farm3d/tests/helpers/a53-analytics-source.cjs "$GITHUB_SHA" "$RUNNER_TEMP/a53-analytics-public/identity.json"
+          node farm3d/tests/helpers/a53-analytics-setup-diagnostic.cjs "$RUNNER_TEMP/a53-analytics-setup/phase.json" "$RUNNER_TEMP/a52-ci-safe/analytics/step-1.json" "$RUNNER_TEMP/a53-analytics-public/setup.json" "$GITHUB_SHA"
+      - name: Upload only finite evidence, never raw logs saves or screenshots
+        if: ${{ !cancelled() && steps.original.outcome == 'success' && steps.setup.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-analytics-setup-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a53-analytics-public/
+          if-no-files-found: error
+          retention-days: 14

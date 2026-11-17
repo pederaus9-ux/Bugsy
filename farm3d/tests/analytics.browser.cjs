@@ -1,3 +1,4 @@
+const __setupProbe=require('./helpers/a53-analytics-setup-diagnostic.cjs').create();
 const __finite=require('./helpers/a52-ordinary-progress.cjs').createProgress('analytics');__finite.mark('harness');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
@@ -62,11 +63,11 @@ __finite.mark('scenario-behavior');   if(scenario==='denied'){await p.waitForFun
 __finite.mark('scenario-errors-finish');   assert.deepEqual(s.errors,[]);console.log('PASS dashboard',scenario);await s.finish();
   }
   for(const sandbox of [false,true]){
-__finite.mark('game-setup',sandbox?8:7);   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox),p=s.page;await mock(p);await p.addInitScript(()=>localStorage.setItem('sa3d-guest','1'));
+__finite.mark('game-setup',sandbox?8:7);__setupProbe.begin(sandbox?8:7);__setupProbe.mark('context');   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox),p=s.page;__setupProbe.done('context');__setupProbe.mark('mock-route');await mock(p);__setupProbe.done('mock-route');__setupProbe.mark('guest-init');await p.addInitScript(()=>localStorage.setItem('sa3d-guest','1'));__setupProbe.done('guest-init');
 // This mocked online-report scenario does not test host internet detection.
    // Network namespace, deny proxy and request routes remain unchanged.
-   if(!sandbox)await p.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>true}));
-__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));await p.waitForFunction(sandbox=>window.__ready&&window.__dbg&&(sandbox||window.saAuth?.guest),sandbox,{timeout:90000});
+   if(!sandbox){__setupProbe.mark('online-init');await p.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>true}));__setupProbe.done('online-init');}
+__setupProbe.mark('navigation-ready');__setupProbe.done('navigation-ready');__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));await p.waitForFunction(sandbox=>window.__ready&&window.__dbg&&(sandbox||window.saAuth?.guest),sandbox,{timeout:90000});
 __finite.mark('game-metrics');   await p.waitForFunction(()=>window.saMetrics);await p.evaluate(()=>{const G=__dbg.G;G.close();G.S.tut=99;G.S.barn.wheat=0;G.S.plots[0].crop=null;G.harvest(0,true);});
 __finite.mark('failed-harvest');   assert.equal(await p.evaluate(()=>window.__reports?.some(r=>r.data.e.includes('_harv_'))||false),false,'failed harvest has no report');
 __finite.mark('game-fixture');   await p.evaluate(()=>{const G=__dbg.G;Object.assign(G.S.plots[0],{crop:'wheat',end:Date.now()-1});G.harvest(0,true);G.S.barn.wheat=10;G.S.orders=[{items:{wheat:3},coins:25,xp:2,gem:1,wait:0}];G.S.rush=null;G.openPanel('orders');});
@@ -79,5 +80,5 @@ __finite.mark('game-report-assertions');   const reports=await p.evaluate(()=>({
 __finite.mark('game-errors-finish');   assert.deepEqual(s.errors,[]);results.push({sandbox,reports});console.log('PASS real game milestone hooks and sandbox',sandbox);await s.finish();
   }
   failed=false;
- }finally{fs.writeFileSync(path.join(artifacts,'analytics-results.json'),JSON.stringify(results,null,2));await h.close(failed);}
-})().catch(e=>{__finite.fail(e);console.error(e);process.exitCode=1;});
+ }finally{__setupProbe.cleanup('write-results');fs.writeFileSync(path.join(artifacts,'analytics-results.json'),JSON.stringify(results,null,2));__setupProbe.cleanup('close-browser');await h.close(failed);__setupProbe.cleanup('complete');}
+})().catch(e=>{__setupProbe.caught(e);__finite.fail(e);console.error(e);process.exitCode=1;});
