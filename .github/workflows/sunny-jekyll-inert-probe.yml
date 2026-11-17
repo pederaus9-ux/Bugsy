@@ -1,0 +1,64 @@
+name: Sunny official Jekyll inert boundary
+# Inert qualification only. No game/historical files are materialized in the worktree or executed.
+on:
+  push:
+    branches: [codex/sunny-jekyll-inert-probe-20261117]
+    paths:
+      - '.ci/sunny-jekyll-inert-probe.cjs'
+      - '.github/workflows/sunny-jekyll-inert-probe.yml'
+permissions:
+  contents: read
+concurrency:
+  group: sunny-jekyll-inert-probe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.ci/sunny-jekyll-inert-probe.cjs
+            /.github/workflows/sunny-jekyll-inert-probe.yml
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify checkout identity and exact worktree allowlist
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          python3 - <<'PYCHECK'
+          import os, stat
+          allowed = {'.ci/sunny-jekyll-inert-probe.cjs', '.github/workflows/sunny-jekyll-inert-probe.yml'}
+          seen = set()
+          for root, dirs, files in os.walk('.', followlinks=False):
+              if root == '.':
+                  dirs[:] = [d for d in dirs if d != '.git']
+              for name in dirs:
+                  assert not os.path.islink(os.path.join(root, name)), 'symlink directory'
+              for name in files:
+                  path = os.path.join(root, name)
+                  rel = path[2:]
+                  assert rel in allowed and stat.S_ISREG(os.lstat(path).st_mode), 'unexpected worktree entry'
+                  seen.add(rel)
+          assert seen == allowed, 'missing worktree input'
+          PYCHECK
+      - name: Verify original helper bytes
+        run: |
+          printf '%s  %s\n' 'c841d6acac6cc8c97888ed555b8379141e574cfba85ed6978f7a6acb1f17b1e8' '.ci/sunny-jekyll-inert-probe.cjs' | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/sunny-jekyll-inert-receipts"
+      - name: Probe official image identity and inert no-egress boundary
+        run: node .ci/sunny-jekyll-inert-probe.cjs "$RUNNER_TEMP/sunny-jekyll-inert-receipts/image-boundary.json"
+      - name: Retain finite identity and boundary receipt only
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: sunny-jekyll-inert-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sunny-jekyll-inert-receipts/image-boundary.json
+          if-no-files-found: error
+          retention-days: 7
