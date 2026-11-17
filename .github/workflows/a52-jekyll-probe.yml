@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 13fff2cb5a74822b5b1252d474d25e799cbc382d
+          test "$(git rev-parse HEAD^)" = 9042684794bcba2fb067e3ed94e7c74609cd2c6b
           test ! -e _site
           node <<'NODE'
           const cp=require('node:child_process'),assert=require('node:assert/strict');
@@ -37,9 +37,9 @@ jobs:
           test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 56fcb08d94583f35e847cdaf31ece6bdb9d333ea66087d94dc3f9f91e6e2ecce
           test -f farm3d/tests/a52-jekyll-build.test.cjs && test ! -L farm3d/tests/a52-jekyll-build.test.cjs
-          test "$(sha256sum farm3d/tests/a52-jekyll-build.test.cjs | cut -d ' ' -f1)" = 352b7693c9bbd42ba94c03da5552f275d5d1c514e53be9ffd80106307c66bce2
+          test "$(sha256sum farm3d/tests/a52-jekyll-build.test.cjs | cut -d ' ' -f1)" = 24d78c3269cbf421b9d589d911739fb9cd3095337312f560bc60f863ef0aa01c
           mkdir -p "$RUNNER_TEMP/a52-jekyll-receipts"
       - name: Protected inert helper contracts
         id: contracts
@@ -57,7 +57,7 @@ jobs:
         id: build
         run: |
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 56fcb08d94583f35e847cdaf31ece6bdb9d333ea66087d94dc3f9f91e6e2ecce
           node farm3d/tests/helpers/a52-jekyll-build.cjs "$GITHUB_WORKSPACE" "$GITHUB_SHA" "$RUNNER_TEMP/a52-jekyll-receipts/build.json"
       - name: Protected original actual-output assertions
         id: output
@@ -72,7 +72,7 @@ jobs:
           test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = acffbcc5610e16478c3ecf692096cf33d3f9e20d49186a94dc3416a23f9e39e0
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 56fcb08d94583f35e847cdaf31ece6bdb9d333ea66087d94dc3f9f91e6e2ecce
           node <<'NODE'
           const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
           const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs'),{finiteReceipt}=require('./farm3d/tests/helpers/a52-jekyll-build.cjs');

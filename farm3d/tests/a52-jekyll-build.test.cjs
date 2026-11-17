@@ -26,3 +26,13 @@ test('unknown build start is explicit failure transport state, never a pass',()=
 test('unknown additional artifact exclusion fails closed',()=>{const {root,entries}=fixture();assert.throws(()=>h.sourcePlan(root,[...entries,{path:'farm3d/artifacts/new.json',blob:'a'.repeat(40),mode:'100644'}]));});
 test('known additional exclusion requires exact reviewed blob',()=>{const {root,entries}=fixture(),[p,b]=Object.entries(h.ADDITIONAL_EXCLUSIONS)[0];assert.equal(h.sourcePlan(root,[...entries,{path:p,blob:b,mode:'100644'}]).omitted.length,1);assert.throws(()=>h.sourcePlan(root,[...entries,{path:p,blob:'0'.repeat(40),mode:'100644'}]));});
 test('runtime projection requires all 125 distinct allowed inputs',()=>{const required=Array.from({length:125},(_,i)=>`farm3d/runtime-${i}.js`),plan={files:required.map(path=>({path}))};assert(h.verifyRuntimeProjection(plan,required));assert.throws(()=>h.verifyRuntimeProjection({files:plan.files.slice(1)},required));assert.throws(()=>h.verifyRuntimeProjection(plan,[...required.slice(1),required[1]]));});
+
+test('failure classification exposes fixed booleans only, never log content',()=>{
+ const canary='PRIVATE_DIAGNOSTIC_CANARY';const r=h.buildFailureKinds(Buffer.from(canary),Buffer.from('Errno::EROFS: Read-only file system - /github/workspace/.jekyll-cache/X'));
+ assert(h.validFailureKinds(r));assert.equal(r.readOnlyFilesystem,true);assert.equal(r.jekyllCachePath,true);assert.equal(r.permissionDenied,false);assert(!JSON.stringify(r).includes(canary));assert.deepEqual(Object.keys(r),h.FAILURE_KEYS);
+ assert(h.finiteReceipt({...h.receipt(),failureKinds:r}));assert(!h.finiteReceipt({...h.receipt(),failureKinds:{...r,raw:canary}}));assert(!h.finiteReceipt({...h.receipt(),failureKinds:{...r,readOnlyFilesystem:canary}}));
+});
+test('known operational failures remain separately classified',()=>{
+ for(const [line,key]of [['Errno::EACCES Permission denied','permissionDenied'],['Errno::ENOENT No such file or directory','missingFile'],['SocketError Failed to open TCP','networkFailure'],['Liquid Syntax Error','liquidFailure'],['LoadError cannot load such file','dependencyLoadFailure'],['.sass-cache/foo','sassCachePath'],['.jekyll-metadata','jekyllMetadataPath'],['/usr/local/bundle/foo','bundlePath']])assert.equal(h.buildFailureKinds(null,Buffer.from(line))[key],true);
+ assert(Object.values(h.buildFailureKinds(null,null)).every(x=>x===false));
+});
