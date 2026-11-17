@@ -1,0 +1,74 @@
+name: A53 original assembly4242 at120Hz exact6ed qualification
+on:
+  push:
+    branches: [codex/a53-original-assembly-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a52-pen-clock-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Verify immutable test overlay and guard
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = fa1c31320334fdff4c16030ce334472798913837
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-clock.cjs | cut -d ' ' -f1)" = 882cd961fe0c49dcf3c13c5902fcb9ebf3aa70bcfa3a7b66cc1918c260552267
+          node farm3d/tests/helpers/a52-pen-clock.cjs verify
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-pen-clock-controls" artifacts/a29/pen-cache
+      - name: Prove unchanged kernel isolation boundary
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-clock-controls/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Inert source preservation and finite collector controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-clock-controls/contracts.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-assembly.test.cjs
+      - name: Install locked browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Configure disposable browser paths
+        run: |
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Materialize exact runtime files and exact test-only overlay without executing application
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-clock.cjs | cut -d ' ' -f1)" = 882cd961fe0c49dcf3c13c5902fcb9ebf3aa70bcfa3a7b66cc1918c260552267
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-clock-controls/materialize.json" --timeout-ms 180000 -- node farm3d/tests/helpers/a52-pen-clock.cjs prepare high1
+      - name: Original direct-file assembly seed4242 at120Hz three-night test
+        working-directory: ${{ runner.temp }}/pen-clock-runtime
+        env:
+          PEN_MATRIX_EDIT_CLASS: assembly
+          PEN_MATRIX_SEED: '4242'
+          PEN_MATRIX_RATE_HZ: '120'
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/assembly-4242-120
+        run: |
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/assembly-execution.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- node farm3d/tests/animal-pen-three-night.browser.cjs
+      - name: Positively verify runtime preservation and export finite result only
+        id: projection
+        if: always()
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-clock.cjs | cut -d ' ' -f1)" = 882cd961fe0c49dcf3c13c5902fcb9ebf3aa70bcfa3a7b66cc1918c260552267
+          node farm3d/tests/helpers/a53-assembly.cjs
+      - name: Preserve positive source proofs and finite comparison outcomes only
+        if: ${{ always() && steps.projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-assembly-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/assembly-public/
+          if-no-files-found: error
+          retention-days: 14
