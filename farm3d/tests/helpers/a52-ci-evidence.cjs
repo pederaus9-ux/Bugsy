@@ -48,12 +48,22 @@ function nativeKeyboard(value){
  return {...value};
 }
 function offlineProbe(value){
- const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts'];
+ const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||!['set-offline','reload','ready','control','save','menus','cache','responses','errors','complete'].includes(value.step))reject();
  for(const k of ['controlled','farmMatches','cacheMatches'])if(k in value&&typeof value[k]!=='boolean')reject();
  for(const k of ['serverResponses','nonWorkerResponses'])if(k in value&&(!Number.isSafeInteger(value[k])||value[k]<0||value[k]>1e6))reject();
  if('differentFields'in value){const a=value.differentFields,allowed=['v','coins','gems','xp','level','barn','barnCap','barnUps','decor','gold','plots','pens','layout','buildings'];if(!Array.isArray(a)||new Set(a).size!==a.length||a.some(k=>!allowed.includes(k)))reject();}
  if('errorCounts'in value){const c=value.errorCounts;if(!c||Object.keys(c).sort().join('|')!=='console|http|other|page|request'||Object.values(c).some(v=>!Number.isSafeInteger(v)||v<0||v>1e6))reject();}
+ if('responseClasses'in value){
+  const rows=value.responseClasses,seen=new Set();let count=0;
+  if(!Array.isArray(rows)||rows.length>91||!('nonWorkerResponses'in value))reject();
+  for(const r of rows){
+   if(!r||Object.keys(r).sort().join('|')!=='count|protocol|resourceType|scope'||!['http','https','data','blob','other'].includes(r.protocol)||!['local','external','non-network','unknown'].includes(r.scope)||!['document','stylesheet','image','media','font','script','texttrack','xhr','fetch','eventsource','websocket','manifest','other'].includes(r.resourceType)||!Number.isSafeInteger(r.count)||r.count<1||r.count>1e6)reject();
+   if(['http','https'].includes(r.protocol)?!['local','external'].includes(r.scope):['data','blob'].includes(r.protocol)?r.scope!=='non-network':r.scope!=='unknown')reject();
+   const key=[r.protocol,r.scope,r.resourceType].join('|');if(seen.has(key))reject();seen.add(key);count+=r.count;
+  }
+  if(count!==value.nonWorkerResponses)reject();
+ }
  return JSON.parse(JSON.stringify(value));
 }
 function installedProgress(value){

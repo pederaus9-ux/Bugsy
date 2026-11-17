@@ -1,7 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
-const read=()=>fs.readFileSync(path.join(__dirname,'a52-installed-ui-cache.browser.cjs'),'utf8');
+const {normalizeA52ResponseProbe}=require('./helpers/a52-installed-response-probe.cjs');
+const read=()=>normalizeA52ResponseProbe('farm3d/tests/a52-installed-ui-cache.browser.cjs',fs.readFileSync(path.join(__dirname,'a52-installed-ui-cache.browser.cjs'),'utf8')); 
 const raw=fs.readFileSync(path.join(__dirname,'fixtures/a52-installed-probe-scope.json'));
 const scope=JSON.parse(raw);
 test('exact bounded diagnostic-only delta preserves predecessor and deadline assertions',()=>{

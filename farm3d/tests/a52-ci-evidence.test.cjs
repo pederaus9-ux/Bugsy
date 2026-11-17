@@ -26,6 +26,11 @@ test('offline probe accepts finite observations and rejects raw values and inval
  assert.deepEqual(e.offlineProbe(good),good);
  for(const bad of [{...good,error:canary},{...good,step:canary},{...good,differentFields:[canary]},{...good,differentFields:['coins','coins']},{...good,serverResponses:-1},{...good,nonWorkerResponses:1.2},{...good,errorCounts:{page:canary}},{...good,farmMatches:canary}])assert.throws(()=>e.offlineProbe(bad));
 });
+test('offline response classes are finite, unique and account for every non-worker response',()=>{
+ const row={protocol:'https',scope:'external',resourceType:'script',count:3},good={step:'responses',serverResponses:0,nonWorkerResponses:3,responseClasses:[row]};
+ assert.deepEqual(e.offlineProbe(good),good);
+ for(const bad of [{...good,responseClasses:[{...row,url:canary}]},{...good,responseClasses:[{...row,protocol:canary}]},{...good,responseClasses:[{...row,scope:canary}]},{...good,responseClasses:[{...row,resourceType:canary}]},{...good,responseClasses:[{...row,count:0}]},{...good,responseClasses:[row,row]},{...good,nonWorkerResponses:4},{...good,responseClasses:[{...row,protocol:'blob',scope:'external'}]}])assert.throws(()=>e.offlineProbe(bad));
+});
 test('keyboard evidence accepts exact finite primitives, never raw DOM or exception content',()=>{
  const good={schema:1,side:1,phase:'tab-check',direction:1,iteration:8,observed:true,inMenu:false,documentFocused:false,bodyActive:true,rootActive:false,launcherActive:false,dialogOpen:true,focusableCount:8,keyDownCount:0,keyUpCount:0};
  assert.deepEqual(e.nativeKeyboard(good),good);
@@ -73,4 +78,15 @@ test('failed native execution never authorizes copying screenshots',()=>{
 });
 test('public collector has no app, browser, git or network execution',()=>{
  const text=fs.readFileSync(require.resolve('./helpers/a52-ci-evidence.cjs'),'utf8');assert.equal(/child_process|require\(['"](?:node:)?(?:https?|net|tls)['"]\)|\bfetch\(|playwright|execSync|spawn\(/.test(text),false);
+});
+test('dedicated exporter verifies its complete code closure before execution and upload',()=>{
+ const root=path.resolve(__dirname,'../..'),workflow=fs.readFileSync(path.join(root,'.github/workflows/a52-protected-qualification.yml'),'utf8');
+ const start=workflow.indexOf('      - name: Export finite receipts'),end=workflow.indexOf('      - name: Preserve reviewed public projection'),step=workflow.slice(start,end);
+ assert(step.includes('id: public_evidence'));
+ for(const file of ['farm3d/tests/helpers/a52-ci-evidence.cjs','farm3d/tests/helpers/ci-isolated-runner.cjs']){
+  const hash=require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex');
+  assert(step.includes('test -f "'+file+'" && test ! -L "'+file+'"'));
+  const pin='test "$(sha256sum "'+file+'" | cut -d \' \' -f1)" = '+hash;assert(step.includes(pin));assert(step.indexOf(pin)<step.indexOf('node farm3d/tests/helpers/a52-ci-evidence.cjs'));
+ }
+ assert(workflow.slice(end).includes("if: ${{ always() && steps.public_evidence.outcome == 'success' }}"));
 });

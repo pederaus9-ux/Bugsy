@@ -8,6 +8,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {start,artifacts,root}=require('./browser-harness.cjs');
 const {updateWorker}=require('./worker-transition.cjs');
+const {countResponseClass}=require('./helpers/a52-installed-response-probe.cjs');
 const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const BASE='38fa4706e41c40197b7afc32de693cb3901a80fb';
 const files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36'];
@@ -79,13 +80,13 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  stage='updated-online';await p.reload();await ready(p);assert.deepEqual(await farm(p),before);await menus(p);assert.deepEqual(await cacheHashes(p),expected);result.stages.push(stage);record();
  stage='offline';result.offlineProbe={step:'set-offline'};record();await session.context.setOffline(true);
  const markOffline=step=>{result.offlineProbe.step=step;record();};
- let nonWorkerResponses=0;const count=r=>{if(!r.fromServiceWorker())nonWorkerResponses++;};p.on('response',count);
+ const responseClasses=[];let nonWorkerResponses=0;const count=r=>{if(!r.fromServiceWorker()){nonWorkerResponses++;countResponseClass(responseClasses,r.url(),r.request().resourceType(),h.base);}};p.on('response',count);
  const served=h.serverResponseCount();markOffline('reload');await p.reload();markOffline('ready');await ready(p);
  markOffline('control');const controlled=await p.evaluate(()=>!!navigator.serviceWorker.controller);result.offlineProbe.controlled=controlled;record();assert.equal(controlled,true);
  markOffline('save');const afterOffline=await farm(p);result.offlineProbe.differentFields=farmDifferenceFields(before,afterOffline);result.offlineProbe.farmMatches=result.offlineProbe.differentFields.length===0;record();assert.deepEqual(afterOffline,before);
  markOffline('menus');await menus(p);
  markOffline('cache');const offlineHashes=await cacheHashes(p);result.offlineProbe.cacheMatches=require('node:util').isDeepStrictEqual(offlineHashes,expected);record();assert.deepEqual(offlineHashes,expected);
- markOffline('responses');result.offlineProbe.serverResponses=h.serverResponseCount()-served;result.offlineProbe.nonWorkerResponses=nonWorkerResponses;record();assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
+ markOffline('responses');result.offlineProbe.serverResponses=h.serverResponseCount()-served;result.offlineProbe.nonWorkerResponses=nonWorkerResponses;result.offlineProbe.responseClasses=responseClasses;record();assert.equal(h.serverResponseCount(),served,'Zero server responses during offline reload');assert.equal(nonWorkerResponses,0);
  p.off('response',count);markOffline('errors');result.offlineProbe.errorCounts=errorCategoryCounts(session.errors);record();assert.deepEqual(session.errors,[]);markOffline('complete');result.stages.push(stage);result.status='PASS';failed=false;record();
 }catch{result.status='FAIL';result.failedStage=stage;process.exitCode=1;record();console.error('A52 installed UI journey failed; stage='+stage);}
 finally{if(h)try{await h.close(failed);}catch{result.status='FAIL';result.failedStage='cleanup';process.exitCode=1;record();}}

@@ -50,6 +50,17 @@ export function installCornerMenus(doc) {
     // Keep new game commands out while preserving native Tab/Escape and activation.
     // Let keyup reach the existing keys.delete handler so a held movement key cannot stick.
     dialog.addEventListener('keydown',event=>event.stopPropagation());
+    // Native dialog focus can enter browser chrome at a Tab boundary. Keep the
+    // menu's action sequence cyclic without intercepting browser shortcuts.
+    dialog.addEventListener('keydown',event=>{
+      if(event.key!=='Tab'||!dialog.open||event.altKey||event.ctrlKey||event.metaKey)return;
+      const focusable=[...dialog.querySelectorAll('button')].filter(b=>!b.disabled&&!b.hidden&&b.tabIndex>=0&&b.getClientRects().length);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable.at(-1),active=doc.activeElement;
+      if((event.shiftKey&&active===first)||(!event.shiftKey&&active===last)||!focusable.includes(active)){
+        event.preventDefault();(event.shiftKey?last:first).focus();
+      }
+    });
     const updateNotice=()=>{
       const active=buttons.some(button=>!button.hidden&&[...button.querySelectorAll('.badge')].some(b=>b.textContent.trim()));
       notice.hidden=!active;launch.setAttribute('aria-label',spec.title+(active?', updates available':''));
