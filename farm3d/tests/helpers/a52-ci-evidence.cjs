@@ -5,7 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const {validReceipt}=require('./ci-isolated-runner.cjs');
 const NAMES=new Set(['namespace.json','inert.json','contracts.json','native.json','accessibility.json','installed.json','source-package.json']);
 const VIEWPORTS=[[1280,720],[320,568],[390,844],[844,390]];
-const STAGES=['harness','boot','original-controls','tools-keyboard','tools-dismiss','tools-capture','barn-keyboard','barn-dismiss','barn-capture','panel-settings','panel-quests','panel-orders','panel-barn','panel-decor','panel-shop','mode-walking','mode-editing','mode-photo','viewport-complete'];
+const STAGES=['harness','boot','original-controls','tools-keyboard','tools-dismiss','tools-capture','barn-keyboard','barn-dismiss','barn-capture','panel-settings','panel-quests','panel-orders','panel-barn','panel-decor','panel-shop','mode-walking','mode-editing','mode-photo','mode-walking-select','mode-walking-enter-wait','mode-walking-exit-action','mode-walking-exit-wait','mode-editing-select','mode-editing-enter-wait','mode-editing-exit-action','mode-editing-exit-wait','mode-photo-select','mode-photo-enter-wait','mode-photo-exit-action','mode-photo-exit-wait','viewport-complete'];
 const reject=()=>{throw Error('A52 public evidence rejected');};
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function safeReceipt(value){if(!validReceipt(value))reject();return JSON.parse(JSON.stringify(value));}
@@ -56,6 +56,10 @@ function nativeHit(value){
   if(v.observed!==true||Object.keys(v).sort().join('|')!==['observed','openModals','blocker',...bools].sort().join('|')||bools.some(k=>typeof v[k]!=='boolean')||!Number.isInteger(v.openModals)||v.openModals<0||v.openModals>32||!['launcher','intro','auth','rotate','loading','panel','scrim','dialog','canvas','other','none'].includes(v.blocker))reject();
  }
  snapshot(value.before);if(value.rejected!==null)snapshot(value.rejected);return JSON.parse(JSON.stringify(value));
+}
+function modeHit(value){
+ if(!value||Object.keys(value).sort().join('|')!=='mode|schema|snapshot'||value.schema!==1||!['walking','editing','photo'].includes(value.mode))reject();
+ nativeHit({schema:1,side:1,before:value.snapshot,rejected:null});return JSON.parse(JSON.stringify(value));
 }
 function offlineProbe(value){
  const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses','responseObservation','transport'];
@@ -118,7 +122,7 @@ function collect({source,output,head,screenshots}){
   const raw=regular(path.join(source,name),8192),value=safeReceipt(JSON.parse(raw));if(name==='native.json')native=value;
   const bytes=Buffer.from(JSON.stringify(value)+'\n');files.push([name,bytes]);receipts.push({name,...value});
  }
- if(!receipts.length)reject();const images=[];let nativeState=null,keyboardState=null,hitState=null,installedState=null;
+ if(!receipts.length)reject();const images=[];let nativeState=null,keyboardState=null,hitState=null,modeHitState=null,installedState=null;
  if(screenshots&&fs.existsSync(screenshots)){
   screenshots=directory(screenshots);const progress=path.join(screenshots,'a52-native-progress.json'),installed=path.join(screenshots,'a52-installed-ui-cache/results.json');
   if(fs.existsSync(progress)){nativeState=nativeProgress(JSON.parse(regular(progress,4096)));files.push(['native-progress.json',Buffer.from(JSON.stringify(nativeState)+'\n')]);}
@@ -126,6 +130,8 @@ function collect({source,output,head,screenshots}){
   if(fs.existsSync(keyboard)){keyboardState=nativeKeyboard(JSON.parse(regular(keyboard,4096)));files.push(['native-keyboard.json',Buffer.from(JSON.stringify(keyboardState)+'\n')]);}
   const hit=path.join(screenshots,'a52-native-hit.json');
   if(fs.existsSync(hit)){hitState=nativeHit(JSON.parse(regular(hit,8192)));files.push(['native-hit.json',Buffer.from(JSON.stringify(hitState)+'\n')]);}
+  const mode=path.join(screenshots,'a52-mode-hit.json');
+  if(fs.existsSync(mode)){modeHitState=modeHit(JSON.parse(regular(mode,8192)));files.push(['mode-hit.json',Buffer.from(JSON.stringify(modeHitState)+'\n')]);}
   if(fs.existsSync(installed)){directory(path.dirname(installed));installedState=installedProgress(JSON.parse(regular(installed,8192)));files.push(['installed-progress.json',Buffer.from(JSON.stringify(installedState)+'\n')]);}
  }
  if(screenshots&&executedPass(native)){
@@ -134,7 +140,7 @@ function collect({source,output,head,screenshots}){
    const name=stem+width+'x'+height+'.png',b=regular(path.join(screenshots,name),16*1024*1024);images.push({name,...validatePng(b,width,height)});files.push([name,b]);
   }
  }
- const summary={schema:1,head,receipts,nativeProgress:nativeState,nativeKeyboard:keyboardState,nativeHit:hitState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
+ const summary={schema:1,head,receipts,nativeProgress:nativeState,nativeKeyboard:keyboardState,nativeHit:hitState,modeHit:modeHitState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
  // All validation completes before the first output is created.
  fs.mkdirSync(output,{mode:0o700});for(const [name,b]of files)fs.writeFileSync(path.join(output,name),b,{flag:'wx',mode:0o600});
  fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(summary,null,2)+'\n',{flag:'wx',mode:0o600});return summary;
@@ -143,5 +149,5 @@ function main(args){
  try{const o={};for(let i=0;i<args.length;i+=2){const key=args[i];if(!['--source','--output','--head','--screenshots'].includes(key)||key.slice(2)in o||typeof args[i+1]!=='string')reject();o[key.slice(2)]=args[i+1];}collect(o);process.stdout.write('A52 finite evidence exported\n');return 0;}
  catch{process.stderr.write('A52 public evidence rejected\n');return 1;}
 }
-module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,nativeKeyboard,nativeHit,offlineProbe,installedProgress,collect,main,VIEWPORTS};
+module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,nativeKeyboard,nativeHit,modeHit,offlineProbe,installedProgress,collect,main,VIEWPORTS};
 if(require.main===module)process.exitCode=main(process.argv.slice(2));

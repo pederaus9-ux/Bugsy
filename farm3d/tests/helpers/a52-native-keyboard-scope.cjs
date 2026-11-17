@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/a52-native-keyboard-scope.json'));
-if(sha(raw)!=='6e3fa779106cdb8a380ba800565b72ca5e65d5294d6205078eeb70eb663e4b7b')throw Error('Native keyboard receipt mismatch');
+if(sha(raw)!=='b939eee85b5006f40a73301f9993f8b4aae64e75e84c41576a92ea953366cc01')throw Error('Native keyboard receipt mismatch');
 const scope=JSON.parse(raw);
 function normalizeA52NativeKeyboard(file,input){if(file!==scope.file||sha(input)!==scope.afterSha256)return input;if(sha(scope.before)!==scope.beforeSha256)throw Error('Native keyboard inverse mismatch');return Buffer.isBuffer(input)?Buffer.from(scope.before):scope.before;}
 module.exports={sha,scope,normalizeA52NativeKeyboard};

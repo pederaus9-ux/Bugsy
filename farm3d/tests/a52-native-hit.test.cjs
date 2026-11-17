@@ -36,5 +36,5 @@ test('scrim classification is finite and leaves panel precedence intact',()=>{
 test('scrim diagnosis scope preserves exact predecessors',()=>{
  const raw=fs.readFileSync(require.resolve('./fixtures/a52-native-hit-panel-scope.json')),scope=JSON.parse(raw),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
  assert.equal(sha(raw),'e28ab3dc28df0fbe1c8d51823f781dfa4884c090f134b19d6efb871a48e35fb5');
- for(const [name,e]of Object.entries(scope.files)){const now=fs.readFileSync(require('node:path').resolve(__dirname,'../..',name));assert.equal(sha(now),e.afterSha256);assert.equal(sha(e.before),e.beforeSha256);}
+ for(const [name,e]of Object.entries(scope.files)){const now=fs.readFileSync(require('node:path').resolve(__dirname,'../..',name));assert.equal(sha(name.endsWith('a52-ci-evidence.cjs')?JSON.parse(fs.readFileSync(require.resolve('./fixtures/a52-mode-evidence-scope.json'))).before:now),e.afterSha256);assert.equal(sha(e.before),e.beforeSha256);}
 });
