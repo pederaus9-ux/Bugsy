@@ -95,6 +95,7 @@ async function main(){
         })),{count:12,same:true,hidden:true});
         const native=async selector=>p.locator(selector)[touch?'tap':'click']();
         const closed=async()=>assert.equal(await p.locator('dialog.preview-menu[open]').count(),0);
+        await require('./helpers/a52-native-event-setup.cjs').settleSandboxEvent(p,touch?'tap':'click');
         await closed();
         assert.equal(await p.locator('.side button:visible,.dock button:visible').count(),2);
         async function fit(id){
