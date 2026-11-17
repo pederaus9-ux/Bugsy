@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto'),{execFileSy
 const {validReceipt}=require('./ci-isolated-runner.cjs'),{offlineProbe}=require('./a52-ci-evidence.cjs');
 const BASE='40a8fb8797989b2b45393d70368a00a01af9a289';
 const names=['namespace.json','inert.json','contracts.json','source-package.json','regressions.json','installed.json'];
-const files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36'];
+const files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36','farmer3d.js'];
 const stages=['predecessor','update','updated-online','offline'];
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function reject(){throw Error('Invalid bounded cow release evidence');}
@@ -20,10 +20,10 @@ function installed(v,expected){
  if(!v||Object.keys(v).some(k=>!['status','base','physicalPhone','stages','hashes','failedStage','offlineProbe'].includes(k))||!['RUNNING','PASS','FAIL'].includes(v.status)||v.base!==BASE||v.physicalPhone!==false)reject();
  if(!Array.isArray(v.stages)||v.stages.length>4||JSON.stringify(v.stages)!==JSON.stringify(stages.slice(0,v.stages.length)))reject();
  if('failedStage'in v&&!['source',...stages,'cleanup'].includes(v.failedStage))reject();
- if(!v.hashes||typeof v.hashes!=='object'||Array.isArray(v.hashes)||![0,5].includes(Object.keys(v.hashes).length))reject();
+ if(!v.hashes||typeof v.hashes!=='object'||Array.isArray(v.hashes)||![0,6].includes(Object.keys(v.hashes).length))reject();
  for(const[k,h]of Object.entries(v.hashes))if(!files.includes(k)||h!==expected[k])reject();
  if('offlineProbe'in v){const q={...v.offlineProbe};if('differentFields'in q){if(!Array.isArray(q.differentFields)||new Set(q.differentFields).size!==q.differentFields.length)reject();q.differentFields=q.differentFields.filter(k=>!['cowIds','pets'].includes(k));}offlineProbe(q);}
- if(v.status==='PASS'&&(v.stages.length!==4||Object.keys(v.hashes).length!==5||'failedStage'in v||v.offlineProbe?.step!=='complete'||v.offlineProbe.farmMatches!==true||v.offlineProbe.cacheMatches!==true||v.offlineProbe.controlled!==true||v.offlineProbe.serverResponses!==0||v.offlineProbe.nonWorkerResponses!==0||v.offlineProbe.differentFields?.length!==0||!completeOffline(v.offlineProbe)))reject();
+ if(v.status==='PASS'&&(v.stages.length!==4||Object.keys(v.hashes).length!==6||'failedStage'in v||v.offlineProbe?.step!=='complete'||v.offlineProbe.farmMatches!==true||v.offlineProbe.cacheMatches!==true||v.offlineProbe.controlled!==true||v.offlineProbe.serverResponses!==0||v.offlineProbe.nonWorkerResponses!==0||v.offlineProbe.differentFields?.length!==0||!completeOffline(v.offlineProbe)))reject();
  return JSON.parse(JSON.stringify(v));
 }
 function collect({source,output,head,result,root}){

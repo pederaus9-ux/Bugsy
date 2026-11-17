@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "file": "farm3d/farmer3d.js",
+  "beforeSha256": "fe9ba89618dd46e6ae9f9ab735d66a9663bfdbf3359370fae2fbea649c57f958",
+  "afterSha256": "2b475ef9ae6c329d9d89016708d73f31f02be791701738d288139726ea44cb1b",
+  "hunks": [
+    {
+      "before": "  if(moving)s.phase=Number.isFinite(motion?.phase)?((motion.phase%1)+1)%1:(s.phase+travel/cycle)%1;",
+      "after": "  if(Number.isFinite(motion?.phase))s.phase=((motion.phase%1)+1)%1;\n  else if(moving)s.phase=(s.phase+travel/cycle)%1;"
+    }
+  ]
+}

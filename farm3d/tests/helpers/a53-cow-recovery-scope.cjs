@@ -11,6 +11,9 @@ const delta=JSON.parse(deltaRaw),entry=scope.files['farm3d/index.html'];
 assert.equal(delta.schema,1);assert.equal(delta.file,'farm3d/index.html');assert.equal(delta.beforeSha256,entry.afterSha256);
 assert.equal(delta.hunks.length,1);assert(delta.hunks[0].before&&delta.hunks[0].after);
 entry.hunks.push(...delta.hunks);entry.afterSha256=delta.afterSha256;
+const phaseRaw=fs.readFileSync(path.join(__dirname,'../fixtures/a53-farmer-phase-scope.json'));
+assert.equal(sha(phaseRaw),'fad5865a0315031e407b4e285c2216a3b3bff44d646d89c9349a6b89b01d0d4e','Exact farmer phase scope');
+const phase=JSON.parse(phaseRaw);assert.equal(phase.schema,1);assert.equal(phase.file,'farm3d/farmer3d.js');assert(!scope.files[phase.file]);assert.equal(phase.hunks.length,1);scope.files[phase.file]=phase;
 function normalizeA53CowRecovery(file,bytes){
  const full=file.startsWith('farm3d/')?file:'farm3d/'+file,entry=scope.files[full];
  if(!entry)return bytes;

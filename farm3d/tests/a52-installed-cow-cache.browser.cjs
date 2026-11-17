@@ -12,7 +12,7 @@ const {updateWorker}=require('./worker-transition.cjs');
 const {countResponseClass}=require('./helpers/a52-installed-response-probe.cjs');
 const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const BASE='40a8fb8797989b2b45393d70368a00a01af9a289';
-const files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36'];
+const files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36','farmer3d.js'];
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 // Deliberately bounded representative fields, not a claim of full raw-save equality.
 // Excludes evolving timestamps, care simulation, offers and randomized daily state.
@@ -57,6 +57,7 @@ const record=()=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(
  assert.equal(baselineWorker.split('sa3d-v93').length,2);
  assert.equal(fs.readFileSync(path.join(root,'farm3d/sw.js'),'utf8'),baselineWorker.replace('sa3d-v93','sa3d-v94'),'Only cache version changes');
  assert.equal(sha(fs.readFileSync(path.join(root,'farm3d/index.html'))),'6ed974f5d0571ef070d50fa81d0f30c8b840f5f283e5a75e46fc8d424225131b','Exact uninstrumented qualified candidate');
+ assert.equal(sha(fs.readFileSync(path.join(root,'farm3d/farmer3d.js'))),'2b475ef9ae6c329d9d89016708d73f31f02be791701738d288139726ea44cb1b','Exact qualified farmer phase candidate');
  assert(baselineGame.equals(fs.readFileSync(path.join(root,'farm3d/game.js'))),'Original game module remains byte-exact');
  const expected=Object.fromEntries(files.map(f=>[f,sha(fs.readFileSync(path.join(root,'farm3d',f.split('?')[0])))]));
  stage='predecessor';record();h=await start({ref:BASE,serviceWorkers:'allow',deviceScaleFactor:1});
