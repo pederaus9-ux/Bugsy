@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('farmer3d-walk');
 const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Active walk, first-person hands and pet interaction: actual UI on the running game loop.
 const assert=require('assert/strict'),fs=require('fs'),path=require('path');

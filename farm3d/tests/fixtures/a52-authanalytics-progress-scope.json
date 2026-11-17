@@ -1,0 +1,261 @@
+{
+  "schema": 1,
+  "files": {
+    "authored-hands.browser.cjs": {
+      "before": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\nconst {start,artifacts,root}=require('./browser-harness.cjs');\n(async()=>{const harness=await start({deviceScaleFactor:.25}),results=[];let failed=true;\ntry{for(const width of [844,1280]){\n const s=await harness.setup({width,height:width===844?390:720},width===844,'authored-hands-'+width),p=s.page;\n const source=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8');\n assert.equal(source.split('function frame() {').length,2);\n await p.route('**/farm3d/?*',route=>route.fulfill({contentType:'text/html',body:source.replace('function frame() {',\n   'function frame() { if(window.__handsCaptureHold){requestAnimationFrame(frame);return;}')}));\n await p.goto(harness.base+'farm3d/?testfarm&debug&portrait&preset=noon&artHands');\n await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});\n await p.waitForFunction(()=>__dbg.camera.getObjectByName('Authored first-person hands')?.userData.authoredHands.state.status==='ready');\n await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet=true;d.G.close();d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;});\n await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);\n await p.waitForFunction(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');\n   const legacy=d.camera.children.find(o=>o.userData.skin);return root.visible&&!legacy.visible;});\n const wardrobe=await p.evaluate(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');\n   const legacy=d.camera.children.find(o=>o.userData.skin),colors=[];let meshes=0,bones=0;\n   root.traverse(o=>{if(o.isSkinnedMesh){meshes++;if(![legacy.userData.skin,legacy.userData.sleeve].includes(o.material))throw Error('wardrobe material mismatch');}if(o.isBone)bones++;});\n   for(let i=0;i<6;i++){d.G.wear('skin',i);d.G.wear('shirt',i%3);colors.push({skin:legacy.userData.skin.color.getHex(),shirt:legacy.userData.sleeve.color.getHex()});}\n   return {colors,meshes,bones,visible:root.visible,legacyVisible:legacy.visible};});\n assert.equal(wardrobe.meshes,4);assert.equal(wardrobe.bones,32);assert.equal(wardrobe.visible,true);assert.equal(wardrobe.legacyVisible,false);\n assert.equal(new Set(wardrobe.colors.map(o=>o.skin)).size,6);\n const wardrobeCycles=await p.evaluate(async()=>{const d=__dbg,T=await import('./lib/three.module.min.js');\n   window.__handsCaptureHold=true;const root=d.camera.getObjectByName('Authored first-person hands');\n   const isolated=new T.Scene(),camera=new T.PerspectiveCamera(70,innerWidth/innerHeight,.05,100);\n   isolated.environment=d.scene.environment;root.removeFromParent();isolated.add(root);\n   d.renderer.render(isolated,camera);const before={...d.renderer.info.memory};\n   // Exercise the real wardrobe API, rendering only its hand consumer. World\n   // status sprites lazily upload unrelated textures as simulated time passes;\n   // the unchanged scene-polish suite separately tests the whole farm lifecycle.\n   for(let i=0;i<30;i++){d.G.wear('skin',i%6);d.G.wear('shirt',i%3);d.renderer.render(isolated,camera);}\n   const after={...d.renderer.info.memory};root.removeFromParent();d.camera.add(root);window.__handsCaptureHold=false;\n   return {cycles:30,before,after};});\n assert.deepEqual(wardrobeCycles.after,wardrobeCycles.before,'real wardrobe calls do not grow hand GPU resources');\n await p.screenshot({path:path.join(artifacts,'authored-hands-'+width+'-walk.png')});\n // Use the actual Harvest button and authoritative plot flow, sampling real bones.\n await p.evaluate(()=>{const d=__dbg,plot=d.plots[0].g.position;d.walk.pos.set(plot.x,plot.z+1.7);d.walk.vel.set(0,0);d.walk.yaw=0;d.walk.pitch=-.75;\n   Object.assign(d.G.S.plots[0],{crop:'wheat',end:Date.now()-1,dur:60000});d.G.view.refresh('all');});\n await p.waitForFunction(()=>{const d=__dbg,h=d.hitAt(innerWidth/2,innerHeight/2);return h?.type==='plot'&&h.i===0&&!document.getElementById('actBtn').hidden;},null,{timeout:60000});\n await p.emulateMedia({reducedMotion:'reduce'});await p.waitForFunction(()=>__dbg.G.reducedMotion());\n // Keep the isolated adapter's neutral sample, then require the live composed\n // idle pose: the accepted motion overlay adds a -0.10 rad relaxed finger bend.\n // Do not use an adapter-only pose as the expected whole-game action return.\n const {nativeNeutral,neutral}=await p.evaluate(async()=>{const root=__dbg.camera.getObjectByName('Authored first-person hands');\n   root.userData.authoredHands.update({visible:true,time:0,reducedMotion:true});\n   const nativeNeutral=root.getObjectByName('R_finger1_0').quaternion.toArray(),T=await import('./lib/three.module.min.js');\n   const neutral=new T.Quaternion().fromArray(nativeNeutral).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),-.10)).toArray();\n   return {nativeNeutral,neutral};});\n await p.waitForFunction(neutral=>{const q=__dbg.camera.getObjectByName('Authored first-person hands').getObjectByName('R_finger1_0').quaternion.toArray();\n   return q.every((n,i)=>Math.abs(n-neutral[i])<1e-6);},neutral,{timeout:10000});\n await p.evaluate(()=>{window.__authoredSamples=[];window.__authoredSampling=true;let frames=0;const sample=()=>{if(!__authoredSampling)return;const root=__dbg.camera.getObjectByName('Authored first-person hands');\n   __authoredSamples.push(root.getObjectByName('R_finger1_0').quaternion.toArray());if(frames++<70)requestAnimationFrame(sample);};requestAnimationFrame(sample);});\n await p.locator('#actBtn').click();\n await p.waitForFunction(neutral=>__authoredSamples.length>5&&__authoredSamples.some(q=>q.some((n,i)=>Math.abs(n-neutral[i])>.1))&&\n   __authoredSamples.slice(-3).every(q=>q.every((n,i)=>Math.abs(n-neutral[i])<1e-6)),neutral,{timeout:10000});\n const harvest=await p.evaluate(()=>({crop:__dbg.G.S.plots[0].crop,samples:__authoredSamples}));\n fs.writeFileSync(path.join(artifacts,'authored-hands-'+width+'-harvest-samples.json'),JSON.stringify({nativeNeutral,neutral,harvest},null,2));\n assert.equal(harvest.crop,null);assert(harvest.samples.length>5);\n const difference=q=>Math.max(...q.map((n,i)=>Math.abs(n-neutral[i])));\n assert(harvest.samples.some(q=>difference(q)>.1),'actual harvest curls weighted finger joints');\n assert(harvest.samples.slice(-3).every(q=>difference(q)<1e-6),'actual harvest returns fingers to the settled composed idle pose');\n await p.evaluate(()=>window.__authoredSampling=false);\n // With a stopped game loop, sample each adapter clip in the real game camera.\n const poses=await p.evaluate(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands'),c=root.userData.authoredHands;\n   window.__handsCaptureHold=true;window.__handController=c;window.__handRoot=root;\n   return ['idle','harvest','plant','water','pet','feed'].map(kind=>{c.update({visible:true,kind,phase:.5,time:0,reducedMotion:true});\n     d.renderer.render(d.scene,d.camera);return {kind,finger:root.getObjectByName('R_finger1_0').quaternion.toArray(),wrist:root.getObjectByName('R_wrist').quaternion.toArray()};});});\n assert(poses.find(p=>p.kind==='harvest').finger.some((n,i)=>Math.abs(n-poses[0].finger[i])>.1));\n assert(poses.find(p=>p.kind==='pet').wrist.some((n,i)=>Math.abs(n-poses[0].wrist[i])>.01));\n await p.evaluate(()=>{__handController.update({visible:true,kind:'harvest',phase:.5});__dbg.renderer.render(__dbg.scene,__dbg.camera);});\n await p.screenshot({path:path.join(artifacts,'authored-hands-'+width+'-harvest.png')});\n const ownership=await p.evaluate(async()=>{const d=__dbg,root=__handRoot,legacy=d.camera.children.find(o=>o.userData.skin),mod=await import('./art/authored-hands.js?v=2');\n   const T=await import('./lib/three.module.min.js');\n   const {GLTFLoader}=await import('./lib/addons/loaders/GLTFLoader.js');\n   const late=await new GLTFLoader().loadAsync('./assets/hands/hands-candidate.glb');\n   const resources=new Set();late.scene.traverse(o=>{if(o.isMesh){resources.add(o.geometry);resources.add(o.material);if(o.isSkinnedMesh)resources.add(o.skeleton);}});\n   let lateDisposals=0;for(const o of resources){const dispose=o.dispose;o.dispose=function(){lateDisposals++;dispose.call(this);};}\n   let resolveLoad;const pending=mod.installAuthoredHands(d.camera,legacy,{load:()=>new Promise(resolve=>{resolveLoad=resolve;})});\n   await Promise.resolve();pending.dispose();pending.dispose();resolveLoad(late);\n   const lateLoaded=await pending.ready;\n   // Drain the actual loaded hands in an isolated scene before disposal. Other\n   // farm textures may be lazily uploaded by a new world draw; those are not\n   // owned by the hand adapter and must not contaminate its cleanup baseline.\n   const isolated=new T.Scene(),camera=new T.PerspectiveCamera(70,innerWidth/innerHeight,.05,100);\n   isolated.environment=d.scene.environment;root.removeFromParent();isolated.add(root);root.visible=true;\n   d.renderer.render(isolated,camera);const before={...d.renderer.info.memory};let borrowedDisposals=0;\n   const input={visible:true,kind:'water',phase:.5,time:1,sway:.01,bob:.02};__handController.update(input);\n   const arm=root.getObjectByName('R_arm'),position=arm.position.toArray();\n   for(let i=0;i<1000;i++)__handController.update(input);\n   const stablePose=JSON.stringify(position)===JSON.stringify(arm.position.toArray());\n   legacy.userData.skin.addEventListener('dispose',()=>borrowedDisposals++);legacy.userData.sleeve.addEventListener('dispose',()=>borrowedDisposals++);\n   __handController.update({visible:false});const hidden=!root.visible;\n   const fallback=mod.installAuthoredHands(d.camera,legacy,{load:()=>Promise.reject(Error('deliberate missing candidate'))});\n   const loaded=await fallback.ready,status=fallback.state.status;fallback.dispose();fallback.dispose();\n   __handController.dispose();__handController.dispose();d.renderer.render(isolated,camera);\n   const cleanup={...d.renderer.info.memory};\n   const gone=!d.camera.getObjectByName('Authored first-person hands');\n   return {before,stablePose,hidden,loaded,status,cleanup,gone,borrowedDisposals,lateLoaded,lateDisposals,lateResources:resources.size};});\n assert.equal(ownership.hidden,true);\n assert.equal(ownership.stablePose,true,'constant animation channels do not accumulate motion offsets');\n assert.equal(ownership.lateLoaded,false);assert.equal(ownership.lateDisposals,ownership.lateResources,'cancelled late load releases each owned resource exactly once');\n assert.equal(ownership.loaded,false);assert.equal(ownership.status,'fallback');assert.equal(ownership.gone,true);assert.equal(ownership.borrowedDisposals,0);\n assert.equal(ownership.cleanup.geometries,ownership.before.geometries-4);assert.equal(ownership.cleanup.textures,ownership.before.textures-1);\n assert.equal(await p.evaluate(()=>localStorage.getItem('sunny-acres-3d-v1')),null);\n assert.deepEqual(s.errors,[]);results.push({width,wardrobe,wardrobeCycles,harvest,poses,ownership});await s.finish();\n console.log('PASS authored game hands: wardrobe, actual harvest, six clip poses, fallback and disposal',width);\n}failed=false;}finally{fs.writeFileSync(path.join(artifacts,'authored-hands-results.json'),JSON.stringify(results,null,2));await harness.close(failed);}\n})().catch(error=>{console.error(error);process.exitCode=1;});\n",
+      "beforeSha256": "47f93279b0d157ec24b1b4d1ddcdb6e4059966bf423c769a10e752a9243af6bd",
+      "afterSha256": "94826672f4babbddf9718e6a7843a493edc0ab0b870d932749ef3beaf4db8495",
+      "additions": [
+        {
+          "before": "",
+          "after": "const __finite=require('./helpers/a52-ordinary-progress.cjs').createProgress('authored-hands');__finite.mark('harness');\n",
+          "prefix": true
+        },
+        {
+          "before": "try{for(const width of [844,1280]){",
+          "after": "try{for(const width of [844,1280]){\n__finite.mark('viewport',width===844?1:2);"
+        },
+        {
+          "before": " const s=await harness.setup",
+          "after": "__finite.mark('setup'); const s=await harness.setup"
+        },
+        {
+          "before": " const source=fs.readFileSync",
+          "after": "__finite.mark('source'); const source=fs.readFileSync"
+        },
+        {
+          "before": " assert.equal(source.split",
+          "after": "__finite.mark('source-sentinel'); assert.equal(source.split"
+        },
+        {
+          "before": " await p.route",
+          "after": "__finite.mark('route'); await p.route"
+        },
+        {
+          "before": " await p.goto",
+          "after": "__finite.mark('navigate'); await p.goto"
+        },
+        {
+          "before": " await p.waitForFunction(()=>window.__ready",
+          "after": "__finite.mark('game-ready'); await p.waitForFunction(()=>window.__ready"
+        },
+        {
+          "before": " await p.waitForFunction(()=>__dbg.camera",
+          "after": "__finite.mark('hands-ready'); await p.waitForFunction(()=>__dbg.camera"
+        },
+        {
+          "before": " await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet",
+          "after": "__finite.mark('fixture'); await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet"
+        },
+        {
+          "before": " await revealCornerAction",
+          "after": "__finite.mark('walk-open'); await revealCornerAction"
+        },
+        {
+          "before": " await p.waitForFunction(()=>{const d=__dbg,root",
+          "after": "__finite.mark('hands-visible'); await p.waitForFunction(()=>{const d=__dbg,root"
+        },
+        {
+          "before": " const wardrobe=",
+          "after": "__finite.mark('wardrobe'); const wardrobe="
+        },
+        {
+          "before": " const wardrobeCycles=",
+          "after": "__finite.mark('wardrobe-cycles'); const wardrobeCycles="
+        },
+        {
+          "before": " await p.screenshot({path:path.join(artifacts,'authored-hands-'+width+'-walk",
+          "after": "__finite.mark('walk-capture'); await p.screenshot({path:path.join(artifacts,'authored-hands-'+width+'-walk"
+        },
+        {
+          "before": " await p.evaluate(()=>{const d=__dbg,plot",
+          "after": "__finite.mark('harvest-fixture'); await p.evaluate(()=>{const d=__dbg,plot"
+        },
+        {
+          "before": " await p.waitForFunction(()=>{const d=__dbg,h=",
+          "after": "__finite.mark('harvest-target'); await p.waitForFunction(()=>{const d=__dbg,h="
+        },
+        {
+          "before": " await p.emulateMedia",
+          "after": "__finite.mark('reduced-motion'); await p.emulateMedia"
+        },
+        {
+          "before": " const {nativeNeutral,neutral}=",
+          "after": "__finite.mark('neutral'); const {nativeNeutral,neutral}="
+        },
+        {
+          "before": " await p.waitForFunction(neutral=>{",
+          "after": "__finite.mark('neutral-wait'); await p.waitForFunction(neutral=>{"
+        },
+        {
+          "before": " await p.evaluate(()=>{window.__authoredSamples",
+          "after": "__finite.mark('sampling'); await p.evaluate(()=>{window.__authoredSamples"
+        },
+        {
+          "before": " await p.locator('#actBtn').click",
+          "after": "__finite.mark('harvest-action'); await p.locator('#actBtn').click"
+        },
+        {
+          "before": " await p.waitForFunction(neutral=>__authoredSamples",
+          "after": "__finite.mark('harvest-wait'); await p.waitForFunction(neutral=>__authoredSamples"
+        },
+        {
+          "before": " const harvest=",
+          "after": "__finite.mark('harvest-assertions'); const harvest="
+        },
+        {
+          "before": " const poses=",
+          "after": "__finite.mark('poses'); const poses="
+        },
+        {
+          "before": " const ownership=",
+          "after": "__finite.mark('ownership'); const ownership="
+        },
+        {
+          "before": " assert.equal(ownership.hidden",
+          "after": "__finite.mark('ownership-assertions'); assert.equal(ownership.hidden"
+        },
+        {
+          "before": " assert.deepEqual(s.errors",
+          "after": "__finite.mark('errors-finish'); assert.deepEqual(s.errors"
+        },
+        {
+          "before": "console.error(error);process.exitCode=1;",
+          "after": "__finite.fail(error);console.error(error);process.exitCode=1;"
+        }
+      ]
+    },
+    "analytics.browser.cjs": {
+      "before": "const assert=require('node:assert/strict');\nconst fs=require('node:fs'),path=require('node:path');\nconst {start,artifacts}=require('./browser-harness.cjs');\nconst SDK={\n 'firebase-app.js':'export function initializeApp(){return {};}',\n 'firebase-auth.js':`const auth={currentUser:null};let changed;export function getAuth(){return auth;}\n export function onAuthStateChanged(a,cb){changed=cb;auth.currentUser=window.__owner?{uid:'owner',email:'owner@example.com'}:null;queueMicrotask(()=>cb(auth.currentUser));}\n export async function signOut(){auth.currentUser=null;changed(null);}`,\n 'firebase-firestore.js':`export function getFirestore(){return {};}\n export function collection(db,...p){return p.join('/');} export function doc(db,...p){return p.join('/');}\n export function where(...v){return {kind:'where',v};}export function orderBy(...v){return {kind:'order',v};}\n export function limit(n){return {kind:'limit',n};}export function startAfter(d){return {kind:'cursor',id:d.id};}\n export function query(ref,...clauses){return {ref,clauses};}export function serverTimestamp(){return Date.now();}\n export async function getDoc(){return {exists:()=>false};}export async function getCountFromServer(){return {data:()=>({count:0})};}\n export async function addDoc(ref,data){(window.__legacy ||= []).push(data);return {};}\n export async function setDoc(ref,data){(window.__reports ||= []).push({ref,data});return {};}\n export function onSnapshot(ref,cb,error){queueMicrotask(()=>window.__deny?error({code:'permission-denied'}):cb({docs:[]}));return ()=>{};}\n export async function getDocs(q){(window.__queries ||= []).push(q);const captured=[...(window.__eventDocs||[])];\n   while(window.__holdReports)await new Promise(r=>setTimeout(r,20));if(window.__failReports)throw Error('offline');\n   let docs=captured.sort((a,b)=>b.data.d.localeCompare(a.data.d)||a.id.localeCompare(b.id));\n   const cutoff=q.clauses.find(c=>c.kind==='where')?.v[2];if(cutoff)docs=docs.filter(d=>d.data.d>=cutoff);\n   const cursor=q.clauses.find(c=>c.kind==='cursor')?.id;if(cursor)docs=docs.slice(docs.findIndex(d=>d.id===cursor)+1);\n   docs=docs.slice(0,q.clauses.find(c=>c.kind==='limit').n);return {docs:docs.map(d=>({id:d.id,data:()=>d.data}))};}`\n};\nasync function mock(page){await page.route('**/*',route=>{const u=route.request().url();if(u.includes('gstatic.com/firebasejs/'))return route.fulfill({contentType:'text/javascript',body:SDK[u.split('/').pop()]||'export {};'});return route.fallback();});}\n(async()=>{\n const h=await start(),results=[];let failed=true;\n try {\n  for(const viewport of [{width:390,height:844},{width:844,height:390},{width:1280,height:720}]){\n   const s=await h.setup(viewport,false,`analytics-dashboard-${viewport.width}`),p=s.page;await mock(p);\n   await p.addInitScript(()=>{window.__owner=true;const date=n=>new Date(Date.now()-n*864e5).toISOString().slice(0,10);window.__eventDocs=[];\n    const put=(n,e,d)=>{for(let i=0;i<n;i++)window.__eventDocs.push({id:String(window.__eventDocs.length).padStart(6,'0'),data:{e,d}});};\n    put(270,'a2_38_apg_sess_00a',date(0));put(20,'a2_38_ipa_sess_21c',date(2));put(10,'a2_34_ddg_open_0',date(3));put(10,'open',date(0));put(10,'a2_38_apg_ord_0',date(15));put(10,'a2_38_apg_harv_0',date(60));\n   });\n   await p.goto(h.base+'farm3d/players.html');await p.waitForFunction(()=>document.querySelector('#reportStatus')?.textContent.includes('Partial results'));\n   assert.equal((await p.evaluate(()=>__queries.length)),1);await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('All available'));\n   assert.match(await p.locator('#reportStatus').textContent(),/290 matching reports/);\n   await p.locator('#reportPlatform').selectOption('ios');assert.match(await p.locator('#reportStatus').textContent(),/20 matching reports/);\n   assert.match(await p.locator('#reportResults').textContent(),/20 visits \u00b7 0 with no reported errors/);\n   await p.locator('#reportPlatform').selectOption('*');await p.locator('#reportVersion').selectOption('*');assert.match(await p.locator('#reportStatus').textContent(),/300 matching reports/);\n   assert.equal(await p.evaluate(()=>__queries.length),2,'local filters issue no queries');\n   await p.locator('#reportPeriod').selectOption('30');await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('310 matching reports'));\n   await p.locator('#reportPeriod').selectOption('all');await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('320 matching reports'));\n   await p.locator('#reportVersion').selectOption('38');await p.locator('#reportPlatform').selectOption('android');assert.match(await p.locator('#reportStatus').textContent(),/290 matching reports/);\n   const fit=await p.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('#reports select')].map(e=>({height:e.getBoundingClientRect().height,width:e.getBoundingClientRect().width}))}));assert.equal(fit.overflow,false);assert.ok(fit.controls.every(c=>c.height>=44&&c.width>0));\n   await p.locator('#reports').scrollIntoViewIfNeeded();await p.screenshot({path:path.join(artifacts,`analytics-dashboard-${viewport.width}-full.png`),fullPage:true});\n   // A superseded response must not overwrite the newly selected period.\n   await p.evaluate(()=>window.__holdReports=true);await p.locator('#reportPeriod').selectOption('7');await p.waitForFunction(()=>__queries.length===7);await p.locator('#reportPeriod').selectOption('30');await p.waitForFunction(()=>__queries.length===8);await p.evaluate(()=>window.__holdReports=false);\n   await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));assert.equal(await p.locator('#reportMore').isDisabled(),true,'read cap includes superseded requests');\n   await p.locator('#out').click();await p.waitForFunction(()=>!document.querySelector('#signin').hidden);assert.equal(await p.locator('#reports').textContent(),'');\n   assert.deepEqual(s.errors,[]);results.push({viewport,fit,passed:true});console.log('PASS owner filters, pagination, request races, read cap and fit',viewport);await s.finish();\n  }\n  for(const scenario of ['denied','signout-loading','retry']){\n   const s=await h.setup({width:844,height:390},false,'analytics-'+scenario),p=s.page;await mock(p);\n   await p.addInitScript(mode=>{window.__owner=true;window.__deny=mode==='denied';window.__holdReports=mode==='signout-loading';window.__failReports=mode==='retry';},scenario);\n   await p.goto(h.base+'farm3d/players.html');\n   if(scenario==='denied'){await p.waitForFunction(()=>!document.querySelector('#denied').hidden);assert.equal(await p.evaluate(()=>window.__queries?.length||0),0);}\n   else if(scenario==='signout-loading'){await p.waitForFunction(()=>window.__queries?.length===1);await p.locator('#out').click();await p.evaluate(()=>window.__holdReports=false);await p.waitForTimeout(100);assert.equal(await p.locator('#reports').textContent(),'');}\n   else{await p.waitForFunction(()=>document.querySelector('#reportStatus')?.textContent.includes(\"Couldn't load\"));await p.evaluate(()=>window.__failReports=false);await p.locator('#reportMore').click();await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('All available'));}\n   assert.deepEqual(s.errors,[]);console.log('PASS dashboard',scenario);await s.finish();\n  }\n  for(const sandbox of [false,true]){\n   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox),p=s.page;await mock(p);await p.addInitScript(()=>localStorage.setItem('sa3d-guest','1'));\n   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));await p.waitForFunction(sandbox=>window.__ready&&window.__dbg&&(sandbox||window.saAuth?.guest),sandbox,{timeout:90000});\n   await p.waitForFunction(()=>window.saMetrics);await p.evaluate(()=>{const G=__dbg.G;G.close();G.S.tut=99;G.S.barn.wheat=0;G.S.plots[0].crop=null;G.harvest(0,true);});\n   assert.equal(await p.evaluate(()=>window.__reports?.some(r=>r.data.e.includes('_harv_'))||false),false,'failed harvest has no report');\n   await p.evaluate(()=>{const G=__dbg.G;Object.assign(G.S.plots[0],{crop:'wheat',end:Date.now()-1});G.harvest(0,true);G.S.barn.wheat=10;G.S.orders=[{items:{wheat:3},coins:25,xp:2,gem:1,wait:0}];G.S.rush=null;G.openPanel('orders');});\n   await p.locator('[data-act=\"deliver\"][data-i=\"0\"]').click();await p.evaluate(()=>{__dbg.G.close();window.saMetrics.end(performance.now());});await p.waitForTimeout(100);\n   const reports=await p.evaluate(()=>({rows:(window.__reports||[]).filter(r=>r.ref.startsWith('events/')),stored:localStorage.getItem('sa3d-metrics-v2'),orders:__dbg.G.S.stats.orders}));\n   assert.ok(reports.orders>=1);\n   if(sandbox){assert.equal(reports.rows.length,0);assert.equal(reports.stored,null);}else{\n    for(const kind of ['open','harv','ord','sess'])assert.equal(reports.rows.filter(r=>r.data.e.includes('_'+kind+'_')).length,1,kind+' reported once');\n    assert.ok(reports.rows.every(r=>Object.keys(r.data).sort().join(',')==='d,e'));assert.ok(reports.rows.length<10);}\n   assert.deepEqual(s.errors,[]);results.push({sandbox,reports});console.log('PASS real game milestone hooks and sandbox',sandbox);await s.finish();\n  }\n  failed=false;\n }finally{fs.writeFileSync(path.join(artifacts,'analytics-results.json'),JSON.stringify(results,null,2));await h.close(failed);}\n})().catch(e=>{console.error(e);process.exitCode=1;});\n",
+      "beforeSha256": "eb957eb8639a4983bcd7bba6c58d7be8cb4f0af8a9b0716e432177abf536c3e4",
+      "afterSha256": "ae51919c797920831bbe84cbff7ae42a1f61bef3918a41c2355182ad9f3c2ab9",
+      "additions": [
+        {
+          "before": "",
+          "after": "const __finite=require('./helpers/a52-ordinary-progress.cjs').createProgress('analytics');__finite.mark('harness');\n",
+          "prefix": true
+        },
+        {
+          "before": "  for(const viewport of [{width:390,height:844},{width:844,height:390},{width:1280,height:720}]){",
+          "after": "  for(const viewport of [{width:390,height:844},{width:844,height:390},{width:1280,height:720}]){\n__finite.mark('viewport');"
+        },
+        {
+          "before": "   const s=await h.setup(viewport",
+          "after": "__finite.mark('dashboard-setup',[390,844,1280].indexOf(viewport.width)+1);   const s=await h.setup(viewport"
+        },
+        {
+          "before": "   await p.addInitScript(()=>",
+          "after": "__finite.mark('dashboard-fixture');   await p.addInitScript(()=>"
+        },
+        {
+          "before": "   await p.goto(h.base+'farm3d/players.html');await",
+          "after": "__finite.mark('dashboard-navigate-ready');   await p.goto(h.base+'farm3d/players.html');await"
+        },
+        {
+          "before": "   assert.equal((await p.evaluate(()=>__queries.length))",
+          "after": "__finite.mark('dashboard-pagination');   assert.equal((await p.evaluate(()=>__queries.length))"
+        },
+        {
+          "before": "   await p.locator('#reportPlatform').selectOption('ios')",
+          "after": "__finite.mark('dashboard-ios');   await p.locator('#reportPlatform').selectOption('ios')"
+        },
+        {
+          "before": "   await p.locator('#reportPlatform').selectOption('*')",
+          "after": "__finite.mark('dashboard-all');   await p.locator('#reportPlatform').selectOption('*')"
+        },
+        {
+          "before": "   await p.locator('#reportPeriod').selectOption('30')",
+          "after": "__finite.mark('dashboard-period30');   await p.locator('#reportPeriod').selectOption('30')"
+        },
+        {
+          "before": "   await p.locator('#reportPeriod').selectOption('all')",
+          "after": "__finite.mark('dashboard-period-all');   await p.locator('#reportPeriod').selectOption('all')"
+        },
+        {
+          "before": "   await p.locator('#reportVersion').selectOption('38')",
+          "after": "__finite.mark('dashboard-android');   await p.locator('#reportVersion').selectOption('38')"
+        },
+        {
+          "before": "   const fit=",
+          "after": "__finite.mark('dashboard-fit');   const fit="
+        },
+        {
+          "before": "   await p.locator('#reports').scrollIntoViewIfNeeded",
+          "after": "__finite.mark('dashboard-capture');   await p.locator('#reports').scrollIntoViewIfNeeded"
+        },
+        {
+          "before": "   await p.evaluate(()=>window.__holdReports=true)",
+          "after": "__finite.mark('dashboard-race');   await p.evaluate(()=>window.__holdReports=true)"
+        },
+        {
+          "before": "   await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));assert",
+          "after": "__finite.mark('dashboard-cap');   await p.waitForFunction(()=>document.querySelector('#reportStatus').textContent.includes('Partial results'));assert"
+        },
+        {
+          "before": "   await p.locator('#out').click();await",
+          "after": "__finite.mark('dashboard-signout');   await p.locator('#out').click();await"
+        },
+        {
+          "before": "   assert.deepEqual(s.errors,[]);results.push({viewport",
+          "after": "__finite.mark('dashboard-errors-finish');   assert.deepEqual(s.errors,[]);results.push({viewport"
+        },
+        {
+          "before": "   const s=await h.setup({width:844,height:390},false,'analytics-'+scenario)",
+          "after": "__finite.mark('scenario-setup',['denied','signout-loading','retry'].indexOf(scenario)+4);   const s=await h.setup({width:844,height:390},false,'analytics-'+scenario)"
+        },
+        {
+          "before": "   await p.addInitScript(mode=>",
+          "after": "__finite.mark('scenario-fixture');   await p.addInitScript(mode=>"
+        },
+        {
+          "before": "   await p.goto(h.base+'farm3d/players.html');\n",
+          "after": "__finite.mark('scenario-navigate');   await p.goto(h.base+'farm3d/players.html');\n"
+        },
+        {
+          "before": "   if(scenario==='denied')",
+          "after": "__finite.mark('scenario-behavior');   if(scenario==='denied')"
+        },
+        {
+          "before": "   assert.deepEqual(s.errors,[]);console.log('PASS dashboard'",
+          "after": "__finite.mark('scenario-errors-finish');   assert.deepEqual(s.errors,[]);console.log('PASS dashboard'"
+        },
+        {
+          "before": "   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox)",
+          "after": "__finite.mark('game-setup',sandbox?8:7);   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox)"
+        },
+        {
+          "before": "   await p.goto(h.base+'farm3d/?debug'",
+          "after": "__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'"
+        },
+        {
+          "before": "   await p.waitForFunction(()=>window.saMetrics)",
+          "after": "__finite.mark('game-metrics');   await p.waitForFunction(()=>window.saMetrics)"
+        },
+        {
+          "before": "   assert.equal(await p.evaluate(()=>window.__reports",
+          "after": "__finite.mark('failed-harvest');   assert.equal(await p.evaluate(()=>window.__reports"
+        },
+        {
+          "before": "   await p.evaluate(()=>{const G=__dbg.G;Object.assign",
+          "after": "__finite.mark('game-fixture');   await p.evaluate(()=>{const G=__dbg.G;Object.assign"
+        },
+        {
+          "before": "   await p.locator('[data-act=",
+          "after": "__finite.mark('game-deliver');   await p.locator('[data-act="
+        },
+        {
+          "before": "   const reports=",
+          "after": "__finite.mark('game-report-assertions');   const reports="
+        },
+        {
+          "before": "   assert.deepEqual(s.errors,[]);results.push({sandbox",
+          "after": "__finite.mark('game-errors-finish');   assert.deepEqual(s.errors,[]);results.push({sandbox"
+        },
+        {
+          "before": "console.error(e);process.exitCode=1;",
+          "after": "__finite.fail(e);console.error(e);process.exitCode=1;"
+        }
+      ]
+    }
+  }
+}

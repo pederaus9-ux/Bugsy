@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('scene-polish');
 const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');

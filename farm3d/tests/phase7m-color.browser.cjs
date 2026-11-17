@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('phase7m-color');
 // Render the actual production instanced leaves/flowers with their real materials.
 // Missing geometry colors must not multiply the instance palette down to black.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');

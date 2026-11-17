@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('recovery-startup');
 // Real game/auth startup ordering with a deterministic SDK boundary.
 // The hosted emulator suite remains the authority for Firestore/auth integration.
 const assert = require('node:assert/strict');
