@@ -761,7 +761,7 @@
   "overlayPins": {
     "farm3d/tests/browser-harness.cjs": "05c23b1857bc70ee15e2fa92f9ce49abc14bcf3e7d177bef6a62dba4887a8fa2",
     "farm3d/tests/animal-pen-wake-oracle.cjs": "768c2db597a07380cb703a7c01fa2e8553941481e9e090e62eb6581dced6f4d9",
-    "farm3d/tests/helpers/a52-pen-report.cjs": "4416bb88037a906fe89e056d781658665d80e2faaabf78f28a1cb9a03b9e394d",
+    "farm3d/tests/helpers/a52-pen-report.cjs": "1bdbd1788fe6a0ac3c73bf2483d927ad34beb9a13cf4351f7e1022f49647331b",
     "farm3d/tests/helpers/ci-isolated-runner.cjs": "cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a",
     "farm3d/tests/helpers/playwright-diagnostics.cjs": "43b1b24e085f01230f1f9b7276091eaa51d43372426d9dff975f25ec59dd382e",
     "farm3d/tests/helpers/a52-offline-observation.cjs": "280ded18c14e47fedf60f3ddff0d7c0e43a2cae8a43b53575986aefe1188e69a",
@@ -783,15 +783,15 @@
   "patch": {
     "path": "farm3d/index.html",
     "preimageSha256": "fe9871d6f1d0ec16cb9518ab0321e8e8a70dad87eaa31598c626e952c64e9fb2",
-    "postimageSha256": "72a85905094165c01489b47c25cea1550fd7dfbcf20a49e58abb8dc25a4be652",
-    "postimageBlob": "521586c8c8f92ad80cdf37bb06d3217ebc93128d",
+    "postimageSha256": "bdd4a458d9290e64051c559db1b8e58508e977c26136475bfd6e4d1368ad5a24",
+    "postimageBlob": "ee7049000f3eed350abc174fff2cb55c8edfb40b",
     "old": "const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);\n      if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}",
     "new": "// A social-avoidance step may point out of the yard even when its route is legal.\n      // Select the speed-bounded route candidate; the unchanged cow gate below\n      // rejects blocked movement and hands its blocker to existing detour/yield.\n      if(!fitsPen(PENS.courtyard,ox+nx,oz+nz,.42)){\n        const routeNext=new THREE.Vector2(ox+dx/(d||1)*step,oz+dz/(d||1)*step);\n        if(fitsPen(PENS.courtyard,routeNext.x,routeNext.y,.42)&&cowGateSegmentClear(a.pos,routeNext)&&hitsBlock(a.pos,routeNext,.42,null)<0){\n          nx=routeNext.x-ox;nz=routeNext.y-oz;\n        }\n      }\n      const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);\n      if(!blockingCows.length&&fitsPen(PENS.courtyard,next.x,next.y,.42)&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}"
   },
   "observationTransforms": [
     {
       "old": "// A social-avoidance step may point out of the yard even when its route is legal.",
-      "new": "// Diagnostic-only observations: original predicates execute once, in their original order.\n      const __pd=(typeof window!=='undefined'&&task.kind==='bed'&&task.stage==='approach'&&t>=1200&&(a.ref.i===1||a.ref.i===4))?{clock:t,position:[ox,oz],preferred:[ox+nx,oz+nz],route:null,selected:null,checks:Array(9).fill(-1),blockers:0}:null;\n      const __po=(code,value)=>{if(__pd){__pd.checks[code]=value?1:0;const root=window.__penDecisions??={schema:1,animals:[]};let row=root.animals.find(x=>x.index===a.ref.i);if(!row){row={index:a.ref.i,counts:Array(18).fill(0),first:null,last:null};root.animals.push(row);}const n=code*2+(value?1:0);row.counts[n]=Math.min(10000000,row.counts[n]+1);}return value;};\n      // A social-avoidance step may point out of the yard even when its route is legal."
+      "new": "// Diagnostic-only observations: original predicates execute once, in their original order.\n      const __pd=(typeof window!=='undefined'&&task.kind==='bed'&&task.stage==='approach'&&t>=1200&&(a.ref.i===1||a.ref.i===4))?{clock:t,position:[ox,oz],preferred:[ox+nx,oz+nz],route:null,selected:null,staticObstacle:null,checks:Array(9).fill(-1),blockers:0}:null;\n      const __po=(code,value)=>{if(__pd){__pd.checks[code]=value?1:0;const root=window.__penDecisions??={schema:1,animals:[]};let row=root.animals.find(x=>x.index===a.ref.i);if(!row){row={index:a.ref.i,counts:Array(18).fill(0),first:null,last:null};root.animals.push(row);}const n=code*2+(value?1:0);row.counts[n]=Math.min(10000000,row.counts[n]+1);}return value;};\n      const __pb=(index,origin,candidate)=>{if(__pd&&Number.isInteger(index)&&index>=0&&index<OBST.length){const o=OBST[index],circle=o.radius!==undefined,local=p=>{const x=p.x-o.x,z=p.y-o.z;return[x*o.c+z*o.s,-x*o.s+z*o.c];},A=local(origin),B=local(candidate),inside=(p,segment)=>circle?Math.hypot(...p)<o.radius+.42-1e-8:Math.abs(p[0])<o.hw+.42-(segment?.05:0)&&Math.abs(p[1])<o.hd+.42-(segment?.05:0);__pd.staticObstacle={index,shape:circle?'circle':'box',center:[o.x,o.z],axes:[o.c,o.s],extent:circle?null:[o.hw,o.hd],radius:circle?o.radius:null,origin:[origin.x,origin.y],candidate:[candidate.x,candidate.y],localOrigin:A,localCandidate:B,routingInside:[inside(A,false),inside(B,false)],segmentInside:[inside(A,true),inside(B,true)]};}return index;};\n      // A social-avoidance step may point out of the yard even when its route is legal."
     },
     {
       "old": "if(!fitsPen(PENS.courtyard,ox+nx,oz+nz,.42)){",
@@ -799,7 +799,7 @@
     },
     {
       "old": "if(fitsPen(PENS.courtyard,routeNext.x,routeNext.y,.42)&&cowGateSegmentClear(a.pos,routeNext)&&hitsBlock(a.pos,routeNext,.42,null)<0){",
-      "new": "if(__pd)__pd.route=[routeNext.x,routeNext.y];\n        if(__po(1,fitsPen(PENS.courtyard,routeNext.x,routeNext.y,.42))&&__po(2,cowGateSegmentClear(a.pos,routeNext))&&__po(3,hitsBlock(a.pos,routeNext,.42,null)<0)){"
+      "new": "if(__pd)__pd.route=[routeNext.x,routeNext.y];\n        if(__po(1,fitsPen(PENS.courtyard,routeNext.x,routeNext.y,.42))&&__po(2,cowGateSegmentClear(a.pos,routeNext))&&__po(3,__pb(hitsBlock(a.pos,routeNext,.42,null),a.pos,routeNext)<0)){"
     },
     {
       "old": "if(!blockingCows.length&&fitsPen(PENS.courtyard,next.x,next.y,.42)&&cowGateSegmentClear(a.pos,next)){",
