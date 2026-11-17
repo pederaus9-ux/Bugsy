@@ -1,0 +1,54 @@
+{
+  "base": "40a8fb8797989b2b45393d70368a00a01af9a289",
+  "originalSha256": "42f0401a2c610c4f99d3f4ac54fa6ce01f3b375de4b9a99a6e7142d7717e58ef",
+  "edits": [
+    {
+      "before": "const {revealCornerAction}",
+      "after": "const fitProbe=require('./helpers/market-fit-probe.cjs').create();\nconst {revealCornerAction}"
+    },
+    {
+      "before": "h=await start({serviceWorkers:'allow',deviceScaleFactor:1});",
+      "after": "fitProbe.step('harness');h=await start({serviceWorkers:'allow',deviceScaleFactor:1});"
+    },
+    {
+      "before": "const s=await h.setup({width:390,height:844},true,'market-sales-fit-counterexample'),p=s.page;",
+      "after": "fitProbe.step('context');const s=await h.setup({width:390,height:844},true,'market-sales-fit-counterexample'),p=s.page;"
+    },
+    {
+      "before": "const css=fs.readFileSync",
+      "after": "fitProbe.step('css-read');const css=fs.readFileSync"
+    },
+    {
+      "before": "await p.setContent(",
+      "after": "fitProbe.step('set-content');await p.setContent("
+    },
+    {
+      "before": "await p.waitForFunction(()=>[...document.querySelector('.panel').getAnimations()].every(a=>a.playState==='finished'));",
+      "after": "fitProbe.step('animation-wait');await p.waitForFunction(()=>[...document.querySelector('.panel').getAnimations()].every(a=>a.playState==='finished'));"
+    },
+    {
+      "before": "const fit=await p.evaluate",
+      "after": "fitProbe.step('measure');const fit=await p.evaluate"
+    },
+    {
+      "before": "assert(fit.rootScroll>",
+      "after": "fitProbe.step('root-overhang');assert(fit.rootScroll>"
+    },
+    {
+      "before": "assert.equal(fit.bodyScroll,fit.bodyClient);assert(fit.closeRight<=390&&fit.closeRight>fit.panelRight);",
+      "after": "fitProbe.step('body-fit');assert.equal(fit.bodyScroll,fit.bodyClient);fitProbe.step('close-fit');assert(fit.closeRight<=390&&fit.closeRight>fit.panelRight);"
+    },
+    {
+      "before": "pass('unchanged production CSS",
+      "after": "fitProbe.step('pass-record');pass('unchanged production CSS"
+    },
+    {
+      "before": "overhang',fit);await s.finish();",
+      "after": "overhang',fit);fitProbe.step('session-finish');await s.finish();fitProbe.step('fit-complete');"
+    },
+    {
+      "before": "}catch(error){diagnostic.status('fail');",
+      "after": "}catch(error){fitProbe.failure('caught');diagnostic.status('fail');"
+    }
+  ]
+}

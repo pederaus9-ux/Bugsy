@@ -1,0 +1,52 @@
+name: Branch-only protected Market fit diagnostic
+on:
+  push:
+    branches: [codex/market-fit-diagnostic-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: market-fit-diagnostic
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: farm3d/tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: farm3d/tests
+      - name: Validate inert diagnostic contracts
+        run: node --test farm3d/tests/market-fit-probe.test.cjs
+      - name: Unchanged market assertions with bounded observations
+        run: |
+          mkdir -p "$RUNNER_TEMP/market-fit-probe"
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/market-fit-probe/execution.json" --timeout-ms 900000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/market-sales.probe.cjs'
+      - name: Strict finite receipt projection
+        id: receipt
+        if: always()
+        run: |
+          test -f farm3d/tests/helpers/market-fit-probe.cjs && test ! -L farm3d/tests/helpers/market-fit-probe.cjs
+          test "$(sha256sum farm3d/tests/helpers/market-fit-probe.cjs | cut -d ' ' -f1)" = 136fa05cc8e090c5113db2305a61d7f6e2ef8ebc42f1ca911877cce5227ede3c
+          test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          node farm3d/tests/helpers/market-fit-probe.cjs "$RUNNER_TEMP/market-fit-probe" "$RUNNER_TEMP/market-fit-public" "${{ github.sha }}"
+      - uses: actions/upload-artifact@v5
+        if: ${{ always() && steps.receipt.outcome == 'success' }}
+        with:
+          name: market-fit-finite-receipt
+          path: ${{ runner.temp }}/market-fit-public/receipt.json
+          if-no-files-found: error
