@@ -1,0 +1,7 @@
+{
+  "path": "farm3d/firebase/tests/manual-restore.browser.cjs",
+  "sourceSha256": "71a23d7afc3f49ca3d0921d77f74cfe2029585db4a31321758a9d361c330233f",
+  "postimageSha256": "4c2d09f1a285d157baf10a3d5f698ca812a543176d4551eb87f95ccaf6172898",
+  "old": "now=>{Date.now=()=>now;}",
+  "new": "now=>{const RealDate=Date;function FixedDate(...args){if(new.target)return new RealDate(...(args.length?args:[now]));return new RealDate(now).toString();}Object.setPrototypeOf(FixedDate,RealDate);FixedDate.prototype=RealDate.prototype;FixedDate.now=()=>now;globalThis.Date=FixedDate;}"
+}

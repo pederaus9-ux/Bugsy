@@ -219,6 +219,7 @@ async function main() {
   if (ECONOMY) {
     // ---- Phase 7I-D: the VERIFIED FIELD, by a brand-new account (the real bootstrap path, nothing given by the test)
     const farmer = await (__fbDetail.mark(151),phone)('farmer');
+    await farmer.context.addInitScript(() => { let online=true;Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>online});addEventListener('offline',()=>{online=false;},true);addEventListener('online',()=>{online=true;},true); });
     try {
       const fUid = await (__fbDetail.mark(152),register)(farmer, 'farmer@example.com');
       const vText = () => P(farmer, () => document.getElementById('vfieldBody').textContent);
@@ -254,6 +255,7 @@ async function main() {
       check('the second planting is paid with 1 verified wheat', /1 🌾/.test(paidLabel) && !/free/.test(paidLabel) && e2.items.wheat === 1, `label "${paidLabel.trim()}", ${JSON.stringify(e2)}`);
       // offline: planting is off; a ready crop can still be picked and is checked when the connection is back
       await farmer.context[(__fbDetail.mark(180),'setOffline')](true);
+      if(!await farmer.page.evaluate(offline => {const expected=!offline;if(navigator.onLine!==expected)dispatchEvent(new Event(offline?'offline':'online'));return navigator.onLine===expected;},true))throw Error('Emulated connectivity state mismatch');
       await (__fbDetail.mark(181),until)(farmer, () => /Offline/.test(document.getElementById('vfieldBody').textContent));
       check('offline: the field says so and planting is switched off', await (__fbDetail.mark(182),P)(farmer, () => [...document.querySelectorAll('[data-vplant]')].every(b => b.disabled)));
       await (__fbDetail.mark(183),until)(farmer, () => !!document.querySelector('[data-vharvest="p1"]'), null, 45000);
@@ -262,6 +264,7 @@ async function main() {
       const e3 = await (__fbDetail.mark(186),economy)(fUid);
       check('offline harvest is kept on the phone as "checking", nothing verified yet', e3.items.wheat === 1 && /checking/.test(await (__fbDetail.mark(187),vText)()), JSON.stringify(e3));
       await farmer.context[(__fbDetail.mark(188),'setOffline')](false);
+      if(!await farmer.page.evaluate(offline => {const expected=!offline;if(navigator.onLine!==expected)dispatchEvent(new Event(offline?'offline':'online'));return navigator.onLine===expected;},false))throw Error('Emulated connectivity state mismatch');
       let e4 = null; for (let i = 0; i < 40; i++) { e4 = await (__fbDetail.mark(189),economy)(fUid); if ((e4.items.wheat || 0) === 3) break; await farmer.page[(__fbDetail.mark(190),'waitForTimeout')](500); }
       const left = await (__fbDetail.mark(191),P)(farmer, (u) => localStorage.getItem('sa3d-canon-harvests-' + u), fUid);
       check('back online: the harvest is checked and granted once; the queue is empty; phone farm still untouched',

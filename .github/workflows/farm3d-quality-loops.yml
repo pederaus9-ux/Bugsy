@@ -94,9 +94,9 @@ jobs:
         if: always()
         run: |
           test -f "farm3d/tests/helpers/a52-quality-projection.cjs" && test ! -L "farm3d/tests/helpers/a52-quality-projection.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-quality-projection.cjs" | cut -d ' ' -f1)" = 480cb1adce728b739c19b93b004eb1458466599a23be375e2d41e8901603bcc3
+          test "$(sha256sum "farm3d/tests/helpers/a52-quality-projection.cjs" | cut -d ' ' -f1)" = cd80f1799e35dda5059e6adb94eb4aa7232b57b83ba302afbabd95f3ff5546cd
           test -f "farm3d/tests/quality-loops.json" && test ! -L "farm3d/tests/quality-loops.json"
-          test "$(sha256sum "farm3d/tests/quality-loops.json" | cut -d ' ' -f1)" = c490f0a4c31a280792681672a03c94a0d90562dc3dc511fc3a077338c0dd3e8e
+          test "$(sha256sum "farm3d/tests/quality-loops.json" | cut -d ' ' -f1)" = 0c3e4fbb9c739067b147a1c735044c8705ace45449e7d46a6ab0213d04d7dc06
           node farm3d/tests/helpers/a52-quality-projection.cjs --source farm3d/tests/artifacts/quality-loops --output "$RUNNER_TEMP/a52-public-quality"
       - name: Publish validated public scorecard separately
         if: ${{ always() && steps.public_quality.outcome == 'success' }}
@@ -106,9 +106,9 @@ jobs:
           test -f "farm3d/tests/helpers/a52-quality-summary.cjs" && test ! -L "farm3d/tests/helpers/a52-quality-summary.cjs"
           test "$(sha256sum "farm3d/tests/helpers/a52-quality-summary.cjs" | cut -d ' ' -f1)" = 97450cf3a5a8f949b3554fd35f69b98b0a91a21cec70b537cf5e78bd56524ae6
           test -f "farm3d/tests/helpers/a52-quality-projection.cjs" && test ! -L "farm3d/tests/helpers/a52-quality-projection.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-quality-projection.cjs" | cut -d ' ' -f1)" = 480cb1adce728b739c19b93b004eb1458466599a23be375e2d41e8901603bcc3
+          test "$(sha256sum "farm3d/tests/helpers/a52-quality-projection.cjs" | cut -d ' ' -f1)" = cd80f1799e35dda5059e6adb94eb4aa7232b57b83ba302afbabd95f3ff5546cd
           test -f "farm3d/tests/quality-loops.json" && test ! -L "farm3d/tests/quality-loops.json"
-          test "$(sha256sum "farm3d/tests/quality-loops.json" | cut -d ' ' -f1)" = c490f0a4c31a280792681672a03c94a0d90562dc3dc511fc3a077338c0dd3e8e
+          test "$(sha256sum "farm3d/tests/quality-loops.json" | cut -d ' ' -f1)" = 0c3e4fbb9c739067b147a1c735044c8705ace45449e7d46a6ab0213d04d7dc06
           test -f "farm3d/tests/quality-loop-scorecard.mjs" && test ! -L "farm3d/tests/quality-loop-scorecard.mjs"
           test "$(sha256sum "farm3d/tests/quality-loop-scorecard.mjs" | cut -d ' ' -f1)" = 7a6e7925feeb220829da598ebecf9d02e9098df61848c7888a7c98b8da16425f
           test -f "farm3d/tests/quality-loop-cases.mjs" && test ! -L "farm3d/tests/quality-loop-cases.mjs"
