@@ -1,0 +1,76 @@
+name: A52 protected pen baseline comparison
+on:
+  push:
+    branches: [codex/a52-pen-baseline-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a52-pen-baseline-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [baseline, candidate]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Verify exact frozen test and runtime inputs
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git --no-lazy-fetch -c protocol.allow=never cat-file -e 38fa4706e41c40197b7afc32de693cb3901a80fb^{commit}
+          git --no-lazy-fetch -c protocol.allow=never cat-file -e 554bd98240f7c54d4dc1961a6c2261f548b7e4a0^{commit}
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-baseline.cjs | cut -d ' ' -f1)" = 21b99c8cf0c2254e6520c67f52bd2881990960d4a435b9d1ba009109498f6117
+          node farm3d/tests/helpers/a52-pen-baseline.cjs verify
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-pen-baseline-controls" "$RUNNER_TEMP/a52-baseline-public" artifacts/a29/pen-cache
+      - name: Prove no-egress kernel boundary
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-baseline-controls/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Verify inert baseline source and finite collector controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-baseline-controls/contracts.json" --timeout-ms 180000 -- node --test farm3d/tests/a52-pen-baseline.test.cjs
+      - name: Install locked browser dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Configure disposable browser paths
+        run: |
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Same original gate seed1 at120Hz three-night predicate against pinned runtime
+        env:
+          PEN_MATRIX_EDIT_CLASS: gate
+          PEN_MATRIX_SEED: '1'
+          PEN_MATRIX_RATE_HZ: '120'
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/gate-1-120
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-6.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
+          node farm3d/tests/a52-pen-${{ matrix.case }}.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/gate-1-120.log
+          '
+      - name: Export only contained finite outcomes with separate runtime identity
+        id: projection
+        if: always()
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-baseline.cjs | cut -d ' ' -f1)" = 21b99c8cf0c2254e6520c67f52bd2881990960d4a435b9d1ba009109498f6117
+          node farm3d/tests/helpers/a52-pen-baseline.cjs collect "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-baseline-public/result" '${{ matrix.case }}' "$GITHUB_SHA"
+      - name: Preserve finite comparison outcome only
+        if: ${{ always() && steps.projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a52-pen-baseline-${{ matrix.case }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-baseline-public/result/
+          if-no-files-found: error
+          retention-days: 14
