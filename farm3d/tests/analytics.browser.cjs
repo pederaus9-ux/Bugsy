@@ -69,10 +69,10 @@ __finite.mark('failed-harvest');   assert.equal(await p.evaluate(()=>window.__re
 __finite.mark('game-fixture');   await p.evaluate(()=>{const G=__dbg.G;Object.assign(G.S.plots[0],{crop:'wheat',end:Date.now()-1});G.harvest(0,true);G.S.barn.wheat=10;G.S.orders=[{items:{wheat:3},coins:25,xp:2,gem:1,wait:0}];G.S.rush=null;G.openPanel('orders');});
 __finite.mark('game-deliver');   await p.locator('[data-act="deliver"][data-i="0"]').click();await p.evaluate(()=>{__dbg.G.close();window.saMetrics.end(performance.now());});await p.waitForTimeout(100);
 __finite.mark('game-report-assertions');   const reports=await p.evaluate(()=>({rows:(window.__reports||[]).filter(r=>r.ref.startsWith('events/')),stored:localStorage.getItem('sa3d-metrics-v2'),orders:__dbg.G.S.stats.orders}));
-   assert.ok(reports.orders>=1);
-   if(sandbox){assert.equal(reports.rows.length,0);assert.equal(reports.stored,null);}else{
-    for(const kind of ['open','harv','ord','sess'])assert.equal(reports.rows.filter(r=>r.data.e.includes('_'+kind+'_')).length,1,kind+' reported once');
-    assert.ok(reports.rows.every(r=>Object.keys(r.data).sort().join(',')==='d,e'));assert.ok(reports.rows.length<10);}
+   __finite.reports(reports);__finite.mark('game-report-orders');assert.ok(reports.orders>=1);
+   if(sandbox){__finite.mark('game-report-sandbox-rows');assert.equal(reports.rows.length,0);__finite.mark('game-report-sandbox-storage');assert.equal(reports.stored,null);}else{
+    for(const kind of ['open','harv','ord','sess']){__finite.mark('game-report-kind-'+kind);assert.equal(reports.rows.filter(r=>r.data.e.includes('_'+kind+'_')).length,1,kind+' reported once');}
+    __finite.mark('game-report-payload');assert.ok(reports.rows.every(r=>Object.keys(r.data).sort().join(',')==='d,e'));__finite.mark('game-report-total');assert.ok(reports.rows.length<10);}
 __finite.mark('game-errors-finish');   assert.deepEqual(s.errors,[]);results.push({sandbox,reports});console.log('PASS real game milestone hooks and sandbox',sandbox);await s.finish();
   }
   failed=false;

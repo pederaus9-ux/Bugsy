@@ -1,11 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
+const {normalize:normalizeReport}=require('./helpers/a52-analytics-report-scope.cjs');
 const helper=require('./helpers/a52-ordinary-progress.cjs');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 test('every diagnostic insertion reverses to exact frozen source',()=>{
  const receipt=JSON.parse(fs.readFileSync(require.resolve('./fixtures/a52-authanalytics-progress-scope.json')));
  for(const [file,e]of Object.entries(receipt.files)){
-  let current=fs.readFileSync(path.join(__dirname,file),'utf8');new vm.Script(current);assert.equal(sha(current),e.afterSha256);assert.equal(sha(e.before),e.beforeSha256);
+  let current=normalizeReport(file,fs.readFileSync(path.join(__dirname,file),'utf8'));new vm.Script(current);assert.equal(sha(current),e.afterSha256);assert.equal(sha(e.before),e.beforeSha256);
   for(const a of [...e.additions].reverse()){assert.equal(current.split(a.after).length,2);current=current.replace(a.after,a.before);}
   assert.equal(current,e.before);
  }

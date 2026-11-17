@@ -1,3 +1,4 @@
+require('../../tests/helpers/a52-firebase-script-events.cjs').observe(process.env.ECONOMY === '1' ? 'flows-economy' : 'flows-spark');
 // Sunny Acres 3D: the real game code (auth.js, friends.js, players.html) against the local Firebase emulators,
 // with farm3d/firebase/firestore.rules loaded. This proves the rules allow everything the game actually does.
 // Run through `npm test` in farm3d/firebase (it starts the Firestore + Auth emulators first). Helpers: emu-harness.cjs.
