@@ -2286,22 +2286,50 @@ function cowSharedCornerDetour(a,b,task,t){
 // Narrow default-bed transit safety; transient ownership only, never a geometry exemption.
 const cowCareTransitGuards=new WeakMap();
 function cowCarePointUnoccupied(p){return !!p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&!OBST.some(o=>insideObst(o,p,.42));}
+function cowCustomTransitLeg(task){return !!COW_YARD_LAYOUT.custom&&(task.path?.length>1||task.waypoints?.length>0);}
+function cowCustomTransitGeometry(){const p=PENS.courtyard.poly;if(!Array.isArray(p)||p.length<3||p.length>16||!p.every(v=>Array.isArray(v)&&v.length===2&&v.every(Number.isFinite))||OBST.length>256)return false;const it=cowStaticPlanner.polygonSimple(p);let r;do{r=it.next();}while(!r.done);return r.value;}
 function cowCareTransitStatus(a,task,p){
   let guard=cowCareTransitGuards.get(task);
-  const context=task.kind==='bed'&&task.stage==='approach'&&!task.layoutReturn&&!COW_YARD_LAYOUT.custom&&!!task.token&&!!task.station;
+  const context=task.kind==='bed'&&task.stage==='approach'&&!task.layoutReturn&&(!COW_YARD_LAYOUT.custom||cowCustomTransitLeg(task))&&!!task.token&&!!task.station;
   if(!guard){
-    if(!context||task.path.length<2||!cowCarePointUnoccupied(a.pos)||!cowCarePointUnoccupied(p))return 0;
-    guard={actor:a,ref:a.ref,index:a.ref.i,token:task.token,station:task.station};cowCareTransitGuards.set(task,guard);return 1;
+    if(COW_YARD_LAYOUT.custom&&context){if(!cowCustomTransitGeometry()||!pointInPolygon([a.pos.x,a.pos.y],PENS.courtyard.poly,.42)||!pointInPolygon([p.x,p.y],PENS.courtyard.poly,.42)||!cowCarePointUnoccupied(a.pos)||!cowCarePointUnoccupied(p))return 2;}
+    else if(!context||task.path.length<2||!cowCarePointUnoccupied(a.pos)||!cowCarePointUnoccupied(p))return 0;
+    guard={actor:a,ref:a.ref,index:a.ref.i,token:task.token,station:task.station,custom:!!COW_YARD_LAYOUT.custom};cowCareTransitGuards.set(task,guard);return 1;
   }
-  if(!context||guard.actor!==a||guard.ref!==a.ref||guard.index!==a.ref.i||guard.token!==task.token||guard.station!==task.station)return 2;
+  if(guard.custom!==!!COW_YARD_LAYOUT.custom||!context||guard.actor!==a||guard.ref!==a.ref||guard.index!==a.ref.i||guard.token!==task.token||guard.station!==task.station)return 2;
+  if(COW_YARD_LAYOUT.custom&&(!cowCustomTransitGeometry()||!pointInPolygon([a.pos.x,a.pos.y],PENS.courtyard.poly,.42)||!pointInPolygon([p.x,p.y],PENS.courtyard.poly,.42)))return 2;
   // A changed leg or geometry must requalify against CURRENT registry, not old skipA.
   return cowCarePointUnoccupied(a.pos)&&cowCarePointUnoccupied(p)?1:2;
 }
 function cowCareTransitStepClear(from,to,status,waypoint){
+  if(COW_YARD_LAYOUT.custom)return status===1&&cowCustomTransitGeometry()&&segmentInPolygon([from.x,from.y],[to.x,to.y],PENS.courtyard.poly,.42)&&cowCarePointUnoccupied(from)&&cowCarePointUnoccupied(to)&&cowStaticEdgeClear(from,to);
   return status===1&&fitsPen(PENS.courtyard,from.x,from.y,.42)&&fitsPen(PENS.courtyard,to.x,to.y,.42)&&cowCarePointUnoccupied(to)&&(cowStaticRecovery.isEdge(waypoint)?cowStaticEdgeClear(from,to):hitsBlock(from,to,.42,null)<0);
 }
 // Bounded static-refusal recovery; inserted corners are transient, never saved.
-const cowStaticPlanner=(()=>{// Pure bounded candidate: no application imports, callbacks, movement or persistence.
+const cowStaticPlanner=(()=>{// Incremental positive-clearance polygon checks. One yield per bounded edge/pair.
+const EPS=1e-9;
+function pointLine(p,a,b){const x=b[0]-a[0],z=b[1]-a[1],n=x*x+z*z,u=n?Math.max(0,Math.min(1,((p[0]-a[0])*x+(p[1]-a[1])*z)/n)):0;return Math.hypot(p[0]-a[0]-u*x,p[1]-a[1]-u*z);}
+function cross(a,b,c){return(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);}
+function segmentsDistance(a,b,c,d){
+ const x=cross(a,b,c),y=cross(a,b,d),u=cross(c,d,a),v=cross(c,d,b);
+ if(((x>0&&y<0)||(x<0&&y>0))&&((u>0&&v<0)||(u<0&&v>0)))return 0;
+ return Math.min(pointLine(a,c,d),pointLine(b,c,d),pointLine(c,a,b),pointLine(d,a,b));
+}
+function* polygonSimple(poly){let area=0;for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];area+=a[0]*b[1]-b[0]*a[1];const short=Math.hypot(a[0]-b[0],a[1]-b[1])<EPS;yield 1;if(short)return false;
+ for(let j=i+1;j<poly.length;j++){if(j===i+1||i===0&&j===poly.length-1)continue;const bad=segmentsDistance(a,b,poly[j],poly[(j+1)%poly.length])<EPS;yield 1;if(bad)return false;}}
+ return Math.abs(area)>2*EPS;
+}
+function* polygonSegmentClear(a,b,poly){let insideA=false,insideB=false,minA=Infinity,minB=Infinity;
+ for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+  const c=poly[j],d=poly[i];minA=Math.min(minA,pointLine(a,c,d));minB=Math.min(minB,pointLine(b,c,d));
+  if((c[1]>a[1])!==(d[1]>a[1])&&a[0]<(d[0]-c[0])*(a[1]-c[1])/(d[1]-c[1])+c[0])insideA=!insideA;
+  if((c[1]>b[1])!==(d[1]>b[1])&&b[0]<(d[0]-c[0])*(b[1]-c[1])/(d[1]-c[1])+c[0])insideB=!insideB;
+  const bad=segmentsDistance(a,b,c,d)<.42-EPS;yield 1;if(bad)return false;
+ }
+ return(insideA||minA<=EPS)&&(insideB||minB<=EPS)&&minA+EPS>=.42&&minB+EPS>=.42;
+}
+
+// Pure bounded candidate: no application imports, callbacks, movement or persistence.
 const PAD=.42,CORNER=.005,MAX_OBSTACLES=256,MAX_VISITS=8192;
 const finite=x=>typeof x==='number'&&Number.isFinite(x)&&Math.abs(x)<=1e6;
 const point=p=>Array.isArray(p)&&p.length===2&&p.every(finite);
@@ -2313,6 +2341,12 @@ function segmentBlocked(o,a,b){
  if(o.radius!==undefined){const u=Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dz)/(dx*dx+dz*dz||1)));return Math.hypot(A[0]+dx*u,A[1]+dz*u)<o.radius+PAD-1e-8;}
  let lo=0,hi=1;for(const [p,d,h]of [[A[0],dx,o.hw+PAD],[A[1],dz,o.hd+PAD]]){if(Math.abs(d)<1e-12){if(Math.abs(p)>=h)return false;}else{let u=(-h-p)/d,v=(h-p)/d;if(u>v)[u,v]=[v,u];lo=Math.max(lo,u);hi=Math.min(hi,v);if(lo>=hi)return false;}}return lo<hi;
 }
+// Entry parameter is selection only; full existing sweeps still validate every edge.
+function segmentEntry(o,a,b){
+ const A=local(o,a),B=local(o,b),dx=B[0]-A[0],dz=B[1]-A[1];
+ if(o.radius!==undefined){const r=o.radius+PAD-1e-8,q=dx*dx+dz*dz;if(!q)return 0;const h=A[0]*dx+A[1]*dz,disc=h*h-q*(A[0]*A[0]+A[1]*A[1]-r*r);return Math.max(0,(-h-Math.sqrt(Math.max(0,disc)))/q);}
+ let lo=0;for(const[p,d,h]of[[A[0],dx,o.hw+PAD],[A[1],dz,o.hd+PAD]])if(Math.abs(d)>=1e-12)lo=Math.max(lo,Math.min((-h-p)/d,(h-p)/d));return lo;
+}
 function createRepair(input,{maxVisits=MAX_VISITS}={}){
  if(!Number.isSafeInteger(maxVisits)||maxVisits<0||maxVisits>MAX_VISITS)throw Error('invalid budget');
  let total=0,result=null;
@@ -2320,22 +2354,31 @@ function createRepair(input,{maxVisits=MAX_VISITS}={}){
   if(!input||!point(input.from)||!point(input.to)||!Array.isArray(input.obstacles)||input.obstacles.length>MAX_OBSTACLES)return{status:'invalid'};
   const from=[...input.from],to=[...input.to],p=input.pen;
   if(!p||![p.minX,p.maxX,p.minZ,p.maxZ].every(finite)||p.maxX-p.minX<2*PAD||p.maxZ-p.minZ<2*PAD)return{status:'invalid'};
-  const pen={...p},inside=v=>v[0]>=pen.minX+PAD&&v[0]<=pen.maxX-PAD&&v[1]>=pen.minZ+PAD&&v[1]<=pen.maxZ-PAD;
-  if(!inside(from)||!inside(to))return{status:'no-route'};
+  const pen={...p},polygon=input.polygon;
+  let poly=null;
+  if(polygon!==undefined){
+   if(!Array.isArray(polygon)||polygon.length<3||polygon.length>16||!polygon.every(point))return{status:'invalid'};
+   poly=[];for(const v of polygon){poly.push([...v]);yield 1;}
+  }
+  const inside=v=>v[0]>=pen.minX+PAD&&v[0]<=pen.maxX-PAD&&v[1]>=pen.minZ+PAD&&v[1]<=pen.maxZ-PAD;
+  function* polygonClear(a,b){return poly?(yield* polygonSegmentClear(a,b,poly)):true;}
+  if(poly&&!(yield* polygonSimple(poly)))return{status:'invalid'};
+  if(poly){if(!(yield* polygonClear(from,from))||!(yield* polygonClear(to,to)))return{status:'no-route'};}
+  else if(!inside(from)||!inside(to))return{status:'no-route'};
   const obs=[],count=input.obstacles.length;for(let index=0;index<count;index++){
    if(input.obstacles.length!==count)return{status:'invalid'};const o=input.obstacles[index];
    if(!o||![o.x,o.z,o.hw,o.hd,o.c,o.s].every(finite)||o.hw<=0||o.hd<=0||Math.abs(o.c*o.c+o.s*o.s-1)>1e-10||o.radius!==undefined&&(!finite(o.radius)||o.radius<=0))return{status:'invalid'};
    obs.push({x:o.x,z:o.z,hw:o.hw,hd:o.hd,c:o.c,s:o.s,...(o.radius!==undefined?{radius:o.radius}:{})});yield 1;
   }
   if(input.obstacles.length!==count)return{status:'invalid'};
-  let blocker=null;for(const o of obs){if(pointBlocked(o,from)||pointBlocked(o,to))return{status:'no-route'};if(!blocker&&segmentBlocked(o,from,to))blocker=o;yield 1;}
-  if(!blocker)return{status:'path',path:[to],snapshot:obs,from,to,pen};
+  let blocker=null,entry=Infinity;for(const o of obs){if(pointBlocked(o,from)||pointBlocked(o,to))return{status:'no-route'};if((poly||!blocker)&&segmentBlocked(o,from,to)){const next=poly?segmentEntry(o,from,to):0;if(!blocker||next<entry){blocker=o;entry=next;}}yield 1;}
+  if(!blocker)return(yield* polygonClear(from,to))?{status:'path',path:[to],snapshot:obs,from,to,pen}:{status:'no-route'};
   if(blocker.radius!==undefined)return{status:'unsupported'};
   const nodes=[from,to];for(const [sx,sz]of [[-1,-1],[1,-1],[1,1],[-1,1]]){const x=sx*(blocker.hw+PAD+CORNER),z=sz*(blocker.hd+PAD+CORNER);nodes.push([blocker.x+x*blocker.c-z*blocker.s,blocker.z+x*blocker.s+z*blocker.c]);}
-  const valid=[true,true];for(let i=2;i<6;i++){valid[i]=inside(nodes[i]);if(valid[i])for(const o of obs){const bad=pointBlocked(o,nodes[i]);yield 1;if(bad){valid[i]=false;break;}}}
+  const valid=[true,true];for(let i=2;i<6;i++){valid[i]=poly?(yield* polygonClear(nodes[i],nodes[i])):inside(nodes[i]);if(valid[i])for(const o of obs){const bad=pointBlocked(o,nodes[i]);yield 1;if(bad){valid[i]=false;break;}}}
   const edges=Array.from({length:6},()=>Array(6).fill(Infinity));
   for(let i=0;i<6;i++)for(let j=i+1;j<6;j++)if(valid[i]&&valid[j]){
-   let clear=true;for(const o of obs){const bad=segmentBlocked(o,nodes[i],nodes[j]);yield 1;if(bad){clear=false;break;}}
+   let clear=yield* polygonClear(nodes[i],nodes[j]);if(!clear)continue;for(const o of obs){const bad=segmentBlocked(o,nodes[i],nodes[j]);yield 1;if(bad){clear=false;break;}}
    if(clear)edges[i][j]=edges[j][i]=Math.hypot(nodes[i][0]-nodes[j][0],nodes[i][1]-nodes[j][1]);
   }
   const dist=[0,...Array(5).fill(Infinity)],prev=Array(6).fill(-1),done=Array(6).fill(false);
@@ -2347,17 +2390,17 @@ function createRepair(input,{maxVisits=MAX_VISITS}={}){
  const iterator=work();
  return{step(budget){if(!Number.isSafeInteger(budget)||budget<0||budget>512)throw Error('invalid slice');let used=0;while(!result&&used<budget){if(total>=maxVisits){result={status:'budget'};break;}const r=iterator.next();if(r.done){result=r.value;break;}used++;total++;}return{done:!!result,used,total,result:result?{...result,visits:total}:null};}};
 }
-return {createRepair,segmentBlocked};})();
+return {createRepair,segmentBlocked,polygonSimple};})();
 const cowStaticCreateRecovery=(()=>{// Transient controller only. A certificate authorizes route insertion, never movement.
 function createRecovery(createRepair,env){
  const LIMIT=512,REQUEST_LIMIT=8192,MAX_JOBS=16,MAX_PATH=64,keys=['x','z','hw','hd','c','s','radius'];
  let generation=0,epoch=null,remaining=0,used=0,maxUsed=0,cursor=0;let jobs=new WeakMap();const queue=[],corners=new WeakSet(),edges=new WeakSet();
  const stats={requests:0,applied:0,cancelled:0,failed:0,plannerVisits:0,snapshotVisits:0,validationVisits:0};
  function spend(n,j,kind){if(!Number.isSafeInteger(n)||n<0||n>remaining||j&&j.work+n>REQUEST_LIMIT)return false;remaining-=n;used+=n;maxUsed=Math.max(maxUsed,used);if(j)j.work+=n;if(kind)stats[kind]+=n;return true;}
- function scope(a,t){return a.cowTask===t&&t.kind==='bed'&&t.stage==='approach'&&!t.layoutReturn&&!env.custom()&&env.admitted(t)&&(!env.canContinue||env.canContinue(a,t))&&!!t.token&&!!t.station;}
- function basic(j){return (!env.farm||env.farm()===j.farm)&&scope(j.a,j.t)&&j.a.ref===j.ref&&j.a.ref.i===j.index&&j.t.token===j.token&&j.t.station===j.station&&j.a.g.position.x===j.from[0]&&j.a.g.position.z===j.from[1]&&j.t.path===j.path&&j.t.waypoints===j.waypoints;}
+ function scope(a,t){return a.cowTask===t&&t.kind==='bed'&&t.stage==='approach'&&!t.layoutReturn&&env.admitted(t)&&(!env.customEligible||env.customEligible(t))&&(!env.canContinue||env.canContinue(a,t))&&!!t.token&&!!t.station;}
+ function basic(j){return (!env.farm||env.farm()===j.farm)&&scope(j.a,j.t)&&env.custom()===j.custom&&j.a.ref===j.ref&&j.a.ref.i===j.index&&j.t.token===j.token&&j.t.station===j.station&&j.a.g.position.x===j.from[0]&&j.a.g.position.z===j.from[1]&&j.t.path===j.path&&j.t.waypoints===j.waypoints;}
  function routeSame(j){return j.path.length===j.paths.length&&j.waypoints.length===j.ways.length&&j.paths.every((v,i)=>j.path[i]===v[0]&&v[0].x===v[1]&&v[0].y===v[2])&&j.ways.every((v,i)=>j.waypoints[i]===v[0]&&v[0].length===v.length-1&&v[0].every((x,k)=>x===v[k+1]));}
- function worldSame(j){const obs=env.obstacles(),poly=env.polygon();return obs.length===j.obs.length&&poly.length===4&&poly.every((p,i)=>p.length===2&&p[0]===j.poly[i][0]&&p[1]===j.poly[i][1])&&j.obs.every((o,i)=>keys.every(k=>o[k]===obs[i]?.[k]));}
+ function worldSame(j){const obs=env.obstacles(),poly=env.polygon();return obs.length===j.obs.length&&poly.length===j.poly.length&&poly.every((p,i)=>p.length===2&&p[0]===j.poly[i][0]&&p[1]===j.poly[i][1])&&j.obs.every((o,i)=>keys.every(k=>o[k]===obs[i]?.[k]));}
  function cancel(j){jobs.delete(j.t);j.state='cancelled';stats.cancelled++;}
  function removeDone(){for(let i=queue.length-1;i>=0;i--)if(['cancelled','applied'].includes(queue[i].state))queue.splice(i,1);if(queue.length)cursor%=queue.length;else cursor=0;}
  function pump(nextEpoch){
@@ -2367,7 +2410,7 @@ function createRecovery(createRepair,env){
   const count=queue.length;for(let n=0;n<count&&queue.length;n++){
    const j=queue[(cursor+n)%queue.length];if(j.state==='cancelled')continue;
    if(!basic(j)){cancel(j);continue;}
-   if(j.state==='failed'){if(generation%2===0)continue;const cost=j.obs.length+4+j.paths.length+j.ways.length;if(spend(cost,null,'validationVisits')&&(!routeSame(j)||!worldSame(j)))cancel(j);continue;}
+   if(j.state==='failed'){if(generation%2===0)continue;const cost=j.obs.length+j.poly.length+j.paths.length+j.ways.length;if(spend(cost,null,'validationVisits')&&(!routeSame(j)||!worldSame(j)))cancel(j);continue;}
    const routeCost=j.paths.length+j.ways.length;
    if(j.work+routeCost>REQUEST_LIMIT){j.state='failed';stats.failed++;continue;}if(!spend(routeCost,j,'validationVisits'))continue;
    if(!routeSame(j)){cancel(j);continue;}
@@ -2377,7 +2420,7 @@ function createRecovery(createRepair,env){
     if(r.done){j.result=r.result;if(r.result.status==='path')j.state='ready';else{j.state='failed';stats.failed++;}}
    }
    if(j.state==='ready'){
-    const cost=j.obs.length+4;if(j.work+cost>REQUEST_LIMIT){j.state='failed';stats.failed++;continue;}if(!spend(cost,j,'validationVisits'))continue;
+    const cost=j.obs.length+j.poly.length;if(j.work+cost>REQUEST_LIMIT){j.state='failed';stats.failed++;continue;}if(!spend(cost,j,'validationVisits'))continue;
     if(!basic(j)||!worldSame(j)){cancel(j);continue;}
     const path=j.result.path;if(!path?.length||path.length>5||path.at(-1)[0]!==j.goal[0]||path.at(-1)[1]!==j.goal[1]){j.state='failed';stats.failed++;continue;}
     // Keep original endpoint objects and the whole original suffix. Only add intermediates.
@@ -2387,16 +2430,16 @@ function createRecovery(createRepair,env){
   if(count&&generation%2===1)cursor=(cursor+1)%count;removeDone();
  }
  function request(a,t,p){
-  if(epoch===null||!scope(a,t)||!Array.isArray(t.path)||t.path.length<2||!Array.isArray(t.waypoints)||t.path.length+t.waypoints.length>MAX_PATH||p!==t.path[0]||t.path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y))||t.waypoints.some(p=>!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))return false;
+  if(epoch===null||!scope(a,t)||!Array.isArray(t.path)||t.path.length<(env.custom()?1:2)||!Array.isArray(t.waypoints)||t.path.length+t.waypoints.length>MAX_PATH||p!==t.path[0]||t.path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y))||t.waypoints.some(p=>!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))return false;
   let previous=jobs.get(t);
   if(previous)return true;
-  const obs=env.obstacles(),poly=env.polygon();if(queue.length>=MAX_JOBS||!Array.isArray(obs)||obs.length>256||!Array.isArray(poly)||poly.length!==4||poly.some(p=>!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)))return false;
+  const obs=env.obstacles(),poly=env.polygon();if(queue.length>=MAX_JOBS||!Array.isArray(obs)||obs.length>256||!Array.isArray(poly)||(env.custom()?(poly.length<3||poly.length>16):poly.length!==4)||poly.some(p=>!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)))return false;
   const xs=poly.map(p=>p[0]),zs=poly.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
-  if(new Set(poly.map(p=>p.join(','))).size!==4||!poly.every(p=>(p[0]===minX||p[0]===maxX)&&(p[1]===minZ||p[1]===maxZ)))return false;
-  const cost=obs.length+4+t.path.length+t.waypoints.length;if(!spend(cost,null,'snapshotVisits'))return false;
+  if(!env.custom()&&(new Set(poly.map(p=>p.join(','))).size!==4||!poly.every(p=>(p[0]===minX||p[0]===maxX)&&(p[1]===minZ||p[1]===maxZ))))return false;
+  const cost=obs.length+poly.length+t.path.length+t.waypoints.length;if(!spend(cost,null,'snapshotVisits'))return false;
   const copy=obs.map(o=>Object.fromEntries(keys.map(k=>[k,o?.[k]]))),from=[a.g.position.x,a.g.position.z],goal=[p.x,p.y];
-  const j={a,t,farm:env.farm?.(),ref:a.ref,index:a.ref.i,token:t.token,station:t.station,from,goal,path:t.path,waypoints:t.waypoints,paths:t.path.map(p=>[p,p.x,p.y]),ways:t.waypoints.map(p=>[p,...p]),obs:copy,poly:poly.map(p=>[...p]),work:cost,state:'planning'};
-  j.planner=createRepair({from,to:goal,obstacles:copy,pen:{minX,maxX,minZ,maxZ}},{maxVisits:REQUEST_LIMIT-cost});jobs.set(t,j);queue.push(j);stats.requests++;return true;
+  const j={a,t,custom:env.custom(),farm:env.farm?.(),ref:a.ref,index:a.ref.i,token:t.token,station:t.station,from,goal,path:t.path,waypoints:t.waypoints,paths:t.path.map(p=>[p,p.x,p.y]),ways:t.waypoints.map(p=>[p,...p]),obs:copy,poly:poly.map(p=>[...p]),work:cost,state:'planning'};
+  j.planner=createRepair({from,to:goal,obstacles:copy,pen:{minX,maxX,minZ,maxZ},...(env.custom()?{polygon:j.poly}:{})},{maxVisits:REQUEST_LIMIT-cost});jobs.set(t,j);queue.push(j);stats.requests++;return true;
  }
  function wait(a,t){const j=jobs.get(t);if(!j)return false;if(!basic(j)){cancel(j);return false;}return true;}
  return{pump,request,wait,isCorner:p=>corners.has(p),isEdge:p=>edges.has(p),stats(){return{...stats,epoch,used,remaining,maxUsed,queued:queue.length};}};
@@ -2404,7 +2447,7 @@ function createRecovery(createRepair,env){
 return createRecovery;})();
 const cowStaticRecovery=cowStaticCreateRecovery(cowStaticPlanner.createRepair,{
  obstacles:()=>OBST,polygon:()=>PENS.courtyard.poly,admitted:task=>cowCareTransitGuards.has(task),custom:()=>!!COW_YARD_LAYOUT.custom,
- farm:()=>G.S,
+ farm:()=>G.S,customEligible:task=>!COW_YARD_LAYOUT.custom||cowCustomTransitLeg(task),
  canContinue:(a,task)=>animals.includes(a)&&PRESET.night&&!(cowStatus.cows[a.ref.i]?.feedCharged&&!cowStatus.cows[a.ref.i]?.ready&&a.cowMealCycle!==cowStatus.cows[a.ref.i]?.cycle)&&cowStatus?.job?.cowId!==cowIdOf(a),
  vector:(x,y)=>new THREE.Vector2(x,y)
 });
@@ -2437,7 +2480,7 @@ function updateCowTaskStep(a,dt,t){
     // A lateral yield changes the start of the remaining leg. Revalidate it
     // before resuming bed travel, so an old waypoint cannot cut through a post.
     let blockedBedLeg=cowStaticRecovery.wait(a,task);
-    if(!blockedBedLeg&&task.kind==='bed'&&task.stage==='approach'&&task.avoidSide&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
+    if(!blockedBedLeg&&!cowCustomTransitLeg(task)&&task.kind==='bed'&&task.stage==='approach'&&task.avoidSide&&task.path?.length&&hitsBlock(a.pos,task.path[0],.42,null)>=0){
       const endpoint=task.path[0],contained=OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,endpoint,.42));
       const detour=contained?[]:route(a.pos,endpoint,.42,PENS.courtyard,[],cowGateSegmentClear);
       if(detour.length&&detour.every((p,i)=>hitsBlock(i?detour[i-1]:a.pos,p,.42,null)<0))task.path=[...detour,...task.path.slice(1)];
@@ -2450,7 +2493,7 @@ function updateCowTaskStep(a,dt,t){
         let sv=steerCowPersonalSpace(a.pos,{x:nx/(dt||1),y:nz/(dt||1)},others,a.cowSpace,t);
         // A care route cannot honor redirect by dropping its station. Instead trial the
         // other hysteresis side; all ordinary body, gate and static checks still decide movement.
-        if(transitStatus===1&&d>.6&&sv.redirect&&(sv.x*dx+sv.y*dz)<=0&&(a.cowSpace.side===1||a.cowSpace.side===-1)){
+        if(!COW_YARD_LAYOUT.custom&&transitStatus===1&&d>.6&&sv.redirect&&(sv.x*dx+sv.y*dz)<=0&&(a.cowSpace.side===1||a.cowSpace.side===-1)){
           const trial={...a.cowSpace,side:-a.cowSpace.side};
           const alternate=steerCowPersonalSpace(a.pos,{x:nx/(dt||1),y:nz/(dt||1)},others,trial,t);
           const alternateLength=Math.hypot(alternate.x,alternate.y);

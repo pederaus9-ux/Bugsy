@@ -7,7 +7,8 @@ for(const file of Object.keys(h.scope.files))test('exact release inverse and cor
  const previous=h.normalizeA53CowRecovery(file,current);assert.equal(h.sha(previous),entry.beforeSha256);
  assert.equal(h.normalizeA53CowRecovery(file,current.toString()),previous.toString());
  let replay=previous.toString();for(const x of entry.hunks){assert.equal(replay.split(x.before).length,2);replay=replay.replace(x.before,()=>x.after);}assert.equal(replay,current.toString());
- for(const bytes of [previous,Buffer.concat([current,Buffer.from('\n/* unrelated */')]),Buffer.from(current.toString().replace(entry.hunks[0].after,entry.hunks[0].before))])assert.throws(()=>h.normalizeA53CowRecovery(file,bytes));
+ const active=entry.hunks.at(-1),mutated=Buffer.from(current.toString().replace(active.after,()=>active.before));assert.notEqual(mutated.toString(),current.toString(),'Negative mutation must change current bytes');
+ for(const bytes of [previous,Buffer.concat([current,Buffer.from('\n/* unrelated */')]),mutated])assert.throws(()=>h.normalizeA53CowRecovery(file,bytes));
 });
 test('non-target UI save auth and helper bytes remain untouched by outer inverse',()=>{for(const f of ['farm3d/game.js','farm3d/auth.js','farm3d/a52-ui.js']){const b=Buffer.from('synthetic unchanged bytes');assert.equal(h.normalizeA53CowRecovery(f,b),b);}});
 test('cache delta only exact v93 to v94 with no shell or lifecycle change',()=>{const b=read('farm3d/sw.js'),old=h.normalizeA53CowRecovery('sw.js',b);assert.equal(b.toString().replace('const CACHE = "sa3d-v94";','const CACHE = "sa3d-v93";'),old.toString());for(const v of ['v92','v93','v95'])assert.throws(()=>h.normalizeA53CowRecovery('sw.js',Buffer.from(b.toString().replace('sa3d-v94','sa3d-'+v))));});
