@@ -36,10 +36,10 @@ const identity=a=>a.kind+':'+(a.ref.i??a.ref.j??0);
   const draft=e.snapshot().draft.sites.sheep;if(JSON.stringify(draft)!==JSON.stringify(expected))throw Error('Edit changed unrelated site fields: '+JSON.stringify({edit,draft,expected}));
   const valid=await e.validateNow(),reason=e.snapshot().reason;if(!valid)throw Error('Edit invalid: '+reason);if(!await e.apply())throw Error('Edit Apply refused');
   const saved=G.S.layout.animalPens.sites.sheep;if(JSON.stringify(saved)!==JSON.stringify(expected))throw Error('Requested edit was not saved exactly');
-  return{action:{type:edit,commands},seedWitness:window.__testGameplaySeed??null,ids:d.animals.map(a=>a.kind+':'+(a.ref.i??a.ref.j??0)).sort(),revision:d.penRuntime.revision,savedRevision:G.S.layout.animalPens.revision,paid:{coins:G.S.coins,pens:JSON.stringify(G.S.pens),pets:JSON.stringify(G.S.pets)}};
+  return{setupClock:d.clock(),action:{type:edit,commands},seedWitness:window.__testGameplaySeed??null,ids:d.animals.map(a=>a.kind+':'+(a.ref.i??a.ref.j??0)).sort(),revision:d.penRuntime.revision,savedRevision:G.S.layout.animalPens.revision,paid:{coins:G.S.coins,pens:JSON.stringify(G.S.pens),pets:JSON.stringify(G.S.pets)}};
  },editClass);
  if(seed===1){assert.equal(setup.seedWitness?.value,1);assert.equal(setup.seedWitness.firstCall,16807/2147483647);assert(setup.seedWitness.calls>=46*4,'requested seed must feed the owned 46-animal constructor stream');}else assert.equal(setup.seedWitness,null,'default game must keep its unmodified RNG declaration');
- assert.equal(setup.ids.length,46);assert.equal(new Set(setup.ids).size,46);assert.equal(setup.revision,1);assert.equal(setup.savedRevision,1);report.setup={ids:setup.ids,revision:1,action:setup.action,seedWitness:setup.seedWitness};save();
+ assert.equal(setup.ids.length,46);assert.equal(new Set(setup.ids).size,46);assert.equal(setup.revision,1);assert.equal(setup.savedRevision,1);report.setup={ids:setup.ids,revision:1,action:setup.action,seedWitness:setup.seedWitness};require('./helpers/a52-pen-direct.cjs').writeSetup(setup);save();
  await p.addScriptTag({path:path.join(__dirname,'animal-pen-wake-oracle.cjs')});
  for(let cycle=1;cycle<=3;cycle++){
   report.stage='cycle '+cycle+' night';report.progress={cycle,phase:'night',frames:0};save();
