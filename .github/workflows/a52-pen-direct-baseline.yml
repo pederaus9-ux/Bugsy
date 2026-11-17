@@ -30,7 +30,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = 4da3e234d72453b30cfd26378a26e31945771c0e13e54e59b051b08b345852c8
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = f984a0668030dfb1de681494e35511cc2b0c03b3ed2116286d104e918abc60c3
           node farm3d/tests/helpers/a52-pen-direct.cjs verify
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-pen-direct-controls" artifacts/a29/pen-cache
       - name: Prove unchanged kernel isolation boundary
@@ -49,7 +49,7 @@ jobs:
           echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
       - name: Materialize exact runtime files and exact test-only overlay without executing application
         run: |
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = 4da3e234d72453b30cfd26378a26e31945771c0e13e54e59b051b08b345852c8
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = f984a0668030dfb1de681494e35511cc2b0c03b3ed2116286d104e918abc60c3
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-pen-direct-controls/materialize.json" --timeout-ms 180000 -- node farm3d/tests/helpers/a52-pen-direct.cjs prepare '${{ matrix.case }}'
       - name: Original direct-file gate seed1 at120Hz three-night test
         working-directory: ${{ runner.temp }}/pen-direct-runtime
@@ -67,7 +67,7 @@ jobs:
         id: projection
         if: always()
         run: |
-          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = 4da3e234d72453b30cfd26378a26e31945771c0e13e54e59b051b08b345852c8
+          test "$(sha256sum farm3d/tests/helpers/a52-pen-direct.cjs | cut -d ' ' -f1)" = f984a0668030dfb1de681494e35511cc2b0c03b3ed2116286d104e918abc60c3
           node farm3d/tests/helpers/a52-pen-direct.cjs collect '${{ matrix.case }}'
       - name: Preserve positive source proofs and finite comparison outcomes only
         if: ${{ always() && steps.projection.outcome == 'success' }}
