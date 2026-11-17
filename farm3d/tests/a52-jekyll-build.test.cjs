@@ -42,3 +42,13 @@ test('DNS metadata diagnosis is finite and does not retain target data',()=>{
  const x=h.buildFailureKinds(null,Buffer.from(text));assert(h.validFailureKinds(x));for(const k of ['metadataClientStack','resolvStack','networkUnreachable','githubApiHostname'])assert.equal(x[k],true);assert(!JSON.stringify(x).includes('PRIVATE_CANARY'));assert(h.finiteReceipt({...h.receipt(),failureKinds:x}));
  for(const line of ['unrelated client.rb','resolv', 'github.com'])assert.equal(h.buildFailureKinds(null,Buffer.from(line)).metadataClientStack,false);
 });
+
+test('offline environment does not imply online metadata equivalence',()=>{const r=h.receipt();assert.equal(r.onlineMetadataEquivalent,false);assert.equal(r.classification,'ORIGINAL_CONFIG_OFFLINE_BUILD_NOT_ONLINE_METADATA_EQUIVALENCE');assert(!h.finiteReceipt({...r,onlineMetadataEquivalent:true}));assert(!h.finiteReceipt({...r,originalConfigSha256:'a'.repeat(64)}));});
+test('loopback DNS proves only local absent resolver, not fake answers',()=>{assert(h.resolverOK('nameserver 127.0.0.1\noptions ndots:0'));for(const s of ['nameserver 8.8.8.8','nameserver 127.0.0.1\nsearch example.com','nameserver 127.0.0.1\nnameserver 8.8.8.8'])assert(!h.resolverOK(s));assert(h.noDnsListeners('sl local_address rem_address\n'));assert(!h.noDnsListeners('sl local_address rem_address\n0: 0100007F:0035 00000000:0000'));});
+test('genuine plugin offline warning and API attempt are classified without raw data',()=>{const r=h.buildFailureKinds(Buffer.from('Calling @client.pages(SECRET) No internet connection. GitHub metadata may be missing or incorrect.'),null);assert(r.metadataApiCall&&r.metadataOfflineFallback);assert(!JSON.stringify(r).includes('SECRET'));assert(h.validFailureKinds(r));});
+
+test('successful offline receipt requires config and resolver proofs',()=>{
+ const r={...h.receipt(),status:'passed',phase:'complete',buildStarted:true,buildExitCode:0,resolverSha256:'a'.repeat(64),configVerified:true,resolverVerified:true,noDnsListener:true,entrypointVerified:true,networkVerified:true,privilegeVerified:true,mountVerified:true,sourceVerified:true,runtimeProjectionVerified:true,outputComplete:true,outputVerified:true,cleanupVerified:true};
+ assert(h.finiteReceipt(r));for(const k of ['configVerified','resolverVerified','noDnsListener'])assert(!h.finiteReceipt({...r,[k]:false}));
+ const a=h.dockerConfig('/safe/source','/safe/output','/safe/manifest',1001,1001,{});assert(a.includes('--dns=127.0.0.1'));assert(a.includes('--dns-search=.'));assert(a.includes('--network=none'));assert.equal(a.filter(x=>x==='--mount').length,4);
+});

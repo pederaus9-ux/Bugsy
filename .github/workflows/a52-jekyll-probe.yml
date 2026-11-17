@@ -1,4 +1,4 @@
-name: A52 isolated Jekyll probe
+name: A52 original-config offline Jekyll probe
 on:
   push:
     branches: ['codex/a52-jekyll-probe-20261117']
@@ -26,8 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD^)" = 4ca89310c89f026f40abccf725945d125ccc5e32
+          test "$(git rev-parse HEAD^)" = bb3d645598807edb6078cc8463f1d025f3265313
           test ! -e _site
+          test "$(sha256sum _config.yml | cut -d ' ' -f1)" = 8929ab042f6bf7c51b439f124fc6f0b2c718e63b77d69d6c5abbb33acd7a288c
           node <<'NODE'
           const cp=require('node:child_process'),assert=require('node:assert/strict');
           const changed=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','diff','--name-status','13fff2cb5a74822b5b1252d474d25e799cbc382d','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim().split('\n').sort();
@@ -37,9 +38,9 @@ jobs:
           test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = d1c61f7bd5101e07dcb4748e603aaf2c382ff36bfa42b0c88a9afbcf17dfb331
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 1fa99e2be1a1a660429328f18954b595a5ba0929782945ab9422eb7f7588e946
           test -f farm3d/tests/a52-jekyll-build.test.cjs && test ! -L farm3d/tests/a52-jekyll-build.test.cjs
-          test "$(sha256sum farm3d/tests/a52-jekyll-build.test.cjs | cut -d ' ' -f1)" = 116a3ce81ecb9b5d0c402da1f79e7a9e4ebd2ef4ce59a8916ba52a143430adc3
+          test "$(sha256sum farm3d/tests/a52-jekyll-build.test.cjs | cut -d ' ' -f1)" = 233fbdfe3b7dbfe20897374afb706db72d5a4a37671f4d24ab2e5e7436193aa7
           mkdir -p "$RUNNER_TEMP/a52-jekyll-receipts"
       - name: Protected inert helper contracts
         id: contracts
@@ -57,7 +58,7 @@ jobs:
         id: build
         run: |
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = d1c61f7bd5101e07dcb4748e603aaf2c382ff36bfa42b0c88a9afbcf17dfb331
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 1fa99e2be1a1a660429328f18954b595a5ba0929782945ab9422eb7f7588e946
           node farm3d/tests/helpers/a52-jekyll-build.cjs "$GITHUB_WORKSPACE" "$GITHUB_SHA" "$RUNNER_TEMP/a52-jekyll-receipts/build.json"
       - name: Protected original actual-output assertions
         id: output
@@ -72,10 +73,10 @@ jobs:
           test -f farm3d/tests/helpers/ci-isolated-runner.cjs && test ! -L farm3d/tests/helpers/ci-isolated-runner.cjs
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           test -f farm3d/tests/helpers/a52-jekyll-build.cjs && test ! -L farm3d/tests/helpers/a52-jekyll-build.cjs
-          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = d1c61f7bd5101e07dcb4748e603aaf2c382ff36bfa42b0c88a9afbcf17dfb331
+          test "$(sha256sum farm3d/tests/helpers/a52-jekyll-build.cjs | cut -d ' ' -f1)" = 1fa99e2be1a1a660429328f18954b595a5ba0929782945ab9422eb7f7588e946
           node <<'NODE'
           const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs'),{finiteReceipt}=require('./farm3d/tests/helpers/a52-jekyll-build.cjs');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs'),{finiteReceipt,CLASSIFICATION,ORIGINAL_CONFIG_SHA256}=require('./farm3d/tests/helpers/a52-jekyll-build.cjs');
           const head=process.env.GITHUB_SHA;assert(/^[a-f0-9]{40}$/.test(head));
           const source=path.join(process.env.RUNNER_TEMP,'a52-jekyll-receipts'),out=path.join(process.env.RUNNER_TEMP,'a52-jekyll-public');
           const names=['contracts.json','source.json','build.json','output.json'],missing=[],entries=[];
@@ -89,7 +90,7 @@ jobs:
             entries.push([name,JSON.stringify(v)+'\n']);
           }
           assert(!fs.existsSync(out));fs.mkdirSync(out,{mode:0o700});for(const [name,data]of entries)fs.writeFileSync(path.join(out,name),data,{flag:'wx',mode:0o600});
-          fs.writeFileSync(path.join(out,'identity.json'),JSON.stringify({schema:1,head,base:'13fff2cb5a74822b5b1252d474d25e799cbc382d',missing})+'\n',{flag:'wx',mode:0o600});
+          fs.writeFileSync(path.join(out,'identity.json'),JSON.stringify({schema:1,classification:CLASSIFICATION,onlineMetadataEquivalent:false,originalConfigSha256:ORIGINAL_CONFIG_SHA256,head,base:'13fff2cb5a74822b5b1252d474d25e799cbc382d',missing})+'\n',{flag:'wx',mode:0o600});
           NODE
       - name: Preserve finite receipts, never build files or raw diagnostics
         if: ${{ always() && steps.evidence.outcome == 'success' }}
