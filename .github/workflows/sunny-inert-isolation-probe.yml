@@ -1,0 +1,95 @@
+name: Sunny inert isolation feasibility
+# Inert qualification only. No game/historical files are materialized in the worktree or executed.
+on:
+  push:
+    branches: [codex/sunny-inert-isolation-probe-20261117]
+    paths:
+      - '.ci/sunny-isolation-probe.cjs'
+      - '.github/workflows/sunny-inert-isolation-probe.yml'
+permissions:
+  contents: read
+concurrency:
+  group: sunny-inert-isolation-probe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.ci/sunny-isolation-probe.cjs
+            /.github/workflows/sunny-inert-isolation-probe.yml
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify checkout identity and exact worktree allowlist
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          python3 - <<'PYCHECK'
+          import os, stat
+          allowed = {'.ci/sunny-isolation-probe.cjs', '.github/workflows/sunny-inert-isolation-probe.yml'}
+          seen = set()
+          for root, dirs, files in os.walk('.', followlinks=False):
+              if root == '.':
+                  dirs[:] = [d for d in dirs if d != '.git']
+              for name in dirs:
+                  assert not os.path.islink(os.path.join(root, name)), 'symlink directory'
+              for name in files:
+                  path = os.path.join(root, name)
+                  rel = path[2:]
+                  assert rel in allowed and stat.S_ISREG(os.lstat(path).st_mode), 'unexpected worktree entry'
+                  seen.add(rel)
+          assert seen == allowed, 'missing worktree input'
+          PYCHECK
+      - name: Verify original helper bytes
+        run: |
+          printf '%s  %s\n' 'cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a' '.ci/sunny-isolation-probe.cjs' | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/sunny-inert-receipts"
+      - name: Verify isolated namespace without project command
+        run: node .ci/sunny-isolation-probe.cjs --probe-only --timeout-ms 10000 --receipt "$RUNNER_TEMP/sunny-inert-receipts/namespace.json"
+      - name: Verify restricted command stage with inert constant text
+        run: node .ci/sunny-isolation-probe.cjs --timeout-ms 10000 --receipt "$RUNNER_TEMP/sunny-inert-receipts/restricted.json" -- node -e 'process.stdout.write("inert-probe-ok\n")'
+      - name: Verify exact inert results
+        run: |
+          node - "$RUNNER_TEMP/sunny-inert-receipts" <<'JSCHECK'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const assert = require('node:assert/strict');
+          const crypto = require('node:crypto');
+          const { validReceipt } = require('./.ci/sunny-isolation-probe.cjs');
+          const dir = process.argv[2];
+          const a = JSON.parse(fs.readFileSync(path.join(dir, 'namespace.json')));
+          const b = JSON.parse(fs.readFileSync(path.join(dir, 'restricted.json')));
+          for (const r of [a,b]) {
+            assert(validReceipt(r));
+            assert.equal(r.status, 'passed');
+            assert.equal(r.isolationVerified, true);
+            assert.equal(r.cleanupVerified, true);
+            assert.equal(r.exitCode, 0);
+            assert.equal(r.signal, null);
+          }
+          assert.equal(a.commandStarted, false);
+          assert.equal(a.commandResultAvailable, false);
+          assert.equal(b.commandStarted, true);
+          assert.equal(b.commandResultAvailable, true);
+          const expected = Buffer.from('inert-probe-ok\n');
+          assert.equal(b.stdoutBytes, expected.length);
+          assert.equal(b.stdoutSha256, crypto.createHash('sha256').update(expected).digest('hex'));
+          assert.equal(b.stderrBytes, 0);
+          assert.equal(b.stderrSha256, crypto.createHash('sha256').digest('hex'));
+          JSCHECK
+      - name: Retain scrubbed receipts only
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: sunny-inert-isolation-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sunny-inert-receipts/*.json
+          if-no-files-found: error
+          retention-days: 7
