@@ -1,0 +1,76 @@
+name: A53 finite browser boundary diagnostic
+on:
+  push:
+    branches: [codex/a53-browser-boundary-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a53-boundary-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  characters:
+    name: Original legacy characters
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Verify exact reviewed source and unchanged isolation
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = 72dd08158ca41a1b59d101ee9b09d9172971ecd6
+          sha256sum -c farm3d/tests/fixtures/a53-boundary-source.sha256
+          test "$(sha256sum farm3d/tests/helpers/a53-boundary-source.cjs | cut -d ' ' -f1)" = c952ccd52302f082cdc2d379fe8fbc444c0aa769954c317ae3116e23714e551d
+          node farm3d/tests/helpers/a53-boundary-source.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          mkdir -p "$RUNNER_TEMP/a53-boundary-safe" "$RUNNER_TEMP/a53-boundary-public" artifacts/a53-boundary/characters
+      - name: Prove unchanged kernel isolation
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-boundary-safe/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Inert compatibility and finite evidence controls
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-boundary-safe/controls.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-browser-boundary.test.cjs farm3d/tests/a53-boundary-evidence.test.cjs farm3d/tests/a53-character-result.test.cjs
+      - name: Install locked test browser dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install pinned Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Configure disposable browser paths
+        run: |
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/tests/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/tests/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Original complete command, not a selected-test subset
+        env:
+          TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a53-boundary/characters
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/characters-polish"
+          runner="$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          cd farm3d/tests
+          node "$runner" --receipt "$RUNNER_TEMP/a53-boundary-safe/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:core:characters'
+      - name: Preserve exact source and project finite evidence only
+        id: legacy_projection
+        if: always()
+        run: |
+          sha256sum -c farm3d/tests/fixtures/a53-boundary-source.sha256
+          test "$(sha256sum farm3d/tests/helpers/a53-boundary-source.cjs | cut -d ' ' -f1)" = c952ccd52302f082cdc2d379fe8fbc444c0aa769954c317ae3116e23714e551d
+          node farm3d/tests/helpers/a53-boundary-source.cjs
+          node farm3d/tests/helpers/a53-boundary-execution.cjs "$GITHUB_SHA" "$RUNNER_TEMP/a53-boundary-safe" "$RUNNER_TEMP/a53-boundary-public/execution"
+          node farm3d/tests/helpers/a53-boundary-evidence.cjs "$RUNNER_TEMP" "$RUNNER_TEMP/a53-boundary-public/boundary" "$GITHUB_SHA"
+          cp "$RUNNER_TEMP/a53-boundary-safe/step-1.json" "$RUNNER_TEMP/a52-ci-safe/characters-polish/step-1.json"
+          node farm3d/tests/helpers/a53-character-result.cjs "$RUNNER_TEMP/a52-ci-safe/characters-polish"
+          node farm3d/tests/helpers/a52-workflow-receipts.cjs farm3d-regression/characters-polish "$RUNNER_TEMP/a52-ci-safe/characters-polish" "$RUNNER_TEMP/a53-boundary-public/characters" "$GITHUB_SHA"
+      - name: Upload only bounded receipts and phase enums
+        if: ${{ always() && steps.legacy_projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-boundary-characters-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a53-boundary-public/
+          if-no-files-found: error
+          retention-days: 14

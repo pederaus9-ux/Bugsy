@@ -1,0 +1,88 @@
+[
+  {
+    "path": "farm3d/tests/helpers/playwright-diagnostics.cjs",
+    "beforeSha256": "43b1b24e085f01230f1f9b7276091eaa51d43372426d9dff975f25ec59dd382e",
+    "afterSha256": "fcb1c6b4f3906d96bccd6bbf33a24fabc8ab3eb5e3d9aed33fcda639f356292b",
+    "hunks": [
+      {
+        "before": "'use strict';",
+        "after": "'use strict';\nconst __boundaryObserver=require('./a53-browser-boundary-observer.cjs');"
+      },
+      {
+        "before": "}catch{throw failure();}\n   if(typeof member",
+        "after": "}catch(__e){__boundaryObserver.record(type,'property',__e);throw failure();}\n   if(typeof member"
+      },
+      {
+        "before": "return result.then(finish,()=>{throw failure();});",
+        "after": "return result.then(finish,(__e)=>{__boundaryObserver.record(type,key,__e);throw failure();});"
+      },
+      {
+        "before": "}catch{throw failure();}\n   });",
+        "after": "}catch(__e){__boundaryObserver.record(type,key,__e);throw failure();}\n   });"
+      }
+    ]
+  },
+  {
+    "path": "farm3d/tests/browser-harness.cjs",
+    "beforeSha256": "05c23b1857bc70ee15e2fa92f9ce49abc14bcf3e7d177bef6a62dba4887a8fa2",
+    "afterSha256": "3521d6026ea7aedaadbebceb95ad8e25109396ab96dbcab6e6e0e69ba89c3158",
+    "hunks": [
+      {
+        "before": "const fs = require('fs');",
+        "after": "const __boundaryObserver=require('./helpers/a53-browser-boundary-observer.cjs');\nconst fs = require('fs');"
+      },
+      {
+        "before": "s.once('error',()=>reject(failure()));",
+        "after": "s.once('error',(__e)=>{__boundaryObserver.record('other','listen',__e);reject(failure());});"
+      },
+      {
+        "before": "try{await listen(server);}",
+        "after": "__boundaryObserver.step('server-listen');\n  try{await listen(server);}"
+      },
+      {
+        "before": "try{await listen(denyProxy);}",
+        "after": "__boundaryObserver.step('proxy-listen');\n  try{await listen(denyProxy);}"
+      },
+      {
+        "before": "    browser = boundary.wrap(await chromium.launch(",
+        "after": "    __boundaryObserver.step('launch');\n    browser = boundary.wrap(await chromium.launch("
+      },
+      {
+        "before": "} catch { await Promise.all([stop(server),stop(denyProxy)]);throw failure(); }",
+        "after": "} catch (__e) { __boundaryObserver.record('Browser','launch',__e);await Promise.all([stop(server),stop(denyProxy)]);throw failure(); }"
+      },
+      {
+        "before": "      const context = await browser.newContext(",
+        "after": "      __boundaryObserver.step('context');\n      const context = await browser.newContext("
+      },
+      {
+        "before": "      let page;try{page=await context.newPage();}",
+        "after": "      __boundaryObserver.step('page');\n      let page;try{page=await context.newPage();}"
+      },
+      {
+        "before": "      page.on('pageerror'",
+        "after": "      __boundaryObserver.step('routes');\n      page.on('pageerror'"
+      },
+      {
+        "before": "        closed = true;",
+        "after": "        closed = true;\n        __boundaryObserver.step('session-finish');"
+      },
+      {
+        "before": "        await context.close();",
+        "after": "        __boundaryObserver.step('context-close');\n        await context.close();"
+      },
+      {
+        "before": "      return session;",
+        "after": "      __boundaryObserver.step('ready');\n      return session;"
+      },
+      {
+        "before": "      try{await browser.close();}",
+        "after": "      __boundaryObserver.step('browser-close');\n      try{await browser.close();}"
+      },
+      {
+        "before": "finally{await Promise.all([stop(server),stop(denyProxy)]);}",
+        "after": "finally{__boundaryObserver.step('servers-close');await Promise.all([stop(server),stop(denyProxy)]);__boundaryObserver.step('closed');}"
+      }
+    ]
+  }
+]
