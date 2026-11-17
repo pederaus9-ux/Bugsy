@@ -1,4 +1,5 @@
 'use strict';
+const __boundaryObserver=require('./a53-browser-boundary-observer.cjs');
 // Test-only diagnostic boundary. Never copy browser error text, source, URLs or
 // causes into a replacement Error. Successful game values and serialized page
 // functions stay untouched; this is not a sanitizer for arbitrary caller data.
@@ -54,7 +55,7 @@ function createBoundary(){
   if(proxies.has(value))return proxies.get(value);
   const methods=new Map();
   const proxy=new Proxy(value,{get(target,key){
-   let member;try{member=Reflect.get(target,key,target);}catch{throw failure();}
+   let member;try{member=Reflect.get(target,key,target);}catch(__e){__boundaryObserver.record(type,'property',__e);throw failure();}
    if(typeof member!=='function')return wrap(member);
    if(key==='constructor')return member;
    if(!methods.has(key))methods.set(key,function(...args){
@@ -71,9 +72,9 @@ function createBoundary(){
      if(['waitForRequest','waitForResponse'].includes(key)&&typeof args[0]==='function')params[0]=callback(args[0],key);
      const finish=result=>wrap(type==='CDPSession'&&key==='send'?protocolResult(result):key==='waitForEvent'&&args[0]==='Debugger.paused'?pausedEvent(result):key==='waitForEvent'&&args[0]==='pageerror'?new Error(diagnosticText(result?.message)):result);
      const result=member.apply(target,params);
-     if(result&&typeof result.then==='function')return result.then(finish,()=>{throw failure();});
+     if(result&&typeof result.then==='function')return result.then(finish,(__e)=>{__boundaryObserver.record(type,key,__e);throw failure();});
      return finish(result);
-    }catch{throw failure();}
+    }catch(__e){__boundaryObserver.record(type,key,__e);throw failure();}
    });
    return methods.get(key);
   }});

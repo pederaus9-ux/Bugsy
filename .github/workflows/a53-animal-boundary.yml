@@ -1,0 +1,59 @@
+name: A53 original animal pipeline finite diagnostic
+on:
+  push:
+    branches: [codex/a53-animal-boundary-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a53-animal-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  animals:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/tests/package-lock.json
+      - name: Exact parent and inverse-bound source gate
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a53-animal-source.cjs | cut -d ' ' -f1)" = ac055bb060956ac7bc2287cb1b5315794e1fe7afca4d7c1d6313c2dd0e2d02c0
+          node farm3d/tests/helpers/a53-animal-source.cjs
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          mkdir -p "$RUNNER_TEMP/a53-animal-controls" "$RUNNER_TEMP/a52-ci-safe/animal-visuals" "$RUNNER_TEMP/a53-animal-public"
+      - name: Prove unchanged isolation
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-animal-controls/namespace.json" --timeout-ms 10000 --probe-only
+      - name: Inert observer and collector contracts
+        run: node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-animal-controls/tests.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-animal-lifecycle.test.cjs farm3d/tests/a53-animal-evidence.test.cjs
+      - name: Install isolated test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/tests
+        run: npx playwright install --with-deps chromium
+      - name: Original full five-script animal pipeline
+        working-directory: farm3d/tests
+        run: |
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/animal-visuals/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:animals'
+      - name: Validate unchanged source and finite receipts
+        if: always()
+        id: projection
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/a53-animal-source.cjs | cut -d ' ' -f1)" = ac055bb060956ac7bc2287cb1b5315794e1fe7afca4d7c1d6313c2dd0e2d02c0
+          node farm3d/tests/helpers/a53-animal-source.cjs
+          node farm3d/tests/helpers/a53-animal-evidence.cjs "$RUNNER_TEMP" "$RUNNER_TEMP/a53-animal-public/pipeline" "$GITHUB_SHA"
+          node farm3d/tests/helpers/a52-workflow-receipts.cjs farm3d-regression/animal-visuals "$RUNNER_TEMP/a52-ci-safe/animal-visuals" "$RUNNER_TEMP/a53-animal-public/execution" "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v5
+        if: ${{ always() && steps.projection.outcome == 'success' }}
+        with:
+          name: a53-animal-boundary-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a53-animal-public/
+          if-no-files-found: error
+          retention-days: 14

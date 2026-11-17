@@ -1,3 +1,4 @@
+const __boundaryObserver=require('./helpers/a53-browser-boundary-observer.cjs');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -45,9 +46,10 @@ async function start(options = {}) {
   const sockets=new WeakMap();
   const track=s=>{const active=new Set();sockets.set(s,active);s.on('connection',socket=>{active.add(socket);socket.once('close',()=>active.delete(socket));});};
   track(server);
-  const listen=s=>new Promise((resolve,reject)=>{s.once('error',()=>reject(failure()));s.listen(0,'127.0.0.1',resolve);}).catch(()=>{throw failure();});
+  const listen=s=>new Promise((resolve,reject)=>{s.once('error',(__e)=>{__boundaryObserver.record('other','listen',__e);reject(failure());});s.listen(0,'127.0.0.1',resolve);}).catch(()=>{throw failure();});
   const stop=createOwnedServerStop(sockets,failure);
   const offlineTransport=createOfflineTransport(server,sockets,stop);
+  __boundaryObserver.step('server-listen');
   try{await listen(server);}catch{await stop(server);throw failure();}
   const base = `http://127.0.0.1:${server.address().port}/`;
   // Browser-wide rejecting HTTP(S) proxy also covers service-worker-owned traffic
@@ -57,12 +59,14 @@ async function start(options = {}) {
   track(denyProxy);
   denyProxy.on('connect',(_req,socket)=>socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n'));
   denyProxy.on('upgrade',(_req,socket)=>socket.destroy());
+  __boundaryObserver.step('proxy-listen');
   try{await listen(denyProxy);}catch{await stop(server);throw failure();}
   const boundary=createBoundary();
   let browser;
   try {
+    __boundaryObserver.step('launch');
     browser = boundary.wrap(await chromium.launch({executablePath:process.env.CHROME_PATH,channel:process.env.CHROME_PATH?undefined:'chromium',headless:true,proxy:{server:`http://127.0.0.1:${denyProxy.address().port}`,bypass:`<-loopback>,127.0.0.1:${server.address().port}`},args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']}));
-  } catch { await Promise.all([stop(server),stop(denyProxy)]);throw failure(); }
+  } catch (__e) { __boundaryObserver.record('Browser','launch',__e);await Promise.all([stop(server),stop(denyProxy)]);throw failure(); }
   const sessions = [];
   return {
     base,
@@ -74,11 +78,14 @@ async function start(options = {}) {
     serveRef(ref,settings={}){servedRef=ref||null;keepCurrentWorker=!!settings.keepCurrentWorker;},
     async setup(viewport, touch, name, mobile = touch) {
       // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
+      __boundaryObserver.step('context');
       const context = await browser.newContext({viewport,deviceScaleFactor:options.deviceScaleFactor??.5,hasTouch:touch,isMobile:mobile,serviceWorkers:options.serviceWorkers??'block',...(options.recordVideo?{recordVideo:{dir:options.videoDir??path.join(artifacts,'chicken-pen','video'),size:viewport}}:{})});
       // No Playwright trace: even sources:false retains network response bodies.
+      __boundaryObserver.step('page');
       let page;try{page=await context.newPage();}catch{await context.close();throw failure();}
       const errors = [];
       try{
+      __boundaryObserver.step('routes');
       page.on('pageerror', error => errors.push('pageerror: ' + diagnosticText(error.message)));
       page.on('console', message => { if (message.type() === 'error' && !offlineTransport.observeConsole(message.text(),message.location?.()?.url)) errors.push('console: ' + diagnosticText(message.text())); });
       page.on('response', response => { if (response.url().startsWith(base) && response.status() >= 400) errors.push('HTTP ' + response.status() + ': ' + localRequestLabel(response.url(),base)); });
@@ -98,19 +105,23 @@ async function start(options = {}) {
       const session = {context,page,errors,async finish(failed = false) {
         if (closed) return;
         closed = true;
+        __boundaryObserver.step('session-finish');
         try {
           await page.screenshot({path:path.join(artifacts, name + (failed ? '-failure' : '') + '.png'),timeout:15000});
         } catch (error) { console.error('Screenshot unavailable: details withheld'); }
+        __boundaryObserver.step('context-close');
         await context.close();
       }};
       sessions.push(session);
+      __boundaryObserver.step('ready');
       return session;
     },
     async close(failed = false) {
       let failedCleanup=false;
       for(const session of sessions)try{await session.finish(failed);}catch{failedCleanup=true;}
+      __boundaryObserver.step('browser-close');
       try{await browser.close();}catch{failedCleanup=true;}
-      finally{await Promise.all([stop(server),stop(denyProxy)]);}
+      finally{__boundaryObserver.step('servers-close');await Promise.all([stop(server),stop(denyProxy)]);__boundaryObserver.step('closed');}
       if(failedCleanup)throw failure();
     }
   };

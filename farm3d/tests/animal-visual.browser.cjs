@@ -1,3 +1,4 @@
+const animalLifecycle=require('./helpers/a53-animal-lifecycle.cjs').create();
 // Retained six-species, three-angle, idle/walk/run evidence. A render is not a human visual verdict.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -305,4 +306,4 @@ const prefix = process.env.ANIMAL_EVIDENCE_PREFIX || 'animal-visual';
     fs.writeFileSync(path.join(artifacts,prefix+'-live-results.json'),JSON.stringify(live,null,2));
     failed=false;
   } finally {await h.close(failed);}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+})().then(()=>animalLifecycle.pass()).catch(error=>{animalLifecycle.fail(error);console.error(error);process.exitCode=1;});
