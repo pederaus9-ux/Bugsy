@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {start,artifacts}=require('./browser-harness.cjs');
 const out=path.join(artifacts,'north-clearing-build');fs.mkdirSync(out,{recursive:true});
@@ -13,7 +14,7 @@ let h;
   const s=await h.setup({width:1280,height:720},false,'north-clearing-'+phase),p=s.page;
   await p.addInitScript(data=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');if(!localStorage.getItem(data.key))localStorage.setItem(data.key,data.saved);},{key,saved});
   await p.goto(h.base+'farm3d/index.html?debug&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
-  await p.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});await p.locator('#editBtn').click();
+  await p.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});if(phase==='new')await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click();
   const status=await p.evaluate(()=>{const d=__dbg,k=Object.keys(d.G.BUILDINGS);return{workshops:Object.fromEntries(k.map(id=>[id,d.editValid('b:'+id,-28,-40)])),blockedWest:d.editValid('b:loom',-34,-40),blockedNorth:d.editValid('b:loom',-30,-47),blockedTree:d.editValid('b:loom',10,-7),blockedPath:d.editValid('b:loom',1,15),loom:d.BUILD_SPOT.loom,grid:d.grid.userData.bounds,tiles:d.grid.userData.tileCount,gridAtWest:d.grid.userData.tiles.some(t=>t[0]===-28&&t[1]===-40),owned:d.penRuntime.world.owned,save:localStorage.getItem(d.G.SAVE_KEY)};});
   if(phase==='old'){assert.equal(status.workshops.loom,false);assert.equal(status.gridAtWest,false);report.old=status;await s.finish();continue;}
   report.new={before:status};assert.deepEqual(status.loom,[20,-40]);for(const [id,v] of Object.entries(status.workshops))assert.equal(v,true,id+' must fit the same real full footprint');

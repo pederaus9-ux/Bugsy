@@ -1,0 +1,83 @@
+'use strict';
+// Public projection: finite execution receipts and a small exact screenshot set.
+// No raw logs, trace archives, page bodies, arbitrary JSON, or saved-farm data.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {validReceipt}=require('./ci-isolated-runner.cjs');
+const NAMES=new Set(['namespace.json','inert.json','contracts.json','native.json','accessibility.json','installed.json','source-package.json']);
+const VIEWPORTS=[[1280,720],[320,568],[390,844],[844,390]];
+const STAGES=['harness','boot','original-controls','tools-keyboard','tools-dismiss','tools-capture','barn-keyboard','barn-dismiss','barn-capture','panel-settings','panel-quests','panel-orders','panel-barn','panel-decor','panel-shop','mode-walking','mode-editing','mode-photo','viewport-complete'];
+const reject=()=>{throw Error('A52 public evidence rejected');};
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+function safeReceipt(value){if(!validReceipt(value))reject();return JSON.parse(JSON.stringify(value));}
+function executedPass(value){return validReceipt(value)&&value.status==='passed'&&value.commandStarted===true&&value.commandResultAvailable===true&&value.isolationVerified&&value.cleanupVerified&&value.exitCode===0&&value.signal===null;}
+function crc32(bytes){let c=0xffffffff;for(const v of bytes){c^=v;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0);}return (c^0xffffffff)>>>0;}
+function validatePng(b,width,height){
+ if(!Buffer.isBuffer(b)||b.length<57||b.length>16*1024*1024||b.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')reject();
+ let at=8,header=false,data=false,done=false,dataEnded=false;
+ while(at<b.length){
+  if(done||at+12>b.length)reject();const n=b.readUInt32BE(at),type=b.toString('ascii',at+4,at+8);if(n>16*1024*1024||at+12+n>b.length)reject();
+  const body=b.subarray(at+8,at+8+n);if(crc32(b.subarray(at+4,at+8+n))!==b.readUInt32BE(at+8+n))reject();
+  if(!header&&type!=='IHDR')reject();
+  if(type==='IHDR'){
+   if(header||at!==8||n!==13||body.readUInt32BE(0)!==width||body.readUInt32BE(4)!==height||body[8]!==8||![2,6].includes(body[9])||body[10]!==0||body[11]!==0||body[12]!==0)reject();header=true;
+  }else if(type==='IDAT'){if(!header||dataEnded||n===0)reject();data=true;}
+  else if(type==='IEND'){if(n!==0||!data)reject();done=true;}
+  else if(type==='sRGB'){if(data||n!==1||body[0]>3)reject();}
+  else if(type==='gAMA'){if(data||n!==4)reject();}
+  else if(type==='pHYs'){if(data||n!==9||body[8]>1)reject();}
+  else reject();
+  if(data&&type!=='IDAT')dataEnded=true;at+=12+n;
+ }
+ if(!header||!data||!done)reject();return {width,height,bytes:b.length,sha256:sha(b)};
+}
+function regular(file,max){const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>max)reject();return fs.readFileSync(file);}
+function directory(file){const resolved=path.resolve(file);if(fs.realpathSync(resolved)!==resolved||!fs.statSync(resolved).isDirectory())reject();return resolved;}
+function nativeProgress(value){
+ if(!value||Object.keys(value).sort().join('|')!=='completedViewports|schema|stage|status|viewport'||value.schema!==1||!['running','passed','failed'].includes(value.status)||!STAGES.includes(value.stage))reject();
+ for(const k of ['viewport','completedViewports'])if(!Number.isInteger(value[k])||value[k]<0||value[k]>4)reject();
+ if(value.completedViewports>value.viewport||(value.status==='passed'&&(value.completedViewports!==4||value.viewport!==4||value.stage!=='viewport-complete')))reject();
+ return {...value};
+}
+function installedProgress(value){
+ if(!value||Object.keys(value).some(k=>!['status','base','physicalPhone','stages','hashes','failedStage'].includes(k))||!['RUNNING','PASS','FAIL'].includes(value.status)||value.base!=='38fa4706e41c40197b7afc32de693cb3901a80fb'||value.physicalPhone!==false)reject();
+ const stages=['predecessor','update','updated-online','offline'];
+ if(!Array.isArray(value.stages)||JSON.stringify(value.stages)!==JSON.stringify(stages.slice(0,value.stages.length)))reject();
+ if('failedStage'in value&&!['source',...stages,'cleanup'].includes(value.failedStage))reject();
+ const hashes=value.hashes,files=['index.html','sunny-ui.css?v=1','compact-ui.css?v=1','corner-menu.js?v=1','game.js?v=36'];
+ if(!hashes||typeof hashes!=='object'||Array.isArray(hashes)||![0,5].includes(Object.keys(hashes).length))reject();
+ for(const [name,hash]of Object.entries(hashes))if(!files.includes(name)||typeof hash!=='string'||hash!==sha(fs.readFileSync(path.join(__dirname,'../..',name.split('?')[0]))))reject();
+ if(value.status==='PASS'&&(value.stages.length!==4||Object.keys(hashes).length!==5||'failedStage'in value))reject();
+ return JSON.parse(JSON.stringify(value));
+}
+function collect({source,output,head,screenshots}){
+ if(typeof head!=='string'||!/^[a-f0-9]{40}$/.test(head))reject();source=directory(source);output=path.resolve(output);
+ if(fs.existsSync(output)||directory(path.dirname(output))!==path.dirname(output))reject();
+ const entries=fs.readdirSync(source).sort(),files=[],receipts=[];let native;
+ for(const name of entries){
+  if(!name.endsWith('.json'))continue;if(!NAMES.has(name))reject();
+  const raw=regular(path.join(source,name),8192),value=safeReceipt(JSON.parse(raw));if(name==='native.json')native=value;
+  const bytes=Buffer.from(JSON.stringify(value)+'\n');files.push([name,bytes]);receipts.push({name,...value});
+ }
+ if(!receipts.length)reject();const images=[];let nativeState=null,installedState=null;
+ if(screenshots&&fs.existsSync(screenshots)){
+  screenshots=directory(screenshots);const progress=path.join(screenshots,'a52-native-progress.json'),installed=path.join(screenshots,'a52-installed-ui-cache/results.json');
+  if(fs.existsSync(progress)){nativeState=nativeProgress(JSON.parse(regular(progress,4096)));files.push(['native-progress.json',Buffer.from(JSON.stringify(nativeState)+'\n')]);}
+  if(fs.existsSync(installed)){directory(path.dirname(installed));installedState=installedProgress(JSON.parse(regular(installed,8192)));files.push(['installed-progress.json',Buffer.from(JSON.stringify(installedState)+'\n')]);}
+ }
+ if(screenshots&&executedPass(native)){
+  screenshots=directory(screenshots);if(nativeState?.status!=='passed')reject();
+  for(const [width,height]of VIEWPORTS)for(const stem of ['a52-tools-','a52-barn-','a52-corner-menus-']){
+   const name=stem+width+'x'+height+'.png',b=regular(path.join(screenshots,name),16*1024*1024);images.push({name,...validatePng(b,width,height)});files.push([name,b]);
+  }
+ }
+ const summary={schema:1,head,receipts,nativeProgress:nativeState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
+ // All validation completes before the first output is created.
+ fs.mkdirSync(output,{mode:0o700});for(const [name,b]of files)fs.writeFileSync(path.join(output,name),b,{flag:'wx',mode:0o600});
+ fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(summary,null,2)+'\n',{flag:'wx',mode:0o600});return summary;
+}
+function main(args){
+ try{const o={};for(let i=0;i<args.length;i+=2){const key=args[i];if(!['--source','--output','--head','--screenshots'].includes(key)||key.slice(2)in o||typeof args[i+1]!=='string')reject();o[key.slice(2)]=args[i+1];}collect(o);process.stdout.write('A52 finite evidence exported\n');return 0;}
+ catch{process.stderr.write('A52 public evidence rejected\n');return 1;}
+}
+module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,installedProgress,collect,main,VIEWPORTS};
+if(require.main===module)process.exitCode=main(process.argv.slice(2));

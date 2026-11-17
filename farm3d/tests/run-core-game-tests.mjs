@@ -6,6 +6,7 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'a52-scope.test.cjs','a52-corner-menu.test.mjs','a52-tutorial-pointer.test.mjs','a52-browser-navigation.test.cjs','a52-browser-journey-scope.test.cjs',
  'auth-upload-race.test.mjs',
  'restore-recovery.test.mjs','restore-recovery-scope.test.mjs',
  'animal-pen-placement.test.mjs','animal-pen-placement-controller.test.mjs','animal-pen-placement-preview.test.mjs',

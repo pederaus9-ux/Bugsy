@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Disposable farms only; no external services or owner browser profiles.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
@@ -13,7 +14,7 @@ const state=p=>p.evaluate(()=>{const G=__dbg.G;return {coins:G.S.coins,earned:G.
 async function photo(p,name){await p.screenshot({path:path.join(out,name+'.png')});receipt.captures.push(name+'.png');save();}
 async function ready(p){await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});if(await p.locator('#authGuest').isVisible())await p.locator('#authGuest').click();await p.evaluate(()=>{const G=__dbg.G;G.close();G.opts.quiet=true;G.S.tut=99;G.S.nextEventAt=G.S.nextRushAt=G.S.nextVisitorAt=9e15;G.S.event=null;});}
 async function boot(p,base,sandbox){await p.addInitScript(now=>{window.__marketNow=now;Date.now=()=>window.__marketNow;localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');},NOW);await p.goto(base+'farm3d/?debug&portrait&preset=noon'+(sandbox?'&testfarm':''));await ready(p);}
-async function open(p,touch){await press(p,'.dock [data-p="barn"]',touch);await press(p,'.panel [data-p="marketSales"]',touch);await p.waitForFunction(()=>__dbg.G.panel?.type==='marketSales');}
+async function open(p,touch){await revealCornerAction(p,'.dock [data-p="barn"]',touch?'tap':'click');await press(p,'.dock [data-p="barn"]',touch);await press(p,'.panel [data-p="marketSales"]',touch);await p.waitForFunction(()=>__dbg.G.panel?.type==='marketSales');}
 let h,failed=true,stage='launch';save();
 (async()=>{try{
  h=await start({serviceWorkers:'allow',deviceScaleFactor:1});

@@ -8,7 +8,9 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/perf-scope.json'));
 assert.equal(sha(raw),'ca2e276041be3bafed5c647e26edd16ff7be61bb7f268625f1e35ec3417e22eb','Exact approved A46 scope receipt');
 const scope=JSON.parse(raw);
+const {normalizeA52Source}=require("./a52-scope.cjs");
 function normalizePerfScope(file,source){
+ source=normalizeA52Source(file,source);
  const text=Buffer.isBuffer(source)?source.toString():source;
  const e=scope.files[file];if(!e||sha(text)!==e.afterSha256)return source;
  let s=text;for(const h of e.hunks){assert.equal(s.split(h.after).length,2,'Unique A46 hunk');s=s.replace(h.after,h.before);}

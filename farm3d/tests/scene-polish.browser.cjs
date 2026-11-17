@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');
 (async()=>{const h=await start();let failed=true;const results=[];
@@ -60,7 +61,7 @@ try{for(const width of [844,1280]){
    resumePassed=true;
   }finally{await recordRenderedPhase(p,width,resumePassed);}
  }finally{await p.evaluate(()=>window.__ambientRendered?.restore()).catch(()=>{});}
- await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);await p.waitForTimeout(1500);
+ await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);await p.waitForTimeout(1500);
  const material=await p.evaluate(async()=>{const d=__dbg,mod=await import('./scene-polish.js?v=1'),a=mod.soilCanvas(21),b=mod.soilCanvas(21),c=mod.soilCanvas(22);
   const bytes=canvas=>canvas.getContext('2d').getImageData(0,0,512,512).data;const hash=v=>{let n=2166136261;for(const b of v)n=Math.imul(n^b,16777619);return n>>>0;};
   const normal=d.M.tilled.normalMap;return {same:hash(bytes(a))===hash(bytes(b)),different:hash(bytes(a))!==hash(bytes(c)),size:[a.width,a.height],normal:!!normal,normalScale:d.M.tilled.normalScale.toArray()};});

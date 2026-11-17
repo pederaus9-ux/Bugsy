@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "amendment": "A52",
+  "baseCommit": "38fa4706e41c40197b7afc32de693cb3901a80fb",
+  "purpose": "Current art capture navigation and CSS MIME only; exact inverse preserves original scenarios, instrumentation, assertions, waits and click options.",
+  "browserExecution": "NOT_RUN_RETAINED_HOLDS",
+  "files": {
+    "farm3d/tools/capture-hands-game.cjs": {
+      "beforeSha256": "dfd096f91f7d2c4c6887ba1e0a67bd3ce2f59f8c92ae34dfa6e38a6d7932584d",
+      "afterSha256": "d63ddb6234c7df3a67640bab8934fd42482efdf10bf35a78fa5ce0b20cf92d25",
+      "hunks": [
+        {
+          "before": "const repo=path.resolve(__dirname,'../..');",
+          "after": "const repo=path.resolve(__dirname,'../..');\n// Current A52 capture only; this adaptation does not authorize browser execution.\nconst {revealCornerAction}=require('../tests/helpers/a52-browser-navigation.cjs');",
+          "count": 1
+        },
+        {
+          "before": "{'.html':'text/html','.js':",
+          "after": "{'.html':'text/html','.css':'text/css','.js':",
+          "count": 1
+        },
+        {
+          "before": "await page.locator('#walkBtn').click();",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();",
+          "count": 1
+        }
+      ]
+    },
+    "farm3d/tools/capture-barn-scene.cjs": {
+      "beforeSha256": "6ad76ee5dfac774cef724dd9d431412bc7e7cb5dc563c16d3c7c077b9d645e79",
+      "afterSha256": "41bfa95c69f483659004252fe17aaf54aa9a3c84badfabb58c7a76154f0b3bfc",
+      "hunks": [
+        {
+          "before": "const repo=path.resolve(__dirname,'../..');",
+          "after": "const repo=path.resolve(__dirname,'../..');\n// Current A52 capture only; this adaptation does not authorize browser execution.\nconst {revealCornerAction}=require('../tests/helpers/a52-browser-navigation.cjs');",
+          "count": 1
+        },
+        {
+          "before": "{'.html':'text/html','.js':",
+          "after": "{'.html':'text/html','.css':'text/css','.js':",
+          "count": 1
+        },
+        {
+          "before": "await page.locator('#walkBtn').click();",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

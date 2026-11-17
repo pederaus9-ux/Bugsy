@@ -14,21 +14,23 @@ concurrency:
 jobs:
   package:
     name: Pages-compatible build and runtime package
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          fetch-depth: 2
-          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Fetch immutable evidence baseline
         run: git fetch --no-tags --depth=1 origin 2f9a8241b8230938dd816e1c0fac52551a263f69
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - name: Verify source contract and deliberate failure controls
-        run: node farm3d/tests/pages-package.verify.cjs --source-only
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/package"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/package/step-1.json" --timeout-ms 900000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/pages-package.verify.cjs --source-only'
       - name: Build using the official GitHub Pages toolchain
         uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1
         with:
@@ -36,12 +38,14 @@ jobs:
           destination: ./_site
           build_revision: ${{ github.event.pull_request.head.sha }}
       - name: Verify actual output, game bytes and dependency paths
-        run: node farm3d/tests/pages-package.verify.cjs --output _site --report "$RUNNER_TEMP/pages-package.json"
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/package"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/package/step-2.json" --timeout-ms 900000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/pages-package.verify.cjs --output _site --report "$RUNNER_TEMP/pages-package.json"'
       - name: Retain small package receipt
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: pages-package-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/pages-package.json
+          name: pages-package-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/package/
           if-no-files-found: error
           retention-days: 14

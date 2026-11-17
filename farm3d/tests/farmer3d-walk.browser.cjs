@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Active walk, first-person hands and pet interaction: actual UI on the running game loop.
 const assert=require('assert/strict'),fs=require('fs'),path=require('path');
 const {start,artifacts}=require('./browser-harness.cjs');
@@ -7,7 +8,7 @@ const {start,artifacts}=require('./browser-harness.cjs');
  // from the live calendar/weather and resets the cow's idle hold into a roaming target.
  await page.goto(h.base+'farm3d/?testfarm&debug&portrait&preset=noon');await page.waitForFunction(()=>window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await page.evaluate(()=>{__dbg.renderer.shadowMap.enabled=false;__dbg.G.opts.quiet=true;__dbg.G.close();__dbg.G.S.nextEventAt=__dbg.G.S.nextVisitorAt=__dbg.G.S.nextRushAt=9e15;});
- await page.locator('#walkBtn').click();await page.waitForFunction(()=>__dbg.walk);await page.waitForTimeout(1500);
+ await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();await page.waitForFunction(()=>__dbg.walk);await page.waitForTimeout(1500);
  // Walk intentionally enters first person; switch with the real POV control before auditing the body gait.
  await page.locator('#povBtn').click();
  await page.waitForFunction(()=>{let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});return f?.visible;});

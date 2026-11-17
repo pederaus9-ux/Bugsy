@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Normal guest farms, actual service-worker caching and real failed HTTP loads.
 // Account/cloud behavior remains covered by the separate Firebase emulator job.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
@@ -23,7 +24,7 @@ const server=http.createServer(async(req,res)=>{
      (deny==='module'&&url.pathname.endsWith('/authored-hands.js'))){res.writeHead(404);res.end('deliberate missing hands');return;}
   if(holdAsset&&url.pathname.endsWith('/hands-candidate.glb'))await assetGate;
   if(!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return;}
-  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.webmanifest':'application/manifest+json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'})[path.extname(file)]||'application/octet-stream');
+  res.setHeader('Content-Type',({'.html':'text/html','.css':'text/css','.js':'text/javascript','.webmanifest':'application/manifest+json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'})[path.extname(file)]||'application/octet-stream');
   servedRequests++;res.end(fs.readFileSync(file));
  }catch{res.writeHead(400);res.end();}
 });
@@ -48,7 +49,7 @@ async function boot(page){
  await page.evaluate(()=>{const G=__dbg.G;G.close();G.opts.quiet=true;G.S.tut=99;G.S.nextEventAt=G.S.nextVisitorAt=G.S.nextRushAt=9e15;});
 }
 async function walk(page,authored){
- await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);
+ await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);
  await page.waitForFunction(want=>{const d=__dbg,a=d.camera.getObjectByName('Authored first-person hands'),legacy=d.camera.children.find(o=>o.userData.skin);
   return want?!!a?.visible&&!legacy.visible:legacy.visible&&!a?.visible;},authored);
 }

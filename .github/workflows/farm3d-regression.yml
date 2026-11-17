@@ -20,13 +20,14 @@ concurrency:
 jobs:
   utility-lights:
     name: Farm Utility real lighting + native touch + offline saves
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -37,26 +38,31 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Utility ownership, geometry, light budget and cache contracts
-        run: node --test farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/utility-lights"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/utility-lights/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/utility-lights.test.mjs farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs'
       - name: Real illuminated farm, trusted input, GPU ownership and installed51to52 update
-        run: node farm3d/tests/utility-lights.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/utility-lights"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/utility-lights/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/utility-lights.browser.cjs'
       - name: Preserve actual night captures, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: utility-lights-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/utility-*
+          name: utility-lights-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/utility-lights/
           if-no-files-found: error
           retention-days: 14
   market-sales:
     name: Market Sales + six-hour quotes + offline saves
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -67,26 +73,31 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Price, stock, quality, stale-confirmation and read-only contracts
-        run: node --test farm3d/tests/market-sales.test.mjs farm3d/tests/versions.test.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/market-sales"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/market-sales/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/market-sales.test.mjs farm3d/tests/versions.test.mjs'
       - name: Native sales at390/844/1280 and actual49-to50 installed offline update
-        run: node farm3d/tests/market-sales.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/market-sales"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/market-sales/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/market-sales.browser.cjs'
       - name: Preserve actual previews, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: market-sales-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/market-sales*
+          name: market-sales-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/market-sales/
           if-no-files-found: error
           retention-days: 14
   decor-catalog:
     name: All54 decor coverage +31 solid models + native saves
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -97,25 +108,30 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Geometry, fixed orientation, all54 save IDs and grass contracts
-        run: node --test farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/decor-catalog"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/decor-catalog/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/decor-models.test.mjs farm3d/tests/decor-save.test.mjs farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs'
       - name: Actual31model gallery, native buy/move/save and real50to51 offline update
-        run: node farm3d/tests/decor-catalog.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/decor-catalog"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/decor-catalog/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/decor-catalog.browser.cjs'
       - name: Retain real captures, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: decor-catalog-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/decor-*
+          name: decor-catalog-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/decor-catalog/
           retention-days: 14
   holiday-decor:
     name: Solid holiday decorations + orientation + saves
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -126,19 +142,23 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Solid geometry, complete silhouettes and disposal contracts
-        run: node --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/holiday-decor"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/holiday-decor/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/holiday-decor.test.mjs farm3d/tests/holiday-clearings.test.mjs farm3d/tests/versions.test.mjs'
       - name: Matched old/new orbit, actual guest placement/reload and full-resolution captures
-        run: node farm3d/tests/holiday-decor.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/holiday-decor"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/holiday-decor/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/holiday-decor.browser.cjs'
       - name: Preserve actual renders, partial results and failure traces
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: holiday-depth-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/holiday*
+          name: holiday-depth-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/holiday-decor/
           retention-days: 14
   regression:
     name: Farm3D regression (${{ matrix.group }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -150,6 +170,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -163,24 +185,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run regression suite
         working-directory: farm3d/tests
-        run: npm run test:core:game
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/regression"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/regression/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:core:game'
       - name: Save screenshots, failure traces and results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-regression-${{ matrix.group }}-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-regression-${{ matrix.group }}-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/regression/
           if-no-files-found: ignore
           retention-days: 7
 
   characters-polish:
     name: Farmer + first-person + visual polish
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -194,24 +220,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run unchanged character checks and new scene checks
         working-directory: farm3d/tests
-        run: npm run test:core:characters
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/characters-polish"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/characters-polish/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:core:characters'
       - name: Save screenshots, failure traces and results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-characters-polish-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-characters-polish-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/characters-polish/
           if-no-files-found: ignore
           retention-days: 7
 
   animal-visuals:
     name: Six-species animal visual review
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -225,24 +255,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Review all six species, poses, live layouts and rendering budget
         working-directory: farm3d/tests
-        run: npm run test:animals
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/animal-visuals"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/animal-visuals/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:animals'
       - name: Save animal screenshots, failure traces and measurements
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-animal-visuals-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-animal-visuals-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/animal-visuals/
           if-no-files-found: ignore
           retention-days: 7
 
   saves:
     name: Old saves + save measurements
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -256,24 +290,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Old-save fixtures, risk probes and measurements
         working-directory: farm3d/tests
-        run: npm run test:saves
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/saves"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/saves/step-1.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:saves'
       - name: Save results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-saves-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-saves-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/saves/
           if-no-files-found: ignore
           retention-days: 7
 
   analytics:
     name: Anonymous analytics + owner dashboard
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -287,24 +325,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Report bounds, privacy, real game hooks and dashboard filters
         working-directory: farm3d/tests
-        run: npm run test:analytics
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/analytics"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/analytics/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:analytics'
       - name: Save analytics screenshots and failure evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-analytics-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-analytics-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/analytics/
           if-no-files-found: ignore
           retention-days: 7
 
   accessibility:
     name: Mobile accessibility + motion + focus
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -318,24 +360,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Phone targets, panel fit, motion, auth focus and hidden rendering
         working-directory: farm3d/tests
-        run: npm run test:accessibility
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/accessibility"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/accessibility/step-1.json" --timeout-ms 900000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:accessibility'
       - name: Save accessibility screenshots and failure evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-accessibility-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/
+          name: farm3d-accessibility-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/accessibility/
           if-no-files-found: ignore
           retention-days: 7
 
   firebase-rules:
     name: Firestore rules + economy functions + game flows + save recovery (emulator)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -356,31 +402,35 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Rules, economy functions, real game flows and save recovery against the Firestore + Auth + Functions emulators
         working-directory: farm3d/firebase
-        run: npm test
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/firebase-rules"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/firebase-rules/step-1.json" --timeout-ms 2700000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm test'
       - name: Exact production SDK browser modules and blocked-storage sign-in boot
         working-directory: farm3d/tests
         env:
           PLAYWRIGHT_MODULE: ${{ github.workspace }}/farm3d/firebase/node_modules/playwright
-        run: node --test sdk.test.mjs && node sdk.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/firebase-rules"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/firebase-rules/step-2.json" --timeout-ms 2700000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test sdk.test.mjs && node sdk.browser.cjs'
       - name: Save flow results and failure screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-firebase-${{ github.run_attempt }}
-          path: |
-            farm3d/firebase/artifacts/
-            farm3d/tests/artifacts/
+          name: farm3d-firebase-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/firebase-rules/
           if-no-files-found: ignore
           retention-days: 7
 
   seed-selection:
     name: Seed selection + repeated walking planting
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -394,28 +444,28 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Seed equipment, repeated planting and unchanged save data
         working-directory: farm3d/tests
-        run: npm run test:planting
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/seed-selection"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/seed-selection/step-1.json" --timeout-ms 900000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:planting'
       - name: Save actual game screenshots, failure traces and results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-seed-selection-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/seed-selection/
-            farm3d/tests/artifacts/seed-selection*.png
-            farm3d/tests/artifacts/seed-selection*.zip
+          name: farm3d-seed-selection-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/seed-selection/
           if-no-files-found: error
           retention-days: 14
 
   chicken-pen:
     name: Chicken pen + care + native touch
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -432,32 +482,33 @@ jobs:
       - name: Chicken care and interaction contracts
         id: chicken-contracts
         working-directory: farm3d/tests
-        run: node --test chicken-pet-view.test.mjs chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/chicken-pen"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/chicken-pen/step-1.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test chicken-pet-view.test.mjs chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs'
       - name: Chicken stations and native touch
         working-directory: farm3d/tests
-        run: node chicken-pen.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/chicken-pen"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/chicken-pen/step-2.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node chicken-pen.browser.cjs'
       - name: Preserve actual frames, videos, partial results and failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-chicken-pen-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/chicken-pen/
-            farm3d/tests/artifacts/chicken-pen-update/
-            farm3d/tests/artifacts/chicken-*.png
-            farm3d/tests/artifacts/chicken-*.zip
+          name: farm3d-chicken-pen-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/chicken-pen/
           if-no-files-found: error
           retention-days: 14
 
   chicken-update:
     name: Chicken installed update +30-bird offline save
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -473,22 +524,21 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Chicken installed update +30-bird offline save
         working-directory: farm3d/tests
-        run: node --test versions.test.mjs && node chicken-pen-update.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/chicken-update"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/chicken-update/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test versions.test.mjs && node chicken-pen-update.browser.cjs'
       - name: Preserve frames, video, partial results and failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-chicken-update-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/chicken-pen-update/
-            farm3d/tests/artifacts/chicken-*.png
-            farm3d/tests/artifacts/chicken-*.zip
+          name: farm3d-chicken-update-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/chicken-update/
           if-no-files-found: error
           retention-days: 14
 
   chicken-flock30:
     name: Thirty-chicken full-flock touch (${{ matrix.width }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -501,6 +551,7 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -519,15 +570,15 @@ jobs:
         run: node browser-install-diagnostic.cjs
       - name: Thirty-chicken full-flock touch + game evidence
         working-directory: farm3d/tests
-        run: node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs && node chicken-flock30.browser.cjs
+        run: |
+          case "$FLOCK_WIDTH" in 390|844) ;; *) exit 64;; esac
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/chicken-flock30"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/chicken-flock30/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- env "FLOCK_WIDTH=$FLOCK_WIDTH" bash --noprofile --norc -e -o pipefail -c 'node --test chicken-care.test.mjs chicken-care-integration.test.mjs chicken-yard.test.mjs chicken-yard-interaction.test.mjs && node chicken-flock30.browser.cjs'
       - name: Preserve frames, video, partial results and failures
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
         with:
-          name: farm3d-chicken-flock30-${{ matrix.width }}-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/chicken-flock30/
-            farm3d/tests/artifacts/chicken-*.png
-            farm3d/tests/artifacts/chicken-*.zip
+          name: farm3d-chicken-flock30-${{ matrix.width }}-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/chicken-flock30/
           if-no-files-found: error
           retention-days: 14

@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const fs=require('node:fs');
 const http=require('node:http');
 const path=require('node:path');
@@ -5,7 +6,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(process.env.PREVIEW_DIRECTORY||path.join(__dirname,'../../safe-test-preview'));
 const artifacts=path.resolve(process.env.TEST_ARTIFACTS||path.join(__dirname,'artifacts/mobile-menu'));
 fs.mkdirSync(artifacts,{recursive:true});
-const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.webmanifest':'application/manifest+json'};
+const types={'.html':'text/html','.css':'text/css','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.webmanifest':'application/manifest+json'};
 (async()=>{
  const server=http.createServer((req,res)=>{
   const file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
@@ -23,7 +24,7 @@ const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.jp
   await page.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.fulfill({status:200,contentType:'text/css',body:''}));
   await page.goto(base+'index.html?debug',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__ready===true,{timeout:30000});
-  await page.locator('#editBtn').click();
+  await revealCornerAction(page,'#editBtn');await page.locator('#editBtn').click();
   await page.locator('#animalPensBtn').click();
   const host=page.locator('[data-pen-editor-host]');
   await host.locator('[data-field="kind"]').selectOption('horse');
@@ -60,7 +61,7 @@ const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.jp
    fs.writeFileSync(path.join(artifacts,'reopen-cancel.json'),JSON.stringify({reopened,moved,cancelled},null,2));
    console.log(JSON.stringify({reopened,moved,cancelled}));
    async function selectCat(){
-    if(!await page.locator('#animalPensBtn').isVisible())await page.locator('#editBtn').click();
+    if(!await page.locator('#animalPensBtn').isVisible()){await revealCornerAction(page,'#editBtn');await page.locator('#editBtn').click();}
     await page.locator('#animalPensBtn').click();
     const h=page.locator('[data-pen-editor-host]');
     await h.locator('[data-field="kind"]').selectOption('cat');

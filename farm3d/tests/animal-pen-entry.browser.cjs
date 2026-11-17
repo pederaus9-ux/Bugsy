@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Bounded native entry/pause/Apply/Discard journey. Full edit-operation journeys
 // remain separate; viewport emulation is not physical-device qualification.
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');
@@ -18,7 +19,7 @@ async function chooseSheep(){const select=p.getByRole('combobox',{name:'Animal',
  await p.addInitScript(saved=>{window.__entryNow=1792594800000;Date.now=()=>window.__entryNow;localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');if(!localStorage.getItem('sunny-acres-3d-v1'))localStorage.setItem('sunny-acres-3d-v1',saved);window.__entryInputs=[];for(const type of ['pointerdown','pointerup','click','keydown'])document.addEventListener(type,e=>window.__entryInputs.push({type,trusted:e.isTrusted,key:e.key,target:e.target.id||e.target.getAttribute?.('aria-label')||e.target.dataset?.action||e.target.tagName}),true);},saved);
  await p.goto(h.base+'farm3d/?debug&portrait&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
  await p.evaluate(()=>{const G=__dbg.G;G.opts.quiet=true;G.close();G.S.nextEventAt=G.S.nextVisitorAt=G.S.nextRushAt=9e15;G.tick();});
- stage='native Edit > Animal pens entry';await p.locator('#editBtn').click();
+ stage='native Edit > Animal pens entry';await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click();
  assert.equal(await p.getByRole('button',{name:'Animal pens',exact:true}).count(),1,'Edit menu must expose Animal pens');
  await p.waitForFunction(()=>__dbg.cam.pitch===1.53,null,{timeout:10000});const cameraBefore=(await state()).camera;await p.getByRole('button',{name:'Animal pens',exact:true}).click();
  await p.getByRole('region',{name:'Animal pen editor'}).waitFor({state:'visible',timeout:10000});

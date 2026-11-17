@@ -1,0 +1,93 @@
+name: A52 protected UI qualification
+
+# Exact branch only. No pull request, production merge, deployment or scheduler.
+# The six ordinary workflows remain separate gates, not qualified by this run.
+on:
+  push:
+    branches: [codex/a52-two-corner-ui-20261117]
+    paths:
+      - 'farm3d/**'
+      - '_config.yml'
+      - '.github/workflows/a52-protected-qualification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a52-protected-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  current-ui:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    env:
+      TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a52-native-private
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify exact head and unchanged proven isolation helper
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          git --no-lazy-fetch -c protocol.allow=never cat-file -e 38fa4706e41c40197b7afc32de693cb3901a80fb^{commit}
+          mkdir -p "$RUNNER_TEMP/a52-receipts"
+      - name: Prove namespace and restricted capability boundary without application code
+        id: boundary
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/namespace.json" --timeout-ms 10000 --probe-only
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/inert.json" --timeout-ms 10000 -- node -e 'process.stdout.write("inert-probe-ok\n")'
+          node <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          for(const [name,started]of [['namespace',false],['inert',true]]){
+            const r=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/a52-receipts/'+name+'.json'));
+            assert(validReceipt(r)&&r.status==='passed'&&r.isolationVerified&&r.cleanupVerified&&r.exitCode===0&&r.signal===null);
+            assert.equal(r.commandStarted,started);assert.equal(r.commandResultAvailable,started);
+            if(started){assert.equal(r.stdoutBytes,15);assert.equal(r.stdoutSha256,crypto.createHash('sha256').update('inert-probe-ok\n').digest('hex'));assert.equal(r.stderrBytes,0);assert.equal(r.stderrSha256,crypto.createHash('sha256').digest('hex'));}
+          }
+          NODE
+      - name: Install locked test dependencies without package scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Provision official pinned Chromium before no-egress execution
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Inert isolation, diagnostics, menu, source and publication controls
+        id: contracts
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/contracts.json" --timeout-ms 180000 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/ci-isolated-runner.test.cjs farm3d/tests/a52-*.test.cjs farm3d/tests/a52-*.test.mjs'
+      - name: Preserve original source-package assertions and corruption controls
+        id: source
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/source-package.json" --timeout-ms 180000 -- node farm3d/tests/pages-package.verify.cjs --source-only
+      - name: Four-viewport real native menu journeys
+        if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/native.json" --timeout-ms 900000 -- env A52_CURRENT_BROWSER_APPROVED=1 node farm3d/tests/a52-corner-menus.browser.cjs
+      - name: Existing accessibility journey with approved visible-launcher focus semantics
+        if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/accessibility.json" --timeout-ms 600000 -- node farm3d/tests/accessibility.browser.cjs
+      - name: Exact v85 to v93 synthetic saved-farm and offline-worker update
+        if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/installed.json" --timeout-ms 600000 -- env A52_INSTALLED_BROWSER_APPROVED=1 node farm3d/tests/a52-installed-ui-cache.browser.cjs
+      - name: Export finite receipts and only successful synthetic-menu PNGs
+        if: always()
+        run: |
+          node farm3d/tests/helpers/a52-ci-evidence.cjs --source "$RUNNER_TEMP/a52-receipts" --output "$RUNNER_TEMP/a52-public-evidence" --head "$GITHUB_SHA" --screenshots "$TEST_ARTIFACTS"
+      - name: Preserve reviewed public projection, never raw diagnostics or saves
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: a52-protected-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-public-evidence/
+          if-no-files-found: error
+          retention-days: 14

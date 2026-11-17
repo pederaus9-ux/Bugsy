@@ -1,0 +1,843 @@
+{
+  "schema": 1,
+  "baseMain": "38fa4706e41c40197b7afc32de693cb3901a80fb",
+  "amendment": "A52",
+  "cache": "sa3d-v93",
+  "priorCheckpointSha256": "34ce16dfe4eed1b1b05371194b18b20c26bcdc5684cccd9e2c6a61bd85ec5555",
+  "browserExecution": "NOT_RUN_RETAINED_HOLDS",
+  "historicalAudioUnchanged": [
+    "qualification-audio-background.browser.cjs",
+    "qualification-audio-fix-background.browser.cjs",
+    "qualification-audio.browser.cjs"
+  ],
+  "files": {
+    "farm3d/tests/accessibility.browser.cjs": {
+      "beforeSha256": "4809cdae2e6d33f88e305795e8ac5347fe9eb8572962fced6b35fa90fca07b90",
+      "hunks": [
+        {
+          "before": "await p.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await p.locator('[data-p=\"settings\"]').focus();",
+          "after": "await revealCornerAction(p,'[data-p=\"settings\"]','keyboard');await p.locator('[data-p=\"settings\"]').focus();",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "assert.equal(await p.evaluate(()=>document.activeElement.dataset.p),'settings');",
+          "after": "assert.deepEqual(await p.evaluate(()=>({id:document.activeElement.id,visible:!!document.activeElement.getClientRects().length})),{id:'preview-tools-launch',visible:true},'A52 closes back to the visible Menu launcher');",
+          "count": 1,
+          "reason": "coordinator-approved focus contract for collapsed menus; original v85 source preserved separately"
+        }
+      ],
+      "afterSha256": "2c1ec625b81aec8c544eba5e55f0a3934ef18799fecae033394c99cad43f1399"
+    },
+    "farm3d/tests/animal-pen-assembly.browser.cjs": {
+      "beforeSha256": "8d48c2d9c0fd16d5184414961ae5a7dc0bdecd6af2fc5d2ae5cf9918e6f6d156",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "8a226d30aa72b4a633fad89ce14890edc78491f90bfa21209a8aa48c4465150a"
+    },
+    "farm3d/tests/animal-pen-controls.browser.cjs": {
+      "beforeSha256": "39fa0edb886c7146af87f7d6f72c5ba980d3e5e0d1d639537165c5dbebde67c9",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "75c8ed0d7914d2e08cd4eb86f580480744e7ccb94f77c216c9a635dcf4fc6fd7"
+    },
+    "farm3d/tests/animal-pen-cow-trough-live.browser.cjs": {
+      "beforeSha256": "7717e7da876e0d319e1f99ba7149cd8d560135a272e81a6b7bd432339c22ef43",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "858c4592a9290bb1099a6e48aa6a185ed85f56c98aabeb9a41d27cd9917fbfb7"
+    },
+    "farm3d/tests/animal-pen-cow-trough-traffic.browser.cjs": {
+      "beforeSha256": "0d4fbc248a52d671f48082e0d43350e5796426ae9db469dd0c8ac5913a5843bc",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "0a75cd7f7d336c7dc12bf57d946a9dc2a611b651b637043375f7d5c3a1661404"
+    },
+    "farm3d/tests/animal-pen-cow-trough.browser.cjs": {
+      "beforeSha256": "be1c82fc28201f8c65023ab41a83d75ea003aa93e65807055ea97980f5e65733",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "ec09634e0c799b54c3967696c7ee622c40cb3146e971ae0c41a4dca362f6dca6"
+    },
+    "farm3d/tests/animal-pen-entry.browser.cjs": {
+      "beforeSha256": "a4844a7b20f693ce5479516a9c7ff0200c2e52ee37df4452d38f2fd97510462d",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Bounded native entry/pause/Apply/Discard journey. Full edit-operation journeys\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Bounded native entry/pause/Apply/Discard journey. Full edit-operation journeys\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "01a5fac294b0a0992d41be03be5ce4d067f269fa20a52e60e98378c27b63c753"
+    },
+    "farm3d/tests/animal-pen-farm-transitions.browser.cjs": {
+      "beforeSha256": "359feed7f702c2626e416ce685fd5bbf01f6e13757d758db999727d6194cc494",
+      "hunks": [
+        {
+          "before": "await p.getByRole('button',{name:'Settings',exact:true}).click();",
+          "after": "await revealCornerAction(p,'[data-p=\"settings\"]');await p.getByRole('button',{name:'Settings',exact:true}).click();",
+          "count": 2,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// New-farm and historical 2D-import transitions after a custom pen exists.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// New-farm and historical 2D-import transitions after a custom pen exists.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "e0c76ea329efde3807a2325ba08668865ff96e7327b240efa28d854d55f6f80f"
+    },
+    "farm3d/tests/animal-pen-feed-bunk.browser.cjs": {
+      "beforeSha256": "54def623e14d9cb1044e88f85da54999684d9d8eb52846f80d40af4a2201d157",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto'),{start,artifacts,root}=require('./browser-harness.cjs'),hz=Number(process.env.CARE_HZ||60);\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto'),{start,artifacts,root}=require('./browser-harness.cjs'),hz=Number(process.env.CARE_HZ||60);\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "1db68f56b7e92261338da300e9e7aa27237c1813b0638bf97b18c2b0f04f0c0c"
+    },
+    "farm3d/tests/animal-pen-full-ground-grid.browser.cjs": {
+      "beforeSha256": "e00533807aa5f8c880a061622c4369aec1fc8d0c97e19e6851b6694cb27be685",
+      "hunks": [
+        {
+          "before": "await page.locator('#editBtn').click(",
+          "after": "await revealCornerAction(page,'#editBtn');await page.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),http=require('node:http'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),http=require('node:http'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "'.html':'text/html'",
+          "after": "'.html':'text/html','.css':'text/css'",
+          "count": 1,
+          "reason": "serve new local stylesheet with correct MIME"
+        }
+      ],
+      "afterSha256": "7694b4b1f3e019f2af7eb3ddc54474c5c7bd51483a3316452b1a7249ea740a02"
+    },
+    "farm3d/tests/animal-pen-gestures.browser.cjs": {
+      "beforeSha256": "fc2772f9b9ba25637129d8182332e236a9fb32ec2a44651b31ade16fde7d8cd2",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "87557265a45efcb0e5bc1d29bda0194a962fc70c97545c9beeaca6183c5fe8c9"
+    },
+    "farm3d/tests/animal-pen-mobile-menu.browser.cjs": {
+      "beforeSha256": "79ef212eee232c2f5b5f6a4bfbbe70301743e70d3212e43941bc72949856764f",
+      "hunks": [
+        {
+          "before": "if(!await page.locator('#animalPensBtn').isVisible())await page.locator('#editBtn').click();",
+          "after": "if(!await page.locator('#animalPensBtn').isVisible()){await revealCornerAction(page,'#editBtn');await page.locator('#editBtn').click();}",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "\n  await page.locator('#editBtn').click();",
+          "after": "\n  await revealCornerAction(page,'#editBtn');await page.locator('#editBtn').click();",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "'.html':'text/html'",
+          "after": "'.html':'text/html','.css':'text/css'",
+          "count": 1,
+          "reason": "serve new local stylesheet with correct MIME"
+        }
+      ],
+      "afterSha256": "0ab0ebe67afab2eb6a15479810a69df15d1083c585a1ef732b22e77c608d9547"
+    },
+    "farm3d/tests/animal-pen-occupied-shelter.browser.cjs": {
+      "beforeSha256": "27992a0b2e38e7df13912bcb24fecca53d1b50ff5ba8b45bb21cbc342e8f1449",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "2851fcd023d8fa352ff0939762f3bdf71544fb2c84d7332341bba5eddbc8963a"
+    },
+    "farm3d/tests/animal-pen-operations.browser.cjs": {
+      "beforeSha256": "b2859ad2457bf2455d6e245200a7c08d06192303f3f90eda214b75697af7b475",
+      "hunks": [
+        {
+          "before": "async function enter(kind){await p.locator('#editBtn').click",
+          "after": "async function enter(kind){if(!await p.getByRole('button',{name:'Animal pens',exact:true}).isVisible())await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native pointer capture and browser-protocol touch input; no DOM gesture dispatch.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "9a19e77ee6e47cfdb4e1d9f08e309c29f305e9c5ba704a6f0ed7e78acbbb709f"
+    },
+    "farm3d/tests/animal-pen-outer-map.browser.cjs": {
+      "beforeSha256": "9d9a217754c80064ee22bab829b2be9384c42d53235ad32daaa53218f8b74505",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Guest-only owned horse pen: actual native editor Apply/reload beyond old land.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Guest-only owned horse pen: actual native editor Apply/reload beyond old land.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "50a9581e178620dd512a7a081764f813064c905f341059f2723b63f862ab4082"
+    },
+    "farm3d/tests/animal-pen-placement.browser.cjs": {
+      "beforeSha256": "f227bdaea8771c331d9f0f62ff1ec732e7f2433876d038be40892c03d7996cf9",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),{start,artifacts}=require('./browser-harness.cjs');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),{start,artifacts}=require('./browser-harness.cjs');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "c0670bcee245eed01fe7c51d7d0fa62b754932723452a93c22f19b4bd6e2b773"
+    },
+    "farm3d/tests/animal-pen-resource-cycles.browser.cjs": {
+      "beforeSha256": "cffbea14b3b3ced084af8c60cf49b222b7191e06f0962bb561ae1910af70bf3a",
+      "hunks": [
+        {
+          "before": "if(!await entry.isVisible())await p.locator('#editBtn').click();",
+          "after": "if(!await entry.isVisible()){await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click();}",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Task 8: installed resources survive 20 real Apply/Cancel editor cycles.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Task 8: installed resources survive 20 real Apply/Cancel editor cycles.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "39c79d2131df90fd47609dc3612e3af1a4033f49b69e00c4dcfcce9433ba53e2"
+    },
+    "farm3d/tests/animal-pen-robot-install.browser.cjs": {
+      "beforeSha256": "dae9237c028c8f154466ae9ac89b6c10af899b3a6f923c000c83c6dc4c88fb6a",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),crypto=require('crypto');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "2a59fa4e94287051aac810bcbbb972116aebfa45ab08360eacb3ff7e4b496d8f"
+    },
+    "farm3d/tests/authored-hands.browser.cjs": {
+      "beforeSha256": "5387ab6ff29db393e43726f6d055ac925304959be9072844292794176a353be4",
+      "hunks": [
+        {
+          "before": "await p.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "47f93279b0d157ec24b1b4d1ddcdb6e4059966bf423c769a10e752a9243af6bd"
+    },
+    "farm3d/tests/chicken-flock30.browser.cjs": {
+      "beforeSha256": "e0f0810da79a16dc49e96fd2d9368015b73ad431b96d21b45fc6800556e45e12",
+      "hunks": [
+        {
+          "before": "await page.locator('#walkBtn').tap(",
+          "after": "await revealCornerAction(page,'#walkBtn','tap');await page.locator('#walkBtn').tap(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Full-capacity disposable guest farms; native touch operates the actual UI.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Full-capacity disposable guest farms; native touch operates the actual UI.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "73dcbd3326eb92c5f566d682a169ca7000dd6f166e02bb8d5540b77207be6cfb"
+    },
+    "farm3d/tests/chicken-pen-update.browser.cjs": {
+      "beforeSha256": "2915b5aac79b2d51610f46337d88a8056bfa74168fc4874a778cca48e43937f7",
+      "hunks": [
+        {
+          "before": "sa3d-v85",
+          "after": "sa3d-v93",
+          "count": 4,
+          "reason": "current candidate cache only; all historical versions retained"
+        }
+      ],
+      "afterSha256": "ce18e653a88e934b1fd73a1a8ed5452e6f4df04cab6c13ae555ca1f770bd7d81"
+    },
+    "farm3d/tests/chicken-pen.browser.cjs": {
+      "beforeSha256": "3bc60d20927369fd447aef36a45fcc9926a379c6af5907a1c8174822bf7888c7",
+      "hunks": [
+        {
+          "before": "await press(p,'#walkBtn',touch);",
+          "after": "await revealCornerAction(p,'#walkBtn',touch?'tap':'click');await press(p,'#walkBtn',touch);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await press(p,'#walkBtn',true);",
+          "after": "await revealCornerAction(p,'#walkBtn','tap');await press(p,'#walkBtn',true);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "2f025d00d1a0b3fc083fbc8edbdfe63c607167dea9d98f8cc9d56983d1de7f43"
+    },
+    "farm3d/tests/cow-robot.browser.cjs": {
+      "beforeSha256": "f462a108b3b6c0b7de0fe269e717078dc672f683be6e6e76ec5f558efd75395a",
+      "hunks": [
+        {
+          "before": "await press('#walkBtn');",
+          "after": "await revealCornerAction(p,'#walkBtn',touch?'tap':'click');await press('#walkBtn');",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');const {start,artifacts}=require('./browser-harness.cjs');const {execFileSync}=require('node:child_process');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');const {start,artifacts}=require('./browser-harness.cjs');const {execFileSync}=require('node:child_process');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "44b1c9b9696205c8e76d95fdab31630ae51285c0b2fc4a12f52081cf4f010a73"
+    },
+    "farm3d/tests/cow-update.browser.cjs": {
+      "beforeSha256": "73d2c69f3137b982c1b64572abdd8fb297fb57b4f2158493ffc6c508c853ee42",
+      "hunks": [
+        {
+          "before": "sa3d-v85",
+          "after": "sa3d-v93",
+          "count": 1,
+          "reason": "current candidate cache only; all historical versions retained"
+        }
+      ],
+      "afterSha256": "98de5c047214e328c0c799e8491047d71829b636a7e3709bba7be464581c205e"
+    },
+    "farm3d/tests/decor-catalog.browser.cjs": {
+      "beforeSha256": "5e2c0d98779d621b3fcdd8cba40e850c00abd65c0cde4fe1ec991b98d92593b1",
+      "hunks": [
+        {
+          "before": "await press(p,'[data-p=\"decor\"]',touch);",
+          "after": "await revealCornerAction(p,'[data-p=\"decor\"]',touch?'tap':'click');await press(p,'[data-p=\"decor\"]',touch);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Native evidence in disposable synthetic farms; external services blocked by harness.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Native evidence in disposable synthetic farms; external services blocked by harness.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "sa3d-v85",
+          "after": "sa3d-v93",
+          "count": 1,
+          "reason": "current candidate cache only; all historical versions retained"
+        }
+      ],
+      "afterSha256": "bdd7790767db715e6f80a32ffbd47799c12bbf925f29343c8f2685575444a453"
+    },
+    "farm3d/tests/farmer3d-walk.browser.cjs": {
+      "beforeSha256": "cb7dcbca820085136848c24a9798353e58798d6f213ba6f3738bc9f997b1c9ae",
+      "hunks": [
+        {
+          "before": "await page.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Active walk, first-person hands and pet interaction: actual UI on the running game loop.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Active walk, first-person hands and pet interaction: actual UI on the running game loop.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "8b0feb2b2eef8bcc028050a9a41de81abedac2b741e7af8e891796a2c893aadd"
+    },
+    "farm3d/tests/full-map-woods.browser.cjs": {
+      "beforeSha256": "9184d470016932f695ba9680b2befe96de9cb920a7eabd5a761ba5c10b16d310",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 2,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "7dbf6f1a34da83a72ddbe43b030d2d261a65747556c128d4d07e61932a0c6276"
+    },
+    "farm3d/tests/hands-production.browser.cjs": {
+      "beforeSha256": "0b47cdeb1e57d1fce4b94ef1c0c638652f39a2ecbd39adc5dcf03c05297e1fe3",
+      "hunks": [
+        {
+          "before": "await page.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Normal guest farms, actual service-worker caching and real failed HTTP loads.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Normal guest farms, actual service-worker caching and real failed HTTP loads.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "'.html':'text/html'",
+          "after": "'.html':'text/html','.css':'text/css'",
+          "count": 1,
+          "reason": "serve new local stylesheet with correct MIME"
+        }
+      ],
+      "afterSha256": "71f19bf3dd6d1f5d018fad4cb788c8ecb1d55f657b500b39c35ab629d8ed66a8"
+    },
+    "farm3d/tests/holiday-decor.browser.cjs": {
+      "beforeSha256": "3a9ada564544bf410c4a3d3da33e2ac83273f225bb90f6ca956633d99f6a33bb",
+      "hunks": [
+        {
+          "before": "await press(p,'[data-p=\"decor\"]',touch);",
+          "after": "await revealCornerAction(p,'[data-p=\"decor\"]',touch?'tap':'click');await press(p,'[data-p=\"decor\"]',touch);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "c373dbc7c8405cb256cb2222b11b3e9f91dd9f54cb65782960fa82417e400b5f"
+    },
+    "farm3d/tests/immediate-buildable-land.browser.cjs": {
+      "beforeSha256": "bc9899612ddbaaad5c1b79253a89fcfe5bbb6097784dabc0fdffe53729a8b998",
+      "hunks": [
+        {
+          "before": "await phone.page.locator('#editBtn').click(",
+          "after": "await revealCornerAction(phone.page,'#editBtn');await phone.page.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "if(ref==='current')await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "dca3e4e6683b2406a94585b15a9bcc206c0945d442b8f650905e98cf3dfeba20"
+    },
+    "farm3d/tests/market-sales.browser.cjs": {
+      "beforeSha256": "cacd30c6cf82bb3dc4e813c04b644338db622cf7ee8f875db29024a68f2c2383",
+      "hunks": [
+        {
+          "before": "await press(p,'.dock [data-p=\"barn\"]',touch);",
+          "after": "await revealCornerAction(p,'.dock [data-p=\"barn\"]',touch?'tap':'click');await press(p,'.dock [data-p=\"barn\"]',touch);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Disposable farms only; no external services or owner browser profiles.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Disposable farms only; no external services or owner browser profiles.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "332c674b76ee4953d9431c85b5ce777f700dd1a1d67775e70725b313d9d0f231"
+    },
+    "farm3d/tests/north-clearing-build.browser.cjs": {
+      "beforeSha256": "b25567c3556b107fd1195a405ac2f48c596b426e5a269cbd6810a20fa466bd27",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "if(phase==='new')await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "a059f1d7cc0eea698e12198c3accee527ad22c463af5f9ecf576c10d24103efb"
+    },
+    "farm3d/tests/pen-compact-close.browser.cjs": {
+      "beforeSha256": "0efe334beea0551f8e7069e0e15731b0d1663083085397633644b108b82ac819",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Focused compact Options -> original dirty Close behavior; original RED retained separately.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Focused compact Options -> original dirty Close behavior; original RED retained separately.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "f0c9ed4b139147ba9fb270d1a0770add4b74441c1e7c2a4930107287da6651c9"
+    },
+    "farm3d/tests/performance7k.browser.cjs": {
+      "beforeSha256": "056e5462a04ef385558b6569d184a562dfb5bc62a5e9e7d6840b798a308dce5f",
+      "hunks": [
+        {
+          "before": "await page.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Opt-in local benchmark. Instrument a served copy; production game code stays unchanged.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Opt-in local benchmark. Instrument a served copy; production game code stays unchanged.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "file.endsWith('.html')?'text/html':",
+          "after": "file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':",
+          "count": 1,
+          "reason": "serve new local stylesheet with correct MIME"
+        }
+      ],
+      "afterSha256": "ca69a53cb67de426abe6b32fa306eea10636a9dcfe37f9eb97e5cd6a4abc0b02"
+    },
+    "farm3d/tests/regression.browser.cjs": {
+      "beforeSha256": "54d6828effa043b0c8e5e8f87c5b3af6f480ab3d1e4fedaa5a846beafef1f877",
+      "hunks": [
+        {
+          "before": "await page.locator('#walkBtn').tap(",
+          "after": "await revealCornerAction(page,'#walkBtn','tap');await page.locator('#walkBtn').tap(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await page.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await page.locator('.dock [data-p=\"orders\"]').click();",
+          "after": "await revealCornerAction(page,'.dock [data-p=\"orders\"]');await page.locator('.dock [data-p=\"orders\"]').click();",
+          "count": 2,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await page.locator(`[data-act=\"open\"][data-p=\"${name}\"]`).click();",
+          "after": "await revealCornerAction(page,`[data-act=\"open\"][data-p=\"${name}\"]`);await page.locator(`[data-act=\"open\"][data-p=\"${name}\"]`).click();",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs = require('fs');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs = require('fs');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "71ef7e4401d205f7ed3d5013b7d79ff671330fee1439d81e598a78672fec4d02"
+    },
+    "farm3d/tests/scene-polish.browser.cjs": {
+      "beforeSha256": "7812a6d0eee8f0e16bb8a43ea68626031cec273791dda4e53e5b33263fbc5450",
+      "hunks": [
+        {
+          "before": "await p.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "c058dd31b2034404a4700cf51815c2d6149bd365afb64e6539e7751c4e74a75a"
+    },
+    "farm3d/tests/seed-selection.browser.cjs": {
+      "beforeSha256": "32dab0425bbe5602380ffd6c9d94640a406dff101719171272c8e34227e29a49",
+      "hunks": [
+        {
+          "before": "await p.locator('#walkBtn').click(",
+          "after": "await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click(",
+          "count": 2,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Real page controls on disposable farms. External services are blocked by the\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Real page controls on disposable farms. External services are blocked by the\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "11737a17113826c8cbba2e8a7b8210b3c76a2d1c6f530c6cff059f27e8058ae5"
+    },
+    "farm3d/tests/tree-clear.browser.cjs": {
+      "beforeSha256": "00dd6b2f22eae450fd354a5bc8ebe4497ec64a84c409598c27f27851db5825ae",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 2,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "dab039df2b7c992524aad7b7210ca73e78428455bd2b1551638bd3b8fba658d7"
+    },
+    "farm3d/tests/utility-lights.browser.cjs": {
+      "beforeSha256": "dcdd9423bbef3673db0b0290a764a92c830503c69eb94dae0a2ca74ed692f92b",
+      "hunks": [
+        {
+          "before": "await press(p,'[data-p=\"decor\"]',touch);",
+          "after": "await revealCornerAction(p,'[data-p=\"decor\"]',touch?'tap':'click');await press(p,'[data-p=\"decor\"]',touch);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "await press(p,'[data-p=\"decor\"]',true);",
+          "after": "await revealCornerAction(p,'[data-p=\"decor\"]','tap');await press(p,'[data-p=\"decor\"]',true);",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "// Actual synthetic game journeys and framebuffer evidence; no owner accounts or saves.\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\n// Actual synthetic game journeys and framebuffer evidence; no owner accounts or saves.\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        },
+        {
+          "before": "sa3d-v85",
+          "after": "sa3d-v93",
+          "count": 1,
+          "reason": "current candidate cache only; all historical versions retained"
+        }
+      ],
+      "afterSha256": "138ebd14f3b76461a81351371ee1b08dda8a40e42b7e081b3c9f986855641439"
+    },
+    "farm3d/tests/workshop-hill.browser.cjs": {
+      "beforeSha256": "bad61efc53657f63ccdb4ed341496793f4e1ee77d37a5e7fca7ebbfc14ed0d38",
+      "hunks": [
+        {
+          "before": "await p.locator('#editBtn').click(",
+          "after": "await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click(",
+          "count": 1,
+          "reason": "native menu preparation"
+        },
+        {
+          "before": "const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "after": "const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');\nconst fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');\n",
+          "count": 1,
+          "reason": "explicit current-only helper import"
+        }
+      ],
+      "afterSha256": "923a3eb1c983d69bc6a82ea07654c9028eeb9ae729948fff4b091cf0f667f3c1"
+    },
+    "farm3d/tests/run-core-game-tests.mjs": {
+      "beforeSha256": "1f36677aa52030a785f75b86d85fd6509722502072d9771d19a5aece22014c9c",
+      "hunks": [
+        {
+          "before": "'a52-tutorial-pointer.test.mjs',",
+          "after": "'a52-tutorial-pointer.test.mjs','a52-browser-navigation.test.cjs','a52-browser-journey-scope.test.cjs',",
+          "count": 1,
+          "reason": "register additive Node-only orchestration contracts"
+        }
+      ],
+      "afterSha256": "070bce8f3a7f72fb2ab04fd21a9205d374ea92bea9c28e95bd935049f9a31cee"
+    },
+    "farm3d/tests/quality-loops.json": {
+      "beforeSha256": "864cab13859bd5ae45f5e269d17a8a4a96538582276a5fba3fb585d2c8588d28",
+      "hunks": [
+        {
+          "before": "\"a52-tutorial-pointer.test.mjs\"",
+          "after": "\"a52-tutorial-pointer.test.mjs\",\n        \"a52-browser-navigation.test.cjs\",\n        \"a52-browser-journey-scope.test.cjs\"",
+          "count": 1,
+          "reason": "register additive Node-only orchestration contracts"
+        },
+        {
+          "before": "\"accessibility.browser.cjs\",",
+          "after": "\"accessibility.browser.cjs\",\n        \"a52-corner-menus.browser.cjs\",",
+          "count": 1,
+          "reason": "new guarded native menu coverage in existing opt-in accessibility lane"
+        }
+      ],
+      "afterSha256": "d56854db27dfb6fef1af6f67ec4f2470686487014588f26c77a7620211afd08f"
+    }
+  }
+}

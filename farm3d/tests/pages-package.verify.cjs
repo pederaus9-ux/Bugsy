@@ -2,26 +2,31 @@
 // Verifies a real Jekyll output. --source-only never claims a built package pass.
 const fs = require('node:fs');
 const {normalizeCowSettleScope} = require('./helpers/cow-settle-scope.cjs');
+const ui = require('./helpers/a52-scope.cjs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const {gzipSync} = require('node:zlib');
 const assert = require('node:assert/strict');
 const {execFileSync} = require('node:child_process');
 const {normalizeFieldScope,verifyFieldAsset,scope:fieldScope}=require('./helpers/field-support-scope.cjs');
 const ROOT = path.resolve(__dirname, '../..');
 const EVIDENCE = 'farm3d/tests/evidence/';
+const CACHE_SNAPSHOTS = 'farm3d/tests/fixtures/cache-source-snapshots/';
+const includedSourcePath = file => !file.startsWith(EVIDENCE) && !file.startsWith(CACHE_SNAPSHOTS);
 const LIMIT = 1_000_000_000;
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const blob = b => crypto.createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
 const git = (...args) => execFileSync('git', args, {cwd: ROOT, encoding: 'utf8'}).trim();
 const defaults = ['Gemfile', 'Gemfile.lock', 'node_modules', 'vendor/bundle/',
-  'vendor/cache/', 'vendor/gems/', 'vendor/ruby/', 'CNAME', 'farm3d/tests/evidence'];
+  'vendor/cache/', 'vendor/gems/', 'vendor/ruby/', 'CNAME', 'farm3d/tests/evidence',
+  'farm3d/tests/fixtures/cache-source-snapshots'];
 
 function configCheck() {
   const lines = fs.readFileSync(path.join(ROOT, '_config.yml'), 'utf8').split(/\r?\n/)
     .map(l => l.replace(/#.*$/, '').trim()).filter(Boolean);
   assert.equal(lines.shift(), 'exclude:', 'Only the exclusion configuration is authorized');
   assert.deepEqual(lines.map(l => {assert(l.startsWith('- ')); return l.slice(2);}), defaults,
-    'Preserve default excludes and add only test evidence');
+    'Preserve default and evidence excludes; add only frozen cache snapshots');
 }
 
 function localPath(from, spec) {
@@ -53,12 +58,17 @@ function dependencies(file, buffer) {
 
 function verifyPackage(source, output, totalBytes) {
   assert(totalBytes < LIMIT, `Built output exceeds Pages limit: ${totalBytes}`);
-  for (const name of output.keys()) assert(!name.startsWith(EVIDENCE), `Evidence leaked into output: ${name}`);
+  for (const name of output.keys()) {
+    assert(!name.startsWith(EVIDENCE), `Evidence leaked into output: ${name}`);
+    assert(!name.startsWith(CACHE_SNAPSHOTS), `Cache snapshots leaked into output: ${name}`);
+  }
   let dependencyCount = 0, shellCount = 0;
   for (const [file, bytes] of source) {
+    assert(!file.startsWith(CACHE_SNAPSHOTS), `Runtime asset requires excluded cache snapshot: ${file}`);
     assert(output.has(file), `Missing runtime asset: ${file}`);
     assert.equal(sha(output.get(file)), sha(bytes), `Changed runtime asset: ${file}`);
     for (const dep of dependencies(file, bytes)) {
+      assert(!dep.startsWith(CACHE_SNAPSHOTS), `Runtime dependency requires excluded cache snapshot: ${file} -> ${dep}`);
       assert(output.has(dep), `Missing dependency: ${file} -> ${dep}`);
       dependencyCount++;
     }
@@ -66,7 +76,7 @@ function verifyPackage(source, output, totalBytes) {
       const match = bytes.toString('utf8').match(/const SHELL\s*=\s*(\[[^;]+\]);/);
       assert(match, 'Expected unchanged service-worker shell');
       const shell = JSON.parse(match[1]);
-      for (const spec of shell) {const dep = localPath(file, spec); assert(dep && output.has(dep), `Missing cached resource: ${spec}`); shellCount++;}
+      for (const spec of shell) {const dep = localPath(file, spec); assert(!dep || !dep.startsWith(CACHE_SNAPSHOTS), `Service-worker requires excluded cache snapshot: ${spec}`); assert(dep && output.has(dep), `Missing cached resource: ${spec}`); shellCount++;}
     }
   }
   return {runtimeAssets: source.size, dependencyReferences: dependencyCount, serviceWorkerEntries: shellCount, bytes: totalBytes};
@@ -80,8 +90,22 @@ function negativeControls() {
   ]);
   const good = new Map([...source, ['farm3d/extra.js', Buffer.from('export{}')], ['farm3d/cached.png', Buffer.from('image')]]);
   verifyPackage(source, good, 500);
+  // Only synthetic bytes are used here. Frozen historical snapshots are never read.
+  const snapshotGzip = `${CACHE_SNAPSHOTS}synthetic/index.html.gz`, snapshotManifest = `${CACHE_SNAPSHOTS}manifest.json`;
+  const syntheticGzip = gzipSync(Buffer.from('synthetic cache snapshot, no historical content'));
+  const syntheticManifest = Buffer.from(JSON.stringify({synthetic:true,files:['index.html.gz']}));
+  const outside = `${CACHE_SNAPSHOTS.slice(0,-1)}-public/manifest.json`;
+  const withOutside = new Map([...good,[outside,Buffer.from('public similar-name fixture')]]);
+  verifyPackage(source, withOutside, 500);
+  const tracked = new Map([...withOutside,[snapshotGzip,syntheticGzip],[snapshotManifest,syntheticManifest],[`${EVIDENCE}synthetic.json`,Buffer.from('{}')]]);
+  const filtered = new Map([...tracked].filter(([file])=>includedSourcePath(file)));
+  assert(!filtered.has(snapshotGzip));assert(!filtered.has(snapshotManifest));assert(!filtered.has(`${EVIDENCE}synthetic.json`));
+  assert(filtered.has(outside),'A similarly named directory remains publishable');
+  verifyPackage(source, filtered, 500);
   const controls = [
     ['evidence leak', m => m.set(`${EVIDENCE}kept.zip`, Buffer.from('zip')), /Evidence leaked/],
+    ['cache snapshot gzip leak', m => m.set(snapshotGzip, syntheticGzip), /Cache snapshots leaked/],
+    ['cache snapshot manifest leak', m => m.set(snapshotManifest, syntheticManifest), /Cache snapshots leaked/],
     ['missing runtime', m => m.delete('farm3d/index.html'), /Missing runtime/],
     ['modified runtime', m => m.set('farm3d/entry.js', Buffer.from('changed')), /Changed runtime/],
     ['missing import', m => m.delete('farm3d/extra.js'), /Missing dependency/],
@@ -89,7 +113,22 @@ function negativeControls() {
   ];
   for (const [, mutate, expected] of controls) {const copy = new Map(good); mutate(copy); assert.throws(() => verifyPackage(source, copy, 500), expected);}
   assert.throws(() => verifyPackage(source, good, LIMIT), /exceeds Pages limit/);
-  return [...controls.map(c => c[0]), 'oversize output'];
+  // Production references must fail explicitly, even after source-only filtering.
+  const dependencyControls = [
+    ['snapshot static import','farm3d/entry.js','import "./tests/fixtures/cache-source-snapshots/hidden.js";'],
+    ['snapshot dynamic import','farm3d/entry.js','import("./tests/fixtures/cache-source-snapshots/hidden.js");'],
+    ['snapshot worker URL','farm3d/entry.js','new URL("./tests/fixtures/cache-source-snapshots/worker.js",import.meta.url);'],
+    ['snapshot HTML resource','farm3d/index.html','<script src="./tests/fixtures/cache-source-snapshots/hidden.js"></script>'],
+    ['snapshot CSS resource','farm3d/styles.css','body{background:url("./tests/fixtures/cache-source-snapshots/image.png")}'],
+    ['snapshot encoded import','farm3d/entry.js','import "./tests/fixtures/cache%2Dsource-snapshots/hidden.js?v=1#fixture";']
+  ];
+  for(const [,file,text] of dependencyControls){const current=new Map(source),output=new Map(good),bytes=Buffer.from(text);current.set(file,bytes);output.set(file,bytes);assert.throws(()=>verifyPackage(current,output,500),/Runtime dependency requires excluded cache snapshot/);}
+  const shellSource=new Map(source),shellOutput=new Map(good),shellBytes=Buffer.from('const SHELL = ["./", "./tests/fixtures/cache-source-snapshots/manifest.json"];');
+  shellSource.set('farm3d/sw.js',shellBytes);shellOutput.set('farm3d/sw.js',shellBytes);
+  assert.throws(()=>verifyPackage(shellSource,shellOutput,500),/Service-worker requires excluded cache snapshot/);
+  const runtimeSource=new Map(source);runtimeSource.set(`${CACHE_SNAPSHOTS}runtime.js`,Buffer.from('export{}'));
+  assert.throws(()=>verifyPackage(runtimeSource,good,500),/Runtime asset requires excluded cache snapshot/);
+  return [...controls.map(c => c[0]), 'oversize output',...dependencyControls.map(c=>c[0]),'snapshot service-worker entry','snapshot runtime asset'];
 }
 
 function readOutput(dir) {
@@ -127,6 +166,8 @@ function normalizeCowAimScope(file,text){
 // A39: account for only the approved A38 postimages. The original manifest stays frozen;
 // output validation below still compares the actual, current bytes without normalization.
 function historicalAccounting(source, manifest) {
+  for(const file of Object.keys(ui.scope.assets)){assert(source.has(file),'Missing A52 asset');ui.verifyA52Asset(file,source.get(file));}
+  for(const file of ['farm3d/index.html','farm3d/sw.js'])assert.equal(sha(source.get(file)||Buffer.alloc(0)),ui.scope.files[file].afterSha256,'Exact current A52 runtime');
   const raw = fs.readFileSync(path.join(__dirname, 'fixtures/release-blocker-scope.json'));
   assert.equal(sha(raw), 'f900182d2ed27b926b1a90d4d940e9bfc8ef48b5588e46e8ef1f8f9cf9848ee4', 'Frozen A38 scope receipt');
   const approved = JSON.parse(raw).files;
@@ -179,9 +220,16 @@ function accountingControls(source, manifest) {
     ['unrelated chicken change', m => m.set('farm3d/chicken3d.js', Buffer.concat([m.get('farm3d/chicken3d.js'), Buffer.from('\n/* unrelated */')]))], // A45 whole-file pin
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v85', 'sa3d-v86')))], // A46: current cache is sa3d-v85
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(ui.normalizeA52Source('sw.js',m.get('farm3d/sw.js').toString()).replace('sa3d-v85', 'sa3d-v86')))], // A46: current cache is sa3d-v85
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
+  controls.push(
+    ['wrong A52 cache version',m=>m.set('farm3d/sw.js',Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v93','sa3d-v94')))],
+    ...Object.keys(ui.scope.assets).flatMap(file=>[
+      ['missing A52 '+file,m=>m.delete(file)],
+      ['corrupt A52 '+file,m=>m.set(file,Buffer.from('corrupt'))]
+    ])
+  );
   for (const [, mutate] of controls) {const copy = new Map(source); mutate(copy); assert.throws(() => historicalAccounting(copy, manifest));}
   return controls.map(c => c[0]);
 }
@@ -198,6 +246,8 @@ const source = new Map(manifest.staticSource.map(entry => {
 verifyFieldAsset('plot-support.js',fs.readFileSync(path.join(ROOT,'farm3d/plot-support.js')));
 source.set('farm3d/plot-support.js',fs.readFileSync(path.join(ROOT,'farm3d/plot-support.js')));
 assert.equal(source.size,122,'121 preserved runtime entries plus one exact field helper');
+for(const file of Object.keys(ui.scope.assets)){const bytes=fs.readFileSync(path.join(ROOT,file));ui.verifyA52Asset(file,bytes);source.set(file,bytes);}
+assert.equal(source.size,125,'122 historical assets plus three exact A52 UI assets');
 const accounting = historicalAccounting(source, manifest);
 const sourceControls = accountingControls(source, manifest);
 const evidenceDiff=git('diff','--name-only','2f9a8241b8230938dd816e1c0fac52551a263f69','HEAD','--',EVIDENCE).split('\n').filter(Boolean);
@@ -205,7 +255,7 @@ for(const file of evidenceDiff){assert(Object.hasOwn(fieldScope.addedEvidence,fi
 const report = {head: git('rev-parse', 'HEAD'), source: manifest.source, sourceAssetsExact: source.size,
   controls, sourceControls, ...accounting, gameRuntimeChanged: true, evidencePreservedInGit: true, status: 'SOURCE_ONLY_OUTPUT_NOT_BUILT'};
 // Check source references before requesting the real build. These are not output bytes.
-const sourcePaths = new Map(git('ls-files').split('\n').filter(p => !p.startsWith(EVIDENCE)).map(p => [p, Buffer.alloc(0)]));
+const sourcePaths = new Map(git('ls-files').split('\n').filter(includedSourcePath).map(p => [p, Buffer.alloc(0)]));
 for (const [file, bytes] of source) sourcePaths.set(file, bytes);
 const references = verifyPackage(source, sourcePaths, 0);
 report.sourceDependencyReferences = references.dependencyReferences;
@@ -213,7 +263,7 @@ report.sourceServiceWorkerEntries = references.serviceWorkerEntries;
 if (!process.argv.includes('--source-only')) {
   const oi = process.argv.indexOf('--output'); assert(oi >= 0 && process.argv[oi + 1], 'Provide real Jekyll --output');
   const output = readOutput(path.resolve(ROOT, process.argv[oi + 1]));
-  Object.assign(report, verifyPackage(source, output.files, output.bytes), {outputFiles: output.files.size, evidenceOutputFiles: 0, status: 'PASS'});
+  Object.assign(report, verifyPackage(source, output.files, output.bytes), {outputFiles: output.files.size, evidenceOutputFiles: 0, cacheSnapshotOutputFiles: 0, status: 'PASS'});
 }
 const ri = process.argv.indexOf('--report');
 if (ri >= 0) fs.writeFileSync(process.argv[ri + 1], JSON.stringify(report, null, 2) + '\n');

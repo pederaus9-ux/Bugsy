@@ -487,7 +487,9 @@ html[data-motion="reduce"] button:active{transform:none!important}
   html:not([data-motion="full"]) *,html:not([data-motion="full"]) *::before,html:not([data-motion="full"]) *::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<link rel="stylesheet" href="sunny-ui.css?v=1">
+<link rel="stylesheet" href="compact-ui.css?v=1">
+<script type="module" src="corner-menu.js?v=1"></script>
 </head>
 <body>
 <div class="loading out" id="loading">🌻 Sunny Acres</div>
@@ -504,27 +506,11 @@ html[data-motion="reduce"] button:active{transform:none!important}
         String(msg).replace(/</g, "&lt;") + '</code>' : 'Still loading… this is taking longer than usual.') +
       '<br><button onclick="location.reload()" style="font:400 20px \'Lilita One\',system-ui,sans-serif;background:#6cc04a;color:#fff;border:0;border-radius:14px;padding:10px 22px;box-shadow:0 4px 0 #3e8e24">Reload</button></div>';
   }
-  // crash and error reports: anything that goes wrong on a player's phone is posted to the Discord feedback channel.
-  // Nothing personal is sent (no name, email or farm), only the error, where it happened, the game version and the kind of phone.
-  // At most 3 reports per visit and 10 a day per phone, each message once, and only from the real site (not tests).
-  var sent = {}, nSent = 0;
-  function report(msg, where, stack, kind) {
-    try {
-      msg = String(msg || "error").slice(0, 300);
-      if (/ResizeObserver loop|^Script error\.?$|Failed to fetch|Load failed|NetworkError|network-request-failed|offline|AbortError|The operation was aborted|webkit-masked-url|chrome-extension:|moz-extension:/i.test(msg + " " + (where || ""))) return;
-      if (sent[msg] || nSent >= 3 || (location.hostname.indexOf("github.io") < 0 && !localStorage.getItem("sa3d-errtest")) || /[?&](testfarm|shot)\b/.test(location.search)) return;
-      var day = new Date().toLocaleDateString("en-CA"), k = "sa3d-errs", c = {}; try { c = JSON.parse(localStorage.getItem(k) || "{}"); } catch (e) {}
-      if (c.d !== day) c = {d:day, n:0}; if (c.n >= 10) return; c.n++; try { localStorage.setItem(k, JSON.stringify(c)); } catch (e) {}
-      sent[msg] = 1; nSent++;
-      var ua = navigator.userAgent, dev = (/iPhone|iPad|Android/.exec(ua) || ["computer"])[0] + " · " + ((/(Chrome|CriOS|Firefox|FxiOS|Edg|SamsungBrowser)\/[\d]+/.exec(ua) || /Version\/[\d.]+.*Safari/.exec(ua) || ["?"])[0]).replace(/Version\/([\d.]+).*Safari/, "Safari $1");
-      var boot = ""; try { boot = localStorage.getItem("sa3d-boot") || ""; } catch (e) {}
-      var info = [kind || "error", "game " + (window.__gameVer || "?"), "boot: " + (boot || "-"), dev, innerWidth + "×" + innerHeight, new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC"].join(" · ");
-      var body = "🐞 **" + msg.replace(/[`*_~|]/g, "") + "**" + (where ? "\n`" + where + "`" : "") + (stack ? "\n```\n" + String(stack).split("\n").slice(0, 4).join("\n").slice(0, 600) + "\n```" : "") + "\n-# " + info;
-      fetch(window.__ERR_HOOK, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:"Sunny Acres errors", content:body.slice(0, 1900), allowed_mentions:{parse:[]}}), keepalive:true}).catch(function () {});
-    } catch (e) {}
-  }
+  // Remote error reporting is unavailable until a secure reporting service is configured.
+  // Keep the compatibility callback and local startup/error UI without sending reports.
+  function report(msg, where, stack, kind) {}
   window.__report = report;
-  window.__ERR_HOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ";
+  window.__ERR_HOOK = "";
   window.addEventListener("error", function (e) {
     var where = e.filename ? e.filename.split("/").pop().split("?")[0] + ":" + e.lineno + ":" + e.colno : "";
     if (e.filename && e.filename.indexOf(location.origin) !== 0 && e.filename.indexOf("gstatic.com") < 0) return; // someone else's script (a browser add-on)
@@ -565,7 +551,6 @@ html[data-motion="reduce"] button:active{transform:none!important}
   <button id="editBtn" aria-label="Move trees and buildings">🏗️</button>
   <button data-act="open" data-p="settings" aria-label="Settings">⚙️</button>
   <button id="soundBtn" aria-label="Sound on or off">🔊</button>
-  <button id="feedbackBtn" aria-label="Send feedback">💬</button>
   <button id="friendsBtn" aria-label="Friends">👥</button>
   <button id="verifiedBtn" aria-label="Verified field" hidden>✅</button>
   <button id="questBtn" data-act="open" data-p="quests" aria-label="Quests">📜</button>
@@ -629,9 +614,9 @@ html[data-motion="reduce"] button:active{transform:none!important}
 <div class="modebar" id="visitBar" hidden><span id="visitName">👀 Visiting</span><small>tap growing crops to 💧 water them</small><button data-mode="home">🏠 Home</button></div>
 <form class="fbbox" id="fbBox" hidden>
   <h3><span>💬 Feedback</span><button type="button" class="x" data-fb="close" aria-label="Close">✕</button></h3>
-  <p class="tray-sub">Found a bug or have an idea? Tell us!</p>
-  <textarea id="fbText" maxlength="1000" rows="4" placeholder="Type your message…" required></textarea>
-  <div class="row"><small id="fbCount">0 / 1000</small><button type="submit" class="btn sm" id="fbSend">Send 💌</button></div>
+  <p class="tray-sub">Feedback is temporarily unavailable. Messages cannot be sent right now.</p>
+  <textarea id="fbText" maxlength="1000" rows="4" placeholder="Feedback is temporarily unavailable" disabled></textarea>
+  <div class="row"><small id="fbCount">Not sent</small><button type="submit" class="btn sm" id="fbSend" disabled>Unavailable</button></div>
 </form>
 <div class="tray movebar" id="moveBar" hidden><h3><span id="moveTitle">Move</span></h3><div class="tray-sub">Drag it with one finger to where you want it</div>
   <div class="row"><button class="btn plain sm" data-m="store">Put away</button><button class="btn sm" data-m="done">✔ Done</button></div></div>
@@ -2630,37 +2615,13 @@ const friendHooks = initFriends(G, {enterVisit, visitingName:() => visiting && v
 // server code the free Firebase plan can't run (features.js); its ✅ button stays hidden.
 const verifiedField = FEATURES.verifiedEconomy ? initVerified(G) : null;
 
-// ---------- feedback: a small text box that posts to a Discord channel through a webhook ----------
-// Note: this page is public, so anyone can read this URL. The message below turns off @mentions, the box allows
-// one message a minute, and if the webhook is ever abused just delete it in Discord and paste a new one here.
-const FEEDBACK_WEBHOOK = window.__ERR_HOOK; // set in the safety-net script at the top (error reports go to the same channel) // Discord: channel settings › Integrations › Webhooks
-async function sendFeedback(text) {
-  const S = GS(), info = `Level ${S.level} · ${innerWidth}×${innerHeight} · ${/Android|iPhone|iPad/.exec(navigator.userAgent)?.[0] || "computer"} · ${new Date().toLocaleString()}`;
-  const res = await fetch(FEEDBACK_WEBHOOK, {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({username: "Sunny Acres feedback", content: text.slice(0, 1000) + "\n-# " + info, allowed_mentions: {parse: []}}),
-  });
-  if (!res.ok) throw new Error("Discord answered " + res.status);
-}
+// ---------- feedback: temporarily unavailable pending a secure reporting service ----------
 const fbBox = document.getElementById("fbBox"), fbText = document.getElementById("fbText"), fbSend = document.getElementById("fbSend"), fbCount = document.getElementById("fbCount");
-const FB_KEY = "sa3d-feedback-at", FB_WAIT = 60e3;
-function openFeedback(on) { G.close(); closeTrays(); fbBox.hidden = !on; if (on) { fbCount.textContent = fbText.value.length + " / 1000"; fbText.focus(); } }
-document.getElementById("feedbackBtn").addEventListener("click", () => openFeedback(true));
+function openFeedback(on) { G.close(); closeTrays(); fbBox.hidden = !on; if (on) { fbBox.querySelector('[data-fb="close"]').focus(); } }
 fbBox.addEventListener("click", (e) => { if (e.target.closest('[data-fb="close"]')) openFeedback(false); });
-fbText.addEventListener("input", () => { fbCount.textContent = fbText.value.length + " / 1000"; });
-fbBox.addEventListener("submit", async (e) => {
+fbBox.addEventListener("submit", (e) => {
   e.preventDefault();
-  const text = fbText.value.trim(); if (text.length < 3) { G.toast("Type a little more first"); return; }
-  if (!FEEDBACK_WEBHOOK) { G.toast("Feedback isn't switched on yet"); return; }
-  let last = 0; try { last = +localStorage.getItem(FB_KEY) || 0; } catch (err) {}
-  if (Date.now() - last < FB_WAIT) { G.toast("Thanks! You can send another in a minute"); return; }
-  fbSend.disabled = true; fbSend.textContent = "Sending…";
-  try {
-    await sendFeedback(text);
-    try { localStorage.setItem(FB_KEY, String(Date.now())); } catch (err) {}
-    fbText.value = ""; openFeedback(false); G.toast("Thank you! Your message was sent 💌"); G.sfx("collect");
-  } catch (err) { G.toast("Couldn't send it. Check your internet and try again."); G.sfx("error"); }
-  fbSend.disabled = false; fbSend.textContent = "Send 💌";
+  G.toast("Feedback is temporarily unavailable. Your message was not sent.");
 });
 addEventListener("keydown", (e) => { if (e.code === "Escape" && !fbBox.hidden) openFeedback(false); });
 addEventListener("pointerdown", () => { const h = document.getElementById("hint"); if (h) h.style.opacity = 0; }, {once:true});
@@ -3916,7 +3877,7 @@ function spawnDrop(pos, mat, vel, o = {}) {
   drops.push({s, v:vel.clone(), spin:(rnd() - .5) * (o.spin ?? 9), t:0, rest:0, w, half:o.half, kind:o.kind || "item", to:o.to || "barn", life:o.life || 0, delay:o.delay || 0, onLand:o.onLand});
 }
 function pocketPoint(to) { // just in front of the camera, on the line through the Barn button (or the coin counter)
-  const el = document.querySelector(to === "coin" ? ".money .cnt" : '.dock [data-p="barn"]');
+  const el = document.querySelector(to === "coin" ? ".money .cnt" : '.dock > .preview-launcher, .dock [data-p="barn"]');
   const r = el && el.offsetParent ? el.getBoundingClientRect() : {x:innerWidth / 2, y:innerHeight, width:0, height:0};
   return rayAt(r.x + r.width / 2, r.y + r.height / 2).ray.at(walk ? 1.6 : 3, new THREE.Vector3());
 }
@@ -4619,7 +4580,7 @@ function updatePointer() {
   const t = G.tutTarget(); let s = null, key = null;
   if (t && !G.panel && document.getElementById("tut").hidden === false) {
     if (t === "plot:ready") { const i = GS().plots.findIndex((p, k) => ready(k)); if (i >= 0) key = "plot:" + i; }
-    else if (t.startsWith("btn:")) { const b = document.querySelector(`.dock [data-p="${t.slice(4)}"]`); if (b) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }
+    else if (t.startsWith("btn:")) { let b = document.querySelector(`.dock [data-p="${t.slice(4)}"]`); if (b && !b.getClientRects().length) b = document.querySelector(".dock > .preview-launcher"); if (b && b.getClientRects().length) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }
     else if (t === "plot:0") { const i = GS().plots.findIndex(p => !p.crop); key = "plot:" + Math.max(0, i); }
     else key = t;
     if (key) {

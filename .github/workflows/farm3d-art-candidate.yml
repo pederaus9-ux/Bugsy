@@ -30,13 +30,14 @@ permissions:
   contents: read
 jobs:
   cow-b1-reference:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -47,20 +48,24 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: farm3d/tests
       - name: Verify proposed B1 envelope against frozen cow and capture matched references
-        run: node farm3d/tools/capture-cow-b1.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/cow-b1-reference"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/cow-b1-reference/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/capture-cow-b1.cjs'
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: cow-b1-reference-${{ github.run_attempt }}
-          path: farm3d/tests/artifacts/cow-b1/
+          name: cow-b1-reference-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/cow-b1-reference/
           retention-days: 14
   barn-candidate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -72,30 +77,39 @@ jobs:
         working-directory: farm3d/tests
       - name: Verify deterministic export and asset policy
         run: |
-          node farm3d/tools/build-barn.mjs
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/barn-candidate"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/barn-candidate/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/build-barn.mjs
           git diff --exit-code -- farm3d/assets/barn/barn-candidate.glb
           node farm3d/tools/validate-asset.mjs farm3d/assets/barn/barn-candidate.glb farm3d/art/asset-contract.json barn-lod0
           node farm3d/tests/barn-validator.cjs
+          '
       - name: Capture real scene and verify load/disposal
-        run: node farm3d/tests/barn-candidate.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/barn-candidate"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/barn-candidate/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/barn-candidate.browser.cjs'
       - name: Verify scene ownership, grass restoration and repeated disposal
-        run: node farm3d/tests/barn-scene.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/barn-candidate"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/barn-candidate/step-3.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/barn-scene.browser.cjs'
       - name: Capture matched overview and Walk at full CSS drawing resolution
-        run: node farm3d/tools/capture-barn-scene.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/barn-candidate"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/barn-candidate/step-4.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/capture-barn-scene.cjs'
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: barn-candidate-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/barn*
+          name: barn-candidate-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/barn-candidate/
           retention-days: 14
   authored-hands:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -107,23 +121,29 @@ jobs:
         working-directory: farm3d/tests
       - name: Validate the actual authored hand export and bone clips
         run: |
-          node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/authored-hands"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/authored-hands/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/validate-asset.mjs farm3d/assets/hands/hands-candidate.glb farm3d/art/asset-contract.json hands
           node farm3d/tests/hands-validator.cjs
+          '
       - name: Capture all hand clips and verify clone ownership and cleanup
-        run: node farm3d/tools/capture-hands-study.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/authored-hands"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/authored-hands/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/capture-hands-study.cjs'
       - name: Verify the authored hand adapter in the isolated game
-        run: node farm3d/tests/authored-hands.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/authored-hands"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/authored-hands/step-3.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/authored-hands.browser.cjs'
       - name: Verify normal farms, load failures and actual offline cache migration
-        run: node farm3d/tests/hands-production.browser.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/authored-hands"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/authored-hands/step-4.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/hands-production.browser.cjs'
       - name: Capture full-resolution authored hands in the real farm
-        run: node farm3d/tools/capture-hands-game.cjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/authored-hands"
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/authored-hands/step-5.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tools/capture-hands-game.cjs'
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: authored-hands-${{ github.run_attempt }}
-          path: |
-            farm3d/tests/artifacts/hands-study/
-            farm3d/tests/artifacts/hands-game-captures/
-            farm3d/tests/artifacts/authored-hands*
-            farm3d/tests/artifacts/hands-production*
+          name: authored-hands-${{ github.run_attempt }}-execution-receipts-only
+          path: ${{ runner.temp }}/a52-ci-safe/authored-hands/
           retention-days: 14

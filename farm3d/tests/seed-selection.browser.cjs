@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Real page controls on disposable farms. External services are blocked by the
 // existing harness. CSS sizes are exact; its declared drawing scale is 0.5.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
@@ -40,7 +41,7 @@ try{
     stage=width+' disposable test farm';const s=await harness.setup({width,height},touch,'seed-selection-'+width),p=s.page;
     await boot(p,harness.base,true);
     await p.evaluate(()=>{const G=__dbg.G;G.S.coins=10;G.S.barn={wheat:2,corn:1};G.S.gold={};for(const f of G.S.plots)Object.assign(f,{crop:null,end:0,water:0});G.view.refresh('all');});
-    await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
+    await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
     await focusPlot(p,0,'Plant');await p.locator('#actBtn').click();await p.waitForFunction(()=>!document.getElementById('seedTray').hidden);
     await p.locator('[data-crop="wheat"]').click();await p.waitForFunction(()=>document.getElementById('seedTray').hidden&&!document.getElementById('seedTool').hidden);
     let a=await state(p);assert.equal(a.crop[0],'wheat');assert.equal(a.wheat,1);assert.equal(a.coins,10);assert.equal(a.armed,'wheat');
@@ -75,7 +76,7 @@ try{
   }
   stage='normal disposable guest save/reload';
   const s=await harness.setup({width:844,height:390},true,'seed-selection-normal-save'),p=s.page;
-  await boot(p,harness.base,false);await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
+  await boot(p,harness.base,false);await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
   await focusPlot(p,0,'Plant');await p.locator('#actBtn').click();await p.locator('[data-crop="wheat"]').click();
   const before=await state(p);assert.equal(before.armed,'wheat');assert.equal(before.crop[0],'wheat');
   const saved=await p.evaluate(()=>JSON.parse(localStorage.getItem(__dbg.G.SAVE_KEY)));

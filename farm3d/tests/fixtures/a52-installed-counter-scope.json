@@ -1,0 +1,19 @@
+{
+  "purpose": "A52 installed-UI response counter only; no browser execution",
+  "files": {
+    "farm3d/tests/browser-harness.cjs": {
+      "beforeSha256": "69c1a5fb5c6a653fb3186ce6d83d2903ccbb5d1491721f5f0db0eceba5a0b25f",
+      "afterSha256": "512653cab2518dda0af3f10353c0162ac0a058b27dc3972d55ead7e74d083259",
+      "hunks": [
+        {
+          "before": "  const sockets=new WeakMap();",
+          "after": "  let servedResponses=0;\n  server.on('request',(_req,res)=>res.once('finish',()=>{servedResponses++;}));\n  const sockets=new WeakMap();"
+        },
+        {
+          "before": "    base,\n    serveRef",
+          "after": "    base,\n    serverResponseCount(){return servedResponses;},\n    serveRef"
+        }
+      ]
+    }
+  }
+}

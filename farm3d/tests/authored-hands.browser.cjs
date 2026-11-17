@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts,root}=require('./browser-harness.cjs');
 (async()=>{const harness=await start({deviceScaleFactor:.25}),results=[];let failed=true;
@@ -11,7 +12,7 @@ try{for(const width of [844,1280]){
  await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:90000});
  await p.waitForFunction(()=>__dbg.camera.getObjectByName('Authored first-person hands')?.userData.authoredHands.state.status==='ready');
  await p.evaluate(()=>{const d=__dbg;d.G.opts.quiet=true;d.G.close();d.G.S.nextEventAt=d.G.S.nextVisitorAt=d.G.S.nextRushAt=9e15;});
- await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
+ await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>!!__dbg.walk);
  await p.waitForFunction(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
    const legacy=d.camera.children.find(o=>o.userData.skin);return root.visible&&!legacy.visible;});
  const wardrobe=await p.evaluate(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
