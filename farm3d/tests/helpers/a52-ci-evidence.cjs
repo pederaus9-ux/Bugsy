@@ -53,7 +53,7 @@ function nativeHit(value){
   if(!v||typeof v!=='object'||Array.isArray(v))reject();
   if(v.observed===false){if(Object.keys(v).join('|')!=='observed')reject();return;}
   const bools=['connected','enabled','visible','inViewport','centerOwned','pointerEvents'];
-  if(v.observed!==true||Object.keys(v).sort().join('|')!==['observed','openModals','blocker',...bools].sort().join('|')||bools.some(k=>typeof v[k]!=='boolean')||!Number.isInteger(v.openModals)||v.openModals<0||v.openModals>32||!['launcher','intro','auth','rotate','loading','panel','dialog','canvas','other','none'].includes(v.blocker))reject();
+  if(v.observed!==true||Object.keys(v).sort().join('|')!==['observed','openModals','blocker',...bools].sort().join('|')||bools.some(k=>typeof v[k]!=='boolean')||!Number.isInteger(v.openModals)||v.openModals<0||v.openModals>32||!['launcher','intro','auth','rotate','loading','panel','scrim','dialog','canvas','other','none'].includes(v.blocker))reject();
  }
  snapshot(value.before);if(value.rejected!==null)snapshot(value.rejected);return JSON.parse(JSON.stringify(value));
 }

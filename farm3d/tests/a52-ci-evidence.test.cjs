@@ -115,7 +115,7 @@ test('offline transport receipt accepts only fixed booleans and counters',()=>{
 });
 
 test('native hit evidence exports only finite actionability facts',()=>{
- const before={observed:true,connected:true,enabled:true,visible:true,inViewport:true,centerOwned:false,pointerEvents:true,openModals:0,blocker:'other'},good={schema:1,side:1,before,rejected:before};
+ const before={observed:true,connected:true,enabled:true,visible:true,inViewport:true,centerOwned:false,pointerEvents:true,openModals:0,blocker:'scrim'},good={schema:1,side:1,before,rejected:before};
  assert.deepEqual(e.nativeHit(good),good);assert.deepEqual(e.nativeHit({...good,before:{observed:false},rejected:null}),{...good,before:{observed:false},rejected:null});
  for(const bad of [{...good,url:canary},{...good,side:3},{...good,before:{observed:false,url:canary}},{...good,before:{...before,blocker:canary}},{...good,before:{...before,openModals:99}},{...good,before:{...before,visible:canary}},{...good,before:{...before,x:10}}])assert.throws(()=>e.nativeHit(bad));
 });
