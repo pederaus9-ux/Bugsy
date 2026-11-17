@@ -1,3 +1,4 @@
+const animalLifecycle=require('./helpers/a53-animal-lifecycle.cjs').create();
 // Read-only baseline: real production sheep, sampled without relocating contacts.
 const fs=require('fs');
 const path=require('path');
@@ -75,4 +76,4 @@ const {start,artifacts}=require('./browser-harness.cjs');
     if(s.errors.length)throw new Error(s.errors.join('\n'));
     console.log('Sheep: 3 idle views, 6 continuous walk and 6 continuous stop samples; no browser errors');failed=false;
   }finally{await h.close(failed);}
-})().catch(e=>{console.error(e);process.exitCode=1;});
+})().then(()=>animalLifecycle.pass()).catch(e=>{animalLifecycle.fail(e);console.error(e);process.exitCode=1;});

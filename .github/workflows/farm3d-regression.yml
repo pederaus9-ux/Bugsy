@@ -296,6 +296,11 @@ jobs:
       - name: Install Chromium and system dependencies
         working-directory: farm3d/tests
         run: npx playwright install --with-deps chromium
+      - name: Verify finite CI telemetry contracts without a browser
+        run: |
+          mkdir -p "$RUNNER_TEMP/a53-telemetry-controls"
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-telemetry-controls/contracts.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-browser-boundary.test.cjs farm3d/tests/a53-animal-lifecycle.test.cjs farm3d/tests/a53-ci-telemetry.test.cjs farm3d/tests/a53-ci-telemetry-scope.test.cjs
       - name: Run unchanged character checks and new scene checks
         working-directory: farm3d/tests
         run: |
@@ -315,6 +320,8 @@ jobs:
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-regression/characters-polish "$RUNNER_TEMP/a52-ci-safe/characters-polish" "$RUNNER_TEMP/a52-ci-public/characters-polish" "$A52_CANDIDATE_HEAD"
+          test "$(sha256sum farm3d/tests/helpers/a53-ci-telemetry.cjs | cut -d ' ' -f1)" = 057c199521901994db4cc056cfe54203b15f3703a2cad5636e7dd78c9c4e4fe0
+          node farm3d/tests/helpers/a53-ci-telemetry.cjs "$RUNNER_TEMP" "$RUNNER_TEMP/a52-ci-public/characters-polish/telemetry" "$A52_CANDIDATE_HEAD" characters-polish
       - name: Save screenshots, failure traces and results
         if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
@@ -364,6 +371,8 @@ jobs:
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-regression/animal-visuals "$RUNNER_TEMP/a52-ci-safe/animal-visuals" "$RUNNER_TEMP/a52-ci-public/animal-visuals" "$A52_CANDIDATE_HEAD"
+          test "$(sha256sum farm3d/tests/helpers/a53-ci-telemetry.cjs | cut -d ' ' -f1)" = 057c199521901994db4cc056cfe54203b15f3703a2cad5636e7dd78c9c4e4fe0
+          node farm3d/tests/helpers/a53-ci-telemetry.cjs "$RUNNER_TEMP" "$RUNNER_TEMP/a52-ci-public/animal-visuals/telemetry" "$A52_CANDIDATE_HEAD" animal-visuals
       - name: Save animal screenshots, failure traces and measurements
         if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
