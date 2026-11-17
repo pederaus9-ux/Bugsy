@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {start,artifacts}=require('./browser-harness.cjs');
 const out=path.join(artifacts,'workshop-hill');fs.mkdirSync(out,{recursive:true});
@@ -7,7 +8,7 @@ const report={status:'RUNNING',hosted:false,physicalDevice:false};let h;
  h=await start({deviceScaleFactor:.5});const s=await h.setup({width:1280,height:720},false,'workshop-hill');const p=s.page;
  await p.addInitScript(data=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');if(!localStorage.getItem(data.key))localStorage.setItem(data.key,data.saved);},{key,saved});
  await p.goto(h.base+'farm3d/index.html?debug&preset=noon');await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
- await p.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});await p.locator('#editBtn').click();
+ await p.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click();
  const initial=await p.evaluate(()=>{const d=__dbg;return{gentle:d.editValid('b:loom',30,-30),steep:d.editValid('b:loom',30,-40),grid:d.grid.userData.bounds,loom:d.BUILD_SPOT.loom};});report.initial=initial;
  assert.equal(initial.steep,false,'steep support remains blocked');assert.equal(initial.gentle,true,'reachable grassy hillside must accept the full workshop and entrance');
  await p.evaluate(()=>{const d=__dbg;d.cam.target.set(25,0,-35);d.cam.dist=65;d.cam.pitch=1.53;d.view.target.copy(d.cam.target);d.view.dist=65;d.view.pitch=1.53;d.view.yaw=d.cam.yaw;d.placeCamera(1);d.camera.updateMatrixWorld(true);});

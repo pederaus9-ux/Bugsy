@@ -1,5 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const repo=path.resolve(__dirname,'../..');
+// Current A52 capture only; this adaptation does not authorize browser execution.
+const {revealCornerAction}=require('../tests/helpers/a52-browser-navigation.cjs');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE || path.join(repo,'farm3d/tests/node_modules/playwright'));
 const out=process.env.TEST_ARTIFACTS || path.join(repo,'farm3d/tests/artifacts/hands-game-captures');
 fs.mkdirSync(out,{recursive:true});
@@ -19,7 +21,7 @@ for(const [anchor,replacement] of [
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;
  const file=path.resolve(repo,'.'+decodeURIComponent(pathname)+(pathname.endsWith('/')?'index.html':''));
  if(!file.startsWith(repo+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}
- res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.webp':'image/webp','.jpg':'image/jpeg','.png':'image/png'})[path.extname(file)]||'application/octet-stream');
+ res.setHeader('Content-Type',({'.html':'text/html','.css':'text/css','.js':'text/javascript','.webp':'image/webp','.jpg':'image/jpeg','.png':'image/png'})[path.extname(file)]||'application/octet-stream');
  res.end(file===path.join(repo,'farm3d/index.html')?source:fs.readFileSync(file));});
 async function hold(page){
  const frames=await page.evaluate(()=>{window.__handsHold=false;return window.__handsFrames||0;});
@@ -46,7 +48,7 @@ for(const width of [844,1280]){
  const overview=await hold(page);assert.equal(overview.visible,false);assert.deepEqual(overview.buffer,[width,height]);
  results.push({width,height,pose:'overview-hidden',proof:overview});
  await page.screenshot({path:path.join(out,width+'-overview-hidden.png')});
- await page.evaluate(()=>window.__handsHold=false);await page.locator('#walkBtn').click();
+ await page.evaluate(()=>window.__handsHold=false);await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();
  await page.waitForFunction(()=>!!__dbg.walk);
  await page.waitForFunction(()=>{const d=__dbg,root=d.camera.getObjectByName('Authored first-person hands');
    return root.visible&&!d.camera.children.find(o=>o.userData.skin).visible;});

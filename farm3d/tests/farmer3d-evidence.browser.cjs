@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('farmer3d-evidence');
 // Rendered Stage B review evidence and an isolated six-character comparison against PR #41.
 const assert=require('assert/strict'),fs=require('fs'),path=require('path');
 const {start,artifacts}=require('./browser-harness.cjs');

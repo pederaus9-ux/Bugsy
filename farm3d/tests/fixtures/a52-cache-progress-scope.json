@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "file": "farm3d/tests/market-sales.browser.cjs",
+      "beforeSha256": "332c674b76ee4953d9431c85b5ce777f700dd1a1d67775e70725b313d9d0f231",
+      "afterSha256": "42f0401a2c610c4f99d3f4ac54fa6ce01f3b375de4b9a99a6e7142d7717e58ef",
+      "currentCacheReplacements": 1,
+      "edits": [
+        {
+          "before": "const {execFileSync}=require('node:child_process');",
+          "after": "const {execFileSync}=require('node:child_process');\nconst diagnostic=require('./helpers/a52-cache-progress.cjs').createDiagnostic('market-sales');"
+        },
+        {
+          "before": "  const s=await h.setup({width:390,height:844}",
+          "after": "  diagnostic.phase('fit-counterexample');\n  const s=await h.setup({width:390,height:844}"
+        },
+        {
+          "before": "  await open(p,touch);const q=",
+          "after": "  diagnostic.phase('native-open');\n  await open(p,touch);const q="
+        },
+        {
+          "before": "  await press(p,'[aria-label=\"More dozens\"]'",
+          "after": "  diagnostic.phase('native-quantity');\n  await press(p,'[aria-label=\"More dozens\"]'"
+        },
+        {
+          "before": "  receipt.layout=bounds;",
+          "after": "  diagnostic.phase('native-layout');\n  receipt.layout=bounds;"
+        },
+        {
+          "before": "  await press(p,'[data-act=\"marketSell\"][data-id=\"egg\"][data-n=\"2\"].gold'",
+          "after": "  diagnostic.phase('native-egg-sale');\n  await press(p,'[data-act=\"marketSell\"][data-id=\"egg\"][data-n=\"2\"].gold'"
+        },
+        {
+          "before": "  const milk=await",
+          "after": "  diagnostic.phase('native-milk-sale');\n  const milk=await"
+        },
+        {
+          "before": "  const expired=await",
+          "after": "  diagnostic.phase('native-price-expiry');\n  const expired=await"
+        },
+        {
+          "before": "  stage='native sales '+width;",
+          "after": "  diagnostic.phase('native-boot',width);stage='native sales '+width;"
+        },
+        {
+          "before": " stage='old installed farm';",
+          "after": " diagnostic.phase('old-installed',0);stage='old installed farm';"
+        },
+        {
+          "before": " stage='candidate worker';",
+          "after": " diagnostic.phase('candidate-worker',0);stage='candidate worker';"
+        },
+        {
+          "before": " stage='offline reopen and sale';",
+          "after": " diagnostic.phase('offline-reload',0);stage='offline reopen and sale';"
+        },
+        {
+          "before": "assert(transition.requestedWorkerControls);const hashes=",
+          "after": "assert(transition.requestedWorkerControls);diagnostic.phase('candidate-cache');diagnostic.cache(await p.evaluate(async()=>{const keys=await caches.keys();return {current:keys.includes('sa3d-v93'),historical:keys.includes('sa3d-v49'),foreign:false};}));const hashes="
+        },
+        {
+          "before": " await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer)",
+          "after": " diagnostic.phase('online-reload');await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer)"
+        },
+        {
+          "before": " await open(p,true);const q=",
+          "after": " diagnostic.phase('installed-sale');await open(p,true);const q="
+        },
+        {
+          "before": " await p.reload();await ready(p);assert.deepEqual(await state(p),offlinePaid)",
+          "after": " diagnostic.phase('offline-second-reload');await p.reload();await ready(p);assert.deepEqual(await state(p),offlinePaid)"
+        },
+        {
+          "before": " failed=false;receipt.status='PASS';",
+          "after": " diagnostic.phase('complete');diagnostic.status('pass');failed=false;receipt.status='PASS';"
+        },
+        {
+          "before": "}catch(error){receipt.status='FAIL';",
+          "after": "}catch(error){diagnostic.status('fail');receipt.status='FAIL';"
+        }
+      ]
+    },
+    {
+      "file": "farm3d/tests/field-rollback-cache.browser.cjs",
+      "beforeSha256": "0c2b01f4299ed10e14d6993f3ad5bafbb382b9736dee4e6d4aa0583cd2bd5a5d",
+      "afterSha256": "32c587dfa8768d1e28cdbc01fbc6d614debd78abf94294e56b41c9c1bc8f8135",
+      "currentCacheReplacements": 2,
+      "edits": [
+        {
+          "before": "const {execFileSync}=require('node:child_process');",
+          "after": "const {execFileSync}=require('node:child_process');\nconst diagnostic=require('./helpers/a52-cache-progress.cjs').createDiagnostic('rollback');"
+        },
+        {
+          "before": " stage='predecessor saved custom pen';",
+          "after": " diagnostic.phase('predecessor-save');stage='predecessor saved custom pen';"
+        },
+        {
+          "before": " stage='distinct current worker activation';",
+          "after": " diagnostic.phase('worker-activation');stage='distinct current worker activation';"
+        },
+        {
+          "before": " stage='online reload preserves custom pen';",
+          "after": " diagnostic.phase('online-reload');stage='online reload preserves custom pen';"
+        },
+        {
+          "before": " stage='offline reload preserves custom pen';",
+          "after": " diagnostic.phase('offline-reload');stage='offline reload preserves custom pen';"
+        },
+        {
+          "before": " const old=await",
+          "after": " diagnostic.phase('predecessor-cache');const old=await"
+        },
+        {
+          "before": " const cache=await",
+          "after": " diagnostic.phase('current-cache');const cache=await"
+        },
+        {
+          "before": " assert(!cache.urls.some(url=>url.endsWith('plot-support.js?v=1'))",
+          "after": " diagnostic.cache({current:cache.keys.includes('sa3d-v93'),historical:cache.keys.includes('sa3d-v76'),foreign:cache.keys.includes('foreign-farm-cache')});\n assert(!cache.urls.some(url=>url.endsWith('plot-support.js?v=1'))"
+        },
+        {
+          "before": " const field=await",
+          "after": " diagnostic.phase('saved-field-check');const field=await"
+        },
+        {
+          "before": " report.status='PASS';",
+          "after": " diagnostic.phase('complete');diagnostic.status('pass');report.status='PASS';"
+        },
+        {
+          "before": "}catch(error){report.status='FAIL';",
+          "after": "}catch(error){diagnostic.status('fail');report.status='FAIL';"
+        }
+      ]
+    }
+  ]
+}

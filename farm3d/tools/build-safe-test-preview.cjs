@@ -68,9 +68,14 @@ document.getElementById('authGate').hidden = true;
 
 const policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-src 'none'";
 replaceOnce('index.html', '<head>', `<head>\n<meta http-equiv="Content-Security-Policy" content="${policy}">`);
-replaceOnce('index.html',
-  'window.__ERR_HOOK = "https://discord.com/api/webhooks/1553556609853165587/S1nd5bv2-4Qv3CPEfHq1TdzxxaYDi2-14obt-ok2oxm476D7vxPPdTXK-IlWzqpgVpxQ";',
-  'window.__ERR_HOOK = "";');
+{
+  const target = path.join(out, 'index.html');
+  const text = fs.readFileSync(target, 'utf8');
+  const assignment = /window\.__ERR_HOOK\s*=\s*"(?:[^"\\]|\\.)*"\s*;/g;
+  const matches = [...text.matchAll(assignment)];
+  if (matches.length !== 1) throw new Error('Unexpected error-hook assignment count for preview replacement');
+  fs.writeFileSync(target, text.replace(assignment, 'window.__ERR_HOOK = "";'));
+}
 replaceOnce('index.html',
   'if ("serviceWorker" in navigator && location.protocol === "https:" && !qs.has("shot")) navigator.serviceWorker.register("sw.js").catch(() => {});',
   '// The disposable preview does not install a persistent service worker.');

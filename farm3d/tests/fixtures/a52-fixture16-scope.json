@@ -1,0 +1,32 @@
+{
+  "files": {
+    "farm3d/firebase/tests/manual-restore.browser.cjs": {
+      "beforeSha256": "71a23d7afc3f49ca3d0921d77f74cfe2029585db4a31321758a9d361c330233f",
+      "afterSha256": "4c2d09f1a285d157baf10a3d5f698ca812a543176d4551eb87f95ccaf6172898",
+      "edits": [
+        {
+          "old": "now=>{Date.now=()=>now;}",
+          "new": "now=>{const RealDate=Date;function FixedDate(...args){if(new.target)return new RealDate(...(args.length?args:[now]));return new RealDate(now).toString();}Object.setPrototypeOf(FixedDate,RealDate);FixedDate.prototype=RealDate.prototype;FixedDate.now=()=>now;globalThis.Date=FixedDate;}"
+        }
+      ]
+    },
+    "farm3d/firebase/tests/flows.browser.cjs": {
+      "beforeSha256": "443eea19489210658b88af6993393ce3d93cceb928aa2aa0613478040f77156b",
+      "afterSha256": "0244c7cdff31d6f9d561fad064c9993db98bdb834aab2fae750f382a5858ba57",
+      "edits": [
+        {
+          "old": "const farmer = await (__fbDetail.mark(151),phone)('farmer');",
+          "new": "const farmer = await (__fbDetail.mark(151),phone)('farmer');\n    await farmer.context.addInitScript(() => { let online=true;Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>online});addEventListener('offline',()=>{online=false;},true);addEventListener('online',()=>{online=true;},true); });"
+        },
+        {
+          "old": "await farmer.context[(__fbDetail.mark(180),'setOffline')](true);",
+          "new": "await farmer.context[(__fbDetail.mark(180),'setOffline')](true);\n      if(!await farmer.page.evaluate(offline => {const expected=!offline;if(navigator.onLine!==expected)dispatchEvent(new Event(offline?'offline':'online'));return navigator.onLine===expected;},true))throw Error('Emulated connectivity state mismatch');"
+        },
+        {
+          "old": "await farmer.context[(__fbDetail.mark(188),'setOffline')](false);",
+          "new": "await farmer.context[(__fbDetail.mark(188),'setOffline')](false);\n      if(!await farmer.page.evaluate(offline => {const expected=!offline;if(navigator.onLine!==expected)dispatchEvent(new Event(offline?'offline':'online'));return navigator.onLine===expected;},false))throw Error('Emulated connectivity state mismatch');"
+        }
+      ]
+    }
+  }
+}

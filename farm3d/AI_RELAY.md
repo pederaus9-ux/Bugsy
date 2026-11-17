@@ -1,5 +1,24 @@
 # Sunny Acres AI Relay Protocol
 
+## Current A52 protected qualification preparation, 2026-11-17
+
+Austin reaffirmed merging the accepted two-corner UI when required qualification and tool approvals pass, without another routine confirmation. Main remains `38fa4706e41c40197b7afc32de693cb3901a80fb`. No production merge or deployment has occurred.
+
+The earlier cloud socket failure was technical; the original no-egress helper still fails closed on this cloud. A separate inert Ubuntu 22.04 hosted probe at `f21ebdcfc412892781cbb94468e8d3420cc92c5d`, run `44005121306`, verified both namespace and restricted capability stages. This permits the reviewed hosted route, not an escalation or unguarded local fallback.
+
+The first real A52 run is prepared on exact push branch `codex/a52-two-corner-ui-20261117` only, via `a52-protected-qualification.yml`. Do not open a PR yet. Every actual test invocation re-verifies isolation; trusted dependency preparation is separate. Only finite receipts and successful synthetic menu PNGs may be exported, never raw traces, logs, historical endpoint preimages or saves.
+
+Prepared supplemental checks cover four native menu viewports and main-v85 to candidate-v93 installed guest update/offline preservation. They are not yet executed. The six ordinary workflows have command/output accounting, but Jekyll containment, emulator bootstrap and quality summary export remain incomplete. The old held launcher, PC and original qualification tree stay untouched. Existing reservations and the narrow runtime scope remain unchanged.
+
+
+## Current A52 production UI preparation, 2026-11-17
+
+Main verified at `38fa4706e41c40197b7afc32de693cb3901a80fb`. Austin accepted the two-corner private preview and requested merging. This isolated A52 / `sa3d-v93` source candidate ports only its UI to main, with the previously authorized reporting-disablement security prerequisite. The private preview memory-storage/account/network adapter and all A50 animal-worker changes are excluded.
+
+Existing registry entries and private A50/v89, v90, A51/v91 and A47-forward/v92 reservations remain intact. No commit, push, PR, merge or deployment has occurred. Prior publication/browser/isolation denials remain in force. Do not blanket-stage this deliberately incomplete checkout: 115 held historical paths are not deletions. Never publish endpoint preimages or raw historical diagnostics.
+
+Node and HUD-fixture evidence does not establish production game/save/offline or Jekyll/hosted acceptance. Complete exact-head release gates before merging. The old held launcher must not run.
+
 ## Authorized horse timeout draft candidate - 2026-11-08
 
 Current base main: `15e2325fe90fc8ac332460ef60d3dca33ef050d8`, merged PR #112.

@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('farmer-depth');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts}=require('./browser-harness.cjs');
 (async()=>{const h=await start();let failed=true;

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "amendment": "A52",
+  "cache": "sa3d-v93",
+  "baseCommit": "38fa4706e41c40197b7afc32de693cb3901a80fb",
+  "baseTree": "2e780e3a8691920e7e1571f0c54ef3f12ffe8537",
+  "authority": "Coordinator assignment from root, 2026-11-17; Austin approved the two-corner UI and requested merge, subject to release gates and retained denials.",
+  "scope": "Narrow main-based UI, with previously authorized reporting disablement as a security prerequisite. No A50 workers or preview isolation adapters.",
+  "approvedPreviewCommit": "48ccf25ee1b6751fed95e7ba46a353ac5421f106",
+  "heldHistoryPaths": 115,
+  "files": {
+    "_config.yml": {
+      "beforeSha256": "5158c66b7b94a8db2c974fedd89675a180366b6d6f6d8b4533044f987143af21",
+      "afterSha256": "8929ab042f6bf7c51b439f124fc6f0b2c718e63b77d69d6c5abbb33acd7a288c",
+      "hunks": [
+        {
+          "before": "# Preserve Jekyll/Pages defaults; evidence remains in Git, outside the website.\nexclude:\n  - Gemfile\n  - Gemfile.lock\n  - node_modules\n  - vendor/bundle/\n  - vendor/cache/\n  - vendor/gems/\n  - vendor/ruby/\n  - CNAME\n  - farm3d/tests/evidence\n",
+          "after": "# Preserve Jekyll/Pages defaults; evidence remains in Git, outside the website.\nexclude:\n  - Gemfile\n  - Gemfile.lock\n  - node_modules\n  - vendor/bundle/\n  - vendor/cache/\n  - vendor/gems/\n  - vendor/ruby/\n  - CNAME\n  - farm3d/tests/evidence\n  - farm3d/tests/fixtures/cache-source-snapshots\n"
+        }
+      ]
+    },
+    "farm3d/index.html": {
+      "beforeSha256": "fe9871d6f1d0ec16cb9518ab0321e8e8a70dad87eaa31598c626e952c64e9fb2",
+      "afterSha256": "40a2bbcef45e5a29f463768937ef849a8aff53075d7820fba613d5064e5a294c",
+      "hunks": [
+        {
+          "beforeFromGit": {
+            "file": "index.html",
+            "start": 47437,
+            "end": 49751
+          },
+          "after": "  // Remote error reporting is unavailable until a secure reporting service is configured.\n  // Keep the compatibility callback and local startup/error UI without sending reports.\n  function report(msg, where, stack, kind) {}\n",
+          "beforeSha256": "5edc80bbd521b58a9c75d36af08ee83bed02b6ff0d7bd94e8d261bd5b5ae6c13"
+        },
+        {
+          "beforeFromGit": {
+            "file": "index.html",
+            "start": 49781,
+            "end": 49925
+          },
+          "after": "window.__ERR_HOOK = \"\";",
+          "beforeSha256": "454f0dbca5de5cf2aff79bb89027b2cf2af88c56f852c4d7f8a02b37776db7dc"
+        },
+        {
+          "before": "<p class=\"tray-sub\">Found a bug or have an idea? Tell us!</p>",
+          "after": "<p class=\"tray-sub\">Feedback is temporarily unavailable. Messages cannot be sent right now.</p>",
+          "beforeSha256": "a8f91446a88525eb36c3b4a21e7ab8705a51591e5be8eebe5fe999570e8a66dc"
+        },
+        {
+          "before": "<textarea id=\"fbText\" maxlength=\"1000\" rows=\"4\" placeholder=\"Type your message\u2026\" required></textarea>",
+          "after": "<textarea id=\"fbText\" maxlength=\"1000\" rows=\"4\" placeholder=\"Feedback is temporarily unavailable\" disabled></textarea>",
+          "beforeSha256": "56a27fa17d130021370ccb31087b25370526bbab26ab507116dbe9d58c2f00d6"
+        },
+        {
+          "before": "<div class=\"row\"><small id=\"fbCount\">0 / 1000</small><button type=\"submit\" class=\"btn sm\" id=\"fbSend\">Send \ud83d\udc8c</button></div>",
+          "after": "<div class=\"row\"><small id=\"fbCount\">Not sent</small><button type=\"submit\" class=\"btn sm\" id=\"fbSend\" disabled>Unavailable</button></div>",
+          "beforeSha256": "4fc8dce9e9bd2fa0025cafefd72a550b66ca79d1a6d465c48be6073d0299b15e"
+        },
+        {
+          "beforeFromGit": {
+            "file": "index.html",
+            "start": 229073,
+            "end": 231702
+          },
+          "after": "// ---------- feedback: temporarily unavailable pending a secure reporting service ----------\nconst fbBox = document.getElementById(\"fbBox\"), fbText = document.getElementById(\"fbText\"), fbSend = document.getElementById(\"fbSend\"), fbCount = document.getElementById(\"fbCount\");\nfunction openFeedback(on) { G.close(); closeTrays(); fbBox.hidden = !on; if (on) { fbBox.querySelector('[data-fb=\"close\"]').focus(); } }\ndocument.getElementById(\"feedbackBtn\").addEventListener(\"click\", () => openFeedback(true));\nfbBox.addEventListener(\"click\", (e) => { if (e.target.closest('[data-fb=\"close\"]')) openFeedback(false); });\nfbBox.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  G.toast(\"Feedback is temporarily unavailable. Your message was not sent.\");\n});\n",
+          "beforeSha256": "bf031e872e089ddd8615727e71fdec12f7d179d41c506293d83231297052cfd8"
+        },
+        {
+          "before": "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap\">",
+          "after": "<link rel=\"stylesheet\" href=\"sunny-ui.css?v=1\">\n<link rel=\"stylesheet\" href=\"compact-ui.css?v=1\">\n<script type=\"module\" src=\"corner-menu.js?v=1\"></script>"
+        },
+        {
+          "before": "  <button id=\"feedbackBtn\" aria-label=\"Send feedback\">\ud83d\udcac</button>\n",
+          "after": ""
+        },
+        {
+          "before": "document.getElementById(\"feedbackBtn\").addEventListener(\"click\", () => openFeedback(true));\n",
+          "after": ""
+        },
+        {
+          "before": "const el = document.querySelector(to === \"coin\" ? \".money .cnt\" : '.dock [data-p=\"barn\"]');",
+          "after": "const el = document.querySelector(to === \"coin\" ? \".money .cnt\" : '.dock > .preview-launcher, .dock [data-p=\"barn\"]');"
+        },
+        {
+          "before": "else if (t.startsWith(\"btn:\")) { const b = document.querySelector(`.dock [data-p=\"${t.slice(4)}\"]`); if (b) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }",
+          "after": "else if (t.startsWith(\"btn:\")) { let b = document.querySelector(`.dock [data-p=\"${t.slice(4)}\"]`); if (b && !b.getClientRects().length) b = document.querySelector(\".dock > .preview-launcher\"); if (b && b.getClientRects().length) { const r = b.getBoundingClientRect(); s = {x:r.left + r.width / 2, y:r.top - 4}; } }"
+        }
+      ]
+    },
+    "farm3d/sw.js": {
+      "beforeSha256": "aad58c7e86bee59ae0423a85d1d1cacac9eaa8f55f6bdfb769ff4a6f2945a8d7",
+      "afterSha256": "647dad41cd19a91e33ad3efe64cc6fc4a63ec193568616d3fa648c1f7ddb441e",
+      "hunks": [
+        {
+          "before": "const CACHE = \"sa3d-v85\";",
+          "after": "const CACHE = \"sa3d-v93\";"
+        },
+        {
+          "before": "const SHELL = [",
+          "after": "const SHELL = [\"sunny-ui.css?v=1\", \"compact-ui.css?v=1\", \"corner-menu.js?v=1\", "
+        }
+      ]
+    },
+    "farm3d/tools/build-safe-test-preview.cjs": {
+      "beforeSha256": "b859c771f9890e343dd6c1417a5924f27f5060207abd961e61b86a0b1a754971",
+      "afterSha256": "665cdae77cc2a6b1c88bff1fed6cf540ed99f0005c11d3352343c50acd478488",
+      "hunks": [
+        {
+          "beforeAssignmentFromGit": {
+            "file": "index.html",
+            "prefix": "replaceOnce('index.html',\n  '",
+            "suffix": "',\n  'window.__ERR_HOOK = \"\";');\n"
+          },
+          "beforeSha256": "6c21fcfb776775238e7781c19881d1996385fed0cb856eb5fe9cc409444ad0e9",
+          "after": "{\n  const target = path.join(out, 'index.html');\n  const text = fs.readFileSync(target, 'utf8');\n  const assignment = /window\\.__ERR_HOOK\\s*=\\s*\"(?:[^\"\\\\]|\\\\.)*\"\\s*;/g;\n  const matches = [...text.matchAll(assignment)];\n  if (matches.length !== 1) throw new Error('Unexpected error-hook assignment count for preview replacement');\n  fs.writeFileSync(target, text.replace(assignment, 'window.__ERR_HOOK = \"\";'));\n}\n"
+        }
+      ]
+    },
+    "farm3d/OWNER.lock": {
+      "beforeSha256": "4b6b3ccd8fc743dfee579f169b54169b45ab39d72fefb1f56b2043785021f564",
+      "afterSha256": "2c3bbb476e51909f1e4aeab640e8864b36d274465475bbf79edc276349e08ac1",
+      "kind": "coordination-only additive current checkpoint"
+    },
+    "farm3d/AI_RELAY_STATE.json": {
+      "beforeSha256": "98019176e4a0df2554f11efdc01d510683393ccff8279058de40cd1849d78fe6",
+      "afterSha256": "228c8c93323138a97571807c2d063a9438774e0cc069ed414fdeb1a8cb02e3f7",
+      "kind": "coordination-only additive current checkpoint"
+    },
+    "farm3d/AI_RELAY.md": {
+      "beforeSha256": "16b77a7535d45ed8f9af9fa7c655fcb6c663dd19adef7b5d222e4788db84d869",
+      "afterSha256": "88b03df537fc4beadacf592cfe27ebdc60dc273a962ccd0f43e227fdd905dd6a",
+      "kind": "coordination-only additive current checkpoint"
+    }
+  },
+  "assets": {
+    "farm3d/sunny-ui.css": "86a319b584c6d77d1ce6f2fc1eee9a3a5cd68719e22cbbc7235105cf5b3ba1d5",
+    "farm3d/compact-ui.css": "ebe61927ca68b945e6c77706aebce22b0b456c37439a9503514bc0d0c14d0463",
+    "farm3d/corner-menu.js": "4b28baecb42d6a2f42bae6dd4b4eb6915f7c5e774302ad654beb80a5f0972e1c"
+  },
+  "securityPreimages": "Only immutable Git reference/UTF-16 slice descriptors and hashes; never endpoint strings.",
+  "productionOnlyCorrection": "Tutorial arrow targets the visible right launcher while Barn/Shop is collapsed; original progression and game.js unchanged. Two failures reproduced before correction."
+}

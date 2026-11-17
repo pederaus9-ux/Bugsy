@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Full-capacity disposable guest farms; native touch operates the actual UI.
 // Camera placement and accelerated time are fixtures, not simulated phone results.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
@@ -23,7 +24,7 @@ let h,page,failed=true,stage='launch';save();
   await page.waitForFunction(()=>__dbg.animals.filter(a=>a.kind==='chicken'&&a.g.visible&&a.rig3d).length===30);
   await overview(page);const confinement=await page.evaluate(()=>{const d=__dbg,list=d.animals.filter(a=>a.kind==='chicken'),pen=d.PEN_LIST.find(p=>p.kinds.includes('chicken'));return {birds:list.length,outside:list.filter(a=>!d.inPen(pen,a.g.position.x,a.g.position.z,-.01)).map(a=>a.name),names:new Set(list.map(a=>a.name)).size};});assert.deepEqual(confinement,{birds:30,outside:[],names:30});pass(width+' all30 actual birds visible and confined',confinement);
   await photo(page,'full-flock-noon-'+width);receipt.resources[width]=await resources(page);save();
-  await page.locator('#walkBtn').tap();await page.waitForFunction(()=>!!__dbg.walk);
+  await revealCornerAction(page,'#walkBtn','tap');await page.locator('#walkBtn').tap();await page.waitForFunction(()=>!!__dbg.walk);
   for(const name of ['feed','water']){stage=width+' full-flock '+name;await station(page,name);await page.locator('#actBtn').tap();await page.waitForSelector('#chicken-fill');if(name==='feed')assert.match(await page.locator('#chicken-fill').innerText(),/30 chicken feed/);await page.locator('#chicken-fill').tap();await page.waitForFunction(()=>document.getElementById('infoTray').hidden);}
   assert.equal(await page.evaluate(()=>__dbg.G.have('chicken_feed')),30);pass(width+' actual station taps supply all30 for12 hours');
   await page.evaluate(()=>{window.__flockOffset=3_600_000;__dbg.G.save();__dbg.syncChickenYard();});assert.equal(await page.evaluate(()=>__dbg.G.getChickenCareStatus().total),60);

@@ -1,0 +1,11 @@
+{
+  "path": "farm3d/tests/analytics.browser.cjs",
+  "sourceSha256": "b11c7337a3c4fa25e8984b02031aa024830a299abe17fb0bb46180f6d6055a27",
+  "postimageSha256": "462ca8b30f3be6ce17aaa262f64a87c57ad089d34b00af49cc64688559bff536",
+  "edits": [
+    {
+      "old": "__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));",
+      "new": "// This mocked online-report scenario does not test host internet detection.\n   // Network namespace, deny proxy and request routes remain unchanged.\n   if(!sandbox)await p.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>true}));\n__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));"
+    }
+  ]
+}

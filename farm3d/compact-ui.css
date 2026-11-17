@@ -1,0 +1,150 @@
+/* Private-preview mobile fit pass, 2026-11-17.
+   Additive presentation only: original glass skin, controls and game logic stay intact. */
+@media (max-width: 600px), (orientation: landscape) and (max-height: 560px) {
+  .hud { gap: 6px; padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 8px) 0 calc(var(--safe-left) + 8px); }
+  .lvlbox { flex: none; gap: 4px; padding: 3px 7px 3px 3px; border-radius: 14px; }
+  .star { width: 32px; height: 32px; }
+  .star b { font-size: 14px; padding-top: 1px; }
+  .xpbar { width: 64px; height: 18px; border-radius: 6px; }
+  .xpbar span { font-size: 10px; }
+  .money { gap: 4px; max-width: calc(100% - 120px); }
+  .cnt { min-width: 66px; height: 32px; gap: 4px; padding: 0 7px; border-radius: 12px; }
+  .cnt .ic { font-size: 18px; }
+  .cnt b { font-size: 13px; }
+  .chips { left: calc(var(--safe-left) + 8px); top: calc(var(--safe-top) + 56px); gap: 4px; max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px); }
+  .chip { min-height: 44px; padding: 4px 8px; gap: 4px; border-radius: 12px; font-size: 11px; }
+  .chip .e { font-size: 17px; }
+  .chip small { font-size: 10px; }
+  .side, .dock { padding: 4px; gap: 4px; border-radius: 14px; bottom: calc(var(--safe-bottom) + 8px); }
+  .side { left: calc(var(--safe-left) + 8px); display: grid; grid-auto-flow: row; grid-template-columns: repeat(2, 44px); grid-template-rows: none; grid-auto-rows: 44px; }
+  .side button { width: 44px; height: 44px; font-size: 20px; border-radius: 11px; }
+  .dock { right: calc(var(--safe-right) + 8px); display: grid; grid-template-columns: repeat(2, 48px); }
+  .dock button { width: 48px; height: 52px; font-size: 22px; padding-bottom: 14px; border-radius: 11px; transform: none; }
+  .dock .l { bottom: 5px; font-size: 10px; }
+  .badge { top: -4px; right: -4px; min-width: 18px; height: 18px; font-size: 10px; padding: 0 4px; }
+  .testbadge { width: max-content; max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 24px); bottom: calc(var(--safe-bottom) + 136px); padding: 3px 8px; font-size: 10px; line-height: 1.3; text-align: center; }
+  .scrim { padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 8px) calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 8px); }
+  .panel { max-height: 100%; border-radius: 16px; }
+  .ribbon { min-height: 52px; padding: 15px 58px 12px 12px; border-radius: 15px 15px 0 0; font-size: 17px; }
+  .xbtn { top: 4px; right: 4px; }
+  .pbody { padding: 10px; min-height: 0; overflow: auto; }
+  .tray { border-radius: 14px; padding: 8px; }
+  .walkbtns { padding: 4px; gap: 4px; border-radius: 14px; }
+  .walkbtns button { width: 44px; height: 44px; }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .xpbar { width: 56px; }
+  body:has(#vcoinsBox:not([hidden])) .chips { top: calc(var(--safe-top) + 84px); }
+  .testbadge { top: calc(var(--safe-top) + 156px); bottom: auto; }
+  body:has(#vcoinsBox:not([hidden])) .testbadge { top: calc(var(--safe-top) + 184px); }
+  .tray, .guestbar { left: calc(var(--safe-left) + 8px); right: calc(var(--safe-right) + 8px); bottom: calc(var(--safe-bottom) + 216px); }
+  .tray { max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 280px); }
+  body:has(#verifiedBtn:not([hidden])) .tray,
+  body:has(#verifiedBtn:not([hidden])) .guestbar { bottom: calc(var(--safe-bottom) + 264px); }
+  body:has(#verifiedBtn:not([hidden])) .tray { max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 328px); }
+  .hint { bottom: calc(var(--safe-bottom) + 216px); padding: 0 16px; }
+  .walkhint { bottom: calc(var(--safe-bottom) + 158px); }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  /* Short landscape needs two low strips, not two tall blocks over the farm. */
+  .side { grid-template-columns: repeat(4, 44px); grid-template-rows: none; grid-auto-flow: row; }
+  .dock { grid-template-columns: repeat(4, 48px); }
+  .chips { flex-direction: row; align-items: flex-start; }
+  .chip { max-width: min(220px, calc(50vw - 24px)); }
+  .testbadge { top: calc(var(--safe-top) + 8px); bottom: auto; max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 350px); }
+  body:has(#vcoinsBox:not([hidden])) .testbadge { left: calc(var(--safe-left) + 128px); right: calc(var(--safe-right) + 240px); width: auto; max-width: none; transform: none; }
+  /* An open card gets readable width; close it to reveal the dock again. */
+  body:has(.tray:not([hidden]):not(.away)) .side,
+  body:has(.tray:not([hidden]):not(.away)) .dock,
+  body:has(.tray:not([hidden]):not(.away)) .chips { display: none; }
+  .tray { left: calc(var(--safe-left) + 8px); right: calc(var(--safe-right) + 8px); bottom: calc(var(--safe-bottom) + 8px); max-width: 520px; max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 72px); overflow-y: auto; }
+  .guestbar { left: calc(var(--safe-left) + 212px); right: calc(var(--safe-right) + 228px); bottom: calc(var(--safe-bottom) + 8px); max-width: none; }
+  .walkbtns { top: calc(var(--safe-top) + 48px); }
+  .walkhint { bottom: calc(var(--safe-bottom) + 8px); }
+}
+
+@media (orientation: landscape) and (max-height: 320px) {
+  /* The optional ninth action adds a column instead of growing into the HUD. */
+  .side:has(#verifiedBtn:not([hidden])) { grid-template-columns: repeat(5, 44px); }
+  body:has(#verifiedBtn:not([hidden])) .guestbar { left: calc(var(--safe-left) + 260px); }
+}
+
+/* Game-first corner menus. Only two light, comfortably tappable entries at rest. */
+.side[data-menu-ready], .dock[data-menu-ready], .walkbtns {
+  background: transparent; border: 0; box-shadow: none; padding: 0;
+}
+.side[data-menu-ready], .dock[data-menu-ready] { display: block; width: auto; height: auto; }
+body .side button.preview-launcher, body .dock button.preview-launcher {
+  width: 52px; height: 54px; padding: 3px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px; border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.62); background: rgba(247,252,255,.68) !important;
+  box-shadow: 0 2px 7px rgba(14,42,65,.13) !important; color: var(--ink); line-height: 1.1;
+}
+body .dock button.preview-launcher { width: 76px; }
+.preview-launch-icon { font-size: 23px; }
+.preview-launch-label { font: 750 10px/1.2 var(--body); white-space: nowrap; }
+.preview-menu-notice { position: absolute; top: -1px; right: 1px; width: 9px; height: 9px; border: 1px solid #fff; border-radius: 50%; background: #b9443a; }
+body .side button.preview-launcher:active, body .dock button.preview-launcher:active { background: rgba(220,239,250,.92) !important; }
+body .walkbtns button { background: rgba(247,252,255,.68) !important; border-color: rgba(255,255,255,.62); }
+
+.preview-menu {
+  position: fixed; inset: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px); margin: auto; width: min(480px, calc(100vw - var(--safe-left) - var(--safe-right) - 24px));
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px); padding: 10px;
+  border: 1px solid rgba(255,255,255,.9); border-radius: 20px; color: var(--ink);
+  background: rgba(243,249,250,.97); box-shadow: 0 12px 42px rgba(14,42,40,.22);
+  overflow: hidden; font-family: var(--body);
+}
+.preview-menu[open] { display: flex; flex-direction: column; gap: 6px; }
+.preview-menu:not([open]) { display: none; }
+.preview-menu::backdrop { background: rgba(12,32,28,.18); }
+.preview-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; flex: none; }
+.preview-menu-head h2 { font: 750 18px/1.15 var(--body); margin: 0 0 0 6px; }
+body .preview-menu .preview-menu-close { position: static; width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 12px; border: 1px solid #c9dce0; font-size: 19px; background: #e3edf0 !important; box-shadow: none !important; }
+.preview-menu-groups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; overflow: auto; min-height: 0; padding: 2px; overscroll-behavior: contain; }
+.preview-menu-groups.single { grid-template-columns: 1fr; }
+.preview-menu-groups h3 { font: 700 11px/1.2 var(--body); text-transform: uppercase; letter-spacing: .07em; color: #486660; margin: 0 0 6px 4px; }
+.preview-menu-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+body .preview-menu .preview-menu-actions button {
+  position: relative; width: 100%; height: 56px; min-width: 44px; min-height: 44px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 5px 3px; border: 1px solid #d1e0e2; border-radius: 12px; font-size: 22px; line-height: 1;
+  color: var(--ink); background: rgba(255,255,255,.7) !important; box-shadow: none !important;
+}
+.preview-menu .preview-menu-actions button::after { content: attr(data-menu-label); font: 750 11px/1.15 var(--body); }
+.preview-menu .l { display: none; }
+.preview-menu .preview-menu-actions button[hidden] { display: none !important; }
+body .preview-menu .preview-menu-actions button:active { background: #cee9dd !important; }
+.preview-menu button:focus-visible, .preview-launcher:focus-visible { outline: 3px solid #07558e; outline-offset: 2px; }
+@media (orientation: landscape) and (max-height: 320px) {
+  .preview-menu { padding: 6px 10px; border-radius: 16px; }
+  .preview-menu[open] { gap: 4px; }
+  .preview-menu .preview-menu-actions button { height: 52px; }
+  .preview-menu-groups.single .preview-menu-actions { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  body .side button.preview-launcher, body .dock button.preview-launcher, body .walkbtns button { background: #f1f7fc !important; border-color: #7198b4; }
+  .preview-menu { background: #f1f7fc; }
+}
+@media (forced-colors: active) {
+  body .side button.preview-launcher, body .dock button.preview-launcher,
+  body .preview-menu .preview-menu-actions button, body .preview-menu .preview-menu-close,
+  .preview-menu { background: Canvas !important; color: CanvasText; border-color: ButtonText; box-shadow: none !important; }
+  .preview-menu button:focus-visible, .preview-launcher:focus-visible { outline-color: Highlight; }
+}
+
+/* Edit mode keeps every original action reachable on narrow phones. */
+#editBar button { min-width: 44px; min-height: 44px; }
+@media (max-width: 600px) {
+  #editBar {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+    width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
+    max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
+    left: calc(var(--safe-left) + 8px); transform: none; padding: 6px;
+    bottom: calc(var(--safe-bottom) + 8px); white-space: normal;
+  }
+  #editBar > span, #editBar > small { min-width: 0; white-space: normal; }
+  #editBar button { width: 100%; min-width: 44px; padding: 6px; white-space: normal; }
+  #editBar [data-mode="edit"] { grid-column: 1 / -1; }
+}

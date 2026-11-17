@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Opt-in local benchmark. Instrument a served copy; production game code stays unchanged.
 // Desktop GPU measurements do not establish phone thermals or physical acceptance.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
@@ -16,7 +17,7 @@ inject('if (photoWant) takePhoto();','if (photoWant) takePhoto(); window.__bench
 const server=http.createServer((req,res)=>{
  const name=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=path.resolve(root,'.'+name+(name.endsWith('/')?'index.html':''));
  if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}
- res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('.js')?'text/javascript':file.endsWith('.png')?'image/png':file.endsWith('.jpg')?'image/jpeg':'application/octet-stream');
+ res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':file.endsWith('.png')?'image/png':file.endsWith('.jpg')?'image/jpeg':'application/octet-stream');
  res.end(file===path.join(root,'farm3d/index.html')?instrumented:fs.readFileSync(file));
 });
 function installProbe(){
@@ -71,7 +72,7 @@ function stats(a){const sorted=[...a].sort((x,y)=>x-y);return {n:a.length,median
     results.scenarios.push(summary);console.log('MEASURE',label,JSON.stringify(summary.stats));fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(results,null,2));
    }
    for(const mode of ['classic','walk']){
-    if(mode==='walk'){await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);}
+    if(mode==='walk'){await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);}
     for(const preset of ['noon','golden','rain','snow','night']){await page.evaluate(p=>__dbg.setPreset(p),preset);await measure(mode+'-'+preset);}
    }
    await page.evaluate(()=>{__dbg.setPreset('noon');__dbg.walk.pos.set(-1.4,22);__dbg.walk.vel.set(0,0);__dbg.walk.yaw=0;});

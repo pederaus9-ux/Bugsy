@@ -6,6 +6,7 @@ import {dirname} from 'node:path';
 
 const cwd=dirname(fileURLToPath(import.meta.url));
 const nodeFiles=[
+ 'a52-scope.test.cjs','a52-corner-menu.test.mjs','a52-tutorial-pointer.test.mjs','a52-browser-navigation.test.cjs','a52-browser-journey-scope.test.cjs',
  'auth-upload-race.test.mjs',
  'restore-recovery.test.mjs','restore-recovery-scope.test.mjs',
  'animal-pen-placement.test.mjs','animal-pen-placement-controller.test.mjs','animal-pen-placement-preview.test.mjs',
@@ -28,7 +29,11 @@ const nodeFiles=[
  'versions.test.mjs','animal-modules.test.mjs','horse-c1-baseline.test.mjs',
  'horse-rebuild.test.mjs','horse-r2-anatomy.test.mjs','horse-evidence-placement.test.mjs','horse-stance-core.test.mjs','horse-locomotion-contract.test.mjs','horse-contact-feasibility.test.mjs','horse-motion-evidence.test.mjs','sheep3d.test.mjs','dog-face.test.mjs','dog-stop-continuity.test.mjs','dog-evidence-placement.test.mjs','cat-visual.test.mjs','cat-stop-continuity.test.mjs','cat-evidence-placement.test.mjs','chicken-coordinated-motion.test.mjs','chicken-start-turn.test.mjs','chicken-stop-continuity.test.mjs','chicken-evidence-placement.test.mjs','live3d.test.mjs','farmer3d.test.mjs',
  'animal-visual.test.mjs','features.test.mjs','sdk.test.mjs','scene-polish.test.mjs',
- 'asset-policy.test.mjs','ambient-render-observation.test.mjs'
+ 'asset-policy.test.mjs','ambient-render-observation.test.mjs',
+ // Supplemental A52 inert regression controls only.
+ 'a52-art-capture-scope.test.cjs','a52-ci-evidence.test.cjs','a52-ci-workflows.test.cjs','a52-diagnostics-scope.test.cjs','a52-emulator-bootstrap-scope.test.cjs','a52-emulator-bootstrap.test.cjs','a52-installed-counter-scope.test.cjs','a52-installed-probe-scope.test.cjs','a52-installed-ui-cache-scope.test.cjs','a52-jekyll-build.test.cjs','a52-jekyll-workflow-scope.test.cjs','a52-native-keyboard-diagnostics.test.cjs','a52-playwright-diagnostics.test.mjs','a52-qualification-diagnostics.test.mjs','a52-quality-projection.test.cjs','a52-quality-workflow-scope.test.cjs','a52-regression-registration.test.cjs','ci-isolated-runner.test.cjs','a52-workflow-receipts.test.cjs','a52-corner-focus.test.mjs','a52-installed-response-probe.test.cjs',
+ 'a52-offline-observation.test.cjs',
+ 'a52-offline-transport.test.cjs','a52-native-hit.test.cjs','a52-offline-console.test.cjs','a52-native-event-setup.test.cjs','a52-mode-diagnostics.test.cjs','a52-editbar-layout.test.cjs','a52-cache-progress.test.cjs','a52-authanalytics-progress.test.cjs','a52-character-script-events.test.cjs','a52-ordinary-diagnostics-scope.test.cjs','a52-firebase-script-events.test.cjs','a52-analytics-report-diagnostics.test.cjs','a52-walk-phase.test.cjs','a52-release-companion.test.cjs','a52-analytics-prerequisites.test.cjs','a52-pen-report.test.cjs','a52-diagnostic14-scope.test.cjs','a52-firebase-detail.test.cjs','a52-analytics-online.test.cjs','a52-walk-mismatch.test.cjs','a52-manual-detail.test.cjs','a52-diagnostic15-scope.test.cjs','a52-manual-clock.test.cjs','a52-firebase-online.test.cjs','a52-fixture16-scope.test.cjs'
 ];
 const browserFiles=['regression.browser.cjs','shed-switch.browser.cjs','cow3d.browser.cjs','cow-anatomy.browser.cjs','settings-motion.browser.cjs'];
 const group=process.env.FARM3D_CORE_GROUP||'all';

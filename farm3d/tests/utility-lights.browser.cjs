@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 // Actual synthetic game journeys and framebuffer evidence; no owner accounts or saves.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
@@ -22,7 +23,7 @@ let h,failed=true;save();
   const source=fs.readFileSync(path.join(root,'farm3d/index.html'),'utf8');assert.equal(source.split('function frame() {').length,2);
   await p.route('**/farm3d/?*',r=>r.fulfill({contentType:'text/html',body:source.replace('function frame() {','function frame() { if(window.__utilityCaptureHold){requestAnimationFrame(frame);return;}')}));
   await boot(p,h.base);const baselineLights=await p.evaluate(()=>__dbg.scene.children.filter(o=>o.isPointLight).length);
-  await press(p,'[data-p="decor"]',touch);await press(p,'[data-act="buyDecor"][data-id="utilitylamp"]',touch);await p.waitForFunction(()=>!!__dbg.moving);assert.equal(await p.evaluate(()=>__dbg.G.S.coins),750);await view(p);
+  await revealCornerAction(p,'[data-p="decor"]',touch?'tap':'click');await press(p,'[data-p="decor"]',touch);await press(p,'[data-act="buyDecor"][data-id="utilitylamp"]',touch);await p.waitForFunction(()=>!!__dbg.moving);assert.equal(await p.evaluate(()=>__dbg.G.S.coins),750);await view(p);
   const start=await p.evaluate(()=>({x:__dbg.moving.x,z:__dbg.moving.z}));
   const dragDestination=await p.evaluate(async({x,y})=>{const d=__dbg,T=await import('./lib/three.module.min.js'),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2(x/innerWidth*2-1,1-y/innerHeight*2),d.camera);const hit=ray.intersectObject(d.ground)[0],j=d.moving.j,size=d.G.DECOR[d.G.S.decor.placed[j].id].size||1;return hit?{x:hit.point.x,z:hit.point.z,valid:d.spotFree(hit.point.x,hit.point.z,size,j),path:d.dairyPath?.contains(hit.point.x,hit.point.z,size===2?1.2:.6)}:{valid:false,reason:'no ground hit'};},{x:width*.55,y:height*.6});
   assert(dragDestination.valid,'native drag fixture destination must be free: '+JSON.stringify(dragDestination));
@@ -65,14 +66,14 @@ let h,failed=true;save();
   await p.waitForFunction(()=>{const r=window.__utilityRegistration;return !!(r?.active?.state==='activated'&&!r.installing&&!r.waiting&&navigator.serviceWorker.controller===r.active);},null,{timeout:90000});assert(await p.evaluate(()=>caches.has('sa3d-v51')));pass('actual predecessor51 controls the old paid farm',old);
   h.serveRef(null);const transition=await updateWorker(p);assert(transition.requestedWorkerControls);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),36);assert.deepEqual(await state(p),old);
   await view(p); // Purchase in the same unobstructed west meadow after reload.
-  await press(p,'[data-p="decor"]',true);await press(p,'[data-act="buyDecor"][data-id="utilitylamp"]',true);await p.waitForFunction(()=>!!__dbg.moving);await press(p,'#moveBar [data-m="done"]',true);await p.evaluate(()=>{__dbg.G.S.decor.placed[0].rotation=.57;__dbg.G.save();});const purchased=await state(p);
+  await revealCornerAction(p,'[data-p="decor"]','tap');await press(p,'[data-p="decor"]',true);await press(p,'[data-act="buyDecor"][data-id="utilitylamp"]',true);await p.waitForFunction(()=>!!__dbg.moving);await press(p,'#moveBar [data-m="done"]',true);await p.evaluate(()=>{__dbg.G.S.decor.placed[0].rotation=.57;__dbg.G.save();});const purchased=await state(p);
   const purchasedRaw=await p.evaluate(()=>localStorage.getItem(__dbg.G.SAVE_KEY));assert.equal(JSON.parse(purchasedRaw).v,2);
   h.serveRef(BASE,{keepCurrentWorker:true});await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),28);
   const blocked=await p.evaluate(()=>{const G=__dbg.G;G.S.coins+=1;return {saved:G.save(),raw:localStorage.getItem(G.SAVE_KEY)};});assert.equal(blocked.saved,false);assert.equal(blocked.raw,purchasedRaw);
   h.serveRef(null);await p.reload();await ready(p);assert.equal(await p.evaluate(()=>window.__gameVer),36);assert.deepEqual(await state(p),purchased);
   pass('older cached28 cannot overwrite paid lamp; current writer recovers exact farm',{oldWriteBlocked:true,rawUnchanged:true,version:2});
 
-  const hashes=await p.evaluate(async()=>{const c=await caches.open('sa3d-v85'),out={};for(const file of ['utility-lights.js?v=1','game.js?v=36']){const r=await c.match(new URL(file,location.href));if(!r)throw Error('offline module missing '+file);out[file]=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),n=>n.toString(16).padStart(2,'0')).join('');}return out;});for(const [file,hash]of Object.entries(hashes))assert.equal(hash,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'farm3d',file.split('?')[0]))).digest('hex'));
+  const hashes=await p.evaluate(async()=>{const c=await caches.open('sa3d-v93'),out={};for(const file of ['utility-lights.js?v=1','game.js?v=36']){const r=await c.match(new URL(file,location.href));if(!r)throw Error('offline module missing '+file);out[file]=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),n=>n.toString(16).padStart(2,'0')).join('');}return out;});for(const [file,hash]of Object.entries(hashes))assert.equal(hash,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'farm3d',file.split('?')[0]))).digest('hex'));
   await s.context.setOffline(true);await p.reload();await ready(p);assert.deepEqual(await state(p),purchased);await view(p);const offline=await p.evaluate(()=>({controller:!!navigator.serviceWorker.controller,active:__dbg.utilityLights.lights.filter(l=>l.intensity>0).length,rotation:__dbg.decorObjs[0].rotation.y,coins:__dbg.G.S.coins}));assert.deepEqual(offline,{controller:true,active:1,rotation:.57,coins:750});await photo(p,'offline-night-844');pass('actual51to52 requested-worker update preserves legacy farm and purchased light offline',{transition,hashes,purchased,offline});assert.deepEqual(s.errors,[]);await s.finish();
  }
  failed=false;result.status='PASS';save();

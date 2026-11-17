@@ -1,3 +1,4 @@
+require('../../tests/helpers/a52-firebase-script-events.cjs').observe('recovery');
 // Phase 7H recovery invariant, against the Firestore + Auth emulators with the real game code (game.js, auth.js):
 //
 //   A damaged/unreadable save on the phone must NEVER overwrite a known-good cloud save.

@@ -1,0 +1,324 @@
+{
+  "files": {
+    "farm3d/tests/analytics.browser.cjs": {
+      "beforeSha256": "b11c7337a3c4fa25e8984b02031aa024830a299abe17fb0bb46180f6d6055a27",
+      "afterSha256": "462ca8b30f3be6ce17aaa262f64a87c57ad089d34b00af49cc64688559bff536",
+      "edits": [
+        {
+          "old": "__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));",
+          "new": "// This mocked online-report scenario does not test host internet detection.\n   // Network namespace, deny proxy and request routes remain unchanged.\n   if(!sandbox)await p.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>true}));\n__finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));"
+        }
+      ]
+    },
+    "farm3d/tests/farmer3d-walk.browser.cjs": {
+      "beforeSha256": "6585b81117e4e9ccdb69fe40f7f7dd2f89eae6a9440f3bb279ea0b36e12a1a4e",
+      "afterSha256": "525fccfcf2fde5a5817860ab109b4e4f2b766e36b39e2dbd7687928e91513394",
+      "edits": [
+        {
+          "old": "walkPhase:__dbg.walk.gait,knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x)});",
+          "new": "walkPhase:__dbg.walk.gait,speedClass:Number.isFinite(__dbg.walk.gspd)?(__dbg.walk.gspd<=.2?'low':'moving'):'unknown',knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x)});"
+        },
+        {
+          "old": "__walkProbe.mark(17);const stride=await page.evaluate(()=>window.__farmerStrideSamples);",
+          "new": "__walkProbe.mark(17);const stride=await page.evaluate(()=>window.__farmerStrideSamples);__walkProbe.stride(stride);"
+        }
+      ]
+    },
+    "farm3d/tests/helpers/a52-walk-phase.cjs": {
+      "beforeSha256": "76206d7ea4b47a689e961eb298a9d9494b9d066a04e20557d439bc4b43d45f12",
+      "afterSha256": "df16b5f5035e70d4f8923526a5f0175348dd1967024ed7790ff8f7e975799f97",
+      "edits": [
+        {
+          "old": "function validProjection(v)",
+          "new": "const STRIDE_KEYS=Object.freeze(['samples','mismatches','lowSpeed','moving','unknown']);\nfunction validStride(v){return !!v&&Object.keys(v).sort().join('|')==='lowSpeed|mismatches|moving|samples|unknown'&&STRIDE_KEYS.every(k=>Number.isInteger(v[k])&&v[k]>=0&&v[k]<=255)&&v.mismatches<=v.samples&&Math.min(255,v.lowSpeed+v.moving+v.unknown)===v.mismatches;}\nfunction summarizeStride(rows){if(!Array.isArray(rows))return null;const v={samples:Math.min(255,rows.length),mismatches:0,lowSpeed:0,moving:0,unknown:0};for(const s of rows){if(!(Math.abs(s?.phase-s?.walkPhase)<1e-9)){const k=s?.speedClass==='low'?'lowSpeed':s?.speedClass==='moving'?'moving':'unknown';v[k]=Math.min(255,v[k]+1);v.mismatches=Math.min(255,v.mismatches+1);}}return v;}\nfunction validProjection(v)"
+        },
+        {
+          "old": "Object.keys(v).sort().join('|')==='checkpoint|cleanup|cleanupError|error|schema|state'",
+          "new": "Object.keys(v).filter(k=>k!=='stride').sort().join('|')==='checkpoint|cleanup|cleanupError|error|schema|state'&&(!('stride'in v)||(v.checkpoint>=17&&validStride(v.stride)))"
+        },
+        {
+          "old": "return {mark(n)",
+          "new": "return {stride(rows){const summary=summarizeStride(rows);return value?.checkpoint===17&&value.state==='entered'&&value.cleanup==='not_observed'&&summary?write({...value,stride:summary}):false;},mark(n)"
+        },
+        {
+          "old": "module.exports={PHASES,ERRORS,category,validProjection,create};",
+          "new": "module.exports={PHASES,ERRORS,STRIDE_KEYS,validStride,summarizeStride,category,validProjection,create};"
+        }
+      ]
+    },
+    "farm3d/firebase/tests/manual-restore.browser.cjs": {
+      "beforeSha256": "1f053921dab63978304c5bd643cf54276e833cf53d4806520c2dea41f420e015",
+      "afterSha256": "71a23d7afc3f49ca3d0921d77f74cfe2029585db4a31321758a9d361c330233f",
+      "edits": [
+        {
+          "old": "await E.close(",
+          "new": "await E[(__manualDetail.mark(55),'close')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(54),'deepEqual')]("
+        },
+        {
+          "old": "await p.page.screenshot(",
+          "new": "await p.page[(__manualDetail.mark(53),'screenshot')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(52),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(51),'equal')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(50),'deepEqual')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(49),'deepEqual')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(48),'P')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(47),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(46),'equal')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(45),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(44),'equal')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(43),'P')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(42),'deepEqual')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(41),'deepEqual')]("
+        },
+        {
+          "old": "await settled(",
+          "new": "await (__manualDetail.mark(40),settled)("
+        },
+        {
+          "old": "await E.wake(",
+          "new": "await E[(__manualDetail.mark(39),'wake')]("
+        },
+        {
+          "old": "await p.page.close(",
+          "new": "await p.page[(__manualDetail.mark(38),'close')]("
+        },
+        {
+          "old": "await cdp.send(",
+          "new": "await cdp[(__manualDetail.mark(37),'send')]("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(36),'deepEqual')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(35),'equal')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(34),'equal')]("
+        },
+        {
+          "old": "await cdp.send(",
+          "new": "await cdp[(__manualDetail.mark(33),'send')]("
+        },
+        {
+          "old": "await E.until(",
+          "new": "await E[(__manualDetail.mark(32),'until')]("
+        },
+        {
+          "old": "await p.page.locator(",
+          "new": "await p.page[(__manualDetail.mark(31),'locator')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(30),'P')]("
+        },
+        {
+          "old": "await cdp.send(",
+          "new": "await cdp[(__manualDetail.mark(29),'send')]("
+        },
+        {
+          "old": "await p.context.newCDPSession(",
+          "new": "await p.context[(__manualDetail.mark(28),'newCDPSession')]("
+        },
+        {
+          "old": "await E.until(",
+          "new": "await E[(__manualDetail.mark(27),'until')]("
+        },
+        {
+          "old": "await p.page.reload(",
+          "new": "await p.page[(__manualDetail.mark(26),'reload')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(25),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(24),'equal')]("
+        },
+        {
+          "old": "await readDoc(",
+          "new": "await (__manualDetail.mark(23),readDoc)("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(22),'deepEqual')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(21),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(20),'equal')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(19),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(18),'equal')]("
+        },
+        {
+          "old": "await E.until(",
+          "new": "await E[(__manualDetail.mark(17),'until')]("
+        },
+        {
+          "old": "await p.page.reload(",
+          "new": "await p.page[(__manualDetail.mark(16),'reload')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(15),'equal')]("
+        },
+        {
+          "old": "await readDoc(",
+          "new": "await (__manualDetail.mark(14),readDoc)("
+        },
+        {
+          "old": "assert.deepEqual(",
+          "new": "assert[(__manualDetail.mark(13),'deepEqual')]("
+        },
+        {
+          "old": "await p.page.waitForTimeout(",
+          "new": "await p.page[(__manualDetail.mark(12),'waitForTimeout')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(11),'P')]("
+        },
+        {
+          "old": "assert.equal(",
+          "new": "assert[(__manualDetail.mark(10),'equal')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(9),'P')]("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(8),'P')]("
+        },
+        {
+          "old": "await settled(",
+          "new": "await (__manualDetail.mark(7),settled)("
+        },
+        {
+          "old": "await E.P(",
+          "new": "await E[(__manualDetail.mark(6),'P')]("
+        },
+        {
+          "old": "await E.register(",
+          "new": "await E[(__manualDetail.mark(5),'register')]("
+        },
+        {
+          "old": "await p.context.addInitScript(",
+          "new": "await p.context[(__manualDetail.mark(4),'addInitScript')]("
+        },
+        {
+          "old": "await E.phone(",
+          "new": "await E[(__manualDetail.mark(3),'phone')]("
+        },
+        {
+          "old": "await startEmu(",
+          "new": "await (__manualDetail.mark(2),startEmu)("
+        },
+        {
+          "old": "await resetEmulators(",
+          "new": "await (__manualDetail.mark(1),resetEmulators)("
+        },
+        {
+          "old": "const {startEmu,readDoc,resetEmulators}",
+          "new": "const __manualDetail=require('../../tests/helpers/a52-manual-detail.cjs').create();\nconst {startEmu,readDoc,resetEmulators}"
+        },
+        {
+          "old": "report.checks.push({name,status:'PASS',data});",
+          "new": "__manualDetail.check(name,true);report.checks.push({name,status:'PASS',data});"
+        },
+        {
+          "old": "}catch(e){report.status='FAIL';",
+          "new": "}catch(e){__manualDetail.error('main',e);report.status='FAIL';"
+        },
+        {
+          "old": "await paused",
+          "new": "await (__manualDetail.mark(56),paused)"
+        },
+        {
+          "old": "await click;",
+          "new": "await (__manualDetail.mark(57),click);"
+        },
+        {
+          "old": "const backup=JSON.parse",
+          "new": "__manualDetail.mark(58);const backup=JSON.parse"
+        },
+        {
+          "old": "fs.mkdirSync(out,{recursive:true});",
+          "new": "__manualDetail.mark(59);fs.mkdirSync(out,{recursive:true});"
+        }
+      ]
+    },
+    "farm3d/tests/animal-pen-three-night-extra-classes.browser.cjs": {
+      "beforeSha256": "473342de2b45736d48ef16c89283776b58fec29f2e06878f4aa75338df679f76",
+      "afterSha256": "65e44d782b0559ef9f8724edaf049f7b02afd71049d74b9ef92e7a4da046b2ea",
+      "edits": [
+        {
+          "old": "({cycle:window.__wakeFrame,cow4Trace:",
+          "new": "({containment:(()=>{const d=__dbg,bad=d.animals.filter(a=>a.pen&&!d.inPen(a.pen,a.g.position.x,a.g.position.z,-.05));const kinds=['chicken','cow','horse','sheep','dog','cat'],tasks=['bed','eat','drink','feed','water','milk','none'],stages=['approach','approaching','align','settle','hold','stand','exit','exiting','milking','none'],xz=p=>p==null?null:p.length===3?[p[0],p[2]]:[p[0],p[1]];return {total:bad.length,truncated:bad.length>4,animals:bad.slice(0,4).map(a=>{const t=a.kind==='chicken'?a.chickenTask:a.kind==='cow'?a.cowTask:a.remainingTask,tk=t?.kind??'none',ts=t?.stage??'none',route=t?.path??a.path??[];return {kind:kinds.includes(a.kind)?a.kind:'other',index:a.ref.i??a.ref.j??0,position:[a.g.position.x,a.g.position.z],custom:!!a.pen.custom,polygon:a.pen.poly,task:tasks.includes(tk)?tk:'other',stage:stages.includes(ts)?ts:'other',goal:xz(t?.groundGoal??a.target?.toArray()??null),routeCount:route.length,route:route.slice(0,4).map(p=>xz(p.toArray?p.toArray():p))};})};})(),cycle:window.__wakeFrame,cow4Trace:"
+        }
+      ]
+    },
+    "farm3d/firebase/tests/flows.browser.cjs": {
+      "beforeSha256": "3b0109384051245d8b1bbab8a5e7c0e5670932a627f7bb8d80530399ef00beee",
+      "afterSha256": "443eea19489210658b88af6993393ce3d93cceb928aa2aa0613478040f77156b",
+      "edits": [
+        {
+          "old": "/Online/.test(await (__fbDetail.mark(156),vText)()) && (await (__fbDetail.mark(157),P)(farmer, () => document.querySelectorAll('[data-vplant]').length)) === 6",
+          "new": "__fbDetail.fieldOnline(/Online/.test(await (__fbDetail.mark(156),vText)())) && __fbDetail.fieldCount((await (__fbDetail.mark(157),P)(farmer, () => document.querySelectorAll('[data-vplant]').length))) === 6"
+        }
+      ]
+    }
+  }
+}

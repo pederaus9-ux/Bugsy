@@ -1,6 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import perf from './helpers/perf-scope.cjs';import art from './helpers/animal-art-scope.cjs';
-const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8');
+import a52 from './helpers/a52-scope.cjs';
+const read=f=>a52.normalizeA52Source(f,fs.readFileSync(new URL('../'+f,import.meta.url),'utf8'));
 for(const f of ['index.html','sw.js']){
  test('A46 '+f+' differs from its prior accepted bytes only by the approved hunks',()=>{const cur=read(f),prior=perf.normalizePerfScope(f,cur);assert.notEqual(prior,cur);assert.equal(perf.sha(prior),perf.scope.files[f].beforeSha256);});
  test('A46 '+f+' with an unrelated edit is not normalized',()=>{const cur=read(f)+'\n/* unrelated */';assert.equal(perf.normalizePerfScope(f,cur),cur);});

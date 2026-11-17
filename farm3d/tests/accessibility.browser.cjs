@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {start,artifacts,root}=require('./browser-harness.cjs');
 const results=[];
@@ -22,7 +23,7 @@ async function targets(page){
   }
   pass('44px home/panel targets and scrolling fit '+width+'x'+height);
   await p.evaluate(()=>__dbg.G.close());
-  await p.locator('[data-p="settings"]').focus();await p.keyboard.press('Enter');
+  await revealCornerAction(p,'[data-p="settings"]','keyboard');await p.locator('[data-p="settings"]').focus();await p.keyboard.press('Enter');
   await p.waitForFunction(()=>document.activeElement?.classList.contains('xbtn'));
   await p.keyboard.press('Shift+Tab');assert.equal(await p.evaluate(()=>document.activeElement.dataset.act),'reset');
   await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement.classList.contains('xbtn')),true);
@@ -33,7 +34,7 @@ async function targets(page){
   assert.deepEqual(motion,{setting:'reduce',reduced:true,css:'reduce',saved:'reduce',animation:'none'});
   await p.locator('[data-act="motion"][data-k="reduce"]').scrollIntoViewIfNeeded();
   await p.screenshot({path:path.join(artifacts,'accessibility-settings-'+width+'.png')});
-  await p.keyboard.press('Escape');assert.equal(await p.evaluate(()=>__dbg.G.panel),null);assert.equal(await p.evaluate(()=>document.activeElement.dataset.p),'settings');
+  await p.keyboard.press('Escape');assert.equal(await p.evaluate(()=>__dbg.G.panel),null);assert.deepEqual(await p.evaluate(()=>({id:document.activeElement.id,visible:!!document.activeElement.getClientRects().length})),{id:'preview-tools-launch',visible:true},'A52 closes back to the visible Menu launcher');
   pass('modal tab loop, close/return focus and persisted motion setting '+width);
   // System setting follows live OS changes; full motion is an explicit override.
   await p.evaluate(()=>__dbg.G.openPanel('settings'));await p.locator('[data-act="motion"][data-k="system"]').click();
@@ -46,7 +47,7 @@ async function targets(page){
    const safe=await p.evaluate(()=>({side:document.querySelector('.side').getBoundingClientRect().left,dock:document.querySelector('.dock').getBoundingClientRect().right}));
    assert.ok(safe.side>=28&&safe.dock<=844-20,JSON.stringify(safe));
    await p.screenshot({path:path.join(artifacts,'accessibility-notch-844.png')});pass('simulated side insets',safe);
-   await p.locator('#walkBtn').click();await p.waitForFunction(()=>__dbg.walk);
+   await revealCornerAction(p,'#walkBtn');await p.locator('#walkBtn').click();await p.waitForFunction(()=>__dbg.walk);
    assert.equal(await p.evaluate(()=>document.activeElement===__dbg.renderer.domElement),true);
    const before=await p.evaluate(()=>{__dbg.walk.pos.set(-1.4,22);__dbg.walk.yaw=0;return __dbg.walk.pos.y;});
    await p.keyboard.down('KeyW');await p.waitForFunction(y=>__dbg.walk.pos.y<y-.1,before,{timeout:30000});await p.keyboard.up('KeyW');

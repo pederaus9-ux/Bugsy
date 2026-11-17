@@ -1,5 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const repo=path.resolve(__dirname,'../..');
+// Current A52 capture only; this adaptation does not authorize browser execution.
+const {revealCornerAction}=require('../tests/helpers/a52-browser-navigation.cjs');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE || path.join(repo,'farm3d/tests/node_modules/playwright'));
 const out=process.env.TEST_ARTIFACTS || path.join(repo,'farm3d/tests/artifacts/barn-scene-captures');fs.mkdirSync(out,{recursive:true});
 // Instrument only this served copy. Hold an actual completed composer frame for
@@ -19,7 +21,7 @@ for(const [anchor,replacement] of [
  ['if (perf) perf.render(); else composer.render();',`if (perf) perf.render(); else composer.render();
   {const gl=renderer.getContext();window.__captureFrameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();}`]
 ]){assert.equal(captureSource.split(anchor).length,2,'unique capture anchor');captureSource=captureSource.replace(anchor,replacement);}
-const server=http.createServer((req,res)=>{const file=path.resolve(repo,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname)+(req.url.split('?')[0].endsWith('/')?'index.html':''));if(!file.startsWith(repo+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(file===path.join(repo,'farm3d/index.html')?captureSource:fs.readFileSync(file));});
+const server=http.createServer((req,res)=>{const file=path.resolve(repo,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname)+(req.url.split('?')[0].endsWith('/')?'index.html':''));if(!file.startsWith(repo+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html','.css':'text/css','.js':'text/javascript','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(file===path.join(repo,'farm3d/index.html')?captureSource:fs.readFileSync(file));});
 async function holdCompletedFrame(page){
  const started=Date.now(),frames=await page.evaluate(()=>{window.__captureHold=false;return window.__captureFrames||0;});
  await page.waitForFunction(n=>(window.__captureFrames||0)>=n+3,frames,{timeout:30000});
@@ -44,7 +46,7 @@ for(const preset of process.env.POLISH_QUICK?['noon']:['noon','golden','rain']){
  await page.evaluate(p=>{__dbg.setPreset(p);__dbg.QUALITY.auto=false;__dbg.cam.yaw=__dbg.view.yaw=.55;__dbg.cam.pitch=__dbg.view.pitch=.35;__dbg.cam.dist=__dbg.view.dist=24;__dbg.cam.target.set(0,1,2);__dbg.view.target.set(0,1,2);},preset);
  for(const mode of ['overview','walk']){
   if(mode==='walk'){
-   await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);await page.waitForTimeout(1500);
+   await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();await page.waitForFunction(()=>!!__dbg.walk);await page.waitForTimeout(1500);
    // walkBtn calls enterFP explicitly. Hands can still be hidden during the
    // camera transition; that is not a reason to toggle into third person.
    await page.evaluate(()=>{__dbg.walk.pos.set(1.3,9.5);__dbg.walk.vel.set(0,0);__dbg.walk.yaw=.2;__dbg.walk.pitch=.06;});

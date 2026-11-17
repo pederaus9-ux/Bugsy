@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {start,artifacts}=require('./browser-harness.cjs');
 const out=path.join(artifacts,'immediate-buildable-land');fs.mkdirSync(out,{recursive:true});
@@ -13,7 +14,7 @@ let h,oldSave;
   await p.goto(h.base+'farm3d/index.html?debug&preset=noon');
   await p.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
   await p.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});
-  await p.locator('#editBtn').click();
+  if(ref==='current')await revealCornerAction(p,'#editBtn');await p.locator('#editBtn').click();
   if(ref==='baseline')await p.evaluate(()=>__dbg.G.save());
   const snapshot=await p.evaluate(()=>{const d=__dbg;return{valid:d.editValid('b:loom',20,-40),blockedTree:d.editValid('b:loom',10,-7),blockedPath:d.editValid('b:loom',1,15),blockedSlope:d.editValid('b:loom',24,-40),grid:d.grid.userData.bounds,tiles:d.grid.userData.tileCount,key:d.G.SAVE_KEY,save:localStorage.getItem(d.G.SAVE_KEY),position:d.BUILD_SPOT.loom};});
   if(ref==='baseline'){assert.equal(snapshot.valid,false);report.baseline=snapshot;oldSave={key:snapshot.key,save:snapshot.save};await s.finish();continue;}
@@ -40,7 +41,7 @@ let h,oldSave;
   const phone=await h.setup({width:844,height:390},true,'buildable-land-phone');
   await phone.page.addInitScript(old=>{localStorage.setItem('sa3d-guest','1');localStorage.setItem('sa3d-seen','1');localStorage.setItem(old.key,old.save);},{key:snapshot.key,save:applied.save});
   await phone.page.goto(h.base+'farm3d/index.html?debug&preset=noon');await phone.page.waitForFunction(()=>window.__ready&&window.__dbg&&!document.getElementById('loading'),null,{timeout:120000});
-  await phone.page.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});await phone.page.locator('#editBtn').click();
+  await phone.page.evaluate(()=>{__dbg.G.opts.quiet=true;__dbg.G.close();});await revealCornerAction(phone.page,'#editBtn');await phone.page.locator('#editBtn').click();
   await phone.page.evaluate(()=>{const d=__dbg;d.cam.target.set(20,0,-40);d.cam.dist=30;d.view.target.copy(d.cam.target);d.view.dist=30;d.view.pitch=1.53;d.view.yaw=d.cam.yaw;d.placeCamera(1);d.camera.updateMatrixWorld(true);});
   const phoneState=await phone.page.evaluate(()=>({loom:__dbg.BUILD_SPOT.loom,tiles:__dbg.grid.userData.tileCount,editing:!!__dbg.editMode,gridVisible:__dbg.grid.visible}));
   assert.deepEqual(phoneState.loom,[20,-40]);assert(phoneState.editing&&phoneState.gridVisible&&phoneState.tiles>2000);assert.deepEqual(phone.errors,[]);report.current.phone=phoneState;

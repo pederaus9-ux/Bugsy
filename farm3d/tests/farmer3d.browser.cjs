@@ -1,3 +1,4 @@
+require('./helpers/a52-character-script-events.cjs').observe('farmer3d');
 const assert=require('assert/strict'),fs=require('fs'),path=require('path');
 const {start,artifacts}=require('./browser-harness.cjs');
 const findFarmer=()=>{let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});return f;};

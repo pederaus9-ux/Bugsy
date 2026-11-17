@@ -1,3 +1,4 @@
+const {revealCornerAction}=require('./helpers/a52-browser-navigation.cjs');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -35,7 +36,7 @@ async function hold(page,key,ms=500){
   finally{await page.keyboard.up(key);}
 }
 async function checkKeys(page){
-  await page.locator('#walkBtn').click();
+  await revealCornerAction(page,'#walkBtn');await page.locator('#walkBtn').click();
   await page.waitForFunction(()=>__dbg.walk);await page.waitForTimeout(1500);
   for(const [key,axis,sign] of [['KeyW','y',-1],['KeyS','y',1],['KeyA','x',-1],['KeyD','x',1]]){
     await resetWalker(page);const before=await page.evaluate(()=>({x:__dbg.walk.pos.x,y:__dbg.walk.pos.y}));
@@ -109,20 +110,20 @@ async function planting(page,size,cancel=true){
 }
 async function orders(page,size){
   const before=await page.evaluate(()=>{const G=__dbg.G;G.close();G.view.closeTrays();G.S.tut=99;G.S.barn.wheat=10;G.S.orders=[{items:{wheat:3},coins:25,xp:2,gem:1,wait:0}];G.S.rush=null;G.S.stats.orders=0;return {coins:G.S.coins,gems:G.S.gems,xp:G.S.xp};});
-  await page.locator('.dock [data-p="orders"]').click();
+  await revealCornerAction(page,'.dock [data-p="orders"]');await page.locator('.dock [data-p="orders"]').click();
   const deliver=page.locator('[data-act="deliver"][data-i="0"]');
   assert.equal(await deliver.isEnabled(),true);await deliver.click();
   const after=await page.evaluate(()=>{const s=__dbg.G.S;return {coins:s.coins,gems:s.gems,xp:s.xp,wheat:s.barn.wheat,orders:s.stats.orders,wait:s.orders[0].wait};});
   assert.equal(after.wheat,7);assert.equal(after.coins,before.coins+25);assert.equal(after.gems,before.gems+1);assert.equal(after.xp,before.xp+2);assert.equal(after.orders,1);assert.ok(after.wait>Date.now());
   assert.equal(await deliver.count(),0);pass(size+' order delivery pays once and consumes inventory');
   await page.evaluate(()=>{__dbg.G.close();__dbg.G.S.barn.wheat=0;__dbg.G.S.orders=[{items:{wheat:3},coins:25,xp:2,gem:1,wait:0}];});
-  await page.locator('.dock [data-p="orders"]').click();assert.equal(await deliver.isEnabled(),false);pass(size+' insufficient order inventory disables delivery');
+  await revealCornerAction(page,'.dock [data-p="orders"]');await page.locator('.dock [data-p="orders"]').click();assert.equal(await deliver.isEnabled(),false);pass(size+' insufficient order inventory disables delivery');
   await page.locator('#panelRoot .xbtn').click();
 }
 async function panels(page,size){
   await page.evaluate(()=>{__dbg.G.close();__dbg.G.view.closeTrays();});
   for(const name of ['orders','barn','shop','settings']){
-    await page.locator(`[data-act="open"][data-p="${name}"]`).click();
+    await revealCornerAction(page,`[data-act="open"][data-p="${name}"]`);await page.locator(`[data-act="open"][data-p="${name}"]`).click();
     await page.waitForFunction(name=>__dbg.G.panel?.type===name,name);
     // Wait for the opening CSS animation before measuring the final panel bounds.
     await page.waitForTimeout(350);
@@ -144,7 +145,7 @@ async function panels(page,size){
       assert.equal(await page.evaluate(()=>__dbg.G.S.level),12);pass(size+' testfarm boot');
       if(viewport.width===1280){await checkKeys(page);}
       else{
-        await page.locator('#walkBtn').tap();await page.waitForFunction(()=>!!__dbg.walk);
+        await revealCornerAction(page,'#walkBtn','tap');await page.locator('#walkBtn').tap();await page.waitForFunction(()=>!!__dbg.walk);
         await resetWalker(page);
         const cdp=await context.newCDPSession(page);
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:140,y:180,id:71}]});
