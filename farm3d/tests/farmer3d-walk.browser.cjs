@@ -22,11 +22,11 @@ const {start,artifacts}=require('./browser-harness.cjs');
   let farmer;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')farmer=o;});
   const r=farmer.userData.live,n=__dbg.renderer.info.render.frame;
   const samples=window.__farmerStrideSamples||(window.__farmerStrideSamples=[]);
-  if(n>f&&samples.at(-1)?.frame!==n)samples.push({frame:n,phase:r.state.phase,walkPhase:__dbg.walk.gait,knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x)});
+  if(n>f&&samples.at(-1)?.frame!==n)samples.push({frame:n,phase:r.state.phase,walkPhase:__dbg.walk.gait,speedClass:Number.isFinite(__dbg.walk.gspd)?(__dbg.walk.gspd<=.2?'low':'moving'):'unknown',knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x)});
   return samples.length>15&&__dbg.walk.pos.y<20.8;
  },frame,{timeout:60000});
  __walkProbe.mark(16);const gait=await page.evaluate(()=>{let f;__dbg.scene.traverse(o=>{if(o.userData?.hit?.type==='farmer')f=o;});const r=f.userData.live;return {visible:f.visible,phase:r.state.phase,walkPhase:__dbg.walk.gait,knees:r.knees.map(k=>k.rotation.x),elbows:r.elbows.map(k=>k.rotation.x),pos:__dbg.walk.pos.toArray()};});
- __walkProbe.mark(17);const stride=await page.evaluate(()=>window.__farmerStrideSamples);
+ __walkProbe.mark(17);const stride=await page.evaluate(()=>window.__farmerStrideSamples);__walkProbe.stride(stride);
  __walkProbe.mark(18);await page.keyboard.up('KeyW');__walkProbe.mark(19);assert.equal(gait.visible,true);__walkProbe.mark(20);assert.ok(Math.abs(gait.phase-gait.walkPhase)<1e-9);__walkProbe.mark(21);assert.ok(gait.pos[1]<20.8);
  __walkProbe.mark(22);assert.ok(stride.every(s=>Math.abs(s.phase-s.walkPhase)<1e-9),'every rendered pose honors actual walking phase');
  for(const part of ['knees','elbows'])for(let leg=0;leg<2;leg++){

@@ -226,7 +226,7 @@ async function main() {
       await (__fbDetail.mark(153),until)(farmer, () => !document.getElementById('verifiedBtn').hidden, null, 30000);
       await (__fbDetail.mark(154),P)(farmer, () => document.getElementById('verifiedBtn').click());
       await (__fbDetail.mark(155),until)(farmer, () => document.querySelectorAll('#vfieldBody [data-vplot]').length === 6);
-      check('verified field: a separate area with six plots, online status shown', /Online/.test(await (__fbDetail.mark(156),vText)()) && (await (__fbDetail.mark(157),P)(farmer, () => document.querySelectorAll('[data-vplant]').length)) === 6);
+      check('verified field: a separate area with six plots, online status shown', __fbDetail.fieldOnline(/Online/.test(await (__fbDetail.mark(156),vText)())) && __fbDetail.fieldCount((await (__fbDetail.mark(157),P)(farmer, () => document.querySelectorAll('[data-vplant]').length))) === 6);
       const farm0 = await (__fbDetail.mark(158),phoneFarm)();
       await (__fbDetail.mark(159),P)(farmer, () => document.querySelector('[data-vplant="p0"]').click());
       await (__fbDetail.mark(160),until)(farmer, () => !!document.querySelector('[data-vseed="wheat"]'));

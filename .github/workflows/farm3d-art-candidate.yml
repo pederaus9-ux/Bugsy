@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-public"
           test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 95ddea4bb15d3a21c9160f586f37e98cf207a66b34479901273f8e9e9e52878a
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d9e887bd1876f1ddbc5c3a12cf1d2aa6a103091caa12d53cc57d69561199e124
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-art-candidate/cow-b1-reference "$RUNNER_TEMP/a52-ci-safe/cow-b1-reference" "$RUNNER_TEMP/a52-ci-public/cow-b1-reference" "$A52_CANDIDATE_HEAD"
@@ -126,7 +126,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-public"
           test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 95ddea4bb15d3a21c9160f586f37e98cf207a66b34479901273f8e9e9e52878a
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d9e887bd1876f1ddbc5c3a12cf1d2aa6a103091caa12d53cc57d69561199e124
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-art-candidate/barn-candidate "$RUNNER_TEMP/a52-ci-safe/barn-candidate" "$RUNNER_TEMP/a52-ci-public/barn-candidate" "$A52_CANDIDATE_HEAD"
@@ -195,7 +195,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-public"
           test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 95ddea4bb15d3a21c9160f586f37e98cf207a66b34479901273f8e9e9e52878a
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d9e887bd1876f1ddbc5c3a12cf1d2aa6a103091caa12d53cc57d69561199e124
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-art-candidate/authored-hands "$RUNNER_TEMP/a52-ci-safe/authored-hands" "$RUNNER_TEMP/a52-ci-public/authored-hands" "$A52_CANDIDATE_HEAD"

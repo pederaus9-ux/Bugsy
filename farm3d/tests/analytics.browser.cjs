@@ -63,6 +63,9 @@ __finite.mark('scenario-errors-finish');   assert.deepEqual(s.errors,[]);console
   }
   for(const sandbox of [false,true]){
 __finite.mark('game-setup',sandbox?8:7);   const s=await h.setup({width:844,height:390},false,'analytics-game-'+sandbox),p=s.page;await mock(p);await p.addInitScript(()=>localStorage.setItem('sa3d-guest','1'));
+// This mocked online-report scenario does not test host internet detection.
+   // Network namespace, deny proxy and request routes remain unchanged.
+   if(!sandbox)await p.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>true}));
 __finite.mark('game-navigate-ready');   await p.goto(h.base+'farm3d/?debug'+(sandbox?'&testfarm':''));await p.waitForFunction(sandbox=>window.__ready&&window.__dbg&&(sandbox||window.saAuth?.guest),sandbox,{timeout:90000});
 __finite.mark('game-metrics');   await p.waitForFunction(()=>window.saMetrics);await p.evaluate(()=>{const G=__dbg.G;G.close();G.S.tut=99;G.S.barn.wheat=0;G.S.plots[0].crop=null;G.harvest(0,true);});
 __finite.mark('failed-harvest');   assert.equal(await p.evaluate(()=>window.__reports?.some(r=>r.data.e.includes('_harv_'))||false),false,'failed harvest has no report');

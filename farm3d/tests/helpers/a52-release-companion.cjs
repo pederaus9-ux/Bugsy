@@ -1,7 +1,7 @@
 'use strict';
 // Inert exact-source specialization; never launches repository code or workflows.
 const crypto=require('node:crypto');
-const SOURCE_SHA256='1bfcee47aa68c90b7498cf11cd032e9b37b7399e47f9139a8ac6ec97f4bd8889';
+const SOURCE_SHA256='2fcc9548474490daf03819395e8811c430d749c5600fd6edc845a5a5919bc78d';
 const BRANCH='codex/a52-two-corner-ui-20261117';
 const PLAN=Object.freeze([
  ['all_conflicts','conflicts','all',[]],
