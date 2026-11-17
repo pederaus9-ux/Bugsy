@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const h=require('./helpers/a52-pen-recovery.cjs'),root=path.resolve(__dirname,'../..'),head='a'.repeat(40),{baseReceipt}=require('./helpers/ci-isolated-runner.cjs');
 test('overlay has exact reviewed source hashes and original predicate inverse',()=>{const m=h.overlay(root);assert(m.size===15);assert(h.scope.runtimePaths.controlHigh1.length===124);assert(h.scope.runtimePaths.recoveryHigh1.length===124);const text=m.get('farm3d/tests/animal-pen-three-night-extra-classes.browser.cjs').toString();assert(!text.includes('start({ref:'));});
 function fixture(t){const temp=fs.mkdtempSync(path.join(os.tmpdir(),'direct-pen-'));t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));const dest=path.join(temp,'pen-recovery-runtime');fs.mkdirSync(dest);const entries=h.scope.runtimePaths.controlHigh1.map(f=>{const b=Buffer.from('fixture:'+f),p=path.join(dest,f);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,b);return '100644 blob '+h.blob(b)+'\t'+f;});for(const [f,b]of h.overlay(root)){const p=path.join(dest,f);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,b);}fs.writeFileSync(path.join(dest,'.git'),'fixture only');const git=(r,a)=>a[0]==='ls-tree'?entries.join('\0')+'\0':a[1]==='HEAD'?r===root?head:h.REFS.controlHigh1:h.REFS.controlHigh1;const proof=h.checkSnapshot(root,dest,'controlHigh1',git);fs.mkdirSync(path.join(temp,'a52-pen-recovery-proof'));fs.writeFileSync(path.join(temp,'a52-pen-recovery-proof/before.json'),JSON.stringify(proof));const source=path.join(temp,'a52-ci-safe/pen_cache');fs.mkdirSync(source,{recursive:true});const receipt={...baseReceipt('command_failed'),isolationVerified:true,commandStarted:true,commandResultAvailable:true,cleanupVerified:true,exitCode:1};fs.writeFileSync(path.join(source,'step-6.json'),JSON.stringify(receipt));return{temp,dest,git,proof,source,receipt};}
-test('positive before/after covers every runtime and only exact overlay',t=>{const f=fixture(t);assert(h.validProof(f.proof,'controlHigh1'));assert.equal(h.collect(root,f.temp,'controlHigh1',head,f.git),4);const id=JSON.parse(fs.readFileSync(path.join(f.temp,'a52-pen-recovery-public/identity.json')));assert.equal(id.runtimeSource,h.REFS.controlHigh1);assert.equal(id.testSource,head);assert.equal(id.mode,'CONTROLLED_RECOVERY_OBSTACLE_DIAGNOSTIC');});
+test('positive before/after covers every runtime and only exact overlay',t=>{const f=fixture(t);assert(h.validProof(f.proof,'controlHigh1'));assert.equal(h.collect(root,f.temp,'controlHigh1',head,f.git),4);const id=JSON.parse(fs.readFileSync(path.join(f.temp,'a52-pen-recovery-public/identity.json')));assert.equal(id.runtimeSource,h.REFS.controlHigh1);assert.equal(id.testSource,head);assert.equal(id.mode,'CONTROLLED_MONOTONIC_EGRESS_COMPARISON');});
 for(const mode of ['runtime','missing','extra','overlay','symlink','badHead','badCleanup','unstarted','raw','proof'])test('fails closed '+mode,t=>{const f=fixture(t),p=path.join(f.dest,'farm3d/index.html');if(mode==='runtime')fs.writeFileSync(p,'changed');if(mode==='missing')fs.unlinkSync(p);if(mode==='extra')fs.writeFileSync(path.join(f.dest,'untracked.js'),'private');if(mode==='overlay')fs.appendFileSync(path.join(f.dest,'farm3d/tests/browser-harness.cjs'),'changed');if(mode==='symlink'){fs.unlinkSync(p);fs.symlinkSync('/tmp',p);}if(mode==='badHead')f.git=()=> 'b'.repeat(40);if(mode==='raw')fs.writeFileSync(path.join(f.source,'raw.log'),'PRIVATE');if(mode==='proof')fs.writeFileSync(path.join(f.temp,'a52-pen-recovery-proof/before.json'),'{}');if(mode==='badCleanup'||mode==='unstarted'){f.receipt[mode==='badCleanup'?'cleanupVerified':'commandStarted']=false;fs.writeFileSync(path.join(f.source,'step-6.json'),JSON.stringify(f.receipt));}assert.throws(()=>h.collect(root,f.temp,'controlHigh1',head,f.git));assert(!fs.existsSync(path.join(f.temp,'a52-pen-recovery-public')));});
 test('setup witness bounded and writes once outside runtime',t=>{const f=fixture(t),v={seedWitness:{value:1,calls:200},clockExperiment:sampleClockProof(),setupBefore:{clock:11.658899999999907,rngCalls:184,state:sampleState()},setupAfter:{clock:11.658899999999907,rngCalls:200,state:sampleState()},setupCounts:sampleCounts()};assert(h.writeSetup(v,{RUNNER_TEMP:f.temp}));assert(!h.writeSetup(v,{RUNNER_TEMP:f.temp}));assert(h.validSetup(JSON.parse(fs.readFileSync(path.join(f.source,'setup.json')))));assert(!h.validSetup({schema:1,seed:1,rngCalls:200,clock:Infinity}));assert(!h.validSetup({schema:1,seed:1,rngCalls:200,clock:3,raw:'PRIVATE'}));});
 test('real synthetic sparse worktree materializes exact named files without runtime refs',t=>{const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'direct-worktree-'));t.after(()=>fs.rmSync(tmp,{recursive:true,force:true}));const repo=path.join(tmp,'repo'),dest=path.join(tmp,'work');fs.mkdirSync(repo);const g=(cwd,args,input)=>cp.execFileSync('git',args,{cwd,input,stdio:['pipe','pipe','pipe'],env:{PATH:process.env.PATH,HOME:tmp,GIT_CONFIG_NOSYSTEM:'1'}});g(repo,['init']);for(const [f,b]of [['root.txt','held'],['farm3d/index.html','synthetic'],['farm3d/art/x.png','synthetic asset'],['farm3d/tests/evidence/held.zip','held']]){const p=path.join(repo,f);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,b);}g(repo,['add','.']);g(repo,['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-m','synthetic']);g(repo,['worktree','add','--detach','--no-checkout',dest,'HEAD']);g(dest,['sparse-checkout','init','--no-cone']);g(dest,['sparse-checkout','set','--no-cone','--stdin'],'/farm3d/index.html\n/farm3d/art/x.png\n');g(dest,['read-tree','-mu','HEAD']);assert.deepEqual(h.allFiles(dest),['.git','farm3d/art/x.png','farm3d/index.html']);});
@@ -90,7 +90,7 @@ test('all six cases share pinned main base with explicit patch cases',()=>{
 test('exact pinned main bounded recovery patch and inverse; malformed preimages fail',()=>{
  const pre=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',h.REFS.controlHigh1+':'+h.scope.patch.path],{cwd:root,stdio:['ignore','pipe','pipe']});
  const post=h.patchBytes(pre);assert.equal(h.sha(pre),h.scope.patch.preimageSha256);assert.equal(h.sha(post),h.scope.patch.postimageSha256);assert.equal(h.blob(post),h.scope.patch.postimageBlob);
- let inverse=post.toString();for(const x of [...h.scope.observationTransforms].reverse()){assert.equal(inverse.split(x.new).length,2);inverse=inverse.replace(x.new,x.old);}assert.equal(h.sha(Buffer.from(inverse)),h.scope.unobservedRecoverySha256);assert.equal(inverse.replace(h.scope.patch.new,h.scope.patch.old),pre.toString());
+ assert.equal(post.toString().replace(h.scope.patch.new,h.scope.patch.old),pre.toString());
  for(const bad of [post,Buffer.from(pre+'changed'),Buffer.from(pre.toString().replace(h.scope.patch.old,''))])assert.throws(()=>h.patchBytes(bad));
 });
 test('patched provenance is explicit and cannot claim untouched main',t=>{
@@ -99,15 +99,15 @@ test('patched provenance is explicit and cannot claim untouched main',t=>{
  const git=(r,a)=>a[0]==='ls-tree'?rows.join('\0')+'\0':a[1]==='HEAD'?r===root?head:h.REFS.controlHigh1:h.REFS.controlHigh1;
  fs.writeFileSync(path.join(f.dest,h.scope.patch.path),post);
  const proof=h.checkSnapshot(root,f.dest,'recoveryHigh1',git);assert(h.validProof(proof,'recoveryHigh1'));assert(!h.validProof(proof,'controlHigh1'));
- assert.equal(proof.runtimeVariant,'MAIN_PLUS_RECOVERY_OBSTACLE_OBSERVATIONS');assert.deepEqual(proof.patch,h.provenance('recoveryHigh1'));assert.notEqual(proof.runtimeManifestSha256,proof.baseRuntimeManifestSha256);
+ assert.equal(proof.runtimeVariant,'MAIN_PLUS_MONOTONIC_EGRESS');assert.deepEqual(proof.patch,h.provenance('recoveryHigh1'));assert.notEqual(proof.runtimeManifestSha256,proof.baseRuntimeManifestSha256);
  fs.writeFileSync(path.join(f.temp,'a52-pen-recovery-proof/before.json'),JSON.stringify(proof));
  assert.equal(h.collect(root,f.temp,'recoveryHigh1',head,git),4);
- const id=JSON.parse(fs.readFileSync(path.join(f.temp,'a52-pen-recovery-public/identity.json')));assert.equal(id.runtimeSource,h.REFS.controlHigh1);assert.equal(id.runtimeVariant,'MAIN_PLUS_RECOVERY_OBSTACLE_OBSERVATIONS');assert.deepEqual(id.patch,h.provenance('recoveryHigh1'));
+ const id=JSON.parse(fs.readFileSync(path.join(f.temp,'a52-pen-recovery-public/identity.json')));assert.equal(id.runtimeSource,h.REFS.controlHigh1);assert.equal(id.runtimeVariant,'MAIN_PLUS_MONOTONIC_EGRESS');assert.deepEqual(id.patch,h.provenance('recoveryHigh1'));
  fs.writeFileSync(path.join(f.dest,h.scope.patch.path),pre);assert.throws(()=>h.checkSnapshot(root,f.dest,'recoveryHigh1',git));
 });
 function evaluateStep({pos=[0,-39.775],target=[-6.405,-35.845],step=.01,steered=[0,-.01],others=[],gate=true,obstacle=false,code=h.scope.patch.new}={}){
  const a={kind:'cow',pos:{x:pos[0],y:pos[1]},g:{position:{x:pos[0],z:pos[1]}}},dx=target[0]-pos[0],dz=target[1]-pos[1],d=Math.hypot(dx,dz),calls={obstacle:0,detour:0};
- const ctx={a,animals:[a,...others.map(p=>({kind:'cow',g:{position:{x:p[0],z:p[1]}}}))],THREE:{Vector2:class{constructor(x,y){this.x=x;this.y=y;}}},ox:pos[0],oz:pos[1],dx,dz,d,step:Math.min(step,d),nx:steered[0],nz:steered[1],PENS:{courtyard:{}},task:{avoidSide:0},t:0,COW_YARD_LAYOUT:{obstacles:[]},cowSharedCornerDetour:()=>{calls.detour++;return true;},fitsPen:(_p,x,z,m)=>{assert.equal(m,.42);return x>=-14+m&&x<=9.8-m&&z>=-40.2+m&&z<=-32.8-m;},cowGateSegmentClear:()=>gate,hitsBlock:(_a,_b,m)=>{assert.equal(m,.42);calls.obstacle++;return obstacle?0:-1;}};
+ const ctx={OBST:obstacle?[{x:0,z:-39.2,hw:.1,hd:.1,c:1,s:0}]:[{x:100,z:100,hw:1,hd:1,c:1,s:0}],toLocal:(o,p)=>({x:p.x-o.x,y:p.y-o.z}),a,animals:[a,...others.map(p=>({kind:'cow',g:{position:{x:p[0],z:p[1]}}}))],THREE:{Vector2:class{constructor(x,y){this.x=x;this.y=y;}}},ox:pos[0],oz:pos[1],dx,dz,d,step:Math.min(step,d),nx:steered[0],nz:steered[1],PENS:{courtyard:{}},task:{avoidSide:0},t:0,COW_YARD_LAYOUT:{obstacles:[]},cowSharedCornerDetour:()=>{calls.detour++;return true;},fitsPen:(_p,x,z,m)=>{assert.equal(m,.42);return x>=-14+m&&x<=9.8-m&&z>=-40.2+m&&z<=-32.8-m;},cowGateSegmentClear:()=>gate,hitsBlock:(_a,_b,m)=>{assert.equal(m,.42);calls.obstacle++;return obstacle?0:-1;}};
  require('node:vm').runInNewContext(code,ctx);
  return{position:[a.g.position.x,a.g.position.z],calls};
 }
@@ -139,29 +139,50 @@ test('outside preferred step with only direct-route cow blocker reaches original
  assert.equal(q.calls.detour,1);assert.deepEqual(q.position,[0,-39.775]);assert(Math.hypot(q.position[0],q.position[1]+38.92)>=.85);
 });
 
-test('decision observations preserve short circuit, return values, movement and task handoff',()=>{
- const pre=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',h.REFS.controlHigh1+':farm3d/index.html'],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}),unobserved=pre.replace(h.scope.patch.old,h.scope.patch.new),observed=h.patchBytes(Buffer.from(pre)).toString(),cut=(s,start)=>s.slice(s.indexOf(start),s.indexOf('// Finish the final robot approach physically:'));
- for(const config of [{},{gate:false},{obstacle:true},{boundary:false},{blocked:true},{blocked:true,detour:false},{legal:true},{legal:true,blocked:true}]){
-  const run=(code)=>{const calls=[],a={ref:{i:1},kind:'cow',pos:{x:0,y:-39.775},g:{position:{x:0,z:-39.775}}},task={kind:'bed',stage:'approach',avoidSide:0},ctx={window:{},OBST:[{x:0,z:-39.775,hw:.5,hd:.5,c:1,s:0}],a,task,t:1714,ox:0,oz:-39.775,dx:0,dz:4.775,d:4.775,step:.01,nx:0,nz:config.legal?.01:-.01,animals:[a,...(config.blocked?[{kind:'cow',g:{position:{x:0,z:-38.92}}}]:[])],THREE:{Vector2:class{constructor(x,y){this.x=x;this.y=y;}}},PENS:{courtyard:{}},COW_YARD_LAYOUT:{obstacles:[]},fitsPen:(_p,x,z,m)=>{calls.push(['boundary',x,z,m]);return config.boundary!==false&&z>=-39.78;},cowGateSegmentClear:(_p,n)=>{calls.push(['gate',n.x,n.y]);return config.gate!==false;},hitsBlock:(_p,n,m)=>{calls.push(['static',n.x,n.y,m]);return config.obstacle?0:-1;},cowSharedCornerDetour:()=>{calls.push(['detour']);return config.detour!==false;}};require('node:vm').runInNewContext(code,ctx);return {calls,position:[a.g.position.x,a.g.position.z],task,observation:ctx.window.__penDecisions};};
-  const a=run(cut(unobserved,'// A social-avoidance step')),b=run(cut(observed,'// Diagnostic-only observations'));
-  assert.deepEqual(b.calls,a.calls);assert.deepEqual(b.position,a.position);assert.deepEqual(b.task,a.task);assert(require('./helpers/a52-pen-report.cjs').validDecisions(b.observation));assert(JSON.stringify(b.observation).length<3000);
+function egressFixture(){
+ const source=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',h.REFS.controlHigh1+':farm3d/index.html'],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}),local=source.slice(source.indexOf('const toLocal ='),source.indexOf('// shortest way from -> to')),ctx={OBST:[],THREE:{Vector2:class{constructor(x,y){this.x=x;this.y=y;}},MathUtils:{clamp:(x,a,b)=>Math.max(a,Math.min(b,x))}}};
+ require('node:vm').runInNewContext(local+h.scope.egressPredicate+';globalThis.testEgress=cowStaticStepClear;globalThis.testHits=hitsBlock;',ctx);
+ return (shapes,a,b)=>{ctx.OBST=shapes;return ctx.testEgress({x:a[0],y:a[1]},{x:b[0],y:b[1]});};
+}
+test('exact source geometry permits recorded gradual departure from existing wall envelope',()=>{
+ const f=egressFixture(),wall={x:-3.6,z:-40.1,hw:10.3,hd:.1,c:1,s:0};
+ for(const [a,b] of [[[.492881942935413,-39.77431507584558],[.48708919952780405,-39.77101529278313]],[[-.8676680803214121,-39.77755377129291],[-.8631177794744318,-39.77268148162094]]]){assert(f([wall],a,b));assert(!f([wall],b,a));}
+});
+test('box egress forbids entry, deeper motion, opposite traversal and all conflicting overlaps',()=>{
+ const f=egressFixture(),box={x:0,z:0,hw:1,hd:1,c:1,s:0};
+ assert(f([box],[1.2,0],[1.3,.2]));assert(!f([box],[1.2,0],[1.1,0]));assert(!f([box],[1.2,0],[-2,0]));
+ assert(!f([box],[2,0],[1.3,0]));assert(!f([box],[-2,0],[2,0]));assert(!f([box],[1.2,0],[1.2,.1]));
+ assert(f([box],[1.2,1.2],[1.21,1.19])); // tie: x face strictly improves despite z face switch
+ assert(!f([box],[1.2,1.2],[1.19,1.19]));assert(!f([box],[1.2,0],[1.2,0]));
+ const other={...box,x:2.5};assert(!f([box,other],[1.2,0],[1.3,0]));assert(!f([other,box],[1.2,0],[1.3,0]));
+ const ahead={x:1.9,z:0,hw:.1,hd:.1,c:1,s:0};assert(!f([box,ahead],[1.2,0],[1.5,0]));
+});
+test('rotated box and circle use full-segment outward criteria, not endpoint-only distance',()=>{
+ const f=egressFixture(),rotated={x:0,z:0,hw:1,hd:1,c:Math.SQRT1_2,s:Math.SQRT1_2},w=(x,y)=>[(x-y)*Math.SQRT1_2,(x+y)*Math.SQRT1_2];
+ assert(f([rotated],w(1.2,0),w(1.3,.1)));assert(!f([rotated],w(1.2,0),w(1.1,0)));
+ const circle={x:0,z:0,radius:1,c:1,s:0};
+ assert(f([circle],[1,0],[1.01,.01]));assert(!f([circle],[1,0],[-2,0]));assert(!f([circle],[1,0],[.99,.3]));assert(!f([circle],[2,0],[1.3,0]));assert(!f([circle],[0,0],[.01,0]));assert(!f([circle],[1,0],[1,.01])); // tangent deliberately fails closed
+});
+test('permitted convex egress monotonically decreases penetration across whole sampled segment',()=>{
+ const f=egressFixture(),box={x:0,z:0,hw:1,hd:.5,c:1,s:0},circle={x:0,z:0,radius:1,c:1,s:0};
+ for(const [o,a,b]of [[box,[1.2,.1],[1.8,-.7]],[box,[0,.7],[.4,1.1]],[circle,[1,.1],[1.4,.4]]]){
+  assert(f([o],a,b));let prior=Infinity;
+  for(let n=0;n<=100;n++){const u=n/100,x=a[0]+u*(b[0]-a[0]),y=a[1]+u*(b[1]-a[1]),depth=o.radius!==undefined?Math.max(0,o.radius+.42-1e-8-Math.hypot(x,y)):Math.max(0,Math.min(o.hw+.42-.05-Math.abs(x),o.hd+.42-.05-Math.abs(y)));assert(depth<=prior+1e-12);prior=depth;}
  }
 });
-test('finite decisions reject raw keys, unknown identities, unbounded values and malformed arrays',()=>{
- const v={schema:1,animals:[{index:1,counts:Array(18).fill(0),first:null,last:null}]},valid=require('./helpers/a52-pen-report.cjs').validDecisions;
- assert(valid(v));for(const bad of [{...v,raw:'private'},{schema:1,animals:[{...v.animals[0],index:3}]},{schema:1,animals:[{...v.animals[0],counts:[Infinity]}]},{schema:1,animals:[{...v.animals[0],first:{raw:'private'}}]}])assert(!valid(bad));
-});
 
-test('obstacle observer captures actual returned index and exact arguments without collision calls',()=>{
- const source=h.scope.observationTransforms[0].new,begin=source.indexOf('const __pb='),end=source.indexOf('// A social-avoidance step'),code=source.slice(begin,end);
- const inspect=(shape,origin,candidate,index=1)=>{const ctx={__pd:{},OBST:[{x:999,z:999,hw:1,hd:1,c:1,s:0},shape],origin,candidate,index,returned:null,hitsBlock(){throw Error('No second collision call');},insideObst(){throw Error('No gameplay predicate call');}};require('node:vm').runInNewContext(code+'returned=__pb(index,origin,candidate);',ctx);assert.equal(ctx.returned,index);return JSON.parse(JSON.stringify(ctx.__pd));};
- const shape={x:2,z:3,hw:.5,hd:.5,c:0,s:1},origin={x:2.2,y:3.1},candidate={x:3,y:3};
- const v=inspect(shape,origin,candidate).staticObstacle;assert.equal(v.index,1);assert.deepEqual(v.origin,[2.2,3.1]);assert.deepEqual(v.candidate,[3,3]);assert.deepEqual(v.routingInside,[true,false]);assert.deepEqual(v.segmentInside,[true,false]);assert.equal(v.shape,'box');assert(require('./helpers/a52-pen-report.cjs').validObstacle(v));
- const circle=inspect({x:0,z:0,radius:.5,c:1,s:0},{x:0,y:0},{x:1,y:0}).staticObstacle;assert.equal(circle.shape,'circle');assert.equal(circle.extent,null);assert.deepEqual(circle.routingInside,[true,false]);assert(require('./helpers/a52-pen-report.cjs').validObstacle(circle));
- assert.deepEqual(inspect(shape,origin,candidate,-1),{});
- const edge=inspect({x:0,z:0,hw:.5,hd:.5,c:1,s:0},{x:.89,y:0},{x:.91,y:0}).staticObstacle;assert.deepEqual(edge.routingInside,[true,true]);assert.deepEqual(edge.segmentInside,[false,false]);
+test('egress fails closed on nonfinite endpoints and every invalid obstacle before no-hit continuation',()=>{
+ const f=egressFixture(),box={x:100,z:100,hw:1,hd:1,c:1,s:0},circle={x:100,z:100,radius:1,c:1,s:0};
+ for(const a of [[NaN,0],[Infinity,0],[0,-Infinity]])assert(!f([box],a,[1,0]));
+ for(const b of [[NaN,0],[Infinity,0],[0,-Infinity]])assert(!f([box],[0,0],b));
+ for(const k of ['x','z','hw','hd','c','s'])for(const v of [NaN,Infinity,-Infinity])assert(!f([{...box,[k]:v}],[0,0],[1,0]));
+ for(const v of [NaN,Infinity,-Infinity,-1])assert(!f([{...circle,radius:v}],[0,0],[1,0]));
+ for(const bad of [null,{...box,c:0,s:0},{...box,c:2},{...box,hw:-1},{...box,hd:-1}])assert(!f([bad],[0,0],[1,0]));
+ assert(!f([box,{...box,x:NaN}],[0,0],[1,0]));assert(f([box],[0,0],[1,0]));
 });
-test('obstacle schema rejects raw fields and out-of-bounds numeric shapes',()=>{
- const valid=require('./helpers/a52-pen-report.cjs').validObstacle,v={index:2,shape:'box',center:[0,0],axes:[1,0],extent:[1,1],radius:null,origin:[0,0],candidate:[.1,.1],localOrigin:[0,0],localCandidate:[.1,.1],routingInside:[true,true],segmentInside:[true,true]};
- assert(valid(v));for(const b of [{...v,name:'private'},{...v,index:-1},{...v,axes:[Infinity,0]},{...v,shape:'raw'},{...v,radius:5},{...v,extent:[-1,1]},{...v,origin:[1001,0]},{...v,routingInside:[1,true]}])assert(!valid(b));
+test('finite world geometry that overflows transformed coordinates or delta fails before intersection',()=>{
+ const f=egressFixture(),box={x:-1e308,z:0,hw:1,hd:1,c:1,s:0};
+ assert(!f([box],[1e308,0],[1e308,1]));
+ assert(!f([{...box,x:0}],[-1e308,0],[1e308,0]));
+ assert(!f([{...box,x:0,z:0,c:Math.SQRT1_2,s:Math.SQRT1_2}],[1.7e308,1.7e308],[1.7e308,1.7e308]));
 });
