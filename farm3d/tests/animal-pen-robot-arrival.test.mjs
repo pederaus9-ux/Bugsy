@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import * as THREE from '../lib/three.module.min.js';
 import {cowPenStep} from '../animal-pen-cow-support.js';
 import {createCowYard} from '../cow-yard.js';
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'),start=html.indexOf('function updateCowTaskStep('),end=html.indexOf('\nbootStep("making the sky")',start),source=html.slice(start,end);assert(start>=0&&end>start);
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'),start=html.indexOf('function updateCowTaskStep('),end=html.indexOf('\nbootStep("making the sky")',start),recoveryStart=html.indexOf('// Narrow default-bed transit safety;'),source=html.slice(recoveryStart,end);assert(start>=0&&end>start);assert(recoveryStart>=0&&recoveryStart<start);
 function nativeFunction(name){const i=html.indexOf('function '+name+'('),j=html.indexOf('\n}',i);assert(i>=0&&j>i,'missing native '+name);return html.slice(i,j+2);}
 const localSource=html.match(/^const toLocal = .+$/m)?.[0];assert(localSource,'missing native obstacle transform');
 const gateSource=localSource+'\n'+nativeFunction('hitsBlock')+'\n'+nativeFunction('cowGateSegmentClear'),dependencies=gateSource+'\n'+nativeFunction('cowSharedCornerDetour');
@@ -13,10 +13,10 @@ const yards=[];test.afterEach(()=>{for(const yard of yards.splice(0))yard.dispos
 function fixture({kind='robot',stage='approach',custom=false,gap=.033,blocked=false,slope=false,intermediate=false}={}){
  const dock=[9,.08,-36],p=new THREE.Vector2(dock[0],dock[2]),a={kind:'cow',g:{position:new THREE.Vector3(9,.08,-36+gap)},rig3d:{model:{rotation:{y:0}}},carePose:{reset(){}},S:{walk:.8},ref:{i:0},vel:new THREE.Vector2(),need:{},cowTask:{kind,stage,jobId:1,station:{facing:Math.PI},token:{},weight:0,waypoints:intermediate?[[9,.08,-37]]:[],path:[p],gate:{update(){return false;}}}};
  Object.defineProperty(a,'pos',{get(){return new THREE.Vector2(a.g.position.x,a.g.position.z);}});
- const arrivals=[],status={job:{id:1,cowId:'cow-1',stage:'approaching'},feed:1,waterUntil:1e10,cows:[{ready:{},feedCharged:false}]},ctx={THREE,animals:[a,...(blocked?[{kind:'cow',g:{position:new THREE.Vector3(...dock)}}]:[])],cowStatus:status,cowIdOf:()=> 'cow-1',nowMs:()=>0,clockT:0,PRESET:{},COW_YARD_LAYOUT:{custom,floor:.08,robot:{dock},obstacles:[]},PENS:{courtyard:{}},fitsPen:()=>false,route(){throw Error('Unexpected replan');},cowStations:{arrive(t){arrivals.push(t);}},releaseCowTask(){throw Error('Unexpected release');},Cow3D:{updateCow3D(){}},applyCowPenSupport(){},cowPenStep,cowSupportY:()=>slope?.18:.08};
+ const arrivals=[],status={job:{id:1,cowId:'cow-1',stage:'approaching'},feed:1,waterUntil:1e10,cows:[{ready:{},feedCharged:false}]},ctx={G:{S:{}},clockT:0,THREE,animals:[a,...(blocked?[{kind:'cow',g:{position:new THREE.Vector3(...dock)}}]:[])],cowStatus:status,cowIdOf:()=> 'cow-1',nowMs:()=>0,PRESET:{},COW_YARD_LAYOUT:{custom,floor:.08,robot:{dock},obstacles:[]},PENS:{courtyard:{}},fitsPen:()=>false,route(){throw Error('Unexpected replan');},cowStations:{arrive(t){arrivals.push(t);}},releaseCowTask(){throw Error('Unexpected release');},Cow3D:{updateCow3D(){}},applyCowPenSupport(){},cowPenStep,cowSupportY:()=>slope?.18:.08};
  if(kind!=='robot')ctx.cowStatus={...status,job:null};
  const yard=createCowYard({north:25});yards.push(yard);yard.setStatus(status);ctx.cowYard=yard;ctx.OBST=yard.layout.obstacles.map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0}));
- const step=vm.runInNewContext(dependencies+'\n'+source+'\nupdateCowTaskStep;',ctx);return{a,p,arrivals,yard,ctx,step:dt=>step(a,dt,0)};
+ const step=vm.runInNewContext(dependencies+'\n'+source+'\nupdateCowTaskStep;',ctx);return{a,p,arrivals,yard,ctx,step:dt=>{ctx.clockT+=dt;return step(a,dt,0);}};
 }
 for(const custom of [false,true])for(const hz of [30,60,120])test(`terminal robot dock completes bounded movement at ${hz}Hz custom=${custom}`,()=>{
  const f=fixture({custom});for(let n=0;n<12&&f.a.cowTask.stage==='approach';n++){const before=f.a.g.position.clone();f.step(1/hz);assert(f.a.g.position.distanceTo(before)<=.8/hz+1e-10);}

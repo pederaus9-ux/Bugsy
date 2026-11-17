@@ -1,3 +1,4 @@
+import cowRecovery from './a53-cow-recovery-scope.cjs';
 import {normalizeReleaseBlockerScope} from './release-blocker-scope.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
@@ -16,6 +17,8 @@ verifyPenScopeHistory(raw);
 const history = JSON.parse(raw);
 
 export function normalizePenScope(amendment, source) {
+  // Exact new release inverse before unchanged historical guards; old fixtures retain their original chain.
+  if(sha(source)===cowRecovery.scope.files['farm3d/index.html'].afterSha256)source=cowRecovery.normalizeA53CowRecovery('index.html',source);
   source=normalizeReleaseBlockerScope('index.html',source);
   assert(['A25', 'A26'].includes(amendment), 'Only the two approved historical guards');
   const target = history.targets[amendment];

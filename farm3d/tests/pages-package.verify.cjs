@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const {normalizeCowSettleScope} = require('./helpers/cow-settle-scope.cjs');
 const ui = require('./helpers/a52-scope.cjs');
+const cowRecovery = require('./helpers/a53-cow-recovery-scope.cjs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {gzipSync} = require('node:zlib');
@@ -166,6 +167,8 @@ function normalizeCowAimScope(file,text){
 // A39: account for only the approved A38 postimages. The original manifest stays frozen;
 // output validation below still compares the actual, current bytes without normalization.
 function historicalAccounting(source, manifest) {
+  // Normalize a NEW map for historical accounting only; source/output verification remains raw.
+  source=new Map([...source].map(([file,bytes])=>[file,cowRecovery.normalizeA53CowRecovery(file,bytes)]));
   for(const file of Object.keys(ui.scope.assets)){assert(source.has(file),'Missing A52 asset');ui.verifyA52Asset(file,source.get(file));}
   for(const file of ['farm3d/index.html','farm3d/sw.js'])assert.equal(sha(source.get(file)||Buffer.alloc(0)),ui.scope.files[file].afterSha256,'Exact current A52 runtime');
   const raw = fs.readFileSync(path.join(__dirname, 'fixtures/release-blocker-scope.json'));
@@ -220,11 +223,12 @@ function accountingControls(source, manifest) {
     ['unrelated chicken change', m => m.set('farm3d/chicken3d.js', Buffer.concat([m.get('farm3d/chicken3d.js'), Buffer.from('\n/* unrelated */')]))], // A45 whole-file pin
     ['unrelated index change', m => m.set('farm3d/index.html', Buffer.concat([m.get('farm3d/index.html'), Buffer.from('\n<!-- unrelated -->')]))],
     ['missing service worker', m => m.delete('farm3d/sw.js')],
-    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(ui.normalizeA52Source('sw.js',m.get('farm3d/sw.js').toString()).replace('sa3d-v85', 'sa3d-v86')))], // A46: current cache is sa3d-v85
+    ['wrong cache version', m => m.set('farm3d/sw.js', Buffer.from(ui.normalizeA52Source('sw.js',cowRecovery.normalizeA53CowRecovery('sw.js',m.get('farm3d/sw.js').toString())).replace('sa3d-v85', 'sa3d-v86')))], // A46: current cache is sa3d-v85
     ['unrelated unchanged asset', m => {const file = manifest.staticSource.find(e => !['farm3d/auth.js','farm3d/index.html','farm3d/sw.js'].includes(e.path)).path; m.set(file, Buffer.concat([m.get(file), Buffer.from('corrupt')]));}]
   ];
   controls.push(
-    ['wrong A52 cache version',m=>m.set('farm3d/sw.js',Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v93','sa3d-v94')))],
+    ['downgraded A52 cache version',m=>m.set('farm3d/sw.js',Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v94','sa3d-v93')))],
+    ['unknown A53 cache version',m=>m.set('farm3d/sw.js',Buffer.from(m.get('farm3d/sw.js').toString().replace('sa3d-v94','sa3d-v95')))],
     ...Object.keys(ui.scope.assets).flatMap(file=>[
       ['missing A52 '+file,m=>m.delete(file)],
       ['corrupt A52 '+file,m=>m.set(file,Buffer.from('corrupt'))]
