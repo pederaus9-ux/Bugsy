@@ -1,0 +1,9 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const provenance=Object.freeze({"path": "farm3d/farmer3d.js", "preimageSha256": "fe9ba89618dd46e6ae9f9ab735d66a9663bfdbf3359370fae2fbea649c57f958", "preimageBlob": "c270c547a05827e52b66d0124dd43d6e5d6b7a8f", "postimageSha256": "2b475ef9ae6c329d9d89016708d73f31f02be791701738d288139726ea44cb1b", "postimageBlob": "e51790cd50d4254ee22a7e2bcfca4d16aea6f187"}),hunks=[{"before": "  if(moving)s.phase=Number.isFinite(motion?.phase)?((motion.phase%1)+1)%1:(s.phase+travel/cycle)%1;", "after": "  if(Number.isFinite(motion?.phase))s.phase=((motion.phase%1)+1)%1;\n  else if(moving)s.phase=(s.phase+travel/cycle)%1;"}],sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+function load(name,hash){const p=path.resolve(__dirname,'../fixtures/'+name),s=fs.lstatSync(p);if(!s.isFile()||s.isSymbolicLink()||s.size>1048576||fs.realpathSync(p)!==p)throw Error('Unsafe phase fixture');const b=fs.readFileSync(p);if(sha(b)!==hash)throw Error('Phase fixture hash');return b;}
+function before(){return load('a53-phase-farmer-before.txt',provenance.preimageSha256);}
+function after(){return load('a53-phase-farmer-after.txt',provenance.postimageSha256);}
+function patch(b){if(sha(b)!==provenance.preimageSha256)throw Error('Unknown farmer predecessor');let s=b.toString();for(const h of hunks){if(s.split(h.before).length!==2)throw Error('Phase occurrence');s=s.replace(h.before,h.after);}const p=Buffer.from(s);if(!p.equals(after()))throw Error('Phase candidate differs');return p;}
+function inverse(b){if(sha(b)!==provenance.postimageSha256)throw Error('Unknown farmer candidate');let s=b.toString();for(const h of [...hunks].reverse()){if(s.split(h.after).length!==2)throw Error('Inverse occurrence');s=s.replace(h.after,h.before);}const p=Buffer.from(s);if(!p.equals(before()))throw Error('Inverse differs');return p;}
+module.exports={provenance,patch,inverse,before,after};

@@ -1,0 +1,8 @@
+'use strict';
+const crypto=require('node:crypto'),candidate=require('./final-candidate.cjs'),telemetry=require('./integration-telemetry.cjs'),recovery=require('./recovery-telemetry.cjs'),social=require('./social-telemetry.cjs');
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const provenance={"path":"farm3d/index.html","preimageSha256":"40a2bbcef45e5a29f463768937ef849a8aff53075d7820fba613d5064e5a294c","candidateSha256":"6ed974f5d0571ef070d50fa81d0f30c8b840f5f283e5a75e46fc8d424225131b","postimageSha256":"fd9c221782358852216da40ac9d1034627b03579a50a8804183b8b47e0a982c1","postimageBlob":"46c4202e0c0ed187ef3986b74155d6e7afe72b80"};
+const sceneMarker="\n// Read-only finite full-scene registry witness.\ntry{window.__cowSceneReceipt=()=>({schema:1,obstacleCount:OBST.length,customCowYard:!!COW_YARD_LAYOUT.custom});}catch{}\n";
+function patch(b){if(sha(b)!==provenance.preimageSha256)throw Error('preimage');const c=candidate.patch(b);if(sha(c)!==provenance.candidateSha256)throw Error('candidate hash');const raw=social.decorate(recovery.decorate(telemetry.decorate(c)));const p=Buffer.from(raw.toString().replace('function updateCowTaskStep(a,dt,t){',sceneMarker+'function updateCowTaskStep(a,dt,t){')); if(sha(p)!==provenance.postimageSha256)throw Error('instrumented hash');return p;}
+function inverse(b){if(sha(b)!==provenance.postimageSha256)throw Error('postimage');const raw=Buffer.from(b.toString().replace(sceneMarker,''));return candidate.inverse(telemetry.strip(recovery.strip(social.strip(raw))));}
+module.exports={patch,inverse,validate:telemetry.validate,validateRecovery:recovery.validate,validateSocial:social.validate,provenance};
