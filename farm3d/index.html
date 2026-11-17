@@ -2341,6 +2341,12 @@ function segmentBlocked(o,a,b){
  if(o.radius!==undefined){const u=Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dz)/(dx*dx+dz*dz||1)));return Math.hypot(A[0]+dx*u,A[1]+dz*u)<o.radius+PAD-1e-8;}
  let lo=0,hi=1;for(const [p,d,h]of [[A[0],dx,o.hw+PAD],[A[1],dz,o.hd+PAD]]){if(Math.abs(d)<1e-12){if(Math.abs(p)>=h)return false;}else{let u=(-h-p)/d,v=(h-p)/d;if(u>v)[u,v]=[v,u];lo=Math.max(lo,u);hi=Math.min(hi,v);if(lo>=hi)return false;}}return lo<hi;
 }
+// Entry parameter is selection only; full existing sweeps still validate every edge.
+function segmentEntry(o,a,b){
+ const A=local(o,a),B=local(o,b),dx=B[0]-A[0],dz=B[1]-A[1];
+ if(o.radius!==undefined){const r=o.radius+PAD-1e-8,q=dx*dx+dz*dz;if(!q)return 0;const h=A[0]*dx+A[1]*dz,disc=h*h-q*(A[0]*A[0]+A[1]*A[1]-r*r);return Math.max(0,(-h-Math.sqrt(Math.max(0,disc)))/q);}
+ let lo=0;for(const[p,d,h]of[[A[0],dx,o.hw+PAD],[A[1],dz,o.hd+PAD]])if(Math.abs(d)>=1e-12)lo=Math.max(lo,Math.min((-h-p)/d,(h-p)/d));return lo;
+}
 function createRepair(input,{maxVisits=MAX_VISITS}={}){
  if(!Number.isSafeInteger(maxVisits)||maxVisits<0||maxVisits>MAX_VISITS)throw Error('invalid budget');
  let total=0,result=null;
@@ -2365,7 +2371,7 @@ function createRepair(input,{maxVisits=MAX_VISITS}={}){
    obs.push({x:o.x,z:o.z,hw:o.hw,hd:o.hd,c:o.c,s:o.s,...(o.radius!==undefined?{radius:o.radius}:{})});yield 1;
   }
   if(input.obstacles.length!==count)return{status:'invalid'};
-  let blocker=null;for(const o of obs){if(pointBlocked(o,from)||pointBlocked(o,to))return{status:'no-route'};if(!blocker&&segmentBlocked(o,from,to))blocker=o;yield 1;}
+  let blocker=null,entry=Infinity;for(const o of obs){if(pointBlocked(o,from)||pointBlocked(o,to))return{status:'no-route'};if((poly||!blocker)&&segmentBlocked(o,from,to)){const next=poly?segmentEntry(o,from,to):0;if(!blocker||next<entry){blocker=o;entry=next;}}yield 1;}
   if(!blocker)return(yield* polygonClear(from,to))?{status:'path',path:[to],snapshot:obs,from,to,pen}:{status:'no-route'};
   if(blocker.radius!==undefined)return{status:'unsupported'};
   const nodes=[from,to];for(const [sx,sz]of [[-1,-1],[1,-1],[1,1],[-1,1]]){const x=sx*(blocker.hw+PAD+CORNER),z=sz*(blocker.hd+PAD+CORNER);nodes.push([blocker.x+x*blocker.c-z*blocker.s,blocker.z+x*blocker.s+z*blocker.c]);}
