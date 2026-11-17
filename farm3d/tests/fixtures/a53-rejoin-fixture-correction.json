@@ -1,0 +1,26 @@
+[
+  [
+    "const {c,y}=fullHerdScene(25),red=JSON.parse(fs.readFileSync(new URL('./evidence/pen-editing-implementation/task8-codex-a22-matrix-20261025/'+key+'/results.json',import.meta.url)));",
+    "const {c,y}=fullHerdScene(25),authored=key==='authored-legal-opposed-rejoin-v1',captured=JSON.parse(fs.readFileSync(new URL('./evidence/pen-editing-implementation/task8-codex-a22-matrix-20261025/'+(authored?'assembly-4242-120':key)+'/results.json',import.meta.url)));let red=captured;if(authored){const spec=JSON.parse(fs.readFileSync(new URL('./fixtures/a53-legal-opposed-rejoin.json',import.meta.url))),expected=spec.animals.map(a=>{const p=captured.failureState.animals.find(p=>p.key===a.key);assert(p,'authored lineage missing original cow');return{key:p.key,pos:p.pos,act:p.act,stage:p.stage,station:p.station,path:p.path};});assert.equal(spec.label,key);assert.equal(spec.animals.length,5);assert.equal(new Set(spec.animals.map(a=>a.key)).size,5);const actor=expected.find(a=>a.key==='cow:1');assert.deepEqual(actor.pos,[-1.6679393998028804,.08,-36.549673028140546]);actor.pos=[-.9,.08,-36.55];assert.deepEqual(spec.animals,expected,'only authored cow1 initial position may differ');red={failureState:spec};}"
+  ],
+  [
+    "for(const key of['assembly-4242-120','boundary-4242-120'])test",
+    "// Positive contract uses legal authored initial state, NOT a captured assembly replay.\nfor(const key of['authored-legal-opposed-rejoin-v1','boundary-4242-120'])test"
+  ],
+  [
+    "const a=f.c.animals[key.startsWith('assembly')?1:0]",
+    "if(key==='authored-legal-opposed-rejoin-v1')validateAuthoredStart(f);const a=f.c.animals[key==='authored-legal-opposed-rejoin-v1'?1:0]"
+  ],
+  [
+    "for(const key of['assembly-4242-120','boundary-4242-120'])for",
+    "for(const key of['authored-legal-opposed-rejoin-v1','boundary-4242-120'])for"
+  ],
+  [
+    "const f=fixture(key),{c,y}=f;try{const tokens=",
+    "const f=fixture(key),{c,y}=f;try{if(key==='authored-legal-opposed-rejoin-v1')validateAuthoredStart(f);const tokens="
+  ],
+  [
+    "for(const key of['authored-legal-opposed-rejoin-v1','boundary-4242-120'])test",
+    "function validateAuthoredStart(f){const {c,y}=f;for(let i=0;i<c.animals.length;i++){const a=c.animals[i];assert(c.fitsPen(c.PENS.courtyard,a.g.position.x,a.g.position.z,.42),'A53P:initial-pen');assert(!y.layout.obstacles.some(([x,z,hw,hd])=>Math.abs(a.g.position.x-x)<hw+.42&&Math.abs(a.g.position.z-z)<hd+.42),'A53P:initial-static');assert(Number.isFinite(c.cowSupportY(a.g.position.x,a.g.position.z)),'A53P:initial-support');for(let j=0;j<i;j++)assert(a.g.position.distanceTo(c.animals[j].g.position)>=.85-1e-9,'A53P:initial-body');}}\nfor(const key of['authored-legal-opposed-rejoin-v1','boundary-4242-120'])test"
+  ]
+]
