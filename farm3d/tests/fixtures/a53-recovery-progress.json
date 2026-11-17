@@ -1,0 +1,297 @@
+{
+  "originalSha256": "d4f51a7fd92cc0ab656582dd0030afeac0323ce0ff63b03f7746a56ff8a678e2",
+  "originalGitBlob": "60908261cb49dd24b22a2f03d8fbb689ccada0e4",
+  "instrumentedSha256": "a0d7b336cb89a8d54fcea8978426be6acca2422c65494c7c0a4f0a8c5dacfe4b",
+  "points": [
+    {
+      "id": 1,
+      "label": "reset"
+    },
+    {
+      "id": 2,
+      "label": "start"
+    },
+    {
+      "id": 3,
+      "label": "phone"
+    },
+    {
+      "id": 4,
+      "label": "register"
+    },
+    {
+      "id": 5,
+      "label": "chicken-snapshot"
+    },
+    {
+      "id": 6,
+      "label": "lamp-snapshot"
+    },
+    {
+      "id": 7,
+      "label": "cow-snapshot"
+    },
+    {
+      "id": 8,
+      "label": "edited-snapshot"
+    },
+    {
+      "id": 9,
+      "label": "quota"
+    },
+    {
+      "id": 10,
+      "label": "quota-refusal"
+    },
+    {
+      "id": 11,
+      "label": "quota-watch"
+    },
+    {
+      "id": 12,
+      "label": "quota-finish"
+    },
+    {
+      "id": 13,
+      "label": "race"
+    },
+    {
+      "id": 14,
+      "label": "race-release"
+    },
+    {
+      "id": 15,
+      "label": "race-reload"
+    },
+    {
+      "id": 16,
+      "label": "corrupt-good"
+    },
+    {
+      "id": 17,
+      "label": "corrupt-good-reload"
+    },
+    {
+      "id": 18,
+      "label": "corrupt-cloud"
+    },
+    {
+      "id": 19,
+      "label": "missing-cloud"
+    },
+    {
+      "id": 20,
+      "label": "missing-delayed"
+    },
+    {
+      "id": 21,
+      "label": "reestablish"
+    },
+    {
+      "id": 22,
+      "label": "offline-start"
+    },
+    {
+      "id": 23,
+      "label": "slow-cloud"
+    },
+    {
+      "id": 24,
+      "label": "slow-corrupt"
+    },
+    {
+      "id": 25,
+      "label": "late-answer"
+    },
+    {
+      "id": 26,
+      "label": "offline-reload"
+    },
+    {
+      "id": 27,
+      "label": "signout"
+    },
+    {
+      "id": 28,
+      "label": "signin"
+    },
+    {
+      "id": 29,
+      "label": "finish-timing"
+    },
+    {
+      "id": 30,
+      "label": "stop-trace"
+    },
+    {
+      "id": 31,
+      "label": "close"
+    },
+    {
+      "id": 32,
+      "label": "finish-quota"
+    },
+    {
+      "id": 33,
+      "label": "write-results"
+    },
+    {
+      "id": 34,
+      "label": "native-exit"
+    }
+  ],
+  "hunks": [
+    {
+      "before": "require('../../tests/helpers/a52-firebase-script-events.cjs').observe('recovery');",
+      "after": "const __recoveryProbe=require('../../tests/helpers/a53-recovery-progress.cjs').create();\nrequire('../../tests/helpers/a52-firebase-script-events.cjs').observe('recovery');"
+    },
+    {
+      "before": "  await resetEmulators();",
+      "after": "  __recoveryProbe.mark(1);\n  await resetEmulators();"
+    },
+    {
+      "before": "  const E = await startEmu(), {P} = E;",
+      "after": "  __recoveryProbe.mark(2);\n  const E = await startEmu(), {P} = E;"
+    },
+    {
+      "before": "  const g = await E.phone('grandma');",
+      "after": "  __recoveryProbe.mark(3);\n  const g = await E.phone('grandma');"
+    },
+    {
+      "before": "    const uid = await E.register(g, 'grandma@example.com');",
+      "after": "    __recoveryProbe.mark(4);\n    const uid = await E.register(g, 'grandma@example.com');"
+    },
+    {
+      "before": "    // Chicken envelope traverses",
+      "after": "    __recoveryProbe.mark(5);\n    // Chicken envelope traverses"
+    },
+    {
+      "before": "    // Exercise the new minimum-writer marker",
+      "after": "    __recoveryProbe.mark(6);\n    // Exercise the new minimum-writer marker"
+    },
+    {
+      "before": "    // A quiescent approaching job",
+      "after": "    __recoveryProbe.mark(7);\n    // A quiescent approaching job"
+    },
+    {
+      "before": "    // A27: use the already-qualified west horse boundary",
+      "after": "    __recoveryProbe.mark(8);\n    // A27: use the already-qualified west horse boundary"
+    },
+    {
+      "before": "    // A27 quota negative control",
+      "after": "    __recoveryProbe.mark(9);\n    // A27 quota negative control"
+    },
+    {
+      "before": "      await refusal;",
+      "after": "      __recoveryProbe.mark(10);\n      await refusal;"
+    },
+    {
+      "before": "      const bad=await watch(uid,25000",
+      "after": "      __recoveryProbe.mark(11);\n      const bad=await watch(uid,25000"
+    },
+    {
+      "before": "      await quotaTiming.finish();quotaTiming=null;",
+      "after": "      __recoveryProbe.mark(12);\n      await quotaTiming.finish();quotaTiming=null;"
+    },
+    {
+      "before": "    // ---- 0. the race:",
+      "after": "    __recoveryProbe.mark(13);\n    // ---- 0. the race:"
+    },
+    {
+      "before": "      await timing.releaseRenderer();\n      g.delayGame = 25000; g.authFile",
+      "after": "      __recoveryProbe.mark(14);\n      await timing.releaseRenderer();\n      g.delayGame = 25000; g.authFile"
+    },
+    {
+      "before": "      const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});\n      timing?.mark('reload-return');",
+      "after": "      __recoveryProbe.mark(15);\n      const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});\n      timing?.mark('reload-return');"
+    },
+    {
+      "before": "    // ---- 1 (x REPEAT).",
+      "after": "    __recoveryProbe.mark(16);\n    // ---- 1 (x REPEAT)."
+    },
+    {
+      "before": "      const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});\n      const sampling = watch(uid, 40000",
+      "after": "      __recoveryProbe.mark(17);\n      const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});\n      const sampling = watch(uid, 40000"
+    },
+    {
+      "before": "    // ---- 2. good local",
+      "after": "    __recoveryProbe.mark(18);\n    // ---- 2. good local"
+    },
+    {
+      "before": "    // ---- 3. corrupt local",
+      "after": "    __recoveryProbe.mark(19);\n    // ---- 3. corrupt local"
+    },
+    {
+      "before": "    // ---- 3b.",
+      "after": "    __recoveryProbe.mark(20);\n    // ---- 3b."
+    },
+    {
+      "before": "    // The preceding missing-cloud cases",
+      "after": "    __recoveryProbe.mark(21);\n    // The preceding missing-cloud cases"
+    },
+    {
+      "before": "    // ---- 11.",
+      "after": "    __recoveryProbe.mark(22);\n    // ---- 11."
+    },
+    {
+      "before": "    // ---- 12.",
+      "after": "    __recoveryProbe.mark(23);\n    // ---- 12."
+    },
+    {
+      "before": "    // 12a/5.",
+      "after": "    __recoveryProbe.mark(24);\n    // 12a/5."
+    },
+    {
+      "before": "    // 12b/3/6.",
+      "after": "    __recoveryProbe.mark(25);\n    // 12b/3/6."
+    },
+    {
+      "before": "    // ---- 4/9/10/8.",
+      "after": "    __recoveryProbe.mark(26);\n    // ---- 4/9/10/8."
+    },
+    {
+      "before": "      // 6. sign out",
+      "after": "      __recoveryProbe.mark(27);\n      // 6. sign out"
+    },
+    {
+      "before": "      // 5. sign back in",
+      "after": "      __recoveryProbe.mark(28);\n      // 5. sign back in"
+    },
+    {
+      "before": "  if (timing) await timing.finish();",
+      "after": "  __recoveryProbe.mark(29);\n  if (timing) await timing.finish();"
+    },
+    {
+      "before": "  if (quotaTiming) await quotaTiming.stopTrace();",
+      "after": "  __recoveryProbe.mark(30);\n  if (quotaTiming) await quotaTiming.stopTrace();"
+    },
+    {
+      "before": "  await E.close();",
+      "after": "  __recoveryProbe.mark(31);\n  await E.close();"
+    },
+    {
+      "before": "  if (quotaTiming) await quotaTiming.finish();",
+      "after": "  __recoveryProbe.mark(32);\n  if (quotaTiming) await quotaTiming.finish();"
+    },
+    {
+      "before": "  fs.writeFileSync(path.join(artifacts, 'recovery.json'),",
+      "after": "  __recoveryProbe.mark(33);\n  fs.writeFileSync(path.join(artifacts, 'recovery.json'),"
+    },
+    {
+      "before": "  process.exit(bad.length || failed ? 1 : 0);",
+      "after": "  __recoveryProbe.mark(34);\n  process.exit(bad.length || failed ? 1 : 0);"
+    },
+    {
+      "before": "results.push({name, ok: !!cond, detail}); console.log",
+      "after": "results.push({name, ok: !!cond, detail}); __recoveryProbe.check(!!cond); console.log"
+    },
+    {
+      "before": "  } catch (e) {\n    quotaTiming?.mark('outer-catch'",
+      "after": "  } catch (e) {\n    __recoveryProbe.caught(e,'body');\n    quotaTiming?.mark('outer-catch'"
+    },
+    {
+      "before": "main().catch(e => { console.error(e); process.exit(1); });",
+      "after": "main().catch(e => { __recoveryProbe.caught(e,'top'); console.error(e); process.exit(1); });"
+    }
+  ]
+}

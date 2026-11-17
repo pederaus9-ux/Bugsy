@@ -1,0 +1,98 @@
+name: A53 bounded original recovery progress diagnostic
+on:
+  push:
+    branches: [codex/a53-recovery-progress-diagnostic-20261117]
+permissions:
+  contents: read
+concurrency:
+  group: a53-recovery-progress-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  firebase-rules:
+    name: Firestore rules + economy functions + game flows + save recovery (emulator)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify reviewed source and isolated observer controls
+        run: |
+          node farm3d/tests/helpers/a53-recovery-source.cjs "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/a53-recovery-safe" "$RUNNER_TEMP/a53-recovery-public"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-recovery-safe/namespace.json" --timeout-ms 10000 --probe-only
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a53-recovery-safe/controls.json" --timeout-ms 180000 -- node --test farm3d/tests/a53-recovery-progress.test.cjs
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: farm3d/firebase/package-lock.json
+      - name: Install isolated rules-test dependencies
+        working-directory: farm3d/firebase
+        run: npm ci --ignore-scripts
+      - name: Install Cloud Functions dependencies (run only in the Functions emulator)
+        working-directory: farm3d/firebase/functions
+        run: npm ci --ignore-scripts
+      - name: Install Chromium and system dependencies
+        working-directory: farm3d/firebase
+        run: npx playwright install --with-deps chromium
+      - name: Prepare exact Firebase emulator binaries without project execution
+        run: node farm3d/tests/helpers/a52-emulator-bootstrap.cjs functions
+      - name: Rules, economy functions, real game flows and save recovery against the Firestore + Auth + Functions emulators
+        working-directory: farm3d/firebase
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/firebase-rules"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/firebase-rules/step-1.json" --timeout-ms 2700000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm test'
+      - name: Exact production SDK browser modules and blocked-storage sign-in boot
+        working-directory: farm3d/tests
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/farm3d/firebase/node_modules/playwright
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-safe/firebase-rules"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/firebase-rules/step-2.json" --timeout-ms 2700000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test sdk.test.mjs && node sdk.browser.cjs'
+      - name: Validate and project exact execution receipts
+        id: public_receipts
+        if: ${{ !cancelled() }}
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node farm3d/tests/helpers/a53-recovery-source.cjs "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d9e887bd1876f1ddbc5c3a12cf1d2aa6a103091caa12d53cc57d69561199e124
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-regression/firebase-rules "$RUNNER_TEMP/a52-ci-safe/firebase-rules" "$RUNNER_TEMP/a52-ci-public/firebase-rules" "$A52_CANDIDATE_HEAD"
+      - name: Save flow results and failure screenshots
+        if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-recovery-original-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a52-ci-public/firebase-rules/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Validate bounded recovery observations without raw saves or errors
+        id: recovery_projection
+        if: ${{ !cancelled() }}
+        run: |
+          node farm3d/tests/helpers/a53-recovery-source.cjs "$GITHUB_SHA" "$RUNNER_TEMP/a53-recovery-public/identity.json"
+          node farm3d/tests/helpers/a53-recovery-evidence.cjs "$RUNNER_TEMP/a53-recovery-progress/phase.json" "$RUNNER_TEMP/a52-ci-safe/firebase-rules/step-1.json" "$RUNNER_TEMP/a53-recovery-public/recovery.json" "$GITHUB_SHA"
+      - name: Upload finite recovery observations only
+        if: ${{ !cancelled() && steps.recovery_projection.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a53-recovery-progress-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a53-recovery-public/
+          if-no-files-found: error
+          retention-days: 14

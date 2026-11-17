@@ -1,3 +1,4 @@
+const __recoveryProbe=require('../../tests/helpers/a53-recovery-progress.cjs').create();
 require('../../tests/helpers/a52-firebase-script-events.cjs').observe('recovery');
 // Phase 7H recovery invariant, against the Firestore + Auth emulators with the real game code (game.js, auth.js):
 //
@@ -103,7 +104,7 @@ async function beginQuotaTiming(page) {
 
 const SAVE_KEY = 'sunny-acres-3d-v1';
 const results = [];
-const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
+const check = (name, cond, detail = '') => { results.push({name, ok: !!cond, detail}); __recoveryProbe.check(!!cond); console.log((cond ? 'PASS ' : 'FAIL ') + name + (detail ? ' — ' + detail : '')); };
 const cloud = async (uid) => { const d = await readDoc('farms/' + uid); return d ? {save: d.save, rev: d.rev} : null; };
 const restWrite = (uid, save, rev) => fetch(fsUrl('farms/' + uid), {method: 'PATCH', headers: {Authorization: 'Bearer owner', 'Content-Type': 'application/json'},
   body: JSON.stringify({fields: {save: {stringValue: save}, level: {integerValue: '3'}, coins: {integerValue: '1'}, rev: {integerValue: String(rev)}, updatedAt: {integerValue: String(Date.now())}}})});
@@ -116,8 +117,11 @@ const has = (save, token) => typeof save === 'string' && save.includes('"__senti
 
 async function main() {
   for (const f of fs.existsSync(artifacts) ? fs.readdirSync(artifacts).filter(f => f.startsWith('console-')) : []) fs.unlinkSync(path.join(artifacts, f));
+  __recoveryProbe.mark(1);
   await resetEmulators();
+  __recoveryProbe.mark(2);
   const E = await startEmu(), {P} = E;
+  __recoveryProbe.mark(3);
   const g = await E.phone('grandma');
   const st = () => P(g, (k) => ({sentinel: window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel, level: window.__dbg && window.__dbg.G.S.level,
     coins: window.__dbg && window.__dbg.G.S.coins, recover: localStorage.getItem('sa3d-recover'), sync: localStorage.getItem('sa3d-sync-rev'),
@@ -142,9 +146,11 @@ async function main() {
   const corruptOnNextLoad = (text) => P(g, (t) => localStorage.setItem('__corrupt_once', t), text);
   let failed = false, timing = null, quotaTiming = null;
   try {
+    __recoveryProbe.mark(4);
     const uid = await E.register(g, 'grandma@example.com');
     await P(g, () => { const G = window.__dbg.G; G.S.coins += 100; G.commit(); });
 
+    __recoveryProbe.mark(5);
     // Chicken envelope traverses the existing authenticated snapshot path. No
     // Firebase/auth/rules code is substituted or enabled on the public farm.
     await P(g, () => {
@@ -159,6 +165,7 @@ async function main() {
     const chickenRestored=await P(g,()=>__dbg.G.S.pens.chicken);
     check('chicken snapshot restores without losing supplies, stock or appearance',JSON.stringify(chickenRestored.care)===JSON.stringify(chickenCloud.care)&&JSON.stringify(chickenRestored.appearance)===JSON.stringify(chickenCloud.appearance)&&chickenRestored.meta[0].name==='Snapshot Hen'&&chickenRestored.meta[29].name==='Snapshot Hen 29'&&chickenRestored.list.length===30);
 
+    __recoveryProbe.mark(6);
     // Exercise the new minimum-writer marker through actual Auth/Firestore,
     // then retain it through the original corruption/race recovery scenarios.
     await P(g,()=>{const G=__dbg.G;G.S.decor.inv.utilitylamp=1;G.S.decor.placed.push({id:'utilitylamp',x:-18,z:8,rotation:.57});G.view.refresh('decor');G.commit();});
@@ -169,6 +176,7 @@ async function main() {
     const lampRestored=await P(g,()=>({v:__dbg.G.S.v,decor:__dbg.G.S.decor,birds:__dbg.G.S.pens.chicken.list.length}));
     check('minimum-writer2 paid lamp restores from authenticated snapshot exactly',lampRestored.v===2&&JSON.stringify(lampRestored.decor)===lampDecor&&lampRestored.birds===30);
 
+    __recoveryProbe.mark(7);
     // A quiescent approaching job retains its actual tank/queue through cloud
     // recovery. The synthetic paid lamp occupies the site, so the renderer may
     // not silently dock/milk it while the upload/reload assertions are running.
@@ -188,6 +196,7 @@ async function main() {
     const cowRestored=await P(g,()=>({save:JSON.parse(JSON.stringify(__dbg.G.S)),site:__dbg.cowYardActive,conflicts:__dbg.cowYardIssues}));
     check('authenticated cow snapshot restores exactly while preserving the occupied paid-lamp footprint',JSON.stringify(cowProgress(cowRestored.save))===JSON.stringify(cowProgress(cowCloud))&&cowRestored.save.v===3&&cowRestored.save.pens.cow.meta[0].name==='Snapshot Bessie'&&cowRestored.save.pens.cow.meta[1].name==='Snapshot Clover'&&!cowRestored.site&&cowRestored.conflicts.some(c=>c.type==='decor')&&cowRestored.save.pens.chicken.list.length===30);
 
+    __recoveryProbe.mark(8);
     // A27: use the already-qualified west horse boundary as a serialized recovery
     // fixture. This is not an additional native Apply claim: the original cow
     // snapshot deliberately contains a paid lamp occupying the cow site.
@@ -205,6 +214,7 @@ async function main() {
     // keep its already-paid egg on the pallet through subsequent recovery.
     await P(g,()=>{const G=__dbg.G;G.S.pens.chicken.care.feedUntil=0;G.S.pens.chicken.care.waterUntil=0;G.commit();});
 
+    __recoveryProbe.mark(9);
     // A27 quota negative control: damaged phone cannot replace edited cloud
     // when the cloud restore cannot persist. Retain the original 15s debounce
     // and observe 25s without changing any existing recovery deadlines.
@@ -219,15 +229,19 @@ async function main() {
       quotaTiming.mark('reload-call');
       await g.page.reload({waitUntil:'load'});
       quotaTiming.mark('reload-return');
+      __recoveryProbe.mark(10);
       await refusal;
       quotaTiming.mark('refusal-await-return');
+      __recoveryProbe.mark(11);
       const bad=await watch(uid,25000,c=>c&&c.save===base.save&&c.rev===base.rev),blocked=await st();
       check('edited cloud recovery with blocked primary storage preserves exact cloud and pending recovery',blocked.recover==='1'&&blocked.raw==='{"a27 quota cut'&&bad.length===0&&standInWrites(base.token)===0);
       await P(g,()=>sessionStorage.removeItem('a27-block-save'));await g.page.reload({waitUntil:'load'});await gameUp();const restored=await st();
       check('edited cloud recovery succeeds after storage becomes writable',restored.recover===null&&progress(restored.raw)===progress(base.save)&&(await cloud(uid)).save===base.save);
+      __recoveryProbe.mark(12);
       await quotaTiming.finish();quotaTiming=null;
     }
 
+    __recoveryProbe.mark(13);
     // ---- 0. the race: auth.js signs in before game.js has read the save (cow3d.js held back 25 s)
     {
       const base = await establish(uid, 'race'), n0 = loads.grandma || 0; g.farmWrites = [];
@@ -235,10 +249,12 @@ async function main() {
       // The SwiftShader trace proves old-context destruction takes9-19s.
       // Complete that fixture lifecycle before timing this25s startup race.
       // Keep the original reload deadline, import delay and recovery assertions.
+      __recoveryProbe.mark(14);
       await timing.releaseRenderer();
       g.delayGame = 25000; g.authFile = process.env.AUTH_FILE || null;
       await corruptOnNextLoad('{"race cut');
       timing?.mark('reload-call', {deadlineMs: 30000, importDelayMs: 25000});
+      __recoveryProbe.mark(15);
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
       timing?.mark('reload-return');
       if (timing) await timing.stopChromeTrace();
@@ -253,12 +269,14 @@ async function main() {
       if (!back) { await g.page.reload({waitUntil: 'load'}); await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready, base.token); }
     }
 
+    __recoveryProbe.mark(16);
     // ---- 1 (x REPEAT). corrupt local + good cloud -> cloud farm back, byte-identical; never a stand-in write; then 7. a normal save
     for (let k = 1; k <= (+process.env.REPEAT || 2); k++) {
       const base = await establish(uid, 'one' + k), n0 = loads.grandma || 0; g.farmWrites = [];
       // the game keeps only the FIRST unreadable copy (scenario 3 checks that); start this scenario with the slot empty
       await P(g, (k) => localStorage.removeItem(k), SAVE_KEY + '-unreadable');
       await corruptOnNextLoad('{"v":1,"coins":12');
+      __recoveryProbe.mark(17);
       const t0 = Date.now(); await g.page.reload({waitUntil: 'load'});
       const sampling = watch(uid, 40000, (c) => c && has(c.save, base.token));
       const back = await loaded((t) => window.__dbg && window.__dbg.G.S && window.__dbg.G.S.__sentinel === t && window.__ready && window.saAuth.user, base.token);
@@ -277,6 +295,7 @@ async function main() {
       check(`1.${k} a normal save after recovery uploads the restored farm`, after.rev > base.rev && has(after.save, base.token) && JSON.parse(after.save).coins === JSON.parse(base.save).coins + 3, `rev ${base.rev}->${after.rev}`);
     }
 
+    __recoveryProbe.mark(18);
     // ---- 2. good local + corrupt cloud -> no reload loop, phone farm kept, cloud repaired from the phone
     {
       const base = await establish(uid, 'two'), n0 = loads.grandma || 0; g.farmWrites = [];
@@ -288,6 +307,7 @@ async function main() {
         `page loads +${(loads.grandma || 0) - n0}, cloud rev ${c && c.rev} (corrupt was ${base.rev + 1}), cloud has sentinel ${c && has(c.save, base.token)}`);
     }
 
+    __recoveryProbe.mark(19);
     // ---- 3. corrupt local + missing cloud -> nothing to recover: stand-in becomes the farm and may start the cloud save
     {
       await restDelete(uid); const n0 = loads.grandma || 0; g.farmWrites = [];
@@ -301,6 +321,7 @@ async function main() {
         `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, sync-rev ${s.sync}, kept first copy ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
     }
 
+    __recoveryProbe.mark(20);
     // ---- 3b. the same missing-cloud case with game startup deliberately delayed.
     // Account linking must not clear RECOVER before load() can set it again.
     {
@@ -319,6 +340,7 @@ async function main() {
         `page loads +${(loads.grandma || 0) - n0}, recover ${s.recover}, first copy kept ${s.kept === '{"v":1,"coins":12'}, new cloud rev ${c && c.rev}`);
     }
 
+    __recoveryProbe.mark(21);
     // The preceding missing-cloud cases intentionally create a fresh farm.
     // Re-establish an edited disposable farm for the later offline/read-timeout
     // and sign-out recovery cases instead of claiming they cover the lost layout.
@@ -326,6 +348,7 @@ async function main() {
       G.S.pens.horse={owned:true,list:[0,0,0,0],meta:Array.from({length:4},(_,i)=>({name:'Second Recovery Horse '+i,love:50,loveAt:Date.now()}))};G.S.layout.animalPens={v:1,revision:3,sites:{horse}};G.S.decor.inv.utilitylamp=1;G.S.decor.placed.push({id:'utilitylamp',x:20,z:20,rotation:.57});G.view.refresh('all');G.commit();});
     const laterEdited=await establish(uid,'later-edited');check('later recovery scenarios start with edited layout and paid object',JSON.parse(laterEdited.save).layout.animalPens.revision===3&&JSON.parse(laterEdited.save).decor.inv.utilitylamp===1);
 
+    __recoveryProbe.mark(22);
     // ---- 11. no recovery, but the cloud can't be reached when the game opens: the same visit still syncs once it's back
     {
       const base = await establish(uid, 'eleven'), n0 = loads.grandma || 0; g.farmWrites = [];
@@ -339,6 +362,7 @@ async function main() {
         `recover ${s.recover}, cloud rev ${base.rev}->${c.rev}, page loads +${(loads.grandma || 0) - n0}`);
     }
 
+    __recoveryProbe.mark(23);
     // ---- 12. the first cloud read's answer is held back (no answer, no error) past 20 s: auth.js must give up on it
     // (__hold_cloud_once: the harness makes auth.js delay its first farm read's real answer; a network hold doesn't do it,
     // because Firestore itself fails a read after 10 s without a reply, while the hang seen in a real run had no reply
@@ -346,6 +370,7 @@ async function main() {
     const logf = path.join(artifacts, 'console-grandma.log');
     const logFrom = () => (fs.existsSync(logf) ? fs.statSync(logf).size : 0);
     const logSince = (at) => (fs.existsSync(logf) ? fs.readFileSync(logf, 'utf8').slice(at) : '');
+    __recoveryProbe.mark(24);
     // 12a/5. corrupt phone + good cloud + slow cloud: timeout, no upload, recovery stays safe, the retry restores the real farm
     {
       const base = await establish(uid, 'twelve-a'), n0 = loads.grandma || 0; g.farmWrites = [];
@@ -362,6 +387,7 @@ async function main() {
         progress(s.raw) === progress(base.save) && c.save === base.save && bad.length === 0 && standInWrites(base.token) === 0 && s.recover === null,
         `timeout logged ${/got no answer in 20 s/.test(log)}, restored ${back} after ${took.toFixed(0)}s, page loads +${(loads.grandma || 0) - n0}, bad samples ${bad.length}, stand-in writes ${standInWrites(base.token)}`);
     }
+    __recoveryProbe.mark(25);
     // 12b/3/6. healthy farm + slow cloud: the timed-out read answers LATE, after the retry already linked: it is ignored
     {
       const base = await establish(uid, 'twelve-b'), n0 = loads.grandma || 0; g.farmWrites = [];
@@ -381,6 +407,7 @@ async function main() {
         Object.values(cond).every(Boolean), JSON.stringify(cond) + ` cloud rev ${base.rev}->${c.rev}`);
     }
 
+    __recoveryProbe.mark(26);
     // ---- 4/9/10/8. reload during recovery while the cloud can't be reached; same coins, different state; past the upload delay
     // ---- 6. sign-out during recovery; 5. sign-in during recovery
     {
@@ -403,6 +430,7 @@ async function main() {
       check('4/9/10/8 reload during recovery: still pending after a reload, same coins/different state, nothing uploaded through 25 s online (> 15 s delay)',
         s1.recover === '1' && s2.recover === '1' && s2b.recover === '1' && s1.sentinel !== base.token && s1.coins === baseCoins && g.blockedReads > 0 && bad.length === 0 && standInWrites(base.token) === 0,
         `pending ${s1.recover}/${s2.recover}/${s2b.recover}, stand-in coins ${s1.coins} = good ${baseCoins}, farm reads refused ${g.blockedReads}, bad samples ${bad.length}, stand-in writes ${standInWrites(base.token)}`);
+      __recoveryProbe.mark(27);
       // 6. sign out while recovery is pending and online: signOut() uploads first, which must be refused
       await P(g, () => window.saAuth.signOut());
       await g.page.waitForSelector('#authGate:not([hidden])', {timeout: 30000});
@@ -410,6 +438,7 @@ async function main() {
       const s2c = await st();
       check('6 sign-out during recovery: nothing uploaded, recovery still pending', s2c.recover === '1' && bad2.length === 0 && standInWrites(base.token) === 0,
         `pending ${s2c.recover}, bad samples ${bad2.length}, stand-in writes ${standInWrites(base.token)}`);
+      __recoveryProbe.mark(28);
       // 5. sign back in while recovery is still pending (reads work again): the cloud farm comes back byte-identical
       g.blockFarmRead = null;
       const n0 = loads.grandma || 0;
@@ -421,20 +450,27 @@ async function main() {
         `restored ${back}, page loads +${(loads.grandma || 0) - n0}, cloud rev ${c3.rev}`);
     }
   } catch (e) {
+    __recoveryProbe.caught(e,'body');
     quotaTiming?.mark('outer-catch',{message:e.message});quotaTiming?.flush();
     timing?.mark('recovery-error', {message: e.message});
     failed = true; console.log('RECOVERY ERROR', e.message); try { console.log('STATE', JSON.stringify(await st())); } catch (_) {}
     try { await g.page.screenshot({path: path.join(artifacts, 'recovery-failure.png')}); } catch (_) {}
   }
+  __recoveryProbe.mark(29);
   if (timing) await timing.finish();
+  __recoveryProbe.mark(30);
   if (quotaTiming) await quotaTiming.stopTrace();
   quotaTiming?.mark('emulator-browser-close-call');
+  __recoveryProbe.mark(31);
   await E.close();
   quotaTiming?.mark('emulator-browser-close-return');
+  __recoveryProbe.mark(32);
   if (quotaTiming) await quotaTiming.finish();
   const bad = results.filter(r => !r.ok);
   console.log(`\nRECOVERY: ${results.length - bad.length}/${results.length} passed (console logs: artifacts/console-*.log)`);
+  __recoveryProbe.mark(33);
   fs.writeFileSync(path.join(artifacts, 'recovery.json'), JSON.stringify(results, null, 1));
+  __recoveryProbe.mark(34);
   process.exit(bad.length || failed ? 1 : 0);
 }
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch(e => { __recoveryProbe.caught(e,'top'); console.error(e); process.exit(1); });
