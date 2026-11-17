@@ -36,3 +36,9 @@ test('known operational failures remain separately classified',()=>{
  for(const [line,key]of [['Errno::EACCES Permission denied','permissionDenied'],['Errno::ENOENT No such file or directory','missingFile'],['SocketError Failed to open TCP','networkFailure'],['Liquid Syntax Error','liquidFailure'],['LoadError cannot load such file','dependencyLoadFailure'],['.sass-cache/foo','sassCachePath'],['.jekyll-metadata','jekyllMetadataPath'],['/usr/local/bundle/foo','bundlePath']])assert.equal(h.buildFailureKinds(null,Buffer.from(line))[key],true);
  assert(Object.values(h.buildFailureKinds(null,null)).every(x=>x===false));
 });
+
+test('DNS metadata diagnosis is finite and does not retain target data',()=>{
+ const text='Errno::ENETUNREACH api.github.com /usr/local/bundle/gems/jekyll-github-metadata-2.13.0/lib/jekyll-github-metadata/client.rb:100 /usr/local/lib/ruby/resolv.rb:400 PRIVATE_CANARY';
+ const x=h.buildFailureKinds(null,Buffer.from(text));assert(h.validFailureKinds(x));for(const k of ['metadataClientStack','resolvStack','networkUnreachable','githubApiHostname'])assert.equal(x[k],true);assert(!JSON.stringify(x).includes('PRIVATE_CANARY'));assert(h.finiteReceipt({...h.receipt(),failureKinds:x}));
+ for(const line of ['unrelated client.rb','resolv', 'github.com'])assert.equal(h.buildFailureKinds(null,Buffer.from(line)).metadataClientStack,false);
+});
