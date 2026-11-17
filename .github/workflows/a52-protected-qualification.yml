@@ -41,7 +41,11 @@ jobs:
       - name: Prove namespace and restricted capability boundary without application code
         id: boundary
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/namespace.json" --timeout-ms 10000 --probe-only
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/inert.json" --timeout-ms 10000 -- node -e 'process.stdout.write("inert-probe-ok\n")'
           node <<'NODE'
           const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict');
@@ -62,22 +66,32 @@ jobs:
       - name: Inert isolation, diagnostics, menu, source and publication controls
         id: contracts
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/contracts.json" --timeout-ms 180000 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/ci-isolated-runner.test.cjs farm3d/tests/a52-*.test.cjs farm3d/tests/a52-*.test.mjs'
       - name: Preserve original source-package assertions and corruption controls
         id: source
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/source-package.json" --timeout-ms 180000 -- node farm3d/tests/pages-package.verify.cjs --source-only
       - name: Four-viewport real native menu journeys
         if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/native.json" --timeout-ms 900000 -- env A52_CURRENT_BROWSER_APPROVED=1 node farm3d/tests/a52-corner-menus.browser.cjs
       - name: Existing accessibility journey with approved visible-launcher focus semantics
         if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/accessibility.json" --timeout-ms 600000 -- node farm3d/tests/accessibility.browser.cjs
       - name: Exact v85 to v93 synthetic saved-farm and offline-worker update
         if: ${{ !cancelled() && steps.boundary.outcome == 'success' && steps.contracts.outcome == 'success' && steps.source.outcome == 'success' }}
         run: |
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a52-receipts/installed.json" --timeout-ms 600000 -- env A52_INSTALLED_BROWSER_APPROVED=1 node farm3d/tests/a52-installed-ui-cache.browser.cjs
       - name: Export finite receipts and only successful synthetic-menu PNGs
         id: public_evidence

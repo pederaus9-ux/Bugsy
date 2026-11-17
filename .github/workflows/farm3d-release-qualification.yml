@@ -51,17 +51,33 @@ jobs:
       - name: Install Chromium and system dependencies
         working-directory: farm3d/firebase
         run: npx playwright install --with-deps chromium
+      - name: Prepare exact Firebase emulator binaries without project execution
+        run: node farm3d/tests/helpers/a52-emulator-bootstrap.cjs auth
       - name: Preserve both farms through stale-upload refusal and user choices
         working-directory: farm3d/firebase
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/conflicts"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/conflicts/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'npm run test:conflicts'
-      - name: Save conflicting-save state, requests and failure evidence
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: ${{ !cancelled() }}
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-release-qualification/conflicts "$RUNNER_TEMP/a52-ci-safe/conflicts" "$RUNNER_TEMP/a52-ci-public/conflicts" "$A52_CANDIDATE_HEAD"
+      - name: Save conflicting-save state, requests and failure evidence
+        if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-release-conflicts-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/conflicts/
+          path: ${{ runner.temp }}/a52-ci-public/conflicts/
           if-no-files-found: error
           retention-days: 14
   a35_fixtures_integrity:
@@ -99,9 +115,13 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/farm3d/firebase/node_modules/playwright" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$(node -e 'console.log(require("./farm3d/firebase/node_modules/playwright").chromium.executablePath())')" >> "$GITHUB_ENV"
+      - name: Prepare exact Firebase emulator binaries without project execution
+        run: node farm3d/tests/helpers/a52-emulator-bootstrap.cjs auth
       - name: Original affected fixtures and shared dependents with added controls
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity/step-1.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/animal-pen-cow-runtime.test.mjs farm3d/tests/animal-pen-cow-wait-route.test.mjs farm3d/tests/animal-pen-route-recovery.test.mjs farm3d/tests/animal-pen-scene-routing.test.mjs farm3d/tests/remaining-care-pet-collision.test.mjs farm3d/tests/remaining-care-decisions.test.mjs farm3d/tests/remaining-care-beast.test.mjs'
       - name: Preserved historical v71 to v72 transition
         if: ${{ !cancelled() }}
@@ -109,6 +129,8 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v71-v72
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity/step-2.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/animal-pen-cache-v71-to-v72.browser.cjs'
       - name: Preserved main v63 to v73 transition
         if: ${{ !cancelled() }}
@@ -116,26 +138,44 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a35/cache-v63-v73
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity/step-3.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/animal-pen-cache-main-v63-to-v73.browser.cjs'
       - name: Original cow predecessor to current installed candidate
         if: ${{ !cancelled() }}
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity/step-4.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/cow-update.browser.cjs'
       - name: Supplemental integrity controls and isolated demo scenario
         if: ${{ !cancelled() }}
         working-directory: farm3d/firebase
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity/step-5.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node tests/quota-state-integrity.browser.cjs --controls
           npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/quota-state-integrity.browser.cjs"
           '
-      - name: Retain separate small outcomes without raw console logs
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: always()
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-release-qualification/a35_fixtures_integrity "$RUNNER_TEMP/a52-ci-safe/a35_fixtures_integrity" "$RUNNER_TEMP/a52-ci-public/a35_fixtures_integrity" "$A52_CANDIDATE_HEAD"
+      - name: Retain separate small outcomes without raw console logs
+        if: ${{ (always()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-a35-fixtures-integrity-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/a35_fixtures_integrity/
+          path: ${{ runner.temp }}/a52-ci-public/a35_fixtures_integrity/
           if-no-files-found: error
           retention-days: 14
   pen_cache:
@@ -178,6 +218,8 @@ jobs:
         if: ${{ success() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           node --test farm3d/tests/restore-recovery.test.mjs farm3d/tests/restore-recovery-scope.test.mjs farm3d/tests/save-writer-compatibility.test.mjs farm3d/tests/ordinary-layout-transaction.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/remaining-care-integration.test.mjs farm3d/tests/versions.test.mjs farm3d/tests/sdk.test.mjs 2>&1 | tee artifacts/a29/pen-cache/focused.log
           '
@@ -185,6 +227,8 @@ jobs:
         if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           node --test farm3d/tests/qualification-source.test.cjs 2>&1 | tee artifacts/a29/pen-cache/source-controls.log
           '
@@ -194,6 +238,8 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v72-v73
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-3.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           node farm3d/tests/animal-pen-cache-v72-to-v73.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v72-v73.log
           '
@@ -203,6 +249,8 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v73-v74
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-4.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/cache-v73-v74.log
           '
@@ -212,6 +260,8 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/cache-v74-v75
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-5.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/animal-pen-cache-v74-to-v75.browser.cjs'
       - name: Original gate relocation seed1 at120Hz three-night journey
         if: ${{ !cancelled() && inputs.qualification_set != 'affected-cache-recovery' && inputs.qualification_set != 'a38-cache-only' }}
@@ -222,15 +272,29 @@ jobs:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/a29/pen-cache/gate-1-120
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/pen_cache"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/pen_cache/step-6.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           node farm3d/tests/animal-pen-three-night-extra-classes.browser.cjs 2>&1 | tee artifacts/a29/pen-cache/gate-1-120.log
           '
-      - name: Retain source, results and original failures
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: always()
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-release-qualification/pen_cache "$RUNNER_TEMP/a52-ci-safe/pen_cache" "$RUNNER_TEMP/a52-ci-public/pen_cache" "$A52_CANDIDATE_HEAD"
+      - name: Retain source, results and original failures
+        if: ${{ (always()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-a29-pen-cache-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/pen_cache/
+          path: ${{ runner.temp }}/a52-ci-public/pen_cache/
           if-no-files-found: error
           retention-days: 14
   recovery_restore:
@@ -264,10 +328,14 @@ jobs:
       - name: Install pinned Chromium and system dependencies
         working-directory: farm3d/firebase
         run: npx playwright install --with-deps chromium
+      - name: Prepare exact Firebase emulator binaries without project execution
+        run: node farm3d/tests/helpers/a52-emulator-bootstrap.cjs auth
       - name: Original 27 recovery checks with bounded quota diagnostic
         working-directory: farm3d/firebase
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/recovery_restore"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/recovery_restore/step-1.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/execution-start"
           npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/recovery.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/recovery-restore.log"
@@ -276,6 +344,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/recovery_restore"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/recovery_restore/step-2.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'mkdir -p artifacts/a29/recovery/original-recovery
           cp -a farm3d/firebase/artifacts/. artifacts/a29/recovery/original-recovery/
           for file in farm3d/firebase/*debug.log; do
@@ -287,6 +357,8 @@ jobs:
         working-directory: farm3d/firebase
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/recovery_restore"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/recovery_restore/step-3.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'set -o pipefail
           touch "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-execution-start"
           npx firebase emulators:exec --only firestore,auth --project demo-sunny-acres "node tests/manual-restore.browser.cjs" 2>&1 | tee "$GITHUB_WORKSPACE/artifacts/a29/recovery/manual-restore.log"
@@ -295,6 +367,8 @@ jobs:
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/recovery_restore"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/recovery_restore/step-4.json" --timeout-ms 1500000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'source=farm3d/tests/evidence/pen-editing-implementation/task8-codex-restore-repair-20261025/emulator
           for file in manual-restore.json restored.png; do
             if test -f artifacts/a29/recovery/manual-execution-start && test "$source/$file" -nt artifacts/a29/recovery/manual-execution-start; then
@@ -304,11 +378,23 @@ jobs:
             fi
           done
           '
-      - name: Retain recovery outcomes and original failures
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: always()
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" farm3d-release-qualification/recovery_restore "$RUNNER_TEMP/a52-ci-safe/recovery_restore" "$RUNNER_TEMP/a52-ci-public/recovery_restore" "$A52_CANDIDATE_HEAD"
+      - name: Retain recovery outcomes and original failures
+        if: ${{ (always()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: farm3d-a29-recovery-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/recovery_restore/
+          path: ${{ runner.temp }}/a52-ci-public/recovery_restore/
           if-no-files-found: error
           retention-days: 14

@@ -31,6 +31,7 @@ jobs:
           runner=farm3d/tests/helpers/ci-isolated-runner.cjs
           git --no-lazy-fetch -c protocol.allow=never show "$CI_CANDIDATE_HEAD:$runner" > "$RUNNER_TEMP/ci-isolated-runner.cjs"
           test "$(git hash-object "$RUNNER_TEMP/ci-isolated-runner.cjs")" = "$(git rev-parse "$CI_CANDIDATE_HEAD:$runner")"
+          git --no-lazy-fetch -c protocol.allow=never show "$CI_CANDIDATE_HEAD:farm3d/tests/helpers/a52-workflow-receipts.cjs" > "$RUNNER_TEMP/a52-workflow-receipts.cjs"
           test "$(git rev-parse HEAD)" = "0d0542bf93e4e010b5543e81a40fae4bca2dd5f9"
           git fetch --no-tags --depth=1 origin 4e91a6628bb53b709b5ef643551651a44180ab94
           test "$(git rev-parse FETCH_HEAD)" = "4e91a6628bb53b709b5ef643551651a44180ab94"
@@ -59,38 +60,60 @@ jobs:
       - name: Footprint, historical reconstruction, save and support contracts
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/field"
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/field/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/plot-support.test.mjs farm3d/tests/field-support-scope.test.mjs farm3d/tests/workshop-site.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/animal-pen-validation.test.mjs farm3d/tests/restore-recovery.test.mjs farm3d/tests/player-arm-attachment-integration.test.mjs'
       - name: Native guest selection, planting, reload, harvest and reload
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/native
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/field"
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/field/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/plot-support.browser.cjs'
       - name: Independent installed v75-to-v76 online and offline upgrade
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v75-v76
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/field"
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/field/step-3.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/field-support-cache.browser.cjs'
       - name: Preserved historical v73-to-v75 journey
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v73-v75
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/field"
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/field/step-4.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/animal-pen-cache-v73-to-v74.browser.cjs'
       - name: Preserved historical v74-to-v75 journey
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/field/cache-v74-v75
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/field"
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/field/step-5.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/animal-pen-cache-v74-to-v75.browser.cjs
           '
-      - name: Preserve bounded field outcomes
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: ${{ !cancelled() }}
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "$RUNNER_TEMP/a52-workflow-receipts.cjs" && test ! -L "$RUNNER_TEMP/a52-workflow-receipts.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
+          test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "$RUNNER_TEMP/a52-workflow-receipts.cjs" field-support-qualification/field "$RUNNER_TEMP/a52-ci-safe/field" "$RUNNER_TEMP/a52-ci-public/field" "$A52_CANDIDATE_HEAD"
+      - name: Preserve bounded field outcomes
+        if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: field-support-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/field/
+          path: ${{ runner.temp }}/a52-ci-public/field/
           if-no-files-found: error
           retention-days: 14
 
@@ -128,18 +151,34 @@ jobs:
       - name: Exact rollback, historical reconstruction, save and support contracts
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/rollback"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/rollback/step-1.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node --test farm3d/tests/field-rollback-scope.test.mjs farm3d/tests/plot-support.test.mjs farm3d/tests/field-support-scope.test.mjs farm3d/tests/workshop-site.test.mjs farm3d/tests/animal-pen-save.test.mjs farm3d/tests/animal-pen-validation.test.mjs farm3d/tests/restore-recovery.test.mjs farm3d/tests/player-arm-attachment-integration.test.mjs'
       - name: Installed v76-to-v77 online and offline rollback preserves exact farm
         env:
           TEST_ARTIFACTS: ${{ github.workspace }}/artifacts/rollback/cache-v76-v77
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-safe/rollback"
+          test -f "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$GITHUB_WORKSPACE/farm3d/tests/helpers/ci-isolated-runner.cjs" --receipt "$RUNNER_TEMP/a52-ci-safe/rollback/step-2.json" --timeout-ms 1200000 --max-output-bytes 16777216 -- bash --noprofile --norc -e -o pipefail -c 'node farm3d/tests/field-rollback-cache.browser.cjs'
-      - name: Preserve bounded rollback outcomes
+      - name: Validate and project exact execution receipts
+        id: public_receipts
         if: ${{ !cancelled() }}
+        env:
+          A52_CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/a52-ci-public"
+          test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 2649609bb7a6127c32df3af25f9b11a00e428743b1f2dfc48a2ba745cda40919
+          test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
+          test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          node "farm3d/tests/helpers/a52-workflow-receipts.cjs" field-support-qualification/rollback "$RUNNER_TEMP/a52-ci-safe/rollback" "$RUNNER_TEMP/a52-ci-public/rollback" "$A52_CANDIDATE_HEAD"
+      - name: Preserve bounded rollback outcomes
+        if: ${{ (!cancelled()) && steps.public_receipts.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: field-rollback-${{ github.run_attempt }}-execution-receipts-only
-          path: ${{ runner.temp }}/a52-ci-safe/rollback/
+          path: ${{ runner.temp }}/a52-ci-public/rollback/
           if-no-files-found: error
           retention-days: 14

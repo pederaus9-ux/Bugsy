@@ -3,7 +3,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const {normalizeA52NativeKeyboard}=require('./helpers/a52-native-keyboard-scope.cjs');
 const root=path.resolve(__dirname,'../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
-const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const {normalizeA52Registration}=require('./helpers/a52-regression-registration.cjs');
+const read=f=>normalizeA52Registration(f,fs.readFileSync(path.join(root,f),'utf8'));
 const raw=read('farm3d/tests/fixtures/a52-browser-journey-scope.json'),scope=JSON.parse(raw);
 const exact=(f,source)=>{
  const e=scope.files[f];assert(e,'Known journey accounting path');assert.equal(sha(source),e.afterSha256,'Exact reviewed current journey '+f);

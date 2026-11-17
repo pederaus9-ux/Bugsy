@@ -1,8 +1,12 @@
 'use strict';
+const {normalizeA52WorkflowPublication}=require('./helpers/a52-workflow-publication-scope.cjs');
 // Source-only proof: bash -n parses commands but never runs tests, installs or servers.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
 const {scope,sha,normalizeA52CiWorkflows}=require('./helpers/a52-ci-workflows.cjs');
-const root=path.resolve(__dirname,'../..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const {normalizeA52EmulatorBootstrap}=require('./helpers/a52-emulator-bootstrap-scope.cjs');
+const {normalizeA52QualityWorkflow}=require('./helpers/a52-quality-workflow-scope.cjs');
+const {normalizeA52JekyllWorkflow}=require('./helpers/a52-jekyll-workflow-scope.cjs');
+const root=path.resolve(__dirname,'../..'),read=f=>normalizeA52EmulatorBootstrap(f,normalizeA52QualityWorkflow(f,normalizeA52JekyllWorkflow(f,normalizeA52WorkflowPublication(f,fs.readFileSync(path.join(root,f),'utf8')))));
 const trigger=s=>s.slice(s.indexOf('\non:'),s.indexOf('\npermissions:'));
 test('six exact workflow adaptations reverse to unchanged predecessor bytes; all eleven trigger scopes retained',()=>{
  assert.equal(Object.keys(scope.files).length,6);assert.equal(Object.keys(scope.untouchedWorkflows).length,5);

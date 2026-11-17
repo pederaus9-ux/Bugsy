@@ -90,6 +90,11 @@ test('dedicated exporter verifies its complete code closure before execution and
  }
  assert(workflow.slice(end).includes("if: ${{ always() && steps.public_evidence.outcome == 'success' }}"));
 });
+test('every dedicated protected launch revalidates the unchanged guard after prior project steps',()=>{
+ const workflow=fs.readFileSync(path.resolve(__dirname,'../../.github/workflows/a52-protected-qualification.yml'),'utf8');
+ const pin='test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d \' \' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a';
+ const lines=workflow.split('\n');let n=0;for(let i=0;i<lines.length;i++)if(lines[i].trim().startsWith('node farm3d/tests/helpers/ci-isolated-runner.cjs')){assert.equal(lines[i-1].trim(),pin);n++;}assert.equal(n,7);
+});
 
 test('dismissal diagnostics remain finite and exportable',()=>{
  const good={schema:1,side:1,phase:'escape-check',direction:0,iteration:0,observed:true,inMenu:false,documentFocused:true,bodyActive:false,rootActive:false,launcherActive:true,dialogOpen:false,focusableCount:0,keyDownCount:0,keyUpCount:0};
