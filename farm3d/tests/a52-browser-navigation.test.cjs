@@ -19,7 +19,7 @@ function fixture(selector,side='tools',options={}){
   async evaluate(fn){return fn(nodes[kind]);},
   async waitFor(value){calls.push([kind,'waitFor',value]);if(state[kind+'Hidden']||(kind==='dialog'&&!state.open))throw Error('not visible');},
   async focus(){calls.push([kind,'focus']);},
-  async click(options){calls.push([kind,'click',options]);if(kind!=='launch')throw Error('helper must not activate original action');if(state.activationError)throw Error('native activation blocked');if(!state.noOpen){state.open=true;state.expanded=state.wrongExpanded??'true';}},
+  async click(options){calls.push([kind,'click',options]);if(kind!=='launch')throw Error('helper must not activate original action');if(state.activationError)throw state.activationError instanceof Error?state.activationError:Error('native activation blocked');if(!state.noOpen){state.open=true;state.expanded=state.wrongExpanded??'true';}},
   async tap(options){calls.push([kind,'tap',options]);if(kind!=='launch')throw Error('helper must not activate original action');if(!state.noOpen){state.open=true;state.expanded=state.wrongExpanded??'true';}}
  };}
  const page={locator(value){if(value===(side==='tools'?'.side':'.dock'))return locator('host');if(value==='#'+launchId)return locator('launch');if(value==='#'+dialogId)return locator('dialog');if(value===selector)return locator('target');throw Error('unexpected selector '+value);},keyboard:{async press(key){calls.push(['keyboard','press',key]);if(key!=='Enter')throw Error('unexpected key');state.open=true;state.expanded='true';}}};
@@ -57,8 +57,21 @@ test('navigation observation is page-local and removable without changing action
 test('navigation diagnostics retain exact prior assertions, native calls and no timeouts',()=>{
  const fs=require('node:fs'),crypto=require('node:crypto'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
  const raw=fs.readFileSync(require.resolve('./fixtures/a52-navigation-diagnostics-scope.json'));assert.equal(sha(raw),'c99268c64759be33e240ed2f44acccc7da2f99e1f598e00e9b03d51b18aca5ca');const scope=JSON.parse(raw);
- const now=fs.readFileSync(require.resolve('./helpers/a52-browser-navigation.cjs'),'utf8');assert.equal(sha(now),scope.afterSha256);assert.equal(sha(scope.before),scope.beforeSha256);
+ const now=JSON.parse(fs.readFileSync(require.resolve('./fixtures/a52-native-hit-scope.json'),'utf8')).before;assert.equal(sha(now),scope.afterSha256);assert.equal(sha(scope.before),scope.beforeSha256);
  for(const re of [/assert\.[^;]+;/g,/await [^;]+;/g,/timeout\s*:\s*\d+/g])assert.deepEqual(now.replace(/step\([^;]*\);/g,'').match(re),scope.before.match(re));
  const f=fixture('#walkBtn');const phases=[];navigation.observeCornerNavigation(f.page,p=>phases.push(p));
  return reveal(f.page,'#walkBtn').then(()=>assert.deepEqual(phases,['nav-input','nav-route','nav-count-host','nav-count-launcher','nav-count-dialog','nav-count-target','nav-ready','nav-controls','nav-parent','nav-open-read','nav-click','nav-open-check','nav-expanded','nav-dialog-visible','nav-target-visible','nav-complete']));
+});
+
+test('native hit snapshots retain original rejection identity and click arguments',async()=>{
+ const error=Error('native activation blocked'),f=fixture('#walkBtn','tools',{activationError:error}),hits=[];
+ const stop=navigation.observeCornerNavigation(f.page,()=>{},hit=>hits.push(hit));
+ await assert.rejects(()=>reveal(f.page,'#walkBtn'),e=>e===error);
+ assert.deepEqual(hits,[{before:{observed:false},rejected:null},{before:{observed:false},rejected:{observed:false}}]);
+ assert.deepEqual(f.calls.filter(c=>c[1]==='click'),[['launch','click',undefined]]);stop();
+});
+test('throwing rejection observer cannot replace original failure',async()=>{
+ const error=Error('original'),f=fixture('#walkBtn','tools',{activationError:error});
+ navigation.observeCornerNavigation(f.page,()=>{},hit=>{if(hit.rejected)throw Error('observer');});
+ await assert.rejects(()=>reveal(f.page,'#walkBtn'),e=>e===error);
 });

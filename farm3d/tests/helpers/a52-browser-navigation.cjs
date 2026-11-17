@@ -5,9 +5,12 @@ const assert=require('node:assert/strict');
 const routes=new Map();
 // Optional passive finite-step observer used only by diagnostic journeys.
 const observers=new WeakMap();
-function observeCornerNavigation(page,onStep){
+const hitObservers=new WeakMap();
+const {observeLauncherHit}=require('./a52-native-hit.cjs');
+function observeCornerNavigation(page,onStep,onHit){
  if(typeof onStep!=='function')throw new TypeError('Navigation observer must be a function');
- observers.set(page,onStep);return ()=>observers.delete(page);
+ if(onHit!==undefined&&typeof onHit!=='function')throw new TypeError('Hit observer must be a function');
+ observers.set(page,onStep);if(onHit)hitObservers.set(page,onHit);return ()=>{observers.delete(page);hitObservers.delete(page);};
 }
 for(const selector of ['#walkBtn','#editBtn','#questBtn','#photoBtn','#soundBtn','#friendsBtn','#verifiedBtn'])routes.set(selector,'tools');
 for(const name of ['settings','orders','barn','decor','shop']){
@@ -29,7 +32,14 @@ async function revealCornerAction(page,selector,input='click'){
  step('nav-parent');assert.equal(await target.evaluate(el=>el.closest('dialog')?.id),dialogId,'Original target belongs to expected menu');
  step('nav-open-read');if(await dialog.getAttribute('open')===null){
   if(input==='keyboard'){step('nav-key-focus');await launcher.focus();step('nav-key-press');await page.keyboard.press('Enter');}
-  else {step(input==='click'?'nav-click':'nav-tap');await launcher[input]();}
+  else {step(input==='click'?'nav-click':'nav-tap');
+   const onHit=hitObservers.get(page);let before=null;
+   if(onHit&&input==='click'){before=await observeLauncherHit(launcher);onHit({before,rejected:null});}
+   try {await launcher[input]();}catch(error){
+    if(onHit&&input==='click'){try{onHit({before,rejected:await observeLauncherHit(launcher)});}catch{ /* Preserve original native failure. */ }}
+    throw error;
+   }
+  }
  }
  step('nav-open-check');assert.notEqual(await dialog.getAttribute('open'),null,'Native activation opened the menu');
  step('nav-expanded');assert.equal(await launcher.getAttribute('aria-expanded'),'true','Launcher reflects open menu');

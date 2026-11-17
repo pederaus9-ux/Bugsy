@@ -1,10 +1,11 @@
 'use strict';
+const {normalizeA52OfflineConsole}=require('./a52-offline-console.cjs');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/a52-offline-transport-scope.json'));
 if(sha(raw)!=='5866184ffac9cae3c09690e3998668adb51948e60859314aded8fc1300cb2d34')throw Error('Offline transport scope mismatch');
 const scope=JSON.parse(raw);
-function normalizeA52OfflineTransport(file,input){const e=scope.files[file];if(!e||sha(input)!==e.afterSha256)return input;if(sha(e.before)!==e.beforeSha256)throw Error('Offline transport predecessor mismatch');return Buffer.isBuffer(input)?Buffer.from(e.before):e.before;}
+function normalizeA52OfflineTransport(file,input){input=normalizeA52OfflineConsole(file,input);const e=scope.files[file];if(!e||sha(input)!==e.afterSha256)return input;if(sha(e.before)!==e.beforeSha256)throw Error('Offline transport predecessor mismatch');return Buffer.isBuffer(input)?Buffer.from(e.before):e.before;}
 function createOwnedServerStop(sockets,failure){
  const stops=new WeakMap();
  return function stop(server){
@@ -30,6 +31,8 @@ function sdkCategory(url){
 }
 function createOfflineTransport(server,sockets,stop){
  let offline=false,serverClosed=false;
+ const consoleObservations={exactDisconnected:{firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0},otherText:{firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0}};
+ const expectedConsole={firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0};
  const externalAborts={firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0};
  const observedDisconnected={firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0};
  return {
@@ -37,7 +40,8 @@ function createOfflineTransport(server,sockets,stop){
   async enter(){offline=true;await stop(server);serverClosed=!server.listening&&(sockets.get(server)?.size||0)===0;if(!serverClosed)throw Error('Offline server closure not proven');},
   async abortExternal(route,url){if(!offline)throw Error('Offline route used while online');externalAborts[sdkCategory(url)]++;return route.abort('internetdisconnected');},
   observeFailure(url,error){if(offline&&error==='net::ERR_INTERNET_DISCONNECTED')observedDisconnected[sdkCategory(url)]++;},
-  snapshot(){return {serverClosed,activeOwnedSockets:sockets.get(server)?.size||0,externalAborts:{...externalAborts},observedDisconnected:{...observedDisconnected}};}
+  observeConsole(text,url){const category=sdkCategory(url);if(offline)consoleObservations[text==='Failed to load resource: net::ERR_INTERNET_DISCONNECTED'?'exactDisconnected':'otherText'][category]++;if(!offline||text!=='Failed to load resource: net::ERR_INTERNET_DISCONNECTED'||category==='other'||expectedConsole[category]>=externalAborts[category])return false;expectedConsole[category]++;return true;},
+  snapshot(){return {serverClosed,activeOwnedSockets:sockets.get(server)?.size||0,externalAborts:{...externalAborts},observedDisconnected:{...observedDisconnected},expectedConsole:{...expectedConsole},consoleObservations:{exactDisconnected:{...consoleObservations.exactDisconnected},otherText:{...consoleObservations.otherText}}};}
  };
 }
 module.exports={createOwnedServerStop,createOfflineTransport,sdkCategory,normalizeA52OfflineTransport,scope,sha};

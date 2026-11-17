@@ -109,7 +109,19 @@ for(const phase of ['nav-input', 'nav-route', 'nav-count-host', 'nav-count-launc
 });
 
 test('offline transport receipt accepts only fixed booleans and counters',()=>{
- const counters={firebaseApp:1,firebaseAuth:1,firebaseFirestore:1,other:0},transport={serverClosed:true,activeOwnedSockets:0,externalAborts:counters,observedDisconnected:counters},good={step:'responses',transport};
+ const counters={firebaseApp:1,firebaseAuth:1,firebaseFirestore:1,other:0},transport={serverClosed:true,activeOwnedSockets:0,externalAborts:counters,observedDisconnected:counters,expectedConsole:counters,consoleObservations:{exactDisconnected:counters,otherText:{firebaseApp:0,firebaseAuth:0,firebaseFirestore:0,other:0}}},good={step:'responses',transport};
  assert.deepEqual(e.offlineProbe(good),good);
  for(const t of [{...transport,url:canary},{...transport,serverClosed:canary},{...transport,activeOwnedSockets:Infinity},{...transport,externalAborts:{...counters,other:-1}},{...transport,observedDisconnected:{...counters,url:canary}}])assert.throws(()=>e.offlineProbe({...good,transport:t}));
+});
+
+test('native hit evidence exports only finite actionability facts',()=>{
+ const before={observed:true,connected:true,enabled:true,visible:true,inViewport:true,centerOwned:false,pointerEvents:true,openModals:0,blocker:'other'},good={schema:1,side:1,before,rejected:before};
+ assert.deepEqual(e.nativeHit(good),good);assert.deepEqual(e.nativeHit({...good,before:{observed:false},rejected:null}),{...good,before:{observed:false},rejected:null});
+ for(const bad of [{...good,url:canary},{...good,side:3},{...good,before:{observed:false,url:canary}},{...good,before:{...before,blocker:canary}},{...good,before:{...before,openModals:99}},{...good,before:{...before,visible:canary}},{...good,before:{...before,x:10}}])assert.throws(()=>e.nativeHit(bad));
+});
+test('expected offline console observations reject arbitrary text and malformed counts',()=>{
+ const counters={firebaseApp:1,firebaseAuth:1,firebaseFirestore:1,other:0};
+ const transport={serverClosed:true,activeOwnedSockets:0,externalAborts:counters,observedDisconnected:counters,expectedConsole:counters,consoleObservations:{exactDisconnected:counters,otherText:counters}};
+ const good={step:'errors',transport};assert.deepEqual(e.offlineProbe(good),good);
+ for(const consoleObservations of [{...transport.consoleObservations,text:canary},{exactDisconnected:{...counters,url:canary},otherText:counters},{exactDisconnected:{...counters,other:-1},otherText:counters}])assert.throws(()=>e.offlineProbe({...good,transport:{...transport,consoleObservations}}));
 });

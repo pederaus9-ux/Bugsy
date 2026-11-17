@@ -80,7 +80,7 @@ async function start(options = {}) {
       const errors = [];
       try{
       page.on('pageerror', error => errors.push('pageerror: ' + diagnosticText(error.message)));
-      page.on('console', message => { if (message.type() === 'error') errors.push('console: ' + diagnosticText(message.text())); });
+      page.on('console', message => { if (message.type() === 'error' && !offlineTransport.observeConsole(message.text(),message.location?.()?.url)) errors.push('console: ' + diagnosticText(message.text())); });
       page.on('response', response => { if (response.url().startsWith(base) && response.status() >= 400) errors.push('HTTP ' + response.status() + ': ' + localRequestLabel(response.url(),base)); });
       page.on('requestfailed', request => { offlineTransport.observeFailure(request.url(),request.failure()?.errorText);if (request.url().startsWith(base)) errors.push('request: ' + localRequestLabel(request.url(),base) + ': ' + diagnosticText(request.failure()?.errorText)); });
       // Deliberately exercise offline guest fallback; never contact accounts, weather,

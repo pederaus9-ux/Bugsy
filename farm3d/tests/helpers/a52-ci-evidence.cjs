@@ -47,6 +47,16 @@ function nativeKeyboard(value){
  for(const k of ['iteration','focusableCount','keyDownCount','keyUpCount'])if(!Number.isInteger(value[k])||value[k]<0||value[k]>(k==='iteration'?14:32))reject();
  return {...value};
 }
+function nativeHit(value){
+ if(!value||Object.keys(value).sort().join('|')!=='before|rejected|schema|side'||value.schema!==1||![1,2].includes(value.side))reject();
+ function snapshot(v){
+  if(!v||typeof v!=='object'||Array.isArray(v))reject();
+  if(v.observed===false){if(Object.keys(v).join('|')!=='observed')reject();return;}
+  const bools=['connected','enabled','visible','inViewport','centerOwned','pointerEvents'];
+  if(v.observed!==true||Object.keys(v).sort().join('|')!==['observed','openModals','blocker',...bools].sort().join('|')||bools.some(k=>typeof v[k]!=='boolean')||!Number.isInteger(v.openModals)||v.openModals<0||v.openModals>32||!['launcher','intro','auth','rotate','loading','panel','dialog','canvas','other','none'].includes(v.blocker))reject();
+ }
+ snapshot(value.before);if(value.rejected!==null)snapshot(value.rejected);return JSON.parse(JSON.stringify(value));
+}
 function offlineProbe(value){
  const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses','responseObservation','transport'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||!['set-offline','reload','ready','control','save','menus','cache','responses','errors','complete'].includes(value.step))reject();
@@ -66,8 +76,10 @@ function offlineProbe(value){
  }
  if('transport'in value){
   const t=value.transport;
-  if(!t||Object.keys(t).sort().join('|')!=='activeOwnedSockets|externalAborts|observedDisconnected|serverClosed'||typeof t.serverClosed!=='boolean'||!Number.isSafeInteger(t.activeOwnedSockets)||t.activeOwnedSockets<0||t.activeOwnedSockets>1e6)reject();
-  for(const key of ['externalAborts','observedDisconnected']){
+  if(!t||Object.keys(t).sort().join('|')!=='activeOwnedSockets|consoleObservations|expectedConsole|externalAborts|observedDisconnected|serverClosed'||typeof t.serverClosed!=='boolean'||!Number.isSafeInteger(t.activeOwnedSockets)||t.activeOwnedSockets<0||t.activeOwnedSockets>1e6)reject();
+  if(!t.consoleObservations||Object.keys(t.consoleObservations).sort().join('|')!=='exactDisconnected|otherText')reject();
+  for(const c of Object.values(t.consoleObservations))if(!c||Object.keys(c).sort().join('|')!=='firebaseApp|firebaseAuth|firebaseFirestore|other'||Object.values(c).some(n=>!Number.isSafeInteger(n)||n<0||n>1e6))reject();
+  for(const key of ['externalAborts','observedDisconnected','expectedConsole']){
    const c=t[key];if(!c||Object.keys(c).sort().join('|')!=='firebaseApp|firebaseAuth|firebaseFirestore|other'||Object.values(c).some(n=>!Number.isSafeInteger(n)||n<0||n>1e6))reject();
   }
  }
@@ -106,12 +118,14 @@ function collect({source,output,head,screenshots}){
   const raw=regular(path.join(source,name),8192),value=safeReceipt(JSON.parse(raw));if(name==='native.json')native=value;
   const bytes=Buffer.from(JSON.stringify(value)+'\n');files.push([name,bytes]);receipts.push({name,...value});
  }
- if(!receipts.length)reject();const images=[];let nativeState=null,keyboardState=null,installedState=null;
+ if(!receipts.length)reject();const images=[];let nativeState=null,keyboardState=null,hitState=null,installedState=null;
  if(screenshots&&fs.existsSync(screenshots)){
   screenshots=directory(screenshots);const progress=path.join(screenshots,'a52-native-progress.json'),installed=path.join(screenshots,'a52-installed-ui-cache/results.json');
   if(fs.existsSync(progress)){nativeState=nativeProgress(JSON.parse(regular(progress,4096)));files.push(['native-progress.json',Buffer.from(JSON.stringify(nativeState)+'\n')]);}
   const keyboard=path.join(screenshots,'a52-native-keyboard.json');
   if(fs.existsSync(keyboard)){keyboardState=nativeKeyboard(JSON.parse(regular(keyboard,4096)));files.push(['native-keyboard.json',Buffer.from(JSON.stringify(keyboardState)+'\n')]);}
+  const hit=path.join(screenshots,'a52-native-hit.json');
+  if(fs.existsSync(hit)){hitState=nativeHit(JSON.parse(regular(hit,8192)));files.push(['native-hit.json',Buffer.from(JSON.stringify(hitState)+'\n')]);}
   if(fs.existsSync(installed)){directory(path.dirname(installed));installedState=installedProgress(JSON.parse(regular(installed,8192)));files.push(['installed-progress.json',Buffer.from(JSON.stringify(installedState)+'\n')]);}
  }
  if(screenshots&&executedPass(native)){
@@ -120,7 +134,7 @@ function collect({source,output,head,screenshots}){
    const name=stem+width+'x'+height+'.png',b=regular(path.join(screenshots,name),16*1024*1024);images.push({name,...validatePng(b,width,height)});files.push([name,b]);
   }
  }
- const summary={schema:1,head,receipts,nativeProgress:nativeState,nativeKeyboard:keyboardState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
+ const summary={schema:1,head,receipts,nativeProgress:nativeState,nativeKeyboard:keyboardState,nativeHit:hitState,installedProgress:installedState,screenshots:images,rawDiagnosticsPublished:false,personalSavesUsed:false,visualReview:'pending-human-or-agent-pixel-inspection',physicalPhoneQualification:false};
  // All validation completes before the first output is created.
  fs.mkdirSync(output,{mode:0o700});for(const [name,b]of files)fs.writeFileSync(path.join(output,name),b,{flag:'wx',mode:0o600});
  fs.writeFileSync(path.join(output,'summary.json'),JSON.stringify(summary,null,2)+'\n',{flag:'wx',mode:0o600});return summary;
@@ -129,5 +143,5 @@ function main(args){
  try{const o={};for(let i=0;i<args.length;i+=2){const key=args[i];if(!['--source','--output','--head','--screenshots'].includes(key)||key.slice(2)in o||typeof args[i+1]!=='string')reject();o[key.slice(2)]=args[i+1];}collect(o);process.stdout.write('A52 finite evidence exported\n');return 0;}
  catch{process.stderr.write('A52 public evidence rejected\n');return 1;}
 }
-module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,nativeKeyboard,offlineProbe,installedProgress,collect,main,VIEWPORTS};
+module.exports={safeReceipt,executedPass,crc32,validatePng,nativeProgress,nativeKeyboard,nativeHit,offlineProbe,installedProgress,collect,main,VIEWPORTS};
 if(require.main===module)process.exitCode=main(process.argv.slice(2));

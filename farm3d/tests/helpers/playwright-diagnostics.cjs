@@ -7,6 +7,7 @@ const notFound='Failed to load resource: the server responded with a status of 4
 function diagnosticText(text){
  if(typeof text!=='string')return 'details withheld';
  if(text===notFound)return notFound;
+ if(text==='Failed to load resource: net::ERR_INTERNET_DISCONNECTED')return 'Failed to load resource: net::ERR_INTERNET_DISCONNECTED';
  // Preserve the unchanged save7h allowlist, without copying matching input.
  for(const token of ['gstatic','firebase','Failed to load module script','net::ERR','fonts.googleapis'])if(text.toLowerCase().includes(token.toLowerCase()))return token+': details withheld';
  return 'details withheld';

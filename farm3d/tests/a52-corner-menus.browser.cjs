@@ -113,7 +113,7 @@ async function main(){
         for(const [side,target]of [['tools','#walkBtn'],['barn','[data-p="shop"]']]){
           const id='preview-'+side+'-menu',launch='#preview-'+side+'-launch';mark(side+'-keyboard');
           const record=(phase,direction=0,iteration=0,observation=null)=>fs.writeFileSync(path.join(artifacts,'a52-native-keyboard.json'),JSON.stringify(finiteKeyboard(side==='tools'?1:2,phase,direction,iteration,observation))+'\n');
-          const stopNavigationObservation=observeCornerNavigation(p,phase=>record(phase));
+          const stopNavigationObservation=observeCornerNavigation(p,phase=>record(phase),hit=>fs.writeFileSync(path.join(artifacts,'a52-native-hit.json'),JSON.stringify({schema:1,side:side==='tools'?1:2,...hit})+'\n'));
           record('reveal');await revealCornerAction(p,target,'keyboard');record('fit');await fit(id);
           record('expanded');
           assert.equal(await p.locator(launch).getAttribute('aria-expanded'),'true');
