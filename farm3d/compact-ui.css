@@ -133,3 +133,18 @@ body .preview-menu .preview-menu-actions button:active { background: #cee9dd !im
   .preview-menu { background: Canvas !important; color: CanvasText; border-color: ButtonText; box-shadow: none !important; }
   .preview-menu button:focus-visible, .preview-launcher:focus-visible { outline-color: Highlight; }
 }
+
+/* Edit mode keeps every original action reachable on narrow phones. */
+#editBar button { min-width: 44px; min-height: 44px; }
+@media (max-width: 600px) {
+  #editBar {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+    width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
+    max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 16px);
+    left: calc(var(--safe-left) + 8px); transform: none; padding: 6px;
+    bottom: calc(var(--safe-bottom) + 8px); white-space: normal;
+  }
+  #editBar > span, #editBar > small { min-width: 0; white-space: normal; }
+  #editBar button { width: 100%; min-width: 44px; padding: 6px; white-space: normal; }
+  #editBar [data-mode="edit"] { grid-column: 1 / -1; }
+}

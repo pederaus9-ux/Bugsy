@@ -4,6 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const {execFileSync}=require('node:child_process');
 const {normalizeA52CornerFocus}=require('./a52-corner-focus-scope.cjs');
+const {normalizeA52EditBar}=require('./a52-editbar-layout-scope.cjs');
 const root=path.resolve(__dirname,'../../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/a52-corner-ui-scope.json'));
 assert.equal(sha(raw),'56a195d42b3878cf319f5889c487b69874b020d9e02348d5da5a76292d225ac7','Exact A52 scope receipt');
@@ -36,5 +37,5 @@ function applyA52Source(file,source){
  file=full(file);const entry=scope.files[file];if(!entry?.hunks||sha(source)!==entry.beforeSha256)return source;
  const result=replay(file,source);return Buffer.isBuffer(source)?result:result.toString();
 }
-function verifyA52Asset(file,source){file=full(file);assert(Object.hasOwn(scope.assets,file),'Known A52 asset');assert.equal(sha(normalizeA52CornerFocus(file,source)),scope.assets[file],'Exact A52 asset');}
+function verifyA52Asset(file,source){file=full(file);assert(Object.hasOwn(scope.assets,file),'Known A52 asset');assert.equal(sha(normalizeA52CornerFocus(file,normalizeA52EditBar(file,source))),scope.assets[file],'Exact A52 asset');}
 module.exports={scope,sha,normalizeA52Source,applyA52Source,verifyA52Asset};

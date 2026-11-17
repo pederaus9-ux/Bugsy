@@ -173,6 +173,7 @@ async function main(){
           ['#editBtn','editBtn','editing','#editBar [data-mode="edit"]'],
           ['#photoBtn','photoBtn','photo','#photoBar [data-p="close"]']]){
           mark('mode-'+mode);mark('mode-'+mode+'-select');await select(selector,key);mark('mode-'+mode+'-enter-wait');await p.waitForFunction(name=>document.body.classList.contains(name),mode);
+          if(mode==='editing')await require('./helpers/a52-editbar-layout.cjs').assertEditBarFits(p);
           mark('mode-'+mode+'-exit-action');fs.writeFileSync(path.join(artifacts,'a52-mode-hit.json'),JSON.stringify({schema:1,mode,snapshot:await require('./helpers/a52-native-hit.cjs').observeLauncherHit(p.locator(exit))})+'\n');await native(exit);mark('mode-'+mode+'-exit-wait');await p.waitForFunction(name=>!document.body.classList.contains(name),mode);
         }
         await closed();assert.equal(await p.locator('.side button:visible,.dock button:visible').count(),2);
