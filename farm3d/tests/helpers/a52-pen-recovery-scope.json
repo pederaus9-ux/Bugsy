@@ -761,7 +761,7 @@
   "overlayPins": {
     "farm3d/tests/browser-harness.cjs": "05c23b1857bc70ee15e2fa92f9ce49abc14bcf3e7d177bef6a62dba4887a8fa2",
     "farm3d/tests/animal-pen-wake-oracle.cjs": "768c2db597a07380cb703a7c01fa2e8553941481e9e090e62eb6581dced6f4d9",
-    "farm3d/tests/helpers/a52-pen-report.cjs": "4416bb88037a906fe89e056d781658665d80e2faaabf78f28a1cb9a03b9e394d",
+    "farm3d/tests/helpers/a52-pen-report.cjs": "3dc3155a683cad060b5b09fc9446a0a31c7e2957ee6d049757bb85cb51d7365b",
     "farm3d/tests/helpers/ci-isolated-runner.cjs": "cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a",
     "farm3d/tests/helpers/playwright-diagnostics.cjs": "43b1b24e085f01230f1f9b7276091eaa51d43372426d9dff975f25ec59dd382e",
     "farm3d/tests/helpers/a52-offline-observation.cjs": "280ded18c14e47fedf60f3ddff0d7c0e43a2cae8a43b53575986aefe1188e69a",
@@ -773,7 +773,7 @@
     "farm3d/tests/helpers/a52-pen-recovery-proof.cjs": "70ce11ce60fc05287db7b61a69a6a0af4e2d1086d5c7eb7928ebe18f42a703a6"
   },
   "originalTestSha256": "65e44d782b0559ef9f8724edaf049f7b02afd71049d74b9ef92e7a4da046b2ea",
-  "directTestSha256": "b18333641683f743b116838aa297eb2d3e489811f95ee85c9a6ceaec49fb8ee0",
+  "directTestSha256": "6f0f1bac040ae157cd0691797865211933bdf91c81af4653ce18b126c749f928",
   "failureCaptureInsertion": "settling:(()=>{const d=__dbg,task=a=>a.kind==='chicken'?a.chickenTask:a.kind==='cow'?a.cowTask:a.remainingTask,bad=d.animals.filter(a=>{const t=task(a);return !(t?.kind==='bed'&&t.stage==='hold'&&t.weight>.99);}),kinds=['chicken','cow','horse','sheep','dog','cat'],tasks=['bed','eat','drink','feed','water','milk','none'],stages=['approach','approaching','align','settle','hold','stand','exit','exiting','milking','none'],num=x=>Number.isFinite(x)?x:null,xz=p=>p?.toArray?(()=>{const v=p.toArray();return v.length===3?[v[0],v[2]]:v;})():Array.isArray(p)?(p.length===3?[p[0],p[2]]:p):null;return{clock:d.clock(),total:bad.length,truncated:bad.length>4,animals:bad.slice(0,4).map(a=>{const t=task(a),tk=t?.kind??'none',ts=t?.stage??'none',route=t?.path??a.path??[];return{kind:kinds.includes(a.kind)?a.kind:'other',index:a.ref.i??a.ref.j??0,position:[a.g.position.x,a.g.position.z],task:tasks.includes(tk)?tk:'other',stage:stages.includes(ts)?ts:'other',weight:num(t?.weight),routeCount:route.length,route:route.slice(0,4).map(xz),waypointCount:t?.waypoints?.length??0,stuckTime:num(a.stuckT),progressAt:num(t?.progressAt),replanAt:num(t?.replanAt),avoidSide:[-1,1].includes(t?.avoidSide)?t.avoidSide:0,spaceUntil:num(a.cowSpace?.until)};})};})(),",
   "setupCaptureInsertion": "setupBefore,setupAfter:setupSnapshot(),setupCounts:setupKinds.map(kind=>{const before=setupBefore.state.filter(a=>a.kind===kind).length,after=d.animals.filter(a=>a.kind===kind),retained=after.filter(a=>setupRefs.has(a)).length;return{kind,before,after:after.length,retained,new:after.length-retained};}),",
   "setupBeforeInsertion": "const setupKinds=['chicken','cow','horse','sheep','dog','cat'],setupTasks=['bed','eat','drink','feed','water','milk','robot','none'],setupStages=['approach','approaching','align','settle','hold','stand','exit','exiting','milking','none'],setupSnapshot=()=>{const clock=d.clock(),num=x=>Number.isFinite(x)?x:null,rel=x=>Number.isFinite(x)?x-clock:null;return{clock,rngCalls:window.__testGameplaySeed?.calls??0,state:d.animals.map(a=>{const task=a.kind==='chicken'?a.chickenTask:a.kind==='cow'?a.cowTask:a.remainingTask,tk=task?.kind??'none',ts=task?.stage??'none';return{kind:a.kind,index:a.ref.i??a.ref.j??0,position:[a.g.position.x,a.g.position.z],velocity:[num(a.vel?.x),num(a.vel?.y)],until:rel(a.until),spaceUntil:rel(a.cowSpace?.until),spaceSince:rel(a.cowSpace?.since),progressAt:rel(task?.progressAt),replanAt:rel(task?.replanAt),hunger:num(a.need?.hunger),tired:num(a.need?.tired),lonely:num(a.need?.lonely),task:setupTasks.includes(tk)?tk:'other',stage:setupStages.includes(ts)?ts:'other',weight:num(task?.weight)};})};},setupBefore=setupSnapshot(),setupRefs=new Set(d.animals);",
@@ -783,8 +783,8 @@
   "patch": {
     "path": "farm3d/index.html",
     "preimageSha256": "fe9871d6f1d0ec16cb9518ab0321e8e8a70dad87eaa31598c626e952c64e9fb2",
-    "postimageSha256": "726950ec275502f79ff3bb1e0e25e06a7e37a9bec382e138e9d89c404c7d6517",
-    "postimageBlob": "77b93508b064a24dbdd2ef9f3b5d1a9ac7b30444",
+    "postimageSha256": "be7f65ef50223c2c73dd28fc219d9be7b799bb2e099bfe2a1cef8d1d25607021",
+    "postimageBlob": "74d7ddcfce4f364eb453d268822ee5efa8e0be12",
     "old": "const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);\n      if(!blockingCows.length&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}",
     "new": "// A social-avoidance step may point out of the yard even when its route is legal.\n      // Preserve collision checks; allow only monotonic departure from existing overlap.\n      const cowStaticStepClear=(from,to)=>{\n        if(!from||!to||![from.x,from.y,to.x,to.y].every(Number.isFinite))return false;\n        for(const o of OBST){\n          if(!o||![o.x,o.z,o.c,o.s].every(Number.isFinite)||Math.abs(o.c*o.c+o.s*o.s-1)>1e-8)return false;\n          if(o.radius!==undefined){if(!Number.isFinite(o.radius)||o.radius<0||!Number.isFinite(o.radius+.42-1e-8))return false;}\n          else if(![o.hw,o.hd].every(Number.isFinite)||o.hw<0||o.hd<0||![o.hw+.42-.05,o.hd+.42-.05].every(Number.isFinite))return false;\n          const A=toLocal(o,from),B=toLocal(o,to),dx=B.x-A.x,dz=B.y-A.y;\n          if(![A.x,A.y,B.x,B.y,dx,dz].every(Number.isFinite))return false;\n          if(hitsBlock(from,to,.42,null,[o])<0)continue;\n          if(o.radius!==undefined){\n            const radius=o.radius+.42-1e-8;\n            if(!Number.isFinite(radius)||radius<=0||Math.hypot(A.x,A.y)>=radius||Math.hypot(A.x,A.y)<=1e-12||A.x*dx+A.y*dz<=1e-12)return false;\n          }else{\n            const w=o.hw+.42-.05,h=o.hd+.42-.05;\n            if(![w,h].every(Number.isFinite)||w<=0||h<=0||Math.abs(A.x)>=w||Math.abs(A.y)>=h)return false;\n            const px=w-Math.abs(A.x),pz=h-Math.abs(A.y);\n            const outwardX=px<=pz&&Math.abs(dx)>1e-12&&A.x*dx>=0;\n            const outwardZ=pz<=px&&Math.abs(dz)>1e-12&&A.y*dz>=0;\n            if(!outwardX&&!outwardZ)return false;\n          }\n        }\n        return true;\n      };\n      // Select the speed-bounded route candidate; the unchanged cow gate below\n      // rejects blocked movement and hands its blocker to existing detour/yield.\n      if(!fitsPen(PENS.courtyard,ox+nx,oz+nz,.42)){\n        const routeNext=new THREE.Vector2(ox+dx/(d||1)*step,oz+dz/(d||1)*step);\n        if(fitsPen(PENS.courtyard,routeNext.x,routeNext.y,.42)&&cowGateSegmentClear(a.pos,routeNext)&&cowStaticStepClear(a.pos,routeNext)){\n          nx=routeNext.x-ox;nz=routeNext.y-oz;\n        }\n      }\n      const next=new THREE.Vector2(ox+nx,oz+nz),blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);\n      if(!blockingCows.length&&fitsPen(PENS.courtyard,next.x,next.y,.42)&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;}"
   },
@@ -817,6 +817,42 @@
     {
       "old": "// Finish the final robot approach physically:",
       "new": "if(__pd){__pd.selected=[next.x,next.y];__pd.blockers=blockingCows.length;if(ox===a.g.position.x&&oz===a.g.position.z){const row=window.__penDecisions.animals.find(x=>x.index===a.ref.i);row.first??=__pd;row.last=__pd;}}\n      // Finish the final robot approach physically:"
+    },
+    {
+      "old": "function cowSharedCornerDetour(a,b,task,t){",
+      "new": "function cowAvoidRow(a,t){\n  if(typeof window==='undefined'||t<1200||a.cowTask?.kind!=='bed'||a.cowTask.stage!=='approach'||![1,4].includes(a.ref.i))return null;\n  const root=window.__penAvoidance??={schema:1,animals:[]};let row=root.animals.find(v=>v.index===a.ref.i);\n  if(!row){row={index:a.ref.i,rejections:Array(7).fill(0),first:null,last:null,lateral:[null,null]};root.animals.push(row);}return row;\n}\nfunction cowRejectObserved(a,b,t,reason,obstacle=-1,origin=-1,endpoint=-1){\n  const row=cowAvoidRow(a,t);if(row){row.rejections[reason]=Math.min(10000000,row.rejections[reason]+1);const v={clock:t,reason,blocker:b.ref.i,priority:a.ref.i>=b.ref.i,obstacle,origin,endpoint};row.first??=v;row.last=v;}return false;\n}\nfunction cowSharedCornerDetour(a,b,task,t){\n  let __overlapIndex=-1,__origin=-1,__endpoint=-1;"
+    },
+    {
+      "old": "if(task.kind!=='bed'||task.stage!=='approach'||other?.kind!=='bed'||other.stage!=='approach'||!corner||!otherCorner||a.ref.i>=b.ref.i)return false;",
+      "new": "if(task.kind!=='bed'||task.stage!=='approach'||other?.kind!=='bed'||other.stage!=='approach'||!corner||!otherCorner||a.ref.i>=b.ref.i)return cowRejectObserved(a,b,t,0);"
+    },
+    {
+      "old": "if(!intermediate&&!opposingFinal)return false;",
+      "new": "if(!intermediate&&!opposingFinal)return cowRejectObserved(a,b,t,1);"
+    },
+    {
+      "old": "if(towardA.dot(towardB)>=0)return false;",
+      "new": "if(towardA.dot(towardB)>=0)return cowRejectObserved(a,b,t,2);"
+    },
+    {
+      "old": "if(tried?.id===b.ref.i&&(t-tried.t<2||Math.hypot(tried.x-b.g.position.x,tried.z-b.g.position.z)<1))return false;",
+      "new": "if(tried?.id===b.ref.i&&(t-tried.t<2||Math.hypot(tried.x-b.g.position.x,tried.z-b.g.position.z)<1))return cowRejectObserved(a,b,t,4);"
+    },
+    {
+      "old": "if(detour.length<(shared||!intermediate?2:1)||(shared&&detour[0].distanceTo(corner)<.3))return false;",
+      "new": "if(detour.length<(shared||!intermediate?2:1)||(shared&&detour[0].distanceTo(corner)<.3))return cowRejectObserved(a,b,t,5);"
+    },
+    {
+      "old": "if(first.distanceTo(b.pos)<.85-1e-9)return false;",
+      "new": "if(first.distanceTo(b.pos)<.85-1e-9)return cowRejectObserved(a,b,t,6);"
+    },
+    {
+      "old": "if(intermediate&&!shared&&OBST.some(o=>insideObst(o,a.pos,.42)||insideObst(o,next,.42)))return false;",
+      "new": "if(intermediate&&!shared&&OBST.some((o,index)=>{const origin=insideObst(o,a.pos,.42);const endpoint=origin?false:insideObst(o,next,.42);if(origin||endpoint){__overlapIndex=index;__origin=origin?1:0;__endpoint=origin?-1:(endpoint?1:0);}return origin||endpoint;}))return cowRejectObserved(a,b,t,3,__overlapIndex,__origin,__endpoint);"
+    },
+    {
+      "old": "const clear=fitsPen(PENS.courtyard,x,z,.42)&&cowGateSegmentClear(a.pos,new THREE.Vector2(x,z))&&!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4)&&animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5);",
+      "new": "const __lp={clock:t,sign,position:[ox,oz],candidate:[x,z],checks:Array(4).fill(-1)},__lo=(code,value)=>{__lp.checks[code]=value?1:0;return value;};\n            const clear=__lo(0,fitsPen(PENS.courtyard,x,z,.42))&&__lo(1,cowGateSegmentClear(a.pos,new THREE.Vector2(x,z)))&&__lo(2,!COW_YARD_LAYOUT.obstacles.some(([bx,bz,hw,hd])=>Math.abs(x-bx)<hw+.4&&Math.abs(z-bz)<hd+.4))&&__lo(3,animals.every(b=>b===a||b.kind!=='cow'||Math.hypot(b.g.position.x-x,b.g.position.z-z)>=.85||Math.hypot(b.g.position.x-x,b.g.position.z-z)>Math.hypot(b.g.position.x-ox,b.g.position.z-oz)+1e-5));\n            const __lr=cowAvoidRow(a,t);if(__lr)__lr.lateral[sign===1?0:1]=__lp;"
     }
   ],
   "unobservedEgressSha256": "fa402ec9e94b0794ebfa4693e72176ebf45a4fb8abaf5bf34c0ec93fdee7a4d2"
