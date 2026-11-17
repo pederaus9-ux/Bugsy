@@ -1,11 +1,12 @@
 'use strict';
+const {normalizeA52OfflineObservation}=require('./a52-offline-observation.cjs');
 // Test-only finite classification. Raw URL/type are not retained or returned.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const raw=fs.readFileSync(path.join(__dirname,'../fixtures/a52-installed-response-scope.json'));
 if(sha(raw)!=='749b4acbe97eb1583fb4cf00ef15f668406ab1cc764721765ab23177b020b3cf')throw Error('Response probe scope mismatch');
 const scope=JSON.parse(raw);
-function normalizeA52ResponseProbe(file,input){const e=scope.files[file];if(!e||sha(input)!==e.afterSha256)return input;if(sha(e.before)!==e.beforeSha256)throw Error('Response probe predecessor mismatch');return Buffer.isBuffer(input)?Buffer.from(e.before):e.before;}
+function normalizeA52ResponseProbe(file,input){input=normalizeA52OfflineObservation(file,input);const e=scope.files[file];if(!e||sha(input)!==e.afterSha256)return input;if(sha(e.before)!==e.beforeSha256)throw Error('Response probe predecessor mismatch');return Buffer.isBuffer(input)?Buffer.from(e.before):e.before;}
 function countResponseClass(rows,url,type,base){
  let protocol='other',scope='unknown';
  try{const u=new URL(url);protocol=({'http:':'http','https:':'https','data:':'data','blob:':'blob'})[u.protocol]||'other';scope=['http','https'].includes(protocol)?(u.origin===new URL(base).origin?'local':'external'):['data','blob'].includes(protocol)?'non-network':'unknown';}catch{}

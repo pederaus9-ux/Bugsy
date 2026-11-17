@@ -6,6 +6,7 @@ const {execFileSync}=require('node:child_process');
 if(process.env.DEBUG||process.env.PWDEBUG)throw new Error('Verbose browser diagnostics are disabled for qualification');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const {createBoundary,diagnosticText,localRequestLabel,failure}=require('./helpers/playwright-diagnostics.cjs');
+const {createOfflineObservation}=require('./helpers/a52-offline-observation.cjs');
 const root = path.resolve(__dirname, '../..');
 const artifacts = path.resolve(process.env.TEST_ARTIFACTS || path.join(__dirname, 'artifacts'));
 fs.mkdirSync(artifacts, {recursive:true});
@@ -25,7 +26,9 @@ async function start(options = {}) {
   let keepCurrentWorker=false;
   const sourceCache=new Map();
   const fileBytes=file=>{const relative=path.relative(root,file).split(path.sep).join('/');let bytes;if(!servedRef||(keepCurrentWorker&&relative==='farm3d/sw.js'))bytes=fs.readFileSync(file);else{const key=servedRef+':'+relative;if(!sourceCache.has(key))sourceCache.set(key,execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',key],{cwd:root,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe'],env:{...process.env,GIT_ALLOW_PROTOCOL:'',GIT_NO_LAZY_FETCH:'1',GIT_NO_REPLACE_OBJECTS:'1'}}));bytes=sourceCache.get(key);}return options.gameplaySeed!==undefined&&relative==='farm3d/index.html'?Buffer.from(applyTestGameplaySeed(bytes.toString('utf8'),options.gameplaySeed)):bytes;};
+  const offlineObservation=createOfflineObservation();
   const server = http.createServer((req, res) => {
+    offlineObservation.localRequest(req,res);
     try {
       let file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
       if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
@@ -66,6 +69,8 @@ async function start(options = {}) {
   return {
     base,
     serverResponseCount(){return servedResponses;},
+    beginOfflineObservation(){offlineObservation.begin();},
+    offlineResponseObservation(){return offlineObservation.snapshot();},
     serveRef(ref,settings={}){servedRef=ref||null;keepCurrentWorker=!!settings.keepCurrentWorker;},
     async setup(viewport, touch, name, mobile = touch) {
       // CSS viewports stay exact; smaller drawing buffers keep software GPU CI responsive.
@@ -84,6 +89,7 @@ async function start(options = {}) {
         const url = route.request().url();
         if (url.startsWith(base)) return route.continue();
         const sdk = url.includes('gstatic.com/firebasejs/');
+        offlineObservation.externalFulfill(sdk);
         return route.fulfill({contentType:sdk?'text/javascript':'application/json',body:sdk?'export {};':'{}'});
       });
       }catch{await context.close();throw failure();}

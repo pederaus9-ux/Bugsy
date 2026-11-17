@@ -90,3 +90,15 @@ test('dedicated exporter verifies its complete code closure before execution and
  }
  assert(workflow.slice(end).includes("if: ${{ always() && steps.public_evidence.outcome == 'success' }}"));
 });
+
+test('dismissal diagnostics remain finite and exportable',()=>{
+ const good={schema:1,side:1,phase:'escape-check',direction:0,iteration:0,observed:true,inMenu:false,documentFocused:true,bodyActive:false,rootActive:false,launcherActive:true,dialogOpen:false,focusableCount:0,keyDownCount:0,keyUpCount:0};
+ for(const phase of ['escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'])assert.deepEqual(e.nativeKeyboard({...good,phase}),{...good,phase});
+ assert.throws(()=>e.nativeKeyboard({...good,phase:canary}));
+});
+
+test('offline harness attribution exports finite categories and counts only',()=>{
+ const o={localResponses:[{category:'worker-script',beganBeforeOffline:false,count:1}],externalFulfillCalls:{firebaseSdk:3,other:0}};
+ const good={step:'responses',responseObservation:o};assert.deepEqual(e.offlineProbe(good),good);
+ for(const bad of [{...o,url:canary},{...o,externalFulfillCalls:{firebaseSdk:Infinity,other:0}},{...o,externalFulfillCalls:{firebaseSdk:3,other:0,url:canary}},{...o,localResponses:[{category:canary,beganBeforeOffline:false,count:1}]},{...o,localResponses:[{category:'other',beganBeforeOffline:canary,count:1}]},{...o,localResponses:[{category:'other',beganBeforeOffline:false,count:0}]},{...o,localResponses:[...o.localResponses,...o.localResponses]}])assert.throws(()=>e.offlineProbe({...good,responseObservation:bad}));
+});

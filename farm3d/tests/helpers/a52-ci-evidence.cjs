@@ -41,14 +41,14 @@ function nativeProgress(value){
 function nativeKeyboard(value){
  const bools=['observed','inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen'];
  const keys=['schema','side','phase','direction','iteration','focusableCount','keyDownCount','keyUpCount',...bools];
- const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete'];
+ const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==keys.sort().join('|')||value.schema!==1||![1,2].includes(value.side)||!phases.includes(value.phase)||![0,1,2].includes(value.direction))reject();
  for(const k of bools)if(typeof value[k]!=='boolean')reject();
  for(const k of ['iteration','focusableCount','keyDownCount','keyUpCount'])if(!Number.isInteger(value[k])||value[k]<0||value[k]>(k==='iteration'?14:32))reject();
  return {...value};
 }
 function offlineProbe(value){
- const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses'];
+ const keys=['step','controlled','farmMatches','cacheMatches','differentFields','serverResponses','nonWorkerResponses','errorCounts','responseClasses','responseObservation'];
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!keys.includes(k))||!['set-offline','reload','ready','control','save','menus','cache','responses','errors','complete'].includes(value.step))reject();
  for(const k of ['controlled','farmMatches','cacheMatches'])if(k in value&&typeof value[k]!=='boolean')reject();
  for(const k of ['serverResponses','nonWorkerResponses'])if(k in value&&(!Number.isSafeInteger(value[k])||value[k]<0||value[k]>1e6))reject();
@@ -63,6 +63,18 @@ function offlineProbe(value){
    const key=[r.protocol,r.scope,r.resourceType].join('|');if(seen.has(key))reject();seen.add(key);count+=r.count;
   }
   if(count!==value.nonWorkerResponses)reject();
+ }
+ if('responseObservation'in value){
+  const o=value.responseObservation;
+  if(!o||Object.keys(o).sort().join('|')!=='externalFulfillCalls|localResponses')reject();
+  const c=o.externalFulfillCalls;
+  if(!c||Object.keys(c).sort().join('|')!=='firebaseSdk|other'||Object.values(c).some(n=>!Number.isSafeInteger(n)||n<0||n>1e6))reject();
+  if(!Array.isArray(o.localResponses)||o.localResponses.length>6)reject();
+  const seen=new Set();
+  for(const row of o.localResponses){
+   if(!row||Object.keys(row).sort().join('|')!=='beganBeforeOffline|category|count'||!['worker-script','app-asset','other'].includes(row.category)||typeof row.beganBeforeOffline!=='boolean'||!Number.isSafeInteger(row.count)||row.count<1||row.count>1e6)reject();
+   const key=row.category+':'+row.beganBeforeOffline;if(seen.has(key))reject();seen.add(key);
+  }
  }
  return JSON.parse(JSON.stringify(value));
 }

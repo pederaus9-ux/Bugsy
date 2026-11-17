@@ -49,7 +49,7 @@ function keyboardObservation(id){
     dialogOpen:!!dialog?.open,focusableCount:[...dialog.querySelectorAll('button')].filter(b=>!b.disabled&&b.getClientRects().length).length};
 }
 function finiteKeyboard(side,phase,direction=0,iteration=0,observation=null){
-  const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete'];
+  const phases=['reveal','fit','expanded','tab-input','tab-check','key-read','key-down','key-up','key-check','complete','escape-input','escape-check','escape-focus','close-reveal','close-input','close-check','close-focus','capture-reveal','capture-escape-input','capture-escape-check','backdrop-reveal','backdrop-input','backdrop-check','backdrop-focus','dismiss-complete'];
   if(![1,2].includes(side)||!phases.includes(phase)||![0,1,2].includes(direction)||!Number.isInteger(iteration)||iteration<0||iteration>14)throw Error('Invalid finite keyboard observation');
   const out={schema:1,side,phase,direction,iteration,observed:observation!==null};
   for(const key of ['inMenu','documentFocused','bodyActive','rootActive','launcherActive','dialogOpen']){
@@ -126,19 +126,27 @@ async function main(){
           record('key-check',0,0,{...await p.evaluate(keyboardObservation,id),...await p.evaluate(n=>({keyDownCount:__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'&&x[0]==='down').length,keyUpCount:__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'&&x[0]==='up').length}),keyStart)});
           assert.deepEqual(await p.evaluate(n=>__a52Journey.keys.slice(n).filter(x=>x[1]==='KeyW'),keyStart),[['up','KeyW']],
             'Menu blocks command keydown but permits native key-release cleanup; not a simulation-pause assertion');
-          record('complete');mark(side+'-dismiss');await p.keyboard.press('Escape');await closed();
+          record('complete');mark(side+'-dismiss');
+          record('escape-input');await p.keyboard.press('Escape');
+          record('escape-check',0,0,await p.evaluate(keyboardObservation,id));await closed();
+          record('escape-focus',0,0,await p.evaluate(keyboardObservation,id));
           assert.equal(await p.locator(launch).evaluate(e=>e===document.activeElement),true,'Escape returns launcher focus');
-          await revealCornerAction(p,target,touch?'tap':'click');
-          await native('#'+id+' .preview-menu-close');await closed();
+          record('close-reveal');await revealCornerAction(p,target,touch?'tap':'click');
+          record('close-input');await native('#'+id+' .preview-menu-close');
+          record('close-check',0,0,await p.evaluate(keyboardObservation,id));await closed();
+          record('close-focus',0,0,await p.evaluate(keyboardObservation,id));
           assert.equal(await p.locator(launch).evaluate(e=>e===document.activeElement),true,'Close button returns launcher focus');
-          await revealCornerAction(p,target,touch?'tap':'click');
+          record('capture-reveal');await revealCornerAction(p,target,touch?'tap':'click');
           mark(side+'-capture');await p.screenshot({path:path.join(artifacts,'a52-'+side+'-'+width+'x'+height+'.png')});
-          await p.keyboard.press('Escape');await closed();
-          await revealCornerAction(p,target,touch?'tap':'click');
+          record('capture-escape-input');await p.keyboard.press('Escape');
+          record('capture-escape-check',0,0,await p.evaluate(keyboardObservation,id));await closed();
+          record('backdrop-reveal');await revealCornerAction(p,target,touch?'tap':'click');
           // Dialog CSS leaves a >=12px viewport gutter, so (1,1) is backdrop.
-          if(touch)await p.touchscreen.tap(1,1);else await p.mouse.click(1,1);
-          await closed();
+          record('backdrop-input');if(touch)await p.touchscreen.tap(1,1);else await p.mouse.click(1,1);
+          record('backdrop-check',0,0,await p.evaluate(keyboardObservation,id));await closed();
+          record('backdrop-focus',0,0,await p.evaluate(keyboardObservation,id));
           assert.equal(await p.locator(launch).evaluate(e=>e===document.activeElement),true,'Backdrop dismissal returns launcher focus');
+          record('dismiss-complete');
         }
         async function select(selector,key){
           await revealCornerAction(p,selector,touch?'tap':'click');

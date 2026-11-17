@@ -1,8 +1,9 @@
 'use strict';
+const {normalizeA52OfflineObservation}=require('./helpers/a52-offline-observation.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),{EventEmitter}=require('node:events');
 const {normalizeA52InstalledCounter,scope,sha}=require('./helpers/a52-installed-counter-scope.cjs');
 const {normalizeA52Diagnostics,scope:diagnostics}=require('./helpers/a52-diagnostics-scope.cjs');
-const file='farm3d/tests/browser-harness.cjs',read=()=>fs.readFileSync(path.resolve(__dirname,'../..',file));
+const file='farm3d/tests/browser-harness.cjs',read=()=>normalizeA52OfflineObservation(file,fs.readFileSync(path.resolve(__dirname,'../..',file)));
 test('exact counter inverse precedes diagnostic inverse without weakening either receipt',()=>{
  assert.deepEqual(Object.keys(scope.files),[file]);const current=read(),e=scope.files[file];assert.equal(sha(current),e.afterSha256);
  const before=normalizeA52InstalledCounter(file,current);assert.equal(sha(before),e.beforeSha256);assert.equal(sha(before),diagnostics.files[file].afterSha256);

@@ -84,7 +84,7 @@ jobs:
         if: always()
         run: |
           test -f "farm3d/tests/helpers/a52-ci-evidence.cjs" && test ! -L "farm3d/tests/helpers/a52-ci-evidence.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-ci-evidence.cjs" | cut -d ' ' -f1)" = d3c49baeaf4483cb572d9ddd31b0e641a255375622798901d332e21a72452867
+          test "$(sha256sum "farm3d/tests/helpers/a52-ci-evidence.cjs" | cut -d ' ' -f1)" = 02ae16f68e55b41aac4addfc204a8b4368555ed5d45a0a3fea6af61a9525bd45
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node farm3d/tests/helpers/a52-ci-evidence.cjs --source "$RUNNER_TEMP/a52-receipts" --output "$RUNNER_TEMP/a52-public-evidence" --head "$GITHUB_SHA" --screenshots "$TEST_ARTIFACTS"
