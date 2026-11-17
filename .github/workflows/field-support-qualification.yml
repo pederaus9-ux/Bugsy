@@ -104,7 +104,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-public"
           test -f "$RUNNER_TEMP/a52-workflow-receipts.cjs" && test ! -L "$RUNNER_TEMP/a52-workflow-receipts.cjs"
-          test "$(sha256sum "$RUNNER_TEMP/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d391090a2ddcea94b72fb71ca5af2fb64a790577fee95294d6a7d8c9ca29dc4c
+          test "$(sha256sum "$RUNNER_TEMP/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 95ddea4bb15d3a21c9160f586f37e98cf207a66b34479901273f8e9e9e52878a
           test -f "$RUNNER_TEMP/ci-isolated-runner.cjs" && test ! -L "$RUNNER_TEMP/ci-isolated-runner.cjs"
           test "$(sha256sum "$RUNNER_TEMP/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "$RUNNER_TEMP/a52-workflow-receipts.cjs" field-support-qualification/field "$RUNNER_TEMP/a52-ci-safe/field" "$RUNNER_TEMP/a52-ci-public/field" "$A52_CANDIDATE_HEAD"
@@ -170,7 +170,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/a52-ci-public"
           test -f "farm3d/tests/helpers/a52-workflow-receipts.cjs" && test ! -L "farm3d/tests/helpers/a52-workflow-receipts.cjs"
-          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = d391090a2ddcea94b72fb71ca5af2fb64a790577fee95294d6a7d8c9ca29dc4c
+          test "$(sha256sum "farm3d/tests/helpers/a52-workflow-receipts.cjs" | cut -d ' ' -f1)" = 95ddea4bb15d3a21c9160f586f37e98cf207a66b34479901273f8e9e9e52878a
           test -f "farm3d/tests/helpers/ci-isolated-runner.cjs" && test ! -L "farm3d/tests/helpers/ci-isolated-runner.cjs"
           test "$(sha256sum "farm3d/tests/helpers/ci-isolated-runner.cjs" | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           node "farm3d/tests/helpers/a52-workflow-receipts.cjs" field-support-qualification/rollback "$RUNNER_TEMP/a52-ci-safe/rollback" "$RUNNER_TEMP/a52-ci-public/rollback" "$A52_CANDIDATE_HEAD"

@@ -1,7 +1,7 @@
 'use strict';
 // Public projection only. Never copy logs, source diagnostics, or raw artifacts.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),os=require('node:os');
-const MANIFEST_SHA='303fd632bfaaa20d8c6f98e3f7f8664517f6312ae46856f5a0abe36b2d74214b';
+const MANIFEST_SHA='cb295313e3b7788f5dd6a63f92c09799a09f1523dacf8fa736ae62485434331d';
 const MAX=8*1024*1024, statuses=['passed','failed','pending','running','blocked','timed_out','interrupted'];
 const fail=()=>{throw Error('Quality receipt rejected');};
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');

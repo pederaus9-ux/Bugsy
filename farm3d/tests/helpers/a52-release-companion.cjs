@@ -1,7 +1,7 @@
 'use strict';
 // Inert exact-source specialization; never launches repository code or workflows.
 const crypto=require('node:crypto');
-const SOURCE_SHA256='216a7182c9c6d6df006c6aad2c711e985684c92affb82cbaf933dae7615b0db3';
+const SOURCE_SHA256='1bfcee47aa68c90b7498cf11cd032e9b37b7399e47f9139a8ac6ec97f4bd8889';
 const BRANCH='codex/a52-two-corner-ui-20261117';
 const PLAN=Object.freeze([
  ['all_conflicts','conflicts','all',[]],
@@ -18,5 +18,8 @@ job=job.replace(/^    if: \$\{\{ (.*?) \}\}$/m,(_,originalIf)=>`    if: \${{ !ca
 if(needs.length)job=job.replace('    runs-on:',`    needs: [${needs.join(', ')}]\n    runs-on:`);
 // Distinct artifacts avoid collision between all and A38 pen-cache jobs.
 job=job.replace(/^(          name: )(.*execution-receipts-only)$/m,(_,prefix,name)=>prefix+'companion-'+set+'-'+name);
-result+=job;}return result;}
-module.exports={SOURCE_SHA256,BRANCH,PLAN,specialize};
+result+=job;}return result+manualJob(jobs.get('recovery_restore'));}
+
+const MANUAL_OMIT=Object.freeze(['Original 27 recovery checks with bounded quota diagnostic','Preserve recovery evidence before independent emulator reset']);
+function manualJob(original){const parts=original.split(/(?=^      - )/m);let removed=0;let job=parts.filter(block=>{if(MANUAL_OMIT.some(name=>block.startsWith('      - name: '+name+'\n'))){removed++;return false;}return true;}).join('');if(removed!==2)throw Error('Manual source step structure mismatch');job=job.replace('  recovery_restore:\n','  independent_manual_restore:\n').replace(/^    name: .*$/m,'    name: Independent exact manual restore (fresh bounded job; not original combined status)').replace(/^    if: .*$/m,`    if: \${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/${BRANCH}' }}`).replaceAll('github.event.pull_request.head.sha || github.sha','github.sha').replace('name: farm3d-a29-recovery-${{ github.run_attempt }}-execution-receipts-only','name: companion-independent-manual-${{ github.run_attempt }}-execution-receipts-only');return job;}
+module.exports={SOURCE_SHA256,BRANCH,PLAN,MANUAL_OMIT,manualJob,specialize};

@@ -5,9 +5,12 @@ function category(error){return error instanceof assert.AssertionError?'assertio
 function reportSummary(reports){
  const rows=Array.isArray(reports?.rows)?reports.rows:[];
  const counts=Object.fromEntries(['open','harv','ord','sess'].map(k=>[k,Math.min(255,rows.filter(r=>typeof r?.data?.e==='string'&&r.data.e.includes('_'+k+'_')).length)]));
- return {ordersAtLeastOne:typeof reports?.orders==='number'&&reports.orders>=1,rows:Math.min(255,rows.length),counts,payloadSchema:rows.every(r=>r?.data&&Object.keys(r.data).sort().join(',')==='d,e'),storedPresent:reports?.stored!==null};
+ let queue=null;try{queue=JSON.parse(reports?.stored)?.queue;}catch{}
+ const prerequisites={online:reports?.prerequisites?.online===true,fbPresent:reports?.prerequisites?.fbPresent===true,setDocCallable:reports?.prerequisites?.setDocCallable===true,docCallable:reports?.prerequisites?.docCallable===true,queueObserved:Array.isArray(queue),queueCount:Array.isArray(queue)?Math.min(255,queue.length):0};
+ return {prerequisites,ordersAtLeastOne:typeof reports?.orders==='number'&&reports.orders>=1,rows:Math.min(255,rows.length),counts,payloadSchema:rows.every(r=>r?.data&&Object.keys(r.data).sort().join(',')==='d,e'),storedPresent:reports?.stored!==null};
 }
-function validSummary(v){return !!v&&Object.keys(v).sort().join('|')==='counts|ordersAtLeastOne|payloadSchema|rows|storedPresent'&&['ordersAtLeastOne','payloadSchema','storedPresent'].every(k=>typeof v[k]==='boolean')&&Number.isInteger(v.rows)&&v.rows>=0&&v.rows<=255&&v.counts&&Object.keys(v.counts).sort().join('|')==='harv|open|ord|sess'&&Object.values(v.counts).every(n=>Number.isInteger(n)&&n>=0&&n<=255);}
+function validPrerequisites(v){return !!v&&Object.keys(v).sort().join('|')==='docCallable|fbPresent|online|queueCount|queueObserved|setDocCallable'&&['docCallable','fbPresent','online','queueObserved','setDocCallable'].every(k=>typeof v[k]==='boolean')&&Number.isInteger(v.queueCount)&&v.queueCount>=0&&v.queueCount<=255&&(v.queueObserved||v.queueCount===0);}
+function validSummary(v){return !!v&&Object.keys(v).sort().join('|')==='counts|ordersAtLeastOne|payloadSchema|prerequisites|rows|storedPresent'&&['ordersAtLeastOne','payloadSchema','storedPresent'].every(k=>typeof v[k]==='boolean')&&Number.isInteger(v.rows)&&v.rows>=0&&v.rows<=255&&validPrerequisites(v.prerequisites)&&v.counts&&Object.keys(v.counts).sort().join('|')==='harv|open|ord|sess'&&Object.values(v.counts).every(n=>Number.isInteger(n)&&n>=0&&n<=255);}
 function valid(v){return !!v&&Object.keys(v).filter(k=>k!=='reports').sort().join('|')==='category|phase|schema|status|test|viewport'&&(!('reports'in v)||(v.test==='analytics'&&[7,8].includes(v.viewport)&&validSummary(v.reports)))&&v.schema===1&&PHASES[v.test]?.includes(v.phase)&&Number.isInteger(v.viewport)&&v.viewport>=0&&v.viewport<=(v.test==='analytics'?8:2)&&['running','failed'].includes(v.status)&&['none','assertion','timeout','browser-operation','other'].includes(v.category);}
 function createProgress(test){
  if(!Object.hasOwn(PHASES,test))throw Error('Invalid progress test');
@@ -17,4 +20,4 @@ function createProgress(test){
  function write(){if(!valid(state))throw Error('Invalid finite progress');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'diagnostic.json'),JSON.stringify(state)+'\n');}
  return {mark(phase,viewport=state.viewport){if(viewport!==state.viewport)delete state.reports;state.phase=phase;state.viewport=viewport;write();},reports(value){if(test!=='analytics'||![7,8].includes(state.viewport))throw Error('Invalid report diagnostic context');state.reports=reportSummary(value);write();},fail(error){state.status='failed';state.category=category(error);try{write();}catch{ /* Retain original test error. */ }}};
 }
-module.exports={PHASES,category,valid,createProgress,reportSummary,validSummary};
+module.exports={PHASES,category,valid,createProgress,reportSummary,validSummary,validPrerequisites};

@@ -9,7 +9,7 @@ const deadlineFrames=500*rateHz,wakeDurationFrames=40*rateHz,observationBlocks=M
 const file=path.join(artifacts,'results.json');
 if(fs.existsSync(file))throw Error('Preserve previous three-night matrix evidence');
 const report={status:'RUNNING',stage:'launch',source:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),case:{edit:({boundary:'sheep boundary expansion',interior:'sheep interior fence and gate',gate:'sheep exterior gate relocation'})[editClass],editClass,seed,rateHz,nights:3,nightDeadlineSeconds:500,wakeDeadlineSeconds:500,continuousWakeSeconds:40},cycles:[]};
-const save=()=>fs.writeFileSync(file,JSON.stringify(report,null,2));
+const save=()=>{fs.writeFileSync(file,JSON.stringify(report,null,2));require('./helpers/a52-pen-report.cjs').write(report);};
 let h,s,p;
 const identity=a=>a.kind+':'+(a.ref.i??a.ref.j??0);
 (async()=>{try{
