@@ -28,8 +28,10 @@ function replay(file,bytes){
  let text=bytes.toString();for(const h of scope.files[file].hunks){const old=before(h);assert.equal(text.split(old).length,2,'Unique exact A52 hunk');text=text.replace(old,()=>h.after);}
  assert.equal(sha(text),scope.files[file].afterSha256,'Exact A52 postimage');return Buffer.from(text);
 }
+const cowRecovery=require('./a53-cow-recovery-scope.cjs');
+function normalizeA53Current(file,source){const e=cowRecovery.scope.files[file];return e&&sha(source)===e.afterSha256?cowRecovery.normalizeA53CowRecovery(file,source):source;}
 function normalizeA52Source(file,source){
- file=full(file);const entry=scope.files[file];if(!entry?.hunks||sha(source)!==entry.afterSha256)return source;
+ file=full(file);source=normalizeA53Current(file,source);const entry=scope.files[file];if(!entry?.hunks||sha(source)!==entry.afterSha256)return source;
  const old=pinned(file);assert.equal(sha(replay(file,old)),sha(source),'Exact current A52 bytes');
  return Buffer.isBuffer(source)?Buffer.from(old):old.toString();
 }

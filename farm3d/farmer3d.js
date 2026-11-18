@@ -156,7 +156,8 @@ export function updateFarmer3D(r,dx,dz,dt,act='idle',motion) {
   s.time+=dt; s.amount+=((moving?1:0)-s.amount)*(1-Math.exp(-dt*16)); s.distance+=travel;
   if(s.amount<1e-8)s.amount=0;
   const cycle=1.44+.66*run;
-  if(moving)s.phase=Number.isFinite(motion?.phase)?((motion.phase%1)+1)%1:(s.phase+travel/cycle)%1;
+  if(Number.isFinite(motion?.phase))s.phase=((motion.phase%1)+1)%1;
+  else if(moving)s.phase=(s.phase+travel/cycle)%1;
   const amount=s.amount;
   r.root.position.y=-(.12+.04*run)*amount;
   // Stance travels backwards at the character's forward speed. A two-link solve reaches

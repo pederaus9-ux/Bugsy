@@ -1,0 +1,66 @@
+{
+  "market-sales.browser.cjs": [
+    [
+      "sa3d-v93",
+      "sa3d-v94"
+    ]
+  ],
+  "chicken-pen-update.browser.cjs": [
+    [
+      "sa3d-v93",
+      "sa3d-v94"
+    ],
+    [
+      "const {updateWorker}=require('./worker-transition.cjs');",
+      "const {updateWorker}=require('./worker-transition.cjs');\nconst chickenDiagnostic=require('./helpers/a53-chicken-update-diagnostic.cjs'),diagnostic=chickenDiagnostic.create();"
+    ],
+    [
+      "stage='install exact base worker';",
+      "stage='install exact base worker';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='failed new-module installation preserves installed worker';",
+      "stage='failed new-module installation preserves installed worker';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='activate candidate worker and verify cached hashes';",
+      "stage='activate candidate worker and verify cached hashes';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='new page migrates paid egg exactly once';",
+      "stage='new page migrates paid egg exactly once';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='one-way update reboots fully offline before any old-client or rollback scenario';",
+      "stage='one-way update reboots fully offline before any old-client or rollback scenario';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='older cached client writes a new paid timer after migration';",
+      "stage='older cached client writes a new paid timer after migration';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='explicit old-worker rollback then candidate re-upgrade';",
+      "stage='explicit old-worker rollback then candidate re-upgrade';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='reconfirm current worker after intentionally serving the older version';",
+      "stage='reconfirm current worker after intentionally serving the older version';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='fully offline reboot retains modules and unpaid pallet';",
+      "stage='fully offline reboot retains modules and unpaid pallet';diagnostic.phase(stage);"
+    ],
+    [
+      "stage='installed full flock retains30 birds, care and appearance offline';",
+      "stage='installed full flock retains30 birds, care and appearance offline';diagnostic.phase(stage);"
+    ],
+    [
+      "failed=false;receipt.status='PASS';receipt.consoleErrors=s.errors;save();",
+      "await chickenDiagnostic.observe(s.page,diagnostic);diagnostic.pass();failed=false;receipt.status='PASS';receipt.consoleErrors=s.errors;save();"
+    ],
+    [
+      "}catch(error){receipt.status='FAIL';",
+      "}catch(error){diagnostic.fail(error);if(s)await chickenDiagnostic.observe(s.page,diagnostic);receipt.status='FAIL';"
+    ]
+  ]
+}

@@ -2,11 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..');
 let a52;try{a52=require('./helpers/a52-scope.cjs');}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
+const {normalizeA53CowRecovery}=require('./helpers/a53-cow-recovery-scope.cjs');
 const helper=()=>{assert(a52,'A52 scope helper is missing');return a52;};
 test('A52 exact source inverse restores pinned main without changing the accepted receipt',()=>{
  const {scope,sha,normalizeA52Source,applyA52Source}=helper();
  for(const [file,e] of Object.entries(scope.files).filter(([,v])=>v.hunks)){
-  const current=fs.readFileSync(path.join(root,file));assert.equal(sha(current),e.afterSha256);
+  const current=normalizeA53CowRecovery(file,fs.readFileSync(path.join(root,file)));assert.equal(sha(current),e.afterSha256);
   const old=normalizeA52Source(file,current);assert(Buffer.isBuffer(old));assert.equal(sha(old),e.beforeSha256);
   assert.deepEqual(applyA52Source(file,old),current);assert.equal(normalizeA52Source(file,old),old);
   assert.equal(sha(normalizeA52Source(file,current.toString())),e.beforeSha256);
@@ -19,8 +20,8 @@ test('A52 rejects wrong source, unknown files, appended edits and wrong cache',(
   assert.equal(normalizeA52Source(file,bad),bad);assert.equal(applyA52Source(file,bad),bad);
   assert.equal(normalizeA52Source('unknown',current),current);
  }
- const sw=fs.readFileSync(path.join(root,'farm3d/sw.js'),'utf8');
- for(const version of ['sa3d-v85','sa3d-v86','sa3d-v89','sa3d-v91','sa3d-v92','sa3d-v94']){const bad=sw.replace('sa3d-v93',version);assert.equal(normalizeA52Source('sw.js',bad),bad);}
+ const sw=normalizeA53CowRecovery('farm3d/sw.js',fs.readFileSync(path.join(root,'farm3d/sw.js'),'utf8'));assert.match(sw,/const CACHE = "sa3d-v93"/);
+ for(const version of ['sa3d-v85','sa3d-v86','sa3d-v89','sa3d-v91','sa3d-v92','sa3d-v94','sa3d-v95']){const bad=sw.replace('sa3d-v93',version);assert.notEqual(bad,sw,'Historical negative actually changes the source');if(version==='sa3d-v94'){assert.equal(normalizeA53CowRecovery('sw.js',bad),sw,'Only exact approved A53 cache is admitted');assert.equal(applyA52Source('sw.js',bad),bad,'A52 forward replay still rejects newer cache');}else assert.equal(normalizeA52Source('sw.js',bad),bad);}
 });
 test('A52 verifies every added production asset and rejects tampering',()=>{
  const {scope,verifyA52Asset}=helper();

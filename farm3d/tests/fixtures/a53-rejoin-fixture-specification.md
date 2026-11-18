@@ -1,0 +1,12 @@
+# Reviewed legal-start fixture correction proposal
+
+Only cow-intermediate-rejoin.test.mjs changes for application qualification. Existing authored v1 fixture is reused unchanged. Seven positive assembly cases are explicitly renamed authored-legal-opposed-rejoin-v1 (eligibility + six 30/60/120 Hz / forward/reverse arrivals). Boundary positives and both historical negative tests remain unchanged. Original arrival body, 500-second deadline, tokens, .85 body minimum, .8 speed, support, pen and static assertions remain byte-identical. Added initial pen/.42 static/support/body legality checks run before authored cases.
+
+The loader retains the original captured assembly JSON. For authored cases only, it compares every relevant record field (key, position, act, stage, station, path) against that historical capture with exactly cow1 position changed from [-1.6679393998028804,.08,-36.549673028140546] to [-.9,.08,-36.55]. All other data must match or the test fails. This is initial fixture authoring, not runtime teleportation.
+
+Original invalid-start refusal remains byte-identical and still reads assembly-4242-120. Historical red receipts remain authoritative for their original tests. A green corrected suite cannot certify resolution of the upstream event that generated the invalid root. That remains an explicit independent gate requiring recorded pre-entry regression and original live assembly qualification; neither is executed or claimed by this proposal.
+
+Nine inert controls pass: exact whole-file inverse, unchanged negative/scope/arrival assertion blocks, positive lineage, four lineage corruption controls, pre-update legality checks. Runtime test count remains unchanged (seven inputs/names corrected, no tests excluded or added). Source syntax checked; no game/application execution, publication or merge.
+
+## Qualification integration
+The corrected runtime suite retains all174previous tests (with the seven explicit positive input corrections), adds three pure recorded-preentry checks and nine portable fixture lineage/inverse controls, for186 strict passes required, zero skips/todo. Recorded-preentry checks prove historical transition rejection and a static legal path, not dynamic herd arrival. Original live assembly seed4242 remains an independent release gate. Historical run44181126206 atfa1c31320334fdff4c16030ce334472798913837 remains167/174 RED; its seven failure records equal original baseline44167426868 exactly. No historical result is relabelled. Runtime6ed and SW94 bytes are unchanged by this test correction.

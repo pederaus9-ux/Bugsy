@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "files": {
+    "farm3d/tests/utility-lights.browser.cjs": {
+      "beforeSha256": "138ebd14f3b76461a81351371ee1b08dda8a40e42b7e081b3c9f986855641439",
+      "afterSha256": "acac134f60cde2aa3a244c7f92e8a9f5fad4df1a6e34dbf4396ac70e087bd4e2",
+      "count": 1
+    },
+    "farm3d/tests/decor-catalog.browser.cjs": {
+      "beforeSha256": "bdd7790767db715e6f80a32ffbd47799c12bbf925f29343c8f2685575444a453",
+      "afterSha256": "fe3fde33d13813fca10380e5732962b80665d590518c22011123b1bdcaf9cc68",
+      "count": 1
+    },
+    "farm3d/tests/cow-update.browser.cjs": {
+      "beforeSha256": "98de5c047214e328c0c799e8491047d71829b636a7e3709bba7be464581c205e",
+      "afterSha256": "c0d02ad6cdbdd3b37b41ebf44503147590e448b7d176eb3e7c9a7815b6230b66",
+      "count": 1
+    },
+    "farm3d/tests/chicken-pen-update.browser.cjs": {
+      "beforeSha256": "ce18e653a88e934b1fd73a1a8ed5452e6f4df04cab6c13ae555ca1f770bd7d81",
+      "afterSha256": "628f92070a1965334709dcbc55afeb8a76b9bc2f38270c12fada6259b5a86246",
+      "count": 4,
+      "phaseHunks": [
+        [
+          "const {updateWorker}=require('./worker-transition.cjs');",
+          "const {updateWorker}=require('./worker-transition.cjs');\nconst chickenDiagnostic=require('./helpers/a53-chicken-update-diagnostic.cjs'),diagnostic=chickenDiagnostic.create();"
+        ],
+        [
+          "stage='install exact base worker';",
+          "stage='install exact base worker';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='failed new-module installation preserves installed worker';",
+          "stage='failed new-module installation preserves installed worker';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='activate candidate worker and verify cached hashes';",
+          "stage='activate candidate worker and verify cached hashes';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='new page migrates paid egg exactly once';",
+          "stage='new page migrates paid egg exactly once';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='one-way update reboots fully offline before any old-client or rollback scenario';",
+          "stage='one-way update reboots fully offline before any old-client or rollback scenario';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='older cached client writes a new paid timer after migration';",
+          "stage='older cached client writes a new paid timer after migration';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='explicit old-worker rollback then candidate re-upgrade';",
+          "stage='explicit old-worker rollback then candidate re-upgrade';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='reconfirm current worker after intentionally serving the older version';",
+          "stage='reconfirm current worker after intentionally serving the older version';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='fully offline reboot retains modules and unpaid pallet';",
+          "stage='fully offline reboot retains modules and unpaid pallet';diagnostic.phase(stage);"
+        ],
+        [
+          "stage='installed full flock retains30 birds, care and appearance offline';",
+          "stage='installed full flock retains30 birds, care and appearance offline';diagnostic.phase(stage);"
+        ],
+        [
+          "failed=false;receipt.status='PASS';receipt.consoleErrors=s.errors;save();",
+          "await chickenDiagnostic.observe(s.page,diagnostic);diagnostic.pass();failed=false;receipt.status='PASS';receipt.consoleErrors=s.errors;save();"
+        ],
+        [
+          "}catch(error){receipt.status='FAIL';",
+          "}catch(error){diagnostic.fail(error);if(s)await chickenDiagnostic.observe(s.page,diagnostic);receipt.status='FAIL';"
+        ]
+      ],
+      "cacheOnlySha256": "5d1a87622813d3e86cc42109ecea24a3f9798d80171e146a5169cefc5a25d3e2"
+    },
+    "farm3d/tests/market-sales.browser.cjs": {
+      "beforeSha256": "42f0401a2c610c4f99d3f4ac54fa6ce01f3b375de4b9a99a6e7142d7717e58ef",
+      "afterSha256": "f8d2de38c5a81edf33c6106d7e1df62c10f7d0d60da4aa1ecbc9eb77b0c812c2",
+      "count": 2
+    },
+    "farm3d/tests/field-rollback-cache.browser.cjs": {
+      "beforeSha256": "32c587dfa8768d1e28cdbc01fbc6d614debd78abf94294e56b41c9c1bc8f8135",
+      "afterSha256": "a56c42c7e21701557275437f4cf491c900e64b92fc681547daebe2c8eb6008f9",
+      "count": 3
+    }
+  }
+}

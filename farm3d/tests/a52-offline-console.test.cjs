@@ -1,10 +1,11 @@
 'use strict';
+const {normalizeA53CITelemetry}=require('./helpers/a53-ci-telemetry-scope.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {createOfflineTransport}=require('./helpers/a52-offline-transport.cjs');
 const {diagnosticText}=require('./helpers/playwright-diagnostics.cjs');
 const {normalizeA52OfflineConsole,scope,sha}=require('./helpers/a52-offline-console.cjs');
 const exact='Failed to load resource: net::ERR_INTERNET_DISCONNECTED';
-test('console scope exact inverse preserves predecessors and rejects altered bytes',()=>{for(const [f,e]of Object.entries(scope.files)){const s=fs.readFileSync(path.resolve(__dirname,'../..',f),'utf8');assert.equal(sha(s),e.afterSha256);assert.equal(normalizeA52OfflineConsole(f,s),e.before);assert.equal(normalizeA52OfflineConsole(f,s+' '),s+' ');}});
+test('console scope exact inverse preserves predecessors and rejects altered bytes',()=>{for(const [f,e]of Object.entries(scope.files)){const s=normalizeA53CITelemetry(f,fs.readFileSync(path.resolve(__dirname,'../..',f),'utf8'));assert.equal(sha(s),e.afterSha256);assert.equal(normalizeA52OfflineConsole(f,s),e.before);assert.equal(normalizeA52OfflineConsole(f,s+' '),s+' ');}});
 test('only exact offline SDK console with prior matching abort is expected; all lookalikes retained',async()=>{
  const server={listening:true},map=new WeakMap([[server,new Set()]]),t=createOfflineTransport(server,map,async()=>{server.listening=false;});
  const url='https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';

@@ -15,7 +15,7 @@ for(const [name,mutate]of[
  ['wrong version',s=>s.replace('auth.js?v=21','auth.js?v=999')],
  ['missing hunk',s=>s.replace(a36FirstHunk,'')],
  ['duplicate hunk',s=>s+a36FirstHunk],
- ['altered route repair',s=>s.replace('let blockedBedLeg=false;','let blockedBedLeg=true;')],
+ ['altered route repair',s=>s.replace('let blockedBedLeg=cowStaticRecovery.wait(a,task);','let blockedBedLeg=true;')],
  ['unrelated prefix',s=>s.replace('function cowSupportY(','function changedSupportY(')],
  ['unrelated suffix',s=>s.replace('const skyU =','const changedSky =')]
 ])test('A36 reconstruction rejects '+name,()=>{const changed=mutate(a36Source);assert.notEqual(changed,a36Source,'negative control must mutate actual source');assert.throws(()=>normalizePenScope('A26',changed));});

@@ -12,7 +12,7 @@ import {pointInPolygon,segmentInPolygon} from '../animal-pen-geometry.js';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 function slice(start,end){const a=html.indexOf(start),b=html.indexOf(end,a+start.length);assert(a>=0&&b>a);return html.slice(a,b);}
 const ordinary=slice('    if (this.rig3d) {','    // face the way it walks');
-const directed=slice('function updateCowTaskStep(', '\nbootStep("making the sky")');
+const directed=slice('// Narrow default-bed transit safety;', '\nbootStep("making the sky")');
 function nativeFunction(name){const a=html.indexOf('function '+name+'('),b=html.indexOf('\n}',a);assert(a>=0&&b>a,'missing native '+name);return html.slice(a,b+2);}
 const directedDependencies=slice('const toLocal =','const blocked =')+'\n'+nativeFunction('cowGateSegmentClear')+'\n'+nativeFunction('cowSharedCornerDetour');
 const record=defaultSiteRecord('cow');record.boundary[1].x+=3;
@@ -24,13 +24,13 @@ for(const mode of ['ordinary','directed'])test('actual '+mode+' runtime supports
   const a=cow(direction>0?8.8:10.8),goal=direction>0?10.8:8.8;
   a.rig3d.model.rotation.y=Math.atan2(-direction,0);
   a.cowTask={kind:'feed',stage:'approach',weight:0,station:{id:'feed',facing:0},path:[new THREE.Vector2(goal,-39.1)],waypoints:[]};
-  const c=vm.createContext({THREE,Cow3D,...support,cowSupportY:sample,COW_YARD_LAYOUT:{custom:true,floor:.08,obstacles:[]},PENS:{courtyard:a.pen},animals:[a],cowStatus:{feed:1,cows:[{}]},getAnimalCarePose,PRESET:{},nowMs:()=>0,cowIdOf:()=> 'cow',cowStations:{arrive(){}},cowSurfaces:new Map(),P:a.P,releaseCowTask(){a.cowTask=null;},a,dt:1/hz,t:0});
+  const c=vm.createContext({G:{S:{}},clockT:0,THREE,Cow3D,...support,cowSupportY:sample,COW_YARD_LAYOUT:{custom:true,floor:.08,obstacles:[]},PENS:{courtyard:a.pen},animals:[a],cowStatus:{feed:1,cows:[{}]},getAnimalCarePose,PRESET:{},nowMs:()=>0,cowIdOf:()=> 'cow',cowStations:{arrive(){}},cowSurfaces:new Map(),P:a.P,releaseCowTask(){a.cowTask=null;},a,dt:1/hz,t:0});
   const yard=createCowYard({north:25,layout:site});
   Object.assign(c,{cowYard:yard,OBST:site.obstacles.map(([x,z,hw,hd])=>({x,z,hw,hd,c:1,s:0})),HOME:new THREE.Vector2(1,3),ROAM:19,pointInPolygon,segmentInPolygon,fitsPen:(p,x,z,m)=>pointInPolygon([x,z],site.polygon,m)});
   if(mode==='directed')vm.runInContext(directedDependencies+'\n'+directed,c);
   let previous=[],movingPlanted=0;
   try{for(let i=0;i<4*hz;i++){
-   const before=a.g.position.clone();c.ox=before.x;c.oz=before.z;c.t=(i+1)/hz;
+   const before=a.g.position.clone();c.ox=before.x;c.oz=before.z;c.t=(i+1)/hz;c.clockT=c.t;
    if(mode==='ordinary'){
     const dx=Math.sign(goal-before.x)*Math.min(Math.abs(goal-before.x),.8/hz);
     a.g.position.x+=dx;a.act=Math.abs(dx)>0?'moving':'idle';
