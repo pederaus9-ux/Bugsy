@@ -30,7 +30,19 @@ jobs:
         shell: bash
         run: |
           base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
+          v2=39eac9ba486fa3929f6d1c238b0be86ba9da6220
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor "$v2" HEAD
+          git diff --name-only "$v2" HEAD | while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/a54-social-qualification.yml|farm3d/tests/cow-distribution.browser.cjs) ;;
+              *) printf 'Unexpected change from validated v2: %s\n' "$file"; exit 1;;
+            esac
+            test -f "$file" && test ! -L "$file" || exit 1
+          done
+          for runtime in farm3d/index.html farm3d/sw.js; do
+            test "$(git rev-parse "HEAD:$runtime")" = "$(git rev-parse "$v2:$runtime")"
+          done
           git merge-base --is-ancestor "$base" HEAD
           git diff --name-only "$base" HEAD | while IFS= read -r file; do
             case "$file" in
@@ -180,5 +192,85 @@ jobs:
         with:
           name: cow-distribution-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/cow-distribution-public/cow-distribution.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Validate bounded night boundary witnesses
+        id: night_trace
+        if: steps.evidence.outputs.aggregate == 'true'
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const check = (x, msg) => { if (!x) throw Error(msg); };
+          const exact = (v, keys) => v && typeof v === 'object' &&
+            !Array.isArray(v) && Object.keys(v).sort().join(',') === keys;
+          const int = (v, lo, hi) => Number.isSafeInteger(v) && v >= lo && v <= hi;
+          const sources = [
+            ['base','9e6f2763dd7781b761ccaef2f2cfa680d57b4783'],
+            ['candidate','39eac9ba486fa3929f6d1c238b0be86ba9da6220']
+          ];
+          const evidence = JSON.parse(fs.readFileSync(path.join(process.env.PUBLIC_EVIDENCE,'cow-distribution.json'),'utf8'));
+          const phases = ['early','day1','night1','day2','night2'];
+          const sample = v => {
+            const bounds = [[1,3600],[0,3],[-128000,128000],[0,256000],[0,5],[0,6],[0,8],[0,10],
+              [-256000,256000],[-256000,256000],[-256000,256000],[0,256000],[0,1]];
+            check(Array.isArray(v) && v.length === bounds.length &&
+              bounds.every(([lo,hi],i) => ((i === 8 || i === 9) && v[i] === null) || int(v[i],lo,hi)), 'Invalid trace sample');
+            return v.slice();
+          };
+          const interval = v => {
+            check(exact(v,'end,peak,recovery,start'), 'Invalid trace interval');
+            const start = sample(v.start), end = sample(v.end), peak = sample(v.peak);
+            const recovery = v.recovery === null ? null : sample(v.recovery);
+            check(start[0] <= peak[0] && peak[0] <= end[0] &&
+              (recovery === null ? end[0] === 3600 : recovery[0] === end[0]+1), 'Invalid trace ordering');
+            return {start,end,peak,recovery};
+          };
+          const paired = {};
+          for (const [lane,source] of sources) {
+            const file = path.join(process.env.LANE_ARTIFACTS,lane,'cow-night-boundary-trace.json');
+            const stat = fs.lstatSync(file);
+            check(stat.isFile() && stat.size >= 2 && stat.size <= 65536, 'Invalid trace file');
+            const r = JSON.parse(fs.readFileSync(file,'utf8'));
+            check(exact(r,'cows,edgeCount,frames,phaseSamples,schema,source,thresholdMm') &&
+              r.schema === 1 && r.source === source && r.frames === 3600 &&
+              r.thresholdMm === -50 && r.edgeCount === 4 &&
+              Array.isArray(r.phaseSamples) && r.phaseSamples.length === 5 &&
+              r.phaseSamples.every(n => int(n,0,36000)) &&
+              Array.isArray(r.cows) && r.cows.length === 5, 'Invalid trace header');
+            const original = evidence[lane].cases.find(c => c.seed === 4242 && c.herd === 5 && c.layout === 'default');
+            check(original?.status === 'pass', 'Trace identity missing from original evidence');
+            const values = new Map(original.counters);
+            check(phases.every((phase,i) => values.get(phase+'/containmentViolations') === r.phaseSamples[i]),
+              'Trace phase samples do not reconcile');
+            const cows = r.cows.map((c,cow) => {
+              check(exact(c,'cow,first,intervals,last,nativeSamples,nightMinMm,outsideFrames,worst') &&
+                c.cow === cow && int(c.outsideFrames,0,3600) && int(c.intervals,0,c.outsideFrames) &&
+                int(c.nightMinMm,-128000,128000) && int(c.nativeSamples,0,120), 'Invalid cow trace counters');
+              const {outsideFrames,intervals,nightMinMm,nativeSamples} = c;
+              let first = null, last = null, worst = null;
+              if (intervals === 0) {
+                check(outsideFrames === 0 && nativeSamples === 0 &&
+                  c.first === null && c.last === null && c.worst === null, 'Unexpected excursion evidence');
+              } else {
+                first = interval(c.first); last = interval(c.last); worst = interval(c.worst);
+                check(first.start[0] <= worst.start[0] && worst.end[0] <= last.end[0], 'Unordered trace extrema');
+              }
+              return {cow,outsideFrames,intervals,nightMinMm,nativeSamples,first,last,worst};
+            });
+            check(cows.reduce((sum,c) => sum+c.nativeSamples,0) === r.phaseSamples[4], 'Night samples do not reconcile');
+            paired[lane] = {schema:1,source,frames:3600,thresholdMm:-50,edgeCount:4,
+              phaseSamples:r.phaseSamples.slice(),cows};
+          }
+          fs.writeFileSync(path.join(process.env.PUBLIC_EVIDENCE,'cow-night-boundary-trace.json'),
+            JSON.stringify({schema:1,...paired}),{flag:'wx'});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'trace=true\n');
+          NODE
+      - name: Preserve finite night boundary witnesses
+        if: steps.night_trace.outputs.trace == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-night-boundary-trace-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cow-distribution-public/cow-night-boundary-trace.json
           if-no-files-found: error
           retention-days: 7

@@ -15,8 +15,12 @@ assert(path.isAbsolute(process.env.TEST_ARTIFACTS||''),'private artifact directo
 const {start}=require('./browser-harness.cjs');
 const {makeObserver}=require('./helpers/cow-distribution-observer.cjs');
 const base='9e6f2763dd7781b761ccaef2f2cfa680d57b4783';
+const candidate='39eac9ba486fa3929f6d1c238b0be86ba9da6220';
 const lane=process.argv[2];
 assert(['base','candidate'].includes(lane)&&process.argv.length===3,'expected base or candidate lane');
+const source=lane==='base'?base:candidate;
+const traceFile=path.join(process.env.TEST_ARTIFACTS,'cow-night-boundary-trace.json');
+let traceReport=null;
 const file=path.join(process.env.TEST_ARTIFACTS,'cow-distribution.json');
 const report={schema:1,cases:[]};
 const fixtureCases=[{herd:2,layout:'default'},{herd:5,layout:'default'},{herd:5,layout:'moved'}];
@@ -117,16 +121,72 @@ async function setup(page,base,{herd,layout,seed}) {
   },{herd,layout,seed});
 }
 
-async function observe(page,phase,night,secs) {
-  await page.evaluate(({phase,night})=>{
+// Private in-page aggregate only. Runtime update ordering and RNG are unchanged.
+function makeNightTrace(d,s) {
+  const layout=d.cowYard.layout, gate=layout.gate, access=layout.access, poly=s.poly;
+  if(poly.length!==4||s.active.length!==5||s.active.some((a,i)=>a.pen.custom||a.ref.i!==i)||!Array.isArray(gate)||gate.length!==2||!gate.every(Number.isFinite)||gate[0]>=gate[1])throw Error('stock trace fixture refused');
+  const edges=poly.map(([x,z],i)=>{
+    const [bx,bz]=poly[(i+1)%4], dx=bx-x,dz=bz-z,L=Math.hypot(dx,dz);
+    if(!(L>0))throw Error('trace edge refused');
+    return {x,z,dx,dz,L};
+  });
+  const depth=(e,x,z)=>(e.dx*(z-e.z)-e.dz*(x-e.x))/e.L;
+  if(edges.some(e=>poly.some(([x,z])=>depth(e,x,z)<-1e-8)))throw Error('nonconvex trace fixture');
+  const openingZ=Math.max(...poly.map(p=>p[1]));
+  if(!Array.isArray(access)||access.length!==4||access[0]!==gate[0]||access[1]!==gate[1]||Math.abs(access[2]-openingZ)>1e-8)throw Error('stock gate geometry refused');
+  const nearestOpening=(x,z)=>Math.hypot(x-Math.max(gate[0],Math.min(gate[1],x)),z-openingZ);
+  const rows=s.active.map((_,cow)=>({cow,outsideFrames:0,intervals:0,nightMinMm:null,nativeSamples:0,first:null,last:null,worst:null}));
+  const live=rows.map(()=>null), minima=rows.map(()=>Infinity), intervalMin=rows.map(()=>Infinity), worst=rows.map(()=>Infinity);
+  const enumId=(v,known)=>v==null?0:known.includes(v)?known.indexOf(v)+1:known.length+1;
+  const mm=n=>{if(!Number.isFinite(n)||Math.abs(n)>256)throw Error('trace range refused');return Math.round(n*1000);};
+  return {rows,observe(a,frame,ox,oz,native){
+    const i=a.ref.i, {x,z}=a.g.position;
+    let dep=Infinity, edge=-1;
+    for(const [j,e] of edges.entries()){const p=depth(e,x,z);if(p<dep){dep=p;edge=j;}}
+    const outside=dep<-.05;
+    if(outside===d.inPen(a.pen,x,z,-.05)||edge<0)throw Error('trace geometry differs from native threshold');
+    if(native&&!outside)throw Error('trace sample count mismatch');
+    if(native)rows[i].nativeSamples++;
+    if(dep<minima[i]){minima[i]=dep;rows[i].nightMinMm=mm(dep);}
+    if(!outside&&!live[i])return;
+    const e=edges[edge];
+    const normal=(dx,dz)=>(e.dx*dz-e.dz*dx)/e.L;
+    const toward=p=>p==null?null:mm(normal(p.x-x,p.y-z));
+    const job=a.cowTask;
+    const target=job?.path?.[0]??a.target;
+    const pathTail=job?.path?.at(-1)??a.path?.at(-1);
+    const nearestPeer=Math.min(...s.active.filter(b=>b!==a).map(b=>Math.hypot(x-b.g.position.x,z-b.g.position.z)));
+    const sample=[frame,edge,mm(dep),mm(nearestOpening(x,z)),
+      enumId(job?.kind,['bed','feed','drink','robot']),enumId(job?.stage,['approach','stand','exit','align','hold']),
+      enumId(a.act,['idle','moving','sleeping','resting','eating','fleeing','playing']),
+      enumId(a.doing,['social','eat','drink','rest','sleep','shelter','chase','look','bait']),
+      toward(target),toward(pathTail),mm(normal(x-ox,z-oz)),mm(nearestPeer),x>=gate[0]&&x<=gate[1]?1:0];
+    const row=rows[i];
+    if(!outside){live[i].recovery=sample;live[i]=null;return;}
+    row.outsideFrames++;
+    if(!live[i]){
+      live[i]={start:sample,end:sample,peak:sample,recovery:null};
+      row.intervals++;
+      row.first??=live[i];row.last=live[i];
+      intervalMin[i]=Infinity;
+    }
+    live[i].end=sample;
+    if(dep<intervalMin[i]){intervalMin[i]=dep;live[i].peak=sample;}
+    if(dep<worst[i]){worst[i]=dep;row.worst=live[i];}
+  }};
+}
+
+async function observe(page,phase,night,secs,trace=false) {
+  await page.evaluate(({phase,night,trace})=>{
     const d=__dbg,s=window.__cowDistribution;
     if(night!==s.night)d.setPreset(night?'night':'noon');
     s.phase=phase;s.night=night;
     s.observer=window.__makeDistributionObserver({polygon:s.poly,projectX:s.projectX});
     s.observer.sample(s.active,0,night);
     s.travel=new WeakMap();
+    s.boundary=trace?window.__makeNightTrace(d,s):null;
     s.totals={ordinaryLowToHigh:0,ordinaryHighToLow:0,socialSelected:0,socialPlanned:0,socialAbandoned:0,socialUnresolved:0,containmentViolations:0,frames:0};
-  },{phase,night});
+  },{phase,night,trace});
   for(let frames=secs*hz;frames>0;frames-=300) {
     await page.evaluate(({frames,hz})=>{
       const d=__dbg,s=window.__cowDistribution, dt=1/hz;
@@ -136,13 +196,16 @@ async function observe(page,phase,night,secs) {
         for(const a of s.active){
           const visiting=()=>!a.cowTask&&a.doing==='social'&&a.label?.startsWith('Visiting ');
           const wasVisiting=visiting(), wasTarget=!!a.target;
+          const ox=s.boundary?a.g.position.x:0, oz=s.boundary?a.g.position.z:0;
           a.update(dt,t);
           const visit=visiting(), hasTarget=!!a.target;
           if(visit&&!wasVisiting){s.totals.socialSelected++;if(hasTarget)s.totals.socialPlanned++;}
           if(wasVisiting&&wasTarget&&!hasTarget&&a.doing==='social')s.totals.socialAbandoned++;
           const {x,z}=a.g.position;
           if(!Number.isFinite(x)||!Number.isFinite(z))throw Error('nonfinite position');
-          if(n%hz===0&&!d.inPen(a.pen,x,z,-.05))s.totals.containmentViolations++;
+          const bad=n%hz===0&&!d.inPen(a.pen,x,z,-.05);
+          if(bad)s.totals.containmentViolations++;
+          s.boundary?.observe(a,s.totals.frames+1,ox,oz,bad);
           const ordinary=!s.night&&!a.cowTask&&!['eat','drink','sleep','shelter'].includes(a.doing)&&!['eating','sleeping','resting','fleeing'].includes(a.act);
           if(!ordinary){s.travel.delete(a);continue;}
           const prior=s.travel.get(a), side=s.half(x);
@@ -165,7 +228,7 @@ async function observe(page,phase,night,secs) {
 
 async function main() {
   for (const seed of [1,4242]) {
-    const h=await start({ref:lane==='base'?base:null,deviceScaleFactor:.5,gameplaySeed:seed});
+    const h=await start({ref:source,deviceScaleFactor:.5,gameplaySeed:seed});
     try {
       for (const fixture of fixtureCases) {
         const row={seed,...fixture,status:'setup-refused',counters:[]};
@@ -175,7 +238,16 @@ async function main() {
           if(prepared.edit)row.counters.push(...Object.entries(prepared.edit));
           if (prepared.accepted) {
             row.counters.push(['initialLowX',prepared.initialLowX]);
-            for(const [phase,night,secs] of phases)row.counters.push(...await observe(s.page,phase,night,secs));
+            const tracked=seed===4242&&fixture.herd===5&&fixture.layout==='default';
+            if(tracked)await s.page.addScriptTag({content:'window.__makeNightTrace=('+makeNightTrace.toString()+');'});
+            for(const [phase,night,secs] of phases)row.counters.push(...await observe(s.page,phase,night,secs,tracked&&phase==='night2'));
+            if(tracked){
+              const trace=await s.page.evaluate(()=>({frames:window.__cowDistribution.totals.frames,cows:window.__cowDistribution.boundary.rows}));
+              const counters=new Map(row.counters);
+              const phaseSamples=phases.map(([phase])=>counters.get(phase+'/containmentViolations'));
+              assert.equal(trace.cows.reduce((sum,c)=>sum+c.nativeSamples,0),phaseSamples.at(-1),'night trace must retain original native aggregate');
+              traceReport={schema:1,source,phaseSamples,frames:trace.frames,thresholdMm:-50,edgeCount:4,cows:trace.cows};
+            }
             row.status='pass';
           }
           assert.equal(s.errors.length,0,'browser had errors');
@@ -188,6 +260,8 @@ async function main() {
       }
     } finally { await h.close(); }
   }
+  assert(traceReport,'expected target trace');
+  fs.writeFileSync(traceFile,JSON.stringify(traceReport)+'\n',{mode:0o600,flag:'wx'});
   fs.writeFileSync(file,JSON.stringify(report)+'\n',{mode:0o600,flag:'wx'});
 }
 main().catch(()=>{console.error('cow-distribution diagnostic failed before finite export');process.exitCode=1;});
