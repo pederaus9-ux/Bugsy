@@ -1,0 +1,184 @@
+name: A54 daytime cow meetings qualification
+on:
+  push:
+    branches: [test/a54-daytime-cow-meetings]
+permissions:
+  contents: read
+concurrency:
+  group: a54-daytime-cow-meetings-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  diagnostic:
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/a54-daytime-cow-meetings'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - name: Set disposable evidence directories
+        run: |
+          echo "LANE_ARTIFACTS=$RUNNER_TEMP/cow-distribution-result" >> "$GITHUB_ENV"
+          echo "SAFE_RECEIPTS=$RUNNER_TEMP/cow-distribution-receipts" >> "$GITHUB_ENV"
+          echo "PUBLIC_EVIDENCE=$RUNNER_TEMP/cow-distribution-public" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify pinned runtime, amended scope and kernel isolation
+        shell: bash
+        run: |
+          base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor "$base" HEAD
+          git diff --name-only "$base" HEAD | while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/a54-social-qualification.yml|farm3d/index.html|farm3d/sw.js|farm3d/A54_DAYTIME_SOCIAL.md|farm3d/tests/a54-daytime-social-scope.test.cjs|farm3d/tests/fixtures/a54-daytime-social-scope.json|farm3d/tests/cow-distribution.browser.cjs|farm3d/tests/cow-distribution-observer.test.cjs|farm3d/tests/helpers/cow-distribution-observer.cjs) ;;
+              *) printf 'Unexpected changed path: %s\n' "$file"; exit 1;;
+            esac
+            test -f "$file" && test ! -L "$file" || exit 1
+          done
+          test "$(git rev-parse "$base":farm3d/index.html)" = ae44d6ade0a2f4542d9431882dc0bd741f35f5ef
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          mkdir -p "$SAFE_RECEIPTS" "$LANE_ARTIFACTS/base" "$LANE_ARTIFACTS/candidate"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/probe.json" --timeout-ms 10000 --probe-only
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/accounting.json" --timeout-ms 20000 -- node --test farm3d/tests/cow-distribution-observer.test.cjs farm3d/tests/a54-daytime-social-scope.test.cjs
+      - name: Install frozen test dependencies without lifecycle scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Exercise unchanged gate, feeding and night behavior contracts
+        run: |
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/regressions.json" --timeout-ms 300000 -- node --test farm3d/tests/animal-pen-robot-arrival.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Observe exact base under kernel isolation
+        id: base
+        run: |
+          TEST_ARTIFACTS="$LANE_ARTIFACTS/base" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/base.json" --timeout-ms 420000 -- node farm3d/tests/cow-distribution.browser.cjs base
+      - name: Observe exact candidate under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$LANE_ARTIFACTS/candidate" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/candidate.json" --timeout-ms 420000 -- node farm3d/tests/cow-distribution.browser.cjs candidate
+      - name: Validate bounded aggregate result before publishing evidence
+        id: evidence
+        if: ${{ !cancelled() }}
+        run: |
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          mkdir "$PUBLIC_EVIDENCE"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const { validReceipt } = require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const reads = (file, cap) => {
+            const stat = fs.lstatSync(file);
+            if (!stat.isFile() || stat.size < 2 || stat.size > cap) throw Error('Invalid evidence size or type');
+            return JSON.parse(fs.readFileSync(file, 'utf8'));
+          };
+          const receipts = {};
+          for (const name of ['probe', 'accounting', 'regressions', 'base', 'candidate']) {
+            const file = path.join(process.env.SAFE_RECEIPTS, name + '.json');
+            if (!fs.existsSync(file)) continue;
+            const value = reads(file, 8192);
+            if (!validReceipt(value)) throw Error('Invalid kernel receipt');
+            receipts[name] = value;
+          }
+          if (!Object.keys(receipts).length) process.exit(0);
+          fs.writeFileSync(path.join(process.env.PUBLIC_EVIDENCE, 'receipts.json'), JSON.stringify(receipts));
+          const safe = r => r?.status === 'passed' && r.isolationVerified && r.commandStarted &&
+            r.commandResultAvailable && r.cleanupVerified && r.exitCode === 0;
+          if (!['accounting','regressions','base','candidate'].every(name => safe(receipts[name]))) process.exit(0);
+          const project = report => {
+          const exact = (value, keys) => value && typeof value === 'object' &&
+            !Array.isArray(value) && Object.keys(value).sort().join(',') === keys;
+          if (!exact(report, 'cases,schema') || report.schema !== 1 ||
+              !Array.isArray(report.cases) || report.cases.length !== 6)
+            throw Error('Invalid aggregate report');
+          const occupancyKey = /^(?:early|day1|night1|day2|night2)\/(?:day|night)\/x[+-]\/z[+-]\/(?:right|left)\/(?:(?:ordinary|robot|drink|bed|feed|otherCare)\/cowSeconds|cowEncounter|unverifiedSocialArrival|gap0to1_5|gap1_5to2_5|gap2_5to4|gapOver4)$/;
+          const phases = {early:40,day1:200,night1:120,day2:240,night2:120};
+          const editFields = ['editAttempts','editDispatched','editValidated','editApplied','editChoice','editStage','editKind','editIssueMask'];
+          const totals = ['ordinaryLowToHigh','ordinaryHighToLow','socialSelected','socialPlanned',
+            'socialAbandoned','socialUnresolved','containmentViolations','frames'];
+          const seen = new Set();
+          const cases = report.cases.map(c => {
+            if (!exact(c, 'counters,herd,layout,seed,status') || ![1, 4242].includes(c.seed) ||
+                ![2, 5].includes(c.herd) || !['default','moved'].includes(c.layout) ||
+                !['pass','setup-refused'].includes(c.status) ||
+                (c.layout === 'moved' && c.herd !== 5) ||
+                (c.layout === 'default' && c.status !== 'pass') ||
+                !Array.isArray(c.counters) || c.counters.length > 1024)
+              throw Error('Invalid aggregate case');
+            const id = [c.layout,c.herd,c.seed].join('/');
+            if (seen.has(id)) throw Error('Duplicate aggregate case');
+            seen.add(id);
+            const keys = new Set();
+            const legalKey = k => {
+              if (k === 'initialLowX' || occupancyKey.test(k) || (c.layout === 'moved' && editFields.includes(k))) return true;
+              const [phase, field, ...rest] = k.split('/');
+              return !rest.length && Object.hasOwn(phases, phase) && totals.includes(field);
+            };
+            const counters = c.counters.map(pair => {
+              if (!Array.isArray(pair) || pair.length !== 2 ||
+                  typeof pair[0] !== 'string' || !legalKey(pair[0]) ||
+                  !Number.isFinite(pair[1]) || pair[1] < 0 || pair[1] > 10000000 ||
+                  keys.has(pair[0])) throw Error('Invalid aggregate counter');
+              keys.add(pair[0]);
+              return [pair[0], pair[1]];
+            });
+            const values = new Map(counters);
+            if (c.layout === 'moved') {
+              const edit = Object.fromEntries(editFields.map(key => [key,values.get(key)]));
+              if (editFields.some(key => !Number.isSafeInteger(edit[key]) || edit[key] < 0 || edit[key] > (key === 'editIssueMask' ? 255 : 11)) ||
+                  edit.editStage < 1 || edit.editStage > 5 || edit.editKind > 2 ||
+                  edit.editKind !== (edit.editChoice === 0 ? 0 : edit.editChoice <= 8 ? 1 : 2) || edit.editDispatched > edit.editAttempts ||
+                  edit.editValidated > edit.editDispatched || edit.editApplied > edit.editValidated ||
+                  (c.status === 'pass' && (edit.editStage !== 5 || edit.editChoice < 1 || edit.editApplied !== 1)) ||
+                  (c.status === 'setup-refused' && (edit.editStage === 5 || edit.editChoice !== 0 || edit.editApplied !== 0)))
+                throw Error('Invalid move witness');
+            }
+            if (c.status === 'setup-refused') {
+              if (values.size !== editFields.length) throw Error('Refused case contains observations');
+            } else {
+              const low = values.get('initialLowX');
+              if (!Number.isSafeInteger(low) || low < 0 || low > c.herd) throw Error('Invalid startup count');
+              for (const [phase, seconds] of Object.entries(phases)) {
+                for (const key of totals)
+                  if (!Number.isSafeInteger(values.get(phase+'/'+key))) throw Error('Missing phase count');
+                if (values.get(phase+'/frames') !== 30*seconds) throw Error('Invalid measured frames');
+                let cowSeconds = 0;
+                for (const [key, value] of values) {
+                  if (!key.startsWith(phase+'/') || !key.endsWith('/cowSeconds')) continue;
+                  if (key.split('/')[1] !== (phase.startsWith('night') ? 'night' : 'day'))
+                    throw Error('Mismatched phase');
+                  cowSeconds += value;
+                }
+                if (Math.abs(cowSeconds - seconds*c.herd) > 0.0001) throw Error('Invalid measured cow-time');
+              }
+            }
+            return {seed:c.seed, herd:c.herd, layout:c.layout, status:c.status, counters};
+          });
+          return {schema:1,cases};
+          };
+          const paired = {schema:1,baseSource:'9e6f2763dd7781b761ccaef2f2cfa680d57b4783',candidateSource:process.env.GITHUB_SHA};
+          if (!/^[a-f0-9]{40}$/.test(paired.candidateSource)) throw Error('Invalid candidate identity');
+          for (const lane of ['base','candidate'])
+            paired[lane] = project(reads(path.join(process.env.LANE_ARTIFACTS,lane,'cow-distribution.json'), 524288));
+          fs.writeFileSync(path.join(process.env.PUBLIC_EVIDENCE, 'cow-distribution.json'), JSON.stringify(paired));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'aggregate=true\n');
+          NODE
+      - name: Preserve finite kernel receipts only
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-distribution-receipts-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cow-distribution-public/receipts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Preserve finite aggregate observations
+        if: steps.evidence.outputs.aggregate == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: cow-distribution-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cow-distribution-public/cow-distribution.json
+          if-no-files-found: error
+          retention-days: 7
