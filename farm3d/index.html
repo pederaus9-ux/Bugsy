@@ -2525,6 +2525,16 @@ function updateCowTaskStep(a,dt,t){
         const desired=new THREE.Vector2(ox+dx/(d||1)*step,oz+dz/(d||1)*step);
         if(cowCareTransitStepClear(a.pos,desired,transitStatus,p)){next=desired;nx=desired.x-ox;nz=desired.y-oz;transitClear=true;}
       }
+      // Stock night bed approach only: a peer-steered step can cross a solid fence
+      // even though its waypoint lies inside. Try the original inward stride,
+      // never a projection or a jump. Existing gate and peer checks still apply.
+      if(transitClear&&PRESET.night&&!COW_YARD_LAYOUT.custom&&task.kind==='bed'&&task.stage==='approach'&&!task.layoutReturn&&
+         inPen(PENS.courtyard,ox,oz,0)&&!inPen(PENS.courtyard,next.x,next.y,0)){
+        const direct=new THREE.Vector2(ox+dx/(d||1)*step,oz+dz/(d||1)*step);
+        transitClear=inPen(PENS.courtyard,direct.x,direct.y,0)&&hitsBlock(a.pos,direct,.42,null)<0&&
+          (!transitStatus||cowCareTransitStepClear(a.pos,direct,transitStatus,p));
+        if(transitClear)next=direct;
+      }
       const recoveryQueued=transitStatus===1&&!transitClear&&cowStaticRecovery.request(a,task,p);
       const blockingCows=animals.filter(b=>b!==a&&b.kind==='cow'&&Math.hypot(b.g.position.x-next.x,b.g.position.z-next.y)<.85);
       if(!blockingCows.length&&transitClear&&cowGateSegmentClear(a.pos,next)){a.g.position.x=next.x;a.g.position.z=next.y;transitCommitted=true;if(pendingCowSpace&&preferredClear)a.cowSpace=pendingCowSpace;}

@@ -14,3 +14,7 @@ Decision gate: compare physical arrivals separately from hours spent on each sid
 ## Second and final bounded variant
 
 Return to the parent's nearest-partner selection, including its existing species eligibility, range, random action weights, and two destination draws. Only modify a dry daytime cow-to-cow meeting destination: try the left or right flank relative to the approaching cow, then the opposite if blocked; if neither is legal, use the original destination. Never suppress the social decision or redirect the partner. The original six-case paired work is repeated unchanged. Hold if new arrivals drop or no useful spread is observed; no claim of broader improvement from only two seeds.
+
+## Test-branch-only bed approach amendment (2026-11-19)
+
+Austin approved a stock nighttime straw-bed boundary check on this existing experimental branch. No PR, merge, deployment, cache publication, live save, gate, feeding, robot, custom layout, relocated return, or broader routing change is approved. The daytime social choice is unchanged. Original run 44433371602 remains red on containment: cow #5 crossed the solid stock boundary on its bed approach for 38 frames; its target was inward and the gate 8.921 m away at peak. The original six-case paired observations and frozen base remain. Changed runtime still requires isolated containment and physical arrival evidence, care/save controls, and separate release qualification before it can be called ready.

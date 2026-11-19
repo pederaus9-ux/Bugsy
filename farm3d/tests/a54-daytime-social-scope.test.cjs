@@ -7,7 +7,9 @@ for(const f of ['farm3d/index.html','farm3d/sw.js'])test('A54 only the approved 
  const r=receipt.files[f], old=cp.execFileSync('git',['--no-lazy-fetch','-c','protocol.allow=never','show',parent+':'+f],{cwd:root,maxBuffer:2e6}), cur=fs.readFileSync(path.join(root,f));
  assert.equal(hash(old),r.beforeSha256);assert.equal(hash(cur),r.afterSha256);
  const replaceOnce=(src,a,b)=>{const text=src.toString('utf8');assert.equal(text.split(a).length,2);return Buffer.from(text.replace(a,()=>b))};
- assert.deepEqual(replaceOnce(old,r.before,r.after),cur);
- assert.deepEqual(replaceOnce(cur,r.after,r.before),old);
+ const social=replaceOnce(old,r.before,r.after);
+ if(r.bedInsertion){assert.equal(hash(social),r.socialOnlySha256);assert.deepEqual(replaceOnce(social,r.bedInsertion.before,r.bedInsertion.after),cur);assert.deepEqual(replaceOnce(cur,r.bedInsertion.after,r.bedInsertion.before),social);}
+ else assert.deepEqual(social,cur);
+ assert.deepEqual(replaceOnce(social,r.after,r.before),old);
  if(f.endsWith('sw.js')){assert.equal(r.before,'const CACHE = "sa3d-v94";');assert.equal(r.after,'const CACHE = "sa3d-v95";');}
 });
