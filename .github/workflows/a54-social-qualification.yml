@@ -451,3 +451,130 @@ jobs:
           path: ${{ runner.temp }}/a54-bed-supplement/public/cow-bed-supplement.json
           if-no-files-found: error
           retention-days: 7
+  causal:
+    name: Final bounded causal observation (not qualification)
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/a54-daytime-cow-meetings'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify both retained jobs and observer implementations
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          anchor=c07e33f34026b70d938a8d46e80c242d77b0dcf3
+          git merge-base --is-ancestor "$anchor" HEAD
+          git diff --name-only "$anchor" HEAD | while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/a54-social-qualification.yml|farm3d/tests/cow-distribution.browser.cjs) ;;
+              *) exit 1;;
+            esac
+            test -f "$file" && test ! -L "$file" || exit 1
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process'),assert=require('node:assert/strict');
+          const anchor='c07e33f34026b70d938a8d46e80c242d77b0dcf3';
+          const old=p=>cp.execFileSync('git',['show',anchor+':'+p],{encoding:'utf8',maxBuffer:1048576});
+          const w='.github/workflows/a54-social-qualification.yml',original=old(w),current=fs.readFileSync(w,'utf8');
+          assert(current.startsWith(original));assert(current.slice(original.length).startsWith('  causal:\n'));
+          const p='farm3d/tests/cow-distribution.browser.cjs',before=old(p),after=fs.readFileSync(p,'utf8');
+          const entry="(process.env.A54_SUPPLEMENTAL==='1'?supplementalMain:main)().catch(()=>{console.error('cow-distribution diagnostic failed before finite export');process.exitCode=1;});\n";
+          assert(before.endsWith(entry));assert.equal(after.split('// A54_CAUSAL_BEGIN:')[0],before.slice(0,-entry.length));
+          const originalObserve=before.slice(before.indexOf('async function observe('),before.indexOf('\nasync function main()'));
+          const causalObserve=after.slice(after.indexOf('async function observeCausal('),after.indexOf('\nfunction compareCausalRows'));
+          const reversed=causalObserve.replace('async function observeCausal(','async function observe(').replace('    window.__cowCausalCapture(d,s);\n','').replace('        window.__cowCausalCapture(d,s);\n','');
+          assert.equal(reversed.trimEnd(),originalObserve.trimEnd());
+          NODE
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          echo "CAUSAL_ROOT=$RUNNER_TEMP/a54-causal" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/a54-causal/main" "$RUNNER_TEMP/a54-causal/social" "$RUNNER_TEMP/a54-causal/fix"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a54-causal/probe.receipt.json" --timeout-ms 10000 --probe-only
+      - name: Install frozen dependencies without lifecycle scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Observe main under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$CAUSAL_ROOT/main" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$CAUSAL_ROOT/main.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_CAUSAL='1';process.env.A54_CAUSAL_SOURCE='main';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Observe social-only under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$CAUSAL_ROOT/social" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$CAUSAL_ROOT/social.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_CAUSAL='1';process.env.A54_CAUSAL_SOURCE='social';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Observe correction under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$CAUSAL_ROOT/fix" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$CAUSAL_ROOT/fix.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_CAUSAL='1';process.env.A54_CAUSAL_SOURCE='fix';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Compare private numeric rows inside kernel isolation
+        run: |
+          TEST_ARTIFACTS="$CAUSAL_ROOT" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$CAUSAL_ROOT/compare.receipt.json" --timeout-ms 20000 -- node -e "process.env.A54_CAUSAL_COMPARE='1';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Validate only finite causal summary for export
+        id: causal_evidence
+        if: ${{ !cancelled() }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const root=process.env.CAUSAL_ROOT,pub=path.join(root,'public');fs.mkdirSync(pub);
+          const exact=(o,k)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join(',')===k;
+          const read=(p,cap)=>{const s=fs.lstatSync(p);assert(s.isFile()&&s.size>=2&&s.size<=cap);return JSON.parse(fs.readFileSync(p,'utf8'));};
+          const receipts={};for(const label of ['probe','main','social','fix','compare']){const p=path.join(root,label+'.receipt.json');if(fs.existsSync(p)){const r=read(p,8192);assert(validReceipt(r));receipts[label]=r;}}
+          fs.writeFileSync(path.join(pub,'receipts.json'),JSON.stringify(receipts),{flag:'wx'});
+          for(const label of ['main','social','fix','compare']){const r=receipts[label];assert(r?.status==='passed'&&r.isolationVerified&&r.commandStarted&&r.commandResultAvailable&&r.cleanupVerified&&r.exitCode===0,'causal execution incomplete');}
+          const r=read(path.join(root,'cow-causal-summary.json'),65536);
+          assert(exact(r,'cow,divergenceNanometres,firstPostUpdateXzDivergence,frames,night,schema,seed,sources,stopThresholdNanometres,stopWindowFrames')&&r.schema===1&&r.seed===4242&&r.night===2&&r.cow===4&&r.frames===3600&&r.stopWindowFrames===30&&r.stopThresholdNanometres===1);
+          const int=(v,lo,hi)=>Number.isSafeInteger(v)&&v>=lo&&v<=hi;
+          assert(int(r.firstPostUpdateXzDivergence,1,3600)&&int(r.divergenceNanometres,0,1500000000000));
+          const pins=[['main','9e6f2763dd7781b761ccaef2f2cfa680d57b4783'],['social','39eac9ba486fa3929f6d1c238b0be86ba9da6220'],['fix','ab69da0bf2bf0dbd0819aa0118b2b21303c02a48']];
+          const fields='avoidSide,bed,dockXzMm,dockYMm,frame,nearestCow,outside,pathChanged,pathEndDockGapMm,pathLength,peerXzMm,peerYMm,remainingWaypoints,reservationArrived,reserved,spaceSide,stage,stationaryStreak,stepXzMicrons,stepYMicrons,taskChanged,unsteeredNextInside,waypointChanged,waypointGapMm,waypointInside,weightPermille';
+          assert(Array.isArray(r.sources)&&r.sources.length===3);
+          let common=null;
+          const sources=r.sources.map((s,i)=>{
+           assert(exact(s,'finalStage,firstArrival,firstSustainedPlanarStop,label,movingFrames,outsideFrames,postDivergenceNetMicrons,postDivergenceTravelMicrons,samples,source')&&s.label===pins[i][0]&&s.source===pins[i][1]);
+           for(const k of ['firstArrival','firstSustainedPlanarStop','movingFrames','outsideFrames'])assert(int(s[k],0,3600));assert(int(s.finalStage,0,6));
+           for(const k of ['postDivergenceNetMicrons','postDivergenceTravelMicrons'])assert(int(s[k],0,2000000000000));
+           assert(Array.isArray(s.samples)&&s.samples.length>=7&&s.samples.length<=30);
+           let last=-1;
+           const samples=s.samples.map(v=>{
+            assert(exact(v,fields));
+            for(const k of fields.split(',')){
+             if(['dockXzMm','dockYMm','pathEndDockGapMm','unsteeredNextInside','waypointGapMm','waypointInside'].includes(k)&&v[k]===null)continue;
+             assert(int(v[k],['avoidSide','spaceSide','nearestCow'].includes(k)?-1:0,512000000));
+            }
+            assert(v.frame>last&&v.frame<=3600);last=v.frame;
+            for(const k of ['bed','outside','pathChanged','reservationArrived','reserved','taskChanged','waypointChanged'])assert(int(v[k],0,1));
+            for(const k of ['waypointInside','unsteeredNextInside'])assert(v[k]===null||int(v[k],0,1));
+            for(const k of ['avoidSide','spaceSide'])assert(int(v[k],-1,1));
+            assert(int(v.nearestCow,-1,3)&&int(v.stage,0,6)&&int(v.weightPermille,0,1000)&&int(v.stationaryStreak,0,3600));
+            assert(int(v.pathLength,0,256)&&int(v.remainingWaypoints,0,256));
+            return Object.fromEntries(fields.split(',').map(k=>[k,v[k]]));
+           });
+           const frames=samples.map(v=>v.frame);if(common)assert.deepEqual(frames,common);else common=frames;
+           return {label:s.label,source:s.source,firstArrival:s.firstArrival,firstSustainedPlanarStop:s.firstSustainedPlanarStop,movingFrames:s.movingFrames,outsideFrames:s.outsideFrames,finalStage:s.finalStage,postDivergenceNetMicrons:s.postDivergenceNetMicrons,postDivergenceTravelMicrons:s.postDivergenceTravelMicrons,samples};
+          });
+          const out={schema:1,seed:4242,night:2,cow:4,frames:3600,stopWindowFrames:30,stopThresholdNanometres:1,firstPostUpdateXzDivergence:r.firstPostUpdateXzDivergence,divergenceNanometres:r.divergenceNanometres,sources};
+          fs.writeFileSync(path.join(pub,'cow-causal-summary.json'),JSON.stringify(out),{flag:'wx'});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'causal=true\n');
+          console.log('Finite causal observation only; original qualification unchanged and RED');
+          NODE
+      - name: Preserve finite causal isolation receipts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a54-causal-receipts-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a54-causal/public/receipts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Preserve finite causal summary only
+        if: steps.causal_evidence.outputs.causal == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: a54-causal-summary-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a54-causal/public/cow-causal-summary.json
+          if-no-files-found: error
+          retention-days: 7
