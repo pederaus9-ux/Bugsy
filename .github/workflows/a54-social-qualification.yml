@@ -30,23 +30,23 @@ jobs:
         shell: bash
         run: |
           base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
-          v2=39eac9ba486fa3929f6d1c238b0be86ba9da6220
+          runtimeSource=ab69da0bf2bf0dbd0819aa0118b2b21303c02a48
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git merge-base --is-ancestor "$v2" HEAD
-          git diff --name-only "$v2" HEAD | while IFS= read -r file; do
+          git merge-base --is-ancestor "$runtimeSource" HEAD
+          git diff --name-only "$runtimeSource" HEAD | while IFS= read -r file; do
             case "$file" in
               .github/workflows/a54-social-qualification.yml|farm3d/tests/cow-distribution.browser.cjs) ;;
-              *) printf 'Unexpected change from validated v2: %s\n' "$file"; exit 1;;
+              *) printf 'Unexpected change from reviewed runtime: %s\n' "$file"; exit 1;;
             esac
             test -f "$file" && test ! -L "$file" || exit 1
           done
           for runtime in farm3d/index.html farm3d/sw.js; do
-            test "$(git rev-parse "HEAD:$runtime")" = "$(git rev-parse "$v2:$runtime")"
+            test "$(git rev-parse "HEAD:$runtime")" = "$(git rev-parse "$runtimeSource:$runtime")"
           done
           git merge-base --is-ancestor "$base" HEAD
           git diff --name-only "$base" HEAD | while IFS= read -r file; do
             case "$file" in
-              .github/workflows/a54-social-qualification.yml|farm3d/index.html|farm3d/sw.js|farm3d/A54_DAYTIME_SOCIAL.md|farm3d/tests/a54-daytime-social-scope.test.cjs|farm3d/tests/fixtures/a54-daytime-social-scope.json|farm3d/tests/cow-distribution.browser.cjs|farm3d/tests/cow-distribution-observer.test.cjs|farm3d/tests/helpers/cow-distribution-observer.cjs) ;;
+              .github/workflows/a54-social-qualification.yml|farm3d/index.html|farm3d/sw.js|farm3d/A54_DAYTIME_SOCIAL.md|farm3d/tests/a54-night-bed-step.test.cjs|farm3d/tests/a54-daytime-social-scope.test.cjs|farm3d/tests/fixtures/a54-daytime-social-scope.json|farm3d/tests/cow-distribution.browser.cjs|farm3d/tests/cow-distribution-observer.test.cjs|farm3d/tests/helpers/cow-distribution-observer.cjs) ;;
               *) printf 'Unexpected changed path: %s\n' "$file"; exit 1;;
             esac
             test -f "$file" && test ! -L "$file" || exit 1
@@ -55,13 +55,13 @@ jobs:
           test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
           mkdir -p "$SAFE_RECEIPTS" "$LANE_ARTIFACTS/base" "$LANE_ARTIFACTS/candidate"
           node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/probe.json" --timeout-ms 10000 --probe-only
-          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/accounting.json" --timeout-ms 20000 -- node --test farm3d/tests/cow-distribution-observer.test.cjs farm3d/tests/a54-daytime-social-scope.test.cjs
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/accounting.json" --timeout-ms 20000 -- node --test farm3d/tests/a54-night-bed-step.test.cjs farm3d/tests/cow-distribution-observer.test.cjs farm3d/tests/a54-daytime-social-scope.test.cjs
       - name: Install frozen test dependencies without lifecycle scripts
         working-directory: farm3d/tests
         run: npm ci --ignore-scripts
       - name: Exercise unchanged gate, feeding and night behavior contracts
         run: |
-          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/regressions.json" --timeout-ms 300000 -- node --test farm3d/tests/animal-pen-robot-arrival.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SAFE_RECEIPTS/regressions.json" --timeout-ms 300000 -- node --test farm3d/tests/animal-pen-robot-arrival.test.mjs farm3d/tests/cow-care.test.mjs farm3d/tests/cow-yard.test.mjs farm3d/tests/cow-rest-pose.test.mjs farm3d/tests/animal-pen-save.test.mjs
       - name: Install Chromium (setup only)
         working-directory: farm3d/tests
         run: npx --no-install playwright install --with-deps chromium
@@ -110,7 +110,7 @@ jobs:
           const phases = {early:40,day1:200,night1:120,day2:240,night2:120};
           const editFields = ['editAttempts','editDispatched','editValidated','editApplied','editChoice','editStage','editKind','editIssueMask'];
           const totals = ['ordinaryLowToHigh','ordinaryHighToLow','socialSelected','socialPlanned',
-            'socialAbandoned','socialUnresolved','containmentViolations','frames'];
+            'socialAbandoned','socialUnresolved','containmentViolations','containmentOutsideFrames','physicalBedArrivals','bedHoldAwayFrames','frames'];
           const seen = new Set();
           const cases = report.cases.map(c => {
             if (!exact(c, 'counters,herd,layout,seed,status') || ![1, 4242].includes(c.seed) ||
@@ -157,6 +157,9 @@ jobs:
                 for (const key of totals)
                   if (!Number.isSafeInteger(values.get(phase+'/'+key))) throw Error('Missing phase count');
                 if (values.get(phase+'/frames') !== 30*seconds) throw Error('Invalid measured frames');
+                if (values.get(phase+'/physicalBedArrivals') > c.herd ||
+                    values.get(phase+'/containmentOutsideFrames') > 30*seconds*c.herd ||
+                    values.get(phase+'/bedHoldAwayFrames') > 30*seconds*c.herd) throw Error('Invalid physical counters');
                 let cowSeconds = 0;
                 for (const [key, value] of values) {
                   if (!key.startsWith(phase+'/') || !key.endsWith('/cowSeconds')) continue;
@@ -171,7 +174,7 @@ jobs:
           });
           return {schema:1,cases};
           };
-          const paired = {schema:1,baseSource:'9e6f2763dd7781b761ccaef2f2cfa680d57b4783',candidateSource:process.env.GITHUB_SHA};
+          const paired = {schema:1,baseSource:'9e6f2763dd7781b761ccaef2f2cfa680d57b4783',candidateSource:'ab69da0bf2bf0dbd0819aa0118b2b21303c02a48'};
           if (!/^[a-f0-9]{40}$/.test(paired.candidateSource)) throw Error('Invalid candidate identity');
           for (const lane of ['base','candidate'])
             paired[lane] = project(reads(path.join(process.env.LANE_ARTIFACTS,lane,'cow-distribution.json'), 524288));
@@ -207,7 +210,7 @@ jobs:
           const int = (v, lo, hi) => Number.isSafeInteger(v) && v >= lo && v <= hi;
           const sources = [
             ['base','9e6f2763dd7781b761ccaef2f2cfa680d57b4783'],
-            ['candidate','39eac9ba486fa3929f6d1c238b0be86ba9da6220']
+            ['candidate','ab69da0bf2bf0dbd0819aa0118b2b21303c02a48']
           ];
           const evidence = JSON.parse(fs.readFileSync(path.join(process.env.PUBLIC_EVIDENCE,'cow-distribution.json'),'utf8'));
           const phases = ['early','day1','night1','day2','night2'];
@@ -274,3 +277,45 @@ jobs:
           path: ${{ runner.temp }}/cow-distribution-public/cow-night-boundary-trace.json
           if-no-files-found: error
           retention-days: 7
+
+      - name: Require matched containment, real bed arrivals and retained daytime meetings
+        if: ${{ !cancelled() }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+          const assert=require('node:assert/strict');
+          // Immutable failed trace run 44433371602 is retained, never relabeled as passing.
+          // This is an additional qualification of the first reviewed runtime correction.
+          const prior={"base":{"default/2/1":{"earlyDaySha256":"64a25c3481a93b6b643051f4e5fb07051bab60bd07b702c0f811ec047e4ad5df","dayEncounters":1},"default/5/1":{"earlyDaySha256":"6642c5aadc61d3ad2e1c25667c1888196eb33136c9e1377c03c2ee1abfb3ea96","dayEncounters":11},"moved/5/1":{"earlyDaySha256":"a099ec158bcb9bdce85e9a2be1a8fad4443133215dd9baf4d34e97c745a29bde","dayEncounters":2},"default/2/4242":{"earlyDaySha256":"2643bfbbb9d97a020d35edbe8dff7ebeefefb1418ea6c8e36630684808487cb5","dayEncounters":1},"default/5/4242":{"earlyDaySha256":"ab8ce78a032ef22fd9a630fda026f337f1df584754a519af40e21ebc568ea5ae","dayEncounters":8},"moved/5/4242":{"earlyDaySha256":"6d5db3822b6bab1ee51e068b9f768b237761b1e9cf43e97c7695c5384a6a53bc","dayEncounters":2}},"candidate":{"default/2/1":{"earlyDaySha256":"60d1ad3fea65810aabc27c78af78a0559da3087d0157b7afe9738de293ec753f","dayEncounters":2},"default/5/1":{"earlyDaySha256":"208c98e864ce16026569d7cb8fb418553477ac9b1c17bf8efc9612b42459ac78","dayEncounters":12},"moved/5/1":{"earlyDaySha256":"66a66218538d66717264d70e645eab835d200fead2a1cc35014de413fcdd7e3d","dayEncounters":7},"default/2/4242":{"earlyDaySha256":"695dc835e350038ba92ebd4c86273dc0deb58e1cd0b8507c5f6d254f449c8e86","dayEncounters":2},"default/5/4242":{"earlyDaySha256":"c8ae261ceb01ecc81898f3fffcc58f2029cf653925ce471da58e39b64b9c2497","dayEncounters":7},"moved/5/4242":{"earlyDaySha256":"49470799c1de303bb2264aedd189e7ea2d97efc60c5605489026079fb124d4d1","dayEncounters":6}}};
+          const load=name=>JSON.parse(fs.readFileSync(path.join(process.env.PUBLIC_EVIDENCE,name),'utf8'));
+          const paired=load('cow-distribution.json'),trace=load('cow-night-boundary-trace.json');
+          assert.equal(paired.candidateSource,'ab69da0bf2bf0dbd0819aa0118b2b21303c02a48');
+          const phases=['early','day1','night1','day2','night2'];
+          const newFields=new Set(['containmentOutsideFrames','physicalBedArrivals','bedHoldAwayFrames']);
+          let baseMeetings=0,candidateMeetings=0;
+          for(const [i,c] of paired.candidate.cases.entries()){
+            const b=paired.base.cases[i],id=[c.layout,c.herd,c.seed].join('/');
+            assert.deepEqual([b.layout,b.herd,b.seed],[c.layout,c.herd,c.seed],'matched fixture identities');
+            assert.equal(b.status,'pass','base fixture must be installed');
+            assert.equal(c.status,'pass','candidate fixture must be installed');
+            const bv=new Map(b.counters),cv=new Map(c.counters);
+            for(const key of ['initialLowX',...(c.layout==='moved'?['editChoice','editKind','editApplied']:[])])assert.equal(cv.get(key),bv.get(key),'matched fixture witness');
+            for(const [lane,row] of [['base',b],['candidate',c]]){
+              const original=row.counters.filter(([k])=>(k.startsWith('early/')||k.startsWith('day1/'))&&!newFields.has(k.split('/')[1]));
+              const hash=crypto.createHash('sha256').update(JSON.stringify(original)).digest('hex');
+              assert.equal(hash,prior[lane][id].earlyDaySha256,'unchanged pre-night observations from retained run');
+            }
+            for(const phase of phases){
+              assert.equal(cv.get(phase+'/containmentViolations'),0,'original sampled containment');
+              assert.equal(cv.get(phase+'/containmentOutsideFrames'),0,'every-update containment');
+              assert.equal(cv.get(phase+'/bedHoldAwayFrames'),0,'no unphysical fully-weighted bed hold');
+              assert.equal(cv.get(phase+'/physicalBedArrivals'),phase.startsWith('night')?c.herd:0,'each cow physically reaches its reserved bed before original deadline');
+            }
+            const count=row=>row.counters.filter(([k])=>k.includes('/day/')&&k.endsWith('/cowEncounter')).reduce((sum,[,v])=>sum+v,0);
+            assert(count(c)>=prior.candidate[id].dayEncounters,'no per-fixture regression from pre-fix A54 physical daytime meetings');
+            baseMeetings+=count(b);candidateMeetings+=count(c);
+          }
+          assert(candidateMeetings>=baseMeetings,'physical daytime meetings not below matched shipped base');
+          assert.equal(trace.candidate.cows.reduce((sum,c)=>sum+c.outsideFrames,0),0,'original target night trace must now be contained');
+          console.log('A54 matched containment, physical bed arrival and daytime meeting gates passed; not release or visual approval');
+          NODE

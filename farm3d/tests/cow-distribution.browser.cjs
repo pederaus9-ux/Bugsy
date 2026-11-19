@@ -15,7 +15,7 @@ assert(path.isAbsolute(process.env.TEST_ARTIFACTS||''),'private artifact directo
 const {start}=require('./browser-harness.cjs');
 const {makeObserver}=require('./helpers/cow-distribution-observer.cjs');
 const base='9e6f2763dd7781b761ccaef2f2cfa680d57b4783';
-const candidate='39eac9ba486fa3929f6d1c238b0be86ba9da6220';
+const candidate='ab69da0bf2bf0dbd0819aa0118b2b21303c02a48';
 const lane=process.argv[2];
 assert(['base','candidate'].includes(lane)&&process.argv.length===3,'expected base or candidate lane');
 const source=lane==='base'?base:candidate;
@@ -184,8 +184,9 @@ async function observe(page,phase,night,secs,trace=false) {
     s.observer=window.__makeDistributionObserver({polygon:s.poly,projectX:s.projectX});
     s.observer.sample(s.active,0,night);
     s.travel=new WeakMap();
+    s.bedArrived=new Set();
     s.boundary=trace?window.__makeNightTrace(d,s):null;
-    s.totals={ordinaryLowToHigh:0,ordinaryHighToLow:0,socialSelected:0,socialPlanned:0,socialAbandoned:0,socialUnresolved:0,containmentViolations:0,frames:0};
+    s.totals={ordinaryLowToHigh:0,ordinaryHighToLow:0,socialSelected:0,socialPlanned:0,socialAbandoned:0,socialUnresolved:0,containmentViolations:0,containmentOutsideFrames:0,physicalBedArrivals:0,bedHoldAwayFrames:0,frames:0};
   },{phase,night,trace});
   for(let frames=secs*hz;frames>0;frames-=300) {
     await page.evaluate(({frames,hz})=>{
@@ -203,7 +204,23 @@ async function observe(page,phase,night,secs,trace=false) {
           if(wasVisiting&&wasTarget&&!hasTarget&&a.doing==='social')s.totals.socialAbandoned++;
           const {x,z}=a.g.position;
           if(!Number.isFinite(x)||!Number.isFinite(z))throw Error('nonfinite position');
-          const bad=n%hz===0&&!d.inPen(a.pen,x,z,-.05);
+          const outside=!d.inPen(a.pen,x,z,-.05);
+          const bad=n%hz===0&&outside;
+          if(outside)s.totals.containmentOutsideFrames++;
+          // A sleep label is not arrival: check the real station dock after update.
+          const bed=a.cowTask;
+          if(s.night&&bed?.kind==='bed'&&bed.stage==='hold'&&bed.weight>=1-1e-6){
+            const dock=bed.station?.dock;
+            if(!Array.isArray(dock)||dock.length!==3||!dock.every(Number.isFinite))throw Error('invalid bed dock');
+            const reservation=d.cowStations.snapshot().filter(r=>r.stationId===bed.station.id);
+            const valid=reservation.length===1&&reservation[0].arrived===true&&
+              reservation[0].animalId===d.cowStatus.cows[a.ref.i]?.id&&
+              reservation[0].generation===bed.token?.generation&&bed.token?.stationId===bed.station.id&&
+              s.active.filter(b=>b.cowTask?.station?.id===bed.station.id).length===1;
+            const arrived=valid&&Math.hypot(x-dock[0],a.g.position.y-dock[1],z-dock[2])<=.05&&!outside;
+            if(arrived)s.bedArrived.add(a);
+            else s.totals.bedHoldAwayFrames++;
+          }
           if(bad)s.totals.containmentViolations++;
           s.boundary?.observe(a,s.totals.frames+1,ox,oz,bad);
           const ordinary=!s.night&&!a.cowTask&&!['eat','drink','sleep','shelter'].includes(a.doing)&&!['eating','sleeping','resting','fleeing'].includes(a.act);
@@ -221,6 +238,7 @@ async function observe(page,phase,night,secs,trace=false) {
   }
   return page.evaluate(()=>{
     const s=window.__cowDistribution;
+    s.totals.physicalBedArrivals=s.bedArrived.size;
     s.totals.socialUnresolved=s.active.filter(a=>a.doing==='social'&&a.target).length;
     return [...Object.entries(s.totals),...Object.entries(s.observer.tally)].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[s.phase+'/'+k,Math.round(v*1e6)/1e6]);
   });
