@@ -1810,37 +1810,25 @@ class Beast {
         return this.go(wx + Math.cos(a) * rx, wz + Math.sin(a) * rz, false, "Going for a drink", "drink"); }
       case "rest": { const p = freePoint(rnd, this.g.position.x, this.g.position.z, 4, pen); return this.go(p.x, p.y, false, "Finding a comfy spot", "rest"); }
       case "social": {
-        if (this.kind === "cow" && pen && weather === "fair" && !PRESET.night && !this.cowTask) {
-          const from = this.pos, nearby = [];
-          for (const pal of animals) {
-            if (pal === this || pal.kind !== "cow" || pal.pen !== pen || pal.gone || pal.cowTask ||
-                ["eating", "sleeping", "resting", "fleeing"].includes(pal.act) ||
-                ["eat", "drink", "sleep", "shelter"].includes(pal.doing)) continue;
-            const pos = pal.pos, d = from.distanceTo(pos);
-            if (d <= 8) nearby.push({pal, pos, d});
-          }
-          nearby.sort((a, b) => a.d - b.d);
-          const choices = nearby.slice(0, 3).filter(p => p.d <= nearby[0].d + 3);
-          if (!choices.length) break;
-          // One draw chooses both a nearby partner and a uniformly varied approach side.
-          const sample = rnd() * choices.length, i = Math.floor(sample);
-          const {pal, pos} = choices[i], azimuth = (sample - i) * Math.PI * 2;
-          const distance = 1.15 + rnd() * .5, center = pos.clone();
-          if (pal.act === "moving" && pal.label === "Going for a stroll" && pal.target) {
-            center.add(pal.target.clone().sub(pos).clampLength(0, .65));
-          }
-          const offset = new THREE.Vector2(Math.cos(azimuth), Math.sin(azimuth)).multiplyScalar(distance);
-          // Try the opposite side if the first side is already against a fence or obstacle.
-          for (const side of [1, -1]) {
-            const p = center.clone().addScaledVector(offset, side);
-            if (!inPen(pen, p.x, p.y, roamClearance) || BLOCKS.some(([bx,bz,hw,hd]) => Math.abs(p.x-bx)<hw+roamClearance && Math.abs(p.y-bz)<hd+roamClearance)) continue;
-            this.friend = pal;
-            return this.go(p.x, p.y, false, "Visiting " + pal.name, "social");
-          }
-          break;
-        }
         const pal = animals.filter(b => b !== this && (b.kind === this.kind || this.P.social > .9)).sort((a, b) => a.pos.distanceTo(this.pos) - b.pos.distanceTo(this.pos))[0];
-        if (pal) { const p = pal.pos.add(new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5)); this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social"); }
+        if (pal) {
+          const center = pal.pos, offset = new THREE.Vector2(rnd() - .5, rnd() - .5).multiplyScalar(2.5);
+          let p = center.clone().add(offset); // Original target is the fallback; draw count is unchanged.
+          if (this.kind === "cow" && pal.kind === "cow" && pen === pal.pen && pen && weather === "fair" && !PRESET.night && !this.cowTask) {
+            const near = this.pos.sub(center);
+            if (near.lengthSq() > .01) {
+              near.normalize();
+              const flank = new THREE.Vector2(-near.y, near.x);
+              const side = offset.dot(flank) < 0 ? -1 : 1;
+              const lateral = 1.1 + Math.min(.45, offset.length() * .3);
+              for (const sign of [side, -side]) {
+                const q = center.clone().addScaledVector(near, .45).addScaledVector(flank, sign * lateral);
+                if (inPen(pen, q.x, q.y, roamClearance) && !BLOCKS.some(([bx,bz,hw,hd]) => Math.abs(q.x-bx)<hw+roamClearance && Math.abs(q.y-bz)<hd+roamClearance)) { p = q; break; }
+              }
+            }
+          }
+          this.friend = pal; return this.go(p.x, p.y, false, "Visiting " + pal.name, "social");
+        }
         break;
       }
       case "play":
