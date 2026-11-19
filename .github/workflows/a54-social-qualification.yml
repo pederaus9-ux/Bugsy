@@ -319,3 +319,135 @@ jobs:
           assert.equal(trace.candidate.cows.reduce((sum,c)=>sum+c.outsideFrames,0),0,'original target night trace must now be contained');
           console.log('A54 matched containment, physical bed arrival and daytime meeting gates passed; not release or visual approval');
           NODE
+  supplement:
+    name: Supplemental 500s stock bed observation (not qualification)
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/a54-daytime-cow-meetings'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify original RED job and observer remain intact
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          anchor=b8792f73d55ad847764980dec0239c7cc592f5dc
+          git merge-base --is-ancestor "$anchor" HEAD
+          git diff --name-only "$anchor" HEAD | while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/a54-social-qualification.yml|farm3d/tests/cow-distribution.browser.cjs) ;;
+              *) exit 1;;
+            esac
+            test -f "$file" && test ! -L "$file" || exit 1
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process'),assert=require('node:assert/strict');
+          const anchor='b8792f73d55ad847764980dec0239c7cc592f5dc';
+          const old=p=>cp.execFileSync('git',['show',anchor+':'+p],{encoding:'utf8',maxBuffer:1048576});
+          const workflow='.github/workflows/a54-social-qualification.yml';
+          const before=old(workflow),after=fs.readFileSync(workflow,'utf8');
+          assert(after.startsWith(before));assert(after.slice(before.length).startsWith('  supplement:\n'));
+          const observer='farm3d/tests/cow-distribution.browser.cjs';
+          const original=old(observer),current=fs.readFileSync(observer,'utf8');
+          const entry="main().catch(()=>{console.error('cow-distribution diagnostic failed before finite export');process.exitCode=1;});\n";
+          assert(original.endsWith(entry));assert.equal(current.split('// A54_SUPPLEMENTAL_BEGIN:')[0],original.slice(0,-entry.length));
+          NODE
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          echo "SUPPLEMENT_ROOT=$RUNNER_TEMP/a54-bed-supplement" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/a54-bed-supplement/main" "$RUNNER_TEMP/a54-bed-supplement/social" "$RUNNER_TEMP/a54-bed-supplement/fix"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$RUNNER_TEMP/a54-bed-supplement/probe.receipt.json" --timeout-ms 10000 --probe-only
+      - name: Install frozen dependencies without lifecycle scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Observe exact main in disposable isolated guests
+        run: |
+          TEST_ARTIFACTS="$SUPPLEMENT_ROOT/main" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SUPPLEMENT_ROOT/main.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_SUPPLEMENTAL='1';process.env.A54_SUPPLEMENTAL_SOURCE='main';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Observe exact social-only in disposable isolated guests
+        run: |
+          TEST_ARTIFACTS="$SUPPLEMENT_ROOT/social" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SUPPLEMENT_ROOT/social.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_SUPPLEMENTAL='1';process.env.A54_SUPPLEMENTAL_SOURCE='social';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Observe exact correction in disposable isolated guests
+        run: |
+          TEST_ARTIFACTS="$SUPPLEMENT_ROOT/fix" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$SUPPLEMENT_ROOT/fix.receipt.json" --timeout-ms 420000 -- node -e "process.env.A54_SUPPLEMENTAL='1';process.env.A54_SUPPLEMENTAL_SOURCE='fix';process.argv=['node','observer','candidate'];require('./farm3d/tests/cow-distribution.browser.cjs')"
+      - name: Validate only finite supplemental evidence
+        id: supplement_evidence
+        if: ${{ !cancelled() }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const expected={"main":{"night1":{"priorSha256":"6642c5aadc61d3ad2e1c25667c1888196eb33136c9e1377c03c2ee1abfb3ea96","arrivals120":5,"outside120":0,"holdAway120":0},"night2":{"priorSha256":"a0dc2666cabacfc1aad69e624e712a69e4f68e92a9643d77206f8f54c2c6e029","arrivals120":5,"outside120":0,"holdAway120":0}},"fix":{"night1":{"priorSha256":"208c98e864ce16026569d7cb8fb418553477ac9b1c17bf8efc9612b42459ac78","arrivals120":3,"outside120":0,"holdAway120":0},"night2":{"priorSha256":"3dd8185440a813ba0eb5c76551f384f00faab0a3f353b0cc13727e8ee1a15815","arrivals120":2,"outside120":0,"holdAway120":0}},"social":{"night1":{"priorSha256":"208c98e864ce16026569d7cb8fb418553477ac9b1c17bf8efc9612b42459ac78","arrivals120":null,"outside120":null,"holdAway120":null},"night2":{"priorSha256":"3dd8185440a813ba0eb5c76551f384f00faab0a3f353b0cc13727e8ee1a15815","arrivals120":null,"outside120":null,"holdAway120":null}}};
+          const sources={main:'9e6f2763dd7781b761ccaef2f2cfa680d57b4783',social:'39eac9ba486fa3929f6d1c238b0be86ba9da6220',fix:'ab69da0bf2bf0dbd0819aa0118b2b21303c02a48'};
+          const exact=(o,k)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join(',')===k;
+          const read=(file,cap)=>{const s=fs.lstatSync(file);assert(s.isFile()&&s.size>=2&&s.size<=cap);return JSON.parse(fs.readFileSync(file,'utf8'));};
+          const int=(v,max)=>Number.isSafeInteger(v)&&v>=0&&v<=max;
+          const root=process.env.SUPPLEMENT_ROOT,pub=path.join(root,'public');fs.mkdirSync(pub);
+          const receipts={};
+          for(const lane of ['probe','main','social','fix']){
+           const file=path.join(root,lane+'.receipt.json');if(!fs.existsSync(file))continue;
+           const r=read(file,8192);assert(validReceipt(r));receipts[lane]=r;
+          }
+          fs.writeFileSync(path.join(pub,'receipts.json'),JSON.stringify(receipts),{flag:'wx'});
+          for(const lane of ['main','social','fix']){const r=receipts[lane];assert(r?.status==='passed'&&r.isolationVerified&&r.commandStarted&&r.commandResultAvailable&&r.cleanupVerified&&r.exitCode===0,'supplemental execution incomplete');}
+          const output={schema:1,originalRedRun:44459668779,diagnosticOnly:true,sources:[]};
+          for(const label of ['main','social','fix']){
+           const r=read(path.join(root,label,'cow-bed-supplement.json'),65536);
+           assert(exact(r,'cases,label,schema,source')&&r.schema===1&&r.label===label&&r.source===sources[label]&&Array.isArray(r.cases)&&r.cases.length===2);
+           const cases=r.cases.map((c,i)=>{
+            const night=i?'night2':'night1',exp=expected[label][night];
+            assert(exact(c,'cows,herd,layout,night,priorSha256,seed')&&c.seed===(i?4242:1)&&c.night===night&&c.herd===5&&c.layout==='default'&&c.priorSha256===exp.priorSha256&&Array.isArray(c.cows)&&c.cows.length===5,'chronology or fixture mismatch');
+            const cows=c.cows.map((cow,ordinal)=>{
+             assert(exact(cow,'checkpoints,cow')&&cow.cow===ordinal&&Array.isArray(cow.checkpoints)&&cow.checkpoints.length===4);
+             let prior=null;
+             const checkpoints=cow.checkpoints.map((v,j)=>{
+              assert(exact(v,'bed,firstArrival,frame,gapMm,hold,holdAwayFrames,maxStationaryFrames,movingFrames,outsideFrames,physical,progressFrames,reservationArrived,reserved,stage,stationaryApproachFrames'));
+              const frame=[3600,7200,10800,15000][j];assert(v.frame===frame);
+              for(const key of ['bed','hold','physical','reserved','reservationArrived'])assert(int(v[key],1));
+              assert(!v.reservationArrived||v.reserved);
+              assert(int(v.stage,6)&&(v.gapMm===null||int(v.gapMm,256000)));
+              for(const key of ['firstArrival','holdAwayFrames','maxStationaryFrames','movingFrames','outsideFrames','progressFrames','stationaryApproachFrames']){
+               assert(int(v[key],frame));if(prior)assert(v[key]>=prior[key],'counter decreases');
+              }
+              assert(v.progressFrames<=v.movingFrames&&v.maxStationaryFrames<=v.stationaryApproachFrames);
+              if(prior?.firstArrival)assert.equal(v.firstArrival,prior.firstArrival);
+              if(v.physical)assert(v.bed===1&&v.hold===1&&v.reserved===1&&v.reservationArrived===1&&v.stage===3&&v.gapMm!==null&&v.gapMm<=50&&v.firstArrival>0);
+              prior=v;return {...v};
+             });
+             return {cow:ordinal,checkpoints};
+            });
+            if(exp.arrivals120!==null){
+             assert.equal(cows.filter(c=>c.checkpoints[0].firstArrival>0).length,exp.arrivals120,'120s result must match retained RED, not improve via chronology');
+             assert.equal(cows.reduce((s,c)=>s+c.checkpoints[0].outsideFrames,0),exp.outside120);
+             assert.equal(cows.reduce((s,c)=>s+c.checkpoints[0].holdAwayFrames,0),exp.holdAway120);
+            }
+            return {seed:c.seed,night,herd:5,layout:'default',priorSha256:c.priorSha256,cows};
+           });
+           output.sources.push({label,source:sources[label],cases});
+          }
+          fs.writeFileSync(path.join(pub,'cow-bed-supplement.json'),JSON.stringify(output),{flag:'wx'});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'supplement=true\n');
+          console.log('500s supplemental evidence only; original 120s hard qualification remains RED');
+          NODE
+      - name: Preserve bounded supplemental isolation receipts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a54-bed-supplement-receipts-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a54-bed-supplement/public/receipts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Preserve supplemental 500s observation, not a green replacement
+        if: steps.supplement_evidence.outputs.supplement == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: a54-bed-supplement-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a54-bed-supplement/public/cow-bed-supplement.json
+          if-no-files-found: error
+          retention-days: 7

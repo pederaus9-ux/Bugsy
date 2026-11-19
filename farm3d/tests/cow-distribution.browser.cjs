@@ -282,4 +282,80 @@ async function main() {
   fs.writeFileSync(traceFile,JSON.stringify(traceReport)+'\n',{mode:0o600,flag:'wx'});
   fs.writeFileSync(file,JSON.stringify(report)+'\n',{mode:0o600,flag:'wx'});
 }
-main().catch(()=>{console.error('cow-distribution diagnostic failed before finite export');process.exitCode=1;});
+// A54_SUPPLEMENTAL_BEGIN: observation only; never substitutes for 120s qualification.
+async function supplementalMain(){
+  const sources={main:base,social:'39eac9ba486fa3929f6d1c238b0be86ba9da6220',fix:candidate};
+  const label=process.env.A54_SUPPLEMENTAL_SOURCE;
+  assert(Object.hasOwn(sources,label),'exact supplemental source required');
+  const result={schema:1,source:sources[label],label,cases:[]};
+  for(const [seed,target] of [[1,'night1'],[4242,'night2']]){
+    // Each continuation gets a fresh deterministic guest, never modifies/reuses
+    // the earlier 120s experiment or extends night1 before replaying day2.
+    const h=await start({ref:sources[label],deviceScaleFactor:.5,gameplaySeed:seed});
+    try{
+      const s=await h.setup({width:844,height:390},false,'cow-supplement-unused');
+      try{
+        const prepared=await setup(s.page,h.base,{herd:5,layout:'default',seed});
+        assert(prepared.accepted,'stock supplemental fixture refused');
+        const prior=[];
+        for(const [phase,night,secs] of phases){
+          if(phase===target)break;
+          prior.push(...await observe(s.page,phase,night,secs));
+        }
+        const priorSha256=require('node:crypto').createHash('sha256').update(JSON.stringify(prior.filter(([k])=>!['physicalBedArrivals','containmentOutsideFrames','bedHoldAwayFrames'].includes(k.split('/')[1])))).digest('hex');
+        await s.page.evaluate(()=>{
+          const d=__dbg,s=window.__cowDistribution;
+          if(s.night)throw Error('target night must follow original day');
+          d.setPreset('night');s.night=true;
+          s.extended={frames:0,rows:s.active.map((a,i)=>({cow:i,firstArrival:0,outsideFrames:0,holdAwayFrames:0,movingFrames:0,progressFrames:0,stationaryApproachFrames:0,maxStationaryFrames:0,streak:0,checkpoints:[]}))};
+        });
+        for(let offset=0;offset<15000;offset+=300){
+          await s.page.evaluate(()=>{
+            const d=__dbg,s=window.__cowDistribution,e=s.extended,dt=1/30;
+            let t=d.clock();
+            for(let n=0;n<300;n++){
+              t+=dt;d.setClock(t);e.frames++;
+              for(const [i,a] of s.active.entries()){
+                const before=a.cowTask,oldDock=before?.station?.dock;
+                const ox=a.g.position.x,oy=a.g.position.y,oz=a.g.position.z;
+                const oldGap=oldDock?Math.hypot(ox-oldDock[0],oy-oldDock[1],oz-oldDock[2]):null;
+                a.update(dt,t);
+                const {x,y,z}=a.g.position,task=a.cowTask,dock=task?.station?.dock,r=e.rows[i];
+                if(![x,y,z].every(Number.isFinite))throw Error('nonfinite supplemental position');
+                const outside=!d.inPen(a.pen,x,z,-.05);
+                if(outside)r.outsideFrames++;
+                const moved=Math.hypot(x-ox,y-oy,z-oz)>1e-6;
+                if(moved)r.movingFrames++;
+                const gap=dock?Math.hypot(x-dock[0],y-dock[1],z-dock[2]):null;
+                if(gap!==null&&(!Number.isFinite(gap)||gap>256))throw Error('supplemental gap range');
+                if(task?.kind==='bed'&&task===before&&dock===oldDock&&gap!==null&&oldGap-gap>1e-6)r.progressFrames++;
+                const approach=task?.kind==='bed'&&task.stage==='approach';
+                if(approach&&!moved){r.stationaryApproachFrames++;r.streak++;r.maxStationaryFrames=Math.max(r.maxStationaryFrames,r.streak);}else r.streak=0;
+                const matches=task?.kind==='bed'?d.cowStations.snapshot().filter(q=>q.stationId===task.station.id):[];
+                const reserved=matches.length===1&&matches[0].animalId===d.cowStatus.cows[a.ref.i]?.id&&
+                  matches[0].generation===task.token?.generation&&task.token?.stationId===task.station.id&&
+                  s.active.filter(b=>b.cowTask?.station?.id===task.station.id).length===1;
+                const reservationArrived=reserved&&matches[0].arrived===true;
+                const hold=task?.kind==='bed'&&task.stage==='hold'&&task.weight>=1-1e-6;
+                const physical=hold&&reservationArrived&&gap!==null&&gap<=.05&&!outside;
+                if(physical&&!r.firstArrival)r.firstArrival=e.frames;
+                if(hold&&!physical)r.holdAwayFrames++;
+                if([3600,7200,10800,15000].includes(e.frames)){
+                  const stage=task?(['approach','align','hold','stand','exit'].indexOf(task.stage)+1||6):0;
+                  r.checkpoints.push({frame:e.frames,stage:stage||0,bed:task?.kind==='bed'?1:0,reserved:reserved?1:0,reservationArrived:reservationArrived?1:0,hold:hold?1:0,physical:physical?1:0,gapMm:gap===null?null:Math.round(gap*1000),firstArrival:r.firstArrival,outsideFrames:r.outsideFrames,holdAwayFrames:r.holdAwayFrames,movingFrames:r.movingFrames,progressFrames:r.progressFrames,stationaryApproachFrames:r.stationaryApproachFrames,maxStationaryFrames:r.maxStationaryFrames});
+                }
+              }
+            }
+          });
+        }
+        const cows=await s.page.evaluate(()=>window.__cowDistribution.extended.rows.map(r=>({cow:r.cow,checkpoints:r.checkpoints})));
+        assert.equal(s.errors.length,0,'supplemental browser errors');
+        result.cases.push({seed,night:target,herd:5,layout:'default',priorSha256,cows});
+      }finally{await s.page.close();}
+    }finally{await h.close();}
+  }
+  fs.writeFileSync(path.join(process.env.TEST_ARTIFACTS,'cow-bed-supplement.json'),JSON.stringify(result)+'\n',{mode:0o600,flag:'wx'});
+}
+// A54_SUPPLEMENTAL_END
+assert(process.env.A54_SUPPLEMENTAL===undefined||process.env.A54_SUPPLEMENTAL==='1','invalid supplemental mode');
+(process.env.A54_SUPPLEMENTAL==='1'?supplementalMain:main)().catch(()=>{console.error('cow-distribution diagnostic failed before finite export');process.exitCode=1;});
