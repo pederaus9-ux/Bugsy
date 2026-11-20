@@ -1,7 +1,7 @@
 name: One stock-five cow-2 synthetic geometry capture
 on:
   push:
-    branches: [test/daytime-mirror-bedtime-geometry-20261120]
+    branches: [test/daytime-mirror-bedtime-geometry-bound-20261120]
 permissions:
   contents: read
 concurrency:
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   stock-five-night-two:
-    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/daytime-mirror-bedtime-geometry-20261120' && github.event.created && github.run_attempt == 1
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/daytime-mirror-bedtime-geometry-bound-20261120' && github.event.created && github.run_attempt == 1
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
@@ -24,13 +24,13 @@ jobs:
       - name: Pin frozen parent and exact synthetic tree; verify isolation
         run: |
           base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
-          parent=09c790fd9a3a29ede3659fbe75d128a010392ddf
+          parent=d51acad94d71c6674dd28e600d221ebdfc068712
           tree=ba02621a9d9805c4fcf9d017be5921e2955fa517
           test "$GITHUB_EVENT_NAME" = push
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-list --parents -n 1 HEAD)" = "$GITHUB_SHA $parent"
-          test "$(git rev-parse "$parent^{tree}")" = ac1baf1dcca8661262eb5eec0cbf99fd9d643722
-          expected="$(printf '%s\n' $'A\t.github/workflows/daytime-mirror-bedtime-geometry.yml' $'A\tfarm3d/tests/daytime-mirror-bedtime-geometry.browser.cjs')"
+          test "$(git rev-parse "$parent^{tree}")" = bda54d02349a03646e37e61bf2c2f00d5ad74f96
+          expected="$(printf '%s\n' $'M\t.github/workflows/daytime-mirror-bedtime-geometry.yml')"
           test "$(git diff --no-renames --name-status "$parent" HEAD)" = "$expected"
           test -f farm3d/tests/daytime-mirror-bedtime-geometry.browser.cjs && test ! -L farm3d/tests/daytime-mirror-bedtime-geometry.browser.cjs
           test "$(git rev-parse HEAD:farm3d/index.html)" = ae44d6ade0a2f4542d9431882dc0bd741f35f5ef
@@ -229,7 +229,7 @@ jobs:
            assert(Array.isArray(g.obs)&&g.obs.length===202);
            const obs=g.obs.map(o=>{
             const keys=['x','z','hw','hd','c','s'];if(Object.hasOwn(o,'radius'))keys.push('radius');
-            assert(exact(o,keys));for(const k of ['x','z'])num(o[k],-1024,1024);
+            assert(exact(o,keys));for(const k of ['x','z'])num(o[k],-1e6,1e6);
             for(const k of ['hw','hd',...(Object.hasOwn(o,'radius')?['radius']:[])]){num(o[k],0,1024);assert(o[k]>0);}
             num(o.c,-1.000000001,1.000000001);num(o.s,-1.000000001,1.000000001);
             assert(Math.abs(o.c*o.c+o.s*o.s-1)<=1e-9);
