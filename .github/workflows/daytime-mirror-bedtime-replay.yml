@@ -1,0 +1,160 @@
+name: One diagnostic stock-five mirror bedtime replay
+on:
+  push:
+    branches: [test/daytime-mirror-bedtime-replay-20261120]
+permissions:
+  contents: read
+concurrency:
+  group: daytime-mirror-bedtime-replay-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  stock-five-night-two:
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/daytime-mirror-bedtime-replay-20261120' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Pin frozen parent and exact synthetic tree; verify isolation
+        run: |
+          base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
+          parent=5428b0bc529c912c97478c66da9b7a757484b786
+          tree=ba02621a9d9805c4fcf9d017be5921e2955fa517
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-list --parents -n 1 HEAD)" = "$GITHUB_SHA $parent"
+          expected="$(printf '%s\n' $'A\t.github/workflows/daytime-mirror-bedtime-replay.yml' $'A\tfarm3d/tests/daytime-mirror-bedtime-replay.browser.cjs')"
+          test "$(git diff --no-renames --name-status "$parent" HEAD)" = "$expected"
+          test -f farm3d/tests/daytime-mirror-bedtime-replay.browser.cjs && test ! -L farm3d/tests/daytime-mirror-bedtime-replay.browser.cjs
+          test "$(git rev-parse HEAD:farm3d/index.html)" = ae44d6ade0a2f4542d9431882dc0bd741f35f5ef
+          test "$(git rev-parse HEAD:farm3d/sw.js)" = "$(git rev-parse "$base":farm3d/sw.js)"
+          test "$(sha256sum farm3d/tests/helpers/cow-day-mirror-source-fixture.cjs | cut -d ' ' -f1)" = 0ef56d556bb56beba0c167ce12bc9b48327d6bb61ec6e4fb6341414f1ce6b1dd
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(node farm3d/tests/helpers/cow-day-mirror-source-fixture.cjs --prepare)" = "$tree"
+          test "$(git diff --name-only "$base" "$tree")" = farm3d/index.html
+          test "$(git rev-parse "$tree":farm3d/index.html)" = e70d576d1286fbb265e5ce6990608db9c568f04c
+          git diff --quiet && git diff --cached --quiet
+          root="$RUNNER_TEMP/daytime-mirror-bedtime-replay"
+          mkdir "$root"
+          mkdir "$root/base" "$root/candidate"
+          echo "REPLAY_ROOT=$root" >> "$GITHUB_ENV"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$root/probe.receipt.json" --timeout-ms 10000 --probe-only
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$root/verify.receipt.json" --timeout-ms 20000 -- node farm3d/tests/helpers/cow-day-mirror-source-fixture.cjs --verify
+      - name: Install frozen dependencies without lifecycle scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Observe one frozen shipped stock-five guest in kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/base" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/base.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-replay.browser.cjs base
+      - name: Observe one exact synthetic candidate guest in kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/candidate" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/candidate.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-replay.browser.cjs candidate
+      - name: Validate bounded synthetic evidence and exact original red witness
+        if: ${{ !cancelled() }}
+        id: evidence
+        run: |
+          git diff --quiet && git diff --cached --quiet
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const root=process.env.REPLAY_ROOT;
+          assert(path.isAbsolute(root||''));
+          const read=(p,cap)=>{const stat=fs.lstatSync(p);assert(stat.isFile()&&stat.size>=2&&stat.size<=cap);return JSON.parse(fs.readFileSync(p,'utf8'));};
+          const pub=path.join(root,'public');fs.mkdirSync(pub);
+          const rs={};for(const l of ['probe','verify','base','candidate']){
+           const p=path.join(root,l+'.receipt.json');
+           if(fs.existsSync(p)){const r=read(p,8192);assert(validReceipt(r));rs[l]=r;}
+          }
+          fs.writeFileSync(path.join(pub,'receipts.json'),JSON.stringify(rs),{flag:'wx'});
+          for(const l of ['probe','verify','base','candidate']){
+           const r=rs[l],command=l!=='probe';
+           assert(r?.status==='passed'&&r.isolationVerified&&r.cleanupVerified&&r.exitCode===0&&r.commandStarted===command&&r.commandResultAvailable===command,'incomplete protected replay');
+          }
+          assert.equal(rs.verify.stdoutBytes,41);
+          assert.equal(rs.verify.stdoutSha256,'9f5d0219ae9d771b59d27d1c21dc5b2c0ec03552a98cba451b82159b88647abf','isolated verification bound to synthetic tree');
+          const pins={
+           base:['9e6f2763dd7781b761ccaef2f2cfa680d57b4783','8069937156023727312bf1d07f8a5862bf18cae7b0eae477c30e985965ab286c','6b607f44bc5ce5bd41cb1bc48cbc51256054a3ac822ebd4c1b2df9f63c1fb604','963924da78c619237d9a302f3929066d52d740d29af9b85a7238fc3bc3b319ef','74d6abc50a40d052dafe9c1c55574ba86db36c89858a0e74ca2093210dc66b53',5],
+           candidate:['ba02621a9d9805c4fcf9d017be5921e2955fa517','920e387b268154b740f693ec1137ba5d8732441ef3d960c114e4fae73dad06cb','51d745fefe0e5f30aa9d99a47e4ecdd266ecec715d4287963c3e4d9b4a9a88a9','1d0697d483224579527db13673084dda2dd49981d786c1b5af1b0de264d15878','e76afeb2f5b09235ed1cc35678630b8d3ff031749fcff65cf0bf6084a346cce9',3]
+          };
+          const expectedFrames=[0,30,150,450,900,1800,2700,3600];
+          const milestone=['firstBed','firstReservationArrived','firstDock','firstFullHold','firstPhysical','firstSustainedApproachStop'];
+          const counts=['stationChanges','movingApproachFrames','stillApproachFrames','movingNoBedFrames','approachPathFrames','approachPendingFrames','approachEmptyFrames','approachClosePeerFrames','waypointCloserFrames','waypointFartherFrames','waypointFlatFrames','terminalApproachStillFrames'];
+          const fields=['frame','xFromPenCenterCm','zFromPenCenterCm','taskKind','taskStage','doing','act','ordinaryTarget','bedOrdinal','reservationCow','reservationTokenMatch','reservationMarkedArrived','stationUnique','atDock3d','fullHold','bedGapXZCm','bedOffsetYCm','pathNodes','pendingWaypoints','activeOrPendingWaypointGapCm','nearestPeer','nearestPeerGapCm'];
+          const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join(',')===[...keys].sort().join(',');
+          const bounded=(n,lo,hi)=>assert(Number.isInteger(n)&&n>=lo&&n<=hi,'out-of-range replay value');
+          const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('hex');
+          const paired={};
+          for(const [lane,[source,prefix,n2,all,meetings,bedCount]] of Object.entries(pins)){
+           const r=read(path.join(root,lane,'daytime-mirror-bedtime-replay.json'),65536);
+           assert(exact(r,['schema','source','lane','row','cows'])&&r.schema===1&&r.source===source&&r.lane===lane);
+           const row=r.row;
+           assert(exact(row,['seed','herd','layout','status','counters','meetings'])&&row.seed===1&&row.herd===5&&row.layout==='default'&&row.status==='pass');
+           assert.equal(hash(row.counters),all,'full retained counter divergence');
+           assert.equal(hash(row.counters.filter(k=>!k[0].startsWith('night2/'))),prefix,'retained leadup divergence');
+           assert.equal(hash(row.counters.filter(k=>k[0].startsWith('night2/'))),n2,'retained night2 divergence');
+           assert.equal(hash(Object.entries(row.meetings).sort()),meetings,'retained meeting ledger divergence');
+           const ctr=new Map(row.counters);
+           assert.equal(ctr.get('night2/physicalBedArrivals'),bedCount);
+           assert(Array.isArray(r.cows)&&r.cows.length===5);
+           const cows=r.cows.map((c,i)=>{
+            assert(exact(c,['cow','checkpoints','firstBedOrdinal','approachDistanceCm',...milestone,...counts]));
+            assert.equal(c.cow,i+1);
+            bounded(c.firstBedOrdinal,0,20);bounded(c.approachDistanceCm,0,1000000);
+            for(const k of milestone)if(c[k]!==null)bounded(c[k],0,k==='firstSustainedApproachStop'?3571:3600);
+            assert.equal(c.firstBed===null,c.firstBedOrdinal===0);
+            for(const k of counts)bounded(c[k],0,3600);
+            const approach=c.movingApproachFrames+c.stillApproachFrames;
+            assert(approach+c.movingNoBedFrames<=3600&&c.approachClosePeerFrames<=approach&&c.terminalApproachStillFrames<=c.stillApproachFrames);
+            assert.equal(approach,c.approachPathFrames+c.approachPendingFrames+c.approachEmptyFrames);
+            assert(c.waypointCloserFrames+c.waypointFartherFrames+c.waypointFlatFrames<=approach);
+            if(c.firstPhysical!==null)assert([c.firstBed,c.firstReservationArrived,c.firstDock,c.firstFullHold].every(v=>v!==null&&v<=c.firstPhysical));
+            assert(Array.isArray(c.checkpoints)&&c.checkpoints.length===expectedFrames.length);
+            const checkpoints=c.checkpoints.map((p,j)=>{
+             assert(Array.isArray(p)&&p.length===fields.length);assert.equal(p[0],expectedFrames[j]);
+             bounded(p[1],-50000,50000);bounded(p[2],-50000,50000);
+             bounded(p[3],0,5);bounded(p[4],0,6);bounded(p[5],0,6);bounded(p[6],0,7);
+             for(const k of [7,10,11,12,13,14])bounded(p[k],0,1);
+             bounded(p[8],0,20);bounded(p[9],0,6);
+             if(p[8]===0)assert(p[9]===0&&p.slice(10,15).every(v=>v===0)&&p[15]===null&&p[16]===null&&p[17]===0&&p[18]===0&&p[19]===null);
+             else{assert.equal(p[3],1);bounded(p[15],0,50000);bounded(p[16],-50000,50000);}
+             for(const k of [17,18])bounded(p[k],0,200);
+             if(p[17]||p[18])bounded(p[19],0,50000);else assert.equal(p[19],null);
+             bounded(p[20],1,5);assert.notEqual(p[20],c.cow);bounded(p[21],0,50000);
+             return p;
+            });
+            return {cow:c.cow,firstBedOrdinal:c.firstBedOrdinal,approachDistanceCm:c.approachDistanceCm,...Object.fromEntries([...milestone,...counts].map(k=>[k,c[k]])),checkpoints};
+           });
+           assert.equal(cows.filter(c=>c.firstPhysical!==null).length,bedCount,'physical trace agrees with original observer');
+           paired[lane]={source,prefixHash:prefix,night2Hash:n2,counterHash:all,meetingHash:meetings,physicalArrivals:bedCount,
+            misses:cows.filter(c=>c.firstPhysical===null).map(c=>c.cow),cows};
+          }
+          const legend={taskKind:['none','bed','robot','feed','drink','other'],taskStage:['none','approach','align','hold','stand','exit','other'],doing:['none','social','eat','drink','sleep','shelter','other'],act:['none','idle','moving','sleeping','resting','eating','fleeing','other']};
+          const out={schema:1,originalRun:44512824959,seed:1,herd:5,layout:'default',hz:30,night2Frames:3600,checkpointFields:fields,legend,originalAcceptance:'RED',...paired};
+          fs.writeFileSync(path.join(pub,'daytime-mirror-bedtime-replay.json'),JSON.stringify(out),{flag:'wx'});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'diagnostic=true\n');
+          NODE
+      - name: Retain only finite isolation receipts
+        if: ${{ !cancelled() && env.REPLAY_ROOT != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: daytime-mirror-bedtime-replay-receipts-${{ github.sha }}
+          path: ${{ runner.temp }}/daytime-mirror-bedtime-replay/public/receipts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain only projected matched synthetic summaries
+        if: steps.evidence.outputs.diagnostic == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: daytime-mirror-bedtime-replay-${{ github.sha }}
+          path: ${{ runner.temp }}/daytime-mirror-bedtime-replay/public/daytime-mirror-bedtime-replay.json
+          if-no-files-found: error
+          retention-days: 7
