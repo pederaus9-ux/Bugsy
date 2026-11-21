@@ -1,0 +1,86 @@
+name: A54 isolated one-shot installed v94 to v95 validation
+on:
+  push:
+    branches: [test/a54-v94-v95-installed-20261121]
+permissions:
+  contents: read
+jobs:
+  frozen-installed-upgrade:
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/a54-v94-v95-installed-20261121' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-22.04
+    timeout-minutes: 26
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Freeze test-only head and verify authentic bytes
+        run: |
+          set -euo pipefail
+          parent=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-list --parents -n 1 HEAD)" = "$GITHUB_SHA $parent"
+          test "$(git rev-parse "$parent^{tree}")" = 8c8361ee29f70ad8d07d32430d5a6c02eab4afe1
+          expected="$(printf '%s\n' $'A\t.github/workflows/a54-installed-v95-public.yml' $'A\tfarm3d/tests/a54-installed-v95-public.browser.cjs' $'A\tfarm3d/tests/fixtures/a54-installed-v95-public.json')"
+          test "$(git diff --no-renames --name-status "$parent" HEAD)" = "$expected"
+          test "$(sha256sum farm3d/tests/a54-installed-v95-public.browser.cjs | cut -d ' ' -f1)" = e7c252fd07abe211f370e0e2816cc00ca90ee8e2bf69a43c1f40f7da27ca942c
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(sha256sum farm3d/tests/package-lock.json | cut -d ' ' -f1)" = 13982f6213329cb300942a4ea86a76f2f0a794e2e87f40357299e96272cf7f68
+          node farm3d/tests/a54-installed-v95-public.browser.cjs --verify-only
+          root="$RUNNER_TEMP/a54-installed-v95-public"
+          mkdir "$root"
+          printf 'A54_OUTPUT=%s\n' "$root" >> "$GITHUB_ENV"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$root/probe.json" --timeout-ms 10000 --probe-only
+      - name: Install same frozen browser test dependencies
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Verify browser-owned installed takeover and offline reload
+        run: |
+          TEST_ARTIFACTS="$A54_OUTPUT" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$A54_OUTPUT/browser.json" --timeout-ms 510000 -- node farm3d/tests/a54-installed-v95-public.browser.cjs --isolated-browser
+      - name: Validate finite receipts and publish only verified synthetic aggregate
+        if: ${{ !cancelled() && env.A54_OUTPUT != '' }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const root=process.env.A54_OUTPUT,out=path.join(root,'public');fs.mkdirSync(out);
+          const read=f=>{const x=path.join(root,f),s=fs.lstatSync(x);assert(s.isFile()&&s.size<=8192);return JSON.parse(fs.readFileSync(x,'utf8'));};
+          const statuses={};
+          for(const f of ['probe','browser'])if(fs.existsSync(path.join(root,f+'.json'))){
+            const r=read(f+'.json');assert(validReceipt(r));statuses[f]={status:r.status,isolationVerified:r.isolationVerified,cleanupVerified:r.cleanupVerified,commandStarted:r.commandStarted,commandResultAvailable:r.commandResultAvailable,exitCode:r.exitCode};
+          }
+          fs.writeFileSync(path.join(out,'receipts.json'),JSON.stringify(statuses)+'\n',{flag:'wx'});
+          if(!fs.existsSync(path.join(root,'result.json')))throw Error('No browser aggregate');
+          const d=read('result.json');
+          const bools=['oldInstall','redundantWorker','oldOfflineAfterFailure','sameTabTakeover','lateModuleExact','offlineOldTab','offlineNewTab','offlineReload','savePreserved'];
+          const keys=new Set(['schema','status','stage','hashes','automaticHttpsRegistration','failedPrecacheRequests','finalServerRequests',...bools]);
+          assert(Object.keys(d).every(k=>keys.has(k))&&d.schema===1&&['PASS','FAIL'].includes(d.status)&&d.automaticHttpsRegistration===false);
+          assert(['prepare','network','sandbox','old_install','failed_precache','takeover','offline','complete','cleanup'].includes(d.stage));
+          const manifest=require('./farm3d/tests/fixtures/a54-installed-v95-public.json');
+          const before=['farm3d/index.html','farm3d/sw.js'].map(f=>manifest.files[f].beforeSha256),after=['farm3d/index.html','farm3d/sw.js'].map(f=>manifest.files[f].afterSha256);
+          assert.deepEqual(d.hashes,{v94:before,v95:after});
+          for(const b of bools)assert(d[b]===undefined||d[b]===true);
+          assert(d.failedPrecacheRequests===undefined||(Number.isInteger(d.failedPrecacheRequests)&&d.failedPrecacheRequests>=1&&d.failedPrecacheRequests<=100));
+          assert(d.finalServerRequests===undefined||d.finalServerRequests===0);
+          assert(statuses.probe?.isolationVerified&&statuses.probe.cleanupVerified&&!statuses.probe.commandStarted&&statuses.probe.status==='passed');
+          assert(statuses.browser?.isolationVerified&&statuses.browser.cleanupVerified&&statuses.browser.commandStarted&&statuses.browser.commandResultAvailable);
+          fs.writeFileSync(path.join(out,'qualification.json'),JSON.stringify(d)+'\n',{flag:'wx'});
+          assert(d.status==='PASS'&&d.stage==='complete'&&bools.every(b=>d[b]===true)&&d.failedPrecacheRequests>=1&&d.finalServerRequests===0);
+          assert(statuses.browser.status==='passed'&&statuses.browser.exitCode===0);
+          NODE
+      - name: Retain bounded qualification evidence
+        if: ${{ !cancelled() && env.A54_OUTPUT != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: a54-installed-v95-${{ github.sha }}
+          path: ${{ runner.temp }}/a54-installed-v95-public/public/*.json
+          if-no-files-found: error
+          retention-days: 7
