@@ -1,0 +1,307 @@
+name: One four-arm stock-five origin-preserving experiment
+on:
+  push:
+    branches: [test/daytime-mirror-bedtime-origin-20261121]
+permissions:
+  contents: read
+concurrency:
+  group: daytime-mirror-bedtime-origin-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  stock-five-night-two:
+    if: github.repository == 'pederaus9-ux/Bugsy' && github.ref == 'refs/heads/test/daytime-mirror-bedtime-origin-20261121' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Pin frozen parent and exact synthetic tree; verify isolation
+        run: |
+          base=9e6f2763dd7781b761ccaef2f2cfa680d57b4783
+          parent=68a89ef7c4d8e9121254771d25218d5251eb735f
+          tree=ba02621a9d9805c4fcf9d017be5921e2955fa517
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-list --parents -n 1 HEAD)" = "$GITHUB_SHA $parent"
+          test "$(git rev-parse "$parent^{tree}")" = 096f16be2b3b1b5fa61e87c248a3a9142ff543af
+          expected="$(printf '%s\n' $'A\t.github/workflows/daytime-mirror-bedtime-origin.yml' $'A\tfarm3d/tests/daytime-mirror-bedtime-origin.browser.cjs')"
+          test "$(git diff --no-renames --name-status "$parent" HEAD)" = "$expected"
+          test -f farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs && test ! -L farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs
+          test "$(git rev-parse HEAD:farm3d/index.html)" = ae44d6ade0a2f4542d9431882dc0bd741f35f5ef
+          test "$(git rev-parse HEAD:farm3d/sw.js)" = "$(git rev-parse "$base":farm3d/sw.js)"
+          test "$(sha256sum farm3d/tests/helpers/cow-day-mirror-source-fixture.cjs | cut -d ' ' -f1)" = 0ef56d556bb56beba0c167ce12bc9b48327d6bb61ec6e4fb6341414f1ce6b1dd
+          test "$(sha256sum farm3d/tests/helpers/ci-isolated-runner.cjs | cut -d ' ' -f1)" = cdb1d4ad2da88964c10053ce34bfd3e269cb929fecb7e4d6314a864154c9656a
+          test "$(node farm3d/tests/helpers/cow-day-mirror-source-fixture.cjs --prepare)" = "$tree"
+          test "$(git diff --name-only "$base" "$tree")" = farm3d/index.html
+          test "$(git rev-parse "$tree":farm3d/index.html)" = e70d576d1286fbb265e5ce6990608db9c568f04c
+          observed="$(node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs --prepare)"
+          [[ "$observed" =~ ^[0-9a-f]{40}\ [0-9a-f]{40}\ [0-9a-f]{40}$ ]]
+          test "$observed" = "1cf6212f917db833128877f29691dc34fef77f12 30210ed755d6ebee40549fc13f21d736c2246c30 a693787cabc6be251597b877c8412b25c1ed2b8f"
+          read -r ORDERED_MIRROR ORIGIN_BASE ORIGIN_MIRROR <<< "$observed"
+          printf 'ORDERED_MIRROR=%s\nORIGIN_BASE=%s\nORIGIN_MIRROR=%s\n' "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR" >> "$GITHUB_ENV"
+          git diff --quiet && git diff --cached --quiet
+          root="$RUNNER_TEMP/daytime-mirror-bedtime-origin"
+          mkdir "$root"
+          mkdir "$root/base" "$root/orderedMirror" "$root/origin" "$root/originMirror"
+          echo "REPLAY_ROOT=$root" >> "$GITHUB_ENV"
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$root/probe.receipt.json" --timeout-ms 10000 --probe-only
+          node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$root/verify.receipt.json" --timeout-ms 20000 -- node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs --verify "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR"
+      - name: Install frozen dependencies without lifecycle scripts
+        working-directory: farm3d/tests
+        run: npm ci --ignore-scripts
+      - name: Install Chromium (setup only)
+        working-directory: farm3d/tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Observe one frozen shipped stock-five guest in kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/base" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/base.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs base "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR"
+      - name: Observe one frozen 4-of-5 ordered mirror guest in kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/orderedMirror" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/orderedMirror.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs orderedMirror "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR"
+      - name: Observe one shipped-plus-origin synthetic tree under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/origin" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/origin.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs origin "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR"
+      - name: Observe one mirror-plus-origin synthetic tree under kernel isolation
+        run: |
+          TEST_ARTIFACTS="$REPLAY_ROOT/originMirror" node farm3d/tests/helpers/ci-isolated-runner.cjs --receipt "$REPLAY_ROOT/originMirror.receipt.json" --timeout-ms 420000 -- node farm3d/tests/daytime-mirror-bedtime-origin.browser.cjs originMirror "$ORDERED_MIRROR" "$ORIGIN_BASE" "$ORIGIN_MIRROR"
+      - name: Validate bounded synthetic evidence and exact original red witness
+        if: ${{ !cancelled() }}
+        id: evidence
+        run: |
+          git diff --quiet && git diff --cached --quiet
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+          const {validReceipt}=require('./farm3d/tests/helpers/ci-isolated-runner.cjs');
+          const root=process.env.REPLAY_ROOT;
+          assert(path.isAbsolute(root||''));
+          const read=(p,cap)=>{const stat=fs.lstatSync(p);assert(stat.isFile()&&stat.size>=2&&stat.size<=cap);return JSON.parse(fs.readFileSync(p,'utf8'));};
+          const pub=path.join(root,'public');fs.mkdirSync(pub);
+          const rs={};for(const l of ['probe','verify','base','orderedMirror','origin','originMirror']){
+           const p=path.join(root,l+'.receipt.json');
+           if(fs.existsSync(p)){const r=read(p,8192);assert(validReceipt(r));rs[l]=r;}
+          }
+          fs.writeFileSync(path.join(pub,'receipts.json'),JSON.stringify(rs),{flag:'wx'});
+          for(const l of ['probe','verify','base','orderedMirror','origin','originMirror']){
+           const r=rs[l],command=l!=='probe';
+           assert(r?.status==='passed'&&r.isolationVerified&&r.cleanupVerified&&r.exitCode===0&&r.commandStarted===command&&r.commandResultAvailable===command,'incomplete protected replay');
+          }
+          const repairTrees=[process.env.ORDERED_MIRROR,process.env.ORIGIN_BASE,process.env.ORIGIN_MIRROR];
+          assert.deepEqual(repairTrees,['1cf6212f917db833128877f29691dc34fef77f12','30210ed755d6ebee40549fc13f21d736c2246c30','a693787cabc6be251597b877c8412b25c1ed2b8f']);
+          assert.equal(rs.verify.stdoutBytes,123);
+          assert.equal(rs.verify.stdoutSha256,crypto.createHash('sha256').update(repairTrees.join(' ')+'\n').digest('hex'),'isolated verification bound to all frozen trees');
+          const pins={
+           base:['9e6f2763dd7781b761ccaef2f2cfa680d57b4783','8069937156023727312bf1d07f8a5862bf18cae7b0eae477c30e985965ab286c','6b607f44bc5ce5bd41cb1bc48cbc51256054a3ac822ebd4c1b2df9f63c1fb604','963924da78c619237d9a302f3929066d52d740d29af9b85a7238fc3bc3b319ef','74d6abc50a40d052dafe9c1c55574ba86db36c89858a0e74ca2093210dc66b53',5],
+           orderedMirror:['ba02621a9d9805c4fcf9d017be5921e2955fa517','920e387b268154b740f693ec1137ba5d8732441ef3d960c114e4fae73dad06cb','fbecbc38e6907a120f055e342b1a6bd5b474f8b5fc7af3104a178ece30617c88','97b3e86e9c9ed20b5e04269a77d4b48733bb2a66adaca5cf7af2a08b4422ddee','e76afeb2f5b09235ed1cc35678630b8d3ff031749fcff65cf0bf6084a346cce9',4]
+          };
+          const expectedFrames=[0,30,150,450,900,1800,2700,3600];
+          const milestone=['firstBed','firstReservationArrived','firstDock','firstFullHold','firstPhysical','firstSustainedApproachStop'];
+          const counts=['stationChanges','movingApproachFrames','stillApproachFrames','movingNoBedFrames','approachPathFrames','approachPendingFrames','approachEmptyFrames','approachClosePeerFrames','waypointCloserFrames','waypointFartherFrames','waypointFlatFrames','terminalApproachStillFrames'];
+          const fields=['frame','xFromPenCenterCm','zFromPenCenterCm','taskKind','taskStage','doing','act','ordinaryTarget','bedOrdinal','reservationCow','reservationTokenMatch','reservationMarkedArrived','stationUnique','atDock3d','fullHold','bedGapXZCm','bedOffsetYCm','pathNodes','pendingWaypoints','activeOrPendingWaypointGapCm','nearestPeer','nearestPeerGapCm'];
+          const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join(',')===[...keys].sort().join(',');
+          const bounded=(n,lo,hi)=>assert(Number.isInteger(n)&&n>=lo&&n<=hi,'out-of-range replay value');
+          const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('hex');
+          const legacyPins={base:'850703e9601d572d3fca531db84810e0b797bf0876b7800860de5cabb8296b93',orderedMirror:'bb1305c3bd389a743212c68e0782e63aea9e4f812b053994bd51f0820178c38d'};
+          const phaseNames=['early','day1','night1','day2','night2'],phaseFrames=[1200,6000,3600,7200,3600];
+          const totals=['ordinaryLowToHigh','ordinaryHighToLow','socialSelected','socialPlanned','socialAbandoned','socialUnresolved',
+           'containmentViolations','containmentOutsideFrames','physicalBedArrivals','bedHoldAwayFrames','frames'];
+          const occupancy=/^(?:early|day1|night1|day2|night2)\/(?:day|night)\/x[+-]\/z[+-]\/(?:right|left)\/(?:(?:ordinary|robot|drink|bed|feed|otherCare)\/cowSeconds|cowEncounter|unverifiedSocialArrival|gap0to1_5|gap1_5to2_5|gap2_5to4|gapOver4)$/;
+          function validateCounters(a){
+           assert(Array.isArray(a)&&a.length<=1024);
+           const map=new Map();
+           for(const v of a){
+            assert(Array.isArray(v)&&v.length===2&&typeof v[0]==='string'&&!map.has(v[0]));
+            const [phase,key,tail]=v[0].split('/');
+            assert(v[0]==='initialLowX'||occupancy.test(v[0])||(!tail&&phaseNames.includes(phase)&&totals.includes(key)));
+            assert(Number.isFinite(v[1])&&v[1]>=0&&v[1]<=50000);map.set(...v);
+           }
+           bounded(map.get('initialLowX'),0,5);
+           return phaseNames.map((phase,i)=>{
+            const out=Object.fromEntries(totals.map(k=>[k,map.get(phase+'/'+k)]));
+            for(const v of Object.values(out))bounded(v,0,phaseFrames[i]*5);
+            assert.equal(out.frames,phaseFrames[i]);bounded(out.physicalBedArrivals,0,phase.startsWith('night')?5:0);
+            for(const [k] of a)if(k.startsWith(phase+'/')&&occupancy.test(k))assert.equal(k.split('/')[1],phase.startsWith('night')?'night':'day');
+            const ct=a.filter(([k])=>k.startsWith(phase+'/')&&k.endsWith('/cowSeconds')).reduce((u,[,v])=>u+v,0);
+            assert(Math.abs(ct-phaseFrames[i]*5/30)<=.0001,'cow-time mismatch');
+            return out;
+           });
+          }
+          const meetingFields=['attempts','repeatedBeforeConfirmation','confirmed','confirmedAttempt','unmatchedConfirmation','worldL','worldR','screenL','screenR','distinctDirectedPairs','distinctUnorderedPairs','repeatConfirmedPairs','worldDistinctL','worldDistinctR','screenDistinctL','screenDistinctR'];
+          function validateMeetings(a,counters){
+           assert(exact(a,meetingFields));for(const k of meetingFields)bounded(a[k],0,1000000);
+           assert(a.repeatedBeforeConfirmation<=a.attempts&&a.confirmedAttempt<=a.attempts&&a.confirmedAttempt+a.unmatchedConfirmation===a.confirmed);
+           assert(a.distinctUnorderedPairs<=10&&a.distinctDirectedPairs<=20&&a.distinctUnorderedPairs<=a.distinctDirectedPairs&&a.distinctDirectedPairs<=a.confirmed);
+           assert.equal(a.repeatConfirmedPairs,a.confirmed-a.distinctUnorderedPairs);
+           const events=counters.filter(([k])=>k.includes('/day/')&&k.endsWith('/cowEncounter'));
+           const sum=tag=>events.filter(([k])=>!tag||k.includes(tag)).reduce((s,[,v])=>s+v,0);
+           for(const [k,t] of [['confirmed',''],['worldL','/x-/'],['worldR','/x+/'],['screenL','/left/'],['screenR','/right/']])assert.equal(a[k],sum(t));
+           for(const ax of ['world','screen'])for(const side of ['L','R'])assert(a[ax+'Distinct'+side]<=a.distinctUnorderedPairs&&a[ax+'Distinct'+side]<=a[ax+side]);
+           return Object.fromEntries(meetingFields.map(k=>[k,a[k]]));
+          }
+          function validatePlanner(p,origin){
+           const ctrl=['requests','applied','cancelled','failed','plannerVisits','maxUsed','queued'];
+           assert(exact(p,['rows','controller','controllerFailures','routeEvents'])&&exact(p.controller,ctrl)&&Array.isArray(p.rows)&&p.rows.length===5);
+           for(const k of ctrl)bounded(p.controller[k],0,k==='maxUsed'?512:k==='queued'?16:k==='plannerVisits'?14400000:108000);
+           assert(p.controller.applied<=p.controller.requests);
+           const fields=['countBins','nearBins','resultBins','secondaryResults','completed','eligible','secondary','maxVisits','secondaryMaxVisits'];
+           let all=0;
+           const rows=p.rows.map((r,i)=>{
+            assert(exact(r,fields));
+            for(const k of ['completed','eligible','secondary'])bounded(r[k],0,phaseFrames[i]*5);
+            assert(r.secondary<=r.eligible&&r.eligible<=r.completed);
+            for(const k of ['maxVisits','secondaryMaxVisits'])bounded(r[k],0,8192);
+            assert(r.secondaryMaxVisits<=r.maxVisits);
+            for(const [k,n,total] of [['countBins',258,r.completed],['nearBins',4,r.completed],['resultBins',5,r.completed],['secondaryResults',5,r.secondary]]){
+             assert(Array.isArray(r[k])&&r[k].length===n);
+             r[k].forEach(v=>bounded(v,0,r.completed));assert.equal(r[k].reduce((a,b)=>a+b,0),total);
+            }
+            r.secondaryResults.forEach((v,j)=>assert(v<=r.resultBins[j]));
+            assert.equal(r.secondary,r.nearBins.slice(1).reduce((a,b)=>a+b,0),'secondary observed only with nearby candidates');
+            all+=r.completed;return Object.fromEntries(fields.map(k=>[k,r[k]]));
+           });
+           assert(all<=p.controller.requests,'each completed planner is reported once');
+           assert(Array.isArray(p.controllerFailures)&&p.controllerFailures.length<=64);
+           assert.equal(p.controllerFailures.length,p.controller.failed,'controller failures never silently disappear');
+           let lastPhase=-1;
+           const controllerFailures=p.controllerFailures.map(a=>{
+            assert(Array.isArray(a)&&a.length===8);
+            const [phase,cow,reason,work,obstacles,visits,eligible,secondary]=a;
+            bounded(phase,Math.max(0,lastPhase),4);lastPhase=phase;
+            bounded(cow,1,5);bounded(reason,1,5);bounded(work,0,8192);bounded(obstacles,0,256);
+            bounded(visits,0,work);bounded(eligible,0,1);bounded(secondary,0,eligible);
+            if(reason===1||reason===2)assert(work>=8192-64,'route/planner integrated cap witness');
+            return a;
+           });
+           const historical={rows,controllerFailures,controller:Object.fromEntries(ctrl.map(k=>[k,p.controller[k]]))};
+           if(!origin){assert.equal(p.routeEvents,null);return historical;}
+           assert(Array.isArray(p.routeEvents)&&p.routeEvents.length<=64);
+           let last=-1;
+           const routeEvents=p.routeEvents.map(a=>{
+            assert(Array.isArray(a)&&a.length===8);
+            const [phase,cow,applied,reason,work,visits,mode,hops]=a;
+            bounded(phase,Math.max(0,last),4);last=phase;
+            bounded(cow,1,5);bounded(applied,0,1);bounded(reason,0,5);bounded(work,0,8192);bounded(visits,0,work);
+            bounded(mode,0,2);bounded(hops,0,5);
+            assert(applied===1?(reason===0&&hops>0):(reason>0&&hops===0));
+            return a;
+           });
+           assert.equal(routeEvents.filter(a=>a[2]===1).length,p.controller.applied,'each applied path observed');
+           assert.equal(routeEvents.filter(a=>a[2]===0).length,p.controller.failed,'each refused path observed');
+           for(const [phase,cow,reason,work,,visits] of controllerFailures){
+            assert(routeEvents.some(a=>a[0]===phase&&a[1]===cow&&a[2]===0&&a[3]===reason&&a[4]===work&&a[5]===visits));
+           }
+           return {...historical,routeEvents};
+          }
+          const paired={};
+          for(const lane of ['base','orderedMirror','origin','originMirror']){
+           const ref=lane==='orderedMirror'||lane==='originMirror'?'orderedMirror':'base';
+           const origin=lane==='origin'||lane==='originMirror';
+           const [source,prefix,n2,all,meetings,expectedBeds]=pins[ref];
+           const served=lane==='base'?source:repairTrees[['orderedMirror','origin','originMirror'].indexOf(lane)];
+           const r=read(path.join(root,lane,'daytime-mirror-bedtime-origin.json'),65536);
+           assert(exact(r,['schema','source','served','lane','row','cows','planner'])&&r.schema===1&&r.source===source&&r.served===served&&r.lane===lane);
+           const row=r.row;
+           assert(exact(row,['seed','herd','layout','status','counters','meetings'])&&row.seed===1&&row.herd===5&&row.layout==='default'&&row.status==='pass');
+           const tallies=validateCounters(row.counters), ledger=validateMeetings(row.meetings,row.counters);
+           const hashes={prefix:hash(row.counters.filter(k=>!k[0].startsWith('night2/'))),
+            night2:hash(row.counters.filter(k=>k[0].startsWith('night2/'))),all:hash(row.counters),meetings:hash(Object.entries(row.meetings).sort())};
+           const match={prefix:hashes.prefix===prefix,night2:hashes.night2===n2,all:hashes.all===all,meetings:hashes.meetings===meetings};
+           const bedCount=tallies[4].physicalBedArrivals;
+           if(!origin)assert(Object.values(match).every(Boolean)&&bedCount===expectedBeds,'immutable physical control diverged');
+           assert(Array.isArray(r.cows)&&r.cows.length===5);
+           const cows=r.cows.map((c,i)=>{
+            assert(exact(c,['cow','checkpoints','firstBedOrdinal','approachDistanceCm',...milestone,...counts]));
+            assert.equal(c.cow,i+1);
+            bounded(c.firstBedOrdinal,0,20);bounded(c.approachDistanceCm,0,1000000);
+            for(const k of milestone)if(c[k]!==null)bounded(c[k],0,k==='firstSustainedApproachStop'?3571:3600);
+            assert.equal(c.firstBed===null,c.firstBedOrdinal===0);
+            for(const k of counts)bounded(c[k],0,3600);
+            const approach=c.movingApproachFrames+c.stillApproachFrames;
+            assert(approach+c.movingNoBedFrames<=3600&&c.approachClosePeerFrames<=approach&&c.terminalApproachStillFrames<=c.stillApproachFrames);
+            assert.equal(approach,c.approachPathFrames+c.approachPendingFrames+c.approachEmptyFrames);
+            assert(c.waypointCloserFrames+c.waypointFartherFrames+c.waypointFlatFrames<=approach);
+            if(c.firstPhysical!==null)assert([c.firstBed,c.firstReservationArrived,c.firstDock,c.firstFullHold].every(v=>v!==null&&v<=c.firstPhysical));
+            assert(Array.isArray(c.checkpoints)&&c.checkpoints.length===expectedFrames.length);
+            const checkpoints=c.checkpoints.map((p,j)=>{
+             assert(Array.isArray(p)&&p.length===fields.length);assert.equal(p[0],expectedFrames[j]);
+             bounded(p[1],-50000,50000);bounded(p[2],-50000,50000);
+             bounded(p[3],0,5);bounded(p[4],0,6);bounded(p[5],0,6);bounded(p[6],0,7);
+             for(const k of [7,10,11,12,13,14])bounded(p[k],0,1);
+             bounded(p[8],0,20);bounded(p[9],0,6);
+             if(p[8]===0)assert(p[9]===0&&p.slice(10,15).every(v=>v===0)&&p[15]===null&&p[16]===null&&p[17]===0&&p[18]===0&&p[19]===null);
+             else{assert.equal(p[3],1);bounded(p[15],0,50000);bounded(p[16],-50000,50000);}
+             for(const k of [17,18])bounded(p[k],0,200);
+             if(p[17]||p[18])bounded(p[19],0,50000);else assert.equal(p[19],null);
+             bounded(p[20],1,5);assert.notEqual(p[20],c.cow);bounded(p[21],0,50000);
+             return p;
+            });
+            return {cow:c.cow,firstBedOrdinal:c.firstBedOrdinal,approachDistanceCm:c.approachDistanceCm,...Object.fromEntries([...milestone,...counts].map(k=>[k,c[k]])),checkpoints};
+           });
+           assert.equal(cows.filter(c=>c.firstPhysical!==null).length,bedCount,'physical trace agrees with original observer');
+           const legacyHash=hash(cows),legacyMatch=legacyHash===legacyPins[ref];
+           if(!origin)assert(legacyMatch,'immutable archived cow witness diverged');
+           if(lane==='base')assert.equal(r.planner,null);
+           const planner=lane==='base'?null:validatePlanner(r.planner,origin);
+           if(lane==='orderedMirror'){
+            assert.deepEqual(cows.filter(c=>c.firstPhysical===null).map(c=>c.cow),[2]);
+            assert.equal(hash(planner),'3dee8378e4c93567033fa30876edd0202eacc76cb13b8163a23becee6d90d0aa','exact archived ordered mirror planner witness');
+           }
+           paired[lane]={source,served,hashes,match,legacyHash,legacyMatch,phaseTotals:tallies,meetings:ledger,physicalArrivals:bedCount,
+            misses:cows.filter(c=>c.firstPhysical===null).map(c=>c.cow),
+            milestones:cows.map(({cow,firstPhysical,firstSustainedApproachStop,firstBedOrdinal,terminalApproachStillFrames,movingApproachFrames,stillApproachFrames,approachDistanceCm})=>({cow,firstPhysical,firstSustainedApproachStop,firstBedOrdinal,terminalApproachStillFrames,movingApproachFrames,stillApproachFrames,approachDistanceCm})),
+            planner};
+          }
+          const legend={taskKind:['none','bed','robot','feed','drink','other'],taskStage:['none','approach','align','hold','stand','exit','other'],doing:['none','social','eat','drink','sleep','shelter','other'],act:['none','idle','moving','sleeping','resting','eating','fleeing','other']};
+          const out={schema:1,originalRun:44512824959,priorReplay:44812583575,priorPredicateDiagnostic:44816052003,priorOrdered:44825105105,priorStaticCapture:44840584491,seed:1,herd:5,layout:'default',hz:30,night2Frames:3600,phaseNames,routeEventFields:['phaseIndex','stockCowOrdinal','applied','refusalCode','integratedWork','plannerVisits','graphMode','certifiedLegs'],graphModes:['primary','original secondary','origin alternate'],controllerFailureFields:['phaseIndex','stockCowOrdinal','reason','integratedWork','obstacleCount','plannerVisitsBeforeFailure','secondaryEligible','secondaryStarted'],controllerFailureReasons:['route validation exceeds integrated cap','planner slice cap exhausted','planner returned a refused result','live world validation exceeds integrated cap','path certificate malformed'],plannerResults:['path','no-route','unsupported','budget','invalid'],originalAcceptance:'RED',...paired};
+          fs.writeFileSync(path.join(pub,'daytime-mirror-bedtime-origin.json'),JSON.stringify(out),{flag:'wx'});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'diagnostic=true\n');
+          NODE
+      - name: Retain only finite isolation receipts
+        if: ${{ !cancelled() && env.REPLAY_ROOT != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: daytime-mirror-bedtime-origin-receipts-${{ github.sha }}
+          path: ${{ runner.temp }}/daytime-mirror-bedtime-origin/public/receipts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain bounded four-arm results before verdict
+        if: steps.evidence.outputs.diagnostic == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: daytime-mirror-bedtime-origin-${{ github.sha }}
+          path: ${{ runner.temp }}/daytime-mirror-bedtime-origin/public/daytime-mirror-bedtime-origin.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Require unchanged controls and real 5-of-5 repair
+        if: ${{ !cancelled() }}
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const d=JSON.parse(fs.readFileSync(path.join(process.env.REPLAY_ROOT,'public/daytime-mirror-bedtime-origin.json'),'utf8'));
+          assert.equal(d.originalAcceptance,'RED');assert.equal(d.base.physicalArrivals,5);assert.equal(d.orderedMirror.physicalArrivals,4);
+          for(const label of ['base','orderedMirror','origin','originMirror']){
+           const l=d[label];for(const p of l.phaseTotals){
+            assert.equal(p.containmentViolations,0,'original sampled containment');
+            assert.equal(p.containmentOutsideFrames,0,'every-frame pen containment');
+            assert.equal(p.bedHoldAwayFrames,0,'no invalid fully weighted bed hold');
+           }
+           assert.equal(l.meetings.unmatchedConfirmation,0,'no unmatched daytime meeting gain');
+          }
+          const b=d.origin,c=d.originMirror;
+          assert(Object.values(b.match).every(Boolean)&&b.legacyMatch,'shipped behavior changed under origin fallback');
+          assert(b.planner.routeEvents.every(a=>a[6]!==2),'shipped unexpectedly tried the origin alternate');
+          assert(c.match.prefix&&c.match.meetings,'origin mirror changed original lead-up or daytime meetings');
+          for(const l of [b,c]){
+           assert.equal(l.phaseTotals[2].physicalBedArrivals,5,'all real beds by original night1 deadline');
+           assert.equal(l.physicalArrivals,5,'all real beds by original night2 deadline');
+           assert.deepEqual(l.misses,[]);
+          }
+          assert(c.planner.routeEvents.some(a=>a[0]===4&&a[1]===2&&a[2]===1&&a[6]===2),'no installed origin-alternate route for stock cow 2');
+          assert(c.planner.routeEvents.some(a=>a[0]===4&&a[1]===1&&a[2]===1&&a[6]===1),'stock cow 1 original secondary recovery not preserved');
+          console.log('Exact four-arm origin diagnostic passed; no release, performance, phone or save qualification.');
+          NODE
