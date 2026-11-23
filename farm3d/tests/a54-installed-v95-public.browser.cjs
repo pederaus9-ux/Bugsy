@@ -29,7 +29,9 @@ if(process.argv[2]==='--verify-only'){
  return;
 }
 const guard=require('./helpers/ci-isolated-runner.cjs');
-assert.equal(process.argv[2],'--isolated-browser');assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
+assert.equal(process.argv[2],'--isolated-browser');
+const arm=process.argv[3];
+assert(['keep_old','close_old'].includes(arm)&&process.argv.length===4);assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
 assert(!process.env.DEBUG&&!process.env.PWDEBUG);
 const {chromium}=require('playwright');
 const {beginWorkerUpdate,updateWorker}=require('./worker-transition.cjs');
@@ -38,7 +40,7 @@ const stop=s=>new Promise(r=>{if(!s.listening){r();return;}s.close(()=>r());s.cl
 const getURL=s=>'http://127.0.0.1:'+s.address().port;
 const mime={'.js':'text/javascript','.html':'text/html','.css':'text/css','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png','.glb':'model/gltf-binary','.webmanifest':'application/manifest+json','.woff2':'font/woff2'};
 const p=payload(),hashes=Object.fromEntries([['v94',p.old],['v95',p.next]].map(([v,o])=>[v,files.map(f=>sha(o.get(f)))]));
-const records={schema:1,status:'FAIL',stage:'prepare',hashes,automaticHttpsRegistration:false};
+const records={schema:1,arm,status:'FAIL',stage:'prepare',hashes,automaticHttpsRegistration:false};
 let browser,context,server,proxy,phase='v94',serverRequests=0,missingRequests=0,origin=null;
 const receipts=process.env.TEST_ARTIFACTS;
 const ready=page=>page.waitForFunction(()=>window.__ready===true&&!!window.__dbg&&!document.getElementById('loading'),null,{timeout:70000});
@@ -317,7 +319,9 @@ async function localPage(page,alias,expected,offline,label,hostMilestones){
   await localPage(oldTab,'',hashes.v95[0],true,'old_tab');
   offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
   offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
-  offlineCheckpoint('new_tab_create');const newTab=await context.newPage();
+  offlineCheckpoint('new_tab_create');
+  if(arm==='close_old')await oldTab.close();
+  const newTab=await context.newPage();
   const hostMilestones=makeHostMilestones();
   await newTab.exposeBinding('__a54HostPulse',({page,frame},key,bin)=>{
    if(page!==newTab||frame!==newTab.mainFrame())return;
