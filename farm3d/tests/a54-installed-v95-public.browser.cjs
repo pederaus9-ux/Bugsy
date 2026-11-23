@@ -31,7 +31,7 @@ if(process.argv[2]==='--verify-only'){
 const guard=require('./helpers/ci-isolated-runner.cjs');
 assert.equal(process.argv[2],'--isolated-browser');
 const arm=process.argv[3];
-assert(arm==='keep_old'&&process.argv.length===4);assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
+assert(['forward_old','suppress_old'].includes(arm)&&process.argv.length===4);assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
 assert(!process.env.DEBUG&&!process.env.PWDEBUG);
 const {chromium}=require('playwright');
 const {beginWorkerUpdate,updateWorker}=require('./worker-transition.cjs');
@@ -41,7 +41,7 @@ const getURL=s=>'http://127.0.0.1:'+s.address().port;
 const mime={'.js':'text/javascript','.html':'text/html','.css':'text/css','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png','.glb':'model/gltf-binary','.webmanifest':'application/manifest+json','.woff2':'font/woff2'};
 const p=payload(),hashes=Object.fromEntries([['v94',p.old],['v95',p.next]].map(([v,o])=>[v,files.map(f=>sha(o.get(f)))]));
 const records={schema:1,arm,status:'FAIL',stage:'prepare',hashes,automaticHttpsRegistration:false};
-let browser,context,server,proxy,phase='v94',serverRequests=0,missingRequests=0,origin=null;
+let browser,context,server,proxy,restoreDrawPage,phase='v94',serverRequests=0,missingRequests=0,origin=null;
 const receipts=process.env.TEST_ARTIFACTS;
 const ready=page=>page.waitForFunction(()=>window.__ready===true&&!!window.__dbg&&!document.getElementById('loading'),null,{timeout:70000});
 const query='?debug&portrait&preset=noon';
@@ -246,6 +246,28 @@ function observeOldActivity(page,delay=20000,budget=1500){
   return {begin:a?.state??'unavailable',later:b?.state??'unavailable',delta:delta===null?'unavailable':delta===0?'none':delta===1?'one':'many'};
  }};
 }
+function installOldDrawProbe(suppress){
+ const renderer=window.__dbg?.renderer;
+ const descriptor=renderer&&Object.getOwnPropertyDescriptor(renderer,'render');
+ if(!renderer?.isWebGLRenderer||!renderer.domElement?.isConnected||renderer.domElement.ownerDocument!==document||
+    typeof descriptor?.value!=='function'||descriptor.writable!==true||!Number.isSafeInteger(renderer.info?.render?.frame))return false;
+ const native=descriptor.value,baseFrame=renderer.info.render.frame;
+ let count=0;
+ const render=function(...args){
+  if(this!==renderer)return Reflect.apply(native,this,args);
+  if(count<2){
+   count++;
+   try{void window.__a54OldDrawPulse?.(count,Math.min(2,Math.max(0,renderer.info.render.frame-baseFrame)))?.catch(()=>{});}catch{}
+  }
+  if(!suppress)return Reflect.apply(native,this,args);
+ };
+ Object.defineProperty(renderer,'render',{...descriptor,value:render});
+ window.__a54RestoreOldDraw=()=>{
+  if(renderer.render===render)Object.defineProperty(renderer,'render',descriptor);
+  return renderer.render===native;
+ };
+ return renderer.render===render;
+}
 async function localPage(page,alias,expected,offline,label,hostMilestones,originalTab){
  if(label&&label!=='v94')offlineCheckpoint(label+'_navigate');
  const v94=step=>{if(label==='v94')records.v94OfflineCheckpoint=step;};
@@ -356,6 +378,17 @@ async function localPage(page,alias,expected,offline,label,hostMilestones,origin
   offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
   offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
   offlineCheckpoint('new_tab_create');
+  records.oldDraw={installed:false,calls:0,nativeDelta:0};
+  await oldTab.exposeBinding('__a54OldDrawPulse',({page,frame},n,nativeDelta)=>{
+   if(page!==oldTab||frame!==oldTab.mainFrame()||![1,2].includes(n)||![0,1,2].includes(nativeDelta))return;
+   try{if(new URL(frame.url()).origin===origin){
+    records.oldDraw.calls=Math.max(records.oldDraw.calls,n);
+    records.oldDraw.nativeDelta=Math.max(records.oldDraw.nativeDelta,nativeDelta);
+   }}catch{}
+  });
+  restoreDrawPage=oldTab;
+  records.oldDraw.installed=await oldTab.evaluate(installOldDrawProbe,arm==='suppress_old');
+  assert.equal(records.oldDraw.installed,true);
   const newTab=await context.newPage();
   const hostMilestones=makeHostMilestones();
   await newTab.exposeBinding('__a54HostPulse',({page,frame},key,bin)=>{
@@ -378,6 +411,12 @@ async function localPage(page,alias,expected,offline,label,hostMilestones,origin
  }catch{process.exitCode=1;}
  finally{
   const bounded=()=>{if(!path.isAbsolute(receipts||''))throw Error('receipt root');fs.writeFileSync(path.join(receipts,'result.json'),JSON.stringify(records)+'\n',{flag:'wx',mode:0o600});};
+  if(restoreDrawPage){
+   let timer;
+   // Restore when responsive; context closure below destroys the disposable realm either way.
+   try{await Promise.race([restoreDrawPage.evaluate(()=>window.__a54RestoreOldDraw?.()),
+    new Promise(resolve=>{timer=setTimeout(resolve,500);})]);}catch{}finally{clearTimeout(timer);}
+  }
   try{await context?.close();await browser?.close();}catch{records.status='FAIL';records.stage='cleanup';process.exitCode=1;}
   await Promise.all([server?stop(server):null,proxy?stop(proxy):null]);bounded();
  }
