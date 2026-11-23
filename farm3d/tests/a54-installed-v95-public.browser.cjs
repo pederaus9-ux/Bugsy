@@ -74,10 +74,17 @@ async function saveView(page){
  });
  return sha(JSON.stringify(result)); // Comparison only. Digest/data not exported.
 }
-async function localPage(page,alias,expected,offline){
+const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
+async function localPage(page,alias,expected,offline,label){
+ if(label)offlineCheckpoint(label+'_navigate');
  const h=await page.goto(origin+'/farm3d/'+alias+query,{waitUntil:'domcontentloaded',timeout:70000});
- assert(h&&h.status()===200&&h.headers()['content-type']?.includes('text/html'));assert.equal(sha(await h.body()),expected);
+ if(label)offlineCheckpoint(label+'_response');
+ assert(h&&h.status()===200&&h.headers()['content-type']?.includes('text/html'));
+ if(label)offlineCheckpoint(label+'_document_hash');
+ assert.equal(sha(await h.body()),expected);
+ if(label)offlineCheckpoint(label+'_service_worker');
  if(offline)assert(h.fromServiceWorker());
+ if(label)offlineCheckpoint(label+'_game_ready');
  await ready(page);
 }
 (async()=>{
@@ -150,11 +157,20 @@ async function localPage(page,alias,expected,offline){
   }),late]);
   assert(moduleResponse.fromServiceWorker()&&moduleResponse.status()===200);assert.equal(serverRequests,count);
   assert.equal(moduleHash,sha(p.next.get('farm3d/corner-menu.js')));records.lateModuleExact=true;
-  await localPage(oldTab,'',hashes.v95[0],true);await ownedCache(oldTab,'v95',hashes.v95[0]);assert.equal(await saveView(oldTab),oldSave);
-  const newTab=await context.newPage();await localPage(newTab,'index.html',hashes.v95[0],true);
-  await ownedCache(newTab,'v95',hashes.v95[0]);assert.equal(await saveView(newTab),oldSave);
-  const r=await newTab.reload({waitUntil:'domcontentloaded',timeout:70000});assert(r&&r.status()===200&&r.fromServiceWorker());assert.equal(sha(await r.body()),hashes.v95[0]);
-  await ready(newTab);assert.equal(await saveView(newTab),oldSave);assert.equal(serverRequests,count);
+  await localPage(oldTab,'',hashes.v95[0],true,'old_tab');
+  offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
+  offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
+  offlineCheckpoint('new_tab_create');const newTab=await context.newPage();
+  await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab');
+  offlineCheckpoint('new_tab_cache');await ownedCache(newTab,'v95',hashes.v95[0]);
+  offlineCheckpoint('new_tab_save');assert.equal(await saveView(newTab),oldSave);
+  offlineCheckpoint('reload_navigate');const r=await newTab.reload({waitUntil:'domcontentloaded',timeout:70000});
+  offlineCheckpoint('reload_response');assert(r&&r.status()===200&&r.fromServiceWorker());
+  offlineCheckpoint('reload_document_hash');assert.equal(sha(await r.body()),hashes.v95[0]);
+  offlineCheckpoint('reload_game_ready');await ready(newTab);
+  offlineCheckpoint('reload_save');assert.equal(await saveView(newTab),oldSave);
+  offlineCheckpoint('zero_server_requests');assert.equal(serverRequests,count);
+  offlineCheckpoint('complete');
   records.offlineOldTab=true;records.offlineNewTab=true;records.offlineReload=true;records.savePreserved=true;records.finalServerRequests=0;
   records.status='PASS';setStage('complete');
  }catch{process.exitCode=1;}
