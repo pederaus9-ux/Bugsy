@@ -130,15 +130,21 @@ async function snapshotFreshDocument(page,budget=1500){
 }
 const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
 async function localPage(page,alias,expected,offline,label){
- if(label)offlineCheckpoint(label+'_navigate');
+ if(label&&label!=='v94')offlineCheckpoint(label+'_navigate');
+ const v94=step=>{if(label==='v94')records.v94OfflineCheckpoint=step;};
+ v94('navigate');
  const h=await page.goto(origin+'/farm3d/'+alias+query,{waitUntil:'domcontentloaded',timeout:70000});
- if(label)offlineCheckpoint(label+'_response');
+ if(label&&label!=='v94')offlineCheckpoint(label+'_response');
+ v94('response');
  assert(h&&h.status()===200&&h.headers()['content-type']?.includes('text/html'));
- if(label)offlineCheckpoint(label+'_document_hash');
+ if(label&&label!=='v94')offlineCheckpoint(label+'_document_hash');
+ v94('document');
  assert.equal(sha(await h.body()),expected);
- if(label)offlineCheckpoint(label+'_service_worker');
+ if(label&&label!=='v94')offlineCheckpoint(label+'_service_worker');
+ v94('worker');
  if(offline)assert(h.fromServiceWorker());
- if(label)offlineCheckpoint(label+'_game_ready');
+ if(label&&label!=='v94')offlineCheckpoint(label+'_game_ready');
+ v94('ready');
  try{await ready(page);}
  catch(error){
   if(label==='new_tab')records.freshDocument=await snapshotFreshDocument(page);
@@ -198,9 +204,12 @@ async function localPage(page,alias,expected,offline,label){
   setStage('failed_precache');phase='broken';await oldTab.evaluate(beginWorkerUpdate).catch(()=>{});
   await oldTab.waitForFunction(()=>{const s=window.__workerTransition;return s?.expected?.state==='redundant'&&s.registration.active===s.before&&navigator.serviceWorker.controller===s.before;},null,{timeout:25000});
   assert(missingRequests>0);records.redundantWorker=true;records.failedPrecacheRequests=Math.min(missingRequests,100);
-  const failedWrites=serverRequests;await context.setOffline(true);
-  await localPage(oldTab,'index.html',hashes.v94[0],true);assert.equal(await saveView(oldTab),oldSave);assert.equal(serverRequests,failedWrites);
-  records.oldOfflineAfterFailure=true;await context.setOffline(false);
+  const failedWrites=serverRequests;records.v94OfflineCheckpoint='offline_toggle';await context.setOffline(true);
+  await localPage(oldTab,'index.html',hashes.v94[0],true,'v94');
+  records.v94OfflineCheckpoint='save_view';const reopenedSave=await saveView(oldTab);
+  records.v94OfflineCheckpoint='save_equal';assert.equal(reopenedSave,oldSave);
+  records.v94OfflineCheckpoint='origin_count';assert.equal(serverRequests,failedWrites);
+  records.oldOfflineAfterFailure=true;delete records.v94OfflineCheckpoint;await context.setOffline(false);
   setStage('takeover');phase='v95';const t=await updateWorker(oldTab);
   assert(t.requestedWorkerControls&&t.predecessorReplaced&&t.state==='activated');
   await ownedCache(oldTab,'v95',hashes.v95[0]);records.sameTabTakeover=true;
