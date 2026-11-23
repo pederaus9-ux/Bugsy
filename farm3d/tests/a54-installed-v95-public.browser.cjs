@@ -82,6 +82,32 @@ function installFreshDocumentObserver(expectedOrigin){
   'setting up the camera effects','building the fields and buildings','loading your farm','putting your farm in place',
   'setting the weather and time of day','drawing the first picture','ok'
  ];
+ const timeBin=()=>{
+  const ms=performance.now();
+  return ms<1000?1:ms<5000?2:ms<10000?3:ms<30000?4:ms<60000?5:6;
+ };
+ const timing={seen:null,fade:null,removed:null,drawing:null,ok:null};
+ let firstOverlay=null,replaced=false;
+ const noteFade=()=>{if(firstOverlay?.style.opacity==='0'&&timing.fade===null)timing.fade=timeBin();};
+ const watchStyle=new MutationObserver(noteFade);
+ const observeOverlay=()=>{
+  const node=document.getElementById('loading');
+  if(!firstOverlay&&node){
+   firstOverlay=node;timing.seen=timeBin();
+   watchStyle.observe(node,{attributes:true,attributeFilter:['style']});
+  }
+  if(!firstOverlay)return;
+  noteFade();
+  if(!firstOverlay.isConnected&&timing.removed===null)timing.removed=timeBin();
+  if(node&&node!==firstOverlay)replaced=true;
+ };
+ const watchOverlay=new MutationObserver(observeOverlay);
+ watchOverlay.observe(document,{childList:true,subtree:true});
+ const overlay=()=>{
+  observeOverlay();
+  const node=document.getElementById('loading');
+  return {...timing,replaced,state:!node?'absent':node.style.opacity==='0'?'zero':'nonzero',sample:timeBin()};
+ };
  let boot=0,firstError='none',writeTap=false;
  const note=kind=>{if(firstError==='none')firstError=kind;};
  window.addEventListener('error',e=>{
@@ -99,6 +125,8 @@ function installFreshDocumentObserver(expectedOrigin){
    const result=Reflect.apply(native,this,arguments);
    if(this===storage&&key==='sa3d-boot'&&typeof value==='string'){
     const i=bootNames.indexOf(value); if(i>=0)boot=i+1;
+    if(i===15&&timing.drawing===null)timing.drawing=timeBin();
+    if(i===16&&timing.ok===null)timing.ok=timeBin();
    }
    return result;
   }});
@@ -107,11 +135,21 @@ function installFreshDocumentObserver(expectedOrigin){
  Object.defineProperty(window,'__a54FreshDocumentObservation',{value:()=>({
   ready:window.__ready===true,debug:!!window.__dbg,loading:!!document.getElementById('loading'),
   visibility:['visible','hidden','prerender'].includes(document.visibilityState)?document.visibilityState:'other',
-  boot,writeTap,firstError
+  boot,writeTap,firstError,overlay:overlay()
  })});
 }
+function validOverlay(x){
+ const bin=n=>Number.isInteger(n)&&n>=1&&n<=6;
+ if(!x||Object.keys(x).sort().join(',')!=='drawing,fade,ok,removed,replaced,sample,seen,state'||
+  !bin(x.sample)||!['absent','zero','nonzero'].includes(x.state)||typeof x.replaced!=='boolean')return false;
+ for(const k of ['seen','fade','removed','drawing','ok'])if(x[k]!==null&&(!bin(x[k])||x[k]>x.sample))return false;
+ if(x.seen===null&&(x.fade!==null||x.removed!==null||x.replaced||x.state!=='absent'))return false;
+ if((x.fade!==null&&x.fade<x.seen)||(x.removed!==null&&x.removed<x.seen))return false;
+ return !(x.drawing!==null&&x.ok!==null&&x.ok<x.drawing);
+}
 function validFreshDocumentObservation(x){
- return x&&Object.keys(x).sort().join(',')==='boot,debug,firstError,loading,ready,visibility,writeTap'&&
+ return x&&Object.keys(x).sort().join(',')==='boot,debug,firstError,loading,overlay,ready,visibility,writeTap'&&validOverlay(x.overlay)&&
+  x.loading===(x.overlay.state!=='absent')&&
   ['ready','debug','loading','writeTap'].every(k=>typeof x[k]==='boolean')&&
   Number.isInteger(x.boot)&&x.boot>=0&&x.boot<=17&&(x.writeTap||x.boot===0)&&
   ['visible','hidden','prerender','other'].includes(x.visibility)&&
