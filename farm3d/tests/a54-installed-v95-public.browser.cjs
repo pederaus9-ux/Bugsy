@@ -128,6 +128,29 @@ async function snapshotFreshDocument(page,budget=1500){
  }catch{return null;}
  finally{clearTimeout(timer);}
 }
+function createV94OriginArrivalTrace(shell){
+ const allow=new Set(shell.map(s=>{const u=new URL(s,'http://127.0.0.1/farm3d/');return u.pathname+u.search;}));
+ const slots=Array.from({length:3},()=>({delta:0,kinds:0}));
+ let slot=-1;
+ return {
+  advance(){slot++;},
+  note(url){
+   if(slot<0||slot>=slots.length)return;
+   const name=url?.pathname;
+   const kind=name==='/farm3d/sw.js'?1:
+    name==='/farm3d/'||name==='/farm3d/index.html'?2:
+    url&&allow.has(name+url.search)?4:8;
+   const row=slots[slot];row.delta=Math.min(2,row.delta+1);row.kinds|=kind;
+  },
+  snapshot(){return slots.map(x=>({...x}));}
+ };
+}
+function validV94OriginArrivalTrace(rows){
+ return Array.isArray(rows)&&rows.length===3&&rows.every(x=>x&&
+  Object.keys(x).sort().join(',')==='delta,kinds'&&[0,1,2].includes(x.delta)&&
+  Number.isInteger(x.kinds)&&x.kinds>=0&&x.kinds<=15&&
+  (x.delta===0?x.kinds===0:x.delta===1?x.kinds!==0&&(x.kinds&(x.kinds-1))===0:x.kinds!==0));
+}
 const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
 async function localPage(page,alias,expected,offline,label){
  if(label&&label!=='v94')offlineCheckpoint(label+'_navigate');
@@ -154,9 +177,12 @@ async function localPage(page,alias,expected,offline,label){
 (async()=>{
  try{
   setStage('network');
+  const pinnedShell=JSON.parse(p.old.get('farm3d/sw.js').toString().match(/^const SHELL = (\[.*\]);$/m)[1]);
+  const v94Arrivals=createV94OriginArrivalTrace(pinnedShell);
   server=http.createServer((req,res)=>{
    serverRequests++;
-   let url;try{url=new URL(req.url,'http://127.0.0.1');}catch{res.writeHead(400);res.end();return;}
+   let url;try{url=new URL(req.url,'http://127.0.0.1');}catch{v94Arrivals.note(null);res.writeHead(400);res.end();return;}
+   v94Arrivals.note(url);
    const f=url.pathname==='/farm3d/'?'farm3d/index.html':url.pathname.slice(1);
    if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
    const map=phase==='v94'?p.old:p.next;
@@ -204,11 +230,13 @@ async function localPage(page,alias,expected,offline,label){
   setStage('failed_precache');phase='broken';await oldTab.evaluate(beginWorkerUpdate).catch(()=>{});
   await oldTab.waitForFunction(()=>{const s=window.__workerTransition;return s?.expected?.state==='redundant'&&s.registration.active===s.before&&navigator.serviceWorker.controller===s.before;},null,{timeout:25000});
   assert(missingRequests>0);records.redundantWorker=true;records.failedPrecacheRequests=Math.min(missingRequests,100);
-  const failedWrites=serverRequests;records.v94OfflineCheckpoint='offline_toggle';await context.setOffline(true);
-  await localPage(oldTab,'index.html',hashes.v94[0],true,'v94');
+  const failedWrites=serverRequests;v94Arrivals.advance();records.v94OfflineCheckpoint='offline_toggle';await context.setOffline(true);v94Arrivals.advance();
+  await localPage(oldTab,'index.html',hashes.v94[0],true,'v94');v94Arrivals.advance();
   records.v94OfflineCheckpoint='save_view';const reopenedSave=await saveView(oldTab);
   records.v94OfflineCheckpoint='save_equal';assert.equal(reopenedSave,oldSave);
-  records.v94OfflineCheckpoint='origin_count';assert.equal(serverRequests,failedWrites);
+  records.v94OfflineCheckpoint='origin_count';v94Arrivals.advance();
+  if(serverRequests!==failedWrites)records.v94OriginArrivals=v94Arrivals.snapshot();
+  assert.equal(serverRequests,failedWrites);
   records.oldOfflineAfterFailure=true;delete records.v94OfflineCheckpoint;await context.setOffline(false);
   setStage('takeover');phase='v95';const t=await updateWorker(oldTab);
   assert(t.requestedWorkerControls&&t.predecessorReplaced&&t.state==='activated');
