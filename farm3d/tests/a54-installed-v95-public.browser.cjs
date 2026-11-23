@@ -31,7 +31,7 @@ if(process.argv[2]==='--verify-only'){
 const guard=require('./helpers/ci-isolated-runner.cjs');
 assert.equal(process.argv[2],'--isolated-browser');
 const arm=process.argv[3];
-assert(['keep_old','close_old'].includes(arm)&&process.argv.length===4);assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
+assert(arm==='keep_old'&&process.argv.length===4);assert(process.pid>1&&guard.topologySafe(os.networkInterfaces(),fs.readFileSync('/proc/net/route','utf8'),fs.readFileSync('/proc/net/ipv6_route','utf8')));
 assert(!process.env.DEBUG&&!process.env.PWDEBUG);
 const {chromium}=require('playwright');
 const {beginWorkerUpdate,updateWorker}=require('./worker-transition.cjs');
@@ -212,7 +212,41 @@ function validV94OriginArrivalTrace(rows){
   (x.delta===0?x.kinds===0:x.delta===1?x.kinds!==0&&(x.kinds&(x.kinds-1))===0:x.kinds!==0));
 }
 const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
-async function localPage(page,alias,expected,offline,label,hostMilestones){
+function validOldActivity(x){
+ const states=['visible_focused','visible_unfocused','hidden_focused','hidden_unfocused','other','unavailable'];
+ return x&&Object.keys(x).sort().join(',')==='begin,delta,later'&&states.includes(x.begin)&&states.includes(x.later)&&
+  ['none','one','many','unavailable'].includes(x.delta)&&
+  ((x.begin==='unavailable'||x.later==='unavailable')?x.delta==='unavailable':true);
+}
+function observeOldActivity(page,delay=20000,budget=1500){
+ const samples=[null,null],timeouts=new Set();
+ let stopped=false;
+ const take=async i=>{
+  let timer;
+  try{
+   const got=await Promise.race([
+    page.evaluate(()=>{
+     const frame=window.__dbg?.renderer?.info?.render?.frame;
+     return {frame,visibility:document.visibilityState,focus:document.hasFocus()};
+    }),
+    new Promise(resolve=>{timer=setTimeout(()=>resolve(null),budget);timeouts.add(timer);})
+   ]);
+   if(!stopped&&got&&Number.isSafeInteger(got.frame)&&got.frame>=0&&typeof got.focus==='boolean'){
+    samples[i]={frame:got.frame,state:['visible','hidden'].includes(got.visibility)?got.visibility+'_'+(got.focus?'focused':'unfocused'):'other'};
+   }
+  }catch{}finally{clearTimeout(timer);timeouts.delete(timer);}
+ };
+ void take(0);
+ const later=setTimeout(()=>{void take(1);},delay);
+ return {stop(){
+  stopped=true;clearTimeout(later);
+  // Settled slices are copied; pending probes are never awaited on the acceptance path.
+  for(const t of timeouts)clearTimeout(t);
+  const [a,b]=samples,delta=a&&b&&b.frame>=a.frame?b.frame-a.frame:null;
+  return {begin:a?.state??'unavailable',later:b?.state??'unavailable',delta:delta===null?'unavailable':delta===0?'none':delta===1?'one':'many'};
+ }};
+}
+async function localPage(page,alias,expected,offline,label,hostMilestones,originalTab){
  if(label&&label!=='v94')offlineCheckpoint(label+'_navigate');
  const v94=step=>{if(label==='v94')records.v94OfflineCheckpoint=step;};
  v94('navigate');
@@ -228,15 +262,17 @@ async function localPage(page,alias,expected,offline,label,hostMilestones){
  if(offline)assert(h.fromServiceWorker());
  if(label&&label!=='v94')offlineCheckpoint(label+'_game_ready');
  v94('ready');
+ const oldActivity=label==='new_tab'?observeOldActivity(originalTab):null;
  try{await ready(page);}
  catch(error){
   if(label==='new_tab'){
+   records.oldActivity=oldActivity.stop();
    const sample=await snapshotFreshDocument(page);
    records.freshDocument=sample.data;
    records.hostCapture={snapshot:sample.status,milestones:hostMilestones.snapshot()};
   }
   throw error;
- }
+ }finally{oldActivity?.stop();}
 }
 (async()=>{
  try{
@@ -320,7 +356,6 @@ async function localPage(page,alias,expected,offline,label,hostMilestones){
   offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
   offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
   offlineCheckpoint('new_tab_create');
-  if(arm==='close_old')await oldTab.close();
   const newTab=await context.newPage();
   const hostMilestones=makeHostMilestones();
   await newTab.exposeBinding('__a54HostPulse',({page,frame},key,bin)=>{
@@ -328,7 +363,7 @@ async function localPage(page,alias,expected,offline,label,hostMilestones){
    try{if(new URL(frame.url()).origin===origin)hostMilestones.note(key,bin);}catch{}
   });
   await newTab.addInitScript(installFreshDocumentObserver,origin);
-  await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab',hostMilestones);
+  await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab',hostMilestones,oldTab);
   offlineCheckpoint('new_tab_cache');await ownedCache(newTab,'v95',hashes.v95[0]);
   offlineCheckpoint('new_tab_save');assert.equal(await saveView(newTab),oldSave);
   offlineCheckpoint('reload_navigate');const r=await newTab.reload({waitUntil:'domcontentloaded',timeout:70000});
