@@ -74,6 +74,60 @@ async function saveView(page){
  });
  return sha(JSON.stringify(result)); // Comparison only. Digest/data not exported.
 }
+function installFreshDocumentObserver(expectedOrigin){
+ if(location.origin!==expectedOrigin)return;
+ const bootNames=[
+  'loading the 3D engine','starting the graphics','setting up the scene','making the ground','growing the grass',
+  'placing the barn and trees','planting the woods','building the farm pieces','getting the animals ready','making the sky',
+  'setting up the camera effects','building the fields and buildings','loading your farm','putting your farm in place',
+  'setting the weather and time of day','drawing the first picture','ok'
+ ];
+ let boot=0,firstError='none',writeTap=false;
+ const note=kind=>{if(firstError==='none')firstError=kind;};
+ window.addEventListener('error',e=>{
+  if(e.target===window)note('script_error');
+  else if(e.target?.tagName==='SCRIPT')note('script_resource');
+  else note('other_resource');
+ },true);
+ window.addEventListener('unhandledrejection',()=>note('promise_rejection'));
+ window.addEventListener('webglcontextcreationerror',()=>note('webgl_creation'),true);
+ window.addEventListener('webglcontextlost',()=>note('webgl_lost'),true);
+ try{
+  const storage=window.localStorage,descriptor=Object.getOwnPropertyDescriptor(Storage.prototype,'setItem');
+  const native=descriptor.value;
+  Object.defineProperty(Storage.prototype,'setItem',{...descriptor,value:function setItem(key,value){
+   const result=Reflect.apply(native,this,arguments);
+   if(this===storage&&key==='sa3d-boot'&&typeof value==='string'){
+    const i=bootNames.indexOf(value); if(i>=0)boot=i+1;
+   }
+   return result;
+  }});
+  writeTap=true;
+ }catch{}
+ Object.defineProperty(window,'__a54FreshDocumentObservation',{value:()=>({
+  ready:window.__ready===true,debug:!!window.__dbg,loading:!!document.getElementById('loading'),
+  visibility:['visible','hidden','prerender'].includes(document.visibilityState)?document.visibilityState:'other',
+  boot,writeTap,firstError
+ })});
+}
+function validFreshDocumentObservation(x){
+ return x&&Object.keys(x).sort().join(',')==='boot,debug,firstError,loading,ready,visibility,writeTap'&&
+  ['ready','debug','loading','writeTap'].every(k=>typeof x[k]==='boolean')&&
+  Number.isInteger(x.boot)&&x.boot>=0&&x.boot<=17&&(x.writeTap||x.boot===0)&&
+  ['visible','hidden','prerender','other'].includes(x.visibility)&&
+  ['none','script_error','script_resource','other_resource','promise_rejection','webgl_creation','webgl_lost'].includes(x.firstError);
+}
+async function snapshotFreshDocument(page,budget=1500){
+ let timer;
+ try{
+  const got=await Promise.race([
+   page.evaluate(()=>window.__a54FreshDocumentObservation?.()),
+   new Promise(resolve=>{timer=setTimeout(()=>resolve(null),budget);})
+  ]);
+  return validFreshDocumentObservation(got)?got:null;
+ }catch{return null;}
+ finally{clearTimeout(timer);}
+}
 const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
 async function localPage(page,alias,expected,offline,label){
  if(label)offlineCheckpoint(label+'_navigate');
@@ -85,7 +139,11 @@ async function localPage(page,alias,expected,offline,label){
  if(label)offlineCheckpoint(label+'_service_worker');
  if(offline)assert(h.fromServiceWorker());
  if(label)offlineCheckpoint(label+'_game_ready');
- await ready(page);
+ try{await ready(page);}
+ catch(error){
+  if(label==='new_tab')records.freshDocument=await snapshotFreshDocument(page);
+  throw error;
+ }
 }
 (async()=>{
  try{
@@ -161,6 +219,7 @@ async function localPage(page,alias,expected,offline,label){
   offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
   offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
   offlineCheckpoint('new_tab_create');const newTab=await context.newPage();
+  await newTab.addInitScript(installFreshDocumentObserver,origin);
   await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab');
   offlineCheckpoint('new_tab_cache');await ownedCache(newTab,'v95',hashes.v95[0]);
   offlineCheckpoint('new_tab_save');assert.equal(await saveView(newTab),oldSave);
