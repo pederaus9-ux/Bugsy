@@ -86,20 +86,22 @@ function installFreshDocumentObserver(expectedOrigin){
   const ms=performance.now();
   return ms<1000?1:ms<5000?2:ms<10000?3:ms<30000?4:ms<60000?5:6;
  };
+ const pulse=(key,bin)=>{try{void window.__a54HostPulse?.(key,bin)?.catch(()=>{});}catch{}};
+ pulse('installed',timeBin());
  const timing={seen:null,fade:null,removed:null,drawing:null,ok:null};
  let firstOverlay=null,replaced=false;
- const noteFade=()=>{if(firstOverlay?.style.opacity==='0'&&timing.fade===null)timing.fade=timeBin();};
+ const noteFade=()=>{if(firstOverlay?.style.opacity==='0'&&timing.fade===null){timing.fade=timeBin();pulse('fade',timing.fade);}};
  const watchStyle=new MutationObserver(noteFade);
  const observeOverlay=()=>{
   const node=document.getElementById('loading');
   if(!firstOverlay&&node){
-   firstOverlay=node;timing.seen=timeBin();
+   firstOverlay=node;timing.seen=timeBin();pulse('seen',timing.seen);
    watchStyle.observe(node,{attributes:true,attributeFilter:['style']});
   }
   if(!firstOverlay)return;
   noteFade();
-  if(!firstOverlay.isConnected&&timing.removed===null)timing.removed=timeBin();
-  if(node&&node!==firstOverlay)replaced=true;
+  if(!firstOverlay.isConnected&&timing.removed===null){timing.removed=timeBin();pulse('removed',timing.removed);}
+  if(node&&node!==firstOverlay&&!replaced){replaced=true;pulse('replaced',timeBin());}
  };
  const watchOverlay=new MutationObserver(observeOverlay);
  watchOverlay.observe(document,{childList:true,subtree:true});
@@ -125,8 +127,8 @@ function installFreshDocumentObserver(expectedOrigin){
    const result=Reflect.apply(native,this,arguments);
    if(this===storage&&key==='sa3d-boot'&&typeof value==='string'){
     const i=bootNames.indexOf(value); if(i>=0)boot=i+1;
-    if(i===15&&timing.drawing===null)timing.drawing=timeBin();
-    if(i===16&&timing.ok===null)timing.ok=timeBin();
+    if(i===15&&timing.drawing===null){timing.drawing=timeBin();pulse('drawing',timing.drawing);}
+    if(i===16&&timing.ok===null){timing.ok=timeBin();pulse('ok',timing.ok);}
    }
    return result;
   }});
@@ -155,15 +157,33 @@ function validFreshDocumentObservation(x){
   ['visible','hidden','prerender','other'].includes(x.visibility)&&
   ['none','script_error','script_resource','other_resource','promise_rejection','webgl_creation','webgl_lost'].includes(x.firstError);
 }
+const hostKeys=['installed','seen','drawing','ok','fade','removed','replaced'];
+const snapshotStates=['deadline','observer_missing','invalid_shape','evaluation_rejected','ok'];
+function makeHostMilestones(){
+ const slots={};
+ return {note(key,bin){
+  if(hostKeys.includes(key)&&Number.isInteger(bin)&&bin>=1&&bin<=6&&!Object.hasOwn(slots,key))slots[key]=bin;
+ },snapshot:()=>({...slots})};
+}
+function validHostCapture(x,fresh){
+ return x&&Object.keys(x).sort().join(',')==='milestones,snapshot'&&
+  snapshotStates.includes(x.snapshot)&&(x.snapshot==='ok')===(fresh!==null)&&
+  x.milestones&&typeof x.milestones==='object'&&!Array.isArray(x.milestones)&&
+  Object.entries(x.milestones).every(([k,v])=>hostKeys.includes(k)&&Number.isInteger(v)&&v>=1&&v<=6);
+}
 async function snapshotFreshDocument(page,budget=1500){
  let timer;
+ const deadline=Symbol();
  try{
   const got=await Promise.race([
    page.evaluate(()=>window.__a54FreshDocumentObservation?.()),
-   new Promise(resolve=>{timer=setTimeout(()=>resolve(null),budget);})
+   new Promise(resolve=>{timer=setTimeout(()=>resolve(deadline),budget);})
   ]);
-  return validFreshDocumentObservation(got)?got:null;
- }catch{return null;}
+  if(got===deadline)return {status:'deadline',data:null};
+  if(got===undefined)return {status:'observer_missing',data:null};
+  if(!validFreshDocumentObservation(got))return {status:'invalid_shape',data:null};
+  return {status:'ok',data:got};
+ }catch{return {status:'evaluation_rejected',data:null};}
  finally{clearTimeout(timer);}
 }
 function createV94OriginArrivalTrace(shell){
@@ -190,7 +210,7 @@ function validV94OriginArrivalTrace(rows){
   (x.delta===0?x.kinds===0:x.delta===1?x.kinds!==0&&(x.kinds&(x.kinds-1))===0:x.kinds!==0));
 }
 const offlineCheckpoint=step=>{records.offlineCheckpoint=step;};
-async function localPage(page,alias,expected,offline,label){
+async function localPage(page,alias,expected,offline,label,hostMilestones){
  if(label&&label!=='v94')offlineCheckpoint(label+'_navigate');
  const v94=step=>{if(label==='v94')records.v94OfflineCheckpoint=step;};
  v94('navigate');
@@ -208,7 +228,11 @@ async function localPage(page,alias,expected,offline,label){
  v94('ready');
  try{await ready(page);}
  catch(error){
-  if(label==='new_tab')records.freshDocument=await snapshotFreshDocument(page);
+  if(label==='new_tab'){
+   const sample=await snapshotFreshDocument(page);
+   records.freshDocument=sample.data;
+   records.hostCapture={snapshot:sample.status,milestones:hostMilestones.snapshot()};
+  }
   throw error;
  }
 }
@@ -294,8 +318,13 @@ async function localPage(page,alias,expected,offline,label){
   offlineCheckpoint('old_tab_cache');await ownedCache(oldTab,'v95',hashes.v95[0]);
   offlineCheckpoint('old_tab_save');assert.equal(await saveView(oldTab),oldSave);
   offlineCheckpoint('new_tab_create');const newTab=await context.newPage();
+  const hostMilestones=makeHostMilestones();
+  await newTab.exposeBinding('__a54HostPulse',({page,frame},key,bin)=>{
+   if(page!==newTab||frame!==newTab.mainFrame())return;
+   try{if(new URL(frame.url()).origin===origin)hostMilestones.note(key,bin);}catch{}
+  });
   await newTab.addInitScript(installFreshDocumentObserver,origin);
-  await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab');
+  await localPage(newTab,'index.html',hashes.v95[0],true,'new_tab',hostMilestones);
   offlineCheckpoint('new_tab_cache');await ownedCache(newTab,'v95',hashes.v95[0]);
   offlineCheckpoint('new_tab_save');assert.equal(await saveView(newTab),oldSave);
   offlineCheckpoint('reload_navigate');const r=await newTab.reload({waitUntil:'domcontentloaded',timeout:70000});
